@@ -71,10 +71,10 @@ def create_app() -> FastAPI:
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
     
-    # Add verification page route
+    # Redirect verification page to dashboard
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page():
-        with open("templates/verification.html", "r") as f:
+        with open("templates/dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
     
     # Startup and shutdown events

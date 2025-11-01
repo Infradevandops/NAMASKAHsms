@@ -3,1081 +3,932 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Namaskah SMS - Simple Verification</title>
+    <title>SMS Verification Dashboard - Namaskah</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0a1628;
-            color: white;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1f2937;
         }
         
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        .card {
-            background: #1a2942;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #334155;
-        }
-        
-        h1 { text-align: center; margin-bottom: 30px; color: #d4af37; }
-        
-        .user-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: #0f1f3a;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        
-        .services-grid {
+        .dashboard {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: 60px 1fr;
+            height: 100vh;
         }
         
-        .service-btn {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 15px 10px;
+        /* Header */
+        .header {
+            grid-column: 1 / -1;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+        
+        .logo { font-size: 20px; font-weight: 700; color: #667eea; }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .balance {
+            background: #f0f9ff;
+            color: #0369a1;
+            padding: 8px 16px;
             border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            padding: 24px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #6b7280;
+            text-decoration: none;
             transition: all 0.2s;
         }
         
-        .service-btn:hover { background: #5a67d8; transform: translateY(-2px); }
-        
-        .verification-card {
-            background: #10b981;
-            color: white;
-            padding: 20px;
-            border-radius: 12px;
-            margin: 20px 0;
-            display: none;
+        .nav-item:hover, .nav-item.active {
+            background: #f3f4f6;
+            color: #667eea;
+            border-right: 3px solid #667eea;
         }
         
-        .phone-display {
-            font-family: monospace;
-            font-size: 18px;
-            font-weight: bold;
-            margin: 10px 0;
-            text-align: center;
+        .nav-item .icon { margin-right: 12px; font-size: 18px; }
+        
+        /* Main Content */
+        .main-content {
+            padding: 24px;
+            overflow-y: auto;
         }
         
-        .messages {
-            background: #f0fdf4;
-            color: #166534;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            display: none;
-        }
-        
-        .code {
-            font-family: monospace;
-            font-size: 20px;
-            font-weight: bold;
+        .section {
             background: white;
-            color: #166534;
-            padding: 10px;
-            border-radius: 6px;
-            text-align: center;
-            margin: 10px 0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        /* Create Verification Form */
+        .create-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #374151;
+        }
+        
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .form-group select:focus, .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
         }
         
         .btn {
-            background: #d4af37;
-            color: white;
+            padding: 12px 24px;
             border: none;
-            padding: 12px 20px;
             border-radius: 8px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
-            margin: 5px;
+            transition: all 0.2s;
         }
         
-        .btn:hover { background: #b8941f; }
-        .btn-danger { background: #ef4444; }
-        .btn-danger:hover { background: #dc2626; }
-        
-        .hidden { display: none !important; }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
+        .btn-primary {
+            background: #667eea;
             color: white;
-            font-weight: 500;
-            z-index: 1000;
-            display: none;
         }
         
-        .notification.success { background: #10b981; }
-        .notification.error { background: #ef4444; }
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        /* Verification Cards */
+        .verifications-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+        
+        .verification-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+        }
+        
+        .verification-card:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        
+        .verification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .service-name {
+            font-weight: 600;
+            font-size: 16px;
+            text-transform: capitalize;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-failed {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .phone-number {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 600;
+            color: #1f2937;
+            margin: 12px 0;
+        }
+        
+        .messages-panel {
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 12px;
+            margin: 12px 0;
+            min-height: 60px;
+        }
+        
+        .message {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #10b981;
+        }
+        
+        .card-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+        
+        /* Quick Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px auto 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .sidebar.mobile-open {
+                display: block;
+                position: fixed;
+                top: 60px;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                height: calc(100vh - 60px);
+            }
+            
+            .create-form {
+                grid-template-columns: 1fr;
+            }
+            
+            .verifications-grid {
+                grid-template-columns: 1fr;
+            }
+        }
         
         .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 2000;
-            display: none;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f4f6;
-            border-top: 4px solid #10b981;
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
         
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #334155;
-            background: #0f1f3a;
-            color: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .auth-form { max-width: 400px; margin: 0 auto; }
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
         
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .services-grid { grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); }
-            .user-info { flex-direction: column; gap: 10px; text-align: center; }
+        .notification {
+            animation: slideIn 0.3s ease;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Namaskah SMS</h1>
-        
-        <!-- Auth Section -->
-        <div id="auth-section">
-            <div class="card auth-form">
-                <h2>Login</h2>
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button class="btn" onclick="login()" style="width: 100%;">Login</button>
-                <p style="text-align: center; margin: 10px 0;">or</p>
-                <button class="btn" onclick="showRegister()" style="width: 100%; background: #667eea;">Register</button>
+    <div class="dashboard">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">📱 Namaskah SMS</div>
+            <div class="header-right">
+                <div class="balance" id="balance-display">$0.00</div>
+                <button class="btn btn-secondary" onclick="logout()">Logout</button>
             </div>
         </div>
         
-        <!-- App Section -->
-        <div id="app-section" class="hidden">
-            <div class="user-info">
-                <div>
-                    <div id="user-email"></div>
-                    <div>Balance: N<span id="user-credits">0.00</span></div>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <a href="#create" class="nav-item active" onclick="showSection('create')">
+                <span class="icon">➕</span>
+                Create Verification
+            </a>
+            <a href="#active" class="nav-item" onclick="showSection('active')">
+                <span class="icon">📱</span>
+                Active Verifications
+            </a>
+            <a href="#history" class="nav-item" onclick="showSection('history')">
+                <span class="icon">📋</span>
+                History
+            </a>
+            <a href="#account" class="nav-item" onclick="showSection('account')">
+                <span class="icon">💰</span>
+                Account
+            </a>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Quick Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="active-count">0</div>
+                    <div class="stat-label">Active</div>
                 </div>
-                <div>
-                    <button class="btn" onclick="showFundWallet()">Fund Wallet</button>
-                    <button class="btn btn-danger" onclick="logout()">Logout</button>
+                <div class="stat-card">
+                    <div class="stat-value" id="completed-count">0</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="success-rate">0%</div>
+                    <div class="stat-label">Success Rate</div>
                 </div>
             </div>
             
-            <div class="card">
-                <h3>Create Verification</h3>
-                
-                <!-- Service Selection -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Select Service:</label>
-                    <select id="service-select" style="width: 100%; padding: 12px; border: 2px solid #334155; background: #0f1f3a; color: white; border-radius: 8px; margin-bottom: 15px;">
-                        <optgroup label="🔥 Most Popular (1,800+ Available)">
-                            <option value="telegram">📱 Telegram - $0.75</option>
-                            <option value="whatsapp">💬 WhatsApp - $0.75</option>
-                            <option value="discord">🎮 Discord - $0.75</option>
-                            <option value="google">🔍 Google - $0.75</option>
-                            <option value="instagram">📷 Instagram - $1.00</option>
-                            <option value="facebook">👥 Facebook - $1.00</option>
-                            <option value="twitter">🐦 Twitter - $1.00</option>
-                            <option value="tiktok">🎵 TikTok - $1.00</option>
-                        </optgroup>
-                        <optgroup label="💼 Business & Finance">
-                            <option value="paypal">💳 PayPal - $1.50</option>
-                            <option value="microsoft">🏢 Microsoft - $1.00</option>
-                            <option value="amazon">📦 Amazon - $1.00</option>
-                            <option value="apple">🍎 Apple - $1.25</option>
-                            <option value="netflix">🎬 Netflix - $1.00</option>
-                            <option value="spotify">🎵 Spotify - $0.85</option>
-                        </optgroup>
-                        <optgroup label="🎮 Gaming & Entertainment">
-                            <option value="steam">🎮 Steam - $0.90</option>
-                            <option value="twitch">📺 Twitch - $0.85</option>
-                            <option value="youtube">📹 YouTube - $0.75</option>
-                            <option value="reddit">🤖 Reddit - $0.80</option>
-                            <option value="snapchat">👻 Snapchat - $1.00</option>
-                            <option value="pinterest">📌 Pinterest - $0.85</option>
-                        </optgroup>
-                        <optgroup label="🛒 E-commerce & Services">
-                            <option value="uber">🚗 Uber - $0.90</option>
-                            <option value="lyft">🚕 Lyft - $0.90</option>
-                            <option value="airbnb">🏠 Airbnb - $1.10</option>
-                            <option value="ebay">🛒 eBay - $0.95</option>
-                            <option value="etsy">🎨 Etsy - $0.85</option>
-                            <option value="shopify">🛍️ Shopify - $1.00</option>
-                        </optgroup>
-                        <optgroup label="💰 Crypto & Trading">
-                            <option value="coinbase">₿ Coinbase - $1.50</option>
-                            <option value="binance">₿ Binance - $1.50</option>
-                            <option value="kraken">₿ Kraken - $1.40</option>
-                            <option value="robinhood">📈 Robinhood - $1.25</option>
-                        </optgroup>
-                        <optgroup label="📧 Communication">
-                            <option value="outlook">📧 Outlook - $0.85</option>
-                            <option value="yahoo">📧 Yahoo - $0.80</option>
-                            <option value="protonmail">🔒 ProtonMail - $1.20</option>
-                            <option value="slack">💬 Slack - $1.00</option>
-                            <option value="zoom">📹 Zoom - $0.95</option>
-                        </optgroup>
-                    </select>
-                </div>
-                
-                <!-- Verification Type Selection -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 12px; font-weight: 600;">Verification Type:</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                        <label class="capability-option" style="display: flex; align-items: center; padding: 15px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: #1a2942;">
-                            <input type="radio" name="capability" value="sms" checked style="margin-right: 12px; transform: scale(1.2);">
-                            <div>
-                                <div style="font-size: 18px; margin-bottom: 4px;">📱 SMS Text</div>
-                                <div style="font-size: 12px; color: #94a3b8;">Receive code via text message</div>
-                                <div style="font-size: 11px; color: #10b981; font-weight: 600;">Base Price</div>
-                            </div>
-                        </label>
-                        <label class="capability-option" style="display: flex; align-items: center; padding: 15px; border: 2px solid #334155; border-radius: 12px; cursor: pointer; transition: all 0.2s; background: #1a2942;">
-                            <input type="radio" name="capability" value="voice" style="margin-right: 12px; transform: scale(1.2);">
-                            <div>
-                                <div style="font-size: 18px; margin-bottom: 4px;">📞 Voice Call</div>
-                                <div style="font-size: 12px; color: #94a3b8;">Receive code via phone call</div>
-                                <div style="font-size: 11px; color: #f59e0b; font-weight: 600;">+$0.30 Premium</div>
-                            </div>
-                        </label>
+            <!-- Create Verification Section -->
+            <div id="create-section" class="section">
+                <h2 class="section-title">Create New Verification</h2>
+                <div class="create-form">
+                    <div class="form-group">
+                        <label>Service</label>
+                        <select id="service-select">
+                            <optgroup label="Social Media">
+                                <option value="telegram">Telegram</option>
+                                <option value="whatsapp">WhatsApp</option>
+                                <option value="discord">Discord</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="twitter">Twitter</option>
+                            </optgroup>
+                            <optgroup label="Business">
+                                <option value="google">Google</option>
+                                <option value="microsoft">Microsoft</option>
+                                <option value="amazon">Amazon</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Country</label>
+                        <select id="country-select">
+                            <option value="">Loading countries...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type</label>
+                        <select id="capability-select">
+                            <option value="sms">SMS</option>
+                            <option value="voice">Voice Call</option>
+                        </select>
                     </div>
                 </div>
-                
-                <!-- Country Selection -->
-                <div style="margin-bottom: 20px;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600;">Country (70 Available):</label>
-                    <select id="country-select" style="width: 100%; padding: 12px; border: 2px solid #334155; background: #0f1f3a; color: white; border-radius: 8px;">
-                        <optgroup label="🌟 Popular (Premium)">
-                            <option value="US">🇺🇸 United States (1.0x)</option>
-                            <option value="GB">🇬🇧 United Kingdom (1.2x)</option>
-                            <option value="DE">🇩🇪 Germany (1.3x)</option>
-                            <option value="CA">🇨🇦 Canada (1.1x)</option>
-                            <option value="AU">🇦🇺 Australia (1.4x)</option>
-                            <option value="FR">🇫🇷 France (1.3x)</option>
-                            <option value="NL">🇳🇱 Netherlands (1.2x)</option>
-                            <option value="CH">🇨🇭 Switzerland (1.8x)</option>
-                            <option value="JP">🇯🇵 Japan (1.5x)</option>
-                            <option value="SG">🇸🇬 Singapore (1.3x)</option>
-                        </optgroup>
-                        <optgroup label="🌍 Europe">
-                            <option value="SE">🇸🇪 Sweden (1.5x)</option>
-                            <option value="NO">🇳🇴 Norway (1.6x)</option>
-                            <option value="DK">🇩🇰 Denmark (1.5x)</option>
-                            <option value="FI">🇫🇮 Finland (1.4x)</option>
-                            <option value="AT">🇦🇹 Austria (1.3x)</option>
-                            <option value="BE">🇧🇪 Belgium (1.2x)</option>
-                            <option value="IT">🇮🇹 Italy (1.1x)</option>
-                            <option value="ES">🇪🇸 Spain (1.0x)</option>
-                            <option value="PT">🇵🇹 Portugal (0.9x)</option>
-                            <option value="IE">🇮🇪 Ireland (1.3x)</option>
-                            <option value="PL">🇵🇱 Poland (0.8x)</option>
-                            <option value="CZ">🇨🇿 Czech Republic (0.7x)</option>
-                            <option value="HU">🇭🇺 Hungary (0.7x)</option>
-                            <option value="RO">🇷🇴 Romania (0.6x)</option>
-                        </optgroup>
-                        <optgroup label="🌏 Asia-Pacific">
-                            <option value="KR">🇰🇷 South Korea (1.2x)</option>
-                            <option value="HK">🇭🇰 Hong Kong (1.1x)</option>
-                            <option value="TW">🇹🇼 Taiwan (1.0x)</option>
-                            <option value="MY">🇲🇾 Malaysia (0.6x)</option>
-                            <option value="TH">🇹🇭 Thailand (0.5x)</option>
-                            <option value="PH">🇵🇭 Philippines (0.4x)</option>
-                            <option value="ID">🇮🇩 Indonesia (0.3x)</option>
-                            <option value="VN">🇻🇳 Vietnam (0.3x)</option>
-                            <option value="IN">🇮🇳 India (0.2x)</option>
-                            <option value="CN">🇨🇳 China (0.8x)</option>
-                        </optgroup>
-                        <optgroup label="🌎 Americas">
-                            <option value="MX">🇲🇽 Mexico (0.4x)</option>
-                            <option value="BR">🇧🇷 Brazil (0.4x)</option>
-                            <option value="AR">🇦🇷 Argentina (0.3x)</option>
-                            <option value="CL">🇨🇱 Chile (0.5x)</option>
-                            <option value="CO">🇨🇴 Colombia (0.3x)</option>
-                            <option value="PE">🇵🇪 Peru (0.3x)</option>
-                        </optgroup>
-                        <optgroup label="🌍 Middle East & Africa">
-                            <option value="AE">🇦🇪 UAE (0.8x)</option>
-                            <option value="SA">🇸🇦 Saudi Arabia (0.6x)</option>
-                            <option value="IL">🇮🇱 Israel (1.0x)</option>
-                            <option value="TR">🇹🇷 Turkey (0.3x)</option>
-                            <option value="ZA">🇿🇦 South Africa (0.4x)</option>
-                            <option value="NG">🇳🇬 Nigeria (0.2x)</option>
-                            <option value="EG">🇪🇬 Egypt (0.2x)</option>
-                            <option value="RU">🇷🇺 Russia (0.3x)</option>
-                        </optgroup>
-                    </select>
-                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">
-                        📊 Price multiplier shown • 70 countries • 1,800+ services available
-                    </div>
-                    <div style="margin-top: 8px;">
-                        <button type="button" onclick="loadAllServices()" style="background: #667eea; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-size: 11px; cursor: pointer;">
-                            🔍 Browse All 1,800+ Services
-                        </button>
-                    </div>
-                </div>
-                
-                <!-- Create Button -->
-                <button class="btn" onclick="createVerification()" style="width: 100%; background: #10b981; font-size: 16px; font-weight: 600; padding: 15px;">
-                    <span id="create-btn-text">🚀 Create Verification</span>
-                    <span id="create-loading" style="display: none;">⏳ Creating...</span>
+                <button class="btn btn-primary" onclick="createVerification()">
+                    <span id="create-btn-text">Create Verification</span>
+                    <span id="create-loading" class="loading" style="display: none;"></span>
                 </button>
+            </div>
+            
+            <!-- Active Verifications Section -->
+            <div id="active-section" class="section">
+                <h2 class="section-title">Active Verifications</h2>
+                <div id="verifications-grid" class="verifications-grid">
+                    <!-- Verification cards will be populated here -->
+                </div>
+            </div>
+            
+            <!-- Account Section -->
+            <div id="account-section" class="section" style="display: none;">
+                <h2 class="section-title">Account Management</h2>
                 
-                <!-- Price Display -->
-                <div id="price-display" style="text-align: center; margin-top: 12px; font-size: 14px; color: #94a3b8;">
-                    Estimated cost: <span id="estimated-cost">$0.75</span>
-                    <div id="price-breakdown"></div>
-                </div>
-            </div>
-            
-            <div id="verification-card" class="verification-card">
-                <h3>🚀 Verification Active</h3>
-                <div style="margin: 10px 0;">Service: <span id="service-name" style="font-weight: 600; text-transform: capitalize;"></span></div>
-                <div class="phone-display" id="phone-number" style="font-family: monospace; font-size: 20px; font-weight: bold; background: #f0f9ff; color: #0369a1; padding: 12px; border-radius: 8px; text-align: center; margin: 12px 0; cursor: pointer;" onclick="copyPhone()"></div>
-                <div style="margin: 10px 0;">Status: <span id="status" style="padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; background: #fef3c7; color: #92400e;">pending</span></div>
-                <div style="text-align: center; margin: 20px 0;">
-                    <button class="btn" onclick="checkMessages()" style="background: #10b981; margin-right: 8px;">
-                        <span id="check-btn-text">📱 Check Messages</span>
-                    </button>
-                    <button class="btn btn-danger" onclick="cancelVerification()">
-                        ❌ Cancel & Refund
+                <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                    <h3>💳 Add Credits</h3>
+                    <div class="create-form">
+                        <div class="form-group">
+                            <label>Amount (USD)</label>
+                            <select id="credit-amount">
+                                <option value="10">$10 - 5 Credits</option>
+                                <option value="25">$25 - 12.5 Credits</option>
+                                <option value="50">$50 - 25 Credits</option>
+                                <option value="100">$100 - 50 Credits</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="initializePayment()">
+                        <span id="payment-btn-text">Add Credits via Paystack</span>
+                        <span id="payment-loading" class="loading" style="display: none;"></span>
                     </button>
                 </div>
-                <div style="font-size: 12px; color: #6b7280; text-align: center; margin-top: 10px;">
-                    💡 Click phone number to copy • Auto-checking every 10 seconds
+                
+                <div style="background: white; padding: 20px; border-radius: 12px;">
+                    <h3>📋 Transaction History</h3>
+                    <div id="transaction-history">
+                        <p style="color: #6b7280;">Loading transactions...</p>
+                    </div>
                 </div>
-            </div>
-            
-            <div id="messages-section" class="messages">
-                <h4>SMS Received!</h4>
-                <div id="messages-list"></div>
             </div>
         </div>
     </div>
-    
-    <!-- Fund Wallet Modal -->
-    <div id="fund-modal" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000;">
-        <div class="card" style="max-width: 400px; margin: 20px;">
-            <h3>Fund Wallet</h3>
-            <input type="number" id="fund-amount" placeholder="Amount (USD)" min="5" step="5">
-            <button class="btn" onclick="processPayment()" style="width: 100%;">Pay with Paystack</button>
-            <button class="btn btn-danger" onclick="closeFundWallet()" style="width: 100%; margin-top: 10px;">Cancel</button>
-        </div>
-    </div>
-    
-    <div id="notification" class="notification"></div>
-    <div id="loading" class="loading"><div class="spinner"></div></div>
     
     <script>
         const API_BASE = '';
-        let currentVerificationId = null;
-        let autoRefreshInterval = null;
+        let token = localStorage.getItem('token');
+        let activeVerifications = [];
+        let pollInterval;
         
-        // Auth Functions
-        async function login() {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            
-            if (!email || !password) {
-                showNotification('Please enter email and password', 'error');
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!token) {
+                window.location.href = '/auth/login';
                 return;
             }
             
-            showLoading(true);
-            
+            loadCountries();
+            loadUserBalance();
+            loadActiveVerifications();
+            startPolling();
+        });
+        
+        // Load countries from API
+        async function loadCountries() {
             try {
-                const res = await fetch('/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await res.json();
-                showLoading(false);
-                
-                if (res.ok) {
-                    localStorage.setItem('token', data.token);
-                    showApp();
-                    loadUserData();
-                    showNotification('Login successful!', 'success');
+                const response = await fetch('/countries/popular');
+                if (response.ok) {
+                    const data = await response.json();
+                    populateCountrySelect(data.countries);
                 } else {
-                    showNotification(data.detail || 'Login failed', 'error');
+                    // Fallback to basic countries
+                    populateCountrySelect([
+                        {code: 'US', name: 'United States', voice_supported: true},
+                        {code: 'GB', name: 'United Kingdom', voice_supported: true},
+                        {code: 'CA', name: 'Canada', voice_supported: true},
+                        {code: 'DE', name: 'Germany', voice_supported: true}
+                    ]);
                 }
-            } catch (err) {
-                showLoading(false);
-                showNotification('Network error', 'error');
+            } catch (error) {
+                console.error('Failed to load countries:', error);
+                // Fallback countries
+                populateCountrySelect([
+                    {code: 'US', name: 'United States', voice_supported: true},
+                    {code: 'GB', name: 'United Kingdom', voice_supported: true}
+                ]);
             }
         }
         
-        function showRegister() {
-            const authCard = document.querySelector('#auth-section .card');
-            authCard.innerHTML = `
-                <h2>Register</h2>
-                <input type="email" id="reg-email" placeholder="Email" required>
-                <input type="password" id="reg-password" placeholder="Password (min 6 chars)" required>
-                <button class="btn" onclick="register()" style="width: 100%;">Register</button>
-                <p style="text-align: center; margin: 10px 0;">or</p>
-                <button class="btn" onclick="showLogin()" style="width: 100%; background: #667eea;">Back to Login</button>
-            `;
+        // Populate country select dropdown
+        function populateCountrySelect(countries) {
+            const select = document.getElementById('country-select');
+            select.innerHTML = '<option value="">Select a country...</option>';
+            
+            countries.forEach(country => {
+                const option = document.createElement('option');
+                option.value = country.code;
+                option.textContent = `${country.name} ${country.voice_supported ? '(Voice Available)' : '(SMS Only)'}`;
+                option.dataset.voiceSupported = country.voice_supported;
+                select.appendChild(option);
+            });
+            
+            // Update voice capability when country changes
+            select.addEventListener('change', updateVoiceCapability);
         }
         
-        function showLogin() {
-            const authCard = document.querySelector('#auth-section .card');
-            authCard.innerHTML = `
-                <h2>Login</h2>
-                <input type="email" id="email" placeholder="Email" required>
-                <input type="password" id="password" placeholder="Password" required>
-                <button class="btn" onclick="login()" style="width: 100%;">Login</button>
-                <p style="text-align: center; margin: 10px 0;">or</p>
-                <button class="btn" onclick="showRegister()" style="width: 100%; background: #667eea;">Register</button>
-            `;
+        // Update voice capability based on selected country
+        function updateVoiceCapability() {
+            const countrySelect = document.getElementById('country-select');
+            const capabilitySelect = document.getElementById('capability-select');
+            const selectedOption = countrySelect.options[countrySelect.selectedIndex];
+            
+            if (selectedOption && selectedOption.dataset.voiceSupported === 'false') {
+                // Disable voice option for countries that don't support it
+                capabilitySelect.innerHTML = '<option value="sms">SMS</option>';
+            } else {
+                // Enable both options
+                capabilitySelect.innerHTML = `
+                    <option value="sms">SMS</option>
+                    <option value="voice">Voice Call</option>
+                `;
+            }
         }
         
-        async function register() {
-            const email = document.getElementById('reg-email').value;
-            const password = document.getElementById('reg-password').value;
-            
-            if (!email || !password) {
-                showNotification('Please enter email and password', 'error');
-                return;
-            }
-            
-            if (password.length < 6) {
-                showNotification('Password must be at least 6 characters', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            
+        // Load user balance
+        async function loadUserBalance() {
             try {
-                const res = await fetch('/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await res.json();
-                showLoading(false);
-                
-                if (res.ok) {
-                    localStorage.setItem('token', data.token);
-                    showApp();
-                    loadUserData();
-                    showNotification('Registration successful! Welcome!', 'success');
-                } else {
-                    showNotification(data.detail || 'Registration failed', 'error');
-                }
-            } catch (err) {
-                showLoading(false);
-                showNotification('Network error', 'error');
-            }
-        }
-        
-        function logout() {
-            localStorage.removeItem('token');
-            currentVerificationId = null;
-            stopAutoRefresh();
-            document.getElementById('auth-section').classList.remove('hidden');
-            document.getElementById('app-section').classList.add('hidden');
-            document.getElementById('verification-card').style.display = 'none';
-            document.getElementById('messages-section').style.display = 'none';
-            showLogin();
-        }
-        
-        function showApp() {
-            document.getElementById('auth-section').classList.add('hidden');
-            document.getElementById('app-section').classList.remove('hidden');
-        }
-        
-        async function loadUserData() {
-            const token = localStorage.getItem('token');
-            if (!token) return;
-            
-            try {
-                const res = await fetch('/auth/me', {
+                const response = await fetch('/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (res.ok) {
-                    const data = await res.json();
-                    document.getElementById('user-email').textContent = data.email;
-                    document.getElementById('user-credits').textContent = (data.credits || 0).toFixed(2);
-                } else {
-                    console.error('Failed to load user data:', res.status);
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('balance-display').textContent = `$${user.credits.toFixed(2)}`;
                 }
-            } catch (err) {
-                console.error('Failed to load user data:', err);
+            } catch (error) {
+                console.error('Failed to load balance:', error);
             }
         }
         
-        // Verification Functions
+        // Create new verification
         async function createVerification() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                showNotification('Please login first', 'error');
-                return;
-            }
-            
-            const serviceName = document.getElementById('service-select').value;
-            const capability = document.querySelector('input[name="capability"]:checked').value;
+            const service = document.getElementById('service-select').value;
             const country = document.getElementById('country-select').value;
+            const capability = document.getElementById('capability-select').value;
             
-            if (!serviceName) {
-                showNotification('Please select a service', 'error');
+            // Validation
+            if (!service) {
+                alert('Please select a service');
+                return;
+            }
+            if (!country) {
+                alert('Please select a country');
                 return;
             }
             
-            const createBtnText = document.getElementById('create-btn-text');
-            const createLoading = document.getElementById('create-loading');
+            const createBtn = document.getElementById('create-btn-text');
+            const loading = document.getElementById('create-loading');
             
-            createBtnText.style.display = 'none';
-            createLoading.style.display = 'inline';
+            createBtn.style.display = 'none';
+            loading.style.display = 'inline-block';
             
             try {
-                const res = await fetch('/verify/create', {
+                const response = await fetch('/verify/create', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ 
-                        service_name: serviceName,
-                        capability: capability,
-                        country: country
+                    body: JSON.stringify({
+                        service_name: service,
+                        country: country,
+                        capability: capability
                     })
                 });
                 
-                const data = await res.json();
+                const responseData = await response.json();
                 
-                if (res.ok) {
-                    currentVerificationId = data.id;
-                    displayVerification(data);
-                    document.getElementById('user-credits').textContent = data.remaining_credits.toFixed(2);
+                if (response.ok) {
+                    activeVerifications.push(responseData);
                     
-                    const capabilityText = capability === 'voice' ? '📞 Voice' : '📱 SMS';
-                    showNotification(`${capabilityText} verification created! Cost: N${data.cost}`, 'success');
-                    startAutoRefresh();
+                    // Connect WebSocket for real-time updates
+                    connectWebSocket(responseData.id);
+                    
+                    renderVerifications();
+                    showSection('active');
+                    loadUserBalance(); // Refresh balance
+                    
+                    // Show success message
+                    showNotification('Verification created successfully!', 'success');
                 } else {
-                    if (res.status === 402) {
-                        showNotification('Insufficient funds. Please fund your wallet', 'error');
-                        showFundWallet();
-                    } else {
-                        showNotification(data.detail || 'Failed to create verification', 'error');
+                    // Handle specific error cases
+                    let errorMessage = 'Unknown error';
+                    if (responseData.detail) {
+                        errorMessage = responseData.detail;
+                    } else if (responseData.message) {
+                        errorMessage = responseData.message;
+                    } else if (response.status === 402) {
+                        errorMessage = 'Insufficient credits. Please add credits to your account.';
+                    } else if (response.status === 401) {
+                        errorMessage = 'Authentication failed. Please login again.';
+                        logout();
+                        return;
+                    } else if (response.status === 503) {
+                        errorMessage = 'Service temporarily unavailable. Please try again later.';
                     }
+                    
+                    showNotification(`Failed to create verification: ${errorMessage}`, 'error');
                 }
-            } catch (err) {
-                showNotification('Network error', 'error');
+            } catch (error) {
+                console.error('Network error:', error);
+                showNotification('Network error. Please check your connection and try again.', 'error');
             } finally {
-                createBtnText.style.display = 'inline';
-                createLoading.style.display = 'none';
+                createBtn.style.display = 'inline-block';
+                loading.style.display = 'none';
             }
         }
         
-        function displayVerification(data) {
-            document.getElementById('service-name').textContent = data.service_name;
-            document.getElementById('phone-number').textContent = data.phone_number;
-            document.getElementById('status').textContent = data.status;
+        // Show notification
+        function showNotification(message, type = 'info') {
+            // Remove existing notifications
+            const existing = document.querySelector('.notification');
+            if (existing) existing.remove();
             
-            // Update verification card with capability info
-            const verificationCard = document.getElementById('verification-card');
-            const capability = data.capability || 'sms';
-            const capabilityIcon = capability === 'voice' ? '📞' : '📱';
-            const capabilityText = capability === 'voice' ? 'Voice Call' : 'SMS Text';
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 16px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 600;
+                z-index: 1000;
+                max-width: 400px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                animation: slideIn 0.3s ease;
+            `;
             
-            // Add capability indicator
-            const existingCapability = verificationCard.querySelector('.capability-indicator');
-            if (existingCapability) {
-                existingCapability.remove();
+            if (type === 'success') {
+                notification.style.background = '#10b981';
+            } else if (type === 'error') {
+                notification.style.background = '#ef4444';
+            } else {
+                notification.style.background = '#3b82f6';
             }
             
-            const capabilityDiv = document.createElement('div');
-            capabilityDiv.className = 'capability-indicator';
-            capabilityDiv.style.cssText = 'background: #f0f9ff; color: #0369a1; padding: 8px 12px; border-radius: 6px; margin: 10px 0; font-size: 14px; font-weight: 600;';
-            capabilityDiv.textContent = `${capabilityIcon} ${capabilityText} Verification`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
             
-            const phoneDiv = verificationCard.querySelector('.phone-display');
-            phoneDiv.parentNode.insertBefore(capabilityDiv, phoneDiv.nextSibling);
-            
-            verificationCard.style.display = 'block';
-            document.getElementById('messages-section').style.display = 'none';
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 5000);
         }
         
-        async function checkMessages() {
-            if (!currentVerificationId) return;
-            
-            const token = localStorage.getItem('token');
-            
+        // Load active verifications
+        async function loadActiveVerifications() {
             try {
-                // Check if this is a voice verification
-                const capability = document.querySelector('.capability-indicator')?.textContent.includes('Voice') ? 'voice' : 'sms';
-                const endpoint = capability === 'voice' ? 'voice' : 'messages';
-                
-                const res = await fetch(`/verify/${currentVerificationId}/${endpoint}`, {
+                const response = await fetch('/verify/history?verification_status=pending', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (res.ok) {
-                    const data = await res.json();
-                    
-                    if (data.messages && data.messages.length > 0) {
-                        stopAutoRefresh();
-                        displayMessages(data.messages, capability);
-                        const messageType = capability === 'voice' ? 'Voice call' : 'SMS';
-                        showNotification(`${messageType} received!`, 'success');
-                    } else {
-                        const waitingType = capability === 'voice' ? 'voice call' : 'SMS';
-                        showNotification(`No ${waitingType} yet. Keep waiting...`, 'error');
-                    }
-                } else {
-                    showNotification('Failed to check messages', 'error');
+                if (response.ok) {
+                    const data = await response.json();
+                    activeVerifications = data.verifications || [];
+                    renderVerifications();
+                    updateStats();
                 }
-            } catch (err) {
-                showNotification('Network error', 'error');
+            } catch (error) {
+                console.error('Failed to load verifications:', error);
             }
         }
         
-        function displayMessages(messages, capability = 'sms') {
-            const messagesList = document.getElementById('messages-list');
-            const isVoice = capability === 'voice';
-            const messageType = isVoice ? 'Voice Call' : 'SMS Message';
-            const icon = isVoice ? '📞' : '📱';
+        // Render verification cards
+        function renderVerifications() {
+            const grid = document.getElementById('verifications-grid');
             
-            messagesList.innerHTML = `
-                <div style="background: #10b981; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; text-align: center;">
-                    <h3 style="margin: 0 0 8px 0;">${icon} ${messageType} Received!</h3>
-                    <p style="margin: 0; opacity: 0.9;">Your verification code has arrived</p>
-                </div>
-            ` + messages.map(msg => {
-                const code = msg.match(/\\b\\d{4,8}\\b/)?.[0] || msg;
-                return `
-                    <div style="background: #f0fdf4; border: 2px solid #10b981; border-radius: 12px; padding: 20px; margin-bottom: 15px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                            <strong style="color: #166534;">Verification Code:</strong>
-                            <button onclick="copyCode('${code}')" style="background: #10b981; color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Copy Code</button>
-                        </div>
-                        <div class="code" onclick="copyCode('${code}')" style="font-family: monospace; font-size: 24px; font-weight: bold; color: #166534; background: white; padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; border: 2px dashed #10b981;">${code}</div>
-                        <details style="margin-top: 12px;">
-                            <summary style="cursor: pointer; color: #6b7280; font-size: 13px;">Full ${messageType.toLowerCase()}</summary>
-                            <div style="margin-top: 8px; font-size: 13px; color: #6b7280; background: #f9fafb; padding: 10px; border-radius: 6px;">${msg}</div>
-                        </details>
+            if (activeVerifications.length === 0) {
+                grid.innerHTML = '<p style="text-align: center; color: #6b7280; grid-column: 1/-1;">No active verifications</p>';
+                return;
+            }
+            
+            grid.innerHTML = activeVerifications.map(verification => `
+                <div class="verification-card">
+                    <div class="verification-header">
+                        <div class="service-name">${verification.service_name}</div>
+                        <div class="status-badge status-${verification.status}">${verification.status}</div>
                     </div>
-                `;
-            }).join('') + `
-                <button onclick="tryAnotherService()" style="width: 100%; background: #667eea; color: white; padding: 14px; font-size: 16px; font-weight: 600; border: none; border-radius: 8px; cursor: pointer; margin-top: 15px;">
-                    ✨ Try Another Service
-                </button>
-            `;
-            
-            document.getElementById('messages-section').style.display = 'block';
+                    <div class="phone-number">${verification.phone_number}</div>
+                    <div class="messages-panel" id="messages-${verification.id}">
+                        <div style="color: #6b7280; font-size: 14px;">Waiting for SMS...</div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-secondary" onclick="refreshMessages('${verification.id}')">
+                            Refresh
+                        </button>
+                        <button class="btn btn-danger" onclick="cancelVerification('${verification.id}')">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            `).join('');
         }
         
-        function copyCode(code) {
-            navigator.clipboard.writeText(code).then(() => {
-                showNotification(`Code ${code} copied!`, 'success');
-            });
+        // Refresh messages for a verification
+        async function refreshMessages(verificationId) {
+            try {
+                const response = await fetch(`/verify/${verificationId}/messages`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const messagesPanel = document.getElementById(`messages-${verificationId}`);
+                    
+                    if (data.messages && data.messages.length > 0) {
+                        messagesPanel.innerHTML = data.messages.map(msg => `
+                            <div class="message">${msg.text}</div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to refresh messages:', error);
+            }
         }
         
-        async function cancelVerification() {
-            if (!currentVerificationId) return;
-            
-            if (!confirm('Cancel verification and get refund?')) return;
-            
-            const token = localStorage.getItem('token');
-            showLoading(true);
+        // Cancel verification
+        async function cancelVerification(verificationId) {
+            if (!confirm('Are you sure you want to cancel this verification?')) return;
             
             try {
-                const res = await fetch(`/verify/${currentVerificationId}`, {
+                const response = await fetch(`/verify/${verificationId}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                const data = await res.json();
-                showLoading(false);
+                if (response.ok) {
+                    activeVerifications = activeVerifications.filter(v => v.id !== verificationId);
+                    renderVerifications();
+                    loadUserBalance();
+                }
+            } catch (error) {
+                alert('Failed to cancel verification');
+            }
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const activeCount = activeVerifications.filter(v => v.status === 'pending').length;
+            const completedCount = activeVerifications.filter(v => v.status === 'completed').length;
+            const successRate = activeVerifications.length > 0 ? 
+                Math.round((completedCount / activeVerifications.length) * 100) : 0;
+            
+            document.getElementById('active-count').textContent = activeCount;
+            document.getElementById('completed-count').textContent = completedCount;
+            document.getElementById('success-rate').textContent = `${successRate}%`;
+        }
+        
+        // WebSocket connection for real-time updates
+        function connectWebSocket(verificationId) {
+            try {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.host;
+                const ws = new WebSocket(`${protocol}//${host}/ws/verification/${verificationId}`);
                 
-                if (res.ok) {
-                    document.getElementById('user-credits').textContent = data.new_balance.toFixed(2);
-                    showNotification(`Cancelled! Refunded N${data.refunded.toFixed(2)}`, 'success');
-                    clearVerification();
+                ws.onmessage = function(event) {
+                    const update = JSON.parse(event.data);
+                    updateVerificationStatus(verificationId, update);
+                };
+                
+                ws.onerror = function() {
+                    console.log('WebSocket failed, using polling fallback');
+                    // Fallback to polling if WebSocket fails
+                    setTimeout(() => refreshMessages(verificationId), 5000);
+                };
+                
+                return ws;
+            } catch (error) {
+                console.log('WebSocket not available, using polling');
+                // Fallback to polling
+                setTimeout(() => refreshMessages(verificationId), 5000);
+                return null;
+            }
+        }
+        
+        // Update verification status from WebSocket
+        function updateVerificationStatus(verificationId, update) {
+            const verification = activeVerifications.find(v => v.id === verificationId);
+            if (verification) {
+                verification.status = update.status;
+                if (update.messages) {
+                    displayMessages(verificationId, update.messages);
+                }
+                renderVerifications();
+            }
+        }
+        
+        // Start polling for updates (fallback)
+        function startPolling() {
+            pollInterval = setInterval(() => {
+                activeVerifications.forEach(verification => {
+                    if (verification.status === 'pending') {
+                        refreshMessages(verification.id);
+                    }
+                });
+            }, 10000); // Poll every 10 seconds as fallback
+        }
+        
+        // Initialize payment
+        async function initializePayment() {
+            const amount = parseFloat(document.getElementById('credit-amount').value);
+            const paymentBtn = document.getElementById('payment-btn-text');
+            const loading = document.getElementById('payment-loading');
+            
+            paymentBtn.style.display = 'none';
+            loading.style.display = 'inline-block';
+            
+            try {
+                const response = await fetch('/wallet/paystack/initialize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ amount_usd: amount })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Redirect to Paystack payment page
+                    window.open(data.authorization_url, '_blank');
                 } else {
-                    showNotification(data.detail || 'Failed to cancel', 'error');
+                    const error = await response.json();
+                    alert(`Payment failed: ${error.detail || error.message}`);
                 }
-            } catch (err) {
-                showLoading(false);
-                showNotification('Network error', 'error');
+            } catch (error) {
+                alert('Payment initialization failed. Please try again.');
+            } finally {
+                paymentBtn.style.display = 'inline-block';
+                loading.style.display = 'none';
             }
         }
         
-        function clearVerification() {
-            currentVerificationId = null;
-            stopAutoRefresh();
-            document.getElementById('verification-card').style.display = 'none';
-            document.getElementById('messages-section').style.display = 'none';
-        }
-        
-        function startAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            
-            autoRefreshInterval = setInterval(async () => {
-                if (currentVerificationId) {
-                    await checkMessages();
+        // Load transaction history
+        async function loadTransactionHistory() {
+            try {
+                const response = await fetch('/wallet/transactions', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTransactionHistory(data.transactions);
                 }
-            }, 10000); // Check every 10 seconds
-        }
-        
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
+            } catch (error) {
+                console.error('Failed to load transactions:', error);
             }
         }
         
-        // Wallet Functions
-        function showFundWallet() {
-            document.getElementById('fund-modal').classList.remove('hidden');
-        }
-        
-        function closeFundWallet() {
-            document.getElementById('fund-modal').classList.add('hidden');
-        }
-        
-        async function processPayment() {
-            const amount = parseFloat(document.getElementById('fund-amount').value);
+        // Display transaction history
+        function displayTransactionHistory(transactions) {
+            const container = document.getElementById('transaction-history');
             
-            if (!amount || amount < 5) {
-                showNotification('Minimum amount is $5', 'error');
+            if (!transactions || transactions.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No transactions found</p>';
                 return;
             }
             
-            const token = localStorage.getItem('token');
-            showLoading(true);
-            
-            try {
-                const res = await fetch('/wallet/fund', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ amount, method: 'paystack' })
-                });
-                
-                const data = await res.json();
-                showLoading(false);
-                
-                if (res.ok && data.authorization_url) {
-                    window.open(data.authorization_url, '_blank');
-                    closeFundWallet();
-                    showNotification('Payment window opened. Complete payment to fund wallet', 'success');
-                } else {
-                    showNotification(data.detail || 'Payment failed', 'error');
-                }
-            } catch (err) {
-                showLoading(false);
-                showNotification('Network error', 'error');
-            }
-        }
-        
-        // Utility Functions
-        function showNotification(message, type) {
-            const notification = document.getElementById('notification');
-            notification.textContent = message;
-            notification.className = `notification ${type}`;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 4000);
-        }
-        
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
-        
-        // Enhanced price calculation with country multipliers
-        function updateEstimatedCost() {
-            const serviceSelect = document.getElementById('service-select');
-            const countrySelect = document.getElementById('country-select');
-            const capabilityRadio = document.querySelector('input[name="capability"]:checked');
-            
-            if (!serviceSelect || !capabilityRadio || !countrySelect) return;
-            
-            const serviceOption = serviceSelect.options[serviceSelect.selectedIndex];
-            const countryOption = countrySelect.options[countrySelect.selectedIndex];
-            
-            const basePrice = parseFloat(serviceOption.text.match(/\$([0-9.]+)/)?.[1] || '1.00');
-            const countryMultiplier = parseFloat(countryOption.text.match(/\(([0-9.]+)x\)/)?.[1] || '1.0');
-            const isVoice = capabilityRadio.value === 'voice';
-            
-            let totalPrice = basePrice * countryMultiplier;
-            if (isVoice) totalPrice += 0.30;
-            
-            document.getElementById('estimated-cost').textContent = `$${totalPrice.toFixed(2)}`;
-            
-            // Update price breakdown
-            const breakdown = document.getElementById('price-breakdown');
-            if (breakdown) {
-                breakdown.innerHTML = `
-                    <div style="font-size: 11px; color: #6b7280; margin-top: 8px;">
-                        Base: $${basePrice} × ${countryMultiplier}x country ${isVoice ? '+ $0.30 voice' : ''}
+            container.innerHTML = transactions.slice(0, 10).map(tx => `
+                <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e5e7eb;">
+                    <div>
+                        <div style="font-weight: 600;">${tx.description}</div>
+                        <div style="font-size: 12px; color: #6b7280;">${new Date(tx.created_at).toLocaleDateString()}</div>
                     </div>
-                `;
-            }
+                    <div style="font-weight: 600; color: ${tx.type === 'credit' ? '#10b981' : '#ef4444'};">
+                        ${tx.type === 'credit' ? '+' : '-'}$${Math.abs(tx.amount).toFixed(2)}
+                    </div>
+                </div>
+            `).join('');
         }
         
-        // Capability selection styling
-        function updateCapabilitySelection() {
-            document.querySelectorAll('.capability-option').forEach(option => {
-                const radio = option.querySelector('input[type="radio"]');
-                if (radio.checked) {
-                    option.style.borderColor = '#10b981';
-                    option.style.background = '#064e3b';
-                } else {
-                    option.style.borderColor = '#334155';
-                    option.style.background = '#1a2942';
-                }
+        // Show section
+        function showSection(section) {
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
             });
-            updateEstimatedCost();
-        }
-        
-        function tryAnotherService() {
-            // Clear current verification
-            currentVerificationId = null;
-            stopAutoRefresh();
-            document.getElementById('verification-card').style.display = 'none';
-            document.getElementById('messages-section').style.display = 'none';
+            event.target.classList.add('active');
             
-            // Scroll to service selection
-            document.getElementById('service-select').scrollIntoView({ behavior: 'smooth' });
-            showNotification('Select a new service to verify', 'success');
-        }
-        
-        // Load all available services from TextVerified
-        async function loadAllServices() {
-            showLoading(true);
-            
-            try {
-                const response = await fetch('/verify/services');
-                const data = await response.json();
-                
-                if (data.services) {
-                    showServiceBrowser(data.services);
-                } else {
-                    showNotification('Unable to load services. Please try again.', 'error');
-                }
-            } catch (error) {
-                showNotification('Network error loading services', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-        
-        // Show service browser modal
-        function showServiceBrowser(services) {
-            const modal = document.createElement('div');
-            modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 20px;';
-            
-            const content = document.createElement('div');
-            content.style.cssText = 'background: #1a2942; border-radius: 12px; padding: 20px; max-width: 800px; max-height: 80vh; overflow-y: auto; width: 100%;';
-            
-            const header = document.createElement('div');
-            header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #334155; padding-bottom: 15px;';
-            header.innerHTML = `
-                <h2 style="color: white; margin: 0;">🔍 Browse All Services (${services.length}+ Available)</h2>
-                <button onclick="this.closest('.modal').remove()" style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer;">✕ Close</button>
-            `;
-            
-            const searchBox = document.createElement('input');
-            searchBox.type = 'text';
-            searchBox.placeholder = 'Search services...';
-            searchBox.style.cssText = 'width: 100%; padding: 12px; border: 2px solid #334155; background: #0f1f3a; color: white; border-radius: 8px; margin-bottom: 15px;';
-            
-            const serviceGrid = document.createElement('div');
-            serviceGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; max-height: 400px; overflow-y: auto;';
-            
-            // Render services
-            function renderServices(filteredServices = services) {
-                serviceGrid.innerHTML = filteredServices.map(service => `
-                    <button onclick="selectService('${service.name}'); this.closest('.modal').remove();" 
-                            style="background: #667eea; color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; text-align: left; transition: all 0.2s;"
-                            onmouseover="this.style.background='#5a67d8'" onmouseout="this.style.background='#667eea'">
-                        <div style="font-weight: 600;">${service.name}</div>
-                        <div style="font-size: 12px; opacity: 0.8;">$${service.price} ${service.voice_supported ? '📞' : '📱'}</div>
-                    </button>
-                `).join('');
-            }
-            
-            // Search functionality
-            searchBox.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                const filtered = services.filter(s => s.name.toLowerCase().includes(query));
-                renderServices(filtered);
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(s => {
+                s.style.display = 'none';
             });
             
-            renderServices();
-            
-            content.appendChild(header);
-            content.appendChild(searchBox);
-            content.appendChild(serviceGrid);
-            modal.appendChild(content);
-            modal.className = 'modal';
-            
-            document.body.appendChild(modal);
-        }
-        
-        // Select service from browser
-        function selectService(serviceName) {
-            const serviceSelect = document.getElementById('service-select');
-            
-            // Check if service exists in dropdown
-            const option = Array.from(serviceSelect.options).find(opt => opt.value === serviceName);
-            
-            if (option) {
-                serviceSelect.value = serviceName;
-            } else {
-                // Add new option if not in dropdown
-                const newOption = document.createElement('option');
-                newOption.value = serviceName;
-                newOption.textContent = `🔍 ${serviceName} - Custom`;
-                serviceSelect.appendChild(newOption);
-                serviceSelect.value = serviceName;
+            // Show selected section
+            const sectionElement = document.getElementById(`${section}-section`);
+            if (sectionElement) {
+                sectionElement.style.display = 'block';
             }
             
-            updateEstimatedCost();
-            showNotification(`Selected ${serviceName} for verification`, 'success');
-        }
-        
-        function copyPhone() {
-            const phone = document.getElementById('phone-number').textContent;
-            if (phone && phone !== 'Loading...') {
-                navigator.clipboard.writeText(phone).then(() => {
-                    showNotification('📱 Phone number copied to clipboard!', 'success');
-                }).catch(() => {
-                    showNotification('Failed to copy phone number', 'error');
-                });
+            // Load section-specific content
+            if (section === 'active') {
+                loadActiveVerifications();
+            } else if (section === 'account') {
+                loadTransactionHistory();
             }
         }
         
-        // Auto-detect user country
-        function detectUserCountry() {
-            try {
-                const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-                const countryMap = {
-                    'America/New_York': 'US', 'America/Los_Angeles': 'US', 'America/Chicago': 'US',
-                    'Europe/London': 'GB', 'Europe/Berlin': 'DE', 'Europe/Paris': 'FR',
-                    'Europe/Amsterdam': 'NL', 'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO',
-                    'Asia/Tokyo': 'JP', 'Asia/Singapore': 'SG', 'Asia/Hong_Kong': 'HK',
-                    'Australia/Sydney': 'AU', 'America/Toronto': 'CA'
-                };
-                
-                for (const [tz, country] of Object.entries(countryMap)) {
-                    if (timezone.includes(tz.split('/')[1])) {
-                        const countrySelect = document.getElementById('country-select');
-                        if (countrySelect) {
-                            countrySelect.value = country;
-                            updateEstimatedCost();
-                        }
-                        break;
-                    }
-                }
-            } catch (e) {
-                // Fallback to US if detection fails
-            }
+        // Logout
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/auth/login';
         }
         
-        // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
-            const token = localStorage.getItem('token');
-            if (token) {
-                showApp();
-                loadUserData();
-            }
-            
-            // Auto-detect user country
-            detectUserCountry();
-            
-            // Load service count
-            loadServiceCount();
-            
-            // Add event listeners for price updates
-            setTimeout(() => {
-                const serviceSelect = document.getElementById('service-select');
-                const countrySelect = document.getElementById('country-select');
-                
-                if (serviceSelect) {
-                    serviceSelect.addEventListener('change', updateEstimatedCost);
-                }
-                
-                if (countrySelect) {
-                    countrySelect.addEventListener('change', updateEstimatedCost);
-                }
-                
-                document.querySelectorAll('input[name="capability"]').forEach(radio => {
-                    radio.addEventListener('change', updateCapabilitySelection);
-                });
-                
-                // Initialize capability selection styling
-                updateCapabilitySelection();
-            }, 100);
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            if (pollInterval) clearInterval(pollInterval);
         });
-        
-        // Auto-refresh user data every 30 seconds
-        setInterval(() => {
-            if (localStorage.getItem('token')) {
-                loadUserData();
-            }
-        }, 30000);
-    </script>
-
-    <script src="/static/js/enhanced-verification.js"></script>
-    <script src="/ws/client.js"></script>
-    <script>
-        // Enhanced WebSocket integration
-        function startRealtimeMonitoring(verificationId) {
-            if (typeof connectWebSocket === 'function') {
-                connectWebSocket(verificationId);
-            }
-        }
-        
-        // Override verification manager to use WebSocket
-        const originalCreateVerification = verificationManager.createVerification;
-        verificationManager.createVerification = async function() {
-            const result = await originalCreateVerification.call(this);
-            if (this.currentVerificationId) {
-                startRealtimeMonitoring(this.currentVerificationId);
-            }
-            return result;
-        };
     </script>
 </body>
 </html>
