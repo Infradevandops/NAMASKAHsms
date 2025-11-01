@@ -378,18 +378,7 @@
                     <div class="form-group">
                         <label>Service</label>
                         <select id="service-select">
-                            <optgroup label="Social Media">
-                                <option value="telegram">Telegram</option>
-                                <option value="whatsapp">WhatsApp</option>
-                                <option value="discord">Discord</option>
-                                <option value="instagram">Instagram</option>
-                                <option value="twitter">Twitter</option>
-                            </optgroup>
-                            <optgroup label="Business">
-                                <option value="google">Google</option>
-                                <option value="microsoft">Microsoft</option>
-                                <option value="amazon">Amazon</option>
-                            </optgroup>
+                            <option value="">Loading services...</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -466,10 +455,91 @@
                 return;
             }
             
+            loadServices();
             loadCountries();
             loadUserBalance();
             loadActiveVerifications();
             startPolling();
+        });
+        
+        // Load services from API
+        async function loadServices() {
+            try {
+                const response = await fetch('/verify/services');
+                if (response.ok) {
+                    const data = await response.json();
+                    populateServiceSelect(data.services);
+                } else {
+                    populateServiceSelect([
+                        {name: 'telegram', price: 0.75, category: 'Social Media'},
+                        {name: 'whatsapp', price: 0.75, category: 'Social Media'},
+                        {name: 'discord', price: 0.75, category: 'Social Media'},
+                        {name: 'google', price: 0.75, category: 'Business'}
+                    ]);
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+                populateServiceSelect([
+                    {name: 'telegram', price: 0.75, category: 'Social Media'},
+                    {name: 'whatsapp', price: 0.75, category: 'Social Media'}
+                ]);
+            }
+        }
+        
+        // Populate service select dropdown
+        function populateServiceSelect(services) {
+            const select = document.getElementById('service-select');
+            select.innerHTML = '<option value="">Select a service...</option>';
+            
+            // Group services by category
+            const categories = {};
+            services.forEach(service => {
+                const category = service.category || 'Other';
+                if (!categories[category]) {
+                    categories[category] = [];
+                }
+                categories[category].push(service);
+            });
+            
+            // Sort categories by popularity
+            const categoryOrder = ['Social Media', 'Business', 'E-commerce', 'Entertainment', 'Gaming', 'Crypto', 'Transportation', 'Food', 'Dating', 'Developer'];
+            
+            categoryOrder.forEach(categoryName => {
+                if (categories[categoryName]) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = categoryName;
+                    
+                    categories[categoryName].forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.name;
+                        option.textContent = `${service.name.charAt(0).toUpperCase() + service.name.slice(1)} - $${service.price}`;
+                        option.dataset.price = service.price;
+                        option.dataset.voiceSupported = service.voice_supported;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    select.appendChild(optgroup);
+                }
+            });
+            
+            // Add remaining categories
+            Object.keys(categories).forEach(categoryName => {
+                if (!categoryOrder.includes(categoryName)) {
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = categoryName;
+                    
+                    categories[categoryName].forEach(service => {
+                        const option = document.createElement('option');
+                        option.value = service.name;
+                        option.textContent = `${service.name.charAt(0).toUpperCase() + service.name.slice(1)} - $${service.price}`;
+                        option.dataset.price = service.price;
+                        option.dataset.voiceSupported = service.voice_supported;
+                        optgroup.appendChild(option);
+                    });
+                    
+                    select.appendChild(optgroup);
+                }
+            });
         });
         
         // Load countries from API
