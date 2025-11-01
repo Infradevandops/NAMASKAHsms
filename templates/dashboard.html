@@ -455,8 +455,39 @@
                 return;
             }
             
-            loadServices();
-            loadCountries();
+            // Load with timeout fallback
+            Promise.race([
+                loadServices(),
+                new Promise(resolve => setTimeout(resolve, 3000))
+            ]).then(() => {
+                // Ensure services are loaded
+                const serviceSelect = document.getElementById('service-select');
+                if (serviceSelect.options.length <= 1) {
+                    populateServiceSelect([
+                        {name: 'telegram', price: 0.75, category: 'Social Media'},
+                        {name: 'whatsapp', price: 0.75, category: 'Social Media'},
+                        {name: 'discord', price: 0.75, category: 'Social Media'},
+                        {name: 'google', price: 0.75, category: 'Business'}
+                    ]);
+                }
+            });
+            
+            Promise.race([
+                loadCountries(),
+                new Promise(resolve => setTimeout(resolve, 3000))
+            ]).then(() => {
+                // Ensure countries are loaded
+                const countrySelect = document.getElementById('country-select');
+                if (countrySelect.options.length <= 1) {
+                    populateCountrySelect([
+                        {code: 'US', name: 'United States', voice_supported: true},
+                        {code: 'GB', name: 'United Kingdom', voice_supported: true},
+                        {code: 'CA', name: 'Canada', voice_supported: true},
+                        {code: 'DE', name: 'Germany', voice_supported: true}
+                    ]);
+                }
+            });
+            
             loadUserBalance();
             loadActiveVerifications();
             startPolling();
@@ -470,18 +501,20 @@
                     const data = await response.json();
                     populateServiceSelect(data.services);
                 } else {
-                    populateServiceSelect([
-                        {name: 'telegram', price: 0.75, category: 'Social Media'},
-                        {name: 'whatsapp', price: 0.75, category: 'Social Media'},
-                        {name: 'discord', price: 0.75, category: 'Social Media'},
-                        {name: 'google', price: 0.75, category: 'Business'}
-                    ]);
+                    throw new Error('API response not ok');
                 }
             } catch (error) {
                 console.error('Failed to load services:', error);
+                // Use fallback services immediately
                 populateServiceSelect([
                     {name: 'telegram', price: 0.75, category: 'Social Media'},
-                    {name: 'whatsapp', price: 0.75, category: 'Social Media'}
+                    {name: 'whatsapp', price: 0.75, category: 'Social Media'},
+                    {name: 'discord', price: 0.75, category: 'Social Media'},
+                    {name: 'google', price: 0.75, category: 'Business'},
+                    {name: 'instagram', price: 1.00, category: 'Social Media'},
+                    {name: 'facebook', price: 1.00, category: 'Social Media'},
+                    {name: 'twitter', price: 1.00, category: 'Social Media'},
+                    {name: 'tiktok', price: 1.00, category: 'Social Media'}
                 ]);
             }
         }
@@ -550,20 +583,22 @@
                     const data = await response.json();
                     populateCountrySelect(data.countries);
                 } else {
-                    // Fallback to basic countries
-                    populateCountrySelect([
-                        {code: 'US', name: 'United States', voice_supported: true},
-                        {code: 'GB', name: 'United Kingdom', voice_supported: true},
-                        {code: 'CA', name: 'Canada', voice_supported: true},
-                        {code: 'DE', name: 'Germany', voice_supported: true}
-                    ]);
+                    throw new Error('API response not ok');
                 }
             } catch (error) {
                 console.error('Failed to load countries:', error);
-                // Fallback countries
+                // Use fallback countries immediately
                 populateCountrySelect([
                     {code: 'US', name: 'United States', voice_supported: true},
-                    {code: 'GB', name: 'United Kingdom', voice_supported: true}
+                    {code: 'GB', name: 'United Kingdom', voice_supported: true},
+                    {code: 'CA', name: 'Canada', voice_supported: true},
+                    {code: 'DE', name: 'Germany', voice_supported: true},
+                    {code: 'FR', name: 'France', voice_supported: true},
+                    {code: 'AU', name: 'Australia', voice_supported: true},
+                    {code: 'JP', name: 'Japan', voice_supported: true},
+                    {code: 'IN', name: 'India', voice_supported: false},
+                    {code: 'BR', name: 'Brazil', voice_supported: false},
+                    {code: 'MX', name: 'Mexico', voice_supported: false}
                 ]);
             }
         }
