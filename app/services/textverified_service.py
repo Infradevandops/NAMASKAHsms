@@ -18,19 +18,19 @@ class TextVerifiedService:
         self.max_retries = 3
         # Check if we have a real API key
         self.use_mock = (
-            not self.api_key or 
+            not self.api_key or
             self.api_key.startswith('tv_test') or
             self.api_key == 'REPLACE_WITH_REAL_TEXTVERIFIED_API_KEY' or
             len(self.api_key) < 20
         )
         
         if self.use_mock:
-            logger.warning("🚨 USING MOCK DATA - TextVerified API key not configured!")
-            logger.warning("📋 See TEXTVERIFIED_SETUP.md for setup instructions")
-            logger.warning("⚠️  SMS verification will NOT work without real API key")
+            logger.warning("USING MOCK DATA - TextVerified API key not configured!")
+            logger.warning("See TEXTVERIFIED_SETUP.md for setup instructions")
+            logger.warning("SMS verification will NOT work without real API key")
         else:
-            logger.info(f"✅ Using real TextVerified API service (key: {self.api_key[:10]}...)")
-            logger.info("🌍 SMS verification enabled for 70 countries, 1800+ services")
+            logger.info(f"Using real TextVerified API service (key: {self.api_key[:10]}...)")
+            logger.info("SMS verification enabled for 70 countries, 1800+ services")
         
     async def _make_request(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
         """Make authenticated request to TextVerified API with retry logic."""
