@@ -28,14 +28,10 @@ async def get_available_services():
         textverified = TextVerifiedService()
         result = await textverified.get_services()
         return result
-    except ValueError as e:
+    except Exception as e:
+        logger.error(f"Failed to fetch services: {str(e)}")
         # Return comprehensive fallback services (1,800+ available)
         return get_comprehensive_services()
-    except Exception as e:
-        return {
-            "error": f"Failed to fetch services: {str(e)}",
-            "services": get_comprehensive_services()["services"][:50]  # Top 50 as fallback
-        }
 
 def get_comprehensive_services():
     """Get comprehensive service list based on TextVerified's 1,800+ services."""
@@ -211,12 +207,8 @@ async def create_verification(
         if "error" in verification_result:
             raise HTTPException(status_code=400, detail=verification_result["error"])
             
-    except ValueError as e:
-        # Handle API key issues
-        if "API key" in str(e):
-            raise HTTPException(status_code=503, detail="Service temporarily unavailable. Please try again later.")
-        raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
+        logger.error(f"TextVerified service error: {str(e)}")
         raise HTTPException(status_code=503, detail=f"External service error: {str(e)}")
     
     cost = verification_result["cost"]

@@ -17,7 +17,7 @@ def get_current_user_id(
     try:
         payload = jwt.decode(
             credentials.credentials,
-            settings.secret_key,
+            settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm]
         )
         user_id = payload.get("user_id")

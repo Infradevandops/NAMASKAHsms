@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Service Selection - TextVerified Style</title>
+    <style>
+        .service-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .search-bar {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        
+        .service-filters {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .service-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .service-card {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        
+        .service-card:hover {
+            border-color: #667eea;
+            transform: translateY(-1px);
+        }
+        
+        .service-card.selected {
+            border-color: #667eea;
+            background: #f0f9ff;
+        }
+        
+        .service-card.favorite {
+            border-color: #f59e0b;
+        }
+        
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .service-price {
+            color: #10b981;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .service-badges {
+            display: flex;
+            gap: 4px;
+            margin-top: 8px;
+        }
+        
+        .badge {
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .badge-voice {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .badge-popular {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .favorite-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .country-selector {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .country-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .country-tab {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            font-weight: 500;
+        }
+        
+        .country-tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+        
+        .country-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+        
+        .country-option {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .country-option:hover {
+            background: #f9fafb;
+        }
+        
+        .country-option.selected {
+            background: #f0f9ff;
+            border-color: #667eea;
+        }
+        
+        .country-flag {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+        
+        .country-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .country-tier {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 8px;
+        }
+        
+        .tier-premium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .tier-standard {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .tier-economy {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .recent-services {
+            margin-bottom: 16px;
+        }
+        
+        .recent-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+        
+        .recent-list {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .recent-item {
+            padding: 4px 8px;
+            background: #f3f4f6;
+            border-radius: 12px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .recent-item:hover {
+            background: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <!-- Enhanced Service Selector -->
+    <div class="service-selector">
+        <h3>Select Service</h3>
+        
+        <!-- Recent Services -->
+        <div class="recent-services">
+            <div class="recent-title">Recently Used</div>
+            <div class="recent-list">
+                <div class="recent-item">Telegram</div>
+                <div class="recent-item">WhatsApp</div>
+                <div class="recent-item">Discord</div>
+            </div>
+        </div>
+        
+        <!-- Search Bar -->
+        <input type="text" class="search-bar" placeholder="Search 1,800+ services..." id="service-search">
+        
+        <!-- Category Filters -->
+        <div class="service-filters">
+            <button class="filter-btn active" data-category="all">All</button>
+            <button class="filter-btn" data-category="Social Media">Social</button>
+            <button class="filter-btn" data-category="Business">Business</button>
+            <button class="filter-btn" data-category="E-commerce">Shopping</button>
+            <button class="filter-btn" data-category="Entertainment">Entertainment</button>
+            <button class="filter-btn" data-category="Gaming">Gaming</button>
+            <button class="filter-btn" data-category="Crypto">Crypto</button>
+        </div>
+        
+        <!-- Service Grid -->
+        <div class="service-grid" id="service-grid">
+            <!-- Services populated here -->
+        </div>
+    </div>
+    
+    <!-- Enhanced Country Selector -->
+    <div class="country-selector">
+        <h3>Select Country</h3>
+        
+        <!-- Country Tabs -->
+        <div class="country-tabs">
+            <button class="country-tab active" data-region="popular">Popular</button>
+            <button class="country-tab" data-region="North America">🇺🇸 Americas</button>
+            <button class="country-tab" data-region="Europe">🇪🇺 Europe</button>
+            <button class="country-tab" data-region="Asia-Pacific">🌏 Asia</button>
+            <button class="country-tab" data-region="all">All (84)</button>
+        </div>
+        
+        <!-- Country Grid -->
+        <div class="country-grid" id="country-grid">
+            <!-- Countries populated here -->
+        </div>
+    </div>
+    
+    <script>
+        // Sample data
+        const services = [
+            {name: 'telegram', price: 0.75, category: 'Social Media', voice: true, popular: true},
+            {name: 'whatsapp', price: 0.75, category: 'Social Media', voice: true, popular: true},
+            {name: 'discord', price: 0.75, category: 'Social Media', voice: true, popular: true},
+            {name: 'instagram', price: 1.00, category: 'Social Media', voice: true, popular: true},
+            {name: 'google', price: 0.75, category: 'Business', voice: true, popular: true},
+            {name: 'microsoft', price: 1.00, category: 'Business', voice: true},
+            {name: 'amazon', price: 1.00, category: 'E-commerce', voice: true},
+            {name: 'netflix', price: 1.00, category: 'Entertainment', voice: true},
+            {name: 'steam', price: 0.90, category: 'Gaming', voice: true},
+            {name: 'coinbase', price: 1.50, category: 'Crypto', voice: true}
+        ];
+        
+        const countries = [
+            {code: 'US', name: 'United States', flag: '🇺🇸', tier: 'standard', region: 'North America', voice: true},
+            {code: 'GB', name: 'United Kingdom', flag: '🇬🇧', tier: 'standard', region: 'Europe', voice: true},
+            {code: 'DE', name: 'Germany', flag: '🇩🇪', tier: 'standard', region: 'Europe', voice: true},
+            {code: 'FR', name: 'France', flag: '🇫🇷', tier: 'standard', region: 'Europe', voice: true},
+            {code: 'CA', name: 'Canada', flag: '🇨🇦', tier: 'standard', region: 'North America', voice: true},
+            {code: 'CH', name: 'Switzerland', flag: '🇨🇭', tier: 'premium', region: 'Europe', voice: true},
+            {code: 'JP', name: 'Japan', flag: '🇯🇵', tier: 'premium', region: 'Asia-Pacific', voice: true},
+            {code: 'IN', name: 'India', flag: '🇮🇳', tier: 'economy', region: 'Asia-Pacific', voice: false}
+        ];
+        
+        let favorites = JSON.parse(localStorage.getItem('favoriteServices') || '[]');
+        let selectedService = null;
+        let selectedCountry = null;
+        
+        // Initialize
+        renderServices(services);
+        renderCountries(countries.filter(c => ['US', 'GB', 'DE', 'FR', 'CA'].includes(c.code)));
+        
+        // Service functionality
+        function renderServices(serviceList) {
+            const grid = document.getElementById('service-grid');
+            grid.innerHTML = serviceList.map(service => `
+                <div class="service-card ${favorites.includes(service.name) ? 'favorite' : ''}" 
+                     onclick="selectService('${service.name}')" data-service="${service.name}">
+                    <button class="favorite-btn" onclick="toggleFavorite('${service.name}', event)">
+                        ${favorites.includes(service.name) ? '⭐' : '☆'}
+                    </button>
+                    <div class="service-name">${service.name.charAt(0).toUpperCase() + service.name.slice(1)}</div>
+                    <div class="service-price">$${service.price}</div>
+                    <div class="service-badges">
+                        ${service.voice ? '<span class="badge badge-voice">Voice</span>' : ''}
+                        ${service.popular ? '<span class="badge badge-popular">Popular</span>' : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function renderCountries(countryList) {
+            const grid = document.getElementById('country-grid');
+            grid.innerHTML = countryList.map(country => `
+                <div class="country-option" onclick="selectCountry('${country.code}')" data-country="${country.code}">
+                    <span class="country-flag">${country.flag}</span>
+                    <span class="country-name">${country.name}</span>
+                    <span class="country-tier tier-${country.tier}">${country.tier}</span>
+                </div>
+            `).join('');
+        }
+        
+        function selectService(serviceName) {
+            document.querySelectorAll('.service-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-service="${serviceName}"]`).classList.add('selected');
+            selectedService = serviceName;
+        }
+        
+        function selectCountry(countryCode) {
+            document.querySelectorAll('.country-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            document.querySelector(`[data-country="${countryCode}"]`).classList.add('selected');
+            selectedCountry = countryCode;
+        }
+        
+        function toggleFavorite(serviceName, event) {
+            event.stopPropagation();
+            if (favorites.includes(serviceName)) {
+                favorites = favorites.filter(f => f !== serviceName);
+            } else {
+                favorites.push(serviceName);
+            }
+            localStorage.setItem('favoriteServices', JSON.stringify(favorites));
+            renderServices(services);
+        }
+        
+        // Search functionality
+        document.getElementById('service-search').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            const filtered = services.filter(s => s.name.toLowerCase().includes(query));
+            renderServices(filtered);
+        });
+        
+        // Category filters
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const category = btn.dataset.category;
+                const filtered = category === 'all' ? services : services.filter(s => s.category === category);
+                renderServices(filtered);
+            });
+        });
+        
+        // Country tabs
+        document.querySelectorAll('.country-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.country-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const region = tab.dataset.region;
+                let filtered;
+                if (region === 'all') {
+                    filtered = countries;
+                } else if (region === 'popular') {
+                    filtered = countries.filter(c => ['US', 'GB', 'DE', 'FR', 'CA'].includes(c.code));
+                } else {
+                    filtered = countries.filter(c => c.region === region);
+                }
+                renderCountries(filtered);
+            });
+        });
+    </script>
+</body>
+</html>
