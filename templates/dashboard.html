@@ -378,13 +378,31 @@
                     <div class="form-group">
                         <label>Service</label>
                         <select id="service-select">
-                            <option value="">Loading services...</option>
+                            <option value="">Select a service...</option>
+                            <option value="telegram">Telegram - $0.75</option>
+                            <option value="whatsapp">WhatsApp - $0.75</option>
+                            <option value="discord">Discord - $0.75</option>
+                            <option value="google">Google - $0.75</option>
+                            <option value="instagram">Instagram - $1.00</option>
+                            <option value="facebook">Facebook - $1.00</option>
+                            <option value="twitter">Twitter - $1.00</option>
+                            <option value="tiktok">TikTok - $1.00</option>
                         </select>
                     </div>
                     <div class="form-group">
                         <label>Country</label>
                         <select id="country-select">
-                            <option value="">Loading countries...</option>
+                            <option value="">Select a country...</option>
+                            <option value="US">United States (Voice Available)</option>
+                            <option value="GB">United Kingdom (Voice Available)</option>
+                            <option value="CA">Canada (Voice Available)</option>
+                            <option value="DE">Germany (Voice Available)</option>
+                            <option value="FR">France (Voice Available)</option>
+                            <option value="AU">Australia (Voice Available)</option>
+                            <option value="JP">Japan (Voice Available)</option>
+                            <option value="IN">India (SMS Only)</option>
+                            <option value="BR">Brazil (SMS Only)</option>
+                            <option value="MX">Mexico (SMS Only)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -442,174 +460,32 @@
         </div>
     </div>
     
-    <script src="/static/js/enhanced-verification-fixed.js"></script>
     <script>
-        // Dashboard initialization
+        // Global variables
+        let activeVerifications = [];
+        let pollInterval = null;
+        const token = localStorage.getItem('token');
+        
+        // Initialize on load
         document.addEventListener('DOMContentLoaded', function() {
-            if (!localStorage.getItem('token')) {
+            if (!token) {
                 window.location.href = '/auth/login';
                 return;
             }
+            loadUserBalance();
         });
         
-        // Load services from API
-        async function loadServices() {
-            try {
-                const response = await fetch('/verify/services');
-                if (response.ok) {
-                    const data = await response.json();
-                    populateServiceSelect(data.services);
-                } else {
-                    throw new Error('API response not ok');
-                }
-            } catch (error) {
-                console.error('Failed to load services:', error);
-                // Use fallback services immediately
-                populateServiceSelect([
-                    {name: 'telegram', price: 0.75, category: 'Social Media'},
-                    {name: 'whatsapp', price: 0.75, category: 'Social Media'},
-                    {name: 'discord', price: 0.75, category: 'Social Media'},
-                    {name: 'google', price: 0.75, category: 'Business'},
-                    {name: 'instagram', price: 1.00, category: 'Social Media'},
-                    {name: 'facebook', price: 1.00, category: 'Social Media'},
-                    {name: 'twitter', price: 1.00, category: 'Social Media'},
-                    {name: 'tiktok', price: 1.00, category: 'Social Media'}
-                ]);
-            }
-        }
-        
-        // Populate service select dropdown
-        function populateServiceSelect(services) {
-            const select = document.getElementById('service-select');
-            select.innerHTML = '<option value="">Select a service...</option>';
-            
-            // Group services by category
-            const categories = {};
-            services.forEach(service => {
-                const category = service.category || 'Other';
-                if (!categories[category]) {
-                    categories[category] = [];
-                }
-                categories[category].push(service);
-            });
-            
-            // Sort categories by popularity
-            const categoryOrder = ['Social Media', 'Business', 'E-commerce', 'Entertainment', 'Gaming', 'Crypto', 'Transportation', 'Food', 'Dating', 'Developer'];
-            
-            categoryOrder.forEach(categoryName => {
-                if (categories[categoryName]) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = categoryName;
-                    
-                    categories[categoryName].forEach(service => {
-                        const option = document.createElement('option');
-                        option.value = service.name;
-                        option.textContent = `${service.name.charAt(0).toUpperCase() + service.name.slice(1)} - $${service.price}`;
-                        option.dataset.price = service.price;
-                        option.dataset.voiceSupported = service.voice_supported;
-                        optgroup.appendChild(option);
-                    });
-                    
-                    select.appendChild(optgroup);
-                }
-            });
-            
-            // Add remaining categories
-            Object.keys(categories).forEach(categoryName => {
-                if (!categoryOrder.includes(categoryName)) {
-                    const optgroup = document.createElement('optgroup');
-                    optgroup.label = categoryName;
-                    
-                    categories[categoryName].forEach(service => {
-                        const option = document.createElement('option');
-                        option.value = service.name;
-                        option.textContent = `${service.name.charAt(0).toUpperCase() + service.name.slice(1)} - $${service.price}`;
-                        option.dataset.price = service.price;
-                        option.dataset.voiceSupported = service.voice_supported;
-                        optgroup.appendChild(option);
-                    });
-                    
-                    select.appendChild(optgroup);
-                }
-            });
-        });
-        
-        // Load countries from API
-        async function loadCountries() {
-            try {
-                const response = await fetch('/countries/popular');
-                if (response.ok) {
-                    const data = await response.json();
-                    populateCountrySelect(data.countries);
-                } else {
-                    throw new Error('API response not ok');
-                }
-            } catch (error) {
-                console.error('Failed to load countries:', error);
-                // Use fallback countries immediately
-                populateCountrySelect([
-                    {code: 'US', name: 'United States', voice_supported: true},
-                    {code: 'GB', name: 'United Kingdom', voice_supported: true},
-                    {code: 'CA', name: 'Canada', voice_supported: true},
-                    {code: 'DE', name: 'Germany', voice_supported: true},
-                    {code: 'FR', name: 'France', voice_supported: true},
-                    {code: 'AU', name: 'Australia', voice_supported: true},
-                    {code: 'JP', name: 'Japan', voice_supported: true},
-                    {code: 'IN', name: 'India', voice_supported: false},
-                    {code: 'BR', name: 'Brazil', voice_supported: false},
-                    {code: 'MX', name: 'Mexico', voice_supported: false}
-                ]);
-            }
-        }
-        
-        // Populate country select dropdown
-        function populateCountrySelect(countries) {
-            const select = document.getElementById('country-select');
-            select.innerHTML = '<option value="">Select a country...</option>';
-            
-            countries.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country.code;
-                option.textContent = `${country.name} ${country.voice_supported ? '(Voice Available)' : '(SMS Only)'}`;
-                option.dataset.voiceSupported = country.voice_supported;
-                select.appendChild(option);
-            });
-            
-            // Update voice capability when country changes
-            select.addEventListener('change', updateVoiceCapability);
-        }
-        
-        // Update voice capability based on selected country
-        function updateVoiceCapability() {
-            const countrySelect = document.getElementById('country-select');
-            const capabilitySelect = document.getElementById('capability-select');
-            const selectedOption = countrySelect.options[countrySelect.selectedIndex];
-            
-            if (selectedOption && selectedOption.dataset.voiceSupported === 'false') {
-                // Disable voice option for countries that don't support it
-                capabilitySelect.innerHTML = '<option value="sms">SMS</option>';
-            } else {
-                // Enable both options
-                capabilitySelect.innerHTML = `
-                    <option value="sms">SMS</option>
-                    <option value="voice">Voice Call</option>
-                `;
-            }
-        }
-        
-        // Load user balance
         async function loadUserBalance() {
             try {
                 const response = await fetch('/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
                 if (response.ok) {
                     const user = await response.json();
                     document.getElementById('balance-display').textContent = `$${user.credits.toFixed(2)}`;
                 }
             } catch (error) {
-                console.error('Failed to load balance:', error);
+                console.error('Balance error:', error);
             }
         }
         
@@ -619,13 +495,12 @@
             const country = document.getElementById('country-select').value;
             const capability = document.getElementById('capability-select').value;
             
-            // Validation
             if (!service) {
-                alert('Please select a service');
+                showNotification('Please select a service', 'error');
                 return;
             }
             if (!country) {
-                alert('Please select a country');
+                showNotification('Please select a country', 'error');
                 return;
             }
             
@@ -649,42 +524,18 @@
                     })
                 });
                 
-                const responseData = await response.json();
+                const data = await response.json();
                 
                 if (response.ok) {
-                    activeVerifications.push(responseData);
-                    
-                    // Connect WebSocket for real-time updates
-                    connectWebSocket(responseData.id);
-                    
-                    renderVerifications();
-                    showSection('active');
-                    loadUserBalance(); // Refresh balance
-                    
-                    // Show success message
                     showNotification('Verification created successfully!', 'success');
+                    // Refresh the page or redirect to active verifications
+                    setTimeout(() => window.location.reload(), 1000);
                 } else {
-                    // Handle specific error cases
-                    let errorMessage = 'Unknown error';
-                    if (responseData.detail) {
-                        errorMessage = responseData.detail;
-                    } else if (responseData.message) {
-                        errorMessage = responseData.message;
-                    } else if (response.status === 402) {
-                        errorMessage = 'Insufficient credits. Please add credits to your account.';
-                    } else if (response.status === 401) {
-                        errorMessage = 'Authentication failed. Please login again.';
-                        logout();
-                        return;
-                    } else if (response.status === 503) {
-                        errorMessage = 'Service temporarily unavailable. Please try again later.';
-                    }
-                    
-                    showNotification(`Failed to create verification: ${errorMessage}`, 'error');
+                    const errorMsg = data.detail || data.message || 'Failed to create verification';
+                    showNotification(errorMsg, 'error');
                 }
             } catch (error) {
-                console.error('Network error:', error);
-                showNotification('Network error. Please check your connection and try again.', 'error');
+                showNotification('Network error. Please try again.', 'error');
             } finally {
                 createBtn.style.display = 'inline-block';
                 loading.style.display = 'none';
@@ -989,7 +840,7 @@
             window.location.href = '/auth/login';
         }
         
-        // Global functions for backward compatibility
+        // Show section
         function showSection(section) {
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.remove('active');
@@ -997,11 +848,11 @@
             event.target.classList.add('active');
             
             document.querySelectorAll('.section').forEach(s => {
-                s.classList.add('hidden');
+                s.style.display = 'none';
             });
             
             const sectionEl = document.getElementById(`${section}-section`);
-            if (sectionEl) sectionEl.classList.remove('hidden');
+            if (sectionEl) sectionEl.style.display = 'block';
         }
         
         function logout() {
