@@ -2,7 +2,6 @@
 """Setup demo admin user for local development."""
 
 import asyncio
-import sys
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from app.core.config import settings

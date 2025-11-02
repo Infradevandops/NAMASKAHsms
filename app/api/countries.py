@@ -88,14 +88,7 @@ async def get_country_details(country_code: str) -> Dict[str, Any]:
     
     return country_details
 
-def is_voice_supported(country_code: str) -> bool:
-    """Check if voice verification is supported in country."""
-    voice_supported_countries = {
-        "US", "CA", "GB", "DE", "FR", "AU", "NL", "SE", "NO", "DK", "FI",
-        "CH", "AT", "BE", "IT", "ES", "IE", "JP", "KR", "SG", "HK", "AE",
-        "SA", "IL", "BR", "RU", "PL", "CZ", "HU"
-    }
-    return country_code in voice_supported_countries
+
 
 def get_textverified_countries() -> List[Dict[str, Any]]:
     """Get comprehensive TextVerified country data from assessment."""
@@ -199,22 +192,9 @@ def get_textverified_countries() -> List[Dict[str, Any]]:
     
     return countries
 
-def get_country_region(country_code: str) -> str:
-    """Get region for country code."""
-    countries = get_textverified_countries()
-    for country in countries:
-        if country["code"] == country_code:
-            return country["region"]
-    return "Other"
 
-def get_pricing_tier(multiplier: float) -> str:
-    """Get pricing tier based on multiplier."""
-    if multiplier >= 1.2:
-        return "Premium"
-    elif multiplier >= 0.8:
-        return "Standard"
-    else:
-        return "Economy"
+
+
 
 def get_regions_summary(countries: List[Dict]) -> Dict[str, int]:
     """Get summary of countries per region."""
