@@ -442,55 +442,14 @@
         </div>
     </div>
     
+    <script src="/static/js/enhanced-verification-fixed.js"></script>
     <script>
-        const API_BASE = '';
-        let token = localStorage.getItem('token');
-        let activeVerifications = [];
-        let pollInterval;
-        
-        // Initialize dashboard
+        // Dashboard initialization
         document.addEventListener('DOMContentLoaded', function() {
-            if (!token) {
+            if (!localStorage.getItem('token')) {
                 window.location.href = '/auth/login';
                 return;
             }
-            
-            // Load with timeout fallback
-            Promise.race([
-                loadServices(),
-                new Promise(resolve => setTimeout(resolve, 3000))
-            ]).then(() => {
-                // Ensure services are loaded
-                const serviceSelect = document.getElementById('service-select');
-                if (serviceSelect.options.length <= 1) {
-                    populateServiceSelect([
-                        {name: 'telegram', price: 0.75, category: 'Social Media'},
-                        {name: 'whatsapp', price: 0.75, category: 'Social Media'},
-                        {name: 'discord', price: 0.75, category: 'Social Media'},
-                        {name: 'google', price: 0.75, category: 'Business'}
-                    ]);
-                }
-            });
-            
-            Promise.race([
-                loadCountries(),
-                new Promise(resolve => setTimeout(resolve, 3000))
-            ]).then(() => {
-                // Ensure countries are loaded
-                const countrySelect = document.getElementById('country-select');
-                if (countrySelect.options.length <= 1) {
-                    populateCountrySelect([
-                        {code: 'US', name: 'United States', voice_supported: true},
-                        {code: 'GB', name: 'United Kingdom', voice_supported: true},
-                        {code: 'CA', name: 'Canada', voice_supported: true},
-                        {code: 'DE', name: 'Germany', voice_supported: true}
-                    ]);
-                }
-            });
-            
-            loadUserBalance();
-            loadActiveVerifications();
-            startPolling();
         });
         
         // Load services from API
@@ -1030,10 +989,25 @@
             window.location.href = '/auth/login';
         }
         
-        // Cleanup on page unload
-        window.addEventListener('beforeunload', () => {
-            if (pollInterval) clearInterval(pollInterval);
-        });
+        // Global functions for backward compatibility
+        function showSection(section) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.section').forEach(s => {
+                s.classList.add('hidden');
+            });
+            
+            const sectionEl = document.getElementById(`${section}-section`);
+            if (sectionEl) sectionEl.classList.remove('hidden');
+        }
+        
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = '/auth/login';
+        }
     </script>
 </body>
 </html>

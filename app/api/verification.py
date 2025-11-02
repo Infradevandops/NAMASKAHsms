@@ -17,6 +17,9 @@ from app.schemas import (
 )
 from app.core.security_hardening import validate_and_sanitize_service_data
 from app.core.exceptions import InsufficientCreditsError, ExternalServiceError
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter(prefix="/verify", tags=["Verification"])
 
@@ -178,25 +181,28 @@ async def create_verification(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Create new SMS or voice verification."""
-    # Get capability from request data
-    capability = getattr(verification_data, 'capability', 'sms')
-    country = getattr(verification_data, 'country', 'US')
-    
-    # Validate and sanitize input data
-    validate_and_sanitize_service_data({
-        'service': verification_data.service_name,
-        'capability': capability,
-        'country': country
-    })
-    
-    # Get user and check credits
-    current_user = db.query(User).filter(User.id == user_id).first()
-    if not current_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    # Get service pricing with error handling
+    """Create new SMS or voice verification with enhanced error handling."""
     try:
+        # Get capability from request data
+        capability = getattr(verification_data, 'capability', 'sms')
+        country = getattr(verification_data, 'country', 'US')
+        
+        # Validate input data
+        if not verification_data.service_name:
+            raise HTTPException(status_code=400, detail="Service name is required")
+        
+        validate_and_sanitize_service_data({
+            'service': verification_data.service_name,
+            'capability': capability,
+            'country': country
+        })
+        
+        # Get user and check credits
+        current_user = db.query(User).filter(User.id == user_id).first()
+        if not current_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get service pricing with comprehensive error handling
         textverified = TextVerifiedService()
         verification_result = await textverified.create_verification(
             verification_data.service_name, 
@@ -205,64 +211,73 @@ async def create_verification(
         )
         
         if "error" in verification_result:
-            raise HTTPException(status_code=400, detail=verification_result["error"])
-            
+            error_msg = verification_result["error"]
+            if "API key" in error_msg:
+                raise HTTPException(status_code=503, detail="Service configuration error")
+            elif "insufficient" in error_msg.lower():
+                raise HTTPException(status_code=402, detail=error_msg)
+            else:
+                raise HTTPException(status_code=400, detail=error_msg)
+        
+        cost = verification_result.get("cost", 1.0)
+        
+        # Check if user has sufficient credits or free verifications
+        if current_user.free_verifications > 0:
+            current_user.free_verifications -= 1
+            actual_cost = 0
+        elif current_user.credits >= cost:
+            current_user.credits -= cost
+            actual_cost = cost
+        else:
+            raise HTTPException(
+                status_code=402, 
+                detail=f"Insufficient credits. Need ${cost:.2f}, have ${current_user.credits:.2f}"
+            )
+        
+        # Get phone number and service details
+        phone_number = verification_result.get("phone_number")
+        number_id = verification_result.get("number_id")
+        
+        if not phone_number:
+            raise HTTPException(status_code=503, detail="Failed to obtain phone number")
+        
+        # Create verification record
+        verification = Verification(
+            user_id=user_id,
+            service_name=verification_data.service_name,
+            capability=capability,
+            status="pending",
+            cost=actual_cost,
+            phone_number=phone_number,
+            country=country,
+            verification_code=number_id
+        )
+        
+        # Store additional metadata for voice verifications
+        if capability == "voice":
+            verification.requested_carrier = getattr(verification_data, 'carrier', None)
+            verification.requested_area_code = getattr(verification_data, 'area_code', None)
+        
+        db.add(verification)
+        db.commit()
+        db.refresh(verification)
+        
+        return {
+            "id": verification.id,
+            "service_name": verification.service_name,
+            "phone_number": verification.phone_number,
+            "capability": verification.capability,
+            "status": verification.status,
+            "cost": verification.cost,
+            "remaining_credits": current_user.credits,
+            "created_at": verification.created_at.isoformat()
+        }
+        
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"TextVerified service error: {str(e)}")
-        raise HTTPException(status_code=503, detail=f"External service error: {str(e)}")
-    
-    cost = verification_result["cost"]
-    
-    # Check if user has sufficient credits or free verifications
-    if current_user.free_verifications > 0:
-        current_user.free_verifications -= 1
-        cost = 0  # Free verification
-    elif current_user.credits >= cost:
-        current_user.credits -= cost
-    else:
-        raise HTTPException(status_code=402, detail=f"Insufficient credits. Need ${cost:.2f}, have ${current_user.credits:.2f}")
-    
-    # Phone number and service details already obtained from create_verification
-    phone_number = verification_result["phone_number"]
-    number_id = verification_result["number_id"]
-    
-    # Create verification record
-    verification = Verification(
-        user_id=user_id,
-        service_name=verification_data.service_name,
-        capability=capability,
-        status="pending",
-        cost=cost,
-        phone_number=phone_number
-    )
-    
-    # Store TextVerified number_id for polling
-    verification.verification_code = number_id
-    
-    # Store country information
-    verification.country = country
-    
-    # Store additional metadata for voice verifications
-    if capability == "voice":
-        verification.requested_carrier = getattr(verification_data, 'carrier', None)
-        verification.requested_area_code = getattr(verification_data, 'area_code', None)
-    
-    db.add(verification)
-    db.commit()
-    db.refresh(verification)
-    
-    # Frontend will handle polling
-    
-    return {
-        "id": verification.id,
-        "service_name": verification.service_name,
-        "phone_number": verification.phone_number,
-        "capability": verification.capability,
-        "status": verification.status,
-        "cost": verification.cost,
-        "remaining_credits": current_user.credits,
-        "created_at": verification.created_at.isoformat()
-    }
+        logger.error(f"Verification creation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @router.get("/{verification_id}", response_model=VerificationResponse)
@@ -301,16 +316,16 @@ async def get_verification_messages(
     verification_id: str,
     db: Session = Depends(get_db)
 ):
-    """Get SMS messages for verification (no auth required)."""
-    verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
-    
-    # Get messages from TextVerified
-    textverified = TextVerifiedService()
-    
+    """Get SMS messages for verification with enhanced error handling."""
     try:
+        verification = db.query(Verification).filter(Verification.id == verification_id).first()
+        
+        if not verification:
+            raise HTTPException(status_code=404, detail="Verification not found")
+        
+        # Get messages from TextVerified
+        textverified = TextVerifiedService()
+        
         # Use stored number_id from verification_code field
         number_id = verification.verification_code or verification_id
         messages_result = await textverified.get_sms(number_id)
@@ -321,12 +336,27 @@ async def get_verification_messages(
             verification.completed_at = datetime.now(timezone.utc)
             db.commit()
             
-            return {"messages": [messages_result["sms"]], "status": "completed"}
+            return {
+                "messages": [{"text": messages_result["sms"]}], 
+                "status": "completed",
+                "verification_id": verification_id
+            }
         else:
-            return {"messages": [], "status": verification.status}
+            return {
+                "messages": [], 
+                "status": verification.status,
+                "verification_id": verification_id
+            }
             
+    except HTTPException:
+        raise
     except Exception as e:
-        return {"messages": [], "status": verification.status, "error": str(e)}
+        logger.error(f"Failed to get messages for {verification_id}: {str(e)}")
+        return {
+            "messages": [], 
+            "status": "error", 
+            "error": "Failed to retrieve messages"
+        }
 
 
 @router.get("/{verification_id}/voice")
