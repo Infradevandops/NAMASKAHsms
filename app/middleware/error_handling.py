@@ -22,7 +22,8 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
         except Exception as exc:
             # Log the error
             logger.error(
-                f"Unhandled error in {request.method} {request.url}: {str(exc)}",
+                "Unhandled error in %s %s: %s",
+                request.method, request.url, str(exc),
                 exc_info=True
             )
             
@@ -163,7 +164,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
             # Check if we have a fallback for this endpoint
             path = str(request.url.path)
             if path in self.FALLBACK_RESPONSES:
-                logger.warning(f"Using fallback response for {path}")
+                logger.warning("Using fallback response for %s", path)
                 return JSONResponse(
                     status_code=200,
                     content=self.FALLBACK_RESPONSES[path],
@@ -176,7 +177,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
             # Check if we have a fallback for this endpoint
             path = str(request.url.path)
             if path in self.FALLBACK_RESPONSES:
-                logger.warning(f"Exception occurred, using fallback response for {path}: {str(exc)}")
+                logger.warning("Exception occurred, using fallback response for %s: %s", path, str(exc))
                 return JSONResponse(
                     status_code=200,
                     content=self.FALLBACK_RESPONSES[path],
@@ -206,7 +207,7 @@ def setup_error_handling(app):
     
     @app.exception_handler(500)
     async def internal_error_handler(request: Request, exc):
-        logger.error(f"Internal server error: {str(exc)}", exc_info=True)
+        logger.error("Internal server error: %s", str(exc), exc_info=True)
         return JSONResponse(
             status_code=500,
             content={

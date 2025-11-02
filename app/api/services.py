@@ -76,6 +76,7 @@ async def get_service_price(service_name: str):
             "total_voice": 2.30
         }
 
+@staticmethod
 def get_fallback_services() -> Dict[str, Any]:
     """Return fallback services when API fails."""
     fallback_services = [
@@ -90,6 +91,7 @@ def get_fallback_services() -> Dict[str, Any]:
     ]
     return {"services": fallback_services}
 
+@staticmethod
 def get_fallback_services_categorized() -> Dict[str, Any]:
     """Return categorized fallback services."""
     return {
@@ -109,6 +111,7 @@ def get_fallback_services_categorized() -> Dict[str, Any]:
         "uncategorized": []
     }
 
+@staticmethod
 def format_services_categorized(services) -> Dict[str, Any]:
     """Format TextVerified services into categorized structure."""
     categories = {

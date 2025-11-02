@@ -69,13 +69,13 @@ def get_user_details(
             Transaction.user_id == user_id,
             Transaction.type == "debit"
         ).with_entities(Transaction.amount).all()
-        total_spent = sum(abs(t[0]) for t in total_spent) if total_spent else 0.0
+        total_spent = sum(abs(float(t[0])) for t in total_spent) if total_spent else 0.0
         
         total_funded = db.query(Transaction).filter(
             Transaction.user_id == user_id,
             Transaction.type == "credit"
         ).with_entities(Transaction.amount).all()
-        total_funded = sum(t[0] for t in total_funded) if total_funded else 0.0
+        total_funded = sum(float(t[0]) for t in total_funded) if total_funded else 0.0
         
         return {
             "user": {
