@@ -26,6 +26,7 @@ from app.api.countries import router as countries_router
 from app.middleware.security import JWTAuthMiddleware, CORSMiddleware, SecurityHeadersMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.rate_limiting import RateLimitMiddleware
+from app.middleware.error_handling import setup_error_handling
 from app.core.security_hardening import SecurityMiddleware
 
 
@@ -46,6 +47,9 @@ def create_app() -> FastAPI:
     
     # Setup exception handlers
     setup_exception_handlers(fastapi_app)
+    
+    # Setup enhanced error handling
+    setup_error_handling(fastapi_app)
     
     # Add middleware (order matters - security first)
     fastapi_app.add_middleware(SecurityMiddleware)
@@ -74,7 +78,13 @@ def create_app() -> FastAPI:
     # Redirect verification page to dashboard
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page():
-        with open("templates/dashboard.html", "r") as f:
+        with open("templates/dashboard_fixed.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Main dashboard route
+    @fastapi_app.get("/dashboard", response_class=HTMLResponse)
+    async def dashboard_page():
+        with open("templates/dashboard_fixed.html", "r") as f:
             return HTMLResponse(content=f.read())
     
     # Startup and shutdown events

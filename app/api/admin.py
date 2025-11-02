@@ -50,19 +50,50 @@ def get_all_users(
         return {"items": [], "total": 0}
 
 
-@router.get("/users/{user_id}", response_model=UserResponse)
+@router.get("/users/{user_id}")
 def get_user_details(
     user_id: str,
     admin_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db)
 ):
     """Get detailed user information (admin only)."""
-    user = db.query(User).filter(User.id == user_id).first()
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return UserResponse.from_orm(user)
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Get user statistics
+        total_verifications = db.query(Verification).filter(Verification.user_id == user_id).count()
+        total_spent = db.query(Transaction).filter(
+            Transaction.user_id == user_id,
+            Transaction.type == "debit"
+        ).with_entities(Transaction.amount).all()
+        total_spent = sum(abs(t[0]) for t in total_spent) if total_spent else 0.0
+        
+        total_funded = db.query(Transaction).filter(
+            Transaction.user_id == user_id,
+            Transaction.type == "credit"
+        ).with_entities(Transaction.amount).all()
+        total_funded = sum(t[0] for t in total_funded) if total_funded else 0.0
+        
+        return {
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "credits": user.credits,
+                "free_verifications": getattr(user, 'free_verifications', 0),
+                "is_admin": user.is_admin,
+                "created_at": user.created_at.isoformat() if user.created_at else None
+            },
+            "stats": {
+                "total_verifications": total_verifications,
+                "total_spent": total_spent,
+                "total_funded": total_funded
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/users/{user_id}/credits", response_model=SuccessResponse)
@@ -109,6 +140,79 @@ def manage_user_credits(
         message=f"Successfully {operation}ed {amount} credits",
         data={"new_balance": user.credits}
     )
+
+
+@router.post("/credits/add")
+def add_user_credits(
+    user_id: str = Body(...),
+    amount: float = Body(...),
+    reason: str = Body(""),
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db)
+):
+    """Add credits to user account (admin only)."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        user.credits += amount
+        
+        transaction = Transaction(
+            user_id=user_id,
+            amount=amount,
+            type="credit",
+            description=f"Admin credit: {reason}" if reason else "Admin added credits"
+        )
+        
+        db.add(transaction)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Added {amount} credits",
+            "new_balance": user.credits
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/credits/deduct")
+def deduct_user_credits(
+    user_id: str = Body(...),
+    amount: float = Body(...),
+    reason: str = Body(""),
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db)
+):
+    """Deduct credits from user account (admin only)."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user.credits < amount:
+            raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
+        
+        user.credits -= amount
+        
+        transaction = Transaction(
+            user_id=user_id,
+            amount=-amount,
+            type="debit",
+            description=f"Admin debit: {reason}" if reason else "Admin deducted credits"
+        )
+        
+        db.add(transaction)
+        db.commit()
+        
+        return {
+            "success": True,
+            "message": f"Deducted {amount} credits",
+            "new_balance": user.credits
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/users/{user_id}/suspend", response_model=SuccessResponse)
