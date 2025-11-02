@@ -94,7 +94,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                         log_data["body"] = json.loads(body.decode())
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         log_data["body"] = body.decode()[:1000]  # Limit body size
-            except Exception:
+            except (ValueError, UnicodeDecodeError, AttributeError):
                 log_data["body"] = "Could not read body"
         
         # Remove sensitive headers and data
@@ -326,7 +326,7 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
                         audit_data["body"] = RequestLoggingMiddleware._sanitize_sensitive_data(body_data)
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         audit_data["body"] = "[BINARY_DATA]"
-            except Exception:
+            except (ValueError, UnicodeDecodeError, AttributeError):
                 audit_data["body"] = "[COULD_NOT_READ]"
         
         logger.info("Audit trail - before: %s", audit_data)
