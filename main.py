@@ -75,15 +75,19 @@ def create_app() -> FastAPI:
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
     
-    # Redirect verification page to dashboard
+    # Dashboard routes
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page():
         with open("templates/dashboard_fixed.html", "r") as f:
             return HTMLResponse(content=f.read())
     
-    # Main dashboard route
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page():
+        with open("templates/dashboard_fixed.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    @fastapi_app.get("/app", response_class=HTMLResponse)
+    async def app_page():
         with open("templates/dashboard_fixed.html", "r") as f:
             return HTMLResponse(content=f.read())
     
