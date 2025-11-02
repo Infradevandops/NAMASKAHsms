@@ -361,9 +361,17 @@
                 return;
             }
             
+            // Load hardcoded data immediately to prevent loading states
+            populateHardcodedServices();
+            populateHardcodedCountries();
+            
             loadUserBalance();
-            loadServicesWithFallback();
-            loadCountriesWithFallback();
+            
+            // Try to load real data in background
+            setTimeout(() => {
+                loadServicesWithFallback();
+                loadCountriesWithFallback();
+            }, 100);
         });
         
         // Enhanced service loading with fallback
@@ -414,7 +422,6 @@
                 // Use hardcoded fallback
                 populateHardcodedServices();
                 servicesLoaded = true;
-                showNotification('⚠️ Using offline services list', 'warning');
             }
         }
         
@@ -445,7 +452,6 @@
                 console.log('Countries API failed, using fallback...');
                 populateHardcodedCountries();
                 countriesLoaded = true;
-                showNotification('⚠️ Using offline countries list', 'warning');
             }
         }
         
