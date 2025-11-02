@@ -37,7 +37,7 @@ class ConnectionManager:
             for connection in self.active_connections[verification_id]:
                 try:
                     await connection.send_text(json.dumps(message))
-                except:
+                except Exception:
                     disconnected.add(connection)
             
             # Clean up disconnected clients

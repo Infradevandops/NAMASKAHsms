@@ -1,8 +1,6 @@
 """TextVerified API integration service with comprehensive real API support."""
 import httpx
 import asyncio
-import random
-import string
 from typing import Dict, Any
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -29,7 +27,7 @@ class TextVerifiedService:
             logger.warning("See TEXTVERIFIED_SETUP.md for setup instructions")
             logger.warning("SMS verification will NOT work without real API key")
         else:
-            logger.info(f"Using real TextVerified API service (key: {self.api_key[:10]}...)")
+            logger.info("Using real TextVerified API service (key: %s...)", self.api_key[:10])
             logger.info("SMS verification enabled for 70 countries, 1800+ services")
         
     async def _make_request(self, endpoint: str, params: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -48,26 +46,26 @@ class TextVerifiedService:
                     
                     if response.status_code == 200:
                         data = response.json()
-                        logger.info(f"TextVerified API success: {endpoint}")
+                        logger.info("TextVerified API success: %s", endpoint)
                         return data
                     elif response.status_code == 401:
                         logger.error("Invalid API key")
                         return {"error": "Invalid TextVerified API key"}
                     elif response.status_code == 429:  # Rate limited
                         wait_time = 2 ** attempt
-                        logger.warning(f"Rate limited, waiting {wait_time}s")
+                        logger.warning("Rate limited, waiting %ss", wait_time)
                         await asyncio.sleep(wait_time)
                         continue
                     else:
-                        logger.error(f"TextVerified API error: {response.status_code} - {response.text}")
+                        logger.error("TextVerified API error: %s - %s", response.status_code, response.text)
                         return {"error": f"API error: {response.status_code}"}
                         
             except httpx.TimeoutException:
-                logger.warning(f"Request timeout (attempt {attempt + 1}/{self.max_retries})")
+                logger.warning("Request timeout (attempt %s/%s)", attempt + 1, self.max_retries)
                 if attempt < self.max_retries - 1:
                     await asyncio.sleep(1)
-            except Exception as e:
-                logger.error(f"Request failed: {str(e)}")
+            except (ValueError, KeyError, TypeError) as e:
+                logger.error("Request failed: %s", str(e))
                 return {"error": f"Request failed: {str(e)}"}
                 
         return {"error": "Request failed after all retries"}
@@ -265,8 +263,8 @@ class TextVerifiedService:
                 wait_time = min(2 * (attempt + 1), 10)
                 await asyncio.sleep(wait_time)
                 
-            except Exception as e:
-                logger.error(f"Polling error: {str(e)}")
+            except (ValueError, KeyError, TypeError) as e:
+                logger.error("Polling error: %s", str(e))
                 await asyncio.sleep(2)
             
         return {"success": False, "error": "Timeout waiting for verification code", "attempts": max_attempts}

@@ -98,7 +98,7 @@ class PaymentService(BaseService[Transaction]):
             
         except httpx.RequestError as e:
             raise PaymentError(f"Payment gateway error: {str(e)}")
-        except Exception as e:
+        except (ValueError, KeyError, TypeError) as e:
             raise PaymentError(f"Payment initialization failed: {str(e)}")
     
     async def verify_payment(self, reference: str) -> Dict[str, Any]:
@@ -232,7 +232,7 @@ class PaymentService(BaseService[Transaction]):
                 if response.status_code == 200:
                     rates = response.json().get("rates", {})
                     return rates.get("NGN", 1478.24)  # Fallback rate
-        except Exception:
+        except (httpx.RequestError, ValueError, KeyError):
             pass
         
         return 1478.24  # Default fallback rate

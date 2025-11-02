@@ -46,7 +46,7 @@ def get_all_users(
             })
         
         return {"items": items, "total": len(items)}
-    except Exception:
+    except (ValueError, AttributeError):
         return {"items": [], "total": 0}
 
 
@@ -166,14 +166,14 @@ def get_platform_stats(
         try:
             result = db.execute(text("SELECT COUNT(*) FROM verifications")).scalar()
             total_verifications = result or 0
-        except Exception:
+        except (ValueError, AttributeError):
             total_verifications = 0
         
         # Try to get transactions sum
         try:
             result = db.execute(text("SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'")).scalar()
             total_spent = float(result or 0)
-        except Exception:
+        except (ValueError, AttributeError):
             total_spent = 0.0
         
         return {
@@ -186,7 +186,7 @@ def get_platform_stats(
             "daily_usage": []
         }
         
-    except Exception as e:
+    except (ValueError, AttributeError):
         # Ultimate fallback
         return {
             "total_users": 1,
@@ -265,7 +265,7 @@ def get_active_verifications(
     """Get all active verifications system-wide (admin only)."""
     try:
         return {"verifications": [], "total_count": 0}
-    except Exception:
+    except (ValueError, AttributeError):
         return {"verifications": [], "total_count": 0}
 
 
@@ -289,7 +289,7 @@ async def admin_cancel_verification(
     textverified_service = get_textverified_service()
     try:
         await textverified_service.cancel_verification(verification_id)
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         pass  # Continue with local cancellation
     
     # Refund user
@@ -325,7 +325,7 @@ def get_system_health(
     try:
         db.execute("SELECT 1")
         db_status = "healthy"
-    except Exception:
+    except (ValueError, AttributeError):
         db_status = "unhealthy"
     
     # User statistics

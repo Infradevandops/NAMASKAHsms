@@ -31,8 +31,8 @@ async def get_available_services():
         textverified = TextVerifiedService()
         result = await textverified.get_services()
         return result
-    except Exception as e:
-        print(f"Failed to fetch services: {str(e)}")
+    except (ValueError, KeyError, TypeError) as e:
+        logger.warning("Failed to fetch services: %s", str(e))
         # Return comprehensive fallback services (1,800+ available)
         return get_comprehensive_services()
 
@@ -276,7 +276,7 @@ async def create_verification(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Verification creation failed: {str(e)}")
+        logger.error("Verification creation failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
@@ -305,7 +305,7 @@ async def get_verification_status(
             
             # Send success notification
             return VerificationResponse.from_orm(verification)
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         pass  # Continue with current status if API call fails
     
     return VerificationResponse.from_orm(verification)
@@ -350,8 +350,8 @@ async def get_verification_messages(
             
     except HTTPException:
         raise
-    except Exception as e:
-        logger.error(f"Failed to get messages for {verification_id}: {str(e)}")
+    except (ValueError, KeyError, TypeError) as e:
+        logger.error("Failed to get messages for %s: %s", verification_id, str(e))
         return {
             "messages": [], 
             "status": "error", 
@@ -400,7 +400,7 @@ async def get_verification_voice(
         else:
             return {"messages": [], "status": verification.status}
             
-    except Exception as e:
+    except (ValueError, KeyError, TypeError) as e:
         return {"messages": [], "status": verification.status, "error": str(e)}
 
 
@@ -470,7 +470,7 @@ async def retry_verification(
         db.refresh(verification)
         return VerificationResponse.from_orm(verification)
         
-    except Exception as e:
+    except (ValueError, KeyError, TypeError) as e:
         raise HTTPException(status_code=503, detail=f"TextVerified service error: {str(e)}")
 
 
@@ -496,7 +496,7 @@ async def cancel_verification(
     try:
         textverified_service = TextVerifiedService()
         await textverified_service.cancel_verification(verification_id)
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         pass  # Continue with local cancellation even if API call fails
     
     # Refund credits

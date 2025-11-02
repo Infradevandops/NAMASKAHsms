@@ -36,7 +36,7 @@ class CacheManager:
         try:
             value = await self.redis_client.get(key)
             return json.loads(value) if value else None
-        except Exception:
+        except (redis.RedisError, json.JSONDecodeError, ValueError):
             return None
     
     async def set(self, key: str, value: Any, ttl: int = 300):
@@ -50,7 +50,7 @@ class CacheManager:
                 ttl, 
                 json.dumps(value, default=str)
             )
-        except Exception:
+        except (redis.RedisError, json.JSONEncodeError, ValueError):
             pass
     
     async def delete(self, key: str):
@@ -60,7 +60,7 @@ class CacheManager:
         
         try:
             await self.redis_client.delete(key)
-        except Exception:
+        except (redis.RedisError, ValueError):
             pass
     
     async def invalidate_pattern(self, pattern: str):
@@ -72,7 +72,7 @@ class CacheManager:
             keys = await self.redis_client.keys(pattern)
             if keys:
                 await self.redis_client.delete(*keys)
-        except Exception:
+        except (redis.RedisError, ValueError):
             pass
 
 

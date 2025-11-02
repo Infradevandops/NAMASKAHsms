@@ -102,7 +102,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
                 request.state.user_id = user.id
                 request.state.auth_method = "api_key"
             
-        except Exception:
+        except (ValueError, KeyError, AttributeError):
             pass  # Continue without authentication
         finally:
             db.close()

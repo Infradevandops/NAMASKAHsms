@@ -50,7 +50,7 @@ class HealthMonitor:
             
         except Exception as e:
             response_time = time.time() - start_time
-            logger.error(f"TextVerified health check error: {e}")
+            logger.error("TextVerified health check error: %s", e)
             
             return HealthCheck(
                 service="textverified",
@@ -114,7 +114,7 @@ class HealthMonitor:
                 await self.check_all_services()
                 await asyncio.sleep(self.check_interval)
             except Exception as e:
-                logger.error(f"Health monitoring error: {e}")
+                logger.error("Health monitoring error: %s", e)
                 await asyncio.sleep(self.check_interval)
     
     def stop_monitoring(self):

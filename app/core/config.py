@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     jwt_expire_minutes: int = 43200  # 30 days
     
     # Server Configuration
-    host: str = "127.0.0.1"  # Default to localhost for security
+    host: str = "0.0.0.0"  # Bind to all interfaces for container deployment
     port: int = 8000
     workers: int = 1
     

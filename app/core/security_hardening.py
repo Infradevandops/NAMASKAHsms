@@ -161,7 +161,7 @@ class SecurityHardening:
                 "method": request.method
             })
         
-        logger.warning(f"Security Event: {event_type}", extra=log_data)
+        logger.warning("Security Event: %s", event_type, extra=log_data)
 
 # Global security instance
 security_hardening = SecurityHardening()
