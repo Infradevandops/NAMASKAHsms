@@ -131,7 +131,7 @@ class MigrationManager:
             return None
         except subprocess.TimeoutExpired:
             return None
-        except Exception:
+        except (subprocess.SubprocessError, OSError, ValueError):
             return None
     
     def backup_database(self) -> bool:

@@ -56,7 +56,7 @@ async def register(
         
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         raise HTTPException(status_code=500, detail="Registration failed")
 
 
@@ -286,7 +286,7 @@ async def login(
         raise
     except AuthenticationError as e:
         raise HTTPException(status_code=401, detail=str(e))
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         raise HTTPException(status_code=500, detail="Login failed. Please try again.")
 
 
@@ -332,7 +332,7 @@ async def google_auth(
         
     except ImportError:
         raise HTTPException(status_code=503, detail="Google OAuth not configured")
-    except Exception:
+    except (ValueError, KeyError, TypeError):
         raise HTTPException(status_code=401, detail="Google authentication failed")
 
 

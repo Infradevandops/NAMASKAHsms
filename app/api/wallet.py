@@ -125,7 +125,7 @@ async def paystack_webhook(
     # Parse webhook data
     try:
         webhook_data = await request.json()
-    except Exception:
+    except (ValueError, TypeError, AttributeError):
         raise HTTPException(status_code=400, detail="Invalid JSON")
     
     # Process webhook
