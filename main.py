@@ -21,6 +21,8 @@ from app.api.setup import router as setup_router
 from app.api.services import router as services_router
 from app.api.websocket import router as websocket_router
 from app.api.countries import router as countries_router
+from app.api.dashboard import router as dashboard_router
+from app.api.support import router as support_router
 
 # Import middleware
 from app.middleware.security import JWTAuthMiddleware, CORSMiddleware, SecurityHeadersMiddleware
@@ -71,6 +73,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(system_router)
     fastapi_app.include_router(setup_router)
     fastapi_app.include_router(countries_router)
+    fastapi_app.include_router(dashboard_router)
+    fastapi_app.include_router(support_router)
     
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -78,16 +82,22 @@ def create_app() -> FastAPI:
     # Dashboard routes
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page():
-        with open("templates/dashboard_fixed.html", "r") as f:
+        with open("templates/dashboard_production.html", "r") as f:
             return HTMLResponse(content=f.read())
     
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page():
-        with open("templates/dashboard_fixed.html", "r") as f:
+        with open("templates/dashboard_production.html", "r") as f:
             return HTMLResponse(content=f.read())
     
     @fastapi_app.get("/app", response_class=HTMLResponse)
     async def app_page():
+        with open("templates/dashboard_production.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Legacy dashboard routes
+    @fastapi_app.get("/dashboard/legacy", response_class=HTMLResponse)
+    async def legacy_dashboard():
         with open("templates/dashboard_fixed.html", "r") as f:
             return HTMLResponse(content=f.read())
     

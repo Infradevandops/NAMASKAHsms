@@ -51,7 +51,7 @@ async def readiness_check(db: Session = Depends(get_db)):
     try:
         db_health = check_database_health(db)
         is_ready = db_health["status"] == "healthy"
-    except (ValueError, AttributeError, ConnectionError):
+    except Exception:
         is_ready = False
     
     status_code = 200 if is_ready else 503
@@ -319,7 +319,7 @@ async def services_page(request: Request):
             "total_services": 1807
         }
         return templates.TemplateResponse("services.html", context)
-    except (ValueError, AttributeError, FileNotFoundError):
+    except Exception:
         return HTMLResponse(content="""
         <!DOCTYPE html>
         <html>
