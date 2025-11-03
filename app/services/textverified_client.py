@@ -119,7 +119,7 @@ class TextVerifiedClient:
                                 logger.info(f"API success: {endpoint}")
                                 self._reset_circuit()  # Reset on success
                                 return data
-                            except:
+                            except (ValueError, TypeError, KeyError):
                                 # Handle plain text responses
                                 if response_text.startswith("ERROR:"):
                                     error_msg = response_text.replace("ERROR:", "").strip()
