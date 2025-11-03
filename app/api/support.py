@@ -69,7 +69,7 @@ async def create_support_ticket(
         db.refresh(ticket)
         
         # In a real implementation, you might send an email notification here
-        logger.info(f"Support ticket created: {ticket.id} for user {user_id}")
+        logger.info("Support ticket created: %s for user %s", ticket.id, user_id)
         
         return SuccessResponse(
             message="Support ticket created successfully",
@@ -81,7 +81,7 @@ async def create_support_ticket(
         )
         
     except Exception as e:
-        logger.error(f"Failed to create support ticket: {e}")
+        logger.error("Failed to create support ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create support ticket")
 
 
@@ -104,7 +104,7 @@ async def get_user_tickets(
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
         
     except Exception as e:
-        logger.error(f"Failed to get user tickets: {e}")
+        logger.error("Failed to get user tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
@@ -129,7 +129,7 @@ async def get_ticket_details(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to get ticket details: {e}")
+        logger.error("Failed to get ticket details: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get ticket details")
 
 
@@ -164,7 +164,7 @@ async def close_ticket(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to close ticket: {e}")
+        logger.error("Failed to close ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to close ticket")
 
 
@@ -242,7 +242,7 @@ async def get_faq():
         return {"faq": faq_items}
         
     except Exception as e:
-        logger.error(f"Failed to get FAQ: {e}")
+        logger.error("Failed to get FAQ: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get FAQ")
 
 
@@ -262,7 +262,7 @@ async def mark_faq_helpful(
         )
         
     except Exception as e:
-        logger.error(f"Failed to record FAQ feedback: {e}")
+        logger.error("Failed to record FAQ feedback: %s", e)
         raise HTTPException(status_code=500, detail="Failed to record feedback")
 
 
@@ -312,7 +312,7 @@ async def get_support_categories():
         return {"categories": categories}
         
     except Exception as e:
-        logger.error(f"Failed to get support categories: {e}")
+        logger.error("Failed to get support categories: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get categories")
 
 
@@ -329,7 +329,7 @@ async def get_support_status():
         }
         
     except Exception as e:
-        logger.error(f"Failed to get support status: {e}")
+        logger.error("Failed to get support status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support status")
 
 
@@ -359,7 +359,7 @@ async def get_all_tickets(
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
         
     except Exception as e:
-        logger.error(f"Failed to get all tickets: {e}")
+        logger.error("Failed to get all tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
@@ -383,7 +383,7 @@ async def respond_to_ticket(
         db.commit()
         
         # In a real implementation, send email notification to user
-        logger.info(f"Admin {admin_id} responded to ticket {ticket_id}")
+        logger.info("Admin %s responded to ticket %s", admin_id, ticket_id)
         
         return SuccessResponse(
             message="Response sent successfully",
@@ -393,7 +393,7 @@ async def respond_to_ticket(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to respond to ticket: {e}")
+        logger.error("Failed to respond to ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to respond to ticket")
 
 
@@ -424,5 +424,5 @@ async def get_support_stats(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get support stats: {e}")
+        logger.error("Failed to get support stats: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support stats")

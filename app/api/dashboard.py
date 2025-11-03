@@ -1,5 +1,5 @@
 """Enhanced Dashboard API router with comprehensive features."""
-from typing import List, Optional, Dict, Any
+from typing import Optional, Dict, Any
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
@@ -101,7 +101,7 @@ async def get_dashboard_stats(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get dashboard stats: {e}")
+        logger.error("Failed to get dashboard stats: %s", e)
         # Return safe defaults
         return {
             "total_verifications": 0,
@@ -147,7 +147,7 @@ async def get_recent_activity(
         return {"activities": activities}
         
     except Exception as e:
-        logger.error(f"Failed to get recent activity: {e}")
+        logger.error("Failed to get recent activity: %s", e)
         return {"activities": []}
 
 
@@ -181,7 +181,7 @@ async def get_notifications(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get notifications: {e}")
+        logger.error("Failed to get notifications: %s", e)
         return {"notifications": [], "unread_count": 0}
 
 
@@ -197,7 +197,7 @@ async def mark_notification_read(
         return {"success": True, "message": "Notification marked as read"}
         
     except Exception as e:
-        logger.error(f"Failed to mark notification as read: {e}")
+        logger.error("Failed to mark notification as read: %s", e)
         raise HTTPException(status_code=500, detail="Failed to update notification")
 
 
@@ -244,7 +244,7 @@ async def get_service_pricing(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get service pricing: {e}")
+        logger.error("Failed to get service pricing: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get pricing")
 
 
@@ -274,7 +274,7 @@ async def get_service_availability(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get service availability: {e}")
+        logger.error("Failed to get service availability: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get availability")
 
 
@@ -336,7 +336,7 @@ async def get_performance_metrics(
         }
         
     except Exception as e:
-        logger.error(f"Failed to get performance metrics: {e}")
+        logger.error("Failed to get performance metrics: %s", e)
         return {
             "service_performance": [],
             "country_performance": [],
@@ -365,7 +365,7 @@ async def update_user_preferences(
         )
         
     except Exception as e:
-        logger.error(f"Failed to update preferences: {e}")
+        logger.error("Failed to update preferences: %s", e)
         raise HTTPException(status_code=500, detail="Failed to update preferences")
 
 
@@ -438,7 +438,7 @@ async def export_user_data(
         }
         
     except Exception as e:
-        logger.error(f"Failed to export data: {e}")
+        logger.error("Failed to export data: %s", e)
         raise HTTPException(status_code=500, detail="Failed to export data")
 
 
@@ -458,7 +458,7 @@ async def get_dashboard_health():
             }
         }
     except Exception as e:
-        logger.error(f"Dashboard health check failed: {e}")
+        logger.error("Dashboard health check failed: %s", e)
         return {
             "status": "degraded",
             "timestamp": datetime.now(timezone.utc).isoformat(),

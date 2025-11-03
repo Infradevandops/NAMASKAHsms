@@ -116,7 +116,7 @@ class TextVerifiedClient:
                             # Try to parse as JSON first
                             try:
                                 data = response.json()
-                                logger.info(f"API success: {endpoint}")
+                                logger.info("API success: %s", endpoint)
                                 self._reset_circuit()  # Reset on success
                                 return data
                             except (ValueError, TypeError, KeyError):
@@ -128,7 +128,7 @@ class TextVerifiedClient:
                                     return {"error": error_msg}
                                 else:
                                     # Success response in plain text
-                                    logger.info(f"API success: {endpoint} - {response_text}")
+                                    logger.info("API success: %s - %s", endpoint, response_text)
                                     self._reset_circuit()
                                     return self._parse_text_response(endpoint, response_text)
                                     

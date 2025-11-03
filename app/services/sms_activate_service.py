@@ -122,7 +122,7 @@ class SMSActivateService:
         country_mapping = {
             "US": 0, "RU": 0, "UA": 1, "KZ": 2, "CN": 3,
             "PH": 4, "MM": 5, "ID": 6, "MY": 7, "KE": 8,
-            "TZ": 9, "VN": 10, "KG": 11, "US": 12, "IL": 13,
+            "TZ": 9, "VN": 10, "KG": 11, "IL": 13,
             "HK": 14, "PL": 15, "GB": 16, "MG": 17, "ZA": 18,
             "EG": 19, "IN": 22, "IE": 23, "KH": 24, "LA": 25,
             "HT": 26, "CI": 27, "GM": 28, "RS": 29, "YE": 30
