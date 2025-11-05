@@ -346,15 +346,15 @@ async def respond_to_ticket(
     await notification_service.send_email(
         to_email=ticket.email,
         subject=f"Re: Support Request #{ticket.id} - Namaskah SMS",
-        body=f"<h2>Support Response</h2>" + \
+        body="<h2>Support Response</h2>" + \
              f"<p>Hi {ticket.name},</p>" + \
              f"<p>We've reviewed your support request regarding <strong>{ticket.category}</strong>.</p>" + \
-             f"<p><strong>Your Message:</strong></p>" + \
+             "<p><strong>Your Message:</strong></p>" + \
              f"<p>{ticket.message}</p>" + \
-             f"<p><strong>Our Response:</strong></p>" + \
+             "<p><strong>Our Response:</strong></p>" + \
              f"<p>{response_text}</p>" + \
-             f"<p>If you need further assistance, please reply to this email.</p>" + \
-             f"<p>Best regards,<br>Namaskah Support Team</p>"
+             "<p>If you need further assistance, please reply to this email.</p>" + \
+             "<p>Best regards,<br>Namaskah Support Team</p>"
     )
     
     return SuccessResponse(message="Response sent successfully")
@@ -537,7 +537,7 @@ async def broadcast_notification(
                 subject=title,
                 body=f"<h2>{title}</h2>" + \
                      f"<p>{message}</p>" + \
-                     f"<p>Best regards,<br>Namaskah Team</p>"
+                     "<p>Best regards,<br>Namaskah Team</p>"
             )
             sent_count += 1
         except Exception:

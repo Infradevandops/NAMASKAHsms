@@ -1,12 +1,10 @@
 """Authentication API router."""
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
-from fastapi import Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.models.user import User
-from app.core.config import get_settings
 from app.core.dependencies import get_current_user_id
 from app.services import get_auth_service, get_notification_service
 from app.schemas import (
@@ -44,10 +42,10 @@ async def register(
         await notification_service.send_email(
             to_email=new_user.email,
             subject="Welcome to Namaskah SMS!",
-            body=f"<h2>Welcome to Namaskah SMS!</h2>" + \
-                 f"<p>Your account has been created successfully.</p>" + \
+            body="<h2>Welcome to Namaskah SMS!</h2>" + \
+                 "<p>Your account has been created successfully.</p>" + \
                  f"<p>You have {new_user.free_verifications} free verification(s) to get started.</p>" + \
-                 f"<p><a href='/app'>Start Using Namaskah SMS</a></p>"
+                 "<p><a href='/app'>Start Using Namaskah SMS</a></p>"
         )
         
         return TokenResponse(
@@ -590,10 +588,10 @@ async def forgot_password(
         await notification_service.send_email(
             to_email=request_data.email,
             subject="Password Reset - Namaskah SMS",
-            body=f"<h2>Password Reset Request</h2>" + \
-                 f"<p>Click the link below to reset your password:</p>" + \
+            body="<h2>Password Reset Request</h2>" + \
+                 "<p>Click the link below to reset your password:</p>" + \
                  f"<p><a href='/auth/reset-password?token={reset_token}'>Reset Password</a></p>" + \
-                 f"<p>This link expires in 1 hour.</p>"
+                 "<p>This link expires in 1 hour.</p>"
         )
     
     # Always return success for security

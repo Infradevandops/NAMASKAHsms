@@ -1,7 +1,6 @@
 """Webhook verification and processing service."""
 import hashlib
 import hmac
-import json
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from app.core.config import settings

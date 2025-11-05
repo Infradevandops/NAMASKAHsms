@@ -25,6 +25,9 @@ from .payment import (
     SubscriptionPlan, SubscriptionRequest, SubscriptionResponse
 )
 
+# Analytics schemas
+from .analytics import AnalyticsResponse
+
 # System schemas
 from .system import SupportTicketResponse
 
@@ -68,6 +71,9 @@ __all__ = [
     "TransactionResponse", "TransactionHistoryResponse",
     "RefundRequest", "RefundResponse", "WalletBalanceResponse",
     "SubscriptionPlan", "SubscriptionRequest", "SubscriptionResponse",
+    
+    # Analytics
+    "AnalyticsResponse",
     
     # System
     "SupportTicketResponse",

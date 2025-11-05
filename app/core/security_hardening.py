@@ -6,7 +6,7 @@ Addresses: Input validation, CSRF protection, secure headers
 import re
 import html
 import secrets
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional
 from fastapi import Request, HTTPException, status
 from fastapi.responses import JSONResponse
 import logging

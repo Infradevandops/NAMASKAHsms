@@ -1,6 +1,4 @@
 """SMS gateway service for sending/receiving SMS."""
-import asyncio
-from typing import Optional
 import httpx
 
 class SMSGateway:

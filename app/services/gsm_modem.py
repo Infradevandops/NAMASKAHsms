@@ -1,5 +1,4 @@
 """GSM Modem SMS service."""
-import asyncio
 from typing import Dict, List
 
 class GSMModemService:

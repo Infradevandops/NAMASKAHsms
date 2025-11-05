@@ -237,7 +237,7 @@ class NotificationService(BaseService[InAppNotification]):
             await self.send_email(
                 to_email=user.email,
                 subject=f"✅ {service_name.title()} Verification Completed",
-                body=f"<h2>Verification Completed Successfully!</h2>" + \
+                body="<h2>Verification Completed Successfully!</h2>" + \
                      f"<p>Your {service_name} verification has been completed.</p>" + \
                      f"<p><strong>Phone Number:</strong> {phone_number}</p>" + \
                      f"<p><strong>Service:</strong> {service_name}</p>" + \
@@ -277,9 +277,9 @@ class NotificationService(BaseService[InAppNotification]):
             await self.send_email(
                 to_email=user.email,
                 subject="⚠️ Low Balance - Namaskah SMS",
-                body=f"<h2>Low Balance Warning</h2>" + \
-                     f"<p>Your account balance is running low.</p>" + \
+                body="<h2>Low Balance Warning</h2>" + \
+                     "<p>Your account balance is running low.</p>" + \
                      f"<p><strong>Current Balance:</strong> N{current_balance:.2f}</p>" + \
-                     f"<p>Add credits to continue using our SMS verification services.</p>" + \
+                     "<p>Add credits to continue using our SMS verification services.</p>" + \
                      f"<p><a href='{settings.base_url}/app'>Add Credits</a></p>"
             )

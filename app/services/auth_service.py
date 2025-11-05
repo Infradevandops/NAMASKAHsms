@@ -9,7 +9,6 @@ from app.utils.security import (
     hash_password, verify_password, create_access_token, 
     verify_token, generate_api_key, generate_secure_id
 )
-from app.core.config import get_settings
 from app.core.exceptions import ValidationError
 
 

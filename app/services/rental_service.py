@@ -2,7 +2,7 @@
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import List, Optional
+from typing import List
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, and_
 from fastapi import HTTPException
@@ -87,7 +87,7 @@ class RentalService:
             # Check user credits
             user = await self._get_user(user_id)
             if user.credits < extension_cost:
-                raise InsufficientCreditsError(f"Insufficient credits for extension")
+                raise InsufficientCreditsError("Insufficient credits for extension")
             
             # Extend rental
             rental.expires_at += timedelta(hours=extend_data.additional_hours)
