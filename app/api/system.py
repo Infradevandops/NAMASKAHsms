@@ -1,15 +1,16 @@
 """System API router for health checks and service status."""
 from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, Request
-from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
 from app.core.config import settings
-from app.core.health_checks import check_system_health, check_database_health
+from app.core.database import get_db
+from app.core.health_checks import check_database_health, check_system_health
 from app.core.monitoring import dashboard_metrics
-from app.schemas import ServiceStatusSummary, ServiceStatus
+from app.schemas import ServiceStatus, ServiceStatusSummary
 
 router = APIRouter(prefix="/system", tags=["System"])
 
@@ -21,11 +22,11 @@ root_router = APIRouter()
 async def health_check(db: Session = Depends(get_db)):
     """Comprehensive health check with external service monitoring."""
     from app.core.health_monitor import health_monitor
-    
+
     try:
         system_health = await health_monitor.get_system_health()
         health_data = check_system_health(db)
-        
+
         return {
             "status": system_health["status"],
             "timestamp": datetime.now(timezone.utc).isoformat(),
@@ -33,13 +34,13 @@ async def health_check(db: Session = Depends(get_db)):
             "environment": settings.environment,
             "database": health_data.get("database", "connected"),
             "services": system_health["services"],
-            "summary": system_health["summary"]
+            "summary": system_health["summary"],
         }
     except Exception as e:
         return {
             "status": "unhealthy",
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "error": str(e)
+            "error": str(e),
         }
 
 
@@ -47,54 +48,48 @@ async def health_check(db: Session = Depends(get_db)):
 async def readiness_check(db: Session = Depends(get_db)):
     """Kubernetes readiness probe."""
     from fastapi.responses import JSONResponse
-    
+
     try:
         db_health = check_database_health(db)
         is_ready = db_health["status"] == "healthy"
     except Exception:
         is_ready = False
-    
+
     status_code = 200 if is_ready else 503
-    return JSONResponse(
-        status_code=status_code,
-        content={"ready": is_ready}
-    )
+    return JSONResponse(status_code=status_code, content={"ready": is_ready})
 
 
 @router.get("/health/liveness")
 async def liveness_check():
     """Kubernetes liveness probe."""
     from fastapi.responses import JSONResponse
-    
+
     # Simple liveness check - if we can respond, we're alive
     is_alive = True
-    
+
     status_code = 200 if is_alive else 503
-    return JSONResponse(
-        status_code=status_code,
-        content={"alive": is_alive}
-    )
+    return JSONResponse(status_code=status_code, content={"alive": is_alive})
 
 
 @router.get("/status", response_model=ServiceStatusSummary)
 def get_service_status(db: Session = Depends(get_db)):
     """Get comprehensive service status."""
     from app.models.system import ServiceStatus as ServiceStatusModel
-    
+
     # Get service statuses from database
     services = db.query(ServiceStatusModel).all()
-    
+
     # Convert to response format
     service_statuses = [
         ServiceStatus(
             service_name=service.service_name,
             status=service.status,
             success_rate=service.success_rate,
-            last_checked=service.last_checked
+            last_checked=service.last_checked,
         )
         for service in services
     ]
-    
+
     # Calculate overall status
     if not service_statuses:
         overall_status = "unknown"
@@ -103,25 +98,25 @@ def get_service_status(db: Session = Depends(get_db)):
         status_counts = {}
         for service in service_statuses:
             status_counts[service.status] = status_counts.get(service.status, 0) + 1
-        
+
         if status_counts.get("down", 0) > 0:
             overall_status = "down"
         elif status_counts.get("degraded", 0) > 0:
             overall_status = "degraded"
         else:
             overall_status = "operational"
-        
+
         stats = {
             "operational": status_counts.get("operational", 0),
             "degraded": status_counts.get("degraded", 0),
-            "down": status_counts.get("down", 0)
+            "down": status_counts.get("down", 0),
         }
-    
+
     return ServiceStatusSummary(
         overall_status=overall_status,
         services=service_statuses,
         stats=stats,
-        last_updated=datetime.now(timezone.utc)
+        last_updated=datetime.now(timezone.utc),
     )
 
 
@@ -131,18 +126,18 @@ def get_system_info():
     return {
         "service_name": "Namaskah SMS",
         "version": "2.3.0",
-        "environment": getattr(settings, 'environment', 'production'),
+        "environment": getattr(settings, "environment", "production"),
         "features": {
             "sms_verification": True,
             "payment_processing": True,
             "admin_panel": True,
-            "analytics": True
+            "analytics": True,
         },
         "limits": {
             "max_concurrent_verifications": 100,
             "rate_limit_per_minute": 60,
-            "max_api_keys_per_user": 5
-        }
+            "max_api_keys_per_user": 5,
+        },
     }
 
 
@@ -151,14 +146,20 @@ def get_public_config():
     """Get public configuration settings."""
     return {
         "supported_services": [
-            "telegram", "whatsapp", "discord", "instagram", 
-            "twitter", "facebook", "google", "microsoft"
+            "telegram",
+            "whatsapp",
+            "discord",
+            "instagram",
+            "twitter",
+            "facebook",
+            "google",
+            "microsoft",
         ],
         "payment_methods": ["paystack"],
         "currencies": ["NGN"],
         "min_credit_amount": 100.0,
         "verification_timeout_minutes": 10,
-        "api_version": "v1"
+        "api_version": "v1",
     }
 
 
@@ -166,38 +167,37 @@ def get_public_config():
 async def get_system_metrics():
     """Get system performance metrics with service health."""
     from app.core.health_monitor import health_monitor
-    
+
     try:
         system_health = await health_monitor.get_system_health()
         dashboard_data = await dashboard_metrics.get_system_health()
-        
+
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "uptime": f"{system_health['summary']['uptime_percentage']:.1f}%",
-            "response_time": dashboard_data.get("response_time", {
-                "p50": "150ms",
-                "p95": "500ms",
-                "p99": "1000ms"
-            }),
-            "requests": dashboard_data.get("requests", {
-                "total": 10000,
-                "success_rate": "99.5%",
-                "error_rate": "0.5%"
-            }),
+            "response_time": dashboard_data.get(
+                "response_time", {"p50": "150ms", "p95": "500ms", "p99": "1000ms"}
+            ),
+            "requests": dashboard_data.get(
+                "requests",
+                {"total": 10000, "success_rate": "99.5%", "error_rate": "0.5%"},
+            ),
             "services": {
                 name: {
                     "status": service["status"],
-                    "response_time": f"{service['response_time']*1000:.0f}ms"
+                    "response_time": f"{service['response_time']*1000:.0f}ms",
                 }
                 for name, service in system_health["services"].items()
             },
-            "database": dashboard_data.get("database", {
-                "connections": 5,
-                "query_time": "50ms"
-            })
+            "database": dashboard_data.get(
+                "database", {"connections": 5, "query_time": "50ms"}
+            ),
         }
-    except Exception as e:
-        return {"error": "Metrics unavailable", "timestamp": datetime.now(timezone.utc).isoformat()}
+    except Exception:
+        return {
+            "error": "Metrics unavailable",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
 
 
 @router.get("/metrics/business")
@@ -209,28 +209,27 @@ async def get_business_metrics():
 @router.get("/metrics/prometheus")
 async def get_prometheus_metrics():
     """Get Prometheus-formatted metrics."""
-    from app.core.metrics import get_prometheus_metrics as get_prom_metrics, get_metrics_content_type
     from fastapi.responses import Response
-    
+
+    from app.core.metrics import get_metrics_content_type
+    from app.core.metrics import get_prometheus_metrics as get_prom_metrics
+
     metrics_data = get_prom_metrics()
-    return Response(
-        content=metrics_data,
-        media_type=get_metrics_content_type()
-    )
+    return Response(content=metrics_data, media_type=get_metrics_content_type())
 
 
 @router.get("/metrics/application")
 async def get_application_metrics():
     """Get application-specific metrics."""
     from app.core.metrics import metrics_collector
-    
+
     app_metrics = metrics_collector.get_application_metrics()
     health_score = metrics_collector.get_health_score()
-    
+
     return {
         "application": app_metrics,
         "health": health_score,
-        "timestamp": datetime.now(timezone.utc).isoformat()
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -240,7 +239,7 @@ async def landing_page(request: Request):
     try:
         # Initialize templates
         templates = Jinja2Templates(directory="templates")
-        
+
         # Context data for the template
         context = {
             "request": request,
@@ -251,20 +250,22 @@ async def landing_page(request: Request):
             "total_services": 1807,
             "success_rate": 95,
             "active_users": 5247,
-            "verifications_today": 15234
+            "verifications_today": 15234,
         }
-        
+
         # Render the landing page template
         return templates.TemplateResponse("landing.html", context)
-        
+
     except Exception as e:
         # Fallback to JSON response if template fails
         import logging
+
         logger = logging.getLogger(__name__)
         logger.error("Landing page template error: %s", str(e), exc_info=True)
-        
+
         # Return simple HTML as fallback
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <!DOCTYPE html>
         <html>
         <head>
@@ -302,7 +303,9 @@ async def landing_page(request: Request):
             </div>
         </body>
         </html>
-        """, status_code=200)
+        """,
+            status_code=200,
+        )
 
 
 # Removed conflicting /app route - handled in main.py
@@ -316,11 +319,12 @@ async def services_page(request: Request):
         context = {
             "request": request,
             "service_name": "Namaskah SMS",
-            "total_services": 1807
+            "total_services": 1807,
         }
         return templates.TemplateResponse("services.html", context)
     except Exception:
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <!DOCTYPE html>
         <html>
         <head><title>Services - Namaskah SMS</title></head>
@@ -338,13 +342,15 @@ async def services_page(request: Request):
             <a href="/app">← Back to Dashboard</a>
         </body>
         </html>
-        """)
+        """
+        )
 
 
 @root_router.get("/pricing", response_class=HTMLResponse)
 async def pricing_page(request: Request):
     """Pricing page."""
-    return HTMLResponse(content="""
+    return HTMLResponse(
+        content="""
     <!DOCTYPE html>
     <html>
     <head>
@@ -371,7 +377,8 @@ async def pricing_page(request: Request):
         </div>
     </body>
     </html>
-    """)
+    """
+    )
 
 
 @root_router.get("/about", response_class=HTMLResponse)
@@ -382,7 +389,8 @@ async def about_page(request: Request):
         context = {"request": request, "service_name": "Namaskah SMS"}
         return templates.TemplateResponse("about.html", context)
     except Exception:
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <!DOCTYPE html>
         <html>
         <head><title>About - Namaskah SMS</title></head>
@@ -393,7 +401,8 @@ async def about_page(request: Request):
             <a href="/">← Back to Home</a>
         </body>
         </html>
-        """)
+        """
+        )
 
 
 @root_router.get("/contact", response_class=HTMLResponse)
@@ -404,7 +413,8 @@ async def contact_page(request: Request):
         context = {"request": request, "service_name": "Namaskah SMS"}
         return templates.TemplateResponse("contact.html", context)
     except Exception:
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <!DOCTYPE html>
         <html>
         <head><title>Contact - Namaskah SMS</title></head>
@@ -419,7 +429,8 @@ async def contact_page(request: Request):
             <a href="/">← Back to Home</a>
         </body>
         </html>
-        """)
+        """
+        )
 
 
 @root_router.get("/admin", response_class=HTMLResponse)
@@ -430,11 +441,12 @@ async def admin_page(request: Request):
         context = {
             "request": request,
             "service_name": "Namaskah SMS",
-            "version": "2.4.0"
+            "version": "2.4.0",
         }
         return templates.TemplateResponse("admin.html", context)
     except Exception:
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <!DOCTYPE html>
         <html>
         <head>
@@ -498,4 +510,5 @@ async def admin_page(request: Request):
             </div>
         </body>
         </html>
-        """)
+        """
+        )

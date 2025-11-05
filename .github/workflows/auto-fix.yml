@@ -1,0 +1,70 @@
+name: Auto-Fix Code Issues
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  auto-fix:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install formatters
+      run: |
+        pip install black isort autoflake autopep8
+        npm install
+    
+    - name: Auto-fix Python Issues
+      run: |
+        # Remove unused imports
+        autoflake --remove-all-unused-imports --remove-unused-variables --recursive --in-place app/
+        # Fix PEP8 issues
+        autopep8 --in-place --aggressive --recursive app/
+        # Sort imports
+        isort app/ --profile black
+        # Format code
+        black app/ --line-length 88
+    
+    - name: Auto-fix JavaScript Issues
+      run: |
+        # Fix ESLint issues
+        npm run lint:fix
+        # Format with Prettier
+        npm run format
+    
+    - name: Show changes
+      run: |
+        echo "Files changed:"
+        git diff --name-only
+        echo "\nChanges summary:"
+        git diff --stat
+    
+    - name: Commit fixes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action Auto-Fix"
+        git add .
+        if ! git diff --staged --quiet; then
+          git commit -m "🔧 Auto-fix: Format code and remove unused imports
+          
+          - Fixed Python formatting with Black
+          - Sorted imports with isort
+          - Removed unused imports/variables
+          - Fixed JavaScript formatting with Prettier
+          - Applied ESLint auto-fixes"
+          git push
+        else
+          echo "No changes to commit"
+        fi

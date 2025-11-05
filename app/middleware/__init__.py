@@ -1,41 +1,35 @@
 """Middleware package for cross-cutting concerns."""
 
 # Security middleware
-from .security import (
-    JWTAuthMiddleware,
-    APIKeyAuthMiddleware, 
-    AdminRoleMiddleware,
-    CORSMiddleware,
-    SecurityHeadersMiddleware
+# Logging middleware
+from .logging import (
+    AuditTrailMiddleware,
+    PerformanceMetricsMiddleware,
+    RequestLoggingMiddleware,
 )
 
 # Rate limiting middleware
-from .rate_limiting import (
-    RateLimitMiddleware,
-    AdaptiveRateLimitMiddleware
-)
-
-# Logging middleware
-from .logging import (
-    RequestLoggingMiddleware,
-    PerformanceMetricsMiddleware,
-    AuditTrailMiddleware
+from .rate_limiting import AdaptiveRateLimitMiddleware, RateLimitMiddleware
+from .security import (
+    AdminRoleMiddleware,
+    APIKeyAuthMiddleware,
+    CORSMiddleware,
+    JWTAuthMiddleware,
+    SecurityHeadersMiddleware,
 )
 
 __all__ = [
     # Security
     "JWTAuthMiddleware",
     "APIKeyAuthMiddleware",
-    "AdminRoleMiddleware", 
+    "AdminRoleMiddleware",
     "CORSMiddleware",
     "SecurityHeadersMiddleware",
-    
     # Rate Limiting
     "RateLimitMiddleware",
     "AdaptiveRateLimitMiddleware",
-    
     # Logging
     "RequestLoggingMiddleware",
     "PerformanceMetricsMiddleware",
-    "AuditTrailMiddleware"
+    "AuditTrailMiddleware",
 ]

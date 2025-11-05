@@ -1,12 +1,14 @@
 """System monitoring and support-related database models."""
-from sqlalchemy import Column, String, Float, DateTime, Boolean
+from sqlalchemy import Boolean, Column, DateTime, Float, String
+
 from app.models.base import BaseModel
 
 
 class ServiceStatus(BaseModel):
     """Service health monitoring."""
+
     __tablename__ = "service_status"
-    
+
     service_name = Column(String, nullable=False, index=True)
     status = Column(String, default="operational", nullable=False)
     success_rate = Column(Float, default=100.0, nullable=False)
@@ -15,8 +17,9 @@ class ServiceStatus(BaseModel):
 
 class SupportTicket(BaseModel):
     """Customer support tickets."""
+
     __tablename__ = "support_tickets"
-    
+
     user_id = Column(String, index=True)
     name = Column(String, nullable=False)
     email = Column(String, nullable=False)
@@ -28,8 +31,9 @@ class SupportTicket(BaseModel):
 
 class ActivityLog(BaseModel):
     """User activity tracking."""
+
     __tablename__ = "activity_logs"
-    
+
     user_id = Column(String, index=True)
     email = Column(String)
     page = Column(String)
@@ -44,8 +48,9 @@ class ActivityLog(BaseModel):
 
 class BannedNumber(BaseModel):
     """Banned phone numbers tracking."""
+
     __tablename__ = "banned_numbers"
-    
+
     phone_number = Column(String, nullable=False, index=True)
     service_name = Column(String, nullable=False, index=True)
     area_code = Column(String)
@@ -56,8 +61,9 @@ class BannedNumber(BaseModel):
 
 class InAppNotification(BaseModel):
     """In-app notifications."""
+
     __tablename__ = "in_app_notifications"
-    
+
     user_id = Column(String, nullable=False, index=True)
     title = Column(String, nullable=False)
     message = Column(String, nullable=False)

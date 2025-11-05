@@ -7,7 +7,7 @@ def custom_openapi(app: FastAPI):
     """Generate custom OpenAPI schema with comprehensive documentation."""
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="Namaskah SMS API",
         version="2.3.0",
@@ -44,41 +44,33 @@ def custom_openapi(app: FastAPI):
         """,
         routes=app.routes,
     )
-    
+
     # Add security schemes
     openapi_schema["components"]["securitySchemes"] = {
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT"
-        },
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "in": "header",
-            "name": "X-API-Key"
-        }
+        "BearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
+        "ApiKeyAuth": {"type": "apiKey", "in": "header", "name": "X-API-Key"},
     }
-    
+
     # Add examples for common responses
     openapi_schema["components"]["examples"] = {
         "SuccessResponse": {
             "summary": "Success Response",
-            "value": {"success": True, "message": "Operation completed"}
+            "value": {"success": True, "message": "Operation completed"},
         },
         "ErrorResponse": {
-            "summary": "Error Response", 
-            "value": {"error": "Invalid input", "code": "VALIDATION_ERROR"}
+            "summary": "Error Response",
+            "value": {"error": "Invalid input", "code": "VALIDATION_ERROR"},
         },
         "ValidationError": {
             "summary": "Validation Error",
             "value": {
                 "error": "Validation failed",
                 "code": "VALIDATION_ERROR",
-                "details": {"field": "email", "message": "Invalid email format"}
-            }
-        }
+                "details": {"field": "email", "message": "Invalid email format"},
+            },
+        },
     }
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -90,31 +82,28 @@ tags_metadata = [
         "description": "User registration, login, and API key management",
         "externalDocs": {
             "description": "Authentication Guide",
-            "url": "https://docs.namaskah.app/auth"
-        }
+            "url": "https://docs.namaskah.app/auth",
+        },
     },
     {
         "name": "Verification",
         "description": "SMS/Voice verification operations",
         "externalDocs": {
-            "description": "Verification Guide", 
-            "url": "https://docs.namaskah.app/verification"
-        }
+            "description": "Verification Guide",
+            "url": "https://docs.namaskah.app/verification",
+        },
     },
     {
         "name": "Wallet",
         "description": "Payment processing and wallet management",
         "externalDocs": {
             "description": "Payment Guide",
-            "url": "https://docs.namaskah.app/payments"
-        }
+            "url": "https://docs.namaskah.app/payments",
+        },
     },
     {
         "name": "Admin",
-        "description": "Administrative operations (admin access required)"
+        "description": "Administrative operations (admin access required)",
     },
-    {
-        "name": "System",
-        "description": "System health and configuration endpoints"
-    }
+    {"name": "System", "description": "System health and configuration endpoints"},
 ]

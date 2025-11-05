@@ -4,56 +4,62 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.user import User
 from app.core.dependencies import get_current_user_id
-from app.services import get_auth_service, get_notification_service
-from app.schemas import (
-    UserCreate, UserResponse, LoginRequest, TokenResponse,
-    APIKeyCreate, APIKeyResponse, APIKeyListResponse,
-    PasswordResetRequest, PasswordResetConfirm, GoogleAuthRequest,
-    SuccessResponse
-)
 from app.core.exceptions import AuthenticationError, ValidationError
+from app.models.user import User
+from app.schemas import (
+    APIKeyCreate,
+    APIKeyListResponse,
+    APIKeyResponse,
+    GoogleAuthRequest,
+    LoginRequest,
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    SuccessResponse,
+    TokenResponse,
+    UserCreate,
+    UserResponse,
+)
+from app.services import get_auth_service, get_notification_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(
-    user_data: UserCreate,
-    db: Session = Depends(get_db)
-):
+@router.post(
+    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
+async def register(user_data: UserCreate, db: Session = Depends(get_db)):
     """Register new user account."""
     auth_service = get_auth_service(db)
     notification_service = get_notification_service(db)
-    
+
     try:
         # Register user
         new_user = auth_service.register_user(
             email=user_data.email,
             password=user_data.password,
-            referral_code=user_data.referral_code
+            referral_code=user_data.referral_code,
         )
-        
+
         # Generate access token
         access_token = auth_service.create_user_token(new_user)
-        
+
         # Send welcome email (async)
         await notification_service.send_email(
             to_email=new_user.email,
             subject="Welcome to Namaskah SMS!",
-            body="<h2>Welcome to Namaskah SMS!</h2>" + \
-                 "<p>Your account has been created successfully.</p>" + \
-                 f"<p>You have {new_user.free_verifications} free verification(s) to get started.</p>" + \
-                 "<p><a href='/app'>Start Using Namaskah SMS</a></p>"
+            body="<h2>Welcome to Namaskah SMS!</h2>"
+            + "<p>Your account has been created successfully.</p>"
+            + f"<p>You have {new_user.free_verifications} free verification(s) to get started.</p>"
+            + "<p><a href='/app'>Start Using Namaskah SMS</a></p>",
         )
-        
+
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=UserResponse.from_orm(new_user)
+            user=UserResponse.from_orm(new_user),
         )
-        
+
     except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception:
@@ -63,7 +69,8 @@ async def register(
 @router.get("/login", response_class=HTMLResponse)
 async def login_page():
     """Login page with enhanced UX and error handling."""
-    return HTMLResponse(content="""
+    return HTMLResponse(
+        content="""
     <!DOCTYPE html>
     <html>
     <head>
@@ -445,35 +452,33 @@ async def login_page():
         </script>
     </body>
     </html>
-    """)
+    """
+    )
+
 
 @router.post("/login", response_model=TokenResponse)
-async def login(
-    login_data: LoginRequest,
-    db: Session = Depends(get_db)
-):
+async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """Authenticate user with email and password."""
     auth_service = get_auth_service(db)
-    
+
     try:
         # Authenticate user
         authenticated_user = auth_service.authenticate_user(
-            email=login_data.email,
-            password=login_data.password
+            email=login_data.email, password=login_data.password
         )
-        
+
         if not authenticated_user:
             raise HTTPException(status_code=401, detail="Invalid email or password")
-        
+
         # Generate access token
         access_token = auth_service.create_user_token(authenticated_user)
-        
+
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=UserResponse.from_orm(authenticated_user)
+            user=UserResponse.from_orm(authenticated_user),
         )
-        
+
     except HTTPException:
         raise
     except AuthenticationError as e:
@@ -483,177 +488,162 @@ async def login(
 
 
 @router.post("/google", response_model=TokenResponse)
-async def google_auth(
-    google_data: GoogleAuthRequest,
-    db: Session = Depends(get_db)
-):
+async def google_auth(google_data: GoogleAuthRequest, db: Session = Depends(get_db)):
     """Authenticate with Google OAuth."""
     try:
         from app.core.config import get_settings
-        
+
         settings = get_settings()
-        
+
         # Handle demo token for localhost development
         if google_data.token == "demo_google_token_for_localhost_testing":
             auth_service = get_auth_service(db)
-            
+
             # Create demo Google user
             user = auth_service.create_or_get_google_user(
                 google_id="demo_google_user_123",
                 email="demo.google.user@gmail.com",
                 name="Demo Google User",
-                avatar_url="https://via.placeholder.com/150"
+                avatar_url="https://via.placeholder.com/150",
             )
-            
+
             # Generate access token
             access_token = auth_service.create_user_token(user)
-            
+
             return TokenResponse(
                 access_token=access_token,
                 token_type="bearer",
-                user=UserResponse.from_orm(user)
+                user=UserResponse.from_orm(user),
             )
-        
+
         # Real Google OAuth verification
-        from google.oauth2 import id_token
         from google.auth.transport import requests as google_requests
-        
+        from google.oauth2 import id_token
+
         # Verify Google token
         idinfo = id_token.verify_oauth2_token(
-            google_data.token, 
-            google_requests.Request(), 
-            settings.google_client_id
+            google_data.token, google_requests.Request(), settings.google_client_id
         )
-        
-        google_id = idinfo['sub']
-        email = idinfo['email']
-        name = idinfo.get('name', '')
-        avatar_url = idinfo.get('picture')
-        
+
+        google_id = idinfo["sub"]
+        email = idinfo["email"]
+        name = idinfo.get("name", "")
+        avatar_url = idinfo.get("picture")
+
         auth_service = get_auth_service(db)
-        
+
         # Create or get user
         user = auth_service.create_or_get_google_user(
-            google_id=google_id,
-            email=email,
-            name=name,
-            avatar_url=avatar_url
+            google_id=google_id, email=email, name=name, avatar_url=avatar_url
         )
-        
+
         # Generate access token
         access_token = auth_service.create_user_token(user)
-        
+
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=UserResponse.from_orm(user)
+            user=UserResponse.from_orm(user),
         )
-        
+
     except ImportError:
         raise HTTPException(status_code=503, detail="Google OAuth not configured")
     except ValueError as e:
         raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
-    except Exception as e:
+    except Exception:
         raise HTTPException(status_code=401, detail="Google authentication failed")
 
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Get current authenticated user information."""
     current_user = db.query(User).filter(User.id == user_id).first()
-    
+
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     return UserResponse.from_orm(current_user)
 
 
 @router.post("/forgot-password", response_model=SuccessResponse)
 async def forgot_password(
-    request_data: PasswordResetRequest,
-    db: Session = Depends(get_db)
+    request_data: PasswordResetRequest, db: Session = Depends(get_db)
 ):
     """Request password reset link."""
     auth_service = get_auth_service(db)
     notification_service = get_notification_service(db)
-    
+
     # Generate reset token
     reset_token = auth_service.reset_password_request(request_data.email)
-    
+
     if reset_token:
         # Send reset email
         await notification_service.send_email(
             to_email=request_data.email,
             subject="Password Reset - Namaskah SMS",
-            body="<h2>Password Reset Request</h2>" + \
-                 "<p>Click the link below to reset your password:</p>" + \
-                 f"<p><a href='/auth/reset-password?token={reset_token}'>Reset Password</a></p>" + \
-                 "<p>This link expires in 1 hour.</p>"
+            body="<h2>Password Reset Request</h2>"
+            + "<p>Click the link below to reset your password:</p>"
+            + f"<p><a href='/auth/reset-password?token={reset_token}'>Reset Password</a></p>"
+            + "<p>This link expires in 1 hour.</p>",
         )
-    
+
     # Always return success for security
     return SuccessResponse(message="If email exists, reset link sent")
 
 
 @router.post("/reset-password", response_model=SuccessResponse)
-def reset_password(
-    reset_data: PasswordResetConfirm,
-    db: Session = Depends(get_db)
-):
+def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends(get_db)):
     """Reset password using token."""
     auth_service = get_auth_service(db)
-    
+
     success = auth_service.reset_password(reset_data.token, reset_data.new_password)
-    
+
     if not success:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
-    
+
     return SuccessResponse(message="Password reset successfully")
 
 
 @router.post("/verify-email", response_model=SuccessResponse)
-def verify_email(
-    token: str,
-    db: Session = Depends(get_db)
-):
+def verify_email(token: str, db: Session = Depends(get_db)):
     """Verify email address using token."""
     auth_service = get_auth_service(db)
-    
+
     success = auth_service.verify_email(token)
-    
+
     if not success:
         raise HTTPException(status_code=400, detail="Invalid verification token")
-    
+
     return SuccessResponse(message="Email verified successfully")
 
 
-@router.post("/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED
+)
 def create_api_key(
     api_key_data: APIKeyCreate,
     user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Create new API key for programmatic access."""
     auth_service = get_auth_service(db)
-    
+
     api_key = auth_service.create_api_key(user_id, api_key_data.name)
-    
+
     return APIKeyResponse.from_orm(api_key)
 
 
 @router.get("/api-keys", response_model=list[APIKeyListResponse])
 def list_api_keys(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """List user's API keys (without showing actual keys)."""
     from app.models.user import APIKey
-    
+
     api_keys = db.query(APIKey).filter(APIKey.user_id == user_id).all()
-    
+
     return [
         APIKeyListResponse(
             id=key.id,
@@ -661,7 +651,7 @@ def list_api_keys(
             key_preview=f"{key.key[:12]}...{key.key[-6:]}",
             is_active=key.is_active,
             created_at=key.created_at,
-            last_used=key.last_used
+            last_used=key.last_used,
         )
         for key in api_keys
     ]
@@ -671,51 +661,53 @@ def list_api_keys(
 def delete_api_key(
     key_id: str,
     user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Delete API key."""
     from app.models.user import APIKey
-    
-    api_key = db.query(APIKey).filter(
-        APIKey.id == key_id,
-        APIKey.user_id == user_id
-    ).first()
-    
+
+    api_key = (
+        db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+    )
+
     if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")
-    
+
     db.delete(api_key)
     db.commit()
-    
+
     return SuccessResponse(message="API key deleted successfully")
 
 
 @router.get("/google/callback")
-async def google_callback(
-    code: str = None,
-    error: str = None
-):
+async def google_callback(code: str = None, error: str = None):
     """Handle Google OAuth callback for popup flow."""
     if error:
-        return HTMLResponse(content=f"""
+        return HTMLResponse(
+            content=f"""
         <script>
             window.opener.postMessage({{type: 'GOOGLE_AUTH_ERROR', error: '{error}'}}, '*');
             window.close();
         </script>
-        """)
-    
+        """
+        )
+
     if not code:
-        return HTMLResponse(content="""
+        return HTMLResponse(
+            content="""
         <script>
             window.opener.postMessage({type: 'GOOGLE_AUTH_ERROR', error: 'No authorization code received'}, '*');
             window.close();
         </script>
-        """)
-    
+        """
+        )
+
     # Exchange code for token (simplified for demo)
-    return HTMLResponse(content=f"""
+    return HTMLResponse(
+        content=f"""
     <script>
         window.opener.postMessage({{type: 'GOOGLE_AUTH_SUCCESS', code: '{code}'}}, '*');
         window.close();
     </script>
-    """)
+    """
+    )

@@ -3,15 +3,14 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-from .config import settings
 
+from .config import settings
 
 # Database engine with connection pooling
 if "sqlite" in settings.database_url:
     # SQLite for development only
     engine = create_engine(
-        settings.database_url,
-        connect_args={"check_same_thread": False}
+        settings.database_url, connect_args={"check_same_thread": False}
     )
 else:
     # PostgreSQL for production
@@ -22,7 +21,7 @@ else:
         max_overflow=30,  # Max overflow connections
         pool_pre_ping=True,
         pool_recycle=3600,
-        echo=False  # Disable SQL logging in production
+        echo=False,  # Disable SQL logging in production
     )
 
 # Session factory

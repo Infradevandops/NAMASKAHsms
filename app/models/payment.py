@@ -1,11 +1,14 @@
 """Payment-related database models."""
-from sqlalchemy import Column, String, Float, Boolean, Text
+from sqlalchemy import Boolean, Column, Float, String, Text
+
 from app.models.base import BaseModel
+
 
 class PaymentLog(BaseModel):
     """Payment transaction logging."""
+
     __tablename__ = "payment_logs"
-    
+
     user_id = Column(String, nullable=False, index=True)
     email = Column(String, nullable=False)
     reference = Column(String, unique=True, nullable=False, index=True)

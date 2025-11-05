@@ -1,0 +1,91 @@
+name: Security & Code Quality Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: TruffleHog Secret Scan
+      uses: trufflesecurity/trufflehog@main
+      with:
+        path: ./
+        base: main
+        head: HEAD
+
+  python-security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install security tools
+      run: |
+        pip install bandit safety semgrep
+    
+    - name: Bandit Security Scan
+      run: bandit -r app/ -f json -o bandit-report.json || true
+    
+    - name: Safety Dependency Check
+      run: safety check --json --output safety-report.json || true
+    
+    - name: Semgrep SAST Scan
+      run: |
+        semgrep --config=auto app/ --json --output=semgrep-report.json || true
+
+  javascript-security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: ESLint Security Check
+      run: npm run lint
+    
+    - name: Semgrep JS Scan
+      run: |
+        pip install semgrep
+        semgrep --config=auto static/js/ --json --output=semgrep-js-report.json || true
+
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install tools
+      run: |
+        pip install flake8 pylint mypy black isort
+        pip install -r requirements.txt
+    
+    - name: Flake8 Check
+      run: flake8 app/ --output-file=flake8-report.txt || true
+    
+    - name: PyLint Check
+      run: pylint app/ --output-format=json > pylint-report.json || true
+    
+    - name: MyPy Type Check
+      run: mypy app/ --json-report mypy-report || true
