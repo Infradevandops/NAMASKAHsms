@@ -26,10 +26,13 @@ from .payment import (
 )
 
 # Analytics schemas
-from .analytics import AnalyticsResponse
+from .analytics import (
+    AnalyticsResponse, ServiceUsage, DailyUsage, CountryAnalytics,
+    TrendData, PredictiveInsight, BusinessMetrics, CompetitiveAnalysis
+)
 
 # System schemas
-from .system import SupportTicketResponse
+from .system import SupportTicketResponse, ServiceStatus, ServiceStatusSummary
 
 # Common schemas (inline)
 from typing import Optional, Dict, Any
@@ -73,10 +76,11 @@ __all__ = [
     "SubscriptionPlan", "SubscriptionRequest", "SubscriptionResponse",
     
     # Analytics
-    "AnalyticsResponse",
+    "AnalyticsResponse", "ServiceUsage", "DailyUsage", "CountryAnalytics",
+    "TrendData", "PredictiveInsight", "BusinessMetrics", "CompetitiveAnalysis",
     
     # System
-    "SupportTicketResponse",
+    "SupportTicketResponse", "ServiceStatus", "ServiceStatusSummary",
     
     # Common
     "ErrorResponse", "SuccessResponse",

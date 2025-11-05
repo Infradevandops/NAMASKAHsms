@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - Namaskah SMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1f2937;
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            padding: 24px 0;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 24px;
+            color: #6b7280;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #f3f4f6;
+            color: #667eea;
+            border-right: 3px solid #667eea;
+        }
+        
+        .main-content {
+            padding: 24px;
+            overflow-y: auto;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .period-selector {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .period-btn {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .period-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+        
+        .metric-label {
+            color: #6b7280;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        
+        .metric-change {
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .metric-change.positive { color: #10b981; }
+        .metric-change.negative { color: #ef4444; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .chart-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1f2937;
+        }
+        
+        .insights-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .insight-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .prediction-metric {
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .prediction-value {
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .confidence-bar {
+            width: 100%;
+            height: 4px;
+            background: #f3f4f6;
+            border-radius: 2px;
+            margin-top: 4px;
+        }
+        
+        .confidence-fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .recommendation {
+            background: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 0 6px 6px 0;
+        }
+        
+        .efficiency-score {
+            text-align: center;
+            padding: 24px;
+        }
+        
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#10b981 0deg, #10b981 var(--score-deg), #f3f4f6 var(--score-deg));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            position: relative;
+        }
+        
+        .score-inner {
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 48px;
+            color: #6b7280;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .insights-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <a href="/dashboard" class="nav-item">
+                <span>📊 Dashboard</span>
+            </a>
+            <a href="#" class="nav-item active">
+                <span>📈 Analytics</span>
+            </a>
+            <a href="/verify" class="nav-item">
+                <span>📱 Verifications</span>
+            </a>
+            <a href="/wallet" class="nav-item">
+                <span>💰 Wallet</span>
+            </a>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1 class="title">Analytics Dashboard</h1>
+                <div class="period-selector">
+                    <button class="period-btn" onclick="setPeriod(7)">7D</button>
+                    <button class="period-btn active" onclick="setPeriod(30)">30D</button>
+                    <button class="period-btn" onclick="setPeriod(90)">90D</button>
+                </div>
+            </div>
+            
+            <div id="loading" class="loading">
+                <div>Loading analytics...</div>
+            </div>
+            
+            <div id="analytics-content" style="display: none;">
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-label">Total Verifications</div>
+                        <div class="metric-value" id="total-verifications">0</div>
+                        <div class="metric-change" id="verifications-change"></div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Success Rate</div>
+                        <div class="metric-value" id="success-rate">0%</div>
+                        <div class="metric-change" id="success-change"></div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Total Spent</div>
+                        <div class="metric-value" id="total-spent">$0</div>
+                        <div class="metric-change" id="spent-change"></div>
+                    </div>
+                    
+                    <div class="metric-card">
+                        <div class="metric-label">Efficiency Score</div>
+                        <div class="efficiency-score">
+                            <div class="score-circle" id="efficiency-circle">
+                                <div class="score-inner" id="efficiency-score">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Charts -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3 class="chart-title">Usage Trends</h3>
+                        <canvas id="usage-chart" width="400" height="200"></canvas>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <h3 class="chart-title">Service Performance</h3>
+                        <canvas id="service-chart" width="300" height="200"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Insights -->
+                <div class="insights-section">
+                    <div class="insight-card">
+                        <h3 class="chart-title">Predictions</h3>
+                        <div id="predictions-list"></div>
+                    </div>
+                    
+                    <div class="insight-card">
+                        <h3 class="chart-title">Recommendations</h3>
+                        <div id="recommendations-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentPeriod = 30;
+        let usageChart = null;
+        let serviceChart = null;
+        
+        async function loadAnalytics() {
+            try {
+                document.getElementById('loading').style.display = 'flex';
+                document.getElementById('analytics-content').style.display = 'none';
+                
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/analytics/usage?period=${currentPeriod}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                displayAnalytics(data);
+                
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('analytics-content').style.display = 'block';
+            } catch (error) {
+                console.error('Failed to load analytics:', error);
+                document.getElementById('loading').innerHTML = '<div>Failed to load analytics</div>';
+            }
+        }
+        
+        function displayAnalytics(data) {
+            // Update metrics
+            document.getElementById('total-verifications').textContent = data.total_verifications;
+            document.getElementById('success-rate').textContent = `${data.success_rate}%`;
+            document.getElementById('total-spent').textContent = `$${data.total_spent.toFixed(2)}`;
+            
+            // Update efficiency score
+            const efficiencyScore = data.efficiency_score;
+            document.getElementById('efficiency-score').textContent = efficiencyScore;
+            const circle = document.getElementById('efficiency-circle');
+            circle.style.setProperty('--score-deg', `${(efficiencyScore / 100) * 360}deg`);
+            
+            // Update charts
+            updateUsageChart(data.daily_usage);
+            updateServiceChart(data.popular_services);
+            
+            // Update predictions
+            displayPredictions(data.predictions);
+            
+            // Update recommendations
+            displayRecommendations(data.recommendations);
+        }
+        
+        function updateUsageChart(dailyUsage) {
+            const ctx = document.getElementById('usage-chart').getContext('2d');
+            
+            if (usageChart) {
+                usageChart.destroy();
+            }
+            
+            usageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dailyUsage.map(d => new Date(d.date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Verifications',
+                        data: dailyUsage.map(d => d.count),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Success Rate',
+                        data: dailyUsage.map(d => d.success_rate),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Verifications' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Success Rate (%)' },
+                            grid: { drawOnChartArea: false }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateServiceChart(services) {
+            const ctx = document.getElementById('service-chart').getContext('2d');
+            
+            if (serviceChart) {
+                serviceChart.destroy();
+            }
+            
+            serviceChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: services.map(s => s.service),
+                    datasets: [{
+                        data: services.map(s => s.count),
+                        backgroundColor: [
+                            '#667eea', '#10b981', '#f59e0b', '#ef4444',
+                            '#8b5cf6', '#06b6d4', '#84cc16', '#f97316'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        }
+        
+        function displayPredictions(predictions) {
+            const container = document.getElementById('predictions-list');
+            
+            if (predictions.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No predictions available</p>';
+                return;
+            }
+            
+            container.innerHTML = predictions.map(pred => `
+                <div class="prediction-item">
+                    <div>
+                        <div class="prediction-metric">${pred.metric.replace('_', ' ')}</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${pred.confidence * 100}%"></div>
+                        </div>
+                    </div>
+                    <div class="prediction-value">${pred.prediction}</div>
+                </div>
+            `).join('');
+        }
+        
+        function displayRecommendations(recommendations) {
+            const container = document.getElementById('recommendations-list');
+            
+            if (recommendations.length === 0) {
+                container.innerHTML = '<p style="color: #6b7280;">No recommendations available</p>';
+                return;
+            }
+            
+            container.innerHTML = recommendations.map(rec => `
+                <div class="recommendation">${rec}</div>
+            `).join('');
+        }
+        
+        function setPeriod(days) {
+            currentPeriod = days;
+            
+            // Update active button
+            document.querySelectorAll('.period-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadAnalytics();
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', loadAnalytics);
+    </script>
+</body>
+</html>
