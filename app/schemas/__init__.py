@@ -25,6 +25,9 @@ from .payment import (
     SubscriptionPlan, SubscriptionRequest, SubscriptionResponse
 )
 
+# System schemas
+from .system import SupportTicketResponse
+
 # Common schemas (inline)
 from typing import Optional, Dict, Any
 from pydantic import BaseModel
@@ -65,6 +68,9 @@ __all__ = [
     "TransactionResponse", "TransactionHistoryResponse",
     "RefundRequest", "RefundResponse", "WalletBalanceResponse",
     "SubscriptionPlan", "SubscriptionRequest", "SubscriptionResponse",
+    
+    # System
+    "SupportTicketResponse",
     
     # Common
     "ErrorResponse", "SuccessResponse",
