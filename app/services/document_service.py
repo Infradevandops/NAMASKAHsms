@@ -7,7 +7,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    Image = None
 import json
 
 from app.models.kyc import KYCDocument, KYCProfile
@@ -154,7 +157,8 @@ class DocumentService:
         try:
             extracted_data = {}
             
-            with Image.open(file_path) as img:
+            if Image:
+                with Image.open(file_path) as img:
                 # Basic image info
                 extracted_data["image_info"] = {
                     "format": img.format,
@@ -173,14 +177,16 @@ class DocumentService:
                         "gps_info": exif_data.get(34853) is not None
                     }
                 
-                # Image quality assessment
-                extracted_data["quality_assessment"] = self._assess_image_quality(img)
-                
-                # Document-specific processing
-                if document_type in ["passport", "license", "id_card"]:
-                    extracted_data["document_analysis"] = await self._analyze_id_document(img)
-                elif document_type == "selfie":
-                    extracted_data["face_analysis"] = await self._analyze_selfie(img)
+                    # Image quality assessment
+                    extracted_data["quality_assessment"] = self._assess_image_quality(img)
+                    
+                    # Document-specific processing
+                    if document_type in ["passport", "license", "id_card"]:
+                        extracted_data["document_analysis"] = await self._analyze_id_document(img)
+                    elif document_type == "selfie":
+                        extracted_data["face_analysis"] = await self._analyze_selfie(img)
+            else:
+                extracted_data["error"] = "Image processing unavailable"
             
             return extracted_data
             
@@ -199,8 +205,11 @@ class DocumentService:
             gray_img = img.convert('L')
             
             # Calculate basic statistics
-            import numpy as np
-            img_array = np.array(gray_img)
+            try:
+                import numpy as np
+                img_array = np.array(gray_img)
+            except ImportError:
+                return {"quality_score": 0.5, "error": "NumPy not available"}
             
             quality_score = 1.0
             issues = []

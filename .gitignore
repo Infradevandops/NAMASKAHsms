@@ -70,9 +70,16 @@ test_results.json
 *.pid
 
 # Documentation (keep only main README)
+# Task and roadmap files
 ANALYTICS_ENHANCEMENT_TASKS.md
 COMPREHENSIVE_ENHANCEMENT_OVERVIEW.md
+KYC_ENHANCEMENT_TASKS.md
+COMPLETED_TASKS.md
 TASK_*_COMPLETION.md
+TASK_STATUS_OVERVIEW.md
+*_ROADMAP.md
+*_TASKS.md
+*_ENHANCEMENT*.md
 ACTION_ITEMS.md
 ADMIN_IMPROVEMENTS.md
 ADMIN_LOGIN_FIX.md
@@ -128,3 +135,4 @@ test_results.json
 create_admin_production.py
 create_admin_supabase.py
 .env.render
+node_modules/

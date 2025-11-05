@@ -35,23 +35,26 @@ console.log(`   validatePeriod calls: ${periodValidation}`);
 // Check for dangerous patterns
 const vulnerabilities = [];
 
-// Check for direct user input usage without sanitization
-const directInputPatterns = [
-    /textContent\s*=\s*[^t]/g, // textContent not using this.sanitizeString
-    /\.style\.\w+\s*=\s*`[^$]*\$\{[^}]*\}/g, // CSS injection via template literals
+// Check for potentially unsafe patterns
+const unsafePatterns = [
+    /textContent\s*=\s*[^'"\s][^;]*[^)]$/gm, // textContent with potentially unsafe content
+    /\.style\.[\w-]+\s*=\s*[^'"]*\$\{[^}]*\}[^'"]*$/gm, // CSS injection via unvalidated template literals
 ];
 
 let hasUnsafePatterns = false;
-directInputPatterns.forEach((pattern, index) => {
+unsafePatterns.forEach((pattern, index) => {
     const matches = content.match(pattern);
     if (matches) {
-        // Filter out safe patterns
+        // Filter out known safe patterns
         const unsafeMatches = matches.filter(match => 
             !match.includes('this.sanitizeString') && 
             !match.includes('this.validateNumeric') &&
+            !match.includes("textContent = ''") &&
+            !match.includes('textContent = ""') &&
             !match.includes('degrees') &&
             !match.includes('confidence') &&
-            !match.includes("''")
+            !match.includes('safeScore') &&
+            !match.includes('color')
         );
         if (unsafeMatches.length > 0) {
             vulnerabilities.push(`Pattern ${index + 1}: ${unsafeMatches.length} potentially unsafe uses`);

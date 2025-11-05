@@ -8,7 +8,49 @@ class EnhancedAnalytics {
         this.charts = {};
         this.realTimeInterval = null;
         this.currentPeriod = 30;
+        this.errorCount = 0;
+        this.maxRetries = 3;
+        this.retryDelay = 1000;
+        this.isOnline = navigator.onLine;
+        this.setupGlobalErrorHandling();
         this.init();
+    }
+
+    setupGlobalErrorHandling() {
+        // Global error handler for unhandled errors
+        window.addEventListener('error', (event) => {
+            this.handleGlobalError('JavaScript Error', event.error);
+        });
+
+        // Global handler for unhandled promise rejections
+        window.addEventListener('unhandledrejection', (event) => {
+            this.handleGlobalError('Promise Rejection', event.reason);
+            event.preventDefault();
+        });
+
+        // Network status monitoring
+        window.addEventListener('online', () => {
+            this.isOnline = true;
+            this.showNotification('Connection restored', 'success');
+            this.loadAnalytics();
+        });
+
+        window.addEventListener('offline', () => {
+            this.isOnline = false;
+            this.showNotification('Connection lost - working offline', 'warning');
+        });
+    }
+
+    handleGlobalError(type, error) {
+        console.error(`${type}:`, error);
+        this.errorCount++;
+        
+        if (this.errorCount > 5) {
+            this.showError('Multiple errors detected. Please refresh the page.');
+            return;
+        }
+        
+        this.showError(`${type}: ${error.message || error}`);
     }
 
     // Input sanitization methods
@@ -40,46 +82,171 @@ class EnhancedAnalytics {
     }
 
     async init() {
-        await this.loadAnalytics();
-        this.setupRealTimeUpdates();
-        this.setupEventListeners();
+        try {
+            this.showLoadingState(true);
+            await this.loadAnalytics();
+            this.setupRealTimeUpdates();
+            this.setupEventListeners();
+            this.showLoadingState(false);
+        } catch (error) {
+            this.handleInitError(error);
+        }
+    }
+
+    handleInitError(error) {
+        console.error('Initialization failed:', error);
+        this.showLoadingState(false);
+        this.showError('Failed to initialize analytics. Please refresh the page.');
+        
+        // Retry initialization after delay
+        setTimeout(() => {
+            if (this.errorCount < this.maxRetries) {
+                this.init();
+            }
+        }, this.retryDelay * this.errorCount);
+    }
+
+    showLoadingState(isLoading) {
+        const loadingElements = document.querySelectorAll('.loading-indicator');
+        const contentElements = document.querySelectorAll('.analytics-content');
+        
+        loadingElements.forEach(el => {
+            el.style.display = isLoading ? 'block' : 'none';
+        });
+        
+        contentElements.forEach(el => {
+            el.style.opacity = isLoading ? '0.5' : '1';
+        });
     }
 
     async loadAnalytics() {
+        if (!this.isOnline) {
+            this.showError('No internet connection. Please check your network.');
+            return;
+        }
+
         try {
             const token = localStorage.getItem('token');
+            if (!token) {
+                throw new Error('Authentication token not found');
+            }
+
+            this.showLoadingState(true);
             
-            // Load main analytics
-            const safePeriod = this.validatePeriod(this.currentPeriod);
-            const analyticsResponse = await fetch(`/analytics/usage?period=${safePeriod}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const analytics = await analyticsResponse.json();
+            // Load analytics with timeout and retry logic
+            const analytics = await this.fetchWithRetry('/analytics/usage', {
+                period: this.validatePeriod(this.currentPeriod)
+            }, token);
             
-            // Load business metrics
-            const businessResponse = await fetch('/analytics/business-metrics', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const business = await businessResponse.json();
-            
-            // Load competitive analysis
-            const competitiveResponse = await fetch('/analytics/competitive-analysis');
-            const competitive = await competitiveResponse.json();
+            const business = await this.fetchWithRetry('/analytics/business-metrics', {}, token);
+            const competitive = await this.fetchWithRetry('/analytics/competitive-analysis', {});
             
             this.displayAnalytics(analytics, business, competitive);
+            this.errorCount = 0; // Reset error count on success
+            this.showLoadingState(false);
+            
         } catch (error) {
-            console.error('Failed to load analytics:', error);
-            this.showError('Failed to load analytics data');
+            this.handleLoadError(error);
+        }
+    }
+
+    async fetchWithRetry(endpoint, params = {}, token = null, retries = 3) {
+        const queryString = new URLSearchParams(params).toString();
+        const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+        
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
+        for (let i = 0; i < retries; i++) {
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+                
+                const response = await fetch(url, {
+                    headers,
+                    signal: controller.signal
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        throw new Error('Authentication failed. Please log in again.');
+                    }
+                    if (response.status === 403) {
+                        throw new Error('Access denied. Insufficient permissions.');
+                    }
+                    if (response.status >= 500) {
+                        throw new Error(`Server error (${response.status}). Please try again later.`);
+                    }
+                    throw new Error(`Request failed with status ${response.status}`);
+                }
+                
+                return await response.json();
+                
+            } catch (error) {
+                if (error.name === 'AbortError') {
+                    throw new Error('Request timeout. Please check your connection.');
+                }
+                
+                if (i === retries - 1) {
+                    throw error;
+                }
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, this.retryDelay * (i + 1)));
+            }
+        }
+    }
+
+    handleLoadError(error) {
+        console.error('Failed to load analytics:', error);
+        this.showLoadingState(false);
+        this.errorCount++;
+        
+        let errorMessage = 'Failed to load analytics data';
+        
+        if (error.message.includes('Authentication')) {
+            errorMessage = 'Session expired. Please log in again.';
+            setTimeout(() => {
+                window.location.href = '/login';
+            }, 3000);
+        } else if (error.message.includes('timeout')) {
+            errorMessage = 'Request timed out. Please try again.';
+        } else if (error.message.includes('Server error')) {
+            errorMessage = 'Server is temporarily unavailable. Please try again later.';
+        }
+        
+        this.showError(errorMessage);
+        
+        // Show retry button for recoverable errors
+        if (!error.message.includes('Authentication')) {
+            this.showRetryOption();
         }
     }
 
     displayAnalytics(analytics, business, competitive) {
-        this.updateMetrics(analytics, business);
-        this.updateCharts(analytics);
-        this.updateInsights(analytics);
-        this.updateCompetitiveAnalysis(competitive);
-        this.updatePredictions(analytics.predictions);
-        this.updateRecommendations(analytics.recommendations);
+        try {
+            if (!analytics) {
+                throw new Error('Analytics data is missing');
+            }
+            
+            this.updateMetrics(analytics, business);
+            this.updateCharts(analytics);
+            this.updateInsights(analytics);
+            this.updateCompetitiveAnalysis(competitive);
+            this.updatePredictions(analytics.predictions || []);
+            this.updateRecommendations(analytics.recommendations || []);
+            
+        } catch (error) {
+            console.error('Failed to display analytics:', error);
+            this.showError('Failed to display analytics data');
+        }
     }
 
     updateMetrics(analytics, business) {
@@ -135,59 +302,75 @@ class EnhancedAnalytics {
             this.charts.usageTrend.destroy();
         }
 
-        this.charts.usageTrend = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dailyUsage.map(d => new Date(d.date).toLocaleDateString()),
-                datasets: [{
-                    label: 'Verifications',
-                    data: dailyUsage.map(d => d.count),
-                    borderColor: '#667eea',
-                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }, {
-                    label: 'Success Rate (%)',
-                    data: dailyUsage.map(d => d.success_rate),
-                    borderColor: '#10b981',
-                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                    tension: 0.4,
-                    yAxisID: 'y1'
-                }]
-            },
-            options: {
-                responsive: true,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+            this.charts.usageTrend = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dailyUsage.map(d => new Date(d.date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Verifications',
+                        data: dailyUsage.map(d => d.count),
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Success Rate (%)',
+                        data: dailyUsage.map(d => d.success_rate),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        yAxisID: 'y1'
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Verifications' }
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
                     },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        title: { display: true, text: 'Success Rate (%)' },
-                        grid: { drawOnChartArea: false },
-                        max: 100
-                    }
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            afterLabel: (context) => {
-                                const dataIndex = context.dataIndex;
-                                const cost = dailyUsage[dataIndex].cost;
-                                return `Cost: $${cost.toFixed(2)}`;
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Verifications' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Success Rate (%)' },
+                            grid: { drawOnChartArea: false },
+                            max: 100
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: (context) => {
+                                    const dataIndex = context.dataIndex;
+                                    const cost = dailyUsage[dataIndex].cost;
+                                    return `Cost: $${cost.toFixed(2)}`;
+                                }
                             }
                         }
                     }
                 }
-            }
-        });
+            });
+        
+        } catch (error) {
+            console.error('Failed to create usage trend chart:', error);
+            this.showChartError(document.getElementById('usage-trend-chart'), 'Failed to load chart');
+        }
+    }
+
+    showChartError(canvas, message) {
+        if (!canvas) return;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#6b7280';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(message, canvas.width / 2, canvas.height / 2);
     }
 
     createServicePerformanceChart(services) {
@@ -434,7 +617,7 @@ class EnhancedAnalytics {
         predictions.forEach((pred, index) => {
             const item = document.createElement('div');
             item.className = 'prediction-item';
-            item.style.animationDelay = `${index * 0.1}s`;
+            item.style.animationDelay = `${this.validateNumeric(index * 0.1, 0, 10)}s`;
 
             const header = document.createElement('div');
             header.className = 'prediction-header';
@@ -460,11 +643,11 @@ class EnhancedAnalytics {
             const confidenceFill = document.createElement('div');
             confidenceFill.className = 'confidence-fill';
             const confidence = this.validateNumeric((pred.confidence || 0) * 100, 0, 100);
-            confidenceFill.style.width = `${confidence}%`;
+            confidenceFill.style.width = `${this.validateNumeric(confidence, 0, 100)}%`;
 
             const confidenceText = document.createElement('span');
             confidenceText.className = 'confidence-text';
-            confidenceText.textContent = `${Math.round(confidence)}% confidence`;
+            confidenceText.textContent = `${this.validateNumeric(Math.round(confidence), 0, 100)}% confidence`;
 
             confidenceBar.appendChild(confidenceFill);
             confidenceBar.appendChild(confidenceText);
@@ -493,7 +676,7 @@ class EnhancedAnalytics {
         recommendations.forEach((rec, index) => {
             const item = document.createElement('div');
             item.className = 'recommendation-item';
-            item.style.animationDelay = `${index * 0.1}s`;
+            item.style.animationDelay = `${this.validateNumeric(index * 0.1, 0, 10)}s`;
 
             const icon = document.createElement('div');
             icon.className = 'recommendation-icon';
@@ -543,11 +726,11 @@ class EnhancedAnalytics {
 
             const label = document.createElement('span');
             label.className = 'metric-label';
-            label.textContent = metric.label;
+            label.textContent = this.sanitizeString(metric.label);
 
             const value = document.createElement('span');
-            value.className = metric.label.includes('Status') ? `metric-value status-${String(metric.value)}` : 'metric-value';
-            value.textContent = String(metric.value);
+            value.className = metric.label.includes('Status') ? `metric-value status-${this.sanitizeString(metric.value)}` : 'metric-value';
+            value.textContent = this.sanitizeString(metric.value);
 
             div.appendChild(label);
             div.appendChild(value);
@@ -641,7 +824,69 @@ class EnhancedAnalytics {
             
             setTimeout(() => {
                 errorContainer.textContent = '';
-            }, 5000);
+            }, 8000);
+        }
+        
+        this.showNotification(message, 'error');
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `notification notification-${type}`;
+        notification.textContent = this.sanitizeString(message);
+        
+        Object.assign(notification.style, {
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            padding: '12px 20px',
+            borderRadius: '6px',
+            color: 'white',
+            fontWeight: '500',
+            zIndex: '10000',
+            maxWidth: '400px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+        });
+        
+        const colors = {
+            success: '#10b981',
+            error: '#ef4444',
+            warning: '#f59e0b',
+            info: '#3b82f6'
+        };
+        notification.style.backgroundColor = colors[type] || colors.info;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, type === 'error' ? 8000 : 5000);
+    }
+
+    showRetryOption() {
+        const errorContainer = document.getElementById('error-container');
+        if (errorContainer) {
+            const retryBtn = document.createElement('button');
+            retryBtn.textContent = 'Retry';
+            retryBtn.className = 'retry-btn';
+            retryBtn.style.cssText = `
+                margin-left: 10px;
+                padding: 6px 12px;
+                background: #667eea;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            `;
+            
+            retryBtn.addEventListener('click', () => {
+                errorContainer.textContent = '';
+                this.loadAnalytics();
+            });
+            
+            errorContainer.appendChild(retryBtn);
         }
     }
 

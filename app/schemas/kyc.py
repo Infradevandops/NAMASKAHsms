@@ -127,8 +127,8 @@ class KYCDocumentResponse(BaseModel):
 
 class KYCVerificationDecision(BaseModel):
     """Schema for admin KYC verification decision."""
-    decision: str = Field(..., regex="^(approved|rejected)$")
-    verification_level: Optional[str] = Field("basic", regex="^(basic|enhanced|premium)$")
+    decision: str = Field(..., pattern="^(approved|rejected)$")
+    verification_level: Optional[str] = Field("basic", pattern="^(basic|enhanced|premium)$")
     notes: Optional[str] = Field(None, max_length=1000)
     
     model_config = {
@@ -228,7 +228,7 @@ class KYCStatsResponse(BaseModel):
 
 class BiometricVerificationRequest(BaseModel):
     """Schema for biometric verification request."""
-    verification_type: str = Field(..., regex="^(face_match|liveness|voice)$")
+    verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
     reference_document_id: Optional[str] = None
     
     model_config = {
