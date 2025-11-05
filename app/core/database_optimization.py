@@ -20,7 +20,7 @@ def create_database_indexes(engine):
     Index('idx_verification_status', Verification.status)
     Index('idx_verification_service_name', Verification.service_name)
     Index('idx_verification_created_at', Verification.created_at)
-    Index('idx_verification_textverified_id', Verification.textverified_id)
+
     Index('idx_verification_user_status', Verification.user_id, Verification.status)
     
     # Transaction table indexes

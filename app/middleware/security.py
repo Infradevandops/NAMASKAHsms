@@ -207,7 +207,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com; "
             "img-src 'self' data: https:; "
-            "connect-src 'self' https://api.paystack.co https://www.google-analytics.com https://www.textverified.com; "
+            "connect-src 'self' https://api.paystack.co https://www.google-analytics.com; "
             "frame-src https://js.paystack.co; "
             "object-src 'none'; "
             "base-uri 'self';"

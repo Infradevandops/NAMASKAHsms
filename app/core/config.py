@@ -41,10 +41,7 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     redis_max_connections: int = 50
     
-    # TextVerified API
-    textverified_api_key: Optional[str] = None
-    textverified_email: Optional[str] = None
-    textverified_base_url: str = "https://www.textverified.com"
+
     
     # 5SIM API
     fivesim_api_key: Optional[str] = None
@@ -137,7 +134,7 @@ class Settings(BaseSettings):
         
         required_production_settings = [
             ('database_url', 'DATABASE_URL'),
-            ('textverified_api_key', 'TEXTVERIFIED_API_KEY'),
+
             ('paystack_secret_key', 'PAYSTACK_SECRET_KEY'),
         ]
         

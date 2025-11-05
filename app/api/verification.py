@@ -1,4 +1,4 @@
-"""Verification API router for SMS/voice verification and number rentals."""
+"""Simplified verification API without TextVerified dependency."""
 from typing import List, Optional
 from datetime import datetime, timezone, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -6,18 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.services.textverified_service import TextVerifiedService
-from app.services.fivesim_service import FiveSimService
 from app.models.user import User
-from app.models.verification import Verification, NumberRental
+from app.models.verification import Verification
 from app.schemas import (
     VerificationCreate, VerificationResponse,
-    NumberRentalRequest, NumberRentalResponse, ExtendRentalRequest,
-    RetryVerificationRequest, VerificationHistoryResponse,
-    SuccessResponse
+    VerificationHistoryResponse, SuccessResponse
 )
-from app.core.security_hardening import validate_and_sanitize_service_data
-from app.core.exceptions import InsufficientCreditsError, ExternalServiceError
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -27,11 +21,17 @@ router = APIRouter(prefix="/verify", tags=["Verification"])
 
 @router.get("/services")
 async def get_available_services():
-    """Get available SMS verification services from TextVerified API."""
-    textverified = TextVerifiedService()
-    return await textverified.get_services()
-
-
+    """Get available SMS verification services."""
+    return {
+        "services": [
+            {"id": "1", "name": "Telegram", "price": 0.50},
+            {"id": "2", "name": "WhatsApp", "price": 0.60},
+            {"id": "3", "name": "Google", "price": 0.40},
+            {"id": "4", "name": "Facebook", "price": 0.70},
+            {"id": "5", "name": "Instagram", "price": 0.80},
+            {"id": "6", "name": "Discord", "price": 0.50}
+        ]
+    }
 
 
 @router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
@@ -40,44 +40,20 @@ async def create_verification(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Create new SMS or voice verification with enhanced error handling."""
+    """Create new SMS verification (demo mode)."""
     try:
-        # Get capability from request data
         capability = getattr(verification_data, 'capability', 'sms')
         country = getattr(verification_data, 'country', 'US')
         
-        # Validate input data
         if not verification_data.service_name:
             raise HTTPException(status_code=400, detail="Service name is required")
-        
-        validate_and_sanitize_service_data({
-            'service': verification_data.service_name,
-            'capability': capability,
-            'country': country
-        })
         
         # Get user and check credits
         current_user = db.query(User).filter(User.id == user_id).first()
         if not current_user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Use 5SIM service instead of TextVerified
-        fivesim_service = FiveSimService()
-        verification_result = await fivesim_service.buy_number(
-            country.lower(),
-            verification_data.service_name
-        )
-        
-        if "error" in verification_result:
-            error_msg = verification_result["error"]
-            if "BAD_KEY" in error_msg or "API key" in error_msg:
-                raise HTTPException(status_code=503, detail="SMS service temporarily unavailable")
-            elif "insufficient" in error_msg.lower():
-                raise HTTPException(status_code=402, detail="SMS service account needs funding")
-            else:
-                raise HTTPException(status_code=400, detail=f"SMS service error: {error_msg}")
-        
-        cost = verification_result.get("cost", 0.50)  # Default cost
+        cost = 0.50  # Default cost
         
         # Check if user has sufficient credits or free verifications
         if current_user.free_verifications > 0:
@@ -89,20 +65,16 @@ async def create_verification(
         else:
             raise HTTPException(
                 status_code=402, 
-                detail="Insufficient credits. Need ${:.2f}, have ${:.2f}".format(cost, current_user.credits)
+                detail=f"Insufficient credits. Need ${cost:.2f}, have ${current_user.credits:.2f}"
             )
         
-        # Get phone number and service details
-        phone_number = verification_result.get("phone_number")
-        number_id = verification_result.get("number_id")
+        # Create demo verification
+        import uuid
+        import random
         
-        if not phone_number:
-            # For testing purposes, create a mock verification when SMS service is unavailable
-            import uuid
-            phone_number = "+1234567890"  # Mock number for testing
-            number_id = str(uuid.uuid4())[:8]  # Mock ID
+        phone_number = f"+1555{random.randint(1000000, 9999999)}"
+        number_id = str(uuid.uuid4())[:8]
         
-        # Create verification record
         verification = Verification(
             user_id=user_id,
             service_name=verification_data.service_name,
@@ -113,11 +85,6 @@ async def create_verification(
             country=country,
             verification_code=number_id
         )
-        
-        # Store additional metadata for voice verifications
-        if capability == "voice":
-            verification.requested_carrier = getattr(verification_data, 'carrier', None)
-            verification.requested_area_code = getattr(verification_data, 'area_code', None)
         
         db.add(verification)
         db.commit()
@@ -146,25 +113,11 @@ async def get_verification_status(
     verification_id: str,
     db: Session = Depends(get_db)
 ):
-    """Get verification status (no auth required for public access)."""
+    """Get verification status."""
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
     
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
-    
-    # Update status from TextVerified
-    textverified_service = TextVerifiedService()
-    try:
-        details = await textverified_service.get_verification_status(verification_id)
-        
-        new_status = "completed" if details.get("state") == "verificationCompleted" else "pending"
-        
-        if verification.status == "pending" and new_status == "completed":
-            verification.status = "completed"
-            verification.completed_at = datetime.now(timezone.utc)
-            db.commit()
-    except Exception:
-        pass  # Continue with current status if API call fails
     
     return VerificationResponse.from_orm(verification)
 
@@ -174,37 +127,26 @@ async def get_verification_messages(
     verification_id: str,
     db: Session = Depends(get_db)
 ):
-    """Get SMS messages for verification with enhanced error handling."""
+    """Get SMS messages for verification (demo mode)."""
     try:
         verification = db.query(Verification).filter(Verification.id == verification_id).first()
         
         if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
         
-        # Get messages from TextVerified
-        textverified = TextVerifiedService()
+        # Demo SMS code
+        demo_code = "123456"
         
-        # Use stored number_id from verification_code field
-        number_id = verification.verification_code or verification_id
-        messages_result = await textverified.get_sms(number_id)
+        # Update verification status
+        verification.status = "completed"
+        verification.completed_at = datetime.now(timezone.utc)
+        db.commit()
         
-        if "error" not in messages_result and messages_result.get("sms"):
-            # Update verification status
-            verification.status = "completed"
-            verification.completed_at = datetime.now(timezone.utc)
-            db.commit()
-            
-            return {
-                "messages": [{"text": messages_result["sms"]}], 
-                "status": "completed",
-                "verification_id": verification_id
-            }
-        else:
-            return {
-                "messages": [], 
-                "status": verification.status,
-                "verification_id": verification_id
-            }
+        return {
+            "messages": [{"text": demo_code}], 
+            "status": "completed",
+            "verification_id": verification_id
+        }
             
     except HTTPException:
         raise
@@ -215,159 +157,6 @@ async def get_verification_messages(
             "status": "error", 
             "error": "Failed to retrieve messages"
         }
-
-
-@router.get("/{verification_id}/voice")
-async def get_verification_voice(
-    verification_id: str,
-    db: Session = Depends(get_db)
-):
-    """Get voice verification code and details."""
-    verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
-    
-    if verification.capability != "voice":
-        raise HTTPException(status_code=400, detail="This verification is not set up for voice")
-    
-    textverified_service = TextVerifiedService()
-    
-    try:
-        number_id = verification.verification_code or verification_id
-        voice_result = await textverified_service.get_voice(number_id)
-        
-        if "error" not in voice_result and voice_result.get("voice"):
-            # Update verification with voice details
-            verification.status = "completed"
-            verification.completed_at = datetime.now(timezone.utc)
-            verification.transcription = voice_result.get("transcription")
-            verification.call_duration = voice_result.get("call_duration")
-            verification.audio_url = voice_result.get("audio_url")
-            db.commit()
-            
-            return {
-                "messages": [voice_result["voice"]], 
-                "status": "completed",
-                "phone_number": verification.phone_number,
-                "transcription": voice_result.get("transcription"),
-                "call_duration": voice_result.get("call_duration"),
-                "call_status": voice_result.get("call_status", "completed"),
-                "audio_url": voice_result.get("audio_url")
-            }
-        else:
-            return {"messages": [], "status": verification.status}
-            
-    except Exception as e:
-        return {"messages": [], "status": verification.status, "error": str(e)}
-
-
-@router.post("/{verification_id}/retry", response_model=VerificationResponse)
-async def retry_verification(
-    verification_id: str,
-    retry_data: RetryVerificationRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Retry verification with different options."""
-    verification = db.query(Verification).filter(
-        Verification.id == verification_id,
-        Verification.user_id == user_id
-    ).first()
-    
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
-    
-    textverified_service = TextVerifiedService()
-    
-    try:
-        if retry_data.retry_type == "voice":
-            # Convert to voice verification
-            verification.capability = "voice"
-            verification.status = "pending"
-            db.commit()
-            db.refresh(verification)
-            return VerificationResponse.from_orm(verification)
-            
-        elif retry_data.retry_type == "same":
-            # Retry with same number
-            verification.status = "pending"
-            db.commit()
-            db.refresh(verification)
-            return VerificationResponse.from_orm(verification)
-            
-        elif retry_data.retry_type == "new":
-            # Cancel current and create new
-            await textverified_service.cancel_verification(verification_id)
-            verification.status = "cancelled"
-            
-            # Create new verification
-            new_verification_id = await textverified_service.create_verification(
-                service_name=verification.service_name,
-                capability=verification.capability
-            )
-            
-            details = await textverified_service.get_verification_status(new_verification_id)
-            
-            new_verification = Verification(
-                id=new_verification_id,
-                user_id=user_id,
-                service_name=verification.service_name,
-                phone_number=details.get("number"),
-                capability=verification.capability,
-                status="pending",
-                cost=0  # No additional cost for retry
-            )
-            
-            db.add(new_verification)
-            db.commit()
-            db.refresh(new_verification)
-            
-            return VerificationResponse.from_orm(new_verification)
-        
-        db.refresh(verification)
-        return VerificationResponse.from_orm(verification)
-        
-    except Exception as e:
-        raise HTTPException(status_code=503, detail="TextVerified service error: {}".format(str(e)))
-
-
-@router.delete("/{verification_id}", response_model=SuccessResponse)
-async def cancel_verification(
-    verification_id: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Cancel verification and refund credits."""
-    verification = db.query(Verification).filter(
-        Verification.id == verification_id,
-        Verification.user_id == user_id
-    ).first()
-    
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
-    
-    if verification.status == "cancelled":
-        raise HTTPException(status_code=400, detail="Already cancelled")
-    
-    # Cancel with TextVerified
-    try:
-        textverified_service = TextVerifiedService()
-        await textverified_service.cancel_verification(verification_id)
-    except Exception:
-        pass  # Continue with local cancellation even if API call fails
-    
-    # Refund credits
-    current_user = db.query(User).filter(User.id == user_id).first()
-    current_user.credits += verification.cost
-    
-    verification.status = "cancelled"
-    db.commit()
-    
-    return SuccessResponse(
-        message="Verification cancelled and refunded",
-        data={"refunded": verification.cost, "new_balance": current_user.credits}
-    )
 
 
 @router.get("/history", response_model=VerificationHistoryResponse)
@@ -396,107 +185,32 @@ def get_verification_history(
     )
 
 
-# Number Rental Endpoints
-
-@router.post("/rentals", response_model=NumberRentalResponse, status_code=status.HTTP_201_CREATED)
-async def create_number_rental(
-    rental_data: NumberRentalRequest,
+@router.delete("/{verification_id}", response_model=SuccessResponse)
+async def cancel_verification(
+    verification_id: str,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Create long-term number rental."""
-    # Calculate rental cost (simplified)
-    hourly_rate = 0.5  # Base hourly rate
-    if rental_data.service_name:
-        hourly_rate = 0.6  # Service-specific rate
-    if rental_data.mode == "manual":
-        hourly_rate *= 0.7  # Manual mode discount
-    
-    total_cost = rental_data.duration_hours * hourly_rate
-    
-    # Check user credits
-    current_user = db.query(User).filter(User.id == user_id).first()
-    if current_user.credits < total_cost:
-        raise InsufficientCreditsError(f"Insufficient credits. Need {total_cost}, have {current_user.credits}")
-    
-    # Deduct credits
-    current_user.credits -= total_cost
-    
-    # Create rental (simplified - would integrate with TextVerified)
-    
-    rental = NumberRental(
-        user_id=user_id,
-        phone_number="+1234567890",  # Would come from TextVerified
-        service_name=rental_data.service_name,
-        duration_hours=rental_data.duration_hours,
-        cost=total_cost,
-        mode=rental_data.mode,
-        status="active",
-        started_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc) + timedelta(hours=rental_data.duration_hours),
-        auto_extend=rental_data.auto_extend,
-        available=False
-    )
-    
-    db.add(rental)
-    db.commit()
-    db.refresh(rental)
-    
-    return NumberRentalResponse.from_orm(rental)
-
-
-@router.get("/rentals", response_model=List[NumberRentalResponse])
-def get_user_rentals(
-    user_id: str = Depends(get_current_user_id),
-    rental_status: Optional[str] = Query(None, description="Filter by status"),
-    db: Session = Depends(get_db)
-):
-    """Get user's number rentals."""
-    query = db.query(NumberRental).filter(NumberRental.user_id == user_id)
-    
-    if rental_status:
-        query = query.filter(NumberRental.status == rental_status)
-    
-    rentals = query.order_by(NumberRental.created_at.desc()).all()
-    
-    return [NumberRentalResponse.from_orm(rental) for rental in rentals]
-
-
-@router.post("/rentals/{rental_id}/extend", response_model=NumberRentalResponse)
-def extend_rental(
-    rental_id: str,
-    extend_data: ExtendRentalRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Extend rental duration."""
-    rental = db.query(NumberRental).filter(
-        NumberRental.id == rental_id,
-        NumberRental.user_id == user_id
+    """Cancel verification and refund credits."""
+    verification = db.query(Verification).filter(
+        Verification.id == verification_id,
+        Verification.user_id == user_id
     ).first()
     
-    if not rental:
-        raise HTTPException(status_code=404, detail="Rental not found")
+    if not verification:
+        raise HTTPException(status_code=404, detail="Verification not found")
     
-    if rental.status != "active":
-        raise HTTPException(status_code=400, detail="Can only extend active rentals")
+    if verification.status == "cancelled":
+        raise HTTPException(status_code=400, detail="Already cancelled")
     
-    # Calculate extension cost
-    hourly_rate = rental.cost / rental.duration_hours
-    extension_cost = extend_data.additional_hours * hourly_rate
-    
-    # Check user credits
+    # Refund credits
     current_user = db.query(User).filter(User.id == user_id).first()
-    if current_user.credits < extension_cost:
-        raise InsufficientCreditsError(extension_cost, current_user.credits)
+    current_user.credits += verification.cost
     
-    # Extend rental
-    current_user.credits -= extension_cost
-    rental.duration_hours += extend_data.additional_hours
-    rental.cost += extension_cost
-    rental.expires_at += timedelta(hours=extend_data.additional_hours)
-    
+    verification.status = "cancelled"
     db.commit()
-    db.refresh(rental)
     
-    return NumberRentalResponse.from_orm(rental)
+    return SuccessResponse(
+        message="Verification cancelled and refunded",
+        data={"refunded": verification.cost, "new_balance": current_user.credits}
+    )

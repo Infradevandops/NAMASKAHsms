@@ -1,7 +1,7 @@
 """Logging middleware for request/response tracking and performance metrics."""
 import time
 import json
-from typing import Dict, Optional
+from typing import Optional
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
@@ -59,9 +59,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         """Log incoming request details."""
         # Get user info if available
         user_id = getattr(request.state, 'user_id', None)
-        user_obj = getattr(request.state, 'user', {})
-        if hasattr(user_obj, 'email'):
-            user_email = user_obj.email
+        user = getattr(request.state, 'user', {})
+        if hasattr(user, 'email'):
+            user_email = user.email
         else:
             user_email = None
         

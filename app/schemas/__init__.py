@@ -25,14 +25,17 @@ from .payment import (
     SubscriptionPlan, SubscriptionRequest, SubscriptionResponse
 )
 
-# Common schemas
-from .common import (
-    ErrorResponse, SuccessResponse, PaginationResponse,
-    HealthCheck, ServiceStatus, ServiceStatusSummary,
-    NotificationResponse, NotificationPreferences,
-    AnalyticsResponse, SupportTicketCreate, SupportTicketResponse,
-    ExportRequest
-)
+# Common schemas (inline)
+from typing import Optional, Dict, Any
+from pydantic import BaseModel
+
+class SuccessResponse(BaseModel):
+    message: str
+    data: Optional[Dict[str, Any]] = None
+
+class ErrorResponse(BaseModel):
+    error: str
+    detail: Optional[str] = None
 
 # Validation utilities
 from .validators import (
@@ -64,11 +67,7 @@ __all__ = [
     "SubscriptionPlan", "SubscriptionRequest", "SubscriptionResponse",
     
     # Common
-    "ErrorResponse", "SuccessResponse", "PaginationResponse",
-    "HealthCheck", "ServiceStatus", "ServiceStatusSummary",
-    "NotificationResponse", "NotificationPreferences",
-    "AnalyticsResponse", "SupportTicketCreate", "SupportTicketResponse",
-    "ExportRequest",
+    "ErrorResponse", "SuccessResponse",
     
     # Validators
     "validate_phone_number", "validate_service_name", "validate_currency_amount",

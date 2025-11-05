@@ -5,7 +5,7 @@ from typing import Dict, Any, List
 from dataclasses import dataclass
 from enum import Enum
 from app.core.logging import get_logger
-from app.services.textverified_client import textverified_client
+
 
 logger = get_logger(__name__)
 
@@ -30,44 +30,14 @@ class HealthMonitor:
         self.check_interval = 60  # 1 minute
         self.running = False
         
-    async def check_textverified_health(self) -> HealthCheck:
-        """Check TextVerified API health."""
-        start_time = time.time()
-        
-        try:
-            is_healthy = await textverified_client.health_check()
-            response_time = time.time() - start_time
-            
-            status = ServiceStatus.HEALTHY if is_healthy else ServiceStatus.UNHEALTHY
-            
-            return HealthCheck(
-                service="textverified",
-                status=status,
-                response_time=response_time,
-                last_check=time.time(),
-                error=None if is_healthy else "Health check failed"
-            )
-            
-        except Exception as e:
-            response_time = time.time() - start_time
-            logger.error("TextVerified health check error: %s", e)
-            
-            return HealthCheck(
-                service="textverified",
-                status=ServiceStatus.UNHEALTHY,
-                response_time=response_time,
-                last_check=time.time(),
-                error=str(e)
-            )
+
+
     
     async def check_all_services(self) -> Dict[str, HealthCheck]:
         """Check health of all monitored services."""
         checks = {}
         
-        # Check TextVerified
-        textverified_check = await self.check_textverified_health()
-        checks["textverified"] = textverified_check
-        self.checks["textverified"] = textverified_check
+        # Add other service checks here as needed
         
         return checks
     

@@ -19,11 +19,7 @@ class ServiceFactory:
             self._services['auth'] = AuthService(self.db)
         return self._services['auth']
     
-    @staticmethod
-    def get_textverified_service():
-        """Get or create TextVerifiedService instance."""
-        from app.services.textverified_service import TextVerifiedService
-        return TextVerifiedService()
+
     
     def get_payment_service(self) -> PaymentService:
         """Get or create PaymentService instance."""
@@ -39,8 +35,7 @@ class ServiceFactory:
     
     async def cleanup(self):
         """Cleanup async resources."""
-        if 'textverified' in self._services:
-            await self._services['textverified'].close()
+
         if 'payment' in self._services:
             await self._services['payment'].close()
 
@@ -56,10 +51,7 @@ def get_auth_service(db: Session) -> AuthService:
     return AuthService(db)
 
 
-def get_textverified_service():
-    """Get TextVerifiedService instance."""
-    from app.services.textverified_service import TextVerifiedService
-    return TextVerifiedService()
+
 
 
 def get_payment_service(db: Session) -> PaymentService:
@@ -80,7 +72,7 @@ __all__ = [
     "ServiceFactory",
     "get_service_factory",
     "get_auth_service",
-    "get_textverified_service", 
+ 
     "get_payment_service",
     "get_notification_service"
 ]

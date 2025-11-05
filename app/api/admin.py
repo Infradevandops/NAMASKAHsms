@@ -12,7 +12,7 @@ from app.models.verification import Verification
 from app.models.transaction import Transaction
 from app.models.system import SupportTicket
 from app.schemas import (
-    UserResponse, SuccessResponse, SupportTicketResponse
+    SuccessResponse, SupportTicketResponse
 )
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -34,7 +34,7 @@ def get_all_users(
     """Get all users (admin only)."""
     try:
         users = db.query(User).limit(size).all()
-        
+
         items = []
         for user in users:
             items.append({
@@ -59,7 +59,7 @@ def get_user_details(
     """Get detailed user information (admin only)."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
-        
+
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -70,13 +70,13 @@ def get_user_details(
             Transaction.type == "debit"
         ).with_entities(Transaction.amount).all()
         total_spent = sum(abs(float(t[0])) for t in total_spent) if total_spent else 0.0
-        
+
         total_funded = db.query(Transaction).filter(
             Transaction.user_id == user_id,
             Transaction.type == "credit"
         ).with_entities(Transaction.amount).all()
         total_funded = sum(float(t[0]) for t in total_funded) if total_funded else 0.0
-        
+
         return {
             "user": {
                 "id": user.id,
@@ -124,7 +124,7 @@ def manage_user_credits(
         user.credits -= amount
         transaction_amount = -float(amount)
         description = "Admin deducted credits"
-    
+
     # Create transaction record
     transaction = Transaction(
         user_id=user_id,
@@ -155,9 +155,9 @@ def add_user_credits(
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        
+
         user.credits += amount
-        
+
         transaction = Transaction(
             user_id=user_id,
             amount=amount,
@@ -167,7 +167,7 @@ def add_user_credits(
         
         db.add(transaction)
         db.commit()
-        
+
         return {
             "success": True,
             "message": f"Added {amount} credits",
@@ -193,9 +193,9 @@ def deduct_user_credits(
         
         if user.credits < amount:
             raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
-        
+
         user.credits -= amount
-        
+
         transaction = Transaction(
             user_id=user_id,
             amount=-amount,
@@ -205,7 +205,7 @@ def deduct_user_credits(
         
         db.add(transaction)
         db.commit()
-        
+
         return {
             "success": True,
             "message": f"Deducted {amount} credits",
@@ -272,14 +272,14 @@ def get_platform_stats(
             total_verifications = result or 0
         except (ValueError, AttributeError):
             total_verifications = 0
-        
+
         # Try to get transactions sum
         try:
             result = db.execute(text("SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'")).scalar()
             total_spent = float(result or 0)
         except (ValueError, AttributeError):
             total_spent = 0.0
-        
+
         return {
             "total_users": total_users,
             "new_users": 0,
@@ -289,7 +289,7 @@ def get_platform_stats(
             "popular_services": [],
             "daily_usage": []
         }
-        
+
     except (ValueError, AttributeError):
         # Ultimate fallback
         return {
@@ -380,7 +380,7 @@ async def admin_cancel_verification(
     db: Session = Depends(get_db)
 ):
     """Cancel any verification and refund user (admin only)."""
-    from app.services import get_textverified_service
+    
     
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
     if not verification:
@@ -389,13 +389,8 @@ async def admin_cancel_verification(
     if verification.status == "cancelled":
         raise HTTPException(status_code=400, detail="Already cancelled")
     
-    # Cancel with TextVerified
-    textverified_service = get_textverified_service()
-    try:
-        await textverified_service.cancel_verification(verification_id)
-    except (ValueError, KeyError, TypeError):
-        pass  # Continue with local cancellation
-    
+    # Cancel verification locally
+
     # Refund user
     user = db.query(User).filter(User.id == verification.user_id).first()
     if user:
