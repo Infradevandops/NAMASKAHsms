@@ -11,6 +11,34 @@ class EnhancedAnalytics {
         this.init();
     }
 
+    // Input sanitization methods
+    sanitizeString(input) {
+        if (typeof input !== 'string') {
+            return String(input || '');
+        }
+        return input.replace(/[<>"'&]/g, (match) => {
+            const entities = {
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#x27;',
+                '&': '&amp;'
+            };
+            return entities[match] || match;
+        });
+    }
+
+    validateNumeric(value, min = 0, max = Number.MAX_SAFE_INTEGER) {
+        const num = Number(value);
+        if (isNaN(num)) return 0;
+        return Math.min(Math.max(num, min), max);
+    }
+
+    validatePeriod(period) {
+        const validPeriods = [7, 30, 90];
+        return validPeriods.includes(Number(period)) ? Number(period) : 30;
+    }
+
     async init() {
         await this.loadAnalytics();
         this.setupRealTimeUpdates();
@@ -22,7 +50,8 @@ class EnhancedAnalytics {
             const token = localStorage.getItem('token');
             
             // Load main analytics
-            const analyticsResponse = await fetch(`/analytics/usage?period=${this.currentPeriod}`, {
+            const safePeriod = this.validatePeriod(this.currentPeriod);
+            const analyticsResponse = await fetch(`/analytics/usage?period=${safePeriod}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const analytics = await analyticsResponse.json();
@@ -54,18 +83,18 @@ class EnhancedAnalytics {
     }
 
     updateMetrics(analytics, business) {
-        // Core metrics
-        this.updateElement('total-verifications', analytics.total_verifications);
-        this.updateElement('success-rate', `${analytics.success_rate}%`);
-        this.updateElement('total-spent', `$${analytics.total_spent.toFixed(2)}`);
-        this.updateElement('efficiency-score', analytics.efficiency_score);
+        // Core metrics with validation
+        this.updateElement('total-verifications', this.validateNumeric(analytics.total_verifications));
+        this.updateElement('success-rate', `${this.validateNumeric(analytics.success_rate, 0, 100).toFixed(1)}%`);
+        this.updateElement('total-spent', `$${this.validateNumeric(analytics.total_spent).toFixed(2)}`);
+        this.updateElement('efficiency-score', this.validateNumeric(analytics.efficiency_score, 0, 100));
         
-        // Business metrics
+        // Business metrics with validation
         if (business) {
-            this.updateElement('revenue', `$${business.revenue.toFixed(2)}`);
-            this.updateElement('profit-margin', `${business.profit_margin}%`);
-            this.updateElement('growth-rate', `${business.growth_rate}%`);
-            this.updateElement('clv', `$${business.customer_lifetime_value.toFixed(2)}`);
+            this.updateElement('revenue', `$${this.validateNumeric(business.revenue).toFixed(2)}`);
+            this.updateElement('profit-margin', `${this.validateNumeric(business.profit_margin, -100, 100).toFixed(1)}%`);
+            this.updateElement('growth-rate', `${this.validateNumeric(business.growth_rate, -100, 1000).toFixed(1)}%`);
+            this.updateElement('clv', `$${this.validateNumeric(business.customer_lifetime_value).toFixed(2)}`);
         }
         
         // Update efficiency score circle
@@ -77,14 +106,15 @@ class EnhancedAnalytics {
         const scoreElement = document.getElementById('efficiency-score');
         
         if (circle && scoreElement) {
-            const degrees = (score / 100) * 360;
+            const safeScore = this.validateNumeric(score, 0, 100);
+            const degrees = (safeScore / 100) * 360;
             circle.style.setProperty('--score-deg', `${degrees}deg`);
-            scoreElement.textContent = score;
+            scoreElement.textContent = safeScore;
             
-            // Add color coding
+            // Add color coding with safe values
             let color = '#ef4444'; // Red for low scores
-            if (score >= 70) color = '#f59e0b'; // Yellow for medium
-            if (score >= 85) color = '#10b981'; // Green for high
+            if (safeScore >= 70) {color = '#f59e0b';} // Yellow for medium
+            if (safeScore >= 85) {color = '#10b981';} // Green for high
             
             circle.style.background = `conic-gradient(${color} 0deg, ${color} ${degrees}deg, #f3f4f6 ${degrees}deg)`;
         }
@@ -99,7 +129,7 @@ class EnhancedAnalytics {
 
     createUsageTrendChart(dailyUsage) {
         const ctx = document.getElementById('usage-trend-chart');
-        if (!ctx) return;
+        if (!ctx) {return;}
 
         if (this.charts.usageTrend) {
             this.charts.usageTrend.destroy();
@@ -162,7 +192,7 @@ class EnhancedAnalytics {
 
     createServicePerformanceChart(services) {
         const ctx = document.getElementById('service-performance-chart');
-        if (!ctx) return;
+        if (!ctx) {return;}
 
         if (this.charts.servicePerformance) {
             this.charts.servicePerformance.destroy();
@@ -206,7 +236,7 @@ class EnhancedAnalytics {
 
     createCountryChart(countries) {
         const ctx = document.getElementById('country-chart');
-        if (!ctx || !countries.length) return;
+        if (!ctx || !countries.length) {return;}
 
         if (this.charts.country) {
             this.charts.country.destroy();
@@ -246,7 +276,7 @@ class EnhancedAnalytics {
 
     createCostTrendChart(trends) {
         const ctx = document.getElementById('cost-trend-chart');
-        if (!ctx || !trends.length) return;
+        if (!ctx || !trends.length) {return;}
 
         if (this.charts.costTrend) {
             this.charts.costTrend.destroy();
@@ -294,11 +324,11 @@ class EnhancedAnalytics {
     updateInsights(analytics) {
         // Update efficiency insights
         const efficiencyInsights = this.generateEfficiencyInsights(analytics);
-        this.updateElement('efficiency-insights', efficiencyInsights, true);
+        this.updateElement('efficiency-insights', efficiencyInsights);
         
         // Update cost optimization insights
         const costInsights = this.generateCostInsights(analytics);
-        this.updateElement('cost-insights', costInsights, true);
+        this.updateElement('cost-insights', costInsights);
     }
 
     generateEfficiencyInsights(analytics) {
@@ -316,13 +346,13 @@ class EnhancedAnalytics {
             insights.push('📈 Efficiency can be improved');
         }
         
-        return insights.length > 0 ? insights.join('<br>') : 'No specific insights available';
+        return insights.length > 0 ? insights.join(' | ') : 'No specific insights available';
     }
 
     generateCostInsights(analytics) {
         const insights = [];
         
-        if (analytics.popular_services.length > 0) {
+        if (analytics.popular_services && analytics.popular_services.length > 0) {
             const cheapestService = analytics.popular_services.reduce((min, service) => 
                 service.avg_cost < min.avg_cost ? service : min
             );
@@ -336,17 +366,17 @@ class EnhancedAnalytics {
             }
         }
         
-        return insights.length > 0 ? insights.join('<br>') : 'No cost insights available';
+        return insights.length > 0 ? insights.join(' | ') : 'No cost insights available';
     }
 
     updateCompetitiveAnalysis(competitive) {
-        if (!competitive) return;
+        if (!competitive) {return;}
         
-        // Update market position
-        this.updateElement('market-position', competitive.market_position);
+        // Update market position with sanitization
+        this.updateElement('market-position', this.sanitizeString(competitive.market_position));
         
-        // Update performance benchmark
-        this.updateElement('performance-benchmark', `${competitive.performance_benchmark}%`);
+        // Update performance benchmark with validation
+        this.updateElement('performance-benchmark', `${this.validateNumeric(competitive.performance_benchmark, 0, 100).toFixed(1)}%`);
         
         // Create cost comparison chart
         this.createCostComparisonChart(competitive.cost_comparison);
@@ -354,7 +384,7 @@ class EnhancedAnalytics {
 
     createCostComparisonChart(costComparison) {
         const ctx = document.getElementById('cost-comparison-chart');
-        if (!ctx) return;
+        if (!ctx) {return;}
 
         if (this.charts.costComparison) {
             this.charts.costComparison.destroy();
@@ -389,38 +419,94 @@ class EnhancedAnalytics {
 
     updatePredictions(predictions) {
         const container = document.getElementById('predictions-container');
-        if (!container || !predictions.length) return;
+        if (!container) {return;}
 
-        container.innerHTML = predictions.map(pred => `
-            <div class="prediction-item">
-                <div class="prediction-header">
-                    <span class="prediction-metric">${this.formatMetricName(pred.metric)}</span>
-                    <span class="prediction-timeframe">${pred.timeframe}</span>
-                </div>
-                <div class="prediction-value">${pred.prediction}</div>
-                <div class="confidence-bar">
-                    <div class="confidence-fill" style="width: ${pred.confidence * 100}%"></div>
-                    <span class="confidence-text">${Math.round(pred.confidence * 100)}% confidence</span>
-                </div>
-            </div>
-        `).join('');
+        container.textContent = '';
+
+        if (!predictions.length) {
+            const noPredictions = document.createElement('p');
+            noPredictions.className = 'no-predictions';
+            noPredictions.textContent = 'No predictions available';
+            container.appendChild(noPredictions);
+            return;
+        }
+
+        predictions.forEach((pred, index) => {
+            const item = document.createElement('div');
+            item.className = 'prediction-item';
+            item.style.animationDelay = `${index * 0.1}s`;
+
+            const header = document.createElement('div');
+            header.className = 'prediction-header';
+
+            const metric = document.createElement('span');
+            metric.className = 'prediction-metric';
+            metric.textContent = this.sanitizeString(this.formatMetricName(pred.metric || 'Unknown'));
+
+            const timeframe = document.createElement('span');
+            timeframe.className = 'prediction-timeframe';
+            timeframe.textContent = this.sanitizeString(pred.timeframe || 'Unknown');
+
+            header.appendChild(metric);
+            header.appendChild(timeframe);
+
+            const value = document.createElement('div');
+            value.className = 'prediction-value';
+            value.textContent = this.sanitizeString(pred.prediction || 'N/A');
+
+            const confidenceBar = document.createElement('div');
+            confidenceBar.className = 'confidence-bar';
+
+            const confidenceFill = document.createElement('div');
+            confidenceFill.className = 'confidence-fill';
+            const confidence = this.validateNumeric((pred.confidence || 0) * 100, 0, 100);
+            confidenceFill.style.width = `${confidence}%`;
+
+            const confidenceText = document.createElement('span');
+            confidenceText.className = 'confidence-text';
+            confidenceText.textContent = `${Math.round(confidence)}% confidence`;
+
+            confidenceBar.appendChild(confidenceFill);
+            confidenceBar.appendChild(confidenceText);
+
+            item.appendChild(header);
+            item.appendChild(value);
+            item.appendChild(confidenceBar);
+            container.appendChild(item);
+        });
     }
 
     updateRecommendations(recommendations) {
         const container = document.getElementById('recommendations-container');
-        if (!container) return;
+        if (!container) {return;}
 
-        if (!recommendations.length) {
-            container.innerHTML = '<p class="no-recommendations">No recommendations at this time</p>';
+        container.textContent = '';
+
+        if (!Array.isArray(recommendations) || recommendations.length === 0) {
+            const noRecs = document.createElement('p');
+            noRecs.className = 'no-recommendations';
+            noRecs.textContent = 'No recommendations at this time';
+            container.appendChild(noRecs);
             return;
         }
 
-        container.innerHTML = recommendations.map((rec, index) => `
-            <div class="recommendation-item" style="animation-delay: ${index * 0.1}s">
-                <div class="recommendation-icon">💡</div>
-                <div class="recommendation-text">${rec}</div>
-            </div>
-        `).join('');
+        recommendations.forEach((rec, index) => {
+            const item = document.createElement('div');
+            item.className = 'recommendation-item';
+            item.style.animationDelay = `${index * 0.1}s`;
+
+            const icon = document.createElement('div');
+            icon.className = 'recommendation-icon';
+            icon.textContent = '💡';
+
+            const text = document.createElement('div');
+            text.className = 'recommendation-text';
+            text.textContent = this.sanitizeString(rec || 'No recommendation text');
+
+            item.appendChild(icon);
+            item.appendChild(text);
+            container.appendChild(item);
+        });
     }
 
     setupRealTimeUpdates() {
@@ -441,22 +527,32 @@ class EnhancedAnalytics {
 
     updateRealTimeInsights(insights) {
         const container = document.getElementById('realtime-insights');
-        if (!container) return;
+        if (!container || !insights) {return;}
 
-        container.innerHTML = `
-            <div class="realtime-metric">
-                <span class="metric-label">Last 24h Verifications:</span>
-                <span class="metric-value">${insights.last_24h.verifications}</span>
-            </div>
-            <div class="realtime-metric">
-                <span class="metric-label">Current Hour:</span>
-                <span class="metric-value">${insights.current_hour.verifications}</span>
-            </div>
-            <div class="realtime-metric">
-                <span class="metric-label">System Status:</span>
-                <span class="metric-value status-${insights.system_status}">${insights.system_status}</span>
-            </div>
-        `;
+        container.textContent = '';
+
+        const metrics = [
+            { label: 'Last 24h Verifications:', value: insights.last_24h?.verifications || 0 },
+            { label: 'Current Hour:', value: insights.current_hour?.verifications || 0 },
+            { label: 'System Status:', value: insights.system_status || 'unknown' }
+        ];
+
+        metrics.forEach(metric => {
+            const div = document.createElement('div');
+            div.className = 'realtime-metric';
+
+            const label = document.createElement('span');
+            label.className = 'metric-label';
+            label.textContent = metric.label;
+
+            const value = document.createElement('span');
+            value.className = metric.label.includes('Status') ? `metric-value status-${String(metric.value)}` : 'metric-value';
+            value.textContent = String(metric.value);
+
+            div.appendChild(label);
+            div.appendChild(value);
+            container.appendChild(div);
+        });
     }
 
     setupEventListeners() {
@@ -482,7 +578,7 @@ class EnhancedAnalytics {
     }
 
     setPeriod(period) {
-        this.currentPeriod = period;
+        this.currentPeriod = this.validatePeriod(period);
         
         // Update active button
         document.querySelectorAll('.period-btn').forEach(btn => {
@@ -496,7 +592,8 @@ class EnhancedAnalytics {
     async exportAnalytics() {
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`/analytics/export?period=${this.currentPeriod}`, {
+            const safePeriod = this.validatePeriod(this.currentPeriod);
+            const response = await fetch(`/analytics/export?period=${safePeriod}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             
@@ -509,38 +606,41 @@ class EnhancedAnalytics {
     }
 
     downloadJSON(data, filename) {
+        const safeFilename = this.sanitizeString(filename).replace(/[^a-zA-Z0-9.-]/g, '_');
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = filename;
+        a.download = safeFilename;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
 
-    updateElement(id, content, isHTML = false) {
+    updateElement(id, content) {
         const element = document.getElementById(id);
         if (element) {
-            if (isHTML) {
-                element.innerHTML = content;
-            } else {
-                element.textContent = content;
-            }
+            element.textContent = this.sanitizeString(content || '');
         }
     }
 
     formatMetricName(metric) {
-        return metric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        const safeMetric = this.sanitizeString(metric || '');
+        return safeMetric.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
     }
 
     showError(message) {
         const errorContainer = document.getElementById('error-container');
         if (errorContainer) {
-            errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+            errorContainer.textContent = '';
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error-message';
+            errorDiv.textContent = this.sanitizeString(message || 'An error occurred');
+            errorContainer.appendChild(errorDiv);
+            
             setTimeout(() => {
-                errorContainer.innerHTML = '';
+                errorContainer.textContent = '';
             }, 5000);
         }
     }
@@ -553,7 +653,7 @@ class EnhancedAnalytics {
         
         // Destroy charts
         Object.values(this.charts).forEach(chart => {
-            if (chart) chart.destroy();
+            if (chart) {chart.destroy();}
         });
     }
 }

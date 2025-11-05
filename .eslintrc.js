@@ -22,7 +22,8 @@ module.exports = {
     'no-implied-eval': 'error',
     'no-new-func': 'error',
     'no-script-url': 'error',
-    'no-innerHTML': 'error'
+    'no-eval': 'error',
+    'no-implied-eval': 'error'
   },
   globals: {
     'Chart': 'readonly',

@@ -13,19 +13,21 @@
     "security-check": "npm audit && eslint static/js/**/*.js --rule 'no-eval: error' --rule 'no-innerHTML: error'"
   },
   "devDependencies": {
-    "eslint": "^8.50.0",
-    "prettier": "^3.0.0",
-    "jest": "^29.7.0",
     "@testing-library/dom": "^9.3.0",
+    "dompurify": "^3.0.0",
+    "eslint": "^8.57.0",
+    "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "dompurify": "^3.0.0"
+    "prettier": "^3.0.0"
   },
   "dependencies": {
     "chart.js": "^4.4.0"
   },
   "jest": {
     "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": ["<rootDir>/static/js/tests/setup.js"],
+    "setupFilesAfterEnv": [
+      "<rootDir>/static/js/tests/setup.js"
+    ],
     "collectCoverageFrom": [
       "static/js/**/*.js",
       "!static/js/tests/**",

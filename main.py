@@ -25,6 +25,7 @@ from app.api.dashboard import router as dashboard_router
 from app.api.support import router as support_router
 from app.api.rentals import router as rentals_router
 from app.api.fivesim import router as fivesim_router
+from app.api.kyc import router as kyc_router
 
 # Import middleware
 from app.middleware.security import JWTAuthMiddleware, CORSMiddleware, SecurityHeadersMiddleware
@@ -79,6 +80,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(support_router)
     fastapi_app.include_router(rentals_router)
     fastapi_app.include_router(fivesim_router)
+    fastapi_app.include_router(kyc_router)
     
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
