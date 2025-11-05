@@ -49,6 +49,8 @@ class UserResponse(BaseModel):
     email_verified: bool
     referral_code: str
     created_at: datetime
+    provider: Optional[str] = "email"
+    avatar_url: Optional[str] = None
     
     model_config = {
         "from_attributes": True,

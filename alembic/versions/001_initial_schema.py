@@ -24,7 +24,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
         sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
         sa.Column('email', sa.String(length=255), nullable=False),
-        sa.Column('password_hash', sa.String(length=255), nullable=False),
+        sa.Column('password_hash', sa.String(length=255), nullable=True),  # Nullable for OAuth
         sa.Column('is_active', sa.Boolean(), nullable=True),
         sa.Column('is_admin', sa.Boolean(), nullable=True),
         sa.Column('email_verified', sa.Boolean(), nullable=True),
@@ -36,10 +36,16 @@ def upgrade() -> None:
         sa.Column('referral_code', sa.String(length=50), nullable=True),
         sa.Column('referred_by', sa.String(length=255), nullable=True),
         sa.Column('referral_earnings', sa.Float(), nullable=True),
+        # Google OAuth fields
+        sa.Column('google_id', sa.String(255), nullable=True),
+        sa.Column('provider', sa.String(50), nullable=False, server_default='email'),
+        sa.Column('avatar_url', sa.String(500), nullable=True),
         sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
     op.create_index(op.f('ix_users_referral_code'), 'users', ['referral_code'], unique=True)
+    op.create_index(op.f('ix_users_google_id'), 'users', ['google_id'])
+    op.create_index(op.f('ix_users_provider'), 'users', ['provider'])
     
     # API Keys table
     op.create_table('api_keys',

@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     textverified_email: Optional[str] = None
     textverified_base_url: str = "https://www.textverified.com"
     
+    # 5SIM API
+    fivesim_api_key: Optional[str] = None
+    fivesim_email: Optional[str] = None
+    fivesim_base_url: str = "https://5sim.net/v1"
+    
     # JWT Settings
     jwt_expiry_hours: int = 720  # 30 days
     

@@ -8,7 +8,7 @@ class User(BaseModel):
     __tablename__ = "users"
     
     email = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
+    password_hash = Column(String, nullable=True)  # Nullable for OAuth users
     credits = Column(Float, default=0.0, nullable=False)
     free_verifications = Column(Float, default=1.0, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
@@ -19,6 +19,11 @@ class User(BaseModel):
     referral_code = Column(String, unique=True, index=True)
     referred_by = Column(String)
     referral_earnings = Column(Float, default=0.0, nullable=False)
+    
+    # Google OAuth fields
+    google_id = Column(String(255), nullable=True, index=True)
+    provider = Column(String(50), default="email", nullable=False)
+    avatar_url = Column(String(500), nullable=True)
 
 
 class APIKey(BaseModel):

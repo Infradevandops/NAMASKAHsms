@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.services.textverified_service import TextVerifiedService
+from app.services.fivesim_service import FiveSimService
 from app.models.user import User
 from app.models.verification import Verification, NumberRental
 from app.schemas import (
@@ -60,12 +61,11 @@ async def create_verification(
         if not current_user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        # Get service pricing with comprehensive error handling
-        textverified_service = TextVerifiedService()
-        verification_result = await textverified_service.create_verification(
-            verification_data.service_name, 
-            country,
-            capability
+        # Use 5SIM service instead of TextVerified
+        fivesim_service = FiveSimService()
+        verification_result = await fivesim_service.buy_number(
+            country.lower(),
+            verification_data.service_name
         )
         
         if "error" in verification_result:

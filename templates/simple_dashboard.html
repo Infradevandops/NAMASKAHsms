@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - Namaskah SMS</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh; padding: 20px;
+        }
+        .container { max-width: 800px; margin: 0 auto; }
+        .card {
+            background: white; padding: 30px; border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px;
+        }
+        h1 { color: #667eea; margin-bottom: 20px; }
+        .btn {
+            padding: 10px 20px; background: #667eea; color: white;
+            border: none; border-radius: 8px; cursor: pointer; margin: 5px;
+        }
+        .btn:hover { background: #5a67d8; }
+        .welcome { padding: 20px; background: #f0f9ff; border-radius: 8px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📱 Namaskah SMS Dashboard</h1>
+            <div class="welcome">
+                <h3>Welcome to Namaskah SMS!</h3>
+                <p>Your SMS verification platform is ready.</p>
+            </div>
+            
+            <h3>Available Actions:</h3>
+            <button class="btn" onclick="window.location.href='/docs'">📚 API Documentation</button>
+            <button class="btn" onclick="window.location.href='/auth/login'">🔐 Admin Login</button>
+            <button class="btn" onclick="logout()">🚪 Logout</button>
+            
+            <div style="margin-top: 30px;">
+                <h3>Platform Features:</h3>
+                <ul style="margin: 15px 0; padding-left: 20px;">
+                    <li>✅ SMS Verification Services</li>
+                    <li>✅ Google OAuth Integration</li>
+                    <li>✅ Secure API Access</li>
+                    <li>✅ Real-time Processing</li>
+                    <li>✅ Admin Management</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function logout() {
+            localStorage.clear();
+            window.location.href = '/auth/login';
+        }
+    </script>
+</body>
+</html>

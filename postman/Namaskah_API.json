@@ -1,0 +1,76 @@
+{
+  "info": {
+    "name": "Namaskah SMS API",
+    "description": "Test collection for Namaskah SMS verification platform"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"email\": \"{{email}}\", \"password\": \"{{password}}\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "Create Verification",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"service_id\": {{service_id}}, \"country\": \"{{country}}\"}"
+        },
+        "url": {
+          "raw": "{{base_url}}/verify/create",
+          "host": ["{{base_url}}"],
+          "path": ["verify", "create"]
+        }
+      }
+    },
+    {
+      "name": "Get Messages",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Authorization", "value": "Bearer {{token}}"}],
+        "url": {
+          "raw": "{{base_url}}/verify/{{verification_id}}/messages",
+          "host": ["{{base_url}}"],
+          "path": ["verify", "{{verification_id}}", "messages"]
+        }
+      }
+    },
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/system/health",
+          "host": ["{{base_url}}"],
+          "path": ["system", "health"]
+        }
+      }
+    }
+  ],
+  "variable": [
+    {"key": "base_url", "value": "http://localhost:8000"},
+    {"key": "email", "value": "admin@test.com"},
+    {"key": "password", "value": "admin123"},
+    {"key": "token", "value": ""},
+    {"key": "service_id", "value": "1"},
+    {"key": "country", "value": "US"},
+    {"key": "verification_id", "value": ""}
+  ]
+}

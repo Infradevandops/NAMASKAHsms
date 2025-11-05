@@ -23,6 +23,8 @@ from app.api.websocket import router as websocket_router
 from app.api.countries import router as countries_router
 from app.api.dashboard import router as dashboard_router
 from app.api.support import router as support_router
+from app.api.rentals import router as rentals_router
+from app.api.fivesim import router as fivesim_router
 
 # Import middleware
 from app.middleware.security import JWTAuthMiddleware, CORSMiddleware, SecurityHeadersMiddleware
@@ -75,6 +77,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(countries_router)
     fastapi_app.include_router(dashboard_router)
     fastapi_app.include_router(support_router)
+    fastapi_app.include_router(rentals_router)
+    fastapi_app.include_router(fivesim_router)
     
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -93,6 +97,12 @@ def create_app() -> FastAPI:
     @fastapi_app.get("/app", response_class=HTMLResponse)
     async def app_page():
         with open("templates/dashboard_production.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Login page
+    @fastapi_app.get("/auth/login", response_class=HTMLResponse)
+    async def login_page():
+        with open("templates/login.html", "r") as f:
             return HTMLResponse(content=f.read())
     
     # Legacy dashboard routes

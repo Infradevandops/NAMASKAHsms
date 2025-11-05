@@ -50,6 +50,14 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
   
+  // Validate URL to prevent SSRF
+  const url = new URL(event.request.url);
+  const allowedOrigins = [self.location.origin];
+  
+  if (!allowedOrigins.includes(url.origin)) {
+    return;
+  }
+  
   event.respondWith(
     fetch(event.request)
       .then((response) => {

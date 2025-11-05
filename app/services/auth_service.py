@@ -9,6 +9,7 @@ from app.utils.security import (
     hash_password, verify_password, create_access_token, 
     verify_token, generate_api_key, generate_secure_id
 )
+from app.core.config import get_settings
 from app.core.exceptions import ValidationError
 
 
@@ -129,6 +130,40 @@ class AuthService(BaseService[User]):
         """Verify user has admin access."""
         user = self.get_by_id(user_id)
         return user is not None and user.is_admin
+    
+    def create_or_get_google_user(self, google_id: str, email: str, name: str = None, avatar_url: str = None) -> User:
+        """Create or get user from Google OAuth."""
+        # Check if user exists by Google ID
+        user = self.db.query(User).filter(User.google_id == google_id).first()
+        if user:
+            return user
+        
+        # Check if user exists by email
+        user = self.db.query(User).filter(User.email == email).first()
+        if user:
+            # Link Google account to existing user
+            user.google_id = google_id
+            user.provider = "google"
+            user.email_verified = True
+            if avatar_url:
+                user.avatar_url = avatar_url
+            self.db.commit()
+            return user
+        
+        # Create new Google user
+        user_data = {
+            "email": email,
+            "google_id": google_id,
+            "provider": "google",
+            "email_verified": True,
+            "referral_code": generate_secure_id("ref", 6),
+            "free_verifications": 2.0  # Bonus for Google signup
+        }
+        
+        if avatar_url:
+            user_data["avatar_url"] = avatar_url
+        
+        return self.create(**user_data)
 
 
 def get_auth_service(db: Session) -> AuthService:

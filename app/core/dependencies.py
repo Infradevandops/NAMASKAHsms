@@ -34,6 +34,22 @@ def get_current_user_id(
         )
 
 
+def get_current_user(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get current user object from database."""
+    from app.models.user import User
+    
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+    return user
+
+
 def get_admin_user_id(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)

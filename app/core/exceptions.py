@@ -83,6 +83,20 @@ class VerificationError(NamaskahException):
         super().__init__(message, "VERIFICATION_ERROR", details)
 
 
+class RentalNotFoundError(NamaskahException):
+    """Rental not found error."""
+    
+    def __init__(self, message: str = "Rental not found", details: Optional[Dict[str, Any]] = None):
+        super().__init__(message, "RENTAL_NOT_FOUND", details)
+
+
+class RentalExpiredError(NamaskahException):
+    """Rental expired error."""
+    
+    def __init__(self, message: str = "Rental has expired", details: Optional[Dict[str, Any]] = None):
+        super().__init__(message, "RENTAL_EXPIRED", details)
+
+
 # Exception handlers
 async def namaskah_exception_handler(request: Request, exc: NamaskahException) -> JSONResponse:
     """Handle custom Namaskah exceptions."""
@@ -97,6 +111,8 @@ async def namaskah_exception_handler(request: Request, exc: NamaskahException) -
         "PAYMENT_ERROR": status.HTTP_402_PAYMENT_REQUIRED,
         "INSUFFICIENT_CREDITS": status.HTTP_402_PAYMENT_REQUIRED,
         "VERIFICATION_ERROR": status.HTTP_400_BAD_REQUEST,
+        "RENTAL_NOT_FOUND": status.HTTP_404_NOT_FOUND,
+        "RENTAL_EXPIRED": status.HTTP_410_GONE,
     }
     
     status_code = status_map.get(exc.error_code, status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -634,6 +634,11 @@
                     <span>Active Verifications</span>
                     <span class="badge hidden" id="active-badge">0</span>
                 </a>
+                <a href="#rentals" class="nav-item" data-section="rentals">
+                    <span class="icon">🏠</span>
+                    <span>Rentals</span>
+                    <span class="badge hidden" id="rentals-badge">0</span>
+                </a>
             </div>
             
             <div class="nav-section">
@@ -657,6 +662,10 @@
                 <a href="#wallet" class="nav-item" data-section="wallet">
                     <span class="icon">💰</span>
                     <span>Wallet</span>
+                </a>
+                <a href="#developer" class="nav-item" data-section="developer">
+                    <span class="icon">🔑</span>
+                    <span>API Keys</span>
                 </a>
                 <a href="#settings" class="nav-item" data-section="settings">
                     <span class="icon">⚙️</span>
@@ -763,16 +772,8 @@
                             
                             <div class="form-group">
                                 <label class="form-label">Country</label>
-                                <select class="form-select" id="country-select" required>
-                                    <option value="">Select a country...</option>
-                                    <option value="US">🇺🇸 United States</option>
-                                    <option value="GB">🇬🇧 United Kingdom</option>
-                                    <option value="CA">🇨🇦 Canada</option>
-                                    <option value="DE">🇩🇪 Germany</option>
-                                    <option value="FR">🇫🇷 France</option>
-                                    <option value="AU">🇦🇺 Australia</option>
-                                </select>
-                                <div class="form-help">Select your preferred country</div>
+                                <div id="country-dropdown"></div>
+                                <div class="form-help">Search and select your preferred country</div>
                             </div>
                             
                             <div class="form-group">
@@ -1039,6 +1040,116 @@
                 </div>
             </div>
             
+            <!-- Rentals Section -->
+            <div id="rentals-section" class="section hidden">
+                <div class="page-header">
+                    <h1 class="page-title">SMS Rentals</h1>
+                    <p class="page-subtitle">Rent phone numbers for extended periods</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Create New Rental</h2>
+                    </div>
+                    <form id="rental-form">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Service</label>
+                                <select class="form-select" id="rental-service" required>
+                                    <option value="">Select service...</option>
+                                    <option value="whatsapp">WhatsApp - $0.70/day</option>
+                                    <option value="telegram">Telegram - $0.60/day</option>
+                                    <option value="discord">Discord - $0.15/day</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Country</label>
+                                <select class="form-select" id="rental-country" required>
+                                    <option value="US">🇺🇸 United States</option>
+                                    <option value="GB">🇬🇧 United Kingdom</option>
+                                    <option value="CA">🇨🇦 Canada</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Duration</label>
+                                <select class="form-select" id="rental-duration" required>
+                                    <option value="24">1 Day - $0.50</option>
+                                    <option value="168">1 Week - $3.00</option>
+                                    <option value="720">1 Month - $10.00</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <span>🏠</span>
+                            Create Rental
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Active Rentals</h2>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="loadActiveRentals()">
+                                <span>🔄</span>
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="active-rentals-container">
+                        <p class="text-center text-secondary">No active rentals</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Developer/API Keys Section -->
+            <div id="developer-section" class="section hidden">
+                <div class="page-header">
+                    <h1 class="page-title">API Keys</h1>
+                    <p class="page-subtitle">Manage your API access keys</p>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Create API Key</h2>
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Key Name</label>
+                            <input type="text" class="form-input" id="api-key-name" placeholder="My API Key">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="createAPIKey()">
+                        <span>🔑</span>
+                        Generate API Key
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Your API Keys</h2>
+                    </div>
+                    <div class="table-container">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Key</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="api-keys-table">
+                                <tr>
+                                    <td colspan="5" class="text-center text-secondary">No API keys created</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <!-- Support Section -->
             <div id="support-section" class="section hidden">
                 <div class="page-header">
@@ -1111,6 +1222,8 @@
         </main>
     </div>
     
-    <script src="/static/js/dashboard-production.js"></script>
+    <script src="/static/js/error-handler.js"></script>
+    <script src="/static/js/searchable-dropdown.js"></script>
+    <script src="/static/js/dashboard-5sim.js"></script>
 </body>
 </html>

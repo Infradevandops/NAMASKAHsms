@@ -192,6 +192,15 @@ GET /countries/{code}     # Individual country details
 
 ## 📈 **Business Impact**
 
+USER ID chnage to a brief and more idenyical and be used globally including affiliate program and invitations link also imply to URLs.
+
+feature to scan numbers for service availabilty which will output deatils about the number
+ISP
+Country e.g USA
+dail code e.g +1-409-Texas 
+enhanced all pages
+
+
 ### **Revenue Optimization**
 - **Premium countries**: Higher margins (1.2x - 1.8x)
 - **Economy countries**: Volume pricing (0.2x - 0.7x)
