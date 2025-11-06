@@ -1,0 +1,132 @@
+name: Essential Code Analysis
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # Security Analysis (Combined)
+  security-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install security tools
+        run: |
+          pip install bandit safety semgrep
+          npm install -g eslint-plugin-security
+      
+      - name: Bandit Security Scan
+        run: bandit -r . -f json -o bandit-report.json || true
+      
+      - name: Safety Dependency Check
+        run: |
+          pip install -r requirements.txt
+          safety check --json --output safety-report.json || true
+      
+      - name: Semgrep Security Scan
+        run: semgrep --config=auto --json --output=semgrep-report.json . || true
+      
+      - name: ESLint Security Scan
+        run: |
+          npm install
+          npx eslint static/js/ --ext .js --format json --output-file eslint-security.json || true
+
+  # Secrets Detection
+  secrets-detection:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: TruffleHog Secrets Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+      
+      - name: GitLeaks Secrets Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Code Quality Analysis
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install quality tools
+        run: |
+          pip install flake8 mypy
+          pip install -r requirements.txt
+      
+      - name: Flake8 Linting
+        run: flake8 . --format=json --output-file=flake8-report.json || true
+      
+      - name: MyPy Type Checking
+        run: mypy app/ --json-report mypy-report || true
+      
+      - name: JavaScript Quality Check
+        run: |
+          npm install
+          npx eslint static/js/ --format json --output-file js-quality.json || true
+
+  # Container Security
+  container-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker Image
+        run: docker build -t namaskah-app:test .
+      
+      - name: Trivy Container Scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'namaskah-app:test'
+          format: 'json'
+          output: 'trivy-container.json'
+
+  # Test Coverage Analysis
+  coverage-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Install test dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+          pip install coverage pytest-cov
+      
+      - name: Run Tests with Coverage
+        run: |
+          coverage run -m pytest tests/ --junitxml=pytest-report.xml
+          coverage xml -o coverage.xml
+          coverage json -o coverage.json
+          coverage html -d htmlcov/
+      
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
