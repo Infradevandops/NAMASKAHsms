@@ -217,6 +217,7 @@
         <div class="card">
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('users')">👥 Users</button>
+                <button class="tab" onclick="switchTab('waitlist')">📧 Waitlist</button>
                 <button class="tab" onclick="switchTab('verifications')">📱 Verifications</button>
                 <button class="tab" onclick="switchTab('payments')">💰 Payments</button>
                 <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
@@ -244,6 +245,25 @@
                         </tr>
                     </thead>
                     <tbody id="users-table"></tbody>
+                </table>
+            </div>
+
+            <!-- Waitlist Tab -->
+            <div id="waitlist-tab" class="tab-content">
+                <div style="margin-bottom: 20px;">
+                    <h3>📧 Waitlist Management</h3>
+                    <p style="color: #6b7280; margin-bottom: 15px;">Manage users who joined the waitlist before launch</p>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Joined Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="waitlist-table"></tbody>
                 </table>
             </div>
 
@@ -572,6 +592,7 @@
             event.target.classList.add('active');
             document.getElementById(`${tab}-tab`).classList.add('active');
 
+            if (tab === 'waitlist') loadWaitlist();
             if (tab === 'verifications') loadVerifications();
             if (tab === 'payments') loadPayments();
             if (tab === 'analytics') loadAnalytics();
@@ -610,6 +631,61 @@
             if (tbody) {
                 tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No payment logs available</td></tr>';
             }
+        }
+
+        async function loadWaitlist() {
+            await safeAPICall(async () => {
+                const res = await fetch(`${API_BASE}/waitlist/list`, { headers });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                }
+                
+                const data = await res.json();
+                const entries = data.entries || [];
+                
+                const tbody = document.getElementById('waitlist-table');
+                if (tbody) {
+                    tbody.innerHTML = entries.map(entry => {
+                        const statusBadge = entry.status === 'pending' ? 
+                            '<span class="badge badge-free">Pending</span>' :
+                            `<span class="badge badge-success">${entry.status.replace('invited_', '').toUpperCase()}</span>`;
+                        
+                        return `
+                            <tr>
+                                <td>${entry.email}</td>
+                                <td>${new Date(entry.joined_at).toLocaleDateString()}</td>
+                                <td>${statusBadge}</td>
+                                <td>
+                                    <button class="btn btn-primary" style="padding: 6px 10px; font-size: 12px; margin-right: 5px;" onclick="sendInvite('${entry.email}', 'signup')">📧 Signup</button>
+                                    <button class="btn btn-success" style="padding: 6px 10px; font-size: 12px; margin-right: 5px;" onclick="sendInvite('${entry.email}', 'affiliate')">💰 Affiliate</button>
+                                    <button class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;" onclick="sendInvite('${entry.email}', 'referral')">🔗 Referral</button>
+                                </td>
+                            </tr>
+                        `;
+                    }).join('') || '<tr><td colspan="4" style="text-align: center; color: #6b7280;">No waitlist entries</td></tr>';
+                }
+            }, 'loading waitlist');
+        }
+        
+        async function sendInvite(email, type) {
+            if (!confirm(`Send ${type} invite to ${email}?`)) return;
+            
+            await safeAPICall(async () => {
+                const res = await fetch(`${API_BASE}/waitlist/send-invite`, {
+                    method: 'POST',
+                    headers: { ...headers, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, type })
+                });
+                
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.detail || `HTTP ${res.status}`);
+                }
+                
+                alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} invite sent to ${email}`);
+                await loadWaitlist();
+            }, 'sending invite');
         }
 
         function loadAnalytics() {

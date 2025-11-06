@@ -19,6 +19,7 @@ from app.api.support import router as support_router
 from app.api.system import root_router
 from app.api.system import router as system_router
 from app.api.verification import router as verification_router
+from app.api.waitlist import router as waitlist_router
 from app.api.wallet import router as wallet_router
 from app.api.websocket import router as websocket_router
 from app.core.caching import cache
@@ -83,6 +84,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(support_router)
     fastapi_app.include_router(rentals_router)
     fastapi_app.include_router(fivesim_router)
+    fastapi_app.include_router(waitlist_router)
 
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
