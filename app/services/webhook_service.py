@@ -1,4 +1,5 @@
 """Webhook verification and processing service."""
+
 import hashlib
 import hmac
 from typing import Any, Dict

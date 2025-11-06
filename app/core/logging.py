@@ -1,4 +1,5 @@
 """Enhanced structured logging configuration for production."""
+
 import logging
 import os
 import sys

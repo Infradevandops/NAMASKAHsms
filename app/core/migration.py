@@ -1,4 +1,5 @@
 """Database migration utilities."""
+
 import logging
 import os
 import subprocess

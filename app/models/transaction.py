@@ -1,4 +1,5 @@
 """Transaction and payment-related database models."""
+
 from sqlalchemy import Boolean, Column, Float, String
 
 from app.models.base import BaseModel

@@ -1,4 +1,5 @@
 """Services package with dependency injection support."""
+
 from sqlalchemy.orm import Session
 
 from .auth_service import AuthService

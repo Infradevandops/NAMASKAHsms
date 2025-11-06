@@ -1,4 +1,5 @@
 """Support API router for customer support and help desk functionality."""
+
 from datetime import datetime, timezone
 from typing import List, Optional
 

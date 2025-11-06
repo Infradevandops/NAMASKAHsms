@@ -1,4 +1,5 @@
 """Logging middleware for request/response tracking and performance metrics."""
+
 import json
 import time
 from typing import Optional
@@ -271,12 +272,12 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
 
         # Add metrics headers
         response.headers["X-Total-Requests"] = str(self.metrics["total_requests"])
-        response.headers[
-            "X-Avg-Response-Time"
-        ] = f"{self.metrics['avg_response_time']:.3f}"
-        response.headers[
-            "X-Error-Rate"
-        ] = f"{(self.metrics['total_errors'] / self.metrics['total_requests'] * 100):.2f}%"
+        response.headers["X-Avg-Response-Time"] = (
+            f"{self.metrics['avg_response_time']:.3f}"
+        )
+        response.headers["X-Error-Rate"] = (
+            f"{(self.metrics['total_errors'] / self.metrics['total_requests'] * 100):.2f}%"
+        )
 
         # Log slow requests
         if process_time > 2.0:
@@ -363,9 +364,9 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
                     try:
                         body_data = json.loads(body.decode())
                         # Remove sensitive fields recursively
-                        audit_data[
-                            "body"
-                        ] = RequestLoggingMiddleware._sanitize_sensitive_data(body_data)
+                        audit_data["body"] = (
+                            RequestLoggingMiddleware._sanitize_sensitive_data(body_data)
+                        )
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         audit_data["body"] = "[BINARY_DATA]"
             except (ValueError, UnicodeDecodeError, AttributeError):

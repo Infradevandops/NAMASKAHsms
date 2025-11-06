@@ -1,4 +1,5 @@
 """Wallet API router for payments and transactions."""
+
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request

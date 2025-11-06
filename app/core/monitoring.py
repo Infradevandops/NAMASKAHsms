@@ -1,4 +1,5 @@
 """Comprehensive monitoring system for task 14.3."""
+
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -203,9 +204,11 @@ class DashboardMetrics:
             "critical_errors_1h": len(
                 [e for e in recent_errors if e["severity"] == "critical"]
             ),
-            "system_status": "healthy"
-            if all(sla["compliant"] for sla in sla_compliance.values())
-            else "degraded",
+            "system_status": (
+                "healthy"
+                if all(sla["compliant"] for sla in sla_compliance.values())
+                else "degraded"
+            ),
         }
 
     @staticmethod

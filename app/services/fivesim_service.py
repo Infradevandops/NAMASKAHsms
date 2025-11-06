@@ -1,4 +1,5 @@
 """5SIM API service integration."""
+
 from typing import Dict
 
 import httpx

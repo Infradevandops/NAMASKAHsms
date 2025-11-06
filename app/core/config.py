@@ -1,4 +1,5 @@
 """Core configuration management using Pydantic Settings."""
+
 from typing import Optional
 
 try:

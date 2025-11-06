@@ -1,4 +1,5 @@
 """Payment processing service for Paystack integration."""
+
 import hashlib
 import hmac
 from datetime import datetime, timezone

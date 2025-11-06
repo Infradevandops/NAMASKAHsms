@@ -1,4 +1,5 @@
 """Health monitoring for external services."""
+
 import asyncio
 import time
 from dataclasses import dataclass
@@ -72,9 +73,9 @@ class HealthMonitor:
             "summary": {
                 "healthy": healthy_count,
                 "total": total_count,
-                "uptime_percentage": (healthy_count / total_count) * 100
-                if total_count > 0
-                else 0,
+                "uptime_percentage": (
+                    (healthy_count / total_count) * 100 if total_count > 0 else 0
+                ),
             },
         }
 

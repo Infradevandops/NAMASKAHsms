@@ -1,4 +1,5 @@
 """Custom exception classes and handlers for the application."""
+
 import logging
 from typing import Any, Dict, Optional
 

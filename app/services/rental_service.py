@@ -1,4 +1,5 @@
 """Rental service for managing SMS number rentals."""
+
 import uuid
 from datetime import datetime, timedelta
 from decimal import Decimal

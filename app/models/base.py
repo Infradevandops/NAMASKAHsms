@@ -1,4 +1,5 @@
 """Base model infrastructure with common fields and patterns."""
+
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, DateTime, String

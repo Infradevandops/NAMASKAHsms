@@ -1,4 +1,5 @@
 """Android SMS Gateway integration."""
+
 from typing import Dict, List
 
 import httpx

@@ -1,4 +1,5 @@
 """Caching layer implementation for task 12.2."""
+
 import json
 from typing import Any, Optional
 

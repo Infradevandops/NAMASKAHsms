@@ -1,4 +1,5 @@
 """Rental model for SMS number rentals."""
+
 from sqlalchemy import Column, DateTime, Integer, Numeric, String
 from sqlalchemy.sql import func
 

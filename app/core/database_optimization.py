@@ -1,4 +1,5 @@
 """Database optimization utilities for task 12.1."""
+
 from sqlalchemy import Index, text
 from sqlalchemy.orm import Session
 

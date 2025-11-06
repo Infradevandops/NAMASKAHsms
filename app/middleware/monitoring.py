@@ -1,4 +1,5 @@
 """Monitoring middleware for request tracking."""
+
 import time
 
 from fastapi import Request

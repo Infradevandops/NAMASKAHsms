@@ -1,4 +1,5 @@
 """Rate limiting middleware with configurable limits per endpoint."""
+
 import time
 from collections import defaultdict, deque
 from typing import Dict, Optional, Tuple

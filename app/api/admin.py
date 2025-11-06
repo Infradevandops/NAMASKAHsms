@@ -1,4 +1,5 @@
 """Admin API router for user management and system monitoring."""
+
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -42,9 +43,9 @@ def get_all_users(
                     "email": user.email,
                     "credits": user.credits,
                     "is_admin": user.is_admin,
-                    "created_at": user.created_at.isoformat()
-                    if user.created_at
-                    else None,
+                    "created_at": (
+                        user.created_at.isoformat() if user.created_at else None
+                    ),
                 }
             )
 
@@ -215,9 +216,9 @@ def deduct_user_credits(
             user_id=user_id,
             amount=-amount,
             type="debit",
-            description=f"Admin debit: {reason}"
-            if reason
-            else "Admin deducted credits",
+            description=(
+                f"Admin debit: {reason}" if reason else "Admin deducted credits"
+            ),
         )
 
         db.add(transaction)

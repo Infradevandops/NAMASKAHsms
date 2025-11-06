@@ -220,7 +220,9 @@ class ConfigValidator:
         elif not self.errors:
             print(f"\n✅ Configuration is valid with {len(self.warnings)} warnings")
         else:
-            print(f"\n❌ Configuration validation failed with {len(self.errors)} errors")
+            print(
+                f"\n❌ Configuration validation failed with {len(self.errors)} errors"
+            )
 
         print("=" * 60)
 

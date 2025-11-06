@@ -1,4 +1,5 @@
 """5SIM API endpoints."""
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.dependencies import get_current_user

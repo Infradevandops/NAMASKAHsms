@@ -1,4 +1,5 @@
 """Security utilities for password hashing, JWT tokens, and API keys."""
+
 import secrets
 import string
 from datetime import datetime, timedelta, timezone

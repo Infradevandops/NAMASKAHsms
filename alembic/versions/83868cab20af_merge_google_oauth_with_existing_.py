@@ -6,7 +6,6 @@ Create Date: 2025-11-04 21:24:23.173708
 
 """
 
-
 # revision identifiers, used by Alembic.
 revision = "83868cab20af"
 down_revision = ("005", "006_add_google_oauth")

@@ -1,4 +1,5 @@
 """Enhanced Analytics API router with advanced insights and predictions."""
+
 import statistics
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -159,9 +160,11 @@ def get_user_analytics(
                 count=day_verifications,
                 cost=float(day_cost),
                 success_rate=round(
-                    (day_success / day_verifications * 100)
-                    if day_verifications > 0
-                    else 0,
+                    (
+                        (day_success / day_verifications * 100)
+                        if day_verifications > 0
+                        else 0
+                    ),
                     1,
                 ),
             )
@@ -464,9 +467,11 @@ def get_real_time_insights(
         "last_24h": {
             "verifications": recent_verifications,
             "success_rate": round(
-                (recent_success / recent_verifications * 100)
-                if recent_verifications > 0
-                else 0,
+                (
+                    (recent_success / recent_verifications * 100)
+                    if recent_verifications > 0
+                    else 0
+                ),
                 1,
             ),
         },

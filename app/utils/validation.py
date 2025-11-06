@@ -1,4 +1,5 @@
 """Validation utilities for input validation and data sanitization."""
+
 import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
@@ -21,11 +22,11 @@ def validate_phone_number(phone: str, region: Optional[str] = None) -> Dict[str,
 
         return {
             "is_valid": is_valid,
-            "formatted": phonenumbers.format_number(
-                parsed, phonenumbers.PhoneNumberFormat.E164
-            )
-            if is_valid
-            else None,
+            "formatted": (
+                phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
+                if is_valid
+                else None
+            ),
             "country_code": parsed.country_code if is_valid else None,
             "national_number": parsed.national_number if is_valid else None,
         }

@@ -1,4 +1,5 @@
 """Base service infrastructure with generic CRUD operations."""
+
 from typing import Generic, List, Optional, Type, TypeVar
 
 from sqlalchemy.orm import Session

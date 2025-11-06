@@ -1,4 +1,5 @@
 """Setup API for production initialization."""
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 

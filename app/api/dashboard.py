@@ -1,4 +1,5 @@
 """Enhanced Dashboard API router with comprehensive features."""
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
@@ -170,9 +171,11 @@ async def get_recent_activity(
                     "capability": verification.capability,
                     "country": verification.country,
                     "created_at": verification.created_at.isoformat(),
-                    "completed_at": verification.completed_at.isoformat()
-                    if verification.completed_at
-                    else None,
+                    "completed_at": (
+                        verification.completed_at.isoformat()
+                        if verification.completed_at
+                        else None
+                    ),
                 }
             )
 
@@ -462,9 +465,9 @@ async def export_user_data(
                         "capability": v.capability,
                         "country": v.country,
                         "created_at": v.created_at.isoformat(),
-                        "completed_at": v.completed_at.isoformat()
-                        if v.completed_at
-                        else None,
+                        "completed_at": (
+                            v.completed_at.isoformat() if v.completed_at else None
+                        ),
                     }
                 )
 

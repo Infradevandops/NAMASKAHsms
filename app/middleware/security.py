@@ -1,4 +1,5 @@
 """Security middleware for authentication and authorization."""
+
 from typing import List, Optional
 
 from fastapi import Request, status
@@ -245,9 +246,9 @@ class CORSMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         if settings.environment == "production":
-            response.headers[
-                "Strict-Transport-Security"
-            ] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
 
         return response
 
@@ -280,8 +281,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # HSTS for production
         if settings.environment == "production":
-            response.headers[
-                "Strict-Transport-Security"
-            ] = "max-age=31536000; includeSubDomains; preload"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains; preload"
+            )
 
         return response

@@ -1,4 +1,5 @@
 """API documentation configuration for task 14.1."""
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 

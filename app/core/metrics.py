@@ -2,6 +2,7 @@
 Production Metrics Collection System
 Prometheus-compatible metrics for monitoring and alerting.
 """
+
 import time
 from collections import Counter, defaultdict
 from typing import Any, Dict
@@ -193,11 +194,11 @@ class MetricsCollector:
 
             return {
                 "health_score": health_score,
-                "status": "healthy"
-                if health_score >= 80
-                else "degraded"
-                if health_score >= 60
-                else "unhealthy",
+                "status": (
+                    "healthy"
+                    if health_score >= 80
+                    else "degraded" if health_score >= 60 else "unhealthy"
+                ),
                 "factors": {
                     "cpu_usage": cpu_percent,
                     "memory_usage": memory_percent,

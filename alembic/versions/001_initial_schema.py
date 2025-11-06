@@ -1,10 +1,11 @@
 """Initial schema migration
 
 Revision ID: 001
-Revises: 
+Revises:
 Create Date: 2024-01-20 10:00:00.000000
 
 """
+
 import sqlalchemy as sa
 
 from alembic import op

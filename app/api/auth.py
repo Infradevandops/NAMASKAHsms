@@ -1,4 +1,5 @@
 """Authentication API router."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session

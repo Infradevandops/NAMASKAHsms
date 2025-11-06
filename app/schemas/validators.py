@@ -1,4 +1,5 @@
 """Custom validation utilities for Pydantic schemas."""
+
 import re
 from typing import Any, Dict, List
 

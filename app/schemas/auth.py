@@ -1,4 +1,5 @@
 """Authentication request/response schemas."""
+
 from datetime import datetime
 from typing import Optional
 

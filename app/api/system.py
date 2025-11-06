@@ -1,4 +1,5 @@
 """System API router for health checks and service status."""
+
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request

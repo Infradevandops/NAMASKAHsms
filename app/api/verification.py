@@ -1,4 +1,5 @@
 """Simplified verification API without TextVerified dependency."""
+
 from datetime import datetime, timezone
 from typing import Optional
 

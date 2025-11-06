@@ -1,4 +1,5 @@
 """WebSocket endpoint for real-time verification updates."""
+
 import json
 from typing import Dict, Set
 

@@ -1,4 +1,5 @@
 """Authentication service for user management and JWT operations."""
+
 from datetime import timedelta
 from typing import Any, Dict, Optional
 

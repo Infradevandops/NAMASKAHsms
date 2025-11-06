@@ -1,4 +1,5 @@
 """Security configuration and utilities."""
+
 import secrets
 from typing import Any
 

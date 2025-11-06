@@ -1,4 +1,5 @@
 """Secrets management for production security."""
+
 import os
 import secrets
 from pathlib import Path

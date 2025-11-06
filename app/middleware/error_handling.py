@@ -1,4 +1,5 @@
 """Enhanced error handling middleware for graceful error responses."""
+
 import logging
 from typing import Callable
 
