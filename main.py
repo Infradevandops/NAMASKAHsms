@@ -22,6 +22,15 @@ from app.api.verification import router as verification_router
 from app.api.waitlist import router as waitlist_router
 from app.api.wallet import router as wallet_router
 from app.api.websocket import router as websocket_router
+from app.api.whatsapp import router as whatsapp_router
+from app.api.ai_features import router as ai_router
+from app.api.telegram import router as telegram_router
+from app.api.whitelabel import router as whitelabel_router
+from app.api.enterprise import router as enterprise_router
+from app.api.infrastructure import router as infrastructure_router
+from app.api.monitoring import router as monitoring_router
+from app.api.disaster_recovery import router as dr_router
+from app.api.compliance import router as compliance_router
 from app.core.caching import cache
 from app.core.database import engine
 from app.core.exceptions import setup_exception_handlers
@@ -37,6 +46,7 @@ from app.middleware.security import (
     JWTAuthMiddleware,
     SecurityHeadersMiddleware,
 )
+from app.middleware.whitelabel import WhiteLabelMiddleware
 
 
 def create_app() -> FastAPI:
@@ -67,6 +77,7 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(JWTAuthMiddleware)
     fastapi_app.add_middleware(RateLimitMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
+    fastapi_app.add_middleware(WhiteLabelMiddleware)
 
     # Include all routers
     fastapi_app.include_router(root_router)  # Root routes (landing page)
@@ -85,6 +96,15 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(rentals_router)
     fastapi_app.include_router(fivesim_router)
     fastapi_app.include_router(waitlist_router)
+    fastapi_app.include_router(whatsapp_router)
+    fastapi_app.include_router(ai_router)
+    fastapi_app.include_router(telegram_router)
+    fastapi_app.include_router(whitelabel_router)
+    fastapi_app.include_router(enterprise_router)
+    fastapi_app.include_router(infrastructure_router)
+    fastapi_app.include_router(monitoring_router)
+    fastapi_app.include_router(dr_router)
+    fastapi_app.include_router(compliance_router)
 
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -97,12 +117,12 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page():
-        with open("templates/dashboard_production.html", "r") as f:
+        with open("templates/enhanced_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     @fastapi_app.get("/app", response_class=HTMLResponse)
     async def app_page():
-        with open("templates/dashboard_production.html", "r") as f:
+        with open("templates/enhanced_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     # Login page

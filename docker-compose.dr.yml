@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Disaster Recovery Environment
+  namaskah-dr:
+    build: .
+    environment:
+      - ENVIRONMENT=disaster_recovery
+      - DATABASE_URL=postgresql://user:pass@db-dr:5432/namaskah_dr
+      - REDIS_URL=redis://redis-dr:6379/0
+    ports:
+      - "8080:8000"
+    depends_on:
+      - db-dr
+      - redis-dr
+    volumes:
+      - ./backups:/backups:ro
+
+  db-dr:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: namaskah_dr
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - postgres_data_dr:/var/lib/postgresql/data
+      - ./backups:/backups:ro
+
+  redis-dr:
+    image: redis:7-alpine
+    volumes:
+      - redis_data_dr:/data
+      - ./backups:/backups:ro
+
+  # Backup automation
+  backup-scheduler:
+    image: alpine/curl
+    command: >
+      sh -c "
+        while true; do
+          sleep 3600
+          curl -X POST http://namaskah-dr:8000/disaster-recovery/backup
+        done
+      "
+    depends_on:
+      - namaskah-dr
+
+  # Recovery testing
+  recovery-tester:
+    image: alpine/curl
+    command: >
+      sh -c "
+        while true; do
+          sleep 86400
+          curl -X POST http://namaskah-dr:8000/disaster-recovery/test-recovery?backup_id=latest
+        done
+      "
+    depends_on:
+      - namaskah-dr
+
+volumes:
+  postgres_data_dr:
+  redis_data_dr:

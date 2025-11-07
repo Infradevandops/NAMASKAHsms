@@ -1,122 +1,59 @@
-import sqlite3
+from fastapi import APIRouter, HTTPException, Depends
+from sqlalchemy.orm import Session
+from typing import List
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, EmailStr
+from app.core.dependencies import get_db
+from app.models.waitlist import Waitlist
+from app.schemas.waitlist import WaitlistJoin, WaitlistResponse
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
 
-
-class WaitlistJoin(BaseModel):
-    email: EmailStr
-
-
-class InviteRequest(BaseModel):
-    email: EmailStr
-    type: str = "signup"  # signup, affiliate, referral
-
-
-def init_waitlist_db():
-    """Initialize the waitlist database"""
-    db_path = "waitlist.db"
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-
-    cursor.execute(
-        """
-        CREATE TABLE IF NOT EXISTS waitlist (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE NOT NULL,
-            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            status TEXT DEFAULT 'pending'
-        )
-    """
-    )
-
-    conn.commit()
-    conn.close()
-
-
 @router.post("/join")
-async def join_waitlist(data: WaitlistJoin):
+async def join_waitlist(data: WaitlistJoin, db: Session = Depends(get_db)):
     """Add email to waitlist"""
     try:
-        email = data.email.lower()
-
-        # Initialize DB if it doesn't exist
-        init_waitlist_db()
-
-        conn = sqlite3.connect("waitlist.db")
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute("INSERT INTO waitlist (email) VALUES (?)", (email,))
-            conn.commit()
-
-            return {"success": True, "message": "Successfully joined waitlist"}
-
-        except sqlite3.IntegrityError:
+        # Check if email already exists
+        existing = db.query(Waitlist).filter(Waitlist.email == data.email.lower()).first()
+        if existing:
             return {"success": True, "message": "Email already on waitlist"}
-
-        finally:
-            conn.close()
-
+        
+        # Create new waitlist entry
+        waitlist_entry = Waitlist(
+            email=data.email.lower(),
+            name=data.name,
+            source=data.source
+        )
+        
+        db.add(waitlist_entry)
+        db.commit()
+        
+        return {"success": True, "message": "Successfully joined waitlist"}
+        
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.get("/list")
-async def get_waitlist():
+@router.get("/list", response_model=List[WaitlistResponse])
+async def get_waitlist(db: Session = Depends(get_db)):
     """Get all waitlist entries (admin only)"""
     try:
-        init_waitlist_db()
-
-        conn = sqlite3.connect("waitlist.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "SELECT id, email, joined_at, status FROM waitlist ORDER BY joined_at DESC"
-        )
-
-        entries = []
-        for row in cursor.fetchall():
-            entries.append(
-                {"id": row[0], "email": row[1], "joined_at": row[2], "status": row[3]}
-            )
-
-        conn.close()
-
-        return {"success": True, "entries": entries, "total": len(entries)}
-
+        entries = db.query(Waitlist).order_by(Waitlist.created_at.desc()).all()
+        return entries
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
-@router.post("/send-invite")
-async def send_invite(data: InviteRequest):
-    """Send invite to waitlist member (admin only)"""
+@router.post("/notify/{waitlist_id}")
+async def mark_notified(waitlist_id: int, db: Session = Depends(get_db)):
+    """Mark waitlist entry as notified"""
     try:
-        email = data.email.lower()
-        invite_type = data.type
-
-        # Update status in database
-        conn = sqlite3.connect("waitlist.db")
-        cursor = conn.cursor()
-
-        cursor.execute(
-            "UPDATE waitlist SET status = ? WHERE email = ?",
-            (f"invited_{invite_type}", email),
-        )
-
-        conn.commit()
-        conn.close()
-
-        # Here you would send the actual email with the appropriate link
-        # For now, just return success
-
-        return {
-            "success": True,
-            "message": f"{invite_type.title()} invite sent to {email}",
-        }
-
+        entry = db.query(Waitlist).filter(Waitlist.id == waitlist_id).first()
+        if not entry:
+            raise HTTPException(status_code=404, detail="Waitlist entry not found")
+        
+        entry.is_notified = True
+        db.commit()
+        
+        return {"success": True, "message": "Entry marked as notified"}
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))

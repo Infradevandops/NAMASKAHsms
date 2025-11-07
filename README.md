@@ -25,6 +25,8 @@ app/
 
 ### **Key Features**
 - **SMS Verification**: 1,800+ services supported
+- **WhatsApp Business**: Send/receive messages, 2+ billion users globally
+- **Multi-Provider SMS**: 4 providers with automatic failover
 - **Enterprise Security**: JWT auth, API keys, rate limiting
 - **Payment Processing**: Paystack integration (NGN)
 - **Admin Dashboard**: User management & analytics
@@ -74,6 +76,7 @@ curl http://localhost/system/health
 - `POST /auth/login` - User authentication
 - `POST /verify/create` - SMS verification
 - `GET /verify/{id}/messages` - Get SMS messages
+- `POST /whatsapp/webhook` - WhatsApp Business messaging
 - `POST /wallet/paystack/initialize` - Payment processing
 
 ### **Monitoring**

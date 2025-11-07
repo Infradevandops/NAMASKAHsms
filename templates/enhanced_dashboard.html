@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaskah SMS - Enhanced Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/enhanced-ui.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Enhanced Header -->
+        <header style="background: linear-gradient(135deg, var(--accent) 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 16px; margin-bottom: 24px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem;">Namaskah SMS</h1>
+                    <p style="margin: 8px 0 0 0; opacity: 0.9;">Multi-Channel Verification Platform</p>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.2rem; font-weight: bold;">N<span id="user-balance">0.00</span></div>
+                    <div style="font-size: 14px; opacity: 0.8;">Wallet Balance</div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Channel Selection -->
+        <div class="verification-card">
+            <h2 style="margin: 0 0 20px 0;">🚀 Start Verification</h2>
+            <div id="channel-selector" class="channel-selector"></div>
+            <div id="provider-status"></div>
+        </div>
+
+        <!-- Service Grid -->
+        <div class="verification-card">
+            <h3 style="margin: 0 0 16px 0;">Popular Services</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+                <button class="enhanced-button" onclick="enhancedUI.startVerification('whatsapp')" style="padding: 16px;">
+                    💬 WhatsApp
+                </button>
+                <button class="enhanced-button" onclick="enhancedUI.startVerification('telegram')" style="padding: 16px;">
+                    ✈️ Telegram
+                </button>
+                <button class="enhanced-button" onclick="enhancedUI.startVerification('discord')" style="padding: 16px;">
+                    🎮 Discord
+                </button>
+                <button class="enhanced-button" onclick="enhancedUI.startVerification('instagram')" style="padding: 16px;">
+                    📷 Instagram
+                </button>
+            </div>
+        </div>
+
+        <!-- Active Verifications -->
+        <div id="active-verifications"></div>
+
+        <!-- Real-time Stats -->
+        <div class="verification-card">
+            <h3 style="margin: 0 0 16px 0;">📊 Real-time Stats</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #10b981;" id="success-rate">99.5%</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Success Rate</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: var(--accent);" id="avg-time">1.2s</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Avg Response</div>
+                </div>
+                <div style="text-align: center; padding: 16px; background: var(--bg-secondary); border-radius: 12px;">
+                    <div style="font-size: 2rem; font-weight: bold; color: #f59e0b;" id="active-count">4</div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">Active Providers</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="verification-card">
+            <h3 style="margin: 0 0 16px 0;">⚡ Quick Actions</h3>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="enhanced-button" onclick="showFundWallet()">💰 Fund Wallet</button>
+                <button class="enhanced-button" onclick="showHistory()">📜 History</button>
+                <button class="enhanced-button" onclick="showSupport()">💬 Support</button>
+                <button class="enhanced-button" onclick="showSettings()">⚙️ Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/enhanced-verification-ui.js"></script>
+    <script>
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserBalance();
+            loadRealTimeStats();
+            setupAutoRefresh();
+        });
+
+        async function loadUserBalance() {
+            try {
+                const response = await fetch('/auth/me', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                document.getElementById('user-balance').textContent = data.credits || '0.00';
+            } catch (error) {
+                console.error('Failed to load balance:', error);
+            }
+        }
+
+        async function loadRealTimeStats() {
+            try {
+                const response = await fetch('/monitoring/metrics');
+                const data = await response.json();
+                
+                document.getElementById('success-rate').textContent = 
+                    data.requests.success_rate.toFixed(1) + '%';
+                document.getElementById('avg-time').textContent = 
+                    (data.performance.avg_response_time / 1000).toFixed(1) + 's';
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function setupAutoRefresh() {
+            setInterval(loadRealTimeStats, 10000); // Update every 10 seconds
+        }
+    </script>
+</body>
+</html>

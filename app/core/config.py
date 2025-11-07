@@ -43,10 +43,27 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     redis_max_connections: int = 50
 
-    # 5SIM API
+    # SMS Providers
     fivesim_api_key: Optional[str] = None
     fivesim_email: Optional[str] = None
     fivesim_base_url: str = "https://5sim.net/v1"
+    
+    # SMS-Activate API
+    sms_activate_api_key: Optional[str] = None
+    
+    # GetSMS API
+    getsms_api_key: Optional[str] = None
+    
+    # WhatsApp Business API
+    whatsapp_access_token: Optional[str] = None
+    whatsapp_phone_number_id: Optional[str] = None
+    whatsapp_verify_token: Optional[str] = None
+    
+    # Telegram Bot API
+    telegram_bot_token: Optional[str] = None
+    
+    # TextVerified API
+    textverified_api_key: Optional[str] = None
 
     # JWT Settings
     jwt_expiry_hours: int = 720  # 30 days
