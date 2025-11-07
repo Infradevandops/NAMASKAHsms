@@ -1,12 +1,14 @@
 """Transaction and payment-related database models."""
-from sqlalchemy import Column, String, Float, Boolean
+from sqlalchemy import Boolean, Column, Float, String
+
 from app.models.base import BaseModel
 
 
 class Transaction(BaseModel):
     """Financial transaction model."""
+
     __tablename__ = "transactions"
-    
+
     user_id = Column(String, nullable=False, index=True)
     amount = Column(Float, nullable=False)
     type = Column(String, nullable=False, index=True)  # credit, debit
@@ -15,8 +17,9 @@ class Transaction(BaseModel):
 
 class PaymentLog(BaseModel):
     """Payment processing log."""
+
     __tablename__ = "payment_logs"
-    
+
     user_id = Column(String, index=True)
     email = Column(String)
     reference = Column(String, unique=True, index=True)

@@ -5,13 +5,11 @@ Revises: 005, 006_add_google_oauth
 Create Date: 2025-11-04 21:24:23.173708
 
 """
-from alembic import op
-import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '83868cab20af'
-down_revision = ('005', '006_add_google_oauth')
+revision = "83868cab20af"
+down_revision = ("005", "006_add_google_oauth")
 branch_labels = None
 depends_on = None
 

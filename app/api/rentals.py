@@ -1,26 +1,33 @@
 """Rental API endpoints."""
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
+from app.core.exceptions import (
+    InsufficientCreditsError,
+    RentalExpiredError,
+    RentalNotFoundError,
+)
 from app.models.user import User
 from app.schemas.rental import (
-    RentalCreate, RentalExtend, RentalResponse, RentalMessagesResponse
+    RentalCreate,
+    RentalExtend,
+    RentalMessagesResponse,
+    RentalResponse,
 )
 from app.services.rental_service import RentalService
-from app.core.exceptions import (
-    InsufficientCreditsError, RentalNotFoundError, RentalExpiredError
-)
 
 router = APIRouter(prefix="/rentals", tags=["Rentals"])
+
 
 @router.post("/create", response_model=RentalResponse)
 async def create_rental(
     rental_data: RentalCreate,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Create a new SMS number rental."""
     try:
@@ -29,12 +36,14 @@ async def create_rental(
     except InsufficientCreditsError as e:
         raise HTTPException(status_code=402, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create rental: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to create rental: {str(e)}"
+        )
+
 
 @router.get("/active", response_model=List[RentalResponse])
 async def get_active_rentals(
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    current_user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
 ):
     """Get user's active rentals."""
     try:
@@ -43,12 +52,13 @@ async def get_active_rentals(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get rentals: {str(e)}")
 
+
 @router.post("/{rental_id}/extend")
 async def extend_rental(
     rental_id: str,
     extend_data: RentalExtend,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Extend rental duration."""
     try:
@@ -61,13 +71,16 @@ async def extend_rental(
     except InsufficientCreditsError as e:
         raise HTTPException(status_code=402, detail=str(e))
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to extend rental: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to extend rental: {str(e)}"
+        )
+
 
 @router.post("/{rental_id}/release")
 async def release_rental(
     rental_id: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Release rental early with partial refund."""
     try:
@@ -78,13 +91,16 @@ async def release_rental(
     except RentalExpiredError:
         raise HTTPException(status_code=410, detail="Rental already expired")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to release rental: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to release rental: {str(e)}"
+        )
+
 
 @router.get("/{rental_id}/messages", response_model=RentalMessagesResponse)
 async def get_rental_messages(
     rental_id: str,
     current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db)
+    db: AsyncSession = Depends(get_db),
 ):
     """Get SMS messages for rental."""
     try:

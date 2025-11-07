@@ -1,11 +1,13 @@
 """Rental model for SMS number rentals."""
-from sqlalchemy import Column, String, DateTime, Integer, Numeric
+from sqlalchemy import Column, DateTime, Integer, Numeric, String
 from sqlalchemy.sql import func
+
 from app.models.base import BaseModel
+
 
 class Rental(BaseModel):
     __tablename__ = "rentals"
-    
+
     user_id = Column(String(36), nullable=False, index=True)
     phone_number = Column(String(20), nullable=False)
     service_name = Column(String(50), nullable=False)
@@ -16,7 +18,7 @@ class Rental(BaseModel):
     status = Column(String(20), default="active")
     cost = Column(Numeric(10, 4), nullable=False)
     duration_hours = Column(Integer, default=24)
-    
+
     @property
     def time_remaining_seconds(self) -> int:
         """Calculate remaining time in seconds."""
@@ -24,7 +26,7 @@ class Rental(BaseModel):
             remaining = (self.expires_at - func.now()).total_seconds()
             return max(0, int(remaining))
         return 0
-    
+
     @property
     def is_expired(self) -> bool:
         """Check if rental is expired."""

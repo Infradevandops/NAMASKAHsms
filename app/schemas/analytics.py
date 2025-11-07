@@ -1,7 +1,7 @@
 """Analytics schemas for response validation."""
-from typing import List, Dict, Any, Optional
+from typing import Dict, List, Optional
+
 from pydantic import BaseModel
-from datetime import datetime
 
 
 class ServiceUsage(BaseModel):
