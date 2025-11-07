@@ -18,6 +18,7 @@ from .user import (
     Webhook,
 )
 from .verification import NumberRental, Verification, VerificationReceipt
+from .whitelabel import WhiteLabelConfig
 
 __all__ = [
     # Base
@@ -44,4 +45,6 @@ __all__ = [
     "ActivityLog",
     "BannedNumber",
     "InAppNotification",
+    # White-label models
+    "WhiteLabelConfig",
 ]
