@@ -1,4 +1,5 @@
 """Database models package."""
+
 from .base import Base, BaseModel
 from .system import (
     ActivityLog,
