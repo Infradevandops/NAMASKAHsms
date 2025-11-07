@@ -13,7 +13,7 @@ echo "Starting backup at $(date)"
 
 # Database backup
 echo "Backing up PostgreSQL database..."
-pg_dump $DATABASE_URL | gzip > "$BACKUP_DIR/db_$TIMESTAMP.sql.gz"
+pg_dump "$DATABASE_URL" | gzip > "$BACKUP_DIR/db_$TIMESTAMP.sql.gz"
 
 # Redis backup
 echo "Backing up Redis data..."
@@ -28,7 +28,7 @@ tar -czf "$BACKUP_DIR/config_$TIMESTAMP.tar.gz" \
 
 # Upload to S3
 echo "Uploading to S3..."
-aws s3 cp "$BACKUP_DIR/" "$S3_BUCKET/$(date +%Y/%m/%d)/" --recursive
+aws s3 cp "$BACKUP_DIR/" "$S3_BUCKET/$(date +"%Y/%m/%d")/" --recursive
 
 # Cleanup old local backups (keep 24 hours)
 find "$BACKUP_DIR" -name "*.gz" -mtime +1 -delete

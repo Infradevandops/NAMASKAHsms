@@ -16,6 +16,7 @@ if [ ! -d ".venv" ]; then
 fi
 
 # Activate virtual environment
+# shellcheck source=.venv/bin/activate
 source .venv/bin/activate
 
 # Install dependencies

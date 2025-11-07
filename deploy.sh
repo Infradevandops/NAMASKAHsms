@@ -15,7 +15,7 @@ if [[ $EUID -eq 0 ]]; then
 fi
 
 # Check Python version
-python_version=$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)
+python_version="$(python3 --version 2>&1 | cut -d' ' -f2 | cut -d'.' -f1,2)"
 required_version="3.8"
 
 if [ "$(printf '%s\n' "$required_version" "$python_version" | sort -V | head -n1)" != "$required_version" ]; then
@@ -74,12 +74,12 @@ else
 fi
 
 # Check if port 8000 is available
-if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null ; then
+if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1 ; then
     echo "⚠️ Port 8000 is already in use"
     read -p "Kill existing process? (y/N): " -n 1 -r
     echo
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        sudo kill -9 $(lsof -t -i:8000) 2>/dev/null || true
+        sudo kill -9 "$(lsof -t -i:8000)" 2>/dev/null || true
         echo "✅ Existing process killed"
     fi
 fi
