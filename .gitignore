@@ -4,10 +4,6 @@ __pycache__/
 *$py.class
 *.so
 .Python
-env/
-venv/
-.venv/
-ENV/
 build/
 develop-eggs/
 dist/
@@ -28,111 +24,44 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
-test.db
 
 # Logs
 *.log
-app.log
+server.log
 
-# Environment - NEVER commit these files
+# Environment
 .env
 .env.local
 .env.production
-.env.development
-.env.staging
-.env.test
-
-# Backup of environment files (also sensitive)
-.env.backup
-.env.*.backup
+.venv
+env/
+venv/
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
 Thumbs.db
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-test_tv.py
-test_copy_flow.py
-test_all_features.py
-test_results.json
-
-# Deployment
-*.pid
-
-# Documentation (keep only main README)
-# Task and roadmap files
-ANALYTICS_ENHANCEMENT_TASKS.md
-COMPREHENSIVE_ENHANCEMENT_OVERVIEW.md
-KYC_ENHANCEMENT_TASKS.md
-COMPLETED_TASKS.md
-TASK_*_COMPLETION.md
-TASK_STATUS_OVERVIEW.md
-*_ROADMAP.md
-*_TASKS.md
-*_ENHANCEMENT*.md
-ACTION_ITEMS.md
-ADMIN_IMPROVEMENTS.md
-ADMIN_LOGIN_FIX.md
-BUTTON_LAYOUT.md
-CHANGES_SUMMARY.md
-CICD_SETUP.md
-DEPLOYMENT_CHECKLIST.md
-DEPLOYMENT_GUIDE.md
-DEPLOYMENT_STATUS.md
-DEPLOYMENT_SUCCESS.md
-EMAIL_FIX_SUMMARY.md
-EMAIL_FIX_URGENT.md
-EMAIL_SETUP_GUIDE.md
-FIXES_SUMMARY.md
-IMPLEMENTATION_COMPLETE.md
-IMPROVEMENTS.md
-MOBILE_ENHANCEMENTS.md
-MOBILE_FEATURES.md
-MOBILE_IMPLEMENTATION_SUMMARY.md
-MOBILE_QUICK_START.md
-MODAL_CHECKLIST.md
-MODULAR_ARCHITECTURE.md
-PAYMENT_IMPROVEMENTS.md
-PAYMENT_TRACKING_DISCUSSION.md
-POST_DEPLOYMENT.md
-PRODUCTION_MONITORING.md
-PROJECT_ASSESSMENT.md
-PWA_ENHANCEMENT_SUMMARY.md
-QUICK_START_MOBILE.md
-REFACTORING_SUMMARY.md
-REMAINING_TASKS.md
-RENDER_EMAIL_SETUP.md
-SUBSCRIPTION_FEATURES_SUMMARY.md
-SUBSCRIPTION_FLOW_TEST_REPORT.md
-SUPPORT_IMPLEMENTATION.md
-SYSTEM_ANALYSIS.md
-TESTING_CHECKLIST.md
-TESTING_GUIDE.md
-USER_ACTIVITY_GUIDE.md
-COMMIT_MESSAGE.txt
-
-# Documentation (keep organized structure)
-!docs/
-!docs/**/*.md
-
-# Temporary test files
-test_*.py
-!tests/test_*.py
-test_results.json
-.env.production
-
-# Admin creation scripts with credentials
-create_admin_production.py
-create_admin_supabase.py
-.env.render
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Coverage
+htmlcov/
+.coverage
+coverage.xml
+*.cover
+
+# Pytest
+.pytest_cache/
+
+# Backup files
+*.bak
+*.backup
