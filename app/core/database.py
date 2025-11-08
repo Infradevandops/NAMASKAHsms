@@ -1,10 +1,10 @@
 """Database connection and session management."""
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 
 from .config import settings
+from app.models.base import Base
 
 # Database engine with connection pooling
 if "sqlite" in settings.database_url:
@@ -27,9 +27,6 @@ else:
 # Session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class for models
-Base = declarative_base()
-
 
 def get_db():
     """Dependency to get database session."""
@@ -42,6 +39,10 @@ def get_db():
 
 def create_tables():
     """Create all database tables."""
+    # Import all models to ensure they're registered
+    import app.models  # noqa: F401
+    # Configure the registry to resolve relationships
+    Base.registry.configure()
     Base.metadata.create_all(bind=engine)
 
 

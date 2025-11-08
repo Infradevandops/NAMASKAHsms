@@ -58,6 +58,11 @@ def create_app() -> FastAPI:
     # Setup logging first - before any other operations
     setup_logging()
 
+    # Import all models and configure registry
+    import app.models  # noqa: F401
+    from app.models.base import Base
+    Base.registry.configure()
+
     fastapi_app = FastAPI(
         title="Namaskah SMS API",
         version="2.4.0",
