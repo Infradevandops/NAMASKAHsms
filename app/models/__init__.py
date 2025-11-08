@@ -1,5 +1,17 @@
 """Database models package."""
+
+from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
 from .base import Base, BaseModel
+from .commission import CommissionTier, PayoutRequest, RevenueShare
+from .enterprise import EnterpriseAccount, EnterpriseTier
+from .personal_number import PersonalNumber
+from .reseller import (
+    BulkOperation,
+    CreditAllocation,
+    ResellerAccount,
+    SubAccount,
+    SubAccountTransaction,
+)
 from .system import (
     ActivityLog,
     BannedNumber,
@@ -25,17 +37,6 @@ from .whitelabel_enhanced import (
     WhiteLabelDomain,
     WhiteLabelTheme,
 )
-from .enterprise import EnterpriseAccount, EnterpriseTier
-from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
-from .commission import CommissionTier, PayoutRequest, RevenueShare
-from .reseller import (
-    BulkOperation,
-    CreditAllocation,
-    ResellerAccount,
-    SubAccount,
-    SubAccountTransaction,
-)
-from .personal_number import PersonalNumber
 
 __all__ = [
     # Base

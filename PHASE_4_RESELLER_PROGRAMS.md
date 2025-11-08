@@ -12,18 +12,21 @@ Build comprehensive reseller platform with sub-account management, bulk operatio
 ## 📋 **Week 1: Reseller Infrastructure**
 
 ### **Account Hierarchy**
+
 - [ ] Master reseller accounts
 - [ ] Sub-account creation system
 - [ ] Permission inheritance
 - [ ] Account relationship mapping
 
 ### **Bulk Pricing Models**
+
 - [ ] Volume-based pricing tiers
 - [ ] Custom rate cards per reseller
 - [ ] Bulk purchase discounts
 - [ ] Prepaid credit packages
 
 ### **Credit Management**
+
 - [ ] Credit allocation system
 - [ ] Auto-topup configurations
 - [ ] Credit transfer between accounts
@@ -32,18 +35,21 @@ Build comprehensive reseller platform with sub-account management, bulk operatio
 ## 📋 **Week 2: Reseller APIs & Tools**
 
 ### **Account Management APIs**
+
 - [ ] `POST /reseller/accounts/create` - Create sub-accounts
 - [ ] `GET /reseller/accounts` - List all sub-accounts
 - [ ] `PUT /reseller/accounts/{id}` - Update sub-account
 - [ ] `DELETE /reseller/accounts/{id}` - Suspend sub-account
 
 ### **Credit Operations**
+
 - [ ] `POST /reseller/credits/allocate` - Distribute credits
 - [ ] `GET /reseller/credits/balance` - Check balances
 - [ ] `POST /reseller/credits/transfer` - Transfer between accounts
 - [ ] `GET /reseller/credits/history` - Transaction history
 
 ### **Usage Analytics**
+
 - [ ] `GET /reseller/usage/report` - Detailed usage reports
 - [ ] `GET /reseller/usage/summary` - Usage summaries
 - [ ] `POST /reseller/usage/export` - Export usage data
@@ -52,18 +58,21 @@ Build comprehensive reseller platform with sub-account management, bulk operatio
 ## 📋 **Week 3: Business Tools & Automation**
 
 ### **Reseller Dashboard**
+
 - [ ] Sub-account overview grid
 - [ ] Real-time usage monitoring
 - [ ] Revenue tracking per account
 - [ ] Performance analytics
 
 ### **Bulk Operations**
+
 - [ ] Bulk credit top-up
 - [ ] Mass account creation
 - [ ] Batch configuration updates
 - [ ] Bulk notification system
 
 ### **Automated Billing**
+
 - [ ] Monthly billing cycles
 - [ ] Usage-based invoicing
 - [ ] Automated payment collection
@@ -72,6 +81,7 @@ Build comprehensive reseller platform with sub-account management, bulk operatio
 ## 🔧 **Technical Implementation**
 
 ### **New Services**
+
 ```python
 app/services/reseller_service.py
 app/services/sub_account_service.py
@@ -80,6 +90,7 @@ app/services/reseller_billing.py
 ```
 
 ### **Database Schema**
+
 ```sql
 -- Core Tables
 reseller_accounts
@@ -90,6 +101,7 @@ bulk_operations
 ```
 
 ### **Pricing Configuration**
+
 ```python
 RESELLER_TIERS = {
     "bronze": {"min_volume": 1000, "discount": 0.05},
@@ -102,18 +114,21 @@ RESELLER_TIERS = {
 ## 🎯 **Reseller Features**
 
 ### **Account Management**
+
 - [ ] Hierarchical account structure
 - [ ] Role-based permissions
 - [ ] Custom branding per sub-account
 - [ ] White-label reseller portals
 
 ### **Pricing Control**
+
 - [ ] Custom rate setting
 - [ ] Markup configuration
 - [ ] Promotional pricing
 - [ ] Volume discount automation
 
 ### **Business Intelligence**
+
 - [ ] Revenue attribution
 - [ ] Customer acquisition costs
 - [ ] Churn analysis
@@ -122,12 +137,14 @@ RESELLER_TIERS = {
 ## 📚 **Training & Documentation**
 
 ### **Reseller Onboarding**
+
 - [ ] Setup wizard
 - [ ] Video tutorials
 - [ ] Best practices guide
 - [ ] API documentation
 
 ### **Support Materials**
+
 - [ ] Reseller handbook
 - [ ] Marketing materials
 - [ ] Technical integration guides
@@ -136,12 +153,14 @@ RESELLER_TIERS = {
 ## 🧪 **Testing Requirements**
 
 ### **Account Operations**
+
 - [ ] Sub-account creation/deletion
 - [ ] Credit allocation accuracy
 - [ ] Permission inheritance
 - [ ] Bulk operation reliability
 
 ### **Billing Tests**
+
 - [ ] Usage calculation accuracy
 - [ ] Invoice generation
 - [ ] Payment processing

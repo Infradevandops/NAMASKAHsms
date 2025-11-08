@@ -12,11 +12,13 @@ Build foundational affiliate infrastructure with partner registration, commissio
 ## 📋 **Week 1: Database & Models**
 
 ### **Day 1-2: Database Design**
+
 - [ ] Design affiliate database schema
 - [ ] Create migration files
 - [ ] Set up foreign key relationships
 
 ### **Day 3-5: Model Implementation**
+
 - [ ] `AffiliateProgram` model
   ```python
   # Fields: name, commission_rate, tier_requirements, features, is_active
@@ -37,6 +39,7 @@ Build foundational affiliate infrastructure with partner registration, commissio
 ## 📋 **Week 2: Core APIs**
 
 ### **Authentication & Registration**
+
 - [ ] `POST /affiliate/register`
   - Partner application form
   - KYC verification
@@ -47,6 +50,7 @@ Build foundational affiliate infrastructure with partner registration, commissio
   - Agreement details
 
 ### **Commission Tracking**
+
 - [ ] `GET /affiliate/commissions`
   - Earnings history
   - Pending payouts
@@ -57,6 +61,7 @@ Build foundational affiliate infrastructure with partner registration, commissio
   - Revenue attribution
 
 ### **Referral System**
+
 - [ ] `POST /affiliate/links/generate`
   - Custom tracking links
   - UTM parameter injection
@@ -69,12 +74,14 @@ Build foundational affiliate infrastructure with partner registration, commissio
 ## 📋 **Week 3: Commission Engine**
 
 ### **Calculation Service**
+
 - [ ] Real-time commission calculation
 - [ ] Multi-tier rate structure
 - [ ] Performance bonuses
 - [ ] Fraud detection
 
 ### **Payout System**
+
 - [ ] `POST /affiliate/payout/request`
 - [ ] Minimum payout thresholds
 - [ ] Payment method integration
@@ -83,12 +90,14 @@ Build foundational affiliate infrastructure with partner registration, commissio
 ## 🧪 **Testing Requirements**
 
 ### **Unit Tests**
+
 - [ ] Model validation tests
 - [ ] Commission calculation accuracy
 - [ ] API endpoint functionality
 - [ ] Authentication flows
 
 ### **Integration Tests**
+
 - [ ] End-to-end affiliate registration
 - [ ] Commission tracking workflow
 - [ ] Payout processing

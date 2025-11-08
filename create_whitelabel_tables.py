@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """Create enhanced white-label tables."""
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
+
 
 def create_whitelabel_tables():
     """Create enhanced white-label tables."""
     engine = create_engine(settings.database_url)
-    
+
     with engine.connect() as conn:
         # Create whitelabel_domains table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS whitelabel_domains (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 config_id INTEGER NOT NULL,
@@ -28,10 +33,14 @@ def create_whitelabel_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (config_id) REFERENCES whitelabel_configs (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create whitelabel_themes table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS whitelabel_themes (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 config_id INTEGER NOT NULL,
@@ -45,10 +54,14 @@ def create_whitelabel_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (config_id) REFERENCES whitelabel_configs (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create whitelabel_assets table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS whitelabel_assets (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 config_id INTEGER NOT NULL,
@@ -63,10 +76,14 @@ def create_whitelabel_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (config_id) REFERENCES whitelabel_configs (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create partner_features table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS partner_features (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 partner_id INTEGER NOT NULL,
@@ -79,14 +96,16 @@ def create_whitelabel_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (partner_id) REFERENCES users (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Add relationships to users table if not exists
         try:
             conn.execute(text("ALTER TABLE users ADD COLUMN partner_features TEXT"))
         except:
             pass
-        
+
         conn.commit()
         print("✅ Enhanced white-label tables created successfully!")
         print("🎨 Features available:")
@@ -94,6 +113,7 @@ def create_whitelabel_tables():
         print("- Custom themes and CSS")
         print("- Asset management")
         print("- Partner feature toggles")
+
 
 if __name__ == "__main__":
     create_whitelabel_tables()
