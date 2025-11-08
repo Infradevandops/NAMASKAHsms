@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = '008'
-down_revision = '007'
+down_revision = '007_add_kyc_system'
 branch_labels = None
 depends_on = None
 

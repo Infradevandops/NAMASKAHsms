@@ -1,5 +1,6 @@
 """White-label configuration model."""
 from sqlalchemy import Column, String, Boolean, Text, JSON
+from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
 class WhiteLabelConfig(BaseModel):
@@ -19,3 +20,8 @@ class WhiteLabelConfig(BaseModel):
         "telegram": True,
         "analytics": True
     })
+    
+    # Relationships
+    domains = relationship("WhiteLabelDomain", back_populates="config")
+    themes = relationship("WhiteLabelTheme", back_populates="config")
+    assets = relationship("WhiteLabelAsset", back_populates="config")

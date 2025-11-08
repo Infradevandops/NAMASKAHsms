@@ -31,6 +31,10 @@ from app.api.infrastructure import router as infrastructure_router
 from app.api.monitoring import router as monitoring_router
 from app.api.disaster_recovery import router as dr_router
 from app.api.compliance import router as compliance_router
+from app.api.affiliate import router as affiliate_router
+from app.api.revenue_sharing import router as revenue_router
+from app.api.whitelabel_enhanced import router as whitelabel_enhanced_router
+from app.api.reseller import router as reseller_router
 from app.core.caching import cache
 from app.core.database import engine
 from app.core.exceptions import setup_exception_handlers
@@ -105,6 +109,10 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(monitoring_router)
     fastapi_app.include_router(dr_router)
     fastapi_app.include_router(compliance_router)
+    fastapi_app.include_router(affiliate_router)
+    fastapi_app.include_router(revenue_router)
+    fastapi_app.include_router(whitelabel_enhanced_router)
+    fastapi_app.include_router(reseller_router)
 
     # Static files and templates
     fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -135,6 +143,30 @@ def create_app() -> FastAPI:
     @fastapi_app.get("/dashboard/legacy", response_class=HTMLResponse)
     async def legacy_dashboard():
         with open("templates/dashboard_fixed.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Affiliate program page
+    @fastapi_app.get("/affiliate", response_class=HTMLResponse)
+    async def affiliate_page():
+        with open("templates/affiliate_program.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Affiliate dashboard
+    @fastapi_app.get("/affiliate/dashboard", response_class=HTMLResponse)
+    async def affiliate_dashboard():
+        with open("templates/affiliate_dashboard.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # White-label setup
+    @fastapi_app.get("/whitelabel/setup", response_class=HTMLResponse)
+    async def whitelabel_setup():
+        with open("templates/whitelabel_setup.html", "r") as f:
+            return HTMLResponse(content=f.read())
+    
+    # Reseller dashboard
+    @fastapi_app.get("/reseller/dashboard", response_class=HTMLResponse)
+    async def reseller_dashboard_page():
+        with open("templates/reseller_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     # Startup and shutdown events

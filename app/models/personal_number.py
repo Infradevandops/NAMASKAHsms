@@ -1,22 +1,18 @@
 """Personal phone number model for custom verification."""
-from datetime import datetime
-
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from app.core.database import Base
+from app.models.base import BaseModel
 
 
-class PersonalNumber(Base):
+class PersonalNumber(BaseModel):
     __tablename__ = "personal_numbers"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
     phone_number = Column(String(20), nullable=False)
     country_code = Column(String(5), nullable=False)
     is_verified = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
     user = relationship("User", back_populates="personal_numbers")

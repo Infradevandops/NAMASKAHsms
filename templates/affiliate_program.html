@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Affiliate & Partner Programs - Namaskah</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/enhanced-ui.css">
+    <style>
+        .affiliate-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .program-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin: 20px 0;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .program-card:hover {
+            transform: translateY(-5px);
+        }
+        .cta-button {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        .benefits-list {
+            list-style: none;
+            padding: 0;
+        }
+        .benefits-list li {
+            padding: 8px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        .benefits-list li:before {
+            content: "✓";
+            color: #10b981;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #000;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .checkbox-item:hover {
+            border-color: #10b981;
+            background-color: #f0fdf4;
+        }
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 10px;
+            width: auto;
+        }
+        .success-message {
+            background-color: #d1fae5;
+            color: #065f46;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .error-message {
+            background-color: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="affiliate-hero">
+        <div class="container">
+            <h1>Join Our Affiliate & Partner Programs</h1>
+            <p class="lead">Earn substantial commissions by promoting Namaskah's SMS verification and WhatsApp Business services</p>
+            <p>Choose the program that fits your business goals and start earning today!</p>
+        </div>
+    </div>
+
+    <div class="container" style="padding: 60px 20px;">
+        <div class="row">
+            <!-- Individual Referral Program -->
+            <div class="col-md-6">
+                <div class="program-card">
+                    <h3>🤝 Individual Referral Program</h3>
+                    <div class="commission-badge" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; margin: 10px 0;">
+                        10% Commission
+                    </div>
+                    <p>Perfect for individuals, bloggers, and small businesses who want to earn by referring customers.</p>
+                    
+                    <h4>Available Services:</h4>
+                    <ul class="benefits-list">
+                        <li>SMS Verification Services (1,800+ providers)</li>
+                        <li>WhatsApp Business Integration</li>
+                        <li>Payment Processing</li>
+                        <li>API Access & Documentation</li>
+                    </ul>
+
+                    <h4>Benefits:</h4>
+                    <ul class="benefits-list">
+                        <li>Earn 10% commission on all referrals</li>
+                        <li>Real-time tracking dashboard</li>
+                        <li>Monthly payouts via Paystack</li>
+                        <li>Marketing materials provided</li>
+                        <li>24/7 support</li>
+                    </ul>
+
+                    <button class="cta-button" onclick="openModal('referral')">
+                        Join Referral Program
+                    </button>
+                </div>
+            </div>
+
+            <!-- Enterprise Affiliate Program -->
+            <div class="col-md-6">
+                <div class="program-card">
+                    <h3>🏢 Enterprise Affiliate Program</h3>
+                    <div class="commission-badge" style="background: #7c3aed; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; margin: 10px 0;">
+                        15-30% Commission
+                    </div>
+                    <p>Designed for agencies, resellers, and enterprises looking for comprehensive partnership opportunities.</p>
+                    
+                    <h4>Available Options:</h4>
+                    <ul class="benefits-list">
+                        <li>White-label Solutions</li>
+                        <li>Reseller Programs</li>
+                        <li>Custom Integration Support</li>
+                        <li>Dedicated Account Manager</li>
+                        <li>Volume Discounts</li>
+                        <li>Priority Support</li>
+                        <li>Custom Branding</li>
+                        <li>Multi-domain Management</li>
+                    </ul>
+
+                    <h4>Benefits:</h4>
+                    <ul class="benefits-list">
+                        <li>Up to 30% commission rates</li>
+                        <li>Dedicated account manager</li>
+                        <li>Custom pricing negotiations</li>
+                        <li>White-label opportunities</li>
+                        <li>Priority technical support</li>
+                        <li>Quarterly business reviews</li>
+                    </ul>
+
+                    <button class="cta-button" onclick="openModal('enterprise')">
+                        Apply for Enterprise Program
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Why Choose Namaskah -->
+        <div style="text-align: center; margin: 60px 0;">
+            <h2>Why Partner with Namaskah?</h2>
+            <div class="row" style="margin-top: 40px;">
+                <div class="col-md-4">
+                    <h4>🚀 Market Leader</h4>
+                    <p>1,800+ SMS services, 2+ billion WhatsApp users, enterprise-grade platform</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>💰 Competitive Rates</h4>
+                    <p>Industry-leading commission rates with performance bonuses</p>
+                </div>
+                <div class="col-md-4">
+                    <h4>🛡️ Reliable Platform</h4>
+                    <p>99.9% uptime SLA, comprehensive monitoring, enterprise security</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Modal -->
+    <div id="applicationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Apply for Affiliate Program</h2>
+            
+            <div class="success-message" id="successMessage"></div>
+            <div class="error-message" id="errorMessage"></div>
+            
+            <form id="affiliateForm">
+                <div class="form-group">
+                    <label for="email">Email Address *</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="programType">Program Type</label>
+                    <select id="programType" name="programType" required>
+                        <option value="">Select Program</option>
+                        <option value="referral">Individual Referral Program</option>
+                        <option value="enterprise">Enterprise Affiliate Program</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Your Interests *</label>
+                    <div class="checkbox-group" id="programOptions">
+                        <!-- Options will be populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Tell us about your business/goals (Optional)</label>
+                    <textarea id="message" name="message" rows="4" placeholder="Describe your business, target audience, or specific goals..."></textarea>
+                </div>
+
+                <button type="submit" class="cta-button" style="width: 100%;">
+                    Submit Application
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const programOptions = {
+            referral: [
+                "SMS Verification Services",
+                "WhatsApp Business Integration", 
+                "Payment Processing",
+                "API Access"
+            ],
+            enterprise: [
+                "White-label Solutions",
+                "Reseller Programs", 
+                "Custom Integration Support",
+                "Dedicated Account Manager",
+                "Volume Discounts",
+                "Priority Support",
+                "Custom Branding",
+                "Multi-domain Management"
+            ]
+        };
+
+        function openModal(programType) {
+            const modal = document.getElementById('applicationModal');
+            const title = document.getElementById('modalTitle');
+            const programSelect = document.getElementById('programType');
+            
+            if (programType === 'referral') {
+                title.textContent = 'Join Individual Referral Program';
+                programSelect.value = 'referral';
+            } else {
+                title.textContent = 'Apply for Enterprise Affiliate Program';
+                programSelect.value = 'enterprise';
+            }
+            
+            updateProgramOptions();
+            modal.style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('applicationModal').style.display = 'none';
+            document.getElementById('affiliateForm').reset();
+            hideMessages();
+        }
+
+        function updateProgramOptions() {
+            const programType = document.getElementById('programType').value;
+            const optionsContainer = document.getElementById('programOptions');
+            
+            if (!programType) {
+                optionsContainer.innerHTML = '<p>Please select a program type first.</p>';
+                return;
+            }
+
+            const options = programOptions[programType] || [];
+            optionsContainer.innerHTML = options.map(option => `
+                <div class="checkbox-item">
+                    <input type="checkbox" id="${option.replace(/\s+/g, '_')}" name="programOptions" value="${option}">
+                    <label for="${option.replace(/\s+/g, '_')}">${option}</label>
+                </div>
+            `).join('');
+        }
+
+        function showMessage(type, message) {
+            hideMessages();
+            const messageEl = document.getElementById(type + 'Message');
+            messageEl.textContent = message;
+            messageEl.style.display = 'block';
+        }
+
+        function hideMessages() {
+            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        // Event listeners
+        document.getElementById('programType').addEventListener('change', updateProgramOptions);
+
+        document.getElementById('affiliateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const selectedOptions = Array.from(document.querySelectorAll('input[name="programOptions"]:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedOptions.length === 0) {
+                showMessage('error', 'Please select at least one program option.');
+                return;
+            }
+
+            const applicationData = {
+                email: formData.get('email'),
+                program_type: formData.get('programType'),
+                program_options: selectedOptions,
+                message: formData.get('message')
+            };
+
+            try {
+                const response = await fetch('/affiliate/apply', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(applicationData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showMessage('success', result.message);
+                    document.getElementById('affiliateForm').reset();
+                    updateProgramOptions();
+                } else {
+                    showMessage('error', result.message || 'Application failed. Please try again.');
+                }
+            } catch (error) {
+                showMessage('error', 'Network error. Please check your connection and try again.');
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('applicationModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

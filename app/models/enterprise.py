@@ -22,8 +22,8 @@ class EnterpriseTier(BaseModel):
 class EnterpriseAccount(BaseModel):
     __tablename__ = "enterprise_accounts"
     
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    tier_id = Column(Integer, ForeignKey("enterprise_tiers.id"), nullable=False)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False)
+    tier_id = Column(String, ForeignKey("enterprise_tiers.id"), nullable=False)
     account_manager_email = Column(String(255), nullable=True)
     monthly_spend = Column(Float, default=0.0)
     sla_credits = Column(Float, default=0.0)  # SLA violation credits
