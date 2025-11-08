@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """Create reseller program tables."""
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
+
 
 def create_reseller_tables():
     """Create reseller program tables."""
     engine = create_engine(settings.database_url)
-    
+
     with engine.connect() as conn:
         # Create reseller_accounts table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS reseller_accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 user_id INTEGER NOT NULL,
@@ -30,10 +35,14 @@ def create_reseller_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create sub_accounts table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS sub_accounts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reseller_id INTEGER NOT NULL,
@@ -49,10 +58,14 @@ def create_reseller_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (reseller_id) REFERENCES reseller_accounts (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create sub_account_transactions table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS sub_account_transactions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 sub_account_id INTEGER NOT NULL,
@@ -65,10 +78,14 @@ def create_reseller_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (sub_account_id) REFERENCES sub_accounts (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create credit_allocations table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS credit_allocations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reseller_id INTEGER NOT NULL,
@@ -81,10 +98,14 @@ def create_reseller_tables():
                 FOREIGN KEY (reseller_id) REFERENCES reseller_accounts (id),
                 FOREIGN KEY (sub_account_id) REFERENCES sub_accounts (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create bulk_operations table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS bulk_operations (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 reseller_id INTEGER NOT NULL,
@@ -99,14 +120,18 @@ def create_reseller_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (reseller_id) REFERENCES reseller_accounts (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Add reseller relationship to users table if not exists
         try:
-            conn.execute(text("ALTER TABLE users ADD COLUMN reseller_account_id INTEGER"))
+            conn.execute(
+                text("ALTER TABLE users ADD COLUMN reseller_account_id INTEGER")
+            )
         except:
             pass
-        
+
         conn.commit()
         print("✅ Reseller program tables created successfully!")
         print("🏢 Reseller Tiers Available:")
@@ -114,6 +139,7 @@ def create_reseller_tables():
         print("- Silver: 10% discount, N5K credit limit")
         print("- Gold: 20% discount, N25K credit limit")
         print("- Platinum: 35% discount, N100K credit limit")
+
 
 if __name__ == "__main__":
     create_reseller_tables()

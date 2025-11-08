@@ -12,6 +12,7 @@ Implement advanced revenue sharing models, automated commission engine, and comp
 ## 📋 **Week 1: Revenue Models**
 
 ### **Tier Structure Implementation**
+
 - [ ] **Starter Tier (5-10%)**
   - Basic SMS/WhatsApp access
   - Standard support
@@ -30,6 +31,7 @@ Implement advanced revenue sharing models, automated commission engine, and comp
   - Revenue sharing model
 
 ### **Commission Configuration**
+
 - [ ] Dynamic rate management
 - [ ] Performance-based bonuses
 - [ ] Volume discount tiers
@@ -38,18 +40,21 @@ Implement advanced revenue sharing models, automated commission engine, and comp
 ## 📋 **Week 2: Advanced Commission Engine**
 
 ### **Calculation Service Enhancement**
+
 - [ ] Multi-currency support
 - [ ] Real-time rate updates
 - [ ] Retroactive adjustments
 - [ ] Dispute handling
 
 ### **Revenue Attribution**
+
 - [ ] First-touch attribution
 - [ ] Last-touch attribution
 - [ ] Multi-touch attribution
 - [ ] Custom attribution models
 
 ### **Automated Payouts**
+
 - [ ] Scheduled payout processing
 - [ ] Multiple payment methods
 - [ ] Tax withholding
@@ -58,18 +63,21 @@ Implement advanced revenue sharing models, automated commission engine, and comp
 ## 📋 **Week 3: Analytics & Reporting**
 
 ### **Partner Dashboard**
+
 - [ ] Revenue trends
 - [ ] Conversion funnels
 - [ ] Customer lifetime value
 - [ ] ROI calculations
 
 ### **Admin Analytics**
+
 - [ ] Partner performance ranking
 - [ ] Revenue forecasting
 - [ ] Churn prediction
 - [ ] Fraud detection alerts
 
 ### **Reporting APIs**
+
 - [ ] `GET /affiliate/analytics/revenue`
 - [ ] `GET /affiliate/analytics/conversions`
 - [ ] `GET /affiliate/analytics/customers`
@@ -78,6 +86,7 @@ Implement advanced revenue sharing models, automated commission engine, and comp
 ## 🔧 **Technical Implementation**
 
 ### **New Services**
+
 ```python
 app/services/commission_engine.py
 app/services/revenue_attribution.py
@@ -86,6 +95,7 @@ app/services/analytics_service.py
 ```
 
 ### **Database Enhancements**
+
 ```sql
 -- New Tables
 commission_tiers
@@ -95,6 +105,7 @@ performance_bonuses
 ```
 
 ### **Configuration**
+
 ```python
 COMMISSION_RATES = {
     "starter": {"base": 0.05, "bonus": 0.02},
@@ -107,12 +118,14 @@ COMMISSION_RATES = {
 ## 🧪 **Testing Requirements**
 
 ### **Commission Accuracy**
+
 - [ ] Rate calculation precision
 - [ ] Multi-currency conversions
 - [ ] Bonus application logic
 - [ ] Edge case handling
 
 ### **Performance Tests**
+
 - [ ] High-volume calculations
 - [ ] Real-time processing
 - [ ] Database optimization

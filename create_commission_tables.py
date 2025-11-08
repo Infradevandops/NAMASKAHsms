@@ -1,20 +1,25 @@
 #!/usr/bin/env python3
 """Create commission and revenue sharing tables."""
 
-import sys
 import os
+import sys
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from sqlalchemy import create_engine, text
+
 from app.core.config import settings
+
 
 def create_commission_tables():
     """Create commission tables directly."""
     engine = create_engine(settings.database_url)
-    
+
     with engine.connect() as conn:
         # Create commission_tiers table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS commission_tiers (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name VARCHAR(50) NOT NULL UNIQUE,
@@ -28,10 +33,14 @@ def create_commission_tables():
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create revenue_shares table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS revenue_shares (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 partner_id INTEGER NOT NULL,
@@ -47,10 +56,14 @@ def create_commission_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (partner_id) REFERENCES users (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Create payout_requests table
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             CREATE TABLE IF NOT EXISTS payout_requests (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 affiliate_id INTEGER NOT NULL,
@@ -66,10 +79,14 @@ def create_commission_tables():
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (affiliate_id) REFERENCES users (id)
             )
-        """))
-        
+        """
+            )
+        )
+
         # Insert commission tiers
-        conn.execute(text("""
+        conn.execute(
+            text(
+                """
             INSERT OR IGNORE INTO commission_tiers 
             (name, base_rate, bonus_rate, min_volume, min_referrals, benefits, is_active)
             VALUES 
@@ -81,15 +98,18 @@ def create_commission_tables():
              '{"support": "dedicated", "materials": "premium", "payouts": "weekly", "analytics": true, "custom_rates": true}', 1),
             ('whitelabel', 0.40, 0.15, 50000, 100,
              '{"support": "dedicated", "materials": "premium", "payouts": "weekly", "analytics": true, "custom_rates": true, "whitelabel": true}', 1)
-        """))
-        
+        """
+            )
+        )
+
         conn.commit()
         print("✅ Commission tables created successfully!")
         print("📊 Commission Tiers:")
         print("- Starter: 5% + 2% bonus")
-        print("- Professional: 15% + 5% bonus") 
+        print("- Professional: 15% + 5% bonus")
         print("- Enterprise: 25% + 10% bonus")
         print("- White-label: 40% + 15% bonus")
+
 
 if __name__ == "__main__":
     create_commission_tables()

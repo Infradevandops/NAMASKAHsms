@@ -12,9 +12,10 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 📋 **Phase 1: Core Affiliate System (2-3 weeks)**
 
 ### **Database Models**
+
 - [ ] Create `AffiliateProgram` model
   - Commission rates, tier requirements, features
-- [ ] Create `AffiliateCommission` model  
+- [ ] Create `AffiliateCommission` model
   - Earnings tracking, payout status
 - [ ] Create `PartnerAgreement` model
   - Terms, revenue splits, contract details
@@ -22,6 +23,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Migration scripts for new tables
 
 ### **Partner/Affiliate APIs**
+
 - [ ] `POST /affiliate/register` - Partner registration
 - [ ] `GET /affiliate/dashboard` - Performance metrics
 - [ ] `GET /affiliate/commissions` - Earnings history
@@ -30,6 +32,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] `POST /affiliate/links/generate` - Tracking links
 
 ### **Referral Commission Structures**
+
 - [ ] Multi-level referral system (3 levels)
 - [ ] Configurable commission rates per tier
 - [ ] Real-time commission calculation
@@ -39,10 +42,11 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 📋 **Phase 2: Revenue Sharing Programs (2-3 weeks)**
 
 ### **Revenue Models**
+
 - [ ] **Starter Tier**: 5-10% commission
   - Basic SMS/WhatsApp services
   - Standard support
-- [ ] **Professional Tier**: 15-20% commission  
+- [ ] **Professional Tier**: 15-20% commission
   - Priority support, analytics
   - Custom rate negotiations
 - [ ] **Enterprise Tier**: 25-30% commission
@@ -53,6 +57,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
   - Custom domains
 
 ### **Commission Engine**
+
 - [ ] Automated commission calculation service
 - [ ] Revenue split configuration per partner
 - [ ] Performance-based bonus structures
@@ -60,6 +65,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Tax compliance and reporting
 
 ### **Analytics & Reporting**
+
 - [ ] Partner performance dashboard
 - [ ] Revenue attribution tracking
 - [ ] Conversion funnel analysis
@@ -69,6 +75,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 📋 **Phase 3: White-label Offerings (1-2 weeks)**
 
 ### **Enhanced White-label Features**
+
 - [ ] Multi-domain management
 - [ ] Custom API endpoints (`api.partner.com`)
 - [ ] Branded mobile apps (PWA)
@@ -76,6 +83,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Partner-specific feature toggles
 
 ### **Branding Customization**
+
 - [ ] Advanced CSS/theme editor
 - [ ] Logo upload and management
 - [ ] Custom email templates
@@ -83,6 +91,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Partner-specific landing pages
 
 ### **White-label APIs**
+
 - [ ] `POST /whitelabel/setup` - Initial configuration
 - [ ] `PUT /whitelabel/branding` - Update branding
 - [ ] `GET /whitelabel/preview` - Preview changes
@@ -92,6 +101,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 📋 **Phase 4: Reseller Programs (2-3 weeks)**
 
 ### **Reseller Management**
+
 - [ ] Bulk pricing models
 - [ ] Sub-account creation and management
 - [ ] Credit allocation system
@@ -99,6 +109,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Volume discount tiers
 
 ### **Reseller APIs**
+
 - [ ] `POST /reseller/accounts/create` - Create sub-accounts
 - [ ] `GET /reseller/accounts` - Manage sub-accounts
 - [ ] `POST /reseller/credits/allocate` - Distribute credits
@@ -106,6 +117,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] `PUT /reseller/pricing/update` - Custom pricing
 
 ### **Business Tools**
+
 - [ ] Reseller dashboard with sub-account overview
 - [ ] Bulk operations (credit top-up, account management)
 - [ ] White-label reseller portals
@@ -115,6 +127,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 📋 **Phase 5: Advanced Features (1-2 weeks)**
 
 ### **Marketing Tools**
+
 - [ ] Affiliate link generator with UTM tracking
 - [ ] Marketing material library
 - [ ] Co-branded promotional content
@@ -122,6 +135,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Email marketing templates
 
 ### **Compliance & Legal**
+
 - [ ] Partner agreement templates
 - [ ] Tax form generation (1099, etc.)
 - [ ] GDPR compliance for partner data
@@ -129,6 +143,7 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 - [ ] Dispute resolution system
 
 ### **Integration Features**
+
 - [ ] Zapier/webhook integrations
 - [ ] CRM system connectors
 - [ ] Accounting software integration
@@ -138,10 +153,11 @@ Transform Namaskah into a comprehensive affiliate and partner platform with mult
 ## 🛠 **Technical Implementation**
 
 ### **New Services**
+
 ```python
 # Core Services
 app/services/affiliate_service.py
-app/services/commission_service.py  
+app/services/commission_service.py
 app/services/reseller_service.py
 app/services/payout_service.py
 
@@ -157,6 +173,7 @@ app/models/reseller.py
 ```
 
 ### **Database Schema**
+
 ```sql
 -- Key Tables
 affiliate_programs
@@ -168,6 +185,7 @@ commission_tiers
 ```
 
 ### **Configuration**
+
 ```python
 # Environment Variables
 AFFILIATE_COMMISSION_RATES={"starter": 0.05, "pro": 0.15, "enterprise": 0.25}
@@ -178,6 +196,7 @@ COMMISSION_CALCULATION_FREQUENCY="daily"
 ## 📊 **Success Metrics**
 
 ### **KPIs to Track**
+
 - [ ] Partner acquisition rate
 - [ ] Revenue per partner
 - [ ] Commission payout accuracy
@@ -186,6 +205,7 @@ COMMISSION_CALCULATION_FREQUENCY="daily"
 - [ ] Reseller account growth
 
 ### **Performance Targets**
+
 - **Partner Onboarding**: <24 hours
 - **Commission Calculation**: Real-time
 - **Payout Processing**: <48 hours
@@ -195,12 +215,14 @@ COMMISSION_CALCULATION_FREQUENCY="daily"
 ## 🚀 **Deployment Strategy**
 
 ### **Rollout Plan**
+
 1. **Beta Testing**: 10 selected partners (2 weeks)
-2. **Limited Release**: 50 partners (2 weeks)  
+2. **Limited Release**: 50 partners (2 weeks)
 3. **Full Launch**: Open registration
 4. **Marketing Push**: Partner acquisition campaign
 
 ### **Risk Mitigation**
+
 - [ ] Commission calculation audit system
 - [ ] Fraud detection algorithms
 - [ ] Partner verification process
@@ -210,24 +232,28 @@ COMMISSION_CALCULATION_FREQUENCY="daily"
 ## 💰 **Revenue Projections**
 
 ### **Conservative Estimates**
+
 - **Month 1-3**: 25 partners, $10K additional revenue
-- **Month 4-6**: 100 partners, $50K additional revenue  
+- **Month 4-6**: 100 partners, $50K additional revenue
 - **Month 7-12**: 300 partners, $200K additional revenue
 
 ### **Growth Multipliers**
+
 - White-label partners: 3x revenue per partner
 - Reseller programs: 5x volume increase
 - Enterprise affiliates: 10x commission potential
 
 ---
 
-**Next Steps**: 
+**Next Steps**:
+
 1. Stakeholder approval
 2. Technical architecture review
 3. Database design finalization
 4. Development sprint planning
 
 **Dependencies**:
+
 - Payment system enhancements
 - Enhanced analytics infrastructure
 - Legal framework for partner agreements

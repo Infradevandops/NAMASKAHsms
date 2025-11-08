@@ -12,18 +12,21 @@ Enhance existing white-label system with advanced customization, multi-domain su
 ## 📋 **Week 1: Enhanced Features**
 
 ### **Multi-Domain Management**
+
 - [ ] Domain verification system
 - [ ] SSL certificate automation
 - [ ] DNS configuration helpers
 - [ ] Subdomain provisioning
 
 ### **Advanced Branding**
+
 - [ ] CSS/theme editor with live preview
 - [ ] Logo upload with automatic resizing
 - [ ] Custom favicon support
 - [ ] Brand color palette generator
 
 ### **Custom API Endpoints**
+
 - [ ] Partner-specific API subdomains
 - [ ] Custom API documentation
 - [ ] Branded API responses
@@ -32,18 +35,21 @@ Enhance existing white-label system with advanced customization, multi-domain su
 ## 📋 **Week 2: Partner Experience**
 
 ### **Branded Applications**
+
 - [ ] PWA with custom branding
 - [ ] Partner-specific mobile icons
 - [ ] Custom app store listings
 - [ ] Push notification branding
 
 ### **Custom Pricing Display**
+
 - [ ] Partner-specific rate cards
 - [ ] Currency localization
 - [ ] Custom pricing tiers
 - [ ] Promotional pricing
 
 ### **Feature Toggles**
+
 - [ ] Service availability per partner
 - [ ] Feature flag management
 - [ ] A/B testing framework
@@ -52,6 +58,7 @@ Enhance existing white-label system with advanced customization, multi-domain su
 ## 🔧 **API Enhancements**
 
 ### **White-label Management**
+
 - [ ] `POST /whitelabel/setup` - Complete setup wizard
 - [ ] `PUT /whitelabel/branding` - Update all branding elements
 - [ ] `GET /whitelabel/preview` - Live preview changes
@@ -59,6 +66,7 @@ Enhance existing white-label system with advanced customization, multi-domain su
 - [ ] `GET /whitelabel/analytics` - Partner-specific usage stats
 
 ### **Template System**
+
 - [ ] `GET /whitelabel/templates` - Available themes
 - [ ] `POST /whitelabel/templates/apply` - Apply theme
 - [ ] `PUT /whitelabel/templates/customize` - Modify theme
@@ -67,6 +75,7 @@ Enhance existing white-label system with advanced customization, multi-domain su
 ## 🎨 **Branding Components**
 
 ### **Visual Elements**
+
 - [ ] Logo (multiple formats and sizes)
 - [ ] Color scheme (primary, secondary, accent)
 - [ ] Typography (font families, sizes)
@@ -74,6 +83,7 @@ Enhance existing white-label system with advanced customization, multi-domain su
 - [ ] Custom CSS injection
 
 ### **Content Customization**
+
 - [ ] Custom email templates
 - [ ] Branded documentation
 - [ ] Partner-specific landing pages
@@ -83,6 +93,7 @@ Enhance existing white-label system with advanced customization, multi-domain su
 ## 🛠 **Technical Implementation**
 
 ### **Enhanced Services**
+
 ```python
 app/services/whitelabel_enhanced.py
 app/services/domain_management.py
@@ -91,6 +102,7 @@ app/services/ssl_automation.py
 ```
 
 ### **Database Updates**
+
 ```sql
 -- Enhanced Tables
 whitelabel_domains
@@ -100,6 +112,7 @@ partner_features
 ```
 
 ### **File Storage**
+
 ```python
 # Asset Management
 WHITELABEL_ASSETS_BUCKET = "namaskah-partner-assets"
@@ -109,12 +122,14 @@ CDN_ENDPOINT = "https://cdn.partner-assets.com"
 ## 🧪 **Testing Requirements**
 
 ### **Branding Tests**
+
 - [ ] Theme application accuracy
 - [ ] Asset upload/retrieval
 - [ ] CSS injection safety
 - [ ] Cross-browser compatibility
 
 ### **Domain Tests**
+
 - [ ] DNS propagation
 - [ ] SSL certificate generation
 - [ ] Subdomain routing
