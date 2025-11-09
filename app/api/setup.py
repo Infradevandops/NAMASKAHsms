@@ -12,8 +12,9 @@ router = APIRouter(prefix="/setup", tags=["Setup"])
 @router.get("/init-admin", response_model=SuccessResponse)
 def initialize_admin(db: Session = Depends(get_db)):
     """Initialize admin user - public endpoint for first-time setup."""
-    admin_email = "admin@namaskah.app"
-    admin_password = "Admin123!"
+    import os
+    admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+    admin_password = os.getenv("ADMIN_PASSWORD", "Admin123!")
     
     try:
         # Check if any admin exists
@@ -34,7 +35,7 @@ def initialize_admin(db: Session = Depends(get_db)):
             db.commit()
             return SuccessResponse(
                 message="User upgraded to admin",
-                data={"email": admin_email, "password": admin_password}
+                data={"email": admin_email}
             )
         
         # Create new admin
@@ -51,11 +52,11 @@ def initialize_admin(db: Session = Depends(get_db)):
         
         return SuccessResponse(
             message="Admin created successfully",
-            data={"email": admin_email, "password": admin_password, "credits": 1000}
+            data={"email": admin_email, "credits": 1000}
         )
         
     except Exception as e:
         return SuccessResponse(
             message=f"Setup failed: {str(e)}",
-            data={"email": admin_email, "password": admin_password, "note": "Try logging in anyway"}
+            data={"email": admin_email, "note": "Try logging in anyway"}
         )
