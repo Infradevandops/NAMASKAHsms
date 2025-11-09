@@ -14,7 +14,7 @@ def initialize_admin(db: Session = Depends(get_db)):
     """Initialize admin user - public endpoint for first-time setup."""
     import os
     admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
-    admin_password = os.getenv("ADMIN_PASSWORD", "Admin123!")
+    admin_password = os.getenv("ADMIN_PASSWORD", "NamaskahAdmin2024!")
     
     try:
         # Check if any admin exists
