@@ -125,17 +125,17 @@ def create_app() -> FastAPI:
     # Dashboard routes
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page():
-        with open("templates/dashboard_production.html", "r") as f:
+        with open("templates/verification_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_page():
-        with open("templates/enhanced_dashboard.html", "r") as f:
+        with open("templates/verification_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     @fastapi_app.get("/app", response_class=HTMLResponse)
     async def app_page():
-        with open("templates/enhanced_dashboard.html", "r") as f:
+        with open("templates/verification_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
 
     # Login page
