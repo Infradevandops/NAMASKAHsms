@@ -59,8 +59,8 @@ def create_app() -> FastAPI:
     setup_logging()
 
     # Import all models and configure registry
+    from app.models.base import Base  # noqa: F401
     import app.models  # noqa: F401
-    from app.models.base import Base
     Base.registry.configure()
 
     fastapi_app = FastAPI(
