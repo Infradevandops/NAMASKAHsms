@@ -11,10 +11,14 @@ class WhiteLabelService:
         """Get white-label config by domain."""
         db = next(get_db())
         
-        config = db.query(WhiteLabelConfig).filter(
-            WhiteLabelConfig.domain == domain,
-            WhiteLabelConfig.is_active == True
-        ).first()
+        try:
+            config = db.query(WhiteLabelConfig).filter(
+                WhiteLabelConfig.domain == domain,
+                WhiteLabelConfig.is_active == True
+            ).first()
+        except Exception:
+            # Table doesn't exist, return None
+            return None
         
         if not config:
             return None
