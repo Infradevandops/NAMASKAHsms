@@ -517,15 +517,24 @@
         async function loadBalance() {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) return;
+                if (!token) {
+                    document.getElementById('balance').textContent = '0.00';
+                    return;
+                }
                 
                 const response = await fetch('/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await response.json();
-                document.getElementById('balance').textContent = (data.credits || 0).toFixed(2);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('balance').textContent = (data.credits || 0).toFixed(2);
+                } else {
+                    document.getElementById('balance').textContent = '0.00';
+                }
             } catch (error) {
                 console.error('Failed to load balance:', error);
+                document.getElementById('balance').textContent = '0.00';
             }
         }
 
@@ -648,25 +657,33 @@
 
         async function startVerification() {
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    showError('Please login first');
+                    setTimeout(() => window.location.href = '/auth/login', 2000);
+                    return;
+                }
+
                 const response = await fetch('/verify/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        service: selectedService.id,
-                        country: 'NG'
+                        service_name: selectedService.id,
+                        country: 'NG',
+                        capability: 'sms'
                     })
                 });
 
                 const data = await response.json();
                 
-                if (data.success) {
+                if (response.ok && data.phone_number) {
                     currentVerification = data;
                     showStep2(data.phone_number);
                 } else {
-                    showError(data.message || 'Failed to get phone number');
+                    showError(data.detail || data.message || 'Failed to get phone number');
                 }
             } catch (error) {
                 showError('Network error: ' + error.message);
@@ -710,16 +727,17 @@
             if (!currentVerification) return;
             
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch(`/verify/${currentVerification.id}/messages`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
                 const data = await response.json();
                 
                 if (data.messages && data.messages.length > 0) {
                     clearInterval(countdownTimer);
-                    const sms = data.messages[0];
-                    showSMSReceived(sms);
+                    const message = data.messages[0];
+                    showSMSReceived({ text: message.text || message, code: extractCode(message.text || message) });
                 } else {
                     setTimeout(pollForSMS, 3000);
                 }
@@ -727,6 +745,11 @@
                 console.error('Error polling for SMS:', error);
                 setTimeout(pollForSMS, 5000);
             }
+        }
+
+        function extractCode(text) {
+            const match = text.match(/\b\d{4,8}\b/);
+            return match ? match[0] : text;
         }
 
         function showSMSReceived(sms) {
