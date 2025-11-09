@@ -680,6 +680,7 @@ def delete_api_key(
 
 
 @router.post("/create-admin", response_model=SuccessResponse)
+@router.get("/create-admin", response_model=SuccessResponse)
 def create_admin_endpoint(db: Session = Depends(get_db)):
     """Create admin user via API endpoint."""
     from app.utils.security import hash_password
