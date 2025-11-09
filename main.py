@@ -1,40 +1,41 @@
 """
 Namaskah SMS - Modular Application Factory
 """
+
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 # Import all routers
 from app.api.admin import router as admin_router
+from app.api.affiliate import router as affiliate_router
+from app.api.ai_features import router as ai_router
 from app.api.analytics import router as analytics_router
 from app.api.auth import router as auth_router
+from app.api.compliance import router as compliance_router
 from app.api.countries import router as countries_router
 from app.api.dashboard import router as dashboard_router
+from app.api.disaster_recovery import router as dr_router
+from app.api.enterprise import router as enterprise_router
 from app.api.fivesim import router as fivesim_router
+from app.api.infrastructure import router as infrastructure_router
+from app.api.monitoring import router as monitoring_router
 from app.api.rentals import router as rentals_router
+from app.api.reseller import router as reseller_router
+from app.api.revenue_sharing import router as revenue_router
 from app.api.services import router as services_router
 from app.api.setup import router as setup_router
 from app.api.support import router as support_router
 from app.api.system import root_router
 from app.api.system import router as system_router
+from app.api.telegram import router as telegram_router
 from app.api.verification import router as verification_router
 from app.api.waitlist import router as waitlist_router
 from app.api.wallet import router as wallet_router
 from app.api.websocket import router as websocket_router
 from app.api.whatsapp import router as whatsapp_router
-from app.api.ai_features import router as ai_router
-from app.api.telegram import router as telegram_router
 from app.api.whitelabel import router as whitelabel_router
-from app.api.enterprise import router as enterprise_router
-from app.api.infrastructure import router as infrastructure_router
-from app.api.monitoring import router as monitoring_router
-from app.api.disaster_recovery import router as dr_router
-from app.api.compliance import router as compliance_router
-from app.api.affiliate import router as affiliate_router
-from app.api.revenue_sharing import router as revenue_router
 from app.api.whitelabel_enhanced import router as whitelabel_enhanced_router
-from app.api.reseller import router as reseller_router
 from app.core.caching import cache
 from app.core.database import engine
 from app.core.exceptions import setup_exception_handlers
@@ -59,8 +60,9 @@ def create_app() -> FastAPI:
     setup_logging()
 
     # Import all models and configure registry
-    from app.models.base import Base  # noqa: F401
     import app.models  # noqa: F401
+    from app.models.base import Base  # noqa: F401
+
     Base.registry.configure()
 
     fastapi_app = FastAPI(
@@ -149,25 +151,25 @@ def create_app() -> FastAPI:
     async def legacy_dashboard():
         with open("templates/dashboard_fixed.html", "r") as f:
             return HTMLResponse(content=f.read())
-    
+
     # Affiliate program page
     @fastapi_app.get("/affiliate", response_class=HTMLResponse)
     async def affiliate_page():
         with open("templates/affiliate_program.html", "r") as f:
             return HTMLResponse(content=f.read())
-    
+
     # Affiliate dashboard
     @fastapi_app.get("/affiliate/dashboard", response_class=HTMLResponse)
     async def affiliate_dashboard():
         with open("templates/affiliate_dashboard.html", "r") as f:
             return HTMLResponse(content=f.read())
-    
+
     # White-label setup
     @fastapi_app.get("/whitelabel/setup", response_class=HTMLResponse)
     async def whitelabel_setup():
         with open("templates/whitelabel_setup.html", "r") as f:
             return HTMLResponse(content=f.read())
-    
+
     # Reseller dashboard
     @fastapi_app.get("/reseller/dashboard", response_class=HTMLResponse)
     async def reseller_dashboard_page():
