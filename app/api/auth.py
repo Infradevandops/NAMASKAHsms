@@ -679,6 +679,34 @@ def delete_api_key(
     return SuccessResponse(message="API key deleted successfully")
 
 
+@router.post("/create-admin", response_model=SuccessResponse)
+def create_admin_endpoint(db: Session = Depends(get_db)):
+    """Create admin user via API endpoint."""
+    from app.utils.security import hash_password
+    
+    admin_email = "admin@namaskah.app"
+    admin_password = "NamaskahAdmin2024!"
+    
+    # Check if admin exists
+    existing_admin = db.query(User).filter(User.email == admin_email).first()
+    if existing_admin:
+        return SuccessResponse(message="Admin user already exists")
+    
+    # Create admin user
+    admin_user = User(
+        email=admin_email,
+        password_hash=hash_password(admin_password),
+        credits=1000.0,
+        is_admin=True,
+        email_verified=True
+    )
+    
+    db.add(admin_user)
+    db.commit()
+    
+    return SuccessResponse(message="Admin user created successfully")
+
+
 @router.get("/google/callback")
 async def google_callback(code: str = None, error: str = None):
     """Handle Google OAuth callback for popup flow."""
