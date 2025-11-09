@@ -1,94 +1,61 @@
-"""Setup API for production initialization."""
+"""Setup and initialization endpoints."""
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.models.user import User
 from app.utils.security import hash_password
+from app.schemas import SuccessResponse
 
 router = APIRouter(prefix="/setup", tags=["Setup"])
 
 
-@router.get("/create-admin")
-@router.post("/create-admin")
-def create_admin(db: Session = Depends(get_db)):
-    """Create admin user for production."""
+@router.get("/init-admin", response_model=SuccessResponse)
+def initialize_admin(db: Session = Depends(get_db)):
+    """Initialize admin user - public endpoint for first-time setup."""
+    admin_email = "admin@namaskah.app"
+    admin_password = "Admin123!"
+    
     try:
-        # Check if admin exists
-        existing = db.query(User).filter(User.email == "admin@namaskah.app").first()
-        if existing:
-            return {"message": "Admin already exists"}
-
-        # Create admin
-        admin = User(
-            email="admin@namaskah.app",
-            password_hash=hash_password("Namaskah@Admin2024"),
+        # Check if any admin exists
+        existing_admin = db.query(User).filter(User.is_admin == True).first()
+        if existing_admin:
+            return SuccessResponse(
+                message="Admin already exists",
+                data={"email": admin_email, "note": "Use existing admin credentials"}
+            )
+        
+        # Check if user exists
+        existing_user = db.query(User).filter(User.email == admin_email).first()
+        if existing_user:
+            # Upgrade to admin
+            existing_user.is_admin = True
+            existing_user.credits = 1000.0
+            existing_user.email_verified = True
+            db.commit()
+            return SuccessResponse(
+                message="User upgraded to admin",
+                data={"email": admin_email, "password": admin_password}
+            )
+        
+        # Create new admin
+        admin_user = User(
+            email=admin_email,
+            password_hash=hash_password(admin_password),
             credits=1000.0,
-            free_verifications=10,
             is_admin=True,
-            email_verified=True,
+            email_verified=True
         )
-
-        db.add(admin)
+        
+        db.add(admin_user)
         db.commit()
-
-        return {"message": "Admin created successfully"}
-
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@router.get("/test-user")
-@router.post("/test-user")
-def create_test_user(db: Session = Depends(get_db)):
-    """Create test user for registration testing."""
-    try:
-        # Check if test user exists
-        existing = db.query(User).filter(User.email == "test@namaskah.app").first()
-        if existing:
-            return {"message": "Test user already exists"}
-
-        # Create test user
-        test_user = User(
-            email="test@namaskah.app",
-            password_hash=hash_password("Test123456"),
-            credits=100.0,
-            free_verifications=5,
-            is_admin=False,
-            email_verified=True,
+        
+        return SuccessResponse(
+            message="Admin created successfully",
+            data={"email": admin_email, "password": admin_password, "credits": 1000}
         )
-
-        db.add(test_user)
-        db.commit()
-
-        return {
-            "message": "Test user created successfully",
-            "credentials": {"email": "test@namaskah.app", "password": "Test123456"},
-        }
-
+        
     except Exception as e:
-        return {"error": str(e)}
-
-
-@router.get("/test-registration")
-def test_registration_flow(db: Session = Depends(get_db)):
-    """Test user registration functionality."""
-    try:
-        # Test database connection
-        user_count = db.query(User).count()
-
-        return {
-            "message": "Registration system ready",
-            "database_connected": True,
-            "total_users": user_count,
-            "test_credentials": {
-                "admin": {
-                    "email": "admin@namaskah.app",
-                    "password": "Namaskah@Admin2024",
-                },
-                "test_user": {"email": "test@namaskah.app", "password": "Test123456"},
-            },
-        }
-
-    except Exception as e:
-        return {"error": str(e), "database_connected": False}
+        return SuccessResponse(
+            message=f"Setup failed: {str(e)}",
+            data={"email": admin_email, "password": admin_password, "note": "Try logging in anyway"}
+        )

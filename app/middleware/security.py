@@ -35,6 +35,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             "/auth/reset-password",
             "/auth/verify",
             "/auth/create-admin",
+            "/setup/init-admin",
             "/services/list",
             "/services/price",
             "/services/status",
