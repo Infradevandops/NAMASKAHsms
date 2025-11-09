@@ -9,6 +9,7 @@ class User(BaseModel):
     """User account model."""
 
     __tablename__ = "users"
+    __table_args__ = {'schema': 'public'}
 
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=True)  # Nullable for OAuth users
