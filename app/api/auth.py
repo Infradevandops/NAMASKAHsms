@@ -156,7 +156,7 @@ async def login_page():
             <div class="demo-credentials">
                 <h4>Demo Admin Credentials:</h4>
                 <p><strong>Email:</strong> admin@namaskah.app</p>
-                <p><strong>Password:</strong> Namaskah@Admin2024</p>
+                <p><strong>Password:</strong> NamaskahAdmin2024!</p>
             </div>
             
             <div id="errorMessage" class="error-message"></div>
@@ -311,7 +311,7 @@ async def login_page():
             // Auto-fill demo credentials on demo button click
             document.querySelector('.demo-credentials').addEventListener('click', () => {
                 emailInput.value = 'admin@namaskah.app';
-                passwordInput.value = 'Namaskah@Admin2024';
+                passwordInput.value = 'NamaskahAdmin2024!';
                 hideMessages();
             });
             

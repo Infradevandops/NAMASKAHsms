@@ -509,10 +509,19 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
+            checkAuth();
             loadBalance();
             setupSearch();
             renderFavorites();
         });
+
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/auth/login';
+                return;
+            }
+        }
 
         async function loadBalance() {
             try {
@@ -780,10 +789,19 @@
         }
 
         function showError(message) {
-            document.getElementById('step-1-content').innerHTML = `
-                <div class="status status-error">❌ Error: ${message}</div>
-                <button class="btn btn-primary" onclick="resetFlow()" style="margin-top: 16px;">Try Again</button>
-            `;
+            // Check if it's an auth error
+            if (message.includes('token') || message.includes('login') || message.includes('Authentication')) {
+                document.getElementById('step-1-content').innerHTML = `
+                    <div class="status status-error">❌ Authentication Error</div>
+                    <p style="margin-top: 12px;">Please login to continue</p>
+                    <button class="btn btn-primary" onclick="window.location.href='/auth/login'" style="margin-top: 16px;">Go to Login</button>
+                `;
+            } else {
+                document.getElementById('step-1-content').innerHTML = `
+                    <div class="status status-error">❌ Error: ${message}</div>
+                    <button class="btn btn-primary" onclick="resetFlow()" style="margin-top: 16px;">Try Again</button>
+                `;
+            }
         }
 
         function cancelVerification() {
