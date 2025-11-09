@@ -1,4 +1,5 @@
 """Authentication API router."""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
@@ -684,27 +685,27 @@ def delete_api_key(
 def create_admin_endpoint(db: Session = Depends(get_db)):
     """Create admin user via API endpoint."""
     from app.utils.security import hash_password
-    
+
     admin_email = "admin@namaskah.app"
     admin_password = "NamaskahAdmin2024!"
-    
+
     # Check if admin exists
     existing_admin = db.query(User).filter(User.email == admin_email).first()
     if existing_admin:
         return SuccessResponse(message="Admin user already exists")
-    
+
     # Create admin user
     admin_user = User(
         email=admin_email,
         password_hash=hash_password(admin_password),
         credits=1000.0,
         is_admin=True,
-        email_verified=True
+        email_verified=True,
     )
-    
+
     db.add(admin_user)
     db.commit()
-    
+
     return SuccessResponse(message="Admin user created successfully")
 
 
