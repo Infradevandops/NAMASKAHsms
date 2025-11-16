@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification History - Namaskah SMS</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border: #475569;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+            background: var(--bg-primary); 
+            color: var(--text-primary); 
+            line-height: 1.6;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+            padding: 20px;
+        }
+        
+        .header { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
+            padding: 24px; 
+            border-radius: 16px; 
+            margin-bottom: 24px;
+        }
+        
+        .card { 
+            background: var(--bg-secondary); 
+            border-radius: 16px; 
+            padding: 24px; 
+            margin-bottom: 24px; 
+            border: 1px solid var(--border);
+        }
+        
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .filter-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .filter-input, .filter-select {
+            padding: 10px 12px;
+            border-radius: 8px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .btn { 
+            padding: 10px 20px; 
+            border: none; 
+            border-radius: 8px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-danger { background: var(--danger); color: white; }
+        
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        
+        .active-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .filter-tag {
+            background: var(--bg-tertiary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-tag-close {
+            cursor: pointer;
+            color: var(--danger);
+            font-weight: bold;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: var(--bg-tertiary);
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th:hover {
+            background: var(--border);
+        }
+        
+        th.sortable::after {
+            content: ' ⇅';
+            opacity: 0.3;
+        }
+        
+        th.sorted-asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+        
+        th.sorted-desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+        
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        tr:hover {
+            background: var(--bg-tertiary);
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-completed { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+        .status-pending { background: rgba(234, 179, 8, 0.2); color: var(--warning); }
+        .status-failed { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+        }
+        
+        .pagination-info {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        .pagination-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 Verification History</h1>
+            <p>Advanced filtering and search</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">🔍 Filters</h2>
+            
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label class="filter-label">Service</label>
+                    <select id="filter-service" class="filter-select">
+                        <option value="">All Services</option>
+                        <option value="telegram">Telegram</option>
+                        <option value="whatsapp">WhatsApp</option>
+                        <option value="google">Google</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="instagram">Instagram</option>
+                        <option value="discord">Discord</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select id="filter-status" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                        <option value="timeout">Timeout</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Country</label>
+                    <select id="filter-country" class="filter-select">
+                        <option value="">All Countries</option>
+                        <option value="usa">🇺🇸 United States</option>
+                        <option value="england">🇬🇧 United Kingdom</option>
+                        <option value="canada">🇨🇦 Canada</option>
+                        <option value="russia">🇷🇺 Russia</option>
+                        <option value="india">🇮🇳 India</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Start Date</label>
+                    <input type="date" id="filter-start-date" class="filter-input">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">End Date</label>
+                    <input type="date" id="filter-end-date" class="filter-input">
+                </div>
+                
+                <div class="filter-group">
+                    <label class="filter-label">Search</label>
+                    <input type="text" id="filter-search" class="filter-input" placeholder="Phone or code...">
+                </div>
+            </div>
+            
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">Apply Filters</button>
+                <button class="btn btn-secondary" onclick="clearFilters()">Clear All</button>
+                <button class="btn btn-secondary" onclick="exportHistory()">📥 Export CSV</button>
+            </div>
+            
+            <!-- Active Filters -->
+            <div id="active-filters" class="active-filters" style="display: none;"></div>
+        </div>
+
+        <!-- Results -->
+        <div class="card">
+            <h2 style="margin-bottom: 20px;">📊 Results</h2>
+            
+            <div class="table-container">
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th class="sortable" onclick="sortBy('created_at')">Date</th>
+                            <th>Service</th>
+                            <th>Phone Number</th>
+                            <th>Country</th>
+                            <th class="sortable" onclick="sortBy('status')">Status</th>
+                            <th class="sortable" onclick="sortBy('cost')">Cost</th>
+                            <th>Method</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-tbody">
+                        <tr>
+                            <td colspan="8">
+                                <div class="empty-state">
+                                    <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                                    <h3>Loading history...</h3>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="pagination">
+                <div class="pagination-info" id="pagination-info">
+                    Showing 0 of 0 results
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn btn-secondary" onclick="previousPage()" id="prev-btn" disabled>← Previous</button>
+                    <button class="btn btn-secondary" onclick="nextPage()" id="next-btn" disabled>Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentFilters = {};
+        let currentSort = { field: 'created_at', order: 'desc' };
+        let currentPage = 0;
+        let pageSize = 50;
+        let totalResults = 0;
+
+        async function loadHistory() {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Build query params
+                const params = new URLSearchParams({
+                    limit: pageSize,
+                    skip: currentPage * pageSize,
+                    sort_by: currentSort.field,
+                    sort_order: currentSort.order
+                });
+                
+                // Add filters
+                Object.keys(currentFilters).forEach(key => {
+                    if (currentFilters[key]) {
+                        params.append(key, currentFilters[key]);
+                    }
+                });
+                
+                const response = await fetch(`/api/verify/history?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                const data = await response.json();
+                
+                totalResults = data.total_count;
+                renderHistory(data.verifications);
+                updatePagination();
+                updateActiveFilters();
+                
+            } catch (error) {
+                console.error('Failed to load history:', error);
+                document.getElementById('history-tbody').innerHTML = `
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <h3>Error loading history</h3>
+                            <p>${error.message}</p>
+                        </div>
+                    </td></tr>
+                `;
+            }
+        }
+
+        function renderHistory(verifications) {
+            const tbody = document.getElementById('history-tbody');
+            
+            if (verifications.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="8">
+                        <div class="empty-state">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🔍</div>
+                            <h3>No results found</h3>
+                            <p>Try adjusting your filters</p>
+                        </div>
+                    </td></tr>
+                `;
+                return;
+            }
+            
+            tbody.innerHTML = verifications.map(v => `
+                <tr>
+                    <td>${new Date(v.created_at).toLocaleString()}</td>
+                    <td>${v.service_name}</td>
+                    <td style="font-family: monospace;">${v.phone_number || 'N/A'}</td>
+                    <td>${(v.country || 'N/A').toUpperCase()}</td>
+                    <td><span class="status-badge status-${v.status}">${v.status.toUpperCase()}</span></td>
+                    <td>$${v.cost.toFixed(2)}</td>
+                    <td>${v.capability === 'voice' ? '📞 Voice' : '💬 SMS'}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="viewDetails('${v.id}')" style="padding: 6px 12px; font-size: 12px;">
+                            View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function applyFilters() {
+            currentFilters = {
+                service: document.getElementById('filter-service').value,
+                verification_status: document.getElementById('filter-status').value,
+                country: document.getElementById('filter-country').value,
+                start_date: document.getElementById('filter-start-date').value,
+                end_date: document.getElementById('filter-end-date').value,
+                search: document.getElementById('filter-search').value
+            };
+            
+            // Remove empty filters
+            Object.keys(currentFilters).forEach(key => {
+                if (!currentFilters[key]) delete currentFilters[key];
+            });
+            
+            currentPage = 0;
+            loadHistory();
+        }
+
+        function clearFilters() {
+            currentFilters = {};
+            currentPage = 0;
+            
+            // Clear UI
+            document.getElementById('filter-service').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-country').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('filter-search').value = '';
+            
+            loadHistory();
+        }
+
+        function updateActiveFilters() {
+            const container = document.getElementById('active-filters');
+            const filterCount = Object.keys(currentFilters).length;
+            
+            if (filterCount === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+            container.innerHTML = Object.keys(currentFilters).map(key => {
+                const label = key.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                return `
+                    <div class="filter-tag">
+                        <span>${label}: ${currentFilters[key]}</span>
+                        <span class="filter-tag-close" onclick="removeFilter('${key}')">×</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function removeFilter(key) {
+            delete currentFilters[key];
+            
+            // Clear UI element
+            const elementId = `filter-${key.replace('_', '-')}`;
+            const element = document.getElementById(elementId);
+            if (element) element.value = '';
+            
+            currentPage = 0;
+            loadHistory();
+        }
+
+        function sortBy(field) {
+            if (currentSort.field === field) {
+                currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.field = field;
+                currentSort.order = 'desc';
+            }
+            
+            // Update UI
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            const th = event.target;
+            th.classList.add(`sorted-${currentSort.order}`);
+            
+            loadHistory();
+        }
+
+        function updatePagination() {
+            const start = currentPage * pageSize + 1;
+            const end = Math.min((currentPage + 1) * pageSize, totalResults);
+            
+            document.getElementById('pagination-info').textContent = 
+                `Showing ${start}-${end} of ${totalResults} results`;
+            
+            document.getElementById('prev-btn').disabled = currentPage === 0;
+            document.getElementById('next-btn').disabled = end >= totalResults;
+        }
+
+        function previousPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                loadHistory();
+            }
+        }
+
+        function nextPage() {
+            if ((currentPage + 1) * pageSize < totalResults) {
+                currentPage++;
+                loadHistory();
+            }
+        }
+
+        function viewDetails(verificationId) {
+            // TODO: Implement details modal or redirect
+            alert(`View details for verification: ${verificationId}`);
+        }
+
+        async function exportHistory() {
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Build query params
+                const params = new URLSearchParams(currentFilters);
+                
+                const response = await fetch(`/api/verify/history/export?${params}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `namaskah_history_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    const data = await response.json();
+                    alert('Export failed: ' + (data.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        // Load history on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadHistory();
+        });
+    </script>
+</body>
+</html>

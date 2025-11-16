@@ -42,10 +42,15 @@ venv/
 .idea/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 
 # OS
 .DS_Store
 Thumbs.db
+.AppleDouble
+.LSOverride
+desktop.ini
 
 # Node
 node_modules/
@@ -61,7 +66,36 @@ coverage.xml
 
 # Pytest
 .pytest_cache/
+.mypy_cache/
 
 # Backup files
 *.bak
 *.backup
+*.tmp
+*.temp
+*~
+
+# Build artifacts
+.eggs/
+
+# Cache
+.cache/
+
+# Server logs
+unicorn.log
+
+# Database backups
+*.sql
+*.sql.gz
+
+# Certificates
+certs/
+*.pem
+*.key
+*.crt
+
+# Docker
+.dockerignore
+
+# Documentation build
+docs/_build/

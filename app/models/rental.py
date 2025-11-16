@@ -1,5 +1,6 @@
 """Rental model for SMS number rentals."""
-from sqlalchemy import Column, DateTime, Integer, Numeric, String
+from datetime import datetime, timezone
+from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String
 from sqlalchemy.sql import func
 
 from app.models.base import BaseModel
@@ -18,6 +19,8 @@ class Rental(BaseModel):
     status = Column(String(20), default="active")
     cost = Column(Numeric(10, 4), nullable=False)
     duration_hours = Column(Integer, default=24)
+    auto_extend = Column(Boolean, default=False)
+    renewal_fee = Column(Numeric(10, 4), default=5.00)
 
     @property
     def time_remaining_seconds(self) -> int:

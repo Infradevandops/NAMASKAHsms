@@ -30,7 +30,7 @@ function displayActiveRentals() {
     if (!container) return;
     
     if (activeRentals.length === 0) {
-        container.textContent = '<p class="text-gray-500">No active rentals</p>';  // XSS Fix: Use textContent instead of innerHTML
+        container.innerHTML = '<p class="text-gray-500">No active rentals</p>';
         return;
     }
     

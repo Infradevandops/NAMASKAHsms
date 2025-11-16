@@ -6,6 +6,7 @@ from typing import Dict, Optional, Tuple
 from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
+from app.core.config import settings
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
@@ -14,13 +15,14 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        default_requests: int = 100,
-        default_window: int = 3600,  # 1 hour
+        default_requests: int = None,
+        default_window: int = None,  # 1 hour
         endpoint_limits: Optional[Dict[str, Tuple[int, int]]] = None,
     ):
         super().__init__(app)
-        self.default_requests = default_requests
-        self.default_window = default_window
+        # Use configured defaults if not explicitly provided
+        self.default_requests = default_requests or settings.rate_limit_requests
+        self.default_window = default_window or settings.rate_limit_window
         self.endpoint_limits = endpoint_limits or {}
 
         # Storage for rate limit data

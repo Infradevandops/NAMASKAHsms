@@ -86,7 +86,7 @@ async function loadWebhooks() {
             const list = document.getElementById('webhooks-list');
             
             if (data.webhooks.length === 0) {
-                list.textContent = '<p style="color: #6b7280;  // XSS Fix: Use textContent instead of innerHTML">No webhooks configured.</p>';
+                list.innerHTML = '<p style="color: #6b7280;">No webhooks configured.</p>';
             } else {
                 list.textContent = data.webhooks.map(w => `
                     <div style="background: #f9fafb;  // XSS Fix: Use textContent instead of innerHTML padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
@@ -157,7 +157,7 @@ async function loadAnalytics() {
             
             const popularList = document.getElementById('popular-services');
             if (data.popular_services.length === 0) {
-                popularList.textContent = '<p style="color: #6b7280;  // XSS Fix: Use textContent instead of innerHTML">No data yet. Start verifying!</p>';
+                popularList.innerHTML = '<p style="color: #6b7280;">No data yet. Start verifying!</p>';
             } else {
                 popularList.textContent = data.popular_services.map((s, i) => `
                     <div style="display: flex;  // XSS Fix: Use textContent instead of innerHTML justify-content: space-between; align-items: center; padding: 10px; background: white; border-radius: 6px; margin-bottom: 8px;">

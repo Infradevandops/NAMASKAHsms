@@ -15,6 +15,9 @@ class VerificationCreate(BaseModel):
     capability: str = Field(
         default="sms", description="Verification type: sms or voice"
     )
+    operator: Optional[str] = Field(default="any", description="Network operator (any or specific)")
+    pricing_tier: Optional[str] = Field(default="standard", description="Pricing tier: standard or premium")
+    reuse: Optional[bool] = Field(default=False, description="Reuse number if possible (may save cost)")
     area_code: Optional[str] = Field(None, description="Preferred area code (+$4)")
     carrier: Optional[str] = Field(None, description="Preferred carrier (+$6)")
 
@@ -26,9 +29,11 @@ class VerificationCreate(BaseModel):
 
     @validator("country")
     def validate_country(cls, v):
-        if not v or len(v) != 2:
-            raise ValueError("Country must be a 2-letter code")
-        return v.upper()
+        if not v:
+            raise ValueError("Country cannot be empty")
+        # Accept both 2-letter codes (US) and full names (usa, england)
+        # Convert to lowercase for consistency with 5SIM API
+        return v.lower()
 
     @validator("service_name")
     def validate_service_name(cls, v):
@@ -36,6 +41,17 @@ class VerificationCreate(BaseModel):
         if not v or len(v.strip()) == 0:
             raise ValueError("Service name cannot be empty")
         return v.lower().strip()
+    
+    @validator("pricing_tier")
+    def validate_pricing_tier(cls, v):
+        if v and v not in ["standard", "premium"]:
+            raise ValueError("Pricing tier must be standard or premium")
+        return v or "standard"
+    
+    @validator("operator")
+    def validate_operator(cls, v):
+        # Accept any operator name, default to "any"
+        return v or "any"
 
     model_config = {
         "json_schema_extra": {
@@ -43,6 +59,9 @@ class VerificationCreate(BaseModel):
                 "service_name": "telegram",
                 "country": "US",
                 "capability": "sms",
+                "operator": "any",
+                "pricing_tier": "standard",
+                "reuse": False,
                 "area_code": "212",
                 "carrier": "verizon",
             }

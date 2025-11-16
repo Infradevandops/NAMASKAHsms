@@ -433,6 +433,29 @@ async def contact_page(request: Request):
         )
 
 
+@root_router.get("/faq", response_class=HTMLResponse)
+async def faq_page(request: Request):
+    """FAQ page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request, "service_name": "Namaskah SMS"}
+        return templates.TemplateResponse("faq.html", context)
+    except Exception:
+        return HTMLResponse(
+            content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>FAQ - Namaskah SMS</title></head>
+        <body>
+            <h1>Frequently Asked Questions</h1>
+            <p>Find answers to common questions about Namaskah SMS.</p>
+            <a href="/">← Back to Home</a>
+        </body>
+        </html>
+        """
+        )
+
+
 @root_router.get("/admin", response_class=HTMLResponse)
 async def admin_page(request: Request):
     """Admin dashboard page."""
@@ -512,3 +535,58 @@ async def admin_page(request: Request):
         </html>
         """
         )
+
+
+@root_router.get("/status", response_class=HTMLResponse)
+async def status_page(request: Request):
+    """Service status page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request}
+        return templates.TemplateResponse("status.html", context)
+    except Exception:
+        return HTMLResponse(content="<h1>Status page unavailable</h1>")
+
+
+@root_router.get("/privacy", response_class=HTMLResponse)
+async def privacy_page(request: Request):
+    """Privacy policy page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request}
+        return templates.TemplateResponse("privacy.html", context)
+    except Exception:
+        return HTMLResponse(content="<h1>Privacy policy unavailable</h1>")
+
+
+@root_router.get("/terms", response_class=HTMLResponse)
+async def terms_page(request: Request):
+    """Terms of service page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request}
+        return templates.TemplateResponse("terms.html", context)
+    except Exception:
+        return HTMLResponse(content="<h1>Terms of service unavailable</h1>")
+
+
+@root_router.get("/refund", response_class=HTMLResponse)
+async def refund_page(request: Request):
+    """Refund policy page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request}
+        return templates.TemplateResponse("refund.html", context)
+    except Exception:
+        return HTMLResponse(content="<h1>Refund policy unavailable</h1>")
+
+
+@root_router.get("/cookies", response_class=HTMLResponse)
+async def cookies_page(request: Request):
+    """Cookie policy page."""
+    try:
+        templates = Jinja2Templates(directory="templates")
+        context = {"request": request}
+        return templates.TemplateResponse("cookies.html", context)
+    except Exception:
+        return HTMLResponse(content="<h1>Cookie policy unavailable</h1>")

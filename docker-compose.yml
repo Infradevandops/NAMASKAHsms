@@ -8,9 +8,9 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/namaskah
-      - REDIS_URL=redis://redis:6379
-      - ENVIRONMENT=production
+      # All secrets removed by request - provide via environment or .env file
+      # DATABASE_URL, REDIS_URL, and other secrets must be set in CI/CD or via docker-compose override
+      ENVIRONMENT: production
     depends_on:
       - db
       - redis

@@ -38,6 +38,15 @@ def validate_phone_number(phone: str, region: Optional[str] = None) -> Dict[str,
         }
 
 
+def validate_phone(phone: str, region: Optional[str] = None) -> bool:
+    """Backward-compatible boolean phone validator used by tests and callers.
+
+    Returns True when the phone is a valid number, False otherwise.
+    """
+    result = validate_phone_number(phone, region)
+    return bool(result.get("is_valid"))
+
+
 def validate_url(url: str) -> bool:
     """Validate URL format."""
     try:

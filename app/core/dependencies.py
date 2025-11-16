@@ -15,9 +15,10 @@ def get_current_user_id(
 ) -> str:
     """Get current user ID from JWT token."""
     try:
+        # Use secret_key instead of jwt_secret_key for consistency
         payload = jwt.decode(
             credentials.credentials,
-            settings.jwt_secret_key,
+            settings.secret_key,
             algorithms=[settings.jwt_algorithm],
         )
         user_id = payload.get("user_id")

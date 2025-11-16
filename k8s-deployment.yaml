@@ -39,15 +39,10 @@ kind: Secret
 metadata:
   name: namaskah-secrets
   namespace: namaskah-prod
-type: Opaque
 stringData:
-  SECRET_KEY: "REQUIRED_GENERATE_32_CHAR_SECRET_KEY"
-  JWT_SECRET_KEY: "REQUIRED_GENERATE_32_CHAR_JWT_SECRET_KEY"
-  DATABASE_URL: "postgresql://namaskah_user:REQUIRED_STRONG_DB_PASSWORD@postgres-service:5432/namaskah_prod?sslmode=require"
-  REDIS_URL: "redis://redis-service:6379/0"
+  # TextVerified API Key only (others removed by request)
   TEXTVERIFIED_API_KEY: "REQUIRED_YOUR_TEXTVERIFIED_API_KEY"
-  PAYSTACK_SECRET_KEY: "sk_live_REQUIRED_YOUR_PAYSTACK_LIVE_SECRET"
-  PAYSTACK_PUBLIC_KEY: "pk_live_REQUIRED_YOUR_PAYSTACK_LIVE_PUBLIC"
+  # Other secrets should be provided via your secure secret store or CI/CD pipeline
 
 ---
 # PostgreSQL Deployment

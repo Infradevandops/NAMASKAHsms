@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Verification - Namaskah</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --border: #475569;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            width: 100%;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .balance {
+            text-align: right;
+        }
+        
+        .balance-amount {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+        }
+        
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+        
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-input);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .step-number.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .step-number.completed {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .step-line {
+            flex: 1;
+            height: 2px;
+            background: var(--bg-input);
+            margin: 0 16px;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--bg-input);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+        
+        .service-card, .country-card {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .service-card:hover, .country-card:hover {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .service-card.selected, .country-card.selected {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        
+        .btn-success {
+            background: var(--secondary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        .phone-display {
+            background: var(--bg-input);
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 24px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 700;
+        }
+        
+        .sms-display {
+            background: var(--bg-dark);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 120px;
+        }
+        
+        .code-display {
+            background: var(--secondary);
+            color: white;
+            padding: 16px;
+            border-radius: 8px;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid var(--border);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tier-card {
+            background: var(--bg-input);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tier-card:hover {
+            border-color: var(--primary);
+        }
+        
+        .tier-card.selected {
+            border-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px;
+            }
+            .header-content {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div>
+                    <h1>📱 SMS Verification</h1>
+                    <p>Fast, reliable phone verification</p>
+                </div>
+                <div class="balance">
+                    <div class="balance-amount">$<span id="balance">0.00</span></div>
+                    <div>Balance</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Steps -->
+        <div class="card">
+            <div class="progress-steps">
+                <div class="step">
+                    <div class="step-number active" id="step-indicator-1">1</div>
+                    <span>Service</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number" id="step-indicator-2">2</div>
+                    <span>Country</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number" id="step-indicator-3">3</div>
+                    <span>Options</span>
+                </div>
+                <div class="step-line"></div>
+                <div class="step">
+                    <div class="step-number" id="step-indicator-4">4</div>
+                    <span>Verify</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 1: Service Selection -->
+        <div class="card" id="step-1">
+            <h2>Select Service</h2>
+            <input type="text" class="search-input" id="service-search" placeholder="Search services (WhatsApp, Telegram, Google...)">
+            <div class="grid" id="services-grid"></div>
+        </div>
+
+        <!-- Step 2: Country Selection -->
+        <div class="card hidden" id="step-2">
+            <h2>Select Country</h2>
+            <button class="btn btn-primary" onclick="goBack(1)" style="margin-bottom: 16px;">← Back</button>
+            <input type="text" class="search-input" id="country-search" placeholder="Search countries...">
+            <div class="grid" id="countries-grid"></div>
+        </div>
+
+        <!-- Step 3: Options -->
+        <div class="card hidden" id="step-3">
+            <h2>Verification Options</h2>
+            <button class="btn btn-primary" onclick="goBack(2)" style="margin-bottom: 16px;">← Back</button>
+            
+            <h3 style="margin: 20px 0 12px;">Delivery Speed</h3>
+            <div class="grid">
+                <div class="tier-card selected" data-tier="standard" onclick="selectTier('standard')">
+                    <h4>⚡ Standard</h4>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--primary); margin: 8px 0;">
+                        $<span id="standard-price">0.15</span>
+                    </div>
+                    <p style="color: var(--text-secondary);">5-15 minutes delivery</p>
+                </div>
+                <div class="tier-card" data-tier="premium" onclick="selectTier('premium')">
+                    <h4>🚀 Premium</h4>
+                    <div style="font-size: 24px; font-weight: 700; color: var(--warning); margin: 8px 0;">
+                        $<span id="premium-price">0.26</span>
+                    </div>
+                    <p style="color: var(--text-secondary);">30-60 seconds delivery</p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 24px; text-align: center;">
+                <button class="btn btn-success" onclick="startVerification()" style="padding: 16px 48px; font-size: 16px;">
+                    Start Verification
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: Verification Process -->
+        <div class="card hidden" id="step-4">
+            <h2>SMS Verification</h2>
+            
+            <div id="verification-status">
+                <div style="text-align: center; padding: 40px;">
+                    <div class="loading" style="width: 40px; height: 40px; border-width: 4px;"></div>
+                    <p style="margin-top: 16px;">Getting phone number...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedService = null;
+        let selectedCountry = null;
+        let selectedTier = 'standard';
+        let currentVerification = null;
+        let pollInterval = null;
+
+        const services = [
+            { id: 'telegram', name: 'Telegram', icon: '💬' },
+            { id: 'whatsapp', name: 'WhatsApp', icon: '📱' },
+            { id: 'google', name: 'Google', icon: '🔍' },
+            { id: 'facebook', name: 'Facebook', icon: '📘' },
+            { id: 'instagram', name: 'Instagram', icon: '📷' },
+            { id: 'discord', name: 'Discord', icon: '🎮' },
+            { id: 'twitter', name: 'Twitter', icon: '🐦' },
+            { id: 'tiktok', name: 'TikTok', icon: '🎵' }
+        ];
+
+        const countries = [
+            { code: 'usa', name: 'United States', flag: '🇺🇸', iso: 'US' },
+            { code: 'england', name: 'United Kingdom', flag: '🇬🇧', iso: 'GB' },
+            { code: 'canada', name: 'Canada', flag: '🇨🇦', iso: 'CA' },
+            { code: 'russia', name: 'Russia', flag: '🇷🇺', iso: 'RU' },
+            { code: 'india', name: 'India', flag: '🇮🇳', iso: 'IN' },
+            { code: 'germany', name: 'Germany', flag: '🇩🇪', iso: 'DE' },
+            { code: 'france', name: 'France', flag: '🇫🇷', iso: 'FR' },
+            { code: 'brazil', name: 'Brazil', flag: '🇧🇷', iso: 'BR' }
+        ];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is logged in
+            const token = localStorage.getItem('token');
+            if (!token) {
+                // Show login prompt
+                document.querySelector('.container').innerHTML = `
+                    <div class="card" style="text-align: center; padding: 60px 20px;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">🔒</div>
+                        <h2>Login Required</h2>
+                        <p style="margin: 16px 0; color: var(--text-secondary);">
+                            Please login to use SMS verification services
+                        </p>
+                        <button class="btn btn-primary" onclick="window.location.href='/auth/login'" 
+                                style="padding: 16px 48px; font-size: 16px; margin-top: 16px;">
+                            Go to Login
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            loadBalance();
+            renderServices();
+            setupSearch();
+        });
+
+        async function loadBalance() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+                
+                const response = await fetch('/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                document.getElementById('balance').textContent = (data.credits || 0).toFixed(2);
+            } catch (error) {
+                console.error('Failed to load balance:', error);
+            }
+        }
+
+        function renderServices() {
+            const grid = document.getElementById('services-grid');
+            grid.innerHTML = services.map(service => `
+                <div class="service-card" onclick="selectService('${service.id}')">
+                    <div style="font-size: 32px; margin-bottom: 8px;">${service.icon}</div>
+                    <div style="font-weight: 600; font-size: 18px;">${service.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderCountries() {
+            const grid = document.getElementById('countries-grid');
+            grid.innerHTML = countries.map(country => `
+                <div class="country-card" onclick="selectCountry('${country.code}')">
+                    <div style="font-size: 32px; margin-bottom: 8px;">${country.flag}</div>
+                    <div style="font-weight: 600;">${country.name}</div>
+                </div>
+            `).join('');
+        }
+
+        function setupSearch() {
+            document.getElementById('service-search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = services.filter(s => s.name.toLowerCase().includes(query));
+                const grid = document.getElementById('services-grid');
+                grid.innerHTML = filtered.map(service => `
+                    <div class="service-card" onclick="selectService('${service.id}')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">${service.icon}</div>
+                        <div style="font-weight: 600; font-size: 18px;">${service.name}</div>
+                    </div>
+                `).join('');
+            });
+
+            document.getElementById('country-search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = countries.filter(c => c.name.toLowerCase().includes(query));
+                const grid = document.getElementById('countries-grid');
+                grid.innerHTML = filtered.map(country => `
+                    <div class="country-card" onclick="selectCountry('${country.code}')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">${country.flag}</div>
+                        <div style="font-weight: 600;">${country.name}</div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function selectService(serviceId) {
+            selectedService = services.find(s => s.id === serviceId);
+            showStep(2);
+            renderCountries();
+        }
+
+        function selectCountry(countryCode) {
+            selectedCountry = countries.find(c => c.code === countryCode);
+            showStep(3);
+            updatePricing();
+        }
+
+        function selectTier(tier) {
+            selectedTier = tier;
+            document.querySelectorAll('.tier-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-tier="${tier}"]`).classList.add('selected');
+        }
+
+        function updatePricing() {
+            const basePrice = 0.15;
+            document.getElementById('standard-price').textContent = basePrice.toFixed(2);
+            document.getElementById('premium-price').textContent = (basePrice * 1.75).toFixed(2);
+        }
+
+        async function startVerification() {
+            showStep(4);
+            
+            try {
+                const token = localStorage.getItem('token');
+                
+                // Check if user is logged in
+                if (!token) {
+                    showError('Please login first. Redirecting...');
+                    setTimeout(() => {
+                        window.location.href = '/auth/login';
+                    }, 2000);
+                    return;
+                }
+                
+                const response = await fetch('/api/verify/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        service_name: selectedService.id,
+                        country: selectedCountry.code,
+                        pricing_tier: selectedTier,
+                        capability: 'sms'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentVerification = data;
+                    showPhoneNumber(data.phone_number);
+                    startPolling();
+                } else {
+                    // Better error messages
+                    let errorMsg = data.detail || 'Failed to create verification';
+                    
+                    if (response.status === 401) {
+                        errorMsg = 'Session expired. Please login again.';
+                        setTimeout(() => {
+                            window.location.href = '/auth/login';
+                        }, 2000);
+                    } else if (response.status === 404) {
+                        errorMsg = 'User not found. Please login again.';
+                        setTimeout(() => {
+                            window.location.href = '/auth/login';
+                        }, 2000);
+                    } else if (response.status === 402) {
+                        errorMsg = 'Insufficient credits. Please add credits to your account.';
+                    } else if (response.status === 503) {
+                        errorMsg = 'Service temporarily unavailable. Please try again or select a different country.';
+                    }
+                    
+                    showError(errorMsg);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            }
+        }
+
+        function showPhoneNumber(phone) {
+            document.getElementById('verification-status').innerHTML = `
+                <div class="phone-display">${phone}</div>
+                <p style="text-align: center; margin: 20px 0;">
+                    Use this number to verify your <strong>${selectedService.name}</strong> account
+                </p>
+                <div style="text-align: center; padding: 20px;">
+                    <div class="loading"></div>
+                    <p style="margin-top: 12px;">Waiting for SMS code...</p>
+                </div>
+            `;
+        }
+
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await fetch(`/api/verify/${currentVerification.id}/messages`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.messages && data.messages.length > 0) {
+                        clearInterval(pollInterval);
+                        showSMS(data.messages[0]);
+                    }
+                } catch (error) {
+                    console.error('Polling error:', error);
+                }
+            }, 3000);
+        }
+
+        function showSMS(message) {
+            const code = message.code || extractCode(message.text);
+            
+            document.getElementById('verification-status').innerHTML = `
+                <div style="text-align: center; margin: 20px 0;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">✅</div>
+                    <h3 style="color: var(--secondary);">SMS Received!</h3>
+                </div>
+                <div class="code-display">${code}</div>
+                <div class="sms-display">
+                    <strong>Full Message:</strong><br>
+                    ${message.text}
+                </div>
+                <div style="text-align: center;">
+                    <button class="btn btn-primary" onclick="location.reload()">New Verification</button>
+                </div>
+            `;
+            
+            // Auto-copy code
+            navigator.clipboard.writeText(code);
+        }
+
+        function extractCode(text) {
+            const match = text.match(/\b\d{4,8}\b/);
+            return match ? match[0] : text;
+        }
+
+        function showError(message) {
+            document.getElementById('verification-status').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">❌</div>
+                    <h3 style="color: var(--danger);">Error</h3>
+                    <p style="margin: 16px 0;">${message}</p>
+                    <button class="btn btn-primary" onclick="location.reload()">Try Again</button>
+                </div>
+            `;
+        }
+
+        function showStep(stepNumber) {
+            // Hide all steps
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+                document.getElementById(`step-indicator-${i}`).classList.remove('active', 'completed');
+            }
+            
+            // Show current step
+            document.getElementById(`step-${stepNumber}`).classList.remove('hidden');
+            document.getElementById(`step-indicator-${stepNumber}`).classList.add('active');
+            
+            // Mark previous steps as completed
+            for (let i = 1; i < stepNumber; i++) {
+                document.getElementById(`step-indicator-${i}`).classList.add('completed');
+            }
+        }
+
+        function goBack(stepNumber) {
+            showStep(stepNumber);
+        }
+    </script>
+</body>
+</html>

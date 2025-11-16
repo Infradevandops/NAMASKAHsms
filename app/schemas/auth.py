@@ -53,7 +53,7 @@ class UserResponse(BaseModel):
     free_verifications: float
     is_admin: bool
     email_verified: bool
-    referral_code: str
+    referral_code: Optional[str] = None
     created_at: datetime
     provider: Optional[str] = "email"
     avatar_url: Optional[str] = None

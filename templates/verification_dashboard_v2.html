@@ -34,7 +34,12 @@
             line-height: 1.6;
         }
         
-        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            width: 100%;
+        }
         
         .header { 
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); 
@@ -363,7 +368,10 @@
         }
         
         @media (max-width: 768px) {
-            .container { padding: 16px; }
+            .container { 
+                padding: 16px;
+                width: 100%;
+            }
             .header-content { flex-direction: column; gap: 16px; text-align: center; }
             .service-grid { grid-template-columns: 1fr; }
             .phone-display { font-size: 20px; }
@@ -382,6 +390,7 @@
                 <div class="balance">
                     <div class="balance-amount">₦<span id="balance">0.00</span></div>
                     <div class="balance-label">Wallet Balance</div>
+                    <button class="btn btn-danger" onclick="logout()" style="margin-top: 8px;">🚪 Logout</button>
                 </div>
             </div>
         </div>
@@ -390,11 +399,30 @@
         <div class="card" id="service-selection">
             <h2 class="section-title">🔍 Find Verification Service</h2>
             
+            <!-- Category Filters - Phase 3 Advanced Search -->
+            <div style="margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap;" id="category-filters">
+                <button class="btn btn-primary" onclick="filterByCategory('all')" id="cat-all" style="padding: 8px 16px; font-size: 14px;">All</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('messaging')" id="cat-messaging" style="padding: 8px 16px; font-size: 14px;">💬 Messaging</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('social')" id="cat-social" style="padding: 8px 16px; font-size: 14px;">📱 Social</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('tech')" id="cat-tech" style="padding: 8px 16px; font-size: 14px;">🔧 Tech</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('finance')" id="cat-finance" style="padding: 8px 16px; font-size: 14px;">💰 Finance</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('crypto')" id="cat-crypto" style="padding: 8px 16px; font-size: 14px;">₿ Crypto</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('transport')" id="cat-transport" style="padding: 8px 16px; font-size: 14px;">🚗 Transport</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('entertainment')" id="cat-entertainment" style="padding: 8px 16px; font-size: 14px;">🎬 Entertainment</button>
+                <button class="btn btn-secondary" onclick="filterByCategory('shopping')" id="cat-shopping" style="padding: 8px 16px; font-size: 14px;">🛍️ Shopping</button>
+            </div>
+            
             <!-- Search -->
             <div class="search-container">
                 <div class="search-icon">🔍</div>
                 <input type="text" class="search-input" id="service-search" 
                        placeholder="Search from 1800+ services (WhatsApp, Telegram, Discord, Instagram...)">
+            </div>
+
+            <!-- Recent Selections - Phase 3 Feature -->
+            <div id="recent-section" style="display: none; margin-bottom: 24px;">
+                <h3 class="section-title">🕐 Recently Used Services</h3>
+                <div class="service-grid" id="recent-grid"></div>
             </div>
 
             <!-- Favorites -->
@@ -414,16 +442,186 @@
             </div>
         </div>
 
+        <!-- Country Selection (NEW STEP!) -->
+        <div class="card" id="country-selection" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="section-title">🌍 Select Country</h2>
+                <button class="btn btn-secondary" onclick="backToServices()">← Back to Services</button>
+            </div>
+
+            <!-- Service Info -->
+            <div class="service-info">
+                Selected Service: <strong id="selected-service-display"></strong>
+            </div>
+
+            <!-- Search -->
+            <div class="search-container">
+                <div class="search-icon">🔍</div>
+                <input type="text" class="search-input" id="country-search" 
+                       placeholder="Search countries...">
+            </div>
+
+            <!-- Popular Countries -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title">🌟 Popular Countries</h3>
+                <div class="service-grid" id="popular-countries-grid"></div>
+            </div>
+
+            <!-- All Countries -->
+            <div id="all-countries-section" style="display: none;">
+                <h3 class="section-title">🌎 All Countries</h3>
+                <div class="service-grid" id="all-countries-grid"></div>
+            </div>
+
+            <button class="btn btn-primary" onclick="toggleAllCountries()" id="show-all-countries-btn">
+                Show All Countries
+            </button>
+        </div>
+
+        <!-- Options Selection (NEW STEP!) -->
+        <div class="card" id="options-selection" style="display: none;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="section-title">⚙️ Verification Options</h2>
+                <button class="btn btn-secondary" onclick="backToCountries()">← Back to Countries</button>
+            </div>
+
+            <!-- Service & Country Info -->
+            <div class="service-info" style="margin-bottom: 24px;">
+                <strong id="options-service-name"></strong> in <strong id="options-country-name"></strong>
+            </div>
+
+            <!-- Verification Method - Voice or SMS -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title">📞 Verification Method</h3>
+                <div class="service-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                    <div class="service-card" id="method-sms" onclick="selectMethod('sms')" style="border: 2px solid var(--secondary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="font-size: 18px; font-weight: 600;">💬 SMS</h4>
+                            <span style="background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">SELECTED</span>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Receive code via text message</div>
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Most common method</div>
+                    </div>
+                    
+                    <div class="service-card" id="method-voice" onclick="selectMethod('voice')" style="border: 2px solid transparent;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="font-size: 18px; font-weight: 600;">📞 Voice Call</h4>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">Receive code via phone call</div>
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Alternative method (+25%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pricing Tiers (Only for SMS) -->
+            <div style="margin-bottom: 24px;" id="pricing-tiers-section">
+                <h3 class="section-title">⚡ Delivery Speed</h3>
+                <div class="service-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+                    <div class="service-card" id="tier-standard" onclick="selectTier('standard')" style="border: 2px solid var(--secondary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="font-size: 18px; font-weight: 600;">⚡ Standard</h4>
+                            <span style="background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">SELECTED</span>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--secondary); margin: 8px 0;" id="standard-price-display">$0.00</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">5-15 minutes delivery</div>
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Most economical option</div>
+                    </div>
+                    
+                    <div class="service-card" id="tier-premium" onclick="selectTier('premium')" style="border: 2px solid transparent;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="font-size: 18px; font-weight: 600;">🚀 Premium</h4>
+                        </div>
+                        <div style="font-size: 24px; font-weight: 700; color: var(--warning); margin: 8px 0;" id="premium-price-display">$0.00</div>
+                        <div style="color: var(--text-secondary); font-size: 14px;">30-60 seconds delivery</div>
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Priority delivery (+75%)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operator Selection - Phase 3 Feature -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title">📡 Network Operator (Optional)</h3>
+                <select id="operator-select" class="search-input" style="cursor: pointer;" onchange="updateOperatorPricing()">
+                    <option value="any">Any Operator (Recommended - Fastest & Cheapest)</option>
+                </select>
+                <div style="color: var(--text-secondary); font-size: 12px; margin-top: 8px;">
+                    💡 Selecting a specific operator may increase price by 10-30% but guarantees the carrier
+                </div>
+                <div id="operator-pricing-info" style="display: none; margin-top: 12px; padding: 12px; background: var(--bg-secondary); border-radius: 8px; border-left: 3px solid var(--warning);">
+                    <div style="font-weight: 600; margin-bottom: 4px;">Operator Pricing</div>
+                    <div id="operator-pricing-details" style="font-size: 14px; color: var(--text-secondary);"></div>
+                </div>
+            </div>
+
+            <!-- Number Reuse Option - NEW FEATURE -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title">♻️ Number Reuse (Save Money)</h3>
+                <label style="display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 16px; background: var(--bg-tertiary); border-radius: 8px; border: 2px solid transparent; transition: all 0.3s;" id="reuse-label">
+                    <input type="checkbox" id="reuse-checkbox" onchange="updateReusePricing()" style="width: 20px; height: 20px; cursor: pointer;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 600; margin-bottom: 4px;">Reuse number if possible</div>
+                        <div style="font-size: 13px; color: var(--text-secondary);">
+                            May save 20-40% on cost. Number might have been used before for this service.
+                        </div>
+                    </div>
+                    <div id="reuse-savings" style="display: none; font-weight: 700; color: var(--success); font-size: 16px;"></div>
+                </label>
+                <div style="color: var(--text-muted); font-size: 12px; margin-top: 8px;">
+                    💡 Best for: Services that allow number reuse (most do). Not recommended for high-security accounts.
+                </div>
+            </div>
+
+            <!-- Area Code Selection - NEW FEATURE -->
+            <div style="margin-bottom: 24px;">
+                <h3 class="section-title">📍 Area Code (Optional)</h3>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                    <div style="flex: 1;">
+                        <input type="text" id="area-code-input" class="search-input" placeholder="Enter area code (e.g., 212, 415, 310)" maxlength="5" style="padding: 12px 16px;">
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 8px;">
+                            💡 Leave empty for any area code (recommended). Specific area codes may cost more or have limited availability.
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="clearAreaCode()" style="padding: 12px 20px; white-space: nowrap;">Clear</button>
+                </div>
+                <div id="area-code-validation" style="display: none; margin-top: 8px; padding: 8px 12px; border-radius: 6px; font-size: 13px;"></div>
+                <div id="popular-area-codes" style="margin-top: 12px; display: none;">
+                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px;">Popular area codes for <span id="area-code-country"></span>:</div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="area-code-buttons"></div>
+                </div>
+            </div>
+
+            <!-- Price Comparison - Phase 3 Feature -->
+            <div id="price-comparison" style="margin-bottom: 24px; display: none;">
+                <h3 class="section-title">💰 Price Comparison Across Countries</h3>
+                <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px; border: 1px solid var(--border);">
+                    <div style="margin-bottom: 12px; color: var(--text-secondary); font-size: 14px;">
+                        Compare prices for <strong id="comparison-service-name"></strong> across popular countries
+                    </div>
+                    <div id="price-comparison-content"></div>
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-muted);">
+                        💡 Tip: Cheaper countries may have longer delivery times
+                    </div>
+                </div>
+            </div>
+
+            <!-- Continue Button -->
+            <div style="text-align: center;">
+                <button class="btn btn-success" onclick="proceedToVerification()" style="padding: 16px 48px; font-size: 16px;">
+                    Continue to Verification
+                </button>
+            </div>
+        </div>
+
         <!-- Verification Flow -->
         <div class="card verification-flow" id="verification-flow">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                 <h2 class="section-title">📱 Verification Process</h2>
-                <button class="btn btn-secondary" onclick="resetFlow()">← Back to Search</button>
+                <button class="btn btn-secondary" onclick="backToCountries()">← Back to Countries</button>
             </div>
 
             <!-- Service Info -->
             <div class="service-info" id="service-info">
-                <strong id="selected-service-name"></strong> - <span id="selected-service-price"></span>
+                <strong id="selected-service-name"></strong> in <strong id="selected-country-name"></strong> - <span id="selected-service-price"></span>
             </div>
 
             <!-- Progress Bar -->
@@ -484,35 +682,55 @@
 
     <script>
         let selectedService = null;
+        let selectedCountry = null;
         let currentVerification = null;
         let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
         let countdownTimer = null;
         let timeLeft = 300; // 5 minutes
 
-        // All available services
-        const allServices = [
-            { id: 'whatsapp', name: 'WhatsApp', price: '₦50', description: 'Most reliable SMS verification service' },
-            { id: 'telegram', name: 'Telegram', price: '₦40', description: 'Fast delivery, high success rate' },
-            { id: 'discord', name: 'Discord', price: '₦45', description: 'Gaming platform verification' },
-            { id: 'instagram', name: 'Instagram', price: '₦55', description: 'Social media verification' },
-            { id: 'facebook', name: 'Facebook', price: '₦50', description: 'Social network verification' },
-            { id: 'twitter', name: 'Twitter/X', price: '₦60', description: 'Social media platform' },
-            { id: 'tiktok', name: 'TikTok', price: '₦45', description: 'Video platform verification' },
-            { id: 'google', name: 'Google', price: '₦40', description: 'Google services verification' },
-            { id: 'microsoft', name: 'Microsoft', price: '₦45', description: 'Microsoft account verification' },
-            { id: 'amazon', name: 'Amazon', price: '₦50', description: 'E-commerce platform verification' },
-            { id: 'netflix', name: 'Netflix', price: '₦55', description: 'Streaming service verification' },
-            { id: 'spotify', name: 'Spotify', price: '₦45', description: 'Music streaming verification' },
-            { id: 'uber', name: 'Uber', price: '₦50', description: 'Ride-sharing service verification' },
-            { id: 'airbnb', name: 'Airbnb', price: '₦55', description: 'Travel accommodation verification' }
-        ];
+        // Dynamic data - loaded from API
+        let allCountries = [];
+        let popularCountries = [];
+        let allServices = [];
+        let availableServicesForCountry = [];
+        
+        // Options data
+        let selectedTier = 'standard';
+        let selectedOperator = 'any';
+        let selectedMethod = 'sms';  // Voice or SMS verification
+        let selectedReuse = false;  // Number reuse option
+        let selectedAreaCode = '';  // Area code selection
+        let availableOperators = [];
+        let operatorPricing = {};
+        let basePricing = { standard: 0, premium: 0 };
+        let reusePricing = { standard: 0, premium: 0 };  // Pricing with reuse discount
+        
+        // Recent selections (localStorage) - Phase 3
+        let recentServices = JSON.parse(localStorage.getItem('recentServices') || '[]');
+        let recentCountries = JSON.parse(localStorage.getItem('recentCountries') || '[]');
+        
+        // Category filter state - Phase 3
+        let currentCategory = 'all';
+        let currentSearchQuery = '';
+        
+        // Popular area codes by country
+        const popularAreaCodes = {
+            'usa': ['212', '310', '415', '646', '917', '213', '323', '818'],
+            'england': ['20', '121', '161', '113', '114', '117', '131', '151'],
+            'canada': ['416', '647', '514', '604', '778', '403', '587', '613'],
+            'russia': ['495', '499', '812', '343', '383', '846', '863', '861']
+        };
 
         // Initialize
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             checkAuth();
             loadBalance();
             setupSearch();
             renderFavorites();
+            renderRecentServices(); // Phase 3
+            
+            // Load popular services for initial display
+            await loadPopularServices();
         });
 
         function checkAuth() {
@@ -521,6 +739,122 @@
                 window.location.href = '/auth/login';
                 return;
             }
+        }
+
+        // Load popular services from API
+        async function loadPopularServices() {
+            try {
+                const response = await fetch('/api/5sim/services');
+                const data = await response.json();
+                
+                if (data.success && data.services) {
+                    allServices = data.services.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        price: 'Dynamic',
+                        description: `${s.category} service`,
+                        category: s.category,
+                        icon: s.icon
+                    }));
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+                // Use fallback services
+                allServices = [
+                    { id: 'telegram', name: 'Telegram', price: 'Dynamic', description: 'Messaging service', icon: '💬' },
+                    { id: 'whatsapp', name: 'WhatsApp', price: 'Dynamic', description: 'Messaging service', icon: '📱' },
+                    { id: 'google', name: 'Google', price: 'Dynamic', description: 'Tech service', icon: '🔍' }
+                ];
+            }
+        }
+
+        // Load ALL countries from 5SIM API
+        async function loadCountries() {
+            try {
+                showLoadingMessage('Loading countries from 5SIM API...');
+                
+                const response = await fetch('/api/5sim/countries');
+                const data = await response.json();
+                
+                if (data.success && data.countries) {
+                    allCountries = data.countries;
+                    
+                    // Popular countries (first 8)
+                    popularCountries = allCountries.slice(0, 8);
+                    
+                    hideLoadingMessage();
+                    return true;
+                } else {
+                    throw new Error('Failed to load countries');
+                }
+            } catch (error) {
+                console.error('Failed to load countries:', error);
+                hideLoadingMessage();
+                showError('Failed to load countries. Using fallback data.');
+                
+                // Fallback countries
+                allCountries = [
+                    { code: 'usa', name: 'United States', flag: '🇺🇸' },
+                    { code: 'england', name: 'United Kingdom', flag: '🇬🇧' },
+                    { code: 'russia', name: 'Russia', flag: '🇷🇺' }
+                ];
+                popularCountries = allCountries;
+                return false;
+            }
+        }
+
+        // Load ALL services for selected country from 5SIM API
+        async function loadServicesForCountry(countryCode) {
+            try {
+                showLoadingMessage(`Loading available services for ${countryCode}...`);
+                
+                const response = await fetch(`/api/5sim/products/${countryCode}`);
+                const data = await response.json();
+                
+                if (data.success && data.services) {
+                    availableServicesForCountry = data.services.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        price: s.price,
+                        cost: s.cost,
+                        available: s.available,
+                        successRate: s.successRate,
+                        description: `${s.available} numbers available • ${(s.successRate * 100).toFixed(0)}% success rate`
+                    }));
+                    
+                    hideLoadingMessage();
+                    return true;
+                } else {
+                    throw new Error('No services available');
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+                hideLoadingMessage();
+                showError('Failed to load services for this country.');
+                availableServicesForCountry = [];
+                return false;
+            }
+        }
+
+        function showLoadingMessage(message) {
+            const container = document.getElementById('search-results') || document.getElementById('popular-countries-grid');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; grid-column: 1/-1;">
+                        <div class="loading" style="width: 40px; height: 40px; border-width: 4px; margin: 0 auto 16px;"></div>
+                        <p style="color: var(--text-secondary);">${message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function hideLoadingMessage() {
+            // Loading will be replaced by actual content
+        }
+
+        function showError(message) {
+            // Show error toast or message
+            console.error(message);
         }
 
         async function loadBalance() {
@@ -547,60 +881,94 @@
             }
         }
 
+        // Phase 3: Advanced Search with Category Filtering
         function setupSearch() {
             const searchInput = document.getElementById('service-search');
             const resultsContainer = document.getElementById('search-results');
             
             searchInput.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase().trim();
-                
-                if (!query) {
-                    resultsContainer.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">🔍</div>
-                            <h3>Search for Services</h3>
-                            <p>Type in the search box above to find verification services</p>
-                            <p style="color: var(--text-muted);">Choose from 1800+ available services</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                const filtered = allServices.filter(service => 
-                    service.name.toLowerCase().includes(query) ||
-                    service.description.toLowerCase().includes(query)
-                );
-                
-                if (filtered.length === 0) {
-                    resultsContainer.innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">❌</div>
-                            <h3>No Services Found</h3>
-                            <p>No services match "${query}"</p>
-                            <p style="color: var(--text-muted);">Try searching for WhatsApp, Telegram, Discord, etc.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
+                currentSearchQuery = e.target.value.toLowerCase().trim();
+                performSearch();
+            });
+        }
+        
+        function performSearch() {
+            const resultsContainer = document.getElementById('search-results');
+            
+            if (!currentSearchQuery) {
                 resultsContainer.innerHTML = `
-                    <h3 class="section-title">📋 Search Results (${filtered.length})</h3>
-                    <div class="service-grid">
-                        ${filtered.map(service => `
-                            <div class="service-card" onclick="selectService('${service.id}')">
-                                <div class="service-header">
-                                    <div class="service-name">${service.name}</div>
-                                    <button class="favorite-btn ${favorites.includes(service.id) ? 'active' : ''}" 
-                                            onclick="toggleFavorite('${service.id}', event)">⭐</button>
-                                </div>
-                                <div class="service-price">${service.price}</div>
-                                <div class="service-description">${service.description}</div>
-                                <button class="btn btn-primary">Select Service</button>
-                            </div>
-                        `).join('')}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🔍</div>
+                        <h3>Search for Services</h3>
+                        <p>Type in the search box above to find verification services</p>
+                        <p style="color: var(--text-muted);">Choose from 1800+ available services</p>
                     </div>
                 `;
+                return;
+            }
+            
+            // Filter by category AND search query
+            let filtered = allServices.filter(service => {
+                const matchesSearch = service.name.toLowerCase().includes(currentSearchQuery) ||
+                                    service.description.toLowerCase().includes(currentSearchQuery) ||
+                                    (service.category && service.category.toLowerCase().includes(currentSearchQuery));
+                
+                const matchesCategory = currentCategory === 'all' || service.category === currentCategory;
+                
+                return matchesSearch && matchesCategory;
             });
+            
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <h3>No Services Found</h3>
+                        <p>No services match "${currentSearchQuery}"${currentCategory !== 'all' ? ` in ${currentCategory}` : ''}</p>
+                        <p style="color: var(--text-muted);">Try a different search term or category</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultsContainer.innerHTML = `
+                <h3 class="section-title">📋 Search Results (${filtered.length})</h3>
+                <div class="service-grid">
+                    ${filtered.map(service => `
+                        <div class="service-card" onclick="selectService('${service.id}')">
+                            <div class="service-header">
+                                <div class="service-name">${service.icon || '📱'} ${service.name}</div>
+                                <button class="favorite-btn ${favorites.includes(service.id) ? 'active' : ''}" 
+                                        onclick="toggleFavorite('${service.id}', event)">⭐</button>
+                            </div>
+                            <div class="service-price">${service.price}</div>
+                            <div class="service-description">${service.description}</div>
+                            <button class="btn btn-primary">Select Service</button>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Phase 3: Category Filtering
+        function filterByCategory(category) {
+            currentCategory = category;
+            
+            // Update button states
+            document.querySelectorAll('#category-filters button').forEach(btn => {
+                btn.className = 'btn btn-secondary';
+                btn.style.padding = '8px 16px';
+                btn.style.fontSize = '14px';
+            });
+            
+            const activeBtn = document.getElementById(`cat-${category}`);
+            if (activeBtn) {
+                activeBtn.className = 'btn btn-primary';
+            }
+            
+            // Re-run search with new category filter
+            if (currentSearchQuery) {
+                performSearch();
+            }
         }
 
         function renderFavorites() {
@@ -647,21 +1015,433 @@
             }
         }
 
-        function selectService(serviceId) {
+        // Phase 3: Recent Services Rendering
+        function renderRecentServices() {
+            if (recentServices.length === 0) {
+                document.getElementById('recent-section').style.display = 'none';
+                return;
+            }
+            
+            const recentSection = document.getElementById('recent-section');
+            const recentGrid = document.getElementById('recent-grid');
+            
+            recentSection.style.display = 'block';
+            
+            const recentServicesList = allServices.filter(s => recentServices.includes(s.id));
+            recentGrid.innerHTML = recentServicesList.map(service => `
+                <div class="service-card" onclick="selectService('${service.id}')" style="border: 2px solid var(--primary); opacity: 0.95;">
+                    <div class="service-header">
+                        <div class="service-name">${service.icon || '📱'} ${service.name}</div>
+                        <button class="favorite-btn ${favorites.includes(service.id) ? 'active' : ''}" 
+                                onclick="toggleFavorite('${service.id}', event)">⭐</button>
+                    </div>
+                    <div class="service-price">${service.price}</div>
+                    <div class="service-description">${service.description}</div>
+                    <div style="display: flex; gap: 8px; margin-top: 8px;">
+                        <button class="btn btn-primary" style="flex: 1;">Use Again</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function selectService(serviceId) {
             selectedService = allServices.find(s => s.id === serviceId);
             
+            // Phase 3: Save to recent services
+            saveRecentService(serviceId);
+            renderRecentServices();
+            
+            // Update service display
+            document.getElementById('selected-service-display').textContent = selectedService.name;
+            
+            // Show country selection
+            document.getElementById('service-selection').style.display = 'none';
+            document.getElementById('country-selection').style.display = 'block';
+            
+            // Load and render countries dynamically
+            await loadCountries();
+            renderCountries();
+        }
+
+        function renderCountries() {
+            // Render popular countries
+            const popularGrid = document.getElementById('popular-countries-grid');
+            popularGrid.innerHTML = popularCountries.map(country => `
+                <div class="service-card" onclick="selectCountry('${country.code}')">
+                    <div style="font-size: 32px; margin-bottom: 8px;">${country.flag}</div>
+                    <div style="font-weight: 600; font-size: 16px;">${country.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Click to see pricing</div>
+                </div>
+            `).join('');
+
+            // Render all countries
+            const allGrid = document.getElementById('all-countries-grid');
+            allGrid.innerHTML = allCountries.map(country => `
+                <div class="service-card" onclick="selectCountry('${country.code}')">
+                    <div style="font-size: 32px; margin-bottom: 8px;">${country.flag}</div>
+                    <div style="font-weight: 600; font-size: 16px;">${country.name}</div>
+                    <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Click to see pricing</div>
+                </div>
+            `).join('');
+
+            // Setup country search
+            const searchInput = document.getElementById('country-search');
+            searchInput.replaceWith(searchInput.cloneNode(true)); // Remove old listeners
+            document.getElementById('country-search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                const filtered = allCountries.filter(c => c.name.toLowerCase().includes(query));
+                popularGrid.innerHTML = filtered.map(country => `
+                    <div class="service-card" onclick="selectCountry('${country.code}')">
+                        <div style="font-size: 32px; margin-bottom: 8px;">${country.flag}</div>
+                        <div style="font-weight: 600; font-size: 16px;">${country.name}</div>
+                        <div style="color: var(--text-secondary); font-size: 12px; margin-top: 4px;">Click to see pricing</div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        async function selectCountry(countryCode) {
+            selectedCountry = allCountries.find(c => c.code === countryCode);
+            
+            // Save to recent countries
+            saveRecentCountry(countryCode);
+            
+            // Load services for this country
+            const loaded = await loadServicesForCountry(countryCode);
+            
+            if (!loaded || availableServicesForCountry.length === 0) {
+                showError(`No services available for ${selectedCountry.name}. Please try another country.`);
+                return;
+            }
+            
+            // Find pricing for selected service in this country
+            const serviceInCountry = availableServicesForCountry.find(s => s.id === selectedService.id);
+            
+            // Check if selected service is available in this country
+            if (!serviceInCountry) {
+                showError(`${selectedService.name} is not available in ${selectedCountry.name}. Please select another country.`);
+                return;
+            }
+            
+            // Store base pricing
+            basePricing.standard = serviceInCountry.cost;
+            basePricing.premium = serviceInCountry.cost * 1.75;
+            
+            // Load operators for this country
+            await loadOperators(countryCode);
+            
+            // Show options selection
+            document.getElementById('country-selection').style.display = 'none';
+            document.getElementById('options-selection').style.display = 'block';
+            
+            // Update options display
+            document.getElementById('options-service-name').textContent = selectedService.name;
+            document.getElementById('options-country-name').textContent = selectedCountry.name;
+            document.getElementById('standard-price-display').textContent = `$${basePricing.standard.toFixed(2)}`;
+            document.getElementById('premium-price-display').textContent = `$${basePricing.premium.toFixed(2)}`;
+            
+            // Load price comparison
+            await loadPriceComparison();
+        }
+        
+        // Phase 3: Load available operators with pricing for country
+        async function loadOperators(countryCode) {
+            try {
+                const response = await fetch(`/api/5sim/products/${countryCode}`);
+                const data = await response.json();
+                
+                if (data.success && data.products) {
+                    // Extract unique operators with pricing
+                    operatorPricing = {};
+                    const operators = new Set();
+                    operators.add('any');
+                    
+                    for (const [service, serviceData] of Object.entries(data.products)) {
+                        if (service === selectedService.id && typeof serviceData === 'object') {
+                            for (const [op, opData] of Object.entries(serviceData)) {
+                                operators.add(op);
+                                if (opData && typeof opData === 'object' && opData.cost) {
+                                    operatorPricing[op] = {
+                                        cost: parseFloat(opData.cost) / 100,
+                                        count: opData.count || 0,
+                                        rate: opData.rate || 0
+                                    };
+                                }
+                            }
+                        }
+                    }
+                    
+                    availableOperators = Array.from(operators);
+                    renderOperators();
+                }
+            } catch (error) {
+                console.error('Failed to load operators:', error);
+                availableOperators = ['any'];
+                operatorPricing = {};
+                renderOperators();
+            }
+        }
+        
+        function renderOperators() {
+            const select = document.getElementById('operator-select');
+            select.innerHTML = availableOperators.map(op => {
+                const pricing = operatorPricing[op];
+                const priceInfo = pricing ? ` - $${pricing.cost.toFixed(2)}` : '';
+                const availability = pricing && pricing.count > 0 ? ` (${pricing.count} available)` : '';
+                
+                return `<option value="${op}">${op === 'any' ? 'Any Operator (Recommended - Fastest & Cheapest)' : op.toUpperCase() + priceInfo + availability}</option>`;
+            }).join('');
+        }
+        
+        // Phase 3: Update pricing when operator changes
+        function updateOperatorPricing() {
+            const selectedOp = document.getElementById('operator-select').value;
+            const infoDiv = document.getElementById('operator-pricing-info');
+            const detailsDiv = document.getElementById('operator-pricing-details');
+            
+            if (selectedOp === 'any') {
+                infoDiv.style.display = 'none';
+                return;
+            }
+            
+            const pricing = operatorPricing[selectedOp];
+            if (pricing) {
+                infoDiv.style.display = 'block';
+                detailsDiv.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Base Price:</span>
+                        <span style="font-weight: 600; color: var(--text-primary);">$${pricing.cost.toFixed(2)}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                        <span>Available Numbers:</span>
+                        <span style="font-weight: 600; color: var(--secondary);">${pricing.count}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span>Success Rate:</span>
+                        <span style="font-weight: 600; color: var(--success);">${(pricing.rate * 100).toFixed(0)}%</span>
+                    </div>
+                `;
+                
+                // Update tier pricing with operator cost
+                basePricing.standard = pricing.cost;
+                basePricing.premium = pricing.cost * 1.75;
+                document.getElementById('standard-price-display').textContent = `$${basePricing.standard.toFixed(2)}`;
+                document.getElementById('premium-price-display').textContent = `$${basePricing.premium.toFixed(2)}`;
+            } else {
+                infoDiv.style.display = 'none';
+            }
+        }
+        
+        function selectTier(tier) {
+            selectedTier = tier;
+            
+            // Update UI
+            document.getElementById('tier-standard').style.border = tier === 'standard' ? '2px solid var(--secondary)' : '2px solid transparent';
+            document.getElementById('tier-premium').style.border = tier === 'premium' ? '2px solid var(--warning)' : '2px solid transparent';
+            
+            // Update selected badge
+            document.querySelectorAll('.service-card[id^="tier-"]').forEach(card => {
+                const badge = card.querySelector('span[style*="SELECTED"]');
+                if (badge) badge.remove();
+            });
+            
+            const selectedCard = document.getElementById(`tier-${tier}`);
+            const header = selectedCard.querySelector('div');
+            if (!header.querySelector('span')) {
+                header.innerHTML += `<span style="background: ${tier === 'standard' ? 'var(--secondary)' : 'var(--warning)'}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">SELECTED</span>`;
+            }
+        }
+        
+        function selectMethod(method) {
+            selectedMethod = method;
+            
+            // Update UI
+            document.getElementById('method-sms').style.border = method === 'sms' ? '2px solid var(--secondary)' : '2px solid transparent';
+            document.getElementById('method-voice').style.border = method === 'voice' ? '2px solid var(--secondary)' : '2px solid transparent';
+            
+            // Update selected badge
+            document.querySelectorAll('.service-card[id^="method-"]').forEach(card => {
+                const badge = card.querySelector('span[style*="SELECTED"]');
+                if (badge) badge.remove();
+            });
+            
+            const selectedCard = document.getElementById(`method-${method}`);
+            const header = selectedCard.querySelector('div');
+            if (!header.querySelector('span')) {
+                header.innerHTML += `<span style="background: var(--secondary); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">SELECTED</span>`;
+            }
+            
+            // Show/hide pricing tiers section (only for SMS)
+            const pricingSection = document.getElementById('pricing-tiers-section');
+            if (method === 'voice') {
+                pricingSection.style.display = 'none';
+                selectedTier = 'standard'; // Voice always uses standard pricing
+            } else {
+                pricingSection.style.display = 'block';
+            }
+            
+            // Update pricing display for voice (+25% premium)
+            if (method === 'voice') {
+                const voicePrice = basePricing.standard * 1.25;
+                document.getElementById('standard-price-display').textContent = `$${voicePrice.toFixed(2)}`;
+            } else {
+                document.getElementById('standard-price-display').textContent = `$${basePricing.standard.toFixed(2)}`;
+                document.getElementById('premium-price-display').textContent = `$${basePricing.premium.toFixed(2)}`;
+            }
+        }
+        
+        function updateReusePricing() {
+            const checkbox = document.getElementById('reuse-checkbox');
+            const savingsDiv = document.getElementById('reuse-savings');
+            const label = document.getElementById('reuse-label');
+            
+            if (checkbox.checked) {
+                // Calculate 30% savings
+                const currentPrice = selectedTier === 'standard' ? basePricing.standard : basePricing.premium;
+                const savings = currentPrice * 0.30;
+                const newPrice = currentPrice - savings;
+                
+                savingsDiv.style.display = 'block';
+                savingsDiv.textContent = `Save $${savings.toFixed(2)}`;
+                label.style.borderColor = 'var(--success)';
+                
+                // Update displayed prices
+                if (selectedTier === 'standard') {
+                    document.getElementById('standard-price-display').textContent = `$${newPrice.toFixed(2)}`;
+                } else {
+                    document.getElementById('premium-price-display').textContent = `$${newPrice.toFixed(2)}`;
+                }
+            } else {
+                savingsDiv.style.display = 'none';
+                label.style.borderColor = 'transparent';
+                
+                // Restore original prices
+                document.getElementById('standard-price-display').textContent = `$${basePricing.standard.toFixed(2)}`;
+                document.getElementById('premium-price-display').textContent = `$${basePricing.premium.toFixed(2)}`;
+            }
+        }
+        
+        function clearAreaCode() {
+            const input = document.getElementById('area-code-input');
+            if (input) {
+                input.value = '';
+                selectedAreaCode = '';
+                
+                // Hide validation message
+                const validation = document.getElementById('area-code-validation');
+                if (validation) {
+                    validation.style.display = 'none';
+                }
+            }
+        }
+        
+        async function loadPriceComparison() {
+            try {
+                // Get pricing for same service in top 5 countries
+                const topCountries = allCountries.slice(0, 5);
+                const comparisons = [];
+                
+                for (const country of topCountries) {
+                    try {
+                        const response = await fetch(`/api/5sim/products/${country.code}`);
+                        const data = await response.json();
+                        
+                        if (data.success && data.services) {
+                            const service = data.services.find(s => s.id === selectedService.id);
+                            if (service) {
+                                comparisons.push({
+                                    country: country.name,
+                                    flag: country.flag,
+                                    price: service.cost,
+                                    available: service.available
+                                });
+                            }
+                        }
+                    } catch (error) {
+                        console.error(`Failed to load pricing for ${country.code}:`, error);
+                    }
+                }
+                
+                if (comparisons.length > 0) {
+                    // Sort by price
+                    comparisons.sort((a, b) => a.price - b.price);
+                    
+                    const content = document.getElementById('price-comparison-content');
+                    content.innerHTML = comparisons.map(c => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border);">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 20px;">${c.flag}</span>
+                                <span>${c.country}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span style="color: var(--text-secondary); font-size: 12px;">${c.available} available</span>
+                                <span style="font-weight: 600; color: var(--secondary);">$${c.price.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `).join('');
+                    
+                    document.getElementById('price-comparison').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load price comparison:', error);
+            }
+        }
+        
+        function proceedToVerification() {
+            // Get selected operator
+            selectedOperator = document.getElementById('operator-select').value;
+            
             // Update service info
+            const finalPrice = selectedTier === 'standard' ? basePricing.standard : basePricing.premium;
             document.getElementById('selected-service-name').textContent = selectedService.name;
-            document.getElementById('selected-service-price').textContent = selectedService.price;
-            document.getElementById('service-name-1').textContent = selectedService.name;
-            document.getElementById('service-name-2').textContent = selectedService.name;
+            document.getElementById('selected-country-name').textContent = selectedCountry.name;
+            document.getElementById('selected-service-price').textContent = `$${finalPrice.toFixed(2)}`;
             
             // Show verification flow
-            document.getElementById('service-selection').style.display = 'none';
+            document.getElementById('options-selection').style.display = 'none';
             document.getElementById('verification-flow').style.display = 'block';
             
             // Start verification
             startVerification();
+        }
+        
+        function saveRecentService(serviceId) {
+            if (!recentServices.includes(serviceId)) {
+                recentServices.unshift(serviceId);
+                recentServices = recentServices.slice(0, 5); // Keep last 5
+                localStorage.setItem('recentServices', JSON.stringify(recentServices));
+            }
+        }
+        
+        function saveRecentCountry(countryCode) {
+            if (!recentCountries.includes(countryCode)) {
+                recentCountries.unshift(countryCode);
+                recentCountries = recentCountries.slice(0, 5); // Keep last 5
+                localStorage.setItem('recentCountries', JSON.stringify(recentCountries));
+            }
+        }
+
+        function toggleAllCountries() {
+            const section = document.getElementById('all-countries-section');
+            const btn = document.getElementById('show-all-countries-btn');
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                btn.textContent = 'Show Less';
+            } else {
+                section.style.display = 'none';
+                btn.textContent = 'Show All Countries';
+            }
+        }
+
+        function backToServices() {
+            document.getElementById('country-selection').style.display = 'none';
+            document.getElementById('service-selection').style.display = 'block';
+            selectedCountry = null;
+        }
+
+        function backToCountries() {
+            document.getElementById('verification-flow').style.display = 'none';
+            document.getElementById('country-selection').style.display = 'block';
         }
 
         async function startVerification() {
@@ -673,7 +1453,15 @@
                     return;
                 }
 
-                const response = await fetch('/verify/create', {
+                // Get area code if entered
+                const areaCodeInput = document.getElementById('area-code-input');
+                const areaCode = areaCodeInput ? areaCodeInput.value.trim() : '';
+                
+                // Get reuse checkbox
+                const reuseCheckbox = document.getElementById('reuse-checkbox');
+                const reuse = reuseCheckbox ? reuseCheckbox.checked : false;
+
+                const response = await fetch('/api/verify/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -681,8 +1469,12 @@
                     },
                     body: JSON.stringify({
                         service_name: selectedService.id,
-                        country: 'NG',
-                        capability: 'sms'
+                        country: selectedCountry.code,
+                        operator: selectedOperator,  // Phase 3: Include selected operator
+                        pricing_tier: selectedTier,  // Phase 3: Include selected tier
+                        capability: selectedMethod,  // Phase 4B: Voice or SMS
+                        reuse: reuse,  // Phase 4A: Number reuse
+                        area_code: areaCode || null  // Phase 4A: Area code selection
                     })
                 });
 
@@ -690,6 +1482,19 @@
                 
                 if (response.ok && data.phone_number) {
                     currentVerification = data;
+                    
+                    // Update step 2 title based on method
+                    const step2Title = document.querySelector('#step-2 .step-title');
+                    if (step2Title) {
+                        step2Title.textContent = selectedMethod === 'voice' ? 'Use This Number for Voice Call' : 'Use This Number';
+                    }
+                    
+                    // Update step 3 title based on method
+                    const step3Title = document.querySelector('#step-3 .step-title');
+                    if (step3Title) {
+                        step3Title.textContent = selectedMethod === 'voice' ? 'Waiting for Voice Call' : 'Waiting for SMS Code';
+                    }
+                    
                     showStep2(data.phone_number);
                 } else {
                     showError(data.detail || data.message || 'Failed to get phone number');
@@ -811,6 +1616,7 @@
 
         function resetFlow() {
             document.getElementById('service-selection').style.display = 'block';
+            document.getElementById('country-selection').style.display = 'none';
             document.getElementById('verification-flow').style.display = 'none';
             
             // Reset steps
@@ -822,8 +1628,15 @@
             if (countdownTimer) clearInterval(countdownTimer);
             
             selectedService = null;
+            selectedCountry = null;
             currentVerification = null;
             timeLeft = 300;
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('admin_token');
+            window.location.href = '/auth/login';
         }
     </script>
 </body>

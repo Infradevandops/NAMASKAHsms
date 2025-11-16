@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 # revision identifiers
 revision = '009_add_waitlist_table'
-down_revision = '008_add_enterprise_features'
+down_revision = '008'
 branch_labels = None
 depends_on = None
 

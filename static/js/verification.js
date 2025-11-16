@@ -351,7 +351,7 @@ function showRetryModal() {
     
     const detailsDiv = document.createElement('div');
     detailsDiv.style.cssText = 'background: #f3f4f6; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; color: #374151;';
-    detailsDiv.textContent = `<strong>Verification Details:</strong><br>Service: ${formatServiceName(currentServiceName)}<br>Type: ${isVoice ? '📞 Voice Call' : '📱 SMS Text'}<br>Elapsed: ${elapsedTime}s`;  // XSS Fix: Use textContent instead of innerHTML
+    detailsDiv.innerHTML = `<strong>Verification Details:</strong><br>Service: ${formatServiceName(currentServiceName)}<br>Type: ${isVoice ? '📞 Voice Call' : '📱 SMS Text'}<br>Elapsed: ${elapsedTime}s`;
     
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
@@ -662,7 +662,7 @@ async function checkMessages(silent = false) {
         const messagesList = document.getElementById('messages-list');
         
         if (data.messages.length === 0) {
-            messagesList.textContent = '<p>No messages yet. Auto-checking... <span class="auto-refresh">🔄 Auto-refresh ON</span></p>';  // XSS Fix: Use textContent instead of innerHTML
+            messagesList.innerHTML = '<p>No messages yet. Auto-checking... <span class="auto-refresh">🔄 Auto-refresh ON</span></p>';
         } else {
             stopCountdown();
             stopAutoRefresh();
@@ -676,7 +676,7 @@ async function checkMessages(silent = false) {
             
             const headerDiv = document.createElement('div');
             headerDiv.style.cssText = 'background: #10b981; color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;';
-            headerDiv.textContent = '<h2 style="margin: 0 0 8px 0;  // XSS Fix: Use textContent instead of innerHTML font-size: 20px;">Verification Code Received</h2><p style="margin: 0; opacity: 0.9;">Your verification code has arrived successfully</p>';
+            headerDiv.innerHTML = '<h2 style="margin: 0 0 8px 0; font-size: 20px;">Verification Code Received</h2><p style="margin: 0; opacity: 0.9;">Your verification code has arrived successfully</p>';
             messagesList.appendChild(headerDiv);
             
             const messagesDiv = document.createElement('div');
@@ -886,7 +886,7 @@ function displayVoiceResults(data) {
     
     const headerDiv = document.createElement('div');
     headerDiv.style.cssText = 'background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;';
-    headerDiv.textContent = '<h2 style="margin: 0 0 8px 0;  // XSS Fix: Use textContent instead of innerHTML font-size: 20px;">📞 Voice Verification Complete</h2><p style="margin: 0; opacity: 0.9;">Your voice verification call has been processed</p>';
+    headerDiv.innerHTML = '<h2 style="margin: 0 0 8px 0; font-size: 20px;">📞 Voice Verification Complete</h2><p style="margin: 0; opacity: 0.9;">Your voice verification call has been processed</p>';
     messagesList.appendChild(headerDiv);
     
     const detailsDiv = document.createElement('div');
@@ -894,17 +894,17 @@ function displayVoiceResults(data) {
     
     const phoneDiv = document.createElement('div');
     phoneDiv.style.marginBottom = '10px';
-    phoneDiv.textContent = `<strong>Phone:</strong> ${formatPhoneNumber(data.phone_number)}`;  // XSS Fix: Use textContent instead of innerHTML
+    phoneDiv.innerHTML = `<strong>Phone:</strong> ${formatPhoneNumber(data.phone_number)}`;
     detailsDiv.appendChild(phoneDiv);
     
     const durationDiv = document.createElement('div');
     durationDiv.style.marginBottom = '10px';
-    durationDiv.textContent = `<strong>Call Duration:</strong> ${data.call_duration ? `${data.call_duration}s` : 'N/A'}`;  // XSS Fix: Use textContent instead of innerHTML
+    durationDiv.innerHTML = `<strong>Call Duration:</strong> ${data.call_duration ? `${data.call_duration}s` : 'N/A'}`;
     detailsDiv.appendChild(durationDiv);
     
     const statusDiv = document.createElement('div');
     statusDiv.style.marginBottom = '10px';
-    statusDiv.textContent = `<strong>Status:</strong> ${data.call_status || 'Completed'}`;  // XSS Fix: Use textContent instead of innerHTML
+    statusDiv.innerHTML = `<strong>Status:</strong> ${data.call_status || 'Completed'}`;
     detailsDiv.appendChild(statusDiv);
     
     if (hasTranscription) {

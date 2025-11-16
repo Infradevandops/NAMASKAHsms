@@ -12,8 +12,8 @@
     // Create navigation
     const nav = document.createElement('div');
     nav.className = 'universal-nav';
-    nav.textContent = `
-        <div class="universal-logo" onclick="window.location.href='/'" style="cursor: pointer;  // XSS Fix: Use textContent instead of innerHTML position: relative;">
+    nav.innerHTML = `
+        <div class="universal-logo" onclick="window.location.href='/'" style="cursor: pointer; position: relative;">
             Namaskah
             <svg width="80" height="8" style="position: absolute; bottom: -5px; left: 0;">
                 <path d="M 0 4 Q 20 0, 40 4 T 80 4" stroke="#667eea" stroke-width="2" fill="none" stroke-linecap="round">

@@ -1,5 +1,6 @@
 """Core configuration management using Pydantic Settings."""
 from typing import Optional
+from functools import lru_cache
 
 try:
     from pydantic_settings import BaseSettings
@@ -27,7 +28,7 @@ class Settings(BaseSettings):
     secret_key: str = ""
     jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
-    jwt_expire_minutes: int = 43200  # 30 days
+    # jwt_expire_minutes removed here to avoid duplicate; see JWT Settings section below
 
     # Server Configuration
     host: str = "127.0.0.1"  # Default to localhost for security
@@ -44,10 +45,6 @@ class Settings(BaseSettings):
     redis_max_connections: int = 50
 
     # SMS Providers
-    fivesim_api_key: Optional[str] = None
-    fivesim_email: Optional[str] = None
-    fivesim_base_url: str = "https://5sim.net/v1"
-    
     # SMS-Activate API
     sms_activate_api_key: Optional[str] = None
     
@@ -66,7 +63,25 @@ class Settings(BaseSettings):
     textverified_api_key: Optional[str] = None
 
     # JWT Settings
-    jwt_expiry_hours: int = 720  # 30 days
+    # JWT Settings
+    # Default JWT expiration set to 8 hours (more secure than 30 days).
+    # Keep both minute and hour representations for backward compatibility.
+    jwt_expire_minutes: int = 480  # 8 hours
+    jwt_expiry_hours: int = 8  # 8 hours
+
+    # HTTP Client timeouts (seconds)
+    http_timeout_seconds: float = 30.0
+    http_connect_timeout_seconds: float = 5.0
+    http_read_timeout_seconds: float = 25.0
+
+    # Background task timeout (seconds) — used to bound long-running background services
+    async_task_timeout_seconds: int = 1800  # 30 minutes
+
+    # SMS polling configuration
+    sms_polling_max_minutes: int = 20  # Poll for up to 20 minutes (recommended)
+    sms_polling_initial_interval_seconds: int = 5
+    sms_polling_later_interval_seconds: int = 10
+    sms_polling_error_backoff_seconds: int = 15
 
     # Paystack
     paystack_secret_key: Optional[str] = None
@@ -188,9 +203,6 @@ class Settings(BaseSettings):
         "case_sensitive": False,
         "extra": "ignore",
     }
-
-
-from functools import lru_cache
 
 
 @lru_cache()

@@ -145,7 +145,7 @@ function renderServices() {
     }
     
     if (!servicesData) {
-        container.textContent = '<div style="text-align: center;  // XSS Fix: Use textContent instead of innerHTML padding: 20px; color: var(--text-secondary);">Loading services...</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">Loading services...</div>';
         return;
     }
     
@@ -205,7 +205,7 @@ function renderServices() {
         }
     });
     
-    container.textContent = html || '<div style="text-align: center;  // XSS Fix: Use textContent instead of innerHTML padding: 20px; color: var(--text-secondary);">No services found</div>';
+    container.innerHTML = html || '<div style="text-align: center; padding: 20px; color: var(--text-secondary);">No services found</div>';
 }
 
 async function selectService(service) {
@@ -222,7 +222,7 @@ async function selectService(service) {
         
         const serviceInfo = document.getElementById('service-info');
         if (serviceInfo) {
-            serviceInfo.textContent = `✅ Selected: <strong>${formatServiceName(service)}</strong> • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()} (${priceText})`;  // XSS Fix: Use textContent instead of innerHTML
+            serviceInfo.innerHTML = `✅ Selected: <strong>${formatServiceName(service)}</strong> • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()} (${priceText})`;
             serviceInfo.style.color = '#10b981';
         }
         
@@ -386,10 +386,10 @@ function showCategoryServices(category) {
     if (services.length > 0 && suggestionsContainer && suggestionGrid) {
         // Show top 8 popular services in this category
         const popularServices = services.slice(0, 8);
-        suggestionGrid.textContent = popularServices.map(service => {
-            const safeService = window.SecurityUtils ? window.SecurityUtils.sanitizeServiceName(service) : service.replace(/[^a-zA-Z0-9-_]/g, '');  // XSS Fix: Use textContent instead of innerHTML
+        suggestionGrid.innerHTML = popularServices.map(service => {
+            const safeService = window.SecurityUtils ? window.SecurityUtils.sanitizeServiceName(service) : service.replace(/[^a-zA-Z0-9-_]/g, '');
             return `<button data-service="${safeService}" class="suggestion-btn" 
-                     style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;" 
+                     onclick="selectServiceFromSuggestion('${safeService}')" 
                      style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
                 ${window.SecurityUtils ? window.SecurityUtils.sanitizeHTML(formatServiceName(service)) : formatServiceName(service)}
             </button>`;
@@ -432,7 +432,7 @@ async function updateCapability() {
         
         const currentPrice = capability === 'voice' ? voicePrice : smsPrice;
         const priceText = `N${currentPrice}`;
-        info.textContent = `✅ Selected: <strong>${formatServiceName(service)}</strong> • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()} (${priceText})`;  // XSS Fix: Use textContent instead of innerHTML
+        info.innerHTML = `✅ Selected: <strong>${formatServiceName(service)}</strong> • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()} (${priceText})`;
         info.style.color = '#10b981';
     } else if (info) {
         // Reset to default prices
@@ -442,7 +442,7 @@ async function updateCapability() {
         if (smsLabel) smsLabel.textContent = 'N1.00';
         if (voiceLabel) voiceLabel.textContent = 'N1.30';
         
-        info.textContent = `⚡ Click a service to select • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()}`;  // XSS Fix: Use textContent instead of innerHTML
+        info.innerHTML = `⚡ Click a service to select • ${capability === 'voice' ? '📞' : '📱'} ${capability.toUpperCase()}`;
         info.style.color = '';
     }
 }

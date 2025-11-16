@@ -62,10 +62,10 @@ async function loadReferralStats() {
             
             const usersList = document.getElementById('referred-users');
             if (data.referred_users.length === 0) {
-                usersList.textContent = '<p style="color: #6b7280;  // XSS Fix: Use textContent instead of innerHTML text-align: center; margin-top: 15px;">No referrals yet. Share your link to start earning!</p>';
+                usersList.innerHTML = '<p style="color: #6b7280; text-align: center; margin-top: 15px;">No referrals yet. Share your link to start earning!</p>';
             } else {
-                usersList.textContent = `
-                    <h4 style="margin: 15px 0 10px 0;  // XSS Fix: Use textContent instead of innerHTML">Referred Users</h4>
+                usersList.innerHTML = `
+                    <h4 style="margin: 15px 0 10px 0;">Referred Users</h4>
                     ${data.referred_users.map(u => `
                         <div style="background: #f9fafb; padding: 10px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
                             <div>

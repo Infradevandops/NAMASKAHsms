@@ -15,7 +15,9 @@ window.CONFIG = {
         BULK_VERIFICATION: true,
         ENHANCED_SECURITY: true,
         AUTO_REFRESH: true,
-        NOTIFICATION_SOUND: true
+        NOTIFICATION_SOUND: true,
+        // Enable Claude Haiku 4.5 for all clients (2025-11-14)
+        CLAUDE_HAIKU_4_5_ENABLED: true
     },
     
     // UI Configuration

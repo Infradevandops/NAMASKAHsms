@@ -81,17 +81,17 @@ class ReceiptManager {
         if (!container) return;
 
         if (this.receipts.length === 0) {
-            container.textContent = `
+            container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">📧</div>
                     <h3>No Receipts Yet</h3>
                     <p>Your verification receipts will appear here after successful verifications.</p>
                 </div>
-            `;  // XSS Fix: Use textContent instead of innerHTML
+            `;
             return;
         }
 
-        container.textContent = this.receipts.map(receipt => `
+        container.innerHTML = this.receipts.map(receipt => `
             <div class="receipt-item" data-receipt-id="${receipt.id}">
                 <div class="receipt-header">
                     <div class="receipt-service">
@@ -109,7 +109,7 @@ class ReceiptManager {
                     <button class="btn-secondary" data-receipt-id="${receipt.id}">View Details</button>
                 </div>
             </div>
-        `).join('');  // XSS Fix: Use textContent instead of innerHTML
+        `).join('');
     }
 
     displayNotifications() {
@@ -117,17 +117,17 @@ class ReceiptManager {
         if (!container) return;
 
         if (this.notifications.length === 0) {
-            container.textContent = `
+            container.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">🔔</div>
                     <h3>No Notifications</h3>
                     <p>Your notifications will appear here.</p>
                 </div>
-            `;  // XSS Fix: Use textContent instead of innerHTML
+            `;
             return;
         }
 
-        container.textContent = this.notifications.map(notification => `
+        container.innerHTML = this.notifications.map(notification => `
             <div class="notification-item ${notification.is_read ? 'read' : 'unread'}" 
                  data-notification-id="${notification.id}">
                 <div class="notification-icon">${this.getNotificationIcon(notification.type)}</div>
@@ -138,7 +138,7 @@ class ReceiptManager {
                 </div>
                 ${!notification.is_read ? '<div class="unread-indicator"></div>' : ''}
             </div>
-        `).join('');  // XSS Fix: Use textContent instead of innerHTML
+        `).join('');
     }
 
     updateNotificationBadge() {
@@ -172,11 +172,11 @@ class ReceiptManager {
     displayReceiptModal(receipt) {
         const modal = document.createElement('div');
         modal.className = 'modal receipt-modal';
-        modal.textContent = `
+        modal.innerHTML = `
             <div class="modal-content">
                 <div class="modal-header">
                     <h2>📧 Verification Receipt</h2>
-                    <button class="close-modal">&times;  // XSS Fix: Use textContent instead of innerHTML</button>
+                    <button class="close-modal">&times;</button>
                 </div>
                 <div class="modal-body">
                     <div class="receipt-details-card">
@@ -296,7 +296,7 @@ class ReceiptManager {
         const container = document.getElementById('notification-settings');
         if (!container) return;
 
-        container.textContent = `
+        container.innerHTML = `
             <div class="settings-section">
                 <h3>📱 In-App Notifications</h3>
                 <div class="setting-item">
@@ -368,7 +368,7 @@ class ReceiptManager {
                     </div>
                 </div>
             </div>
-        `;  // XSS Fix: Use textContent instead of innerHTML
+        `;
     }
 
     async updateNotificationSettings() {

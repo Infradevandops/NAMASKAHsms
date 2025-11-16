@@ -1,0 +1,76 @@
+<!-- Analytics Page - Add this to your dashboard or create a separate page -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - Namaskah SMS</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: #1f2937;
+            font-size: 28px;
+        }
+        
+        .header p {
+            margin: 8px 0 0 0;
+            color: #6b7280;
+        }
+        
+        .content {
+            background: white;
+            padding: 32px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Verification Analytics</h1>
+            <p>Track your success rates and performance</p>
+        </div>
+        
+        <div class="content">
+            <div id="analytics-container">
+                <!-- Analytics will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Include the analytics script -->
+    <script src="/static/js/analytics.js"></script>
+</body>
+</html>
+
+<!-- OR Add to existing dashboard -->
+<!--
+<div class="analytics-section">
+    <h2>📊 Analytics</h2>
+    <div id="analytics-container"></div>
+</div>
+
+<script src="/static/js/analytics.js"></script>
+-->

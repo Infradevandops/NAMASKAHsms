@@ -29,7 +29,7 @@ async function loadHistory(silent = false, showAll = false) {
             const verifications = data.verifications;
             
             if (verifications.length === 0) {
-                list.textContent = '<p style="color: #6b7280;  // XSS Fix: Use textContent instead of innerHTML">No verifications yet. Create one above!</p>';
+                list.innerHTML = '<p style="color: #6b7280;">No verifications yet. Create one above!</p>';
             } else {
                 const displayItems = showAll ? verifications : verifications.slice(0, 5);
                 list.textContent = displayItems.map(v => `
@@ -100,7 +100,7 @@ async function loadTransactions(silent = false, showAll = false) {
             const transactions = data.transactions;
             
             if (transactions.length === 0) {
-                list.textContent = '<p style="color: #6b7280;  // XSS Fix: Use textContent instead of innerHTML">No transactions yet.</p>';
+                list.innerHTML = '<p style="color: #6b7280;">No transactions yet.</p>';
             } else {
                 const displayItems = showAll ? transactions : transactions.slice(0, 5);
                 list.textContent = displayItems.map(t => {
