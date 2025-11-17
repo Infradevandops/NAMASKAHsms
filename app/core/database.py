@@ -3,8 +3,9 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from .config import settings
 from app.models.base import Base
+
+from .config import settings
 
 # Database engine with connection pooling
 if "sqlite" in settings.database_url:
@@ -41,6 +42,7 @@ def create_tables():
     """Create all database tables."""
     # Import all models to ensure they're registered
     import app.models  # noqa: F401
+
     # Configure the registry to resolve relationships
     Base.registry.configure()
     Base.metadata.create_all(bind=engine)

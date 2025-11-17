@@ -1,10 +1,10 @@
 """Webhook endpoints for SMS notifications"""
-import hmac
 import hashlib
+import hmac
 from datetime import datetime, timezone
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Header, Request, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
@@ -21,7 +21,7 @@ def verify_webhook_signature(payload: bytes, signature: str, secret: str) -> boo
     """Verify webhook signature from 5SIM"""
     if not signature or not secret:
         return False
-    
+
     try:
         # Calculate expected signature
         expected_signature = hmac.new(
@@ -29,7 +29,7 @@ def verify_webhook_signature(payload: bytes, signature: str, secret: str) -> boo
             payload,
             hashlib.sha256
         ).hexdigest()
-        
+
         # Compare signatures (constant time comparison)
         return hmac.compare_digest(signature, expected_signature)
     except Exception as e:
@@ -95,7 +95,7 @@ async def receive_5sim_webhook(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Missing activation ID",
             )
-        
+
         # Find verification by activation ID
         verification = (
             db.query(Verification)
@@ -107,7 +107,7 @@ async def receive_5sim_webhook(
             logger.warning(f"Verification not found for activation {activation_id}")
             # Return 200 to prevent 5SIM from retrying
             return {"success": True, "message": "Verification not found (may be already processed)"}
-        
+
         # Check if already completed
         if verification.status == "completed":
             logger.info(f"Verification {verification.id} already completed")
@@ -115,7 +115,7 @@ async def receive_5sim_webhook(
                 "success": True,
                 "message": "Verification already completed"
             }
-        
+
         # Extract SMS data
         sms_list = data.get("sms", [])
         if not sms_list:
@@ -137,7 +137,7 @@ async def receive_5sim_webhook(
             matches = re.findall(r"\b(\d{4,8})\b", sms_text)
             if matches:
                 extracted_code = matches[-1]  # Take the last match
-        
+
         # Update verification status
         verification.status = "completed"
         verification.completed_at = datetime.now(timezone.utc)
@@ -158,7 +158,7 @@ async def receive_5sim_webhook(
             "verification_id": verification.id,
             "code": extracted_code,
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:

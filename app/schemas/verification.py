@@ -41,13 +41,13 @@ class VerificationCreate(BaseModel):
         if not v or len(v.strip()) == 0:
             raise ValueError("Service name cannot be empty")
         return v.lower().strip()
-    
+
     @validator("pricing_tier")
     def validate_pricing_tier(cls, v):
         if v and v not in ["standard", "premium"]:
             raise ValueError("Pricing tier must be standard or premium")
         return v or "standard"
-    
+
     @validator("operator")
     def validate_operator(cls, v):
         # Accept any operator name, default to "any"

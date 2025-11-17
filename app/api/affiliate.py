@@ -1,13 +1,16 @@
 """Affiliate program API endpoints."""
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_admin_user
-from app.services.affiliate_service import affiliate_service
-from app.models.user import User
-from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, EmailStr
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import get_current_admin_user, get_db
+from app.models.user import User
+from app.services.affiliate_service import affiliate_service
+
 router = APIRouter(prefix="/affiliate", tags=["affiliate"])
+
 
 class AffiliateApplicationCreate(BaseModel):
     email: EmailStr
@@ -15,10 +18,12 @@ class AffiliateApplicationCreate(BaseModel):
     program_options: List[str]
     message: Optional[str] = None
 
+
 class AffiliateApplicationResponse(BaseModel):
     success: bool
     message: str
     application_id: Optional[int] = None
+
 
 @router.post("/apply", response_model=AffiliateApplicationResponse)
 async def apply_for_affiliate_program(
@@ -42,10 +47,12 @@ async def apply_for_affiliate_program(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.get("/programs")
 async def get_affiliate_programs(db: Session = Depends(get_db)):
     """Get available affiliate programs."""
     return await affiliate_service.get_available_programs(db)
+
 
 @router.get("/applications")
 async def get_affiliate_applications(
@@ -54,6 +61,7 @@ async def get_affiliate_applications(
 ):
     """Get all affiliate applications (admin only)."""
     return await affiliate_service.get_all_applications(db)
+
 
 @router.put("/applications/{application_id}/status")
 async def update_application_status(

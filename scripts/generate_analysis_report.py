@@ -4,7 +4,8 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Any, Dict, List
+
 
 class AnalysisReportGenerator:
     def __init__(self):
@@ -17,7 +18,7 @@ class AnalysisReportGenerator:
             'low': 0,
             'info': 0
         }
-    
+
     def load_reports(self):
         """Load all analysis reports."""
         report_files = {
@@ -45,7 +46,7 @@ class AnalysisReportGenerator:
             'pci': 'pci-report.json',
             'owasp': 'owasp-report.json'
         }
-        
+
         for name, filename in report_files.items():
             if os.path.exists(filename):
                 try:
@@ -57,11 +58,11 @@ class AnalysisReportGenerator:
                             self.reports[name] = f.read()
                 except Exception as e:
                     print(f"Error loading {filename}: {e}")
-    
+
     def analyze_security_issues(self):
         """Analyze security-related issues."""
         security_issues = []
-        
+
         # Bandit issues
         if 'bandit' in self.reports:
             for result in self.reports['bandit'].get('results', []):
@@ -74,7 +75,7 @@ class AnalysisReportGenerator:
                     'issue': result.get('issue_text', ''),
                     'test_id': result.get('test_id', '')
                 })
-        
+
         # Semgrep issues
         if 'semgrep' in self.reports:
             for result in self.reports['semgrep'].get('results', []):
@@ -86,13 +87,13 @@ class AnalysisReportGenerator:
                     'issue': result.get('extra', {}).get('message', ''),
                     'rule_id': result.get('check_id', '')
                 })
-        
+
         return security_issues
-    
+
     def analyze_quality_issues(self):
         """Analyze code quality issues."""
         quality_issues = []
-        
+
         # Flake8 issues
         if 'flake8' in self.reports:
             for file_path, issues in self.reports['flake8'].items():
@@ -106,7 +107,7 @@ class AnalysisReportGenerator:
                         'code': issue.get('code', ''),
                         'message': issue.get('text', '')
                     })
-        
+
         # Pylint issues
         if 'pylint' in self.reports:
             for issue in self.reports['pylint']:
@@ -120,13 +121,13 @@ class AnalysisReportGenerator:
                     'symbol': issue.get('symbol', ''),
                     'message': issue.get('message', '')
                 })
-        
+
         return quality_issues
-    
+
     def analyze_dependencies(self):
         """Analyze dependency vulnerabilities."""
         dependency_issues = []
-        
+
         # Safety issues
         if 'safety' in self.reports:
             for vuln in self.reports['safety']:
@@ -138,7 +139,7 @@ class AnalysisReportGenerator:
                     'vulnerability': vuln.get('vulnerability_id', ''),
                     'advisory': vuln.get('advisory', '')
                 })
-        
+
         # NPM Audit issues
         if 'npm_audit' in self.reports:
             advisories = self.reports['npm_audit'].get('advisories', {})
@@ -152,18 +153,18 @@ class AnalysisReportGenerator:
                     'overview': advisory.get('overview', ''),
                     'cves': advisory.get('cves', [])
                 })
-        
+
         return dependency_issues
-    
+
     def calculate_summary(self, all_issues):
         """Calculate summary statistics."""
         severity_counts = {'CRITICAL': 0, 'HIGH': 0, 'MEDIUM': 0, 'LOW': 0, 'INFO': 0}
-        
+
         for issue in all_issues:
             severity = issue.get('severity', 'LOW').upper()
             if severity in severity_counts:
                 severity_counts[severity] += 1
-        
+
         self.summary = {
             'total_issues': len(all_issues),
             'critical': severity_counts['CRITICAL'],
@@ -172,7 +173,7 @@ class AnalysisReportGenerator:
             'low': severity_counts['LOW'],
             'info': severity_counts['INFO']
         }
-    
+
     def generate_html_report(self, all_issues):
         """Generate HTML report."""
         html_template = f"""
@@ -223,7 +224,7 @@ class AnalysisReportGenerator:
     <div class="issues">
         <h2>Issues by Tool</h2>
 """
-        
+
         # Group issues by tool
         issues_by_tool = {}
         for issue in all_issues:
@@ -231,7 +232,7 @@ class AnalysisReportGenerator:
             if tool not in issues_by_tool:
                 issues_by_tool[tool] = []
             issues_by_tool[tool].append(issue)
-        
+
         for tool, issues in issues_by_tool.items():
             html_template += f"""
         <div class="tool-section">
@@ -249,16 +250,16 @@ class AnalysisReportGenerator:
             if len(issues) > 10:
                 html_template += f"<p><em>... and {len(issues) - 10} more issues</em></p>"
             html_template += "</div>"
-        
+
         html_template += """
     </div>
 </body>
 </html>
 """
-        
+
         with open('analysis-report.html', 'w') as f:
             f.write(html_template)
-    
+
     def generate_json_report(self, all_issues):
         """Generate JSON report."""
         report_data = {
@@ -267,35 +268,35 @@ class AnalysisReportGenerator:
             'issues': all_issues,
             'raw_reports': self.reports
         }
-        
+
         with open('analysis-report.json', 'w') as f:
             json.dump(report_data, f, indent=2)
-    
+
     def generate_reports(self):
         """Generate comprehensive analysis reports."""
         print("Loading analysis reports...")
         self.load_reports()
-        
+
         print("Analyzing security issues...")
         security_issues = self.analyze_security_issues()
-        
+
         print("Analyzing quality issues...")
         quality_issues = self.analyze_quality_issues()
-        
+
         print("Analyzing dependency issues...")
         dependency_issues = self.analyze_dependencies()
-        
+
         all_issues = security_issues + quality_issues + dependency_issues
-        
+
         print("Calculating summary...")
         self.calculate_summary(all_issues)
-        
+
         print("Generating HTML report...")
         self.generate_html_report(all_issues)
-        
+
         print("Generating JSON report...")
         self.generate_json_report(all_issues)
-        
+
         print(f"""
 Analysis Complete!
 ==================
@@ -309,6 +310,7 @@ Reports generated:
 - analysis-report.html
 - analysis-report.json
 """)
+
 
 if __name__ == "__main__":
     generator = AnalysisReportGenerator()

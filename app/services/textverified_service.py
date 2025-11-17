@@ -1,9 +1,11 @@
 """TextVerified provider service."""
+from typing import Any, Dict, Optional
+
 import textverified
-from typing import Dict, Optional, Any
+
 from app.core.config import settings
-from app.services.sms_provider_interface import SMSProviderInterface
 from app.core.logging import get_logger
+from app.services.sms_provider_interface import SMSProviderInterface
 
 logger = get_logger(__name__)
 
@@ -28,7 +30,7 @@ class TextVerifiedService(SMSProviderInterface):
                 self.enabled = False
         else:
             logger.warning("TextVerified API key or username not configured")
-    
+
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance."""
         if not self.enabled:
@@ -41,7 +43,7 @@ class TextVerifiedService(SMSProviderInterface):
             }
         except Exception as e:
             raise Exception(f"TextVerified balance error: {str(e)}")
-    
+
     async def buy_number(self, country: str, service: str) -> Dict[str, Any]:
         """Purchase phone number for verification."""
         if not self.enabled:
@@ -51,7 +53,7 @@ class TextVerifiedService(SMSProviderInterface):
                 service_name=service,
                 capability=textverified.ReservationCapability.SMS
             )
-            
+
             return {
                 "activation_id": verification.id,
                 "phone_number": f"+1{verification.number}",
@@ -59,14 +61,14 @@ class TextVerifiedService(SMSProviderInterface):
             }
         except Exception as e:
             raise Exception(f"TextVerified purchase error: {str(e)}")
-    
+
     async def check_sms(self, activation_id: str) -> Dict[str, Any]:
         """Check for SMS messages."""
         if not self.enabled:
             raise Exception("TextVerified not configured")
         try:
             verification = self.client.verifications.details(activation_id)
-            
+
             # Check if SMS received
             if hasattr(verification, 'sms') and verification.sms:
                 for sms in verification.sms:
@@ -76,7 +78,7 @@ class TextVerifiedService(SMSProviderInterface):
                             "sms_text": sms.message,
                             "status": "received"
                         }
-            
+
             return {
                 "sms_code": None,
                 "sms_text": None,
@@ -89,7 +91,7 @@ class TextVerifiedService(SMSProviderInterface):
                 "status": "error",
                 "error": str(e)
             }
-    
+
     async def get_pricing(self, country: str, service: str) -> Dict[str, Any]:
         """Get service pricing."""
         # TextVerified has fixed pricing, typically $0.50-$2.00
@@ -98,7 +100,7 @@ class TextVerifiedService(SMSProviderInterface):
             "cost": 0.50,
             "currency": "USD"
         }
-    
+
     # Legacy methods for backward compatibility
     async def get_number(self, service: str, country: str = "US") -> Dict:
         """Get phone number for verification (legacy method)."""
@@ -108,12 +110,12 @@ class TextVerifiedService(SMSProviderInterface):
             "number": result["phone_number"],
             "cost": result["cost"]
         }
-    
+
     async def get_sms(self, activation_id: str) -> Optional[str]:
         """Get SMS code for activation (legacy method)."""
         result = await self.check_sms(activation_id)
         return result.get("sms_code")
-    
+
     async def cancel_activation(self, activation_id: str) -> bool:
         """Cancel activation and get refund."""
         if not self.enabled:

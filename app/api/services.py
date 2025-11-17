@@ -2,10 +2,12 @@
 Services API Router - SMS Service Management
 """
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.core.dependencies import get_current_user
 from app.models.user import User
 
 router = APIRouter(prefix="/services", tags=["services"])
+
 
 @router.get("/status")
 async def get_services_status():
@@ -14,11 +16,12 @@ async def get_services_status():
         "status": "operational",
         "services": {
             "sms_activate": "active",
-            "5sim": "active", 
+            "5sim": "active",
             "textverified": "active",
             "getsms": "active"
         }
     }
+
 
 @router.get("/providers")
 async def get_providers(current_user: User = Depends(get_current_user)):

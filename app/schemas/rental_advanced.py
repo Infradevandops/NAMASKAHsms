@@ -1,7 +1,9 @@
 """Advanced rental schemas."""
-from pydantic import BaseModel, Field
-from typing import Optional, List
 from decimal import Decimal
+from typing import List, Optional
+
+from pydantic import BaseModel, Field
+
 
 class RentalTemplate(BaseModel):
     name: str = Field(..., min_length=1, max_length=50)
@@ -10,9 +12,11 @@ class RentalTemplate(BaseModel):
     duration_hours: int = Field(default=24, ge=1, le=168)
     auto_renewal: bool = False
 
+
 class BulkRentalCreate(BaseModel):
     templates: List[RentalTemplate] = Field(..., min_items=1, max_items=10)
-    
+
+
 class RentalFilter(BaseModel):
     service_name: Optional[str] = None
     country_code: Optional[str] = None

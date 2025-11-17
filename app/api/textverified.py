@@ -1,8 +1,9 @@
 """TextVerified API endpoints for frontend integration."""
 from fastapi import APIRouter, Depends, HTTPException
+
 from app.core.dependencies import get_current_user_id
-from app.services.provider_factory import provider_manager
 from app.core.logging import get_logger
+from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
 
@@ -39,14 +40,14 @@ async def get_textverified_services(
             {"id": "apple", "name": "Apple", "price": 0.90, "icon": "🍎"},
             {"id": "samsung", "name": "Samsung", "price": 0.70, "icon": "📱"},
         ]
-        
+
         return {
             "success": True,
             "services": services,
             "total": len(services),
             "provider": "textverified"
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get services: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to load services")
@@ -82,14 +83,14 @@ async def get_textverified_countries(
             {"code": "ZA", "name": "South Africa", "flag": "🇿🇦", "available": True},
             {"code": "NG", "name": "Nigeria", "flag": "🇳🇬", "available": True},
         ]
-        
+
         return {
             "success": True,
             "countries": countries,
             "total": len(countries),
             "provider": "textverified"
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get countries: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to load countries")
@@ -104,14 +105,14 @@ async def get_textverified_balance(
         textverified = provider_manager.get_provider("textverified")
         balance_data = await textverified.get_balance()
         balance = balance_data.get("balance", 0.0)
-        
+
         return {
             "success": True,
             "balance": balance,
             "provider": "textverified",
             "status": "active" if balance > 1.0 else "low"
         }
-        
+
     except Exception as e:
         logger.warning(f"TextVerified balance check failed: {str(e)}")
         # Return success=False but don't raise exception

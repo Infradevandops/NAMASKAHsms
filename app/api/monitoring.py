@@ -1,27 +1,32 @@
 """Advanced monitoring API endpoints."""
-from fastapi import APIRouter, Depends, BackgroundTasks
-from app.services.monitoring_service import monitoring_service
-from app.services.alerting_service import alerting_service
+from fastapi import APIRouter, BackgroundTasks, Depends
+
 from app.core.dependencies import get_current_admin_user
 from app.models.user import User
+from app.services.alerting_service import alerting_service
+from app.services.monitoring_service import monitoring_service
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
+
 
 @router.get("/metrics")
 async def get_system_metrics():
     """Get comprehensive system metrics."""
     return await monitoring_service.collect_system_metrics()
 
+
 @router.get("/health")
 async def get_health_report():
     """Get comprehensive health report."""
     return await monitoring_service.generate_health_report()
+
 
 @router.get("/alerts")
 async def check_system_alerts():
     """Check for active system alerts."""
     alerts = await monitoring_service.check_alerts()
     return {"alerts": alerts, "count": len(alerts)}
+
 
 @router.post("/alerts/test")
 async def test_alerting_system(
@@ -35,9 +40,10 @@ async def test_alerting_system(
         "message": "Test alert from monitoring system",
         "timestamp": "2024-01-01T00:00:00Z"
     }
-    
+
     background_tasks.add_task(alerting_service.send_alert, test_alert)
     return {"message": "Test alert queued"}
+
 
 @router.get("/sla")
 async def get_sla_metrics():
@@ -49,12 +55,13 @@ async def get_sla_metrics():
         "performance": health_report["metrics"]["performance"]
     }
 
+
 @router.get("/dashboard")
 async def get_monitoring_dashboard():
     """Get monitoring dashboard data."""
     metrics = await monitoring_service.collect_system_metrics()
     alerts = await monitoring_service.check_alerts()
-    
+
     return {
         "overview": {
             "status": "operational" if len(alerts) == 0 else "issues",

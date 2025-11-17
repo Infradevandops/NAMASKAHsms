@@ -1,7 +1,8 @@
 """KYC request/response schemas."""
-from datetime import datetime, date
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr, validator, Field
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, EmailStr, Field, validator
 
 
 class KYCProfileCreate(BaseModel):
@@ -10,14 +11,14 @@ class KYCProfileCreate(BaseModel):
     phone_number: str = Field(..., min_length=10, max_length=20)
     date_of_birth: date = Field(...)
     nationality: str = Field(..., min_length=2, max_length=3)
-    
+
     address_line1: str = Field(..., min_length=5, max_length=200)
     address_line2: Optional[str] = Field(None, max_length=200)
     city: str = Field(..., min_length=2, max_length=100)
     state: str = Field(..., min_length=2, max_length=100)
     postal_code: str = Field(..., min_length=3, max_length=20)
     country: str = Field(..., min_length=2, max_length=3)
-    
+
     @validator('date_of_birth')
     def validate_age(cls, v):
         from datetime import date
@@ -28,15 +29,16 @@ class KYCProfileCreate(BaseModel):
         if age > 120:
             raise ValueError('Invalid date of birth')
         return v
-    
+
     @validator('phone_number')
     def validate_phone(cls, v):
         import re
+
         # Basic phone validation
         if not re.match(r'^\+?[1-9]\d{1,14}$', v.replace(' ', '').replace('-', '')):
             raise ValueError('Invalid phone number format')
         return v
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -74,7 +76,7 @@ class KYCProfileResponse(BaseModel):
     rejected_at: Optional[datetime]
     rejection_reason: Optional[str]
     created_at: datetime
-    
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -108,7 +110,7 @@ class KYCDocumentResponse(BaseModel):
     file_name: Optional[str]
     file_size: Optional[float]
     uploaded_at: datetime
-    
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -130,7 +132,7 @@ class KYCVerificationDecision(BaseModel):
     decision: str = Field(..., pattern="^(approved|rejected)$")
     verification_level: Optional[str] = Field("basic", pattern="^(basic|enhanced|premium)$")
     notes: Optional[str] = Field(None, max_length=1000)
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -151,7 +153,7 @@ class KYCLimitsResponse(BaseModel):
     allowed_services: List[str]
     max_transaction_amount: Optional[float]
     current_usage: Dict[str, float]
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -181,7 +183,7 @@ class AMLScreeningResponse(BaseModel):
     reviewed_by: Optional[str]
     review_decision: Optional[str]
     created_at: datetime
-    
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -207,7 +209,7 @@ class KYCStatsResponse(BaseModel):
     rejected_profiles: int
     verification_rate: float
     level_distribution: Dict[str, int]
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -230,7 +232,7 @@ class BiometricVerificationRequest(BaseModel):
     """Schema for biometric verification request."""
     verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
     reference_document_id: Optional[str] = None
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -250,7 +252,7 @@ class BiometricVerificationResponse(BaseModel):
     liveness_score: Optional[float]
     confidence_level: str
     created_at: datetime
-    
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -278,7 +280,7 @@ class KYCAuditLogResponse(BaseModel):
     reason: Optional[str]
     ip_address: Optional[str]
     created_at: datetime
-    
+
     model_config = {
         "from_attributes": True,
         "json_schema_extra": {
@@ -307,7 +309,7 @@ class DocumentUploadResponse(BaseModel):
     upload_url: Optional[str]
     processing_status: str
     uploaded_at: datetime
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -335,7 +337,7 @@ class KYCComplianceReport(BaseModel):
     risk_distribution: Dict[str, int]
     aml_alerts: int
     generated_at: datetime
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {

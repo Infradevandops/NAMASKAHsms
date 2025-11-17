@@ -200,7 +200,7 @@ class SecurityChecker:
                         if (
                             "shutil.which"
                             not in content[
-                                max(0, match.start() - 200) : match.end() + 200
+                                max(0, match.start() - 200): match.end() + 200
                             ]
                         ):
                             line_num = content[: match.start()].count("\n") + 1

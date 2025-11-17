@@ -16,11 +16,11 @@ import os
 import sys
 from pathlib import Path
 
+from app.core.secrets import SecretsManager
+
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
-
-from app.core.secrets import SecretsManager
 
 
 def generate_env_file(environment: str):

@@ -1,14 +1,18 @@
 """Enhanced white-label API endpoints."""
-from fastapi import APIRouter, HTTPException, Depends, Request
-from fastapi.responses import Response
-from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user, get_current_admin_user
-from app.services.whitelabel_enhanced import get_whitelabel_enhanced_service
-from app.models.user import User
-from pydantic import BaseModel
 from typing import Dict, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import Response
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import (get_current_admin_user, get_current_user,
+                                   get_db)
+from app.models.user import User
+from app.services.whitelabel_enhanced import get_whitelabel_enhanced_service
+
 router = APIRouter(prefix="/whitelabel/v2", tags=["whitelabel_enhanced"])
+
 
 class WhiteLabelSetup(BaseModel):
     domain: str
@@ -21,6 +25,7 @@ class WhiteLabelSetup(BaseModel):
     api_subdomain: Optional[str] = None
     features: Dict = {}
 
+
 class BrandingUpdate(BaseModel):
     company_name: Optional[str] = None
     logo_url: Optional[str] = None
@@ -29,6 +34,7 @@ class BrandingUpdate(BaseModel):
     font_family: Optional[str] = None
     custom_css: Optional[str] = None
 
+
 @router.post("/setup")
 async def setup_whitelabel(
     setup_data: WhiteLabelSetup,
@@ -36,12 +42,12 @@ async def setup_whitelabel(
     db: Session = Depends(get_db)
 ):
     """Complete white-label setup wizard."""
-    
+
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Affiliate access required")
-    
+
     service = get_whitelabel_enhanced_service(db)
-    
+
     try:
         result = await service.setup_complete_whitelabel(
             partner_id=current_user.id,
@@ -53,6 +59,7 @@ async def setup_whitelabel(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.put("/branding/{config_id}")
 async def update_branding(
     config_id: int,
@@ -61,12 +68,12 @@ async def update_branding(
     db: Session = Depends(get_db)
 ):
     """Update complete branding configuration."""
-    
+
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Affiliate access required")
-    
+
     service = get_whitelabel_enhanced_service(db)
-    
+
     try:
         result = await service.update_branding(
             config_id=config_id,
@@ -76,6 +83,7 @@ async def update_branding(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+
 @router.get("/preview/{config_id}")
 async def preview_whitelabel(
     config_id: int,
@@ -83,27 +91,28 @@ async def preview_whitelabel(
     db: Session = Depends(get_db)
 ):
     """Live preview of white-label configuration."""
-    
+
     service = get_whitelabel_enhanced_service(db)
-    
+
     # Get configuration by ID (for preview)
     from app.models.whitelabel import WhiteLabelConfig
     config = db.query(WhiteLabelConfig).filter(
         WhiteLabelConfig.id == config_id
     ).first()
-    
+
     if not config:
         raise HTTPException(status_code=404, detail="Configuration not found")
-    
+
     # Generate preview data
     preview_config = await service.get_partner_config(config.domain)
-    
+
     return {
         "preview": True,
         "config": preview_config,
         "preview_url": f"https://{config.domain}",
         "css": await service.generate_custom_css(config_id)
     }
+
 
 @router.post("/domain/verify")
 async def verify_domain(
@@ -112,17 +121,18 @@ async def verify_domain(
     db: Session = Depends(get_db)
 ):
     """Verify domain ownership."""
-    
+
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Affiliate access required")
-    
+
     service = get_whitelabel_enhanced_service(db)
-    
+
     try:
         result = await service.verify_domain(domain)
         return result
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
 
 @router.get("/analytics/{domain}")
 async def get_whitelabel_analytics(
@@ -131,10 +141,10 @@ async def get_whitelabel_analytics(
     db: Session = Depends(get_db)
 ):
     """Get white-label usage analytics."""
-    
+
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Affiliate access required")
-    
+
     # Mock analytics data (implement actual analytics)
     return {
         "domain": domain,
@@ -151,21 +161,23 @@ async def get_whitelabel_analytics(
         ]
     }
 
+
 @router.get("/css/{config_id}")
 async def get_custom_css(
     config_id: int,
     db: Session = Depends(get_db)
 ):
     """Get generated custom CSS for partner."""
-    
+
     service = get_whitelabel_enhanced_service(db)
     css_content = await service.generate_custom_css(config_id)
-    
+
     return Response(
         content=css_content,
         media_type="text/css",
         headers={"Cache-Control": "public, max-age=3600"}
     )
+
 
 @router.get("/manifest/{config_id}")
 async def get_pwa_manifest(
@@ -173,15 +185,16 @@ async def get_pwa_manifest(
     db: Session = Depends(get_db)
 ):
     """Get PWA manifest for partner."""
-    
+
     service = get_whitelabel_enhanced_service(db)
     manifest = await service.create_pwa_manifest(config_id)
-    
+
     return Response(
         content=str(manifest).replace("'", '"'),
         media_type="application/json",
         headers={"Cache-Control": "public, max-age=86400"}
     )
+
 
 @router.get("/config/{domain}")
 async def get_domain_config(
@@ -189,23 +202,25 @@ async def get_domain_config(
     db: Session = Depends(get_db)
 ):
     """Get white-label configuration by domain (public endpoint)."""
-    
+
     service = get_whitelabel_enhanced_service(db)
     config = await service.get_partner_config(domain)
-    
+
     if not config:
         return {"is_whitelabel": False}
-    
+
     return {
         "is_whitelabel": True,
         "config": config
     }
 
 # Template endpoints for white-label themes
+
+
 @router.get("/templates")
 async def get_available_templates():
     """Get available white-label templates."""
-    
+
     return {
         "templates": [
             {
@@ -218,7 +233,7 @@ async def get_available_templates():
             {
                 "id": "minimal",
                 "name": "Minimal Clean",
-                "preview": "/static/templates/minimal-preview.png", 
+                "preview": "/static/templates/minimal-preview.png",
                 "colors": ["#1f2937", "#6b7280", "#10b981"],
                 "features": ["responsive", "fast_loading", "accessibility"]
             },
@@ -232,6 +247,7 @@ async def get_available_templates():
         ]
     }
 
+
 @router.post("/templates/{template_id}/apply")
 async def apply_template(
     template_id: str,
@@ -240,10 +256,10 @@ async def apply_template(
     db: Session = Depends(get_db)
 ):
     """Apply template to white-label configuration."""
-    
+
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Affiliate access required")
-    
+
     # Template configurations
     templates = {
         "modern": {
@@ -256,7 +272,7 @@ async def apply_template(
             }
         },
         "minimal": {
-            "primary_color": "#1f2937", 
+            "primary_color": "#1f2937",
             "secondary_color": "#10b981",
             "font_family": "system-ui, sans-serif",
             "css_variables": {
@@ -266,7 +282,7 @@ async def apply_template(
         },
         "corporate": {
             "primary_color": "#1e40af",
-            "secondary_color": "#059669", 
+            "secondary_color": "#059669",
             "font_family": "Georgia, serif",
             "css_variables": {
                 "--border-radius": "6px",
@@ -274,12 +290,12 @@ async def apply_template(
             }
         }
     }
-    
+
     if template_id not in templates:
         raise HTTPException(status_code=404, detail="Template not found")
-    
+
     service = get_whitelabel_enhanced_service(db)
-    
+
     try:
         result = await service.update_branding(
             config_id=config_id,

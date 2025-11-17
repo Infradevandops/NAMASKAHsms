@@ -7,14 +7,9 @@ from sqlalchemy.orm import Session
 from app.core.exceptions import ValidationError
 from app.models.user import APIKey, User
 from app.services.base import BaseService
-from app.utils.security import (
-    create_access_token,
-    generate_api_key,
-    generate_secure_id,
-    hash_password,
-    verify_password,
-    verify_token,
-)
+from app.utils.security import (create_access_token, generate_api_key,
+                                generate_secure_id, hash_password,
+                                verify_password, verify_token)
 
 
 class AuthService(BaseService[User]):
@@ -56,15 +51,15 @@ class AuthService(BaseService[User]):
             user = self.db.query(User).filter(User.email == email).first()
             if not user:
                 return None
-            
+
             # Handle users without password hash (OAuth users)
             if not user.password_hash:
                 return None
-                
+
             # Verify password with proper error handling
             if not verify_password(password, user.password_hash):
                 return None
-                
+
             return user
         except Exception as e:
             # Log authentication error but don't expose details
@@ -192,46 +187,46 @@ class AuthService(BaseService[User]):
         user = self.db.query(User).filter(User.email == email).first()
         if not user:
             return None
-            
+
         # Generate reset token
         reset_token = generate_secure_id("rst", 32)
-        
+
         # Set token and expiry (1 hour)
         user.reset_token = reset_token
         user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
-        
+
         self.db.commit()
         return reset_token
-    
+
     def reset_password(self, token: str, new_password: str) -> bool:
         """Reset password using token."""
         user = self.db.query(User).filter(User.reset_token == token).first()
-        
+
         if not user or not user.reset_token_expires:
             return False
-            
+
         # Check if token is expired
         if datetime.now(timezone.utc) > user.reset_token_expires:
             return False
-            
+
         # Update password and clear reset token
         user.password_hash = hash_password(new_password)
         user.reset_token = None
         user.reset_token_expires = None
-        
+
         self.db.commit()
         return True
-    
+
     def verify_email(self, token: str) -> bool:
         """Verify email using verification token."""
         user = self.db.query(User).filter(User.verification_token == token).first()
-        
+
         if not user:
             return False
-            
+
         user.email_verified = True
         user.verification_token = None
-        
+
         self.db.commit()
         return True
 

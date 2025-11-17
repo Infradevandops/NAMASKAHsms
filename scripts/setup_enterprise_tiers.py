@@ -2,10 +2,11 @@
 from app.core.database import SessionLocal
 from app.models.enterprise import EnterpriseTier
 
+
 def setup_default_tiers():
     """Create default enterprise tiers."""
     db = SessionLocal()
-    
+
     tiers = [
         {
             "name": "Business",
@@ -47,19 +48,20 @@ def setup_default_tiers():
             }
         }
     ]
-    
+
     for tier_data in tiers:
         existing = db.query(EnterpriseTier).filter(
             EnterpriseTier.name == tier_data["name"]
         ).first()
-        
+
         if not existing:
             tier = EnterpriseTier(**tier_data)
             db.add(tier)
-    
+
     db.commit()
     db.close()
     print("Enterprise tiers setup complete!")
+
 
 if __name__ == "__main__":
     setup_default_tiers()

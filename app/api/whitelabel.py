@@ -1,12 +1,14 @@
 """White-label platform API endpoints."""
-from fastapi import APIRouter, HTTPException, Request, Depends
-from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_admin_user
-from app.services.whitelabel_service import whitelabel_service
-from app.models.user import User
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import get_current_admin_user, get_db
+from app.models.user import User
+from app.services.whitelabel_service import whitelabel_service
 
 router = APIRouter(prefix="/whitelabel", tags=["whitelabel"])
+
 
 class WhiteLabelCreate(BaseModel):
     domain: str
@@ -17,16 +19,18 @@ class WhiteLabelCreate(BaseModel):
     custom_css: str = None
     api_subdomain: str = None
 
+
 @router.get("/config")
 async def get_whitelabel_config(request: Request):
     """Get white-label configuration for current domain."""
     domain = request.headers.get("host", "").split(":")[0]
-    
+
     config = await whitelabel_service.get_config_by_domain(domain)
     if not config:
         return {"is_whitelabel": False}
-    
+
     return {"is_whitelabel": True, **config}
+
 
 @router.post("/create")
 async def create_whitelabel_config(
@@ -36,7 +40,7 @@ async def create_whitelabel_config(
     """Create new white-label configuration (admin only)."""
     try:
         result = await whitelabel_service.create_config(
-            config_data.domain, 
+            config_data.domain,
             config_data.dict()
         )
         return result

@@ -1,14 +1,17 @@
 """Enhanced SMS Verification API with comprehensive error handling."""
 from datetime import datetime, timezone
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification
-from app.schemas import SuccessResponse, VerificationCreate, VerificationResponse
+from app.schemas import (SuccessResponse, VerificationCreate,
+                         VerificationResponse)
 from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
@@ -24,7 +27,7 @@ async def create_verification(
     """Create new SMS verification with enhanced error handling."""
     try:
         logger.info(f"Creating verification for user {user_id}")
-        
+
         if not verification_data.service_name:
             raise HTTPException(status_code=400, detail="Service name is required")
 
@@ -39,9 +42,9 @@ async def create_verification(
                 status_code=503,
                 detail="SMS service temporarily unavailable. Please try again later."
             )
-        
+
         country = getattr(verification_data, "country", "US")
-        
+
         # Check provider balance
         try:
             balance_data = await provider.get_balance()
@@ -60,7 +63,7 @@ async def create_verification(
                 status_code=503,
                 detail="Unable to verify SMS provider status. Please try again."
             )
-        
+
         base_cost = 0.50
         final_cost = base_cost
 
@@ -84,10 +87,10 @@ async def create_verification(
             number_data = await provider.buy_number(country=country, service=verification_data.service_name)
             phone_number = number_data["phone_number"]
             activation_id = str(number_data["activation_id"])
-            
+
             if "cost" in number_data:
                 final_cost = number_data["cost"]
-                
+
         except Exception as e:
             # Refund on failure
             if actual_cost > 0:
@@ -95,7 +98,7 @@ async def create_verification(
             else:
                 current_user.free_verifications += 1
             db.commit()
-            
+
             logger.error(f"Provider purchase failed: {str(e)}")
             raise HTTPException(
                 status_code=503,
@@ -228,7 +231,7 @@ async def cancel_verification(
         current_user = db.query(User).filter(User.id == user_id).first()
         if not current_user:
             raise HTTPException(status_code=404, detail="User not found")
-            
+
         if verification.cost > 0:
             current_user.credits += verification.cost
         else:
@@ -277,24 +280,24 @@ async def get_verification_messages(
             provider = provider_manager.get_primary_provider()
             if not provider:
                 raise Exception("Provider not available")
-                
+
             sms_code = await provider.get_sms(verification.verification_code)
             messages = []
-            
+
             if sms_code:
                 messages.append({
                     "text": f"Your verification code is: {sms_code}",
                     "code": sms_code,
                     "date": datetime.now(timezone.utc).isoformat()
                 })
-                
+
                 if verification.status == "pending":
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
                     if hasattr(verification, 'sms_code'):
                         verification.sms_code = sms_code
                     db.commit()
-            
+
             return {
                 "messages": messages,
                 "status": verification.status,
@@ -303,7 +306,7 @@ async def get_verification_messages(
                 "phone": verification.phone_number,
                 "provider": "textverified"
             }
-            
+
         except Exception as e:
             logger.error(f"Message retrieval failed: {str(e)}")
             return {

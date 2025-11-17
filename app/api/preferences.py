@@ -31,7 +31,7 @@ async def save_preference(
             ServicePreference.user_id == user_id,
             ServicePreference.service_name == service_name
         ).first()
-        
+
         if preference:
             # Update existing
             preference.preferred_country = preferred_country
@@ -50,10 +50,10 @@ async def save_preference(
                 use_count="0"
             )
             db.add(preference)
-        
+
         db.commit()
         db.refresh(preference)
-        
+
         return {
             "success": True,
             "message": f"Preference saved for {service_name}",
@@ -65,7 +65,7 @@ async def save_preference(
                 "preferred_capability": preference.preferred_capability
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to save preference: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save preference: {str(e)}")
@@ -81,7 +81,7 @@ async def get_preferences(
         preferences = db.query(ServicePreference).filter(
             ServicePreference.user_id == user_id
         ).all()
-        
+
         return {
             "success": True,
             "preferences": [
@@ -98,7 +98,7 @@ async def get_preferences(
                 for p in preferences
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get preferences: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get preferences: {str(e)}")
@@ -116,13 +116,13 @@ async def get_service_preference(
             ServicePreference.user_id == user_id,
             ServicePreference.service_name == service_name
         ).first()
-        
+
         if not preference:
             return {
                 "success": False,
                 "message": f"No preference found for {service_name}"
             }
-        
+
         # Increment use count
         try:
             use_count = int(preference.use_count or "0")
@@ -130,7 +130,7 @@ async def get_service_preference(
             db.commit()
         except:
             pass
-        
+
         return {
             "success": True,
             "preference": {
@@ -142,7 +142,7 @@ async def get_service_preference(
                 "use_count": preference.use_count
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get preference: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get preference: {str(e)}")
@@ -160,18 +160,18 @@ async def delete_preference(
             ServicePreference.user_id == user_id,
             ServicePreference.service_name == service_name
         ).first()
-        
+
         if not preference:
             raise HTTPException(status_code=404, detail="Preference not found")
-        
+
         db.delete(preference)
         db.commit()
-        
+
         return {
             "success": True,
             "message": f"Preference deleted for {service_name}"
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -194,13 +194,13 @@ async def quick_select_with_preference(
             ServicePreference.user_id == user_id,
             ServicePreference.service_name == service_name
         ).first()
-        
+
         if not preference:
             return {
                 "success": False,
                 "message": f"No saved preference for {service_name}. Please configure and save first."
             }
-        
+
         # Increment use count
         try:
             use_count = int(preference.use_count or "0")
@@ -208,7 +208,7 @@ async def quick_select_with_preference(
             db.commit()
         except:
             pass
-        
+
         return {
             "success": True,
             "message": f"Using saved settings for {service_name}",
@@ -220,7 +220,7 @@ async def quick_select_with_preference(
                 "capability": preference.preferred_capability
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed quick-select: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed quick-select: {str(e)}")

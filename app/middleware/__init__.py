@@ -2,21 +2,13 @@
 
 # Security middleware
 # Logging middleware
-from .logging import (
-    AuditTrailMiddleware,
-    PerformanceMetricsMiddleware,
-    RequestLoggingMiddleware,
-)
-
+from .logging import (AuditTrailMiddleware, PerformanceMetricsMiddleware,
+                      RequestLoggingMiddleware)
 # Rate limiting middleware
 from .rate_limiting import AdaptiveRateLimitMiddleware, RateLimitMiddleware
-from .security import (
-    AdminRoleMiddleware,
-    APIKeyAuthMiddleware,
-    CORSMiddleware,
-    JWTAuthMiddleware,
-    SecurityHeadersMiddleware,
-)
+from .security import (AdminRoleMiddleware, APIKeyAuthMiddleware,
+                       CORSMiddleware, JWTAuthMiddleware,
+                       SecurityHeadersMiddleware)
 
 __all__ = [
     # Security

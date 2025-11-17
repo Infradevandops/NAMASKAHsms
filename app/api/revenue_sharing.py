@@ -1,20 +1,25 @@
 """Revenue sharing and commission APIs."""
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user, get_current_admin_user
-from app.services.commission_engine import get_commission_engine
-from app.models.user import User
-from app.models.commission import PayoutRequest, CommissionTier
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.core.dependencies import (get_current_admin_user, get_current_user,
+                                   get_db)
+from app.models.commission import CommissionTier, PayoutRequest
+from app.models.user import User
+from app.services.commission_engine import get_commission_engine
 
 router = APIRouter(prefix="/revenue", tags=["revenue_sharing"])
+
 
 class PayoutRequestCreate(BaseModel):
     amount: float
     payment_method: str
     payment_details: dict
+
 
 class CommissionStats(BaseModel):
     total_earnings: float
@@ -22,6 +27,7 @@ class CommissionStats(BaseModel):
     this_month: float
     commission_rate: float
     tier: str
+
 
 @router.get("/dashboard", response_model=CommissionStats)
 async def get_affiliate_dashboard(
@@ -31,12 +37,12 @@ async def get_affiliate_dashboard(
     """Get affiliate dashboard statistics."""
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Not an affiliate")
-    
+
     engine = get_commission_engine(db)
-    
+
     # Get earnings statistics
     total_earnings = current_user.referral_earnings or 0.0
-    
+
     # Get pending earnings
     from app.models.commission import RevenueShare
     pending_result = db.query(
@@ -46,13 +52,13 @@ async def get_affiliate_dashboard(
         RevenueShare.status == "pending"
     ).scalar()
     pending_earnings = pending_result or 0.0
-    
+
     # Get this month's earnings
     monthly_volume = await engine._get_monthly_volume(current_user.id)
-    
+
     # Get current tier
     tier_info = await engine._get_partner_tier(current_user.id)
-    
+
     return CommissionStats(
         total_earnings=total_earnings,
         pending_earnings=pending_earnings,
@@ -61,13 +67,14 @@ async def get_affiliate_dashboard(
         tier=tier_info.get("name", "starter")
     )
 
+
 @router.get("/tiers")
 async def get_commission_tiers(db: Session = Depends(get_db)):
     """Get available commission tiers."""
     tiers = db.query(CommissionTier).filter(
         CommissionTier.is_active == True
     ).order_by(CommissionTier.min_volume.asc()).all()
-    
+
     return [
         {
             "name": tier.name,
@@ -80,6 +87,7 @@ async def get_commission_tiers(db: Session = Depends(get_db)):
         for tier in tiers
     ]
 
+
 @router.post("/payout/request")
 async def request_payout(
     payout_data: PayoutRequestCreate,
@@ -89,22 +97,22 @@ async def request_payout(
     """Request commission payout."""
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Not an affiliate")
-    
+
     # Check minimum payout amount
     min_payout = 50.0  # Minimum N50
     if payout_data.amount < min_payout:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail=f"Minimum payout amount is N{min_payout}"
         )
-    
+
     # Check available balance
     if payout_data.amount > current_user.referral_earnings:
         raise HTTPException(
             status_code=400,
             detail="Insufficient balance"
         )
-    
+
     # Create payout request
     payout_request = PayoutRequest(
         affiliate_id=current_user.id,
@@ -113,15 +121,16 @@ async def request_payout(
         payment_details=payout_data.payment_details,
         status="pending"
     )
-    
+
     db.add(payout_request)
     db.commit()
-    
+
     return {
         "success": True,
         "message": "Payout request submitted successfully",
         "request_id": payout_request.id
     }
+
 
 @router.get("/payouts")
 async def get_payout_history(
@@ -131,11 +140,11 @@ async def get_payout_history(
     """Get payout request history."""
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Not an affiliate")
-    
+
     payouts = db.query(PayoutRequest).filter(
         PayoutRequest.affiliate_id == current_user.id
     ).order_by(PayoutRequest.created_at.desc()).all()
-    
+
     return [
         {
             "id": payout.id,
@@ -149,6 +158,7 @@ async def get_payout_history(
         for payout in payouts
     ]
 
+
 @router.get("/commissions")
 async def get_commission_history(
     current_user: User = Depends(get_current_user),
@@ -157,12 +167,12 @@ async def get_commission_history(
     """Get commission earning history."""
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Not an affiliate")
-    
+
     from app.models.commission import RevenueShare
     commissions = db.query(RevenueShare).filter(
         RevenueShare.partner_id == current_user.id
     ).order_by(RevenueShare.created_at.desc()).limit(50).all()
-    
+
     return [
         {
             "id": commission.id,
@@ -178,6 +188,8 @@ async def get_commission_history(
     ]
 
 # Admin endpoints
+
+
 @router.get("/admin/payouts")
 async def get_all_payout_requests(
     admin_user: User = Depends(get_current_admin_user),
@@ -187,7 +199,7 @@ async def get_all_payout_requests(
     payouts = db.query(PayoutRequest).order_by(
         PayoutRequest.created_at.desc()
     ).all()
-    
+
     return [
         {
             "id": payout.id,
@@ -201,6 +213,7 @@ async def get_all_payout_requests(
         for payout in payouts
     ]
 
+
 @router.put("/admin/payouts/{payout_id}/process")
 async def process_payout(
     payout_id: int,
@@ -213,19 +226,19 @@ async def process_payout(
     payout = db.query(PayoutRequest).filter(
         PayoutRequest.id == payout_id
     ).first()
-    
+
     if not payout:
         raise HTTPException(status_code=404, detail="Payout request not found")
-    
+
     payout.status = status
     payout.admin_notes = admin_notes
     payout.processed_at = datetime.utcnow()
-    
+
     # If approved, deduct from affiliate balance
     if status == "approved":
         affiliate = payout.affiliate
         affiliate.referral_earnings -= payout.amount
-    
+
     db.commit()
-    
+
     return {"success": True, "status": status}

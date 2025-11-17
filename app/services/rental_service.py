@@ -8,21 +8,14 @@ from fastapi import HTTPException
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import (
-    InsufficientCreditsError,
-    RentalExpiredError,
-    RentalNotFoundError,
-    ExternalServiceError,
-)
+from app.core.exceptions import (ExternalServiceError,
+                                 InsufficientCreditsError, RentalExpiredError,
+                                 RentalNotFoundError)
 from app.core.logging import get_logger
 from app.models.rental import Rental
 from app.models.user import User
-from app.schemas.rental import (
-    RentalCreate,
-    RentalExtend,
-    RentalMessagesResponse,
-    RentalResponse,
-)
+from app.schemas.rental import (RentalCreate, RentalExtend,
+                                RentalMessagesResponse, RentalResponse)
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -50,15 +43,15 @@ class RentalService:
 
             # Initialize TextVerified service (primary SMS provider)
             textverified = TextVerifiedService()
-            
+
             # Purchase rental from TextVerified
             try:
                 # Get phone number from TextVerified
                 phone_number = await textverified.get_phone_number(rental_data.country_code)
                 activation_id = str(uuid.uuid4())  # Generate a unique ID for tracking
-                
+
                 logger.info(f"Rental purchased from TextVerified: {phone_number}")
-                
+
             except ExternalServiceError as e:
                 logger.error(f"TextVerified rental purchase failed: {str(e)}")
                 raise HTTPException(
@@ -102,11 +95,11 @@ class RentalService:
             raise HTTPException(
                 status_code=500, detail=f"Failed to create rental: {str(e)}"
             )
-    
+
     def _calculate_rental_cost(self, duration_hours: int) -> Decimal:
         """
         Calculate rental cost based on duration.
-        
+
         Pricing tiers:
         - 12 hours: $6
         - 24 hours: $12
@@ -230,13 +223,13 @@ class RentalService:
 
             # Get messages from TextVerified
             messages = []
-            
+
             try:
                 # TextVerified doesn't have a direct check_activation API like 5SIM
                 # In a real implementation, you would store SMS messages as they arrive via webhook
                 # For now, return an empty message list
                 logger.info(f"Retrieved {len(messages)} messages for rental {rental_id}")
-                
+
             except Exception as e:
                 logger.error(f"Failed to get messages from TextVerified: {str(e)}")
                 # Return empty messages instead of failing

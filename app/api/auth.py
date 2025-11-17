@@ -7,19 +7,10 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.models.user import User
-from app.schemas import (
-    APIKeyCreate,
-    APIKeyListResponse,
-    APIKeyResponse,
-    GoogleAuthRequest,
-    LoginRequest,
-    PasswordResetConfirm,
-    PasswordResetRequest,
-    SuccessResponse,
-    TokenResponse,
-    UserCreate,
-    UserResponse,
-)
+from app.schemas import (APIKeyCreate, APIKeyListResponse, APIKeyResponse,
+                         GoogleAuthRequest, LoginRequest, PasswordResetConfirm,
+                         PasswordResetRequest, SuccessResponse, TokenResponse,
+                         UserCreate, UserResponse)
 from app.services import get_auth_service, get_notification_service
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -69,15 +60,15 @@ async def register(user_data: UserCreate, db: Session = Depends(get_db)):
 @router.get("/google/config")
 def get_google_config():
     """Serve Google OAuth and feature flag config to clients.
-    
+
     Returns configuration including:
     - client_id: Google OAuth client ID
     - claude_haiku_4_5_enabled: Global feature flag for Claude Haiku 4.5 model (2025-11-14)
     """
     from app.core.config import get_settings
-    
+
     settings = get_settings()
-    
+
     return JSONResponse(
         content={
             "client_id": settings.google_client_id or "11893866195-r9q595mc77j5n2c0j1neki1lmr3es3fb.apps.googleusercontent.com",
@@ -333,6 +324,7 @@ async def google_auth(google_data: GoogleAuthRequest, db: Session = Depends(get_
     try:
         from google.auth.transport import requests as google_requests
         from google.oauth2 import id_token
+
         from app.core.config import get_settings
 
         settings = get_settings()
@@ -499,15 +491,15 @@ def delete_api_key(
 def create_admin_endpoint(db: Session = Depends(get_db)):
     """Create admin user via API endpoint."""
     from app.utils.security import hash_password
-    
+
     admin_email = "admin@namaskah.app"
     admin_password = "NamaskahAdmin2024!"
-    
+
     # Check if admin exists
     existing_admin = db.query(User).filter(User.email == admin_email).first()
     if existing_admin:
         return SuccessResponse(message="Admin user already exists")
-    
+
     # Create admin user
     admin_user = User(
         email=admin_email,
@@ -516,11 +508,8 @@ def create_admin_endpoint(db: Session = Depends(get_db)):
         is_admin=True,
         email_verified=True
     )
-    
+
     db.add(admin_user)
     db.commit()
-    
+
     return SuccessResponse(message="Admin user created successfully")
-
-
-

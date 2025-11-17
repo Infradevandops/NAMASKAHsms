@@ -8,10 +8,10 @@ import secrets
 import sys
 from urllib.parse import urlparse
 
+from app.core.config import Settings
+
 # Add app to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-from app.core.config import Settings
 
 
 class ConfigValidator:

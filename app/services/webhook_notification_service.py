@@ -1,10 +1,12 @@
 """Webhook and notification service for real-time updates."""
 import asyncio
-import httpx
-from typing import Dict, Optional, Any
 from datetime import datetime
-from app.core.logging import get_logger
+from typing import Any, Dict, Optional
+
+import httpx
+
 from app.core.config import settings
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -44,13 +46,13 @@ class WebhookNotificationService:
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
                     response = await client.post(url, json=payload, headers=default_headers)
-                    
+
                     if response.status_code in [200, 201, 202]:
                         logger.info(f"Webhook sent successfully: {event} to {url}")
                         return True
                     else:
                         logger.warning(f"Webhook failed with status {response.status_code}: {event}")
-                        
+
             except asyncio.TimeoutError:
                 logger.warning(f"Webhook timeout (attempt {attempt + 1}/{self.max_retries}): {event}")
             except Exception as e:
