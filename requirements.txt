@@ -25,7 +25,7 @@ pytest-cov==4.1.0
 pytest-asyncio==0.21.1
 httpx==0.25.2
 textverified==0.1.0a1
-cryptography==41.0.7
+cryptography==44.0.1
 
 # Phase 2 Enhancement Dependencies
 pyotp==2.8.0
