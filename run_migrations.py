@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Run database migrations on Render."""
+import os
 import subprocess
 import sys
-import os
 from pathlib import Path
+
 
 def run_migrations():
     """Execute alembic migrations."""
@@ -13,7 +14,7 @@ def run_migrations():
         if not alembic_path.exists():
             print("Error: alembic directory not found")
             return False
-        
+
         result = subprocess.run(
             [sys.executable, "-m", "alembic", "upgrade", "head"],
             cwd=os.path.dirname(os.path.abspath(__file__)),
@@ -21,15 +22,15 @@ def run_migrations():
             text=True,
             timeout=300
         )
-        
+
         print(result.stdout)
         if result.stderr:
             print("STDERR:", result.stderr)
-        
+
         if result.returncode != 0:
             print(f"Migration failed with code {result.returncode}")
             return False
-        
+
         print("Migrations completed successfully")
         return True
     except subprocess.TimeoutExpired:
@@ -38,6 +39,7 @@ def run_migrations():
     except Exception as e:
         print(f"Error running migrations: {e}")
         return False
+
 
 if __name__ == "__main__":
     success = run_migrations()
