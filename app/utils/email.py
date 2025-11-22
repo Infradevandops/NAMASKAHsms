@@ -104,7 +104,7 @@ class EmailService:
         )
 
 
-# Pre-defined email templates
+# Pre - defined email templates
 WELCOME_TEMPLATE = EmailTemplate(
     subject="Welcome to Namaskah SMS - $name",
     html_body="""

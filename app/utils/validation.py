@@ -9,7 +9,7 @@ from phonenumbers import NumberParseException
 
 def validate_email(email: str) -> bool:
     """Validate email format."""
-    pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+    pattern = r"^[a - zA-Z0 - 9._%+-]+@[a - zA-Z0 - 9.-]+\.[a - zA-Z]{2,}$"
     return bool(re.match(pattern, email))
 
 
@@ -39,7 +39,7 @@ def validate_phone_number(phone: str, region: Optional[str] = None) -> Dict[str,
 
 
 def validate_phone(phone: str, region: Optional[str] = None) -> bool:
-    """Backward-compatible boolean phone validator used by tests and callers.
+    """Backward - compatible boolean phone validator used by tests and callers.
 
     Returns True when the phone is a valid number, False otherwise.
     """
@@ -113,7 +113,7 @@ def validate_api_key_name(name: str) -> bool:
         return False
 
     # Only alphanumeric, spaces, hyphens, underscores
-    pattern = r"^[a-zA-Z0-9\s\-_]+$"
+    pattern = r"^[a - zA-Z0 - 9\s\-_]+$"
     return bool(re.match(pattern, name))
 
 
