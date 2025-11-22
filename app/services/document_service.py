@@ -168,7 +168,7 @@ class DocumentService:
             if Image:
                 with Image.open(file_path) as img:
                     # Basic image info
-                extracted_data["image_info"] = {
+                    extracted_data["image_info"] = {
                     "format": img.format,
                     "mode": img.mode,
                     "size": img.size,
