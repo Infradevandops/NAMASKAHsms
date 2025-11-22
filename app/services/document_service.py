@@ -1,22 +1,24 @@
 """Document service for KYC file handling and processing."""
-import os
 import hashlib
 import mimetypes
-from typing import Optional, Dict, Any
+import os
 from datetime import datetime, timezone
 from pathlib import Path
-from fastapi import UploadFile, HTTPException
+from typing import Any, Dict, Optional
+
+from fastapi import HTTPException, UploadFile
 from sqlalchemy.orm import Session
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
 import json
 
-from app.models.kyc import KYCDocument, KYCProfile
-from app.core.logging import get_logger
 from app.core.config import get_settings
-from app.utils.path_security import validate_safe_path, sanitize_filename
+from app.core.logging import get_logger
+from app.models.kyc import KYCDocument, KYCProfile
+from app.utils.path_security import sanitize_filename, validate_safe_path
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -169,12 +171,12 @@ class DocumentService:
                 with Image.open(file_path) as img:
                     # Basic image info
                     extracted_data["image_info"] = {
-                    "format": img.format,
-                    "mode": img.mode,
-                    "size": img.size,
-                    "has_transparency": img.mode in ("RGBA", "LA")
-                    or "transparency" in img.info
-                }
+                        "format": img.format,
+                        "mode": img.mode,
+                        "size": img.size,
+                        "has_transparency": img.mode in ("RGBA", "LA")
+                        or "transparency" in img.info
+                    }
 
                 # EXIF data (if available)
                 if hasattr(img, '_getexif') and img._getexif():
