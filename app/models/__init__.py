@@ -62,7 +62,7 @@ __all__ = [
     "ActivityLog",
     "BannedNumber",
     "InAppNotification",
-    # White-label models
+    # White - label models
     "WhiteLabelConfig",
     "PartnerFeature",
     "WhiteLabelAsset",

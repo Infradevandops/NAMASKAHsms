@@ -1,4 +1,4 @@
-"""System monitoring and support-related database models."""
+"""System monitoring and support - related database models."""
 from sqlalchemy import Boolean, Column, DateTime, Float, String
 
 from app.models.base import BaseModel
@@ -60,7 +60,7 @@ class BannedNumber(BaseModel):
 
 
 class InAppNotification(BaseModel):
-    """In-app notifications."""
+    """In - app notifications."""
 
     __tablename__ = "in_app_notifications"
 

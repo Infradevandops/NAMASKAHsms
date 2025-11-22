@@ -1,4 +1,4 @@
-"""User-related database models."""
+"""User - related database models."""
 from sqlalchemy import Boolean, Column, DateTime, Float, String
 from sqlalchemy.orm import relationship
 
@@ -15,6 +15,7 @@ class User(BaseModel):
     credits = Column(Float, default=0.0, nullable=False)
     free_verifications = Column(Float, default=1.0, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
+    is_moderator = Column(Boolean, default=False, nullable=False)
     email_verified = Column(Boolean, default=False, nullable=False)
     verification_token = Column(String)
     reset_token = Column(String)
@@ -27,19 +28,21 @@ class User(BaseModel):
     google_id = Column(String(255), nullable=True, index=True)
     provider = Column(String(50), default="email", nullable=False)
     avatar_url = Column(String(500), nullable=True)
-    
+
     # Affiliate fields
     affiliate_id = Column(String(50), nullable=True)
     partner_type = Column(String(50), nullable=True)
     commission_tier = Column(String(50), nullable=True)
     is_affiliate = Column(Boolean, default=False, nullable=False)
-    
+
     # Relationships
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
-    enterprise_account = relationship("EnterpriseAccount", back_populates="user", uselist=False)
+    enterprise_account = relationship("EnterpriseAccount",
+                                      back_populates="user", uselist=False)
     revenue_shares = relationship("RevenueShare", back_populates="partner")
     payout_requests = relationship("PayoutRequest", back_populates="affiliate")
-    reseller_account = relationship("ResellerAccount", back_populates="user", uselist=False)
+    reseller_account = relationship("ResellerAccount",
+                                    back_populates="user", uselist=False)
     partner_features = relationship("PartnerFeature", back_populates="partner")
     personal_numbers = relationship("PersonalNumber", back_populates="user")
 
@@ -110,6 +113,5 @@ class NotificationPreferences(BaseModel):
     in_app_notifications = Column(Boolean, default=True, nullable=False)
     email_notifications = Column(Boolean, default=True, nullable=False)
     receipt_notifications = Column(Boolean, default=True, nullable=False)
-
 
 # InAppNotification is defined in system.py to avoid duplication

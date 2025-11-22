@@ -1,4 +1,4 @@
-"""Verification-related database models."""
+"""Verification - related database models."""
 from sqlalchemy import Boolean, Column, DateTime, Float, String
 
 from app.models.base import BaseModel
@@ -23,7 +23,7 @@ class Verification(BaseModel):
     requested_carrier = Column(String)
     requested_area_code = Column(String)
     completed_at = Column(DateTime)
-    
+
     # TextVerified integration fields (primary provider)
     provider = Column(String, default="textverified")
     operator = Column(String)
@@ -32,7 +32,7 @@ class Verification(BaseModel):
     sms_text = Column(String)
     sms_code = Column(String)
     sms_received_at = Column(DateTime)
-    
+
     # Bulk purchase tracking
     bulk_id = Column(String, index=True)
 

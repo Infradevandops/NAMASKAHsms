@@ -1,10 +1,9 @@
 """Base model infrastructure with common fields and patterns."""
 from datetime import datetime, timezone
+import uuid
 
-from sqlalchemy import Column, DateTime, String
+from sqlalchemy import Column, DateTime, String, Boolean
 from sqlalchemy.orm import declarative_base
-
-from app.utils.security import generate_secure_id
 
 Base = declarative_base()
 
@@ -19,13 +18,12 @@ class BaseModel(Base):
         DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
     )
     updated_at = Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
+    # deleted_at = Column(DateTime, nullable=True)
+    # is_deleted = Column(Boolean, default=False, nullable=False)
 
     def __init__(self, **kwargs):
         if "id" not in kwargs:
-            # Generate ID with table name prefix
-            table_name = self.__tablename__
-            prefix = table_name.rstrip("s")  # Remove trailing 's'
-            kwargs["id"] = generate_secure_id(prefix)
+            kwargs["id"] = str(uuid.uuid4())
         super().__init__(**kwargs)
 
     def to_dict(self):
@@ -37,3 +35,15 @@ class BaseModel(Base):
     def update_timestamp(self):
         """Update the updated_at timestamp."""
         self.updated_at = datetime.now(timezone.utc)
+
+    # def soft_delete(self):
+    #     """Mark record as deleted without removing from database."""
+    #     self.is_deleted = True
+    #     self.deleted_at = datetime.now(timezone.utc)
+    #     self.update_timestamp()
+    #
+    # def restore(self):
+    #     """Restore soft-deleted record."""
+    #     self.is_deleted = False
+    #     self.deleted_at = None
+    #     self.update_timestamp()
