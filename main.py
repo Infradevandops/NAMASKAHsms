@@ -12,10 +12,12 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 # Import essential routers only
 from app.api.core.auth import router as auth_router
@@ -122,14 +124,14 @@ def create_app() -> FastAPI:
 
     # Add FastAPI CORS middleware
     from app.core.config import get_settings as get_app_settings
-    settings = get_app_settings()
+    app_settings = get_app_settings()
     cors_origins = [
         "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ]
-    if settings.environment == "production":
+    if app_settings.environment == "production":
         cors_origins = [
             "https://yourdomain.com",
             "https://app.yourdomain.com",
@@ -158,8 +160,8 @@ def create_app() -> FastAPI:
     if STATIC_DIR.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     else:
-        logger = get_logger("startup")
-        logger.error(f"Static directory '{STATIC_DIR}' not found")
+        startup_logger = get_logger("startup")
+        startup_logger.error(f"Static directory '{STATIC_DIR}' not found")
 
     # Direct template loading (no cache)
     def _load_template(path: str) -> str:
@@ -381,50 +383,51 @@ def create_app() -> FastAPI:
 
     @fastapi_app.on_event("startup")
     async def startup_event():
-        logger = get_logger("startup")
-        logger.info("Application startup")
+        startup_logger = get_logger("startup")
+        startup_logger.info("Application startup")
         await cache.connect()
         from app.services.sms_polling_service import sms_polling_service
-        from app.core.config import settings
+        from app.core.config import get_settings as get_startup_settings
         import asyncio
 
         async def _run_sms_service_supervisor():
-            logger = get_logger("sms-supervisor")
+            sms_logger = get_logger("sms-supervisor")
+            startup_config = get_startup_settings()
             while True:
                 try:
                     await asyncio.wait_for(
                         sms_polling_service.start_background_service(),
-                        timeout=settings.async_task_timeout_seconds,
+                        timeout=startup_config.async_task_timeout_seconds,
                     )
-                    logger.info("SMS polling service exited; restarting supervisor in 5s")
+                    sms_logger.info("SMS polling service exited; restarting supervisor in 5s")
                     await asyncio.sleep(5)
                 except asyncio.TimeoutError:
-                    logger.warning("SMS polling service timed out; restarting")
+                    sms_logger.warning("SMS polling service timed out; restarting")
                     await asyncio.sleep(2)
                 except asyncio.CancelledError:
-                    logger.info("SMS supervisor cancelled")
+                    sms_logger.info("SMS supervisor cancelled")
                     break
                 except Exception as e:
-                    logger.error(f"SMS supervisor error: {e}")
+                    sms_logger.error(f"SMS supervisor error: {e}")
                     await asyncio.sleep(5)
 
         asyncio.create_task(_run_sms_service_supervisor())
 
     @fastapi_app.on_event("shutdown")
     async def shutdown_event():
-        logger = get_logger("shutdown")
-        logger.info("Starting graceful shutdown")
+        shutdown_logger = get_logger("shutdown")
+        shutdown_logger.info("Starting graceful shutdown")
         try:
             from app.services.sms_polling_service import sms_polling_service
             await sms_polling_service.stop_background_service()
-            logger.info("SMS polling service stopped")
+            shutdown_logger.info("SMS polling service stopped")
             await cache.disconnect()
-            logger.info("Cache disconnected")
+            shutdown_logger.info("Cache disconnected")
             engine.dispose()
-            logger.info("Database connections disposed")
-            logger.info("Graceful shutdown completed")
+            shutdown_logger.info("Database connections disposed")
+            shutdown_logger.info("Graceful shutdown completed")
         except Exception as e:
-            logger.error("Error during shutdown", error=str(e))
+            shutdown_logger.error("Error during shutdown", error=str(e))
 
     return fastapi_app
 
