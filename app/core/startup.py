@@ -1,6 +1,7 @@
 """Startup initialization for the application."""
 import os
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
@@ -16,7 +17,7 @@ def ensure_admin_user():
     try:
         admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
         admin_password = os.getenv("ADMIN_PASSWORD")
-        
+
         if not admin_password:
             logger.warning("ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
             return
