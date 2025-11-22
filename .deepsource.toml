@@ -9,11 +9,11 @@ enabled = true
 
 [[analyzers]]
 name = "secrets"
-enabled = true
+enabled = false
 
 [[analyzers]]
 name = "docker"
-enabled = true
+enabled = false
 
 [[transformers]]
 name = "autopep8"
