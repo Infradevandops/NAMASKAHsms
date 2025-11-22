@@ -1,47 +1,49 @@
 """
 Namaskah SMS - Optimized Application Factory
 """
-from app.core.logging import get_logger, setup_logging
-from app.core.startup import run_startup_initialization
-from app.middleware.csrf_middleware import CSRFMiddleware
-from app.middleware.xss_protection import XSSProtectionMiddleware
-from app.middleware.security import SecurityHeadersMiddleware
-from app.middleware.logging import RequestLoggingMiddleware
-from app.core.unified_error_handling import setup_unified_middleware
-from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse, Response
-from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
-from starlette.middleware.gzip import GZipMiddleware
-from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 from pathlib import Path
 
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
+from fastapi.responses import HTMLResponse, Response
+from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
+from starlette.middleware.gzip import GZipMiddleware
+
+from app.api.admin.admin_router import router as admin_router
 # Import essential routers only
 from app.api.core.auth import router as auth_router
 from app.api.core.auth_enhanced import router as auth_enhanced_router
-from app.api.core.gdpr import router as gdpr_router
-from app.api.admin.admin_router import router as admin_router
 from app.api.core.countries import router as countries_router
+from app.api.core.gdpr import router as gdpr_router
 from app.api.core.services import router as services_router
-from app.api.core.system import root_router, router as system_router
-
-# Import production implementation routers
-from app.api.verification.textverified_endpoints import router as textverified_router
-from app.api.verification.pricing_endpoints import router as pricing_router
-from app.api.verification.rentals_endpoints import router as rentals_endpoints_router
-from app.api.rentals.textverified_rentals import router as rentals_router
-from app.api.integrations.sms_inbox import router as sms_router
-from app.api.integrations.billing import router as billing_router
-from app.api.integrations.webhooks import router as webhooks_router
-from app.api.integrations.wake_requests import router as wake_router
+from app.api.core.system import root_router
+from app.api.core.system import router as system_router
 from app.api.integrations.api_docs import router as docs_router
-from app.api.integrations.sms_forwarding import router as forwarding_router
+from app.api.integrations.billing import router as billing_router
 from app.api.integrations.billing_cycles import router as cycles_router
-
-from app.core.unified_cache import cache
+from app.api.integrations.sms_forwarding import router as forwarding_router
+from app.api.integrations.sms_inbox import router as sms_router
+from app.api.integrations.wake_requests import router as wake_router
+from app.api.integrations.webhooks import router as webhooks_router
+from app.api.rentals.textverified_rentals import router as rentals_router
+from app.api.verification.pricing_endpoints import router as pricing_router
+from app.api.verification.rentals_endpoints import \
+    router as rentals_endpoints_router
+# Import production implementation routers
+from app.api.verification.textverified_endpoints import \
+    router as textverified_router
 from app.core.database import engine, get_db
 from app.core.dependencies import get_current_user_id
+from app.core.logging import get_logger, setup_logging
+from app.core.startup import run_startup_initialization
+from app.core.unified_cache import cache
+from app.core.unified_error_handling import setup_unified_middleware
+from app.middleware.csrf_middleware import CSRFMiddleware
+from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.security import SecurityHeadersMiddleware
+from app.middleware.xss_protection import XSSProtectionMiddleware
 
 security = HTTPBearer(auto_error=False)
 
@@ -77,6 +79,7 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
         return None
     try:
         import jwt
+
         from app.core.config import get_settings as get_app_settings
         settings = get_app_settings()
         payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
@@ -100,8 +103,8 @@ def create_app() -> FastAPI:
     setup_logging()
 
     # Import all models and configure registry
-    from app.models.base import Base  # noqa: F401
     import app.models  # noqa: F401
+    from app.models.base import Base  # noqa: F401
     Base.registry.configure()
 
     fastapi_app = FastAPI(
@@ -256,9 +259,10 @@ def create_app() -> FastAPI:
 
     @fastapi_app.post("/api/auth/register")
     async def register_user(request: Request):
+        import json
+
         from app.core.database import get_db
         from app.services.auth_service import get_auth_service
-        import json
         db = None
         try:
             body = await request.body()
@@ -292,8 +296,9 @@ def create_app() -> FastAPI:
 
     @fastapi_app.post("/api/billing/add-credits")
     async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
-        from app.models.user import User
         import json
+
+        from app.models.user import User
         try:
             if not user_id:
                 raise HTTPException(status_code=401, detail="Authentication required")
@@ -384,9 +389,10 @@ def create_app() -> FastAPI:
         logger = get_logger("startup")
         logger.info("Application startup")
         await cache.connect()
-        from app.services.sms_polling_service import sms_polling_service
-        from app.core.config import settings
         import asyncio
+
+        from app.core.config import settings
+        from app.services.sms_polling_service import sms_polling_service
 
         async def _run_sms_service_supervisor():
             logger = get_logger("sms-supervisor")
