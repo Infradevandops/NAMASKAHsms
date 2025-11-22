@@ -10,7 +10,7 @@ from app.core.config import settings
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Rate limiting middleware with IP-based and user-based strategies."""
+    """Rate limiting middleware with IP - based and user - based strategies."""
 
     def __init__(
         self,
@@ -29,12 +29,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.ip_requests = defaultdict(deque)
         self.user_requests = defaultdict(deque)
 
-        # Endpoint-specific limits
+        # Endpoint - specific limits
         self.endpoint_limits.update(
             {
                 "/auth/login": (100, 3600),  # 100 requests per hour (industry standard)
                 "/auth/register": (20, 3600),  # 20 registrations per hour
-                "/auth/forgot-password": (10, 3600),  # 10 password resets per hour
+                "/auth/forgot - password": (10, 3600),  # 10 password resets per hour
                 "/verify/create": (200, 3600),  # 200 verifications per hour
                 "/wallet/paystack/initialize": (50, 3600),  # 50 payments per hour
                 "/support/submit": (10, 3600),  # 10 support tickets per hour
@@ -73,13 +73,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         # Get rate limit for this endpoint
         requests_limit, window = self._get_endpoint_limit(request.url.path)
 
-        # Check IP-based rate limit
+        # Check IP - based rate limit
         if not self._check_rate_limit(
             self.ip_requests[client_ip], requests_limit, window, current_time
         ):
             return self._create_rate_limit_response("IP rate limit exceeded")
 
-        # Check user-based rate limit (if authenticated)
+        # Check user - based rate limit (if authenticated)
         if user_id:
             user_limit = requests_limit * 2  # Users get higher limits
             if not self._check_rate_limit(
@@ -104,9 +104,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
         reset_time = int(current_time + window)
 
-        response.headers["X-RateLimit-Limit"] = str(requests_limit)
-        response.headers["X-RateLimit-Remaining"] = str(remaining)
-        response.headers["X-RateLimit-Reset"] = str(reset_time)
+        response.headers["X - RateLimit-Limit"] = str(requests_limit)
+        response.headers["X - RateLimit-Remaining"] = str(remaining)
+        response.headers["X - RateLimit-Reset"] = str(reset_time)
 
         return response
 
@@ -114,11 +114,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def _get_client_ip(request: Request) -> str:
         """Get client IP address from request."""
         # Check for forwarded headers (for reverse proxies)
-        forwarded_for = request.headers.get("X-Forwarded-For")
+        forwarded_for = request.headers.get("X - Forwarded-For")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
 
-        real_ip = request.headers.get("X-Real-IP")
+        real_ip = request.headers.get("X - Real-IP")
         if real_ip:
             return real_ip
 
@@ -160,7 +160,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         current_time: float,
     ) -> int:
         """Get remaining requests for client."""
-        # Use user-based limit if authenticated, otherwise IP-based
+        # Use user - based limit if authenticated, otherwise IP - based
         if user_id:
             request_times = self.user_requests[user_id]
             effective_limit = limit * 2
@@ -211,7 +211,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 "message": message,
                 "retry_after": self.default_window,
             },
-            headers={"Retry-After": str(self.default_window)},
+            headers={"Retry - After": str(self.default_window)},
         )
 
 
@@ -270,9 +270,9 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
             self.error_count += 1
 
         # Add performance headers
-        response.headers["X-Process-Time"] = f"{process_time:.3f}"
-        response.headers["X-System-Load"] = f"{system_load:.2f}"
-        response.headers["X-Rate-Limit"] = str(adjusted_limit)
+        response.headers["X - Process-Time"] = f"{process_time:.3f}"
+        response.headers["X - System-Load"] = f"{system_load:.2f}"
+        response.headers["X - Rate-Limit"] = str(adjusted_limit)
 
         return response
 

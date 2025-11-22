@@ -18,7 +18,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
             response = await call_next(request)
             return response
         except HTTPException:
-            # Re-raise HTTP exceptions to be handled by FastAPI
+            # Re - raise HTTP exceptions to be handled by FastAPI
             raise
         except Exception as exc:
             # Log the error
@@ -182,7 +182,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
             },
             "tiers": {
                 "tier1": {
-                    "name": "High-Demand",
+                    "name": "High - Demand",
                     "price": 0.75,
                     "services": ["whatsapp", "telegram", "discord", "google"],
                 },
@@ -242,7 +242,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
                     "name": "Australia",
                     "price_multiplier": 1.4,
                     "voice_supported": True,
-                    "region": "Asia-Pacific",
+                    "region": "Asia - Pacific",
                     "tier": "Premium",
                 },
                 {
@@ -250,7 +250,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
                     "name": "Japan",
                     "price_multiplier": 1.5,
                     "voice_supported": True,
-                    "region": "Asia-Pacific",
+                    "region": "Asia - Pacific",
                     "tier": "Premium",
                 },
                 {
@@ -258,7 +258,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
                     "name": "India",
                     "price_multiplier": 0.2,
                     "voice_supported": False,
-                    "region": "Asia-Pacific",
+                    "region": "Asia - Pacific",
                     "tier": "Economy",
                 },
                 {
@@ -305,7 +305,7 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
                 return JSONResponse(
                     status_code=200,
                     content=self.FALLBACK_RESPONSES[path],
-                    headers={"X-Fallback-Response": "true"},
+                    headers={"X - Fallback-Response": "true"},
                 )
 
             return response
@@ -323,12 +323,12 @@ class APIFallbackMiddleware(BaseHTTPMiddleware):
                     status_code=200,
                     content=self.FALLBACK_RESPONSES[path],
                     headers={
-                        "X-Fallback-Response": "true",
-                        "X-Fallback-Reason": "exception",
+                        "X - Fallback-Response": "true",
+                        "X - Fallback-Reason": "exception",
                     },
                 )
 
-            # Re-raise if no fallback available
+            # Re - raise if no fallback available
             raise exc
 
 

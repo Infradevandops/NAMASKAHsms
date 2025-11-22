@@ -1,4 +1,4 @@
-"""Middleware package for cross-cutting concerns."""
+"""Middleware package for cross - cutting concerns."""
 
 # Security middleware
 # Logging middleware

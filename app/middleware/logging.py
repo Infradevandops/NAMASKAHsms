@@ -74,7 +74,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
 
         # Get client info
         client_ip = self._get_client_ip(request)
-        user_agent = request.headers.get("user-agent", "")
+        user_agent = request.headers.get("user - agent", "")
 
         # Prepare log data
         log_data = {
@@ -107,9 +107,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         # Remove sensitive headers and data
         sensitive_headers = [
             "authorization",
-            "x-api-key",
+            "x - api-key",
             "cookie",
-            "x-auth-token",
+            "x - auth-token",
             "bearer",
         ]
         for header in sensitive_headers:
@@ -159,11 +159,11 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def _get_client_ip(request: Request) -> str:
         """Get client IP address."""
-        forwarded_for = request.headers.get("x-forwarded-for")
+        forwarded_for = request.headers.get("x - forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
 
-        real_ip = request.headers.get("x-real-ip")
+        real_ip = request.headers.get("x - real-ip")
         if real_ip:
             return real_ip
 
@@ -241,7 +241,7 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
             current_avg * (total_requests - 1) + process_time
         ) / total_requests
 
-        # Update endpoint-specific metrics
+        # Update endpoint - specific metrics
         if endpoint not in self.metrics["endpoint_metrics"]:
             self.metrics["endpoint_metrics"][endpoint] = {
                 "count": 0,
@@ -270,18 +270,18 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
             endpoint_metrics["errors"] += 1
 
         # Add metrics headers
-        response.headers["X-Total-Requests"] = str(self.metrics["total_requests"])
+        response.headers["X - Total-Requests"] = str(self.metrics["total_requests"])
         response.headers[
-            "X-Avg-Response-Time"
+            "X - Avg-Response - Time"
         ] = f"{self.metrics['avg_response_time']:.3f}"
         response.headers[
-            "X-Error-Rate"
+            "X - Error-Rate"
         ] = f"{(self.metrics['total_errors'] / self.metrics['total_requests'] * 100):.2f}%"
 
         # Log slow requests
         if process_time > 2.0:
             logger.warning(
-                "Slow request detected: endpoint=%s, duration=%.3fs, threshold=2.0s",
+                "Slow request detected: endpoint=%s, duration=%.3fs, threshold = 2.0s",
                 endpoint,
                 process_time,
             )
@@ -313,7 +313,7 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
             "/verify/create",
             "/auth/register",
             "/auth/login",
-            "/api-keys",
+            "/api - keys",
             "/webhooks",
         ]
 
@@ -348,7 +348,7 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
             "user_id": user_id,
             "user_email": user.email if user else None,
             "client_ip": self._get_client_ip(request),
-            "user_agent": request.headers.get("user-agent", ""),
+            "user_agent": request.headers.get("user - agent", ""),
             "timestamp": time.time(),
         }
 
@@ -397,11 +397,11 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
     @staticmethod
     def _get_client_ip(request: Request) -> str:
         """Get client IP address."""
-        forwarded_for = request.headers.get("x-forwarded-for")
+        forwarded_for = request.headers.get("x - forwarded-for")
         if forwarded_for:
             return forwarded_for.split(",")[0].strip()
 
-        real_ip = request.headers.get("x-real-ip")
+        real_ip = request.headers.get("x - real-ip")
         if real_ip:
             return real_ip
 

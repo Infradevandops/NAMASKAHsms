@@ -31,11 +31,11 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
             "/auth/login",
             "/auth/register",
             "/auth/google",
-            "/auth/forgot-password",
-            "/auth/reset-password",
+            "/auth/forgot - password",
+            "/auth/reset - password",
             "/auth/verify",
-            "/auth/create-admin",
-            "/setup/init-admin",
+            "/auth/create - admin",
+            "/setup/init - admin",
             "/services/list",
             "/services/price",
             "/services/status",
@@ -106,7 +106,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
     """API key authentication middleware for programmatic access."""
 
-    def __init__(self, app, api_key_header: str = "X-API-Key"):
+    def __init__(self, app, api_key_header: str = "X - API-Key"):
         super().__init__(app)
         self.api_key_header = api_key_header
 
@@ -200,12 +200,12 @@ class CORSMiddleware(BaseHTTPMiddleware):
         ]
         self.allowed_headers = allowed_headers or [
             "Accept",
-            "Accept-Language",
-            "Content-Language",
-            "Content-Type",
+            "Accept - Language",
+            "Content - Language",
+            "Content - Type",
             "Authorization",
-            "X-API-Key",
-            "X-Requested-With",
+            "X - API-Key",
+            "X - Requested-With",
         ]
         self.allow_credentials = allow_credentials
 
