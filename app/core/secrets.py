@@ -8,7 +8,7 @@ from typing import Dict, Optional
 class SecretsManager:
     """Secure secrets management with validation."""
 
-    # Environment-specific required secrets
+    # Environment - specific required secrets
     REQUIRED_SECRETS = {
         "development": ["SECRET_KEY", "JWT_SECRET_KEY"],
         "staging": [
@@ -73,7 +73,7 @@ class SecretsManager:
         for key in required_secrets:
             value = os.getenv(key)
             if not value:
-                # Auto-generate certain keys if missing
+                # Auto - generate certain keys if missing
                 if key in ["SECRET_KEY", "JWT_SECRET_KEY"]:
                     generated_key = SecretsManager.generate_secret_key()
                     os.environ[key] = generated_key
@@ -108,7 +108,7 @@ class SecretsManager:
 
     @staticmethod
     def generate_secret_key() -> str:
-        """Generate secure 256-bit secret key."""
+        """Generate secure 256 - bit secret key."""
         return secrets.token_urlsafe(32)
 
     @staticmethod
@@ -142,8 +142,14 @@ class SecretsManager:
             + "# PAYSTACK_SECRET_KEY=your-paystack-key\n"
         )
 
-        Path(output_path).write_text(env_content)
-        return output_path
+        from app.utils.path_security import validate_safe_path, sanitize_filename
+
+        # Validate output path to prevent path traversal
+        safe_filename = sanitize_filename(os.path.basename(output_path))
+        safe_path = validate_safe_path(safe_filename, Path.cwd())
+
+        safe_path.write_text(env_content)
+        return str(safe_path)
 
     @staticmethod
     def audit_environment() -> Dict[str, any]:

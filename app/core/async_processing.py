@@ -173,8 +173,9 @@ class AsyncDatabaseOperations:
             logger.error("Verification cleanup failed: %s", e)
             return 0
 
-
 # Utility functions for async operations
+
+
 async def schedule_background_task(coro):
     """Schedule a coroutine as background task."""
     return await task_manager.add_task(coro)

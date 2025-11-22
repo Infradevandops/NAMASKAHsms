@@ -1,4 +1,5 @@
 """Database migration utilities."""
+from app.utils.timezone_utils import utc_now, parse_date_string, get_timestamp_filename
 import logging
 import os
 import subprocess
@@ -153,7 +154,7 @@ class MigrationManager:
             from datetime import datetime
 
             db_path = self.settings.database_url.replace("sqlite:///", "")
-            backup_path = f"{db_path}.backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            backup_path = f"{db_path}.backup_{utc_now().strftime('%Y%m%d_%H%M%S')}"
             shutil.copy2(db_path, backup_path)
             logger.info("Database backed up to: %s", backup_path)
             return True

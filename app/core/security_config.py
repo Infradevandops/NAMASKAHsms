@@ -30,12 +30,12 @@ class SecurityConfig:
     # Headers that should be redacted in logs
     SENSITIVE_HEADERS = [
         "authorization",
-        "x-api-key",
+        "x - api-key",
         "cookie",
-        "x-auth-token",
+        "x - auth-token",
         "bearer",
-        "x-session-id",
-        "x-csrf-token",
+        "x - session-id",
+        "x - csrf-token",
     ]
 
     # Query parameters that should be redacted
@@ -61,12 +61,12 @@ class SecurityConfig:
 
     # Security headers to add to responses
     SECURITY_HEADERS = {
-        "X-Content-Type-Options": "nosniff",
-        "X-Frame-Options": "DENY",
-        "X-XSS-Protection": "1; mode=block",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-        "Referrer-Policy": "strict-origin-when-cross-origin",
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';",
+        "X - Content-Type - Options": "nosniff",
+        "X - Frame-Options": "DENY",
+        "X - XSS-Protection": "1; mode = block",
+        "Strict - Transport-Security": "max - age = 31536000; includeSubDomains",
+        "Referrer - Policy": "strict - origin-when - cross-origin",
+        "Content - Security-Policy": "default - src 'self'; script - src 'self' 'unsafe - inline'; style - src 'self' 'unsafe - inline';",
     }
 
     @staticmethod
@@ -130,7 +130,7 @@ class SecurityConfig:
         import re
 
         # Only allow alphanumeric characters and underscores
-        return bool(re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", identifier))
+        return bool(re.match(r"^[a - zA-Z_][a - zA-Z0 - 9_]*$", identifier))
 
 
 class RateLimitConfig:

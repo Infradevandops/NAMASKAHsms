@@ -1,23 +1,38 @@
 """FastAPI dependency injection utilities."""
 import jwt
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db
 
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
+
+
+def get_token_from_request(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Extract token from Authorization header or cookies."""
+    if credentials:
+        return credentials.credentials
+
+    token = request.cookies.get("access_token")
+    if token:
+        return token
+
+    raise HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Not authenticated",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
 
 
 def get_current_user_id(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    token: str = Depends(get_token_from_request),
 ) -> str:
     """Get current user ID from JWT token."""
     try:
-        # Use secret_key instead of jwt_secret_key for consistency
         payload = jwt.decode(
-            credentials.credentials,
+            token,
             settings.secret_key,
             algorithms=[settings.jwt_algorithm],
         )
@@ -51,7 +66,6 @@ def get_admin_user_id(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ) -> str:
     """Get admin user ID (requires admin role)."""
-    # Import here to avoid circular imports
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()

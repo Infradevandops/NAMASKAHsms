@@ -38,7 +38,7 @@ class ProductionMetadataProcessor:
         # Add service metadata
         event_dict.update(
             {
-                "service": "namaskah-sms",
+                "service": "namaskah - sms",
                 "version": settings.app_version,
                 "environment": settings.environment,
                 "thread_id": threading.get_ident(),

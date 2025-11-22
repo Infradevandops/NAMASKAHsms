@@ -179,7 +179,7 @@ class ErrorTracker:
 
 
 class DashboardMetrics:
-    """Real-time dashboard metrics."""
+    """Real - time dashboard metrics."""
 
     def __init__(self):
         self.performance_monitor = PerformanceMonitor()

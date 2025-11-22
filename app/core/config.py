@@ -2,17 +2,8 @@
 from typing import Optional
 from functools import lru_cache
 
-try:
-    from pydantic_settings import BaseSettings
-except ImportError:
-    from pydantic import BaseSettings
-
-try:
-    from pydantic import field_validator
-except ImportError:
-    from pydantic import validator
-
-    field_validator = validator
+from pydantic_settings import BaseSettings
+from pydantic import field_validator
 
 
 class Settings(BaseSettings):
@@ -45,22 +36,23 @@ class Settings(BaseSettings):
     redis_max_connections: int = 50
 
     # SMS Providers
-    # SMS-Activate API
+    # SMS - Activate API
     sms_activate_api_key: Optional[str] = None
-    
+
     # GetSMS API
     getsms_api_key: Optional[str] = None
-    
+
     # WhatsApp Business API
     whatsapp_access_token: Optional[str] = None
     whatsapp_phone_number_id: Optional[str] = None
     whatsapp_verify_token: Optional[str] = None
-    
+
     # Telegram Bot API
     telegram_bot_token: Optional[str] = None
-    
+
     # TextVerified API
     textverified_api_key: Optional[str] = None
+    textverified_email: Optional[str] = None
 
     # JWT Settings
     # JWT Settings
@@ -74,7 +66,7 @@ class Settings(BaseSettings):
     http_connect_timeout_seconds: float = 5.0
     http_read_timeout_seconds: float = 25.0
 
-    # Background task timeout (seconds) — used to bound long-running background services
+    # Background task timeout (seconds) — used to bound long - running background services
     async_task_timeout_seconds: int = 1800  # 30 minutes
 
     # SMS polling configuration
@@ -147,14 +139,19 @@ class Settings(BaseSettings):
         return value
 
     def __init__(self, **kwargs):
-        # Generate secure keys if not provided
+        environment = kwargs.get("environment", "development")
         import secrets
 
-        if not kwargs.get("secret_key"):
-            kwargs["secret_key"] = secrets.token_urlsafe(32)
-
-        if not kwargs.get("jwt_secret_key"):
-            kwargs["jwt_secret_key"] = secrets.token_urlsafe(32)
+        if environment == "production":
+            if not kwargs.get("secret_key"):
+                raise ValueError("SECRET_KEY is required in production environment")
+            if not kwargs.get("jwt_secret_key"):
+                raise ValueError("JWT_SECRET_KEY is required in production environment")
+        else:
+            if not kwargs.get("secret_key"):
+                kwargs["secret_key"] = secrets.token_urlsafe(32)
+            if not kwargs.get("jwt_secret_key"):
+                kwargs["jwt_secret_key"] = secrets.token_urlsafe(32)
 
         super().__init__(**kwargs)
 
@@ -163,7 +160,7 @@ class Settings(BaseSettings):
         return self.environment.lower() == "production"
 
     def validate_production_config(self) -> None:
-        """Validate production-specific configuration."""
+        """Validate production - specific configuration."""
         if not self.is_production():
             return
 
@@ -175,7 +172,7 @@ class Settings(BaseSettings):
         missing_settings = []
         for attr, env_var in required_production_settings:
             value = getattr(self, attr)
-            if not value or value in ["your-", "change-me", "placeholder"]:
+            if not value or value in ["your-", "change - me", "placeholder"]:
                 missing_settings.append(env_var)
 
         if missing_settings:

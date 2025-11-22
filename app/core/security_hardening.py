@@ -49,7 +49,7 @@ class SecurityHardening:
             return False
 
         # Allow only alphanumeric, hyphens, underscores
-        pattern = r"^[a-zA-Z0-9_-]+$"
+        pattern = r"^[a - zA-Z0 - 9_-]+$"
         return bool(re.match(pattern, service_name)) and len(service_name) <= 50
 
     def validate_email(self, email: str) -> bool:
@@ -57,7 +57,7 @@ class SecurityHardening:
         if not isinstance(email, str):
             return False
 
-        pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+        pattern = r"^[a - zA-Z0 - 9._%+-]+@[a - zA-Z0 - 9.-]+\.[a - zA-Z]{2,}$"
         return bool(re.match(pattern, email)) and len(email) <= 254
 
     def generate_csrf_token(self, user_id: str) -> str:
@@ -72,7 +72,7 @@ class SecurityHardening:
         if not stored_token or not token:
             return False
 
-        # Constant-time comparison
+        # Constant - time comparison
         return secrets.compare_digest(stored_token, token)
 
     def check_rate_limit(
@@ -105,21 +105,21 @@ class SecurityHardening:
     def get_security_headers(self) -> Dict[str, str]:
         """Get security headers for responses"""
         return {
-            "X-Content-Type-Options": "nosniff",
-            "X-Frame-Options": "DENY",
-            "X-XSS-Protection": "1; mode=block",
-            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
-            "Content-Security-Policy": (
-                "default-src 'self'; "
-                "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-                "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                "font-src 'self' https://fonts.gstatic.com; "
-                "img-src 'self' data: https:; "
-                "connect-src 'self'; "
-                "frame-ancestors 'none';"
+            "X - Content-Type - Options": "nosniff",
+            "X - Frame-Options": "DENY",
+            "X - XSS-Protection": "1; mode = block",
+            "Strict - Transport-Security": "max - age = 31536000; includeSubDomains",
+            "Content - Security-Policy": (
+                "default - src 'self'; "
+                "script - src 'self' 'unsafe - inline' https://cdnjs.cloudflare.com; "
+                "style - src 'self' 'unsafe - inline' https://fonts.googleapis.com; "
+                "font - src 'self' https://fonts.gstatic.com; "
+                "img - src 'self' data: https:; "
+                "connect - src 'self'; "
+                "frame - ancestors 'none';"
             ),
-            "Referrer-Policy": "strict-origin-when-cross-origin",
-            "Permissions-Policy": "geolocation=(), microphone=(), camera=()",
+            "Referrer - Policy": "strict - origin-when - cross-origin",
+            "Permissions - Policy": "geolocation=(), microphone=(), camera=()",
         }
 
     def validate_request_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
@@ -167,7 +167,7 @@ class SecurityHardening:
             log_data.update(
                 {
                     "client_ip": request.client.host if request.client else "unknown",
-                    "user_agent": request.headers.get("user-agent", "unknown"),
+                    "user_agent": request.headers.get("user - agent", "unknown"),
                     "path": request.url.path,
                     "method": request.method,
                 }
@@ -193,7 +193,7 @@ def secure_response(
 
 
 def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str, Any]:
-    """Validate and sanitize service-related data"""
+    """Validate and sanitize service - related data"""
     required_fields = ["service"]
 
     # Check required fields
@@ -222,7 +222,7 @@ def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str
 
     # Validate country code
     country = service_data.get("country", "US")
-    if not re.match(r"^[A-Z]{2}$", country):
+    if not re.match(r"^[A - Z]{2}$", country):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid country code format",
@@ -234,8 +234,9 @@ def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str
         "country": country,
     }
 
-
 # Middleware for automatic security hardening
+
+
 class SecurityMiddleware:
     """Middleware to apply security hardening automatically"""
 

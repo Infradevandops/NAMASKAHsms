@@ -76,21 +76,19 @@ class QueryOptimizer:
 
     @staticmethod
     def get_verification_stats_optimized(db: Session, user_id: str):
-        """Optimized query for verification statistics."""
-        return db.execute(
-            text(
-                """
-            SELECT 
-                status,
-                COUNT(*) as count,
-                SUM(cost) as total_cost
-            FROM verifications 
-            WHERE user_id = :user_id 
-            GROUP BY status
-        """
-            ),
-            {"user_id": user_id},
-        ).fetchall()
+        """Optimized query for verification statistics using ORM."""
+        from sqlalchemy import func
+
+        return (
+            db.query(
+                Verification.status,
+                func.count(Verification.id).label('count'),
+                func.sum(Verification.cost).label('total_cost')
+            )
+            .filter(Verification.user_id == user_id)
+            .group_by(Verification.status)
+            .all()
+        )
 
 
 def configure_connection_pool():

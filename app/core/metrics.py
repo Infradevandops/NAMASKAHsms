@@ -1,6 +1,6 @@
 """
 Production Metrics Collection System
-Prometheus-compatible metrics for monitoring and alerting.
+Prometheus - compatible metrics for monitoring and alerting.
 """
 import time
 from collections import Counter, defaultdict
@@ -124,7 +124,7 @@ class MetricsCollector:
             # Continue execution instead of raising
 
     def get_application_metrics(self) -> Dict[str, Any]:
-        """Get application-specific metrics."""
+        """Get application - specific metrics."""
         uptime = time.time() - self.start_time
 
         # Calculate request statistics
@@ -153,7 +153,7 @@ class MetricsCollector:
             memory_percent = psutil.virtual_memory().percent
             disk_percent = psutil.disk_usage("/").percent
 
-            # Calculate health score (0-100)
+            # Calculate health score (0 - 100)
             health_score = 100
 
             # Deduct points for high resource usage
@@ -269,7 +269,7 @@ class MetricsMiddleware:
 
         # Replace UUIDs
         path = re.sub(
-            r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            r"/[0 - 9a-f]{8}-[0 - 9a-f]{4}-[0 - 9a-f]{4}-[0 - 9a-f]{4}-[0 - 9a-f]{12}",
             "/{uuid}",
             path,
         )
@@ -278,13 +278,13 @@ class MetricsMiddleware:
         path = re.sub(r"/\d+", "/{id}", path)
 
         # Replace verification codes
-        path = re.sub(r"/[A-Z0-9]{6,}", "/{code}", path)
+        path = re.sub(r"/[A - Z0-9]{6,}", "/{code}", path)
 
         return path
 
 
 def get_prometheus_metrics() -> str:
-    """Get Prometheus-formatted metrics."""
+    """Get Prometheus - formatted metrics."""
     # Update system metrics before generating output
     metrics_collector.update_system_metrics()
 
@@ -309,7 +309,7 @@ async def record_business_event(event_type: str, status: str = "success", **kwar
 
 async def record_performance_metric(operation: str, duration: float, **kwargs):
     """Record performance metrics."""
-    # Create operation-specific histogram if needed
+    # Create operation - specific histogram if needed
     operation_histogram = Histogram(
         "operation_duration_seconds", "Operation duration in seconds", ["operation"]
     )
@@ -324,7 +324,7 @@ async def record_performance_metric(operation: str, duration: float, **kwargs):
 
 
 class DatabaseMetrics:
-    """Database-specific metrics collection."""
+    """Database - specific metrics collection."""
 
     @staticmethod
     def record_query(query_type: str, duration: float, success: bool = True):
@@ -348,7 +348,7 @@ class DatabaseMetrics:
 
 
 class CacheMetrics:
-    """Cache-specific metrics collection."""
+    """Cache - specific metrics collection."""
 
     def __init__(self):
         self.hit_counter = PrometheusCounter("cache_hits_total", "Cache hits")

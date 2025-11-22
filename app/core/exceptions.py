@@ -128,8 +128,9 @@ class RentalExpiredError(NamaskahException):
     ):
         super().__init__(message, "RENTAL_EXPIRED", details)
 
-
 # Exception handlers
+
+
 async def namaskah_exception_handler(
     request: Request, exc: NamaskahException
 ) -> JSONResponse:
