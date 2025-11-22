@@ -17,8 +17,8 @@ enabled = false
 
 [[transformers]]
 name = "autopep8"
-enabled = true
+enabled = false
 
 [[transformers]]
 name = "isort"
-enabled = true
+enabled = false
