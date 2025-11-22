@@ -14,7 +14,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
 from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timezone
+from pathlib import Path
 
 # Import essential routers only
 from app.api.core.auth import router as auth_router
@@ -47,6 +48,31 @@ from typing import Optional
 
 security = HTTPBearer(auto_error=False)
 
+TEMPLATES_DIR = Path("templates").resolve()
+STATIC_DIR = Path("static").resolve()
+
+ROUTERS = [
+    (root_router, None),
+    (auth_router, "/api"),
+    (auth_enhanced_router, "/api"),
+    (gdpr_router, "/api"),
+    (admin_router, "/api"),
+    (countries_router, "/api"),
+    (services_router, None),
+    (system_router, None),
+    (textverified_router, None),
+    (pricing_router, None),
+    (rentals_endpoints_router, None),
+    (rentals_router, None),
+    (sms_router, None),
+    (billing_router, None),
+    (webhooks_router, None),
+    (wake_router, None),
+    (docs_router, None),
+    (forwarding_router, None),
+    (cycles_router, None),
+]
+
 
 def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[str]:
     """Get user ID from token if provided, otherwise return None."""
@@ -58,8 +84,17 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
         settings = get_settings()
         payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
         return payload.get("user_id")
-    except BaseException:
+    except Exception:
         return None
+
+
+def _register_routers(app: FastAPI) -> None:
+    """Register all routers with the application."""
+    for router, prefix in ROUTERS:
+        if prefix:
+            app.include_router(router, prefix=prefix)
+        else:
+            app.include_router(router)
 
 
 def create_app() -> FastAPI:
@@ -119,44 +154,27 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
 
-    # Include essential routers
-    fastapi_app.include_router(root_router)
-    fastapi_app.include_router(auth_router, prefix="/api")
-    fastapi_app.include_router(auth_enhanced_router, prefix="/api")
-    fastapi_app.include_router(gdpr_router, prefix="/api")
-    fastapi_app.include_router(admin_router, prefix="/api")
-    fastapi_app.include_router(countries_router, prefix="/api")
-    fastapi_app.include_router(services_router)
-    fastapi_app.include_router(system_router)
-
-    # Include production implementation routers (REAL API)
-    fastapi_app.include_router(textverified_router)
-    fastapi_app.include_router(pricing_router)
-    fastapi_app.include_router(rentals_endpoints_router)
-    fastapi_app.include_router(rentals_router)
-    fastapi_app.include_router(sms_router)
-    fastapi_app.include_router(billing_router)
-    fastapi_app.include_router(webhooks_router)
-    fastapi_app.include_router(wake_router)
-    fastapi_app.include_router(docs_router)
-    fastapi_app.include_router(forwarding_router)
-    fastapi_app.include_router(cycles_router)
+    # Register all routers
+    _register_routers(fastapi_app)
 
     # Static files - ensure proper serving
-    import os
-    static_dir = "static"
-    if os.path.exists(static_dir):
-        fastapi_app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    if STATIC_DIR.exists():
+        fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     else:
         logger = get_logger("startup")
-        logger.error(f"Static directory '{static_dir}' not found")
+        logger.error(f"Static directory '{STATIC_DIR}' not found")
 
     # Direct template loading (no cache)
     def _load_template(path: str) -> str:
+        template_path = (TEMPLATES_DIR / path).resolve()
+        if not str(template_path).startswith(str(TEMPLATES_DIR)):
+            return "<h1>Page not found</h1>"
+        if not template_path.exists():
+            return "<h1>Page not found</h1>"
         try:
-            with open(f"templates/{path}", "r") as f:
+            with open(template_path, "r") as f:
                 return f.read()
-        except Exception:
+        except (IOError, OSError):
             return "<h1>Page not found</h1>"
 
     @fastapi_app.get("/", response_class=HTMLResponse)
@@ -244,6 +262,7 @@ def create_app() -> FastAPI:
         from app.core.database import get_db
         from app.services.auth_service import get_auth_service
         import json
+        db = None
         try:
             body = await request.body()
             data = json.loads(body)
@@ -252,27 +271,27 @@ def create_app() -> FastAPI:
             if not email or not password:
                 raise HTTPException(status_code=400, detail="Email and password required")
             db = next(get_db())
-            try:
-                auth_service = get_auth_service(db)
-                user = auth_service.register_user(email, password)
-                token = auth_service.create_user_token(user)
-                return {
-                    "success": True,
-                    "access_token": token,
-                    "token_type": "bearer",
-                    "user": {
-                        "id": user.id,
-                        "email": user.email,
-                        "credits": float(user.credits or 0),
-                        "free_verifications": int(user.free_verifications or 0)
-                    }
+            auth_service = get_auth_service(db)
+            user = auth_service.register_user(email, password)
+            token = auth_service.create_user_token(user)
+            return {
+                "success": True,
+                "access_token": token,
+                "token_type": "bearer",
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "credits": float(user.credits or 0),
+                    "free_verifications": int(user.free_verifications or 0)
                 }
-            finally:
-                db.close()
+            }
         except HTTPException:
             raise
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, StopIteration):
             raise HTTPException(status_code=400, detail="Registration failed")
+        finally:
+            if db:
+                db.close()
 
     @fastapi_app.post("/api/billing/add-credits")
     async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
@@ -301,19 +320,22 @@ def create_app() -> FastAPI:
             }
         except HTTPException:
             raise
-        except (ValueError, KeyError):
+        except (ValueError, KeyError, TypeError):
             raise HTTPException(status_code=500, detail="Failed to add credits")
 
     @fastapi_app.get("/favicon.ico")
     async def favicon():
         from fastapi.responses import FileResponse
-        return FileResponse("static/favicon.ico")
+        favicon_path = STATIC_DIR / "favicon.ico"
+        if favicon_path.exists():
+            return FileResponse(str(favicon_path))
+        raise HTTPException(status_code=404, detail="Favicon not found")
 
     @fastapi_app.get("/api/system/health")
     async def system_health():
         return {
             "status": "healthy",
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "version": "2.5.0",
             "database": "connected",
             "authentication": "active"
@@ -339,7 +361,7 @@ def create_app() -> FastAPI:
                 "top_services": ["Telegram", "WhatsApp", "Discord"],
                 "recent_activity": ["Account created successfully"]
             }
-        except (ValueError, KeyError, AttributeError):
+        except Exception:
             return {
                 "total_verifications": 0,
                 "successful_verifications": 0,
@@ -354,9 +376,9 @@ def create_app() -> FastAPI:
     @fastapi_app.get("/api/countries/")
     async def get_countries():
         countries = [
-            {"code": "russia", "name": "Russia", "flag": "🇷🇺", "prefix": "7", "popular": True},
-            {"code": "india", "name": "India", "flag": "🇮🇳", "prefix": "91", "popular": True},
-            {"code": "usa", "name": "United States", "flag": "🇺🇸", "prefix": "1", "popular": False},
+            {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
+            {"code": "india", "name": "India", "prefix": "91", "popular": True},
+            {"code": "usa", "name": "United States", "prefix": "1", "popular": False},
         ]
         return {"success": True, "countries": countries, "total": len(countries)}
 
