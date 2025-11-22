@@ -18,7 +18,7 @@ class UserCreate(BaseModel):
     password: str = Field(
         ..., min_length=6, description="Password (minimum 6 characters)"
     )
-    referral_code: Optional[str] = Field(None, description="Optional referral code)
+    referral_code: Optional[str] = Field(None, description="Optional referral code")
 
     @validator("password")
     def validate_password(cls, v):
