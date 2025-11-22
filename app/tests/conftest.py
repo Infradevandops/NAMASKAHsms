@@ -57,11 +57,12 @@ def test_user(db_session):
     """Create test user."""
     from app.models.user import User
     from app.utils.security import hash_password
+    from .fixtures import TEST_CREDENTIALS
 
     user = User(
         id="test_user_123",
         email="test@example.com",
-        password_hash=hash_password("testpass123"),
+        password_hash=hash_password(TEST_CREDENTIALS["user_password"]),
         credits=10.0,
         free_verifications=1.0,
     )
@@ -74,8 +75,11 @@ def test_user(db_session):
 @pytest.fixture
 def auth_headers(client):
     """Authentication headers for test user."""
+    from .fixtures import TEST_CREDENTIALS
+
     response = client.post(
-        "/auth/login", json={"email": "test@example.com", "password": "testpass123"}
+        "/auth/login",
+        json={"email": "test@example.com", "password": TEST_CREDENTIALS["user_password"]}
     )
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
@@ -86,11 +90,12 @@ def admin_user(db_session):
     """Create admin user."""
     from app.models.user import User
     from app.utils.security import hash_password
+    from .fixtures import TEST_CREDENTIALS
 
     user = User(
         id="admin_user_123",
         email="admin@example.com",
-        password_hash=hash_password("adminpass123"),
+        password_hash=hash_password(TEST_CREDENTIALS["admin_password"]),
         credits=100.0,
         is_admin=True,
     )
