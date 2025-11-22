@@ -42,9 +42,6 @@ from app.api.integrations.billing_cycles import router as cycles_router
 from app.core.unified_cache import cache
 from app.core.database import engine, get_db
 from app.core.dependencies import get_current_user_id
-from fastapi import HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from typing import Optional
 
 security = HTTPBearer(auto_error=False)
 
@@ -80,11 +77,11 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
         return None
     try:
         import jwt
-        from app.core.config import get_settings
-        settings = get_settings()
+        from app.core.config import get_settings as get_app_settings
+        settings = get_app_settings()
         payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
         return payload.get("user_id")
-    except Exception:
+    except (jwt.InvalidTokenError, jwt.DecodeError, AttributeError):
         return None
 
 
@@ -124,8 +121,8 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Add FastAPI CORS middleware
-    from app.core.config import get_settings
-    settings = get_settings()
+    from app.core.config import get_settings as get_app_settings
+    settings = get_app_settings()
     cors_origins = [
         "http://localhost:3000",
         "http://localhost:8000",
