@@ -1,13 +1,14 @@
 """Unified error handling system consolidating all error handling implementations."""
 import logging
-from typing import Callable, Dict, Any, Optional
+from typing import Any, Callable, Dict, Optional
 
-from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import HTTPException, Request, Response
 from fastapi.exceptions import RequestValidationError
-from starlette.middleware.base import BaseHTTPMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
+from starlette.middleware.base import BaseHTTPMiddleware
+
 # from botocore.exceptions import ClientError, BotoCoreError
 # # from cryptography.fernet import InvalidToken
 
