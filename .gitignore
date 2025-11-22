@@ -24,6 +24,7 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+token.json
 
 # Logs
 *.log
@@ -88,11 +89,13 @@ unicorn.log
 *.sql
 *.sql.gz
 
-# Certificates
+# Certificates & Tokens
 certs/
 *.pem
 *.key
 *.crt
+token.json
+.secrets.baseline
 
 # Docker
 .dockerignore

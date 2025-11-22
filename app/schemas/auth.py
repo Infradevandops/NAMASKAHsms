@@ -5,6 +5,12 @@ from typing import Optional
 from pydantic import BaseModel, EmailStr, Field, validator
 
 
+class RegisterRequest(BaseModel):
+    """Schema for user registration request."""
+    email: EmailStr = Field(..., description="Valid email address")
+    password: str = Field(..., min_length=6, description="Password (minimum 6 characters)")
+
+
 class UserCreate(BaseModel):
     """Schema for user registration."""
 
@@ -12,7 +18,7 @@ class UserCreate(BaseModel):
     password: str = Field(
         ..., min_length=6, description="Password (minimum 6 characters)"
     )
-    referral_code: Optional[str] = Field(None, description="Optional referral code")
+    referral_code: Optional[str] = Field(None, description="Optional referral code)
 
     @validator("password")
     def validate_password(cls, v):

@@ -14,8 +14,12 @@ def ensure_admin_user():
     """Ensure admin user exists on startup."""
     db = SessionLocal()
     try:
-        admin_email = "admin@namaskah.app"
-        admin_password = os.getenv("ADMIN_PASSWORD", "ChangeMe123!")
+        admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+        admin_password = os.getenv("ADMIN_PASSWORD")
+        
+        if not admin_password:
+            logger.warning("ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
+            return
 
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()

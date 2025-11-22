@@ -5,6 +5,19 @@ from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field, validator
 
 
+class AddCreditsRequest(BaseModel):
+    """Schema for adding credits request."""
+    amount: float = Field(..., gt=0, description="Amount to add (minimum $5)")
+
+    @validator("amount")
+    def validate_amount(cls, v):
+        if v < 5.0:
+            raise ValueError("Minimum amount is $5")
+        if v > 10000.0:
+            raise ValueError("Maximum amount is $10,000")
+        return v
+
+
 class PaymentInitialize(BaseModel):
     """Schema for payment initialization."""
 

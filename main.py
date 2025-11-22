@@ -12,12 +12,10 @@ from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from starlette.middleware.gzip import GZipMiddleware
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 # Import essential routers only
 from app.api.core.auth import router as auth_router
@@ -44,33 +42,14 @@ from app.api.integrations.billing_cycles import router as cycles_router
 from app.core.unified_cache import cache
 from app.core.database import engine, get_db
 from app.core.dependencies import get_current_user_id
+from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import Optional
 
 security = HTTPBearer(auto_error=False)
 
 TEMPLATES_DIR = Path("templates").resolve()
 STATIC_DIR = Path("static").resolve()
-
-ROUTERS = [
-    (root_router, None),
-    (auth_router, "/api"),
-    (auth_enhanced_router, "/api"),
-    (gdpr_router, "/api"),
-    (admin_router, "/api"),
-    (countries_router, "/api"),
-    (services_router, None),
-    (system_router, None),
-    (textverified_router, None),
-    (pricing_router, None),
-    (rentals_endpoints_router, None),
-    (rentals_router, None),
-    (sms_router, None),
-    (billing_router, None),
-    (webhooks_router, None),
-    (wake_router, None),
-    (docs_router, None),
-    (forwarding_router, None),
-    (cycles_router, None),
-]
 
 
 def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[str]:
@@ -79,21 +58,12 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
         return None
     try:
         import jwt
-        from app.core.config import get_settings as get_app_settings
-        settings = get_app_settings()
+        from app.core.config import get_settings
+        settings = get_settings()
         payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
         return payload.get("user_id")
-    except (jwt.InvalidTokenError, jwt.DecodeError, AttributeError):
+    except Exception:
         return None
-
-
-def _register_routers(app: FastAPI) -> None:
-    """Register all routers with the application."""
-    for router, prefix in ROUTERS:
-        if prefix:
-            app.include_router(router, prefix=prefix)
-        else:
-            app.include_router(router)
 
 
 def create_app() -> FastAPI:
@@ -123,15 +93,15 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Add FastAPI CORS middleware
-    from app.core.config import get_settings as get_app_settings
-    app_settings = get_app_settings()
+    from app.core.config import get_settings
+    settings = get_settings()
     cors_origins = [
         "http://localhost:3000",
         "http://localhost:8000",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ]
-    if app_settings.environment == "production":
+    if settings.environment == "production":
         cors_origins = [
             "https://yourdomain.com",
             "https://app.yourdomain.com",
@@ -153,15 +123,35 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
 
-    # Register all routers
-    _register_routers(fastapi_app)
+    # Include essential routers
+    fastapi_app.include_router(root_router)
+    fastapi_app.include_router(auth_router, prefix="/api")
+    fastapi_app.include_router(auth_enhanced_router, prefix="/api")
+    fastapi_app.include_router(gdpr_router, prefix="/api")
+    fastapi_app.include_router(admin_router, prefix="/api")
+    fastapi_app.include_router(countries_router, prefix="/api")
+    fastapi_app.include_router(services_router)
+    fastapi_app.include_router(system_router)
+
+    # Include production implementation routers (REAL API)
+    fastapi_app.include_router(textverified_router)
+    fastapi_app.include_router(pricing_router)
+    fastapi_app.include_router(rentals_endpoints_router)
+    fastapi_app.include_router(rentals_router)
+    fastapi_app.include_router(sms_router)
+    fastapi_app.include_router(billing_router)
+    fastapi_app.include_router(webhooks_router)
+    fastapi_app.include_router(wake_router)
+    fastapi_app.include_router(docs_router)
+    fastapi_app.include_router(forwarding_router)
+    fastapi_app.include_router(cycles_router)
 
     # Static files - ensure proper serving
     if STATIC_DIR.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     else:
-        startup_logger = get_logger("startup")
-        startup_logger.error(f"Static directory '{STATIC_DIR}' not found")
+        logger = get_logger("startup")
+        logger.error(f"Static directory '{STATIC_DIR}' not found")
 
     # Direct template loading (no cache)
     def _load_template(path: str) -> str:
@@ -260,50 +250,49 @@ def create_app() -> FastAPI:
     async def register_user(request: Request):
         from app.core.database import get_db
         from app.services.auth_service import get_auth_service
+        from app.schemas.auth import RegisterRequest
         import json
-        db = None
         try:
             body = await request.body()
             data = json.loads(body)
-            email = data.get("email")
-            password = data.get("password")
-            if not email or not password:
-                raise HTTPException(status_code=400, detail="Email and password required")
+            reg_data = RegisterRequest(**data)
+            email = reg_data.email
+            password = reg_data.password
             db = next(get_db())
-            auth_service = get_auth_service(db)
-            user = auth_service.register_user(email, password)
-            token = auth_service.create_user_token(user)
-            return {
-                "success": True,
-                "access_token": token,
-                "token_type": "bearer",
-                "user": {
-                    "id": user.id,
-                    "email": user.email,
-                    "credits": float(user.credits or 0),
-                    "free_verifications": int(user.free_verifications or 0)
+            try:
+                auth_service = get_auth_service(db)
+                user = auth_service.register_user(email, password)
+                token = auth_service.create_user_token(user)
+                return {
+                    "success": True,
+                    "access_token": token,
+                    "token_type": "bearer",
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "credits": float(user.credits or 0),
+                        "free_verifications": int(user.free_verifications or 0)
+                    }
                 }
-            }
+            finally:
+                db.close()
         except HTTPException:
             raise
-        except (ValueError, KeyError, StopIteration):
+        except (ValueError, KeyError):
             raise HTTPException(status_code=400, detail="Registration failed")
-        finally:
-            if db:
-                db.close()
 
     @fastapi_app.post("/api/billing/add-credits")
     async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
+        from app.schemas.payment import AddCreditsRequest
         import json
         try:
             if not user_id:
                 raise HTTPException(status_code=401, detail="Authentication required")
             body = await request.body()
             data = json.loads(body)
-            amount = float(data.get("amount", 0))
-            if amount <= 0:
-                raise HTTPException(status_code=400, detail="Invalid amount")
+            credits_data = AddCreditsRequest(**data)
+            amount = credits_data.amount
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
@@ -334,7 +323,7 @@ def create_app() -> FastAPI:
     async def system_health():
         return {
             "status": "healthy",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now().isoformat(),
             "version": "2.5.0",
             "database": "connected",
             "authentication": "active"
@@ -383,51 +372,50 @@ def create_app() -> FastAPI:
 
     @fastapi_app.on_event("startup")
     async def startup_event():
-        startup_logger = get_logger("startup")
-        startup_logger.info("Application startup")
+        logger = get_logger("startup")
+        logger.info("Application startup")
         await cache.connect()
         from app.services.sms_polling_service import sms_polling_service
-        from app.core.config import get_settings as get_startup_settings
+        from app.core.config import settings
         import asyncio
 
         async def _run_sms_service_supervisor():
-            sms_logger = get_logger("sms-supervisor")
-            startup_config = get_startup_settings()
+            logger = get_logger("sms-supervisor")
             while True:
                 try:
                     await asyncio.wait_for(
                         sms_polling_service.start_background_service(),
-                        timeout=startup_config.async_task_timeout_seconds,
+                        timeout=settings.async_task_timeout_seconds,
                     )
-                    sms_logger.info("SMS polling service exited; restarting supervisor in 5s")
+                    logger.info("SMS polling service exited; restarting supervisor in 5s")
                     await asyncio.sleep(5)
                 except asyncio.TimeoutError:
-                    sms_logger.warning("SMS polling service timed out; restarting")
+                    logger.warning("SMS polling service timed out; restarting")
                     await asyncio.sleep(2)
                 except asyncio.CancelledError:
-                    sms_logger.info("SMS supervisor cancelled")
+                    logger.info("SMS supervisor cancelled")
                     break
                 except Exception as e:
-                    sms_logger.error(f"SMS supervisor error: {e}")
+                    logger.error(f"SMS supervisor error: {e}")
                     await asyncio.sleep(5)
 
         asyncio.create_task(_run_sms_service_supervisor())
 
     @fastapi_app.on_event("shutdown")
     async def shutdown_event():
-        shutdown_logger = get_logger("shutdown")
-        shutdown_logger.info("Starting graceful shutdown")
+        logger = get_logger("shutdown")
+        logger.info("Starting graceful shutdown")
         try:
             from app.services.sms_polling_service import sms_polling_service
             await sms_polling_service.stop_background_service()
-            shutdown_logger.info("SMS polling service stopped")
+            logger.info("SMS polling service stopped")
             await cache.disconnect()
-            shutdown_logger.info("Cache disconnected")
+            logger.info("Cache disconnected")
             engine.dispose()
-            shutdown_logger.info("Database connections disposed")
-            shutdown_logger.info("Graceful shutdown completed")
+            logger.info("Database connections disposed")
+            logger.info("Graceful shutdown completed")
         except Exception as e:
-            shutdown_logger.error("Error during shutdown", error=str(e))
+            logger.error("Error during shutdown", error=str(e))
 
     return fastapi_app
 
