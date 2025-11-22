@@ -132,8 +132,6 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except HTTPException:
-            raise
         except Exception as exc:
             logger.error(
                 "Unhandled error in %s %s: %s",
