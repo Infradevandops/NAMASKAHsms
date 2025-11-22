@@ -1,147 +1,57 @@
 groups:
-  - name: docker_alerts
+  - name: fastapi_alerts
+    interval: 30s
     rules:
-      # Container health alerts
-      - alert: ContainerDown
-        expr: up == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Container {{ $labels.instance }} is down"
-          description: "Container has been down for more than 1 minute"
-
-      - alert: ContainerHighCPU
-        expr: rate(container_cpu_usage_seconds_total[5m]) * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High CPU usage in container {{ $labels.name }}"
-          description: "Container CPU usage is {{ $value }}%"
-
-      - alert: ContainerHighMemory
-        expr: (container_memory_usage_bytes / container_spec_memory_limit_bytes) * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High memory usage in container {{ $labels.name }}"
-          description: "Container memory usage is {{ $value }}%"
-
-      - alert: ContainerRestartLoop
-        expr: increase(container_restart_count[1h]) > 3
-        for: 0m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Container {{ $labels.name }} is in restart loop"
-          description: "Container has restarted {{ $value }} times in the last hour"
-
-  - name: application_alerts
-    rules:
-      # Application performance alerts
       - alert: HighErrorRate
-        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
-        for: 2m
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
         labels:
           severity: critical
         annotations:
           summary: "High error rate detected"
           description: "Error rate is {{ $value | humanizePercentage }}"
 
-      - alert: HighResponseTime
-        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, http_request_duration_seconds) > 1
         for: 5m
         labels:
           severity: warning
         annotations:
-          summary: "High response time detected"
-          description: "P95 response time is {{ $value }}s"
+          summary: "High request latency"
+          description: "P95 latency is {{ $value }}s"
 
-      - alert: DatabaseConnectionFailure
-        expr: pg_up == 0
-        for: 30s
+      - alert: HighMemoryUsage
+        expr: container_memory_usage_bytes / container_spec_memory_limit_bytes > 0.9
+        for: 5m
         labels:
-          severity: critical
+          severity: warning
         annotations:
-          summary: "Database connection failed"
-          description: "Cannot connect to PostgreSQL database"
-
-      - alert: RedisConnectionFailure
-        expr: redis_up == 0
-        for: 30s
-        labels:
-          severity: critical
-        annotations:
-          summary: "Redis connection failed"
-          description: "Cannot connect to Redis cache"
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
 
   - name: infrastructure_alerts
+    interval: 30s
     rules:
-      # System resource alerts
-      - alert: HighSystemCPU
-        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High system CPU usage"
-          description: "System CPU usage is {{ $value }}%"
-
-      - alert: HighSystemMemory
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High system memory usage"
-          description: "System memory usage is {{ $value }}%"
-
-      - alert: LowDiskSpace
-        expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 85
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Low disk space on {{ $labels.mountpoint }}"
-          description: "Disk usage is {{ $value }}%"
-
-      - alert: HighDiskIO
-        expr: rate(node_disk_io_time_seconds_total[5m]) > 0.8
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "High disk I/O on {{ $labels.device }}"
-          description: "Disk I/O utilization is {{ $value | humanizePercentage }}"
-
-  - name: business_alerts
-    rules:
-      # Business metric alerts
-      - alert: LowVerificationSuccessRate
-        expr: (rate(sms_verifications_successful_total[10m]) / rate(sms_verifications_total[10m])) * 100 < 80
-        for: 10m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Low SMS verification success rate"
-          description: "Success rate is {{ $value }}% (below 80% threshold)"
-
-      - alert: PaymentProcessingFailure
-        expr: rate(payment_failures_total[5m]) > 0.1
-        for: 5m
+      - alert: PrometheusDown
+        expr: up{job="prometheus"} == 0
+        for: 1m
         labels:
           severity: critical
         annotations:
-          summary: "High payment processing failure rate"
-          description: "Payment failures: {{ $value }} per second"
+          summary: "Prometheus is down"
 
-      - alert: UnusualTrafficSpike
-        expr: rate(http_requests_total[5m]) > 2 * rate(http_requests_total[1h] offset 1h)
-        for: 5m
+      - alert: PostgresDown
+        expr: up{job="postgres-exporter"} == 0
+        for: 1m
         labels:
-          severity: warning
+          severity: critical
         annotations:
-          summary: "Unusual traffic spike detected"
-          description: "Current request rate is {{ $value }} req/s, significantly higher than usual"
+          summary: "PostgreSQL is down"
+
+      - alert: RedisDown
+        expr: up{job="redis-exporter"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"

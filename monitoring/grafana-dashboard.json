@@ -1,96 +1,45 @@
 {
   "dashboard": {
-    "title": "Namaskah SMS - System Overview",
-    "tags": ["namaskah", "sms", "monitoring"],
+    "title": "Namaskah SMS API",
+    "tags": ["fastapi", "monitoring"],
     "timezone": "browser",
     "panels": [
       {
         "title": "Request Rate",
-        "type": "stat",
         "targets": [
           {
-            "expr": "rate(http_requests_total[5m])",
-            "legendFormat": "Requests/sec"
+            "expr": "rate(http_requests_total[5m])"
           }
         ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "palette-classic"},
-            "unit": "reqps"
-          }
-        }
+        "type": "graph"
       },
       {
-        "title": "Success Rate",
-        "type": "stat", 
+        "title": "Error Rate",
         "targets": [
           {
-            "expr": "rate(http_requests_total{status=~\"2..\"}[5m]) / rate(http_requests_total[5m]) * 100",
-            "legendFormat": "Success Rate %"
+            "expr": "rate(http_requests_total{status=~\"5..\"}[5m])"
           }
         ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "thresholds"},
-            "unit": "percent",
-            "thresholds": {
-              "steps": [
-                {"color": "red", "value": 0},
-                {"color": "yellow", "value": 95},
-                {"color": "green", "value": 99}
-              ]
-            }
-          }
-        }
+        "type": "graph"
       },
       {
-        "title": "Response Time P95",
-        "type": "stat",
+        "title": "Request Duration (P95)",
         "targets": [
           {
-            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) * 1000",
-            "legendFormat": "P95 Response Time"
+            "expr": "histogram_quantile(0.95, http_request_duration_seconds)"
           }
         ],
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "thresholds"},
-            "unit": "ms",
-            "thresholds": {
-              "steps": [
-                {"color": "green", "value": 0},
-                {"color": "yellow", "value": 1000},
-                {"color": "red", "value": 2000}
-              ]
-            }
-          }
-        }
+        "type": "graph"
       },
       {
-        "title": "Active Verifications",
-        "type": "graph",
+        "title": "Container Memory",
         "targets": [
           {
-            "expr": "namaskah_active_verifications",
-            "legendFormat": "Active Verifications"
+            "expr": "container_memory_usage_bytes"
           }
-        ]
-      },
-      {
-        "title": "Provider Performance",
-        "type": "table",
-        "targets": [
-          {
-            "expr": "rate(sms_provider_requests_total[5m]) by (provider)",
-            "legendFormat": "{{provider}}"
-          }
-        ]
+        ],
+        "type": "graph"
       }
-    ],
-    "time": {
-      "from": "now-1h",
-      "to": "now"
-    },
-    "refresh": "10s"
+    ]
   }
 }
