@@ -1,80 +1,79 @@
-"""Webhook verification and processing service."""
-import hashlib
+"""Webhook service for event delivery."""
 import hmac
-from typing import Any, Dict
+import hashlib
+import json
+from typing import Dict, Any
+import httpx
+from app.core.logging import get_logger
 
-from sqlalchemy.orm import Session
-
-from app.core.config import settings
-from app.models.payment import PaymentLog
-from app.models.transaction import Transaction
-from app.models.user import User
+logger = get_logger(__name__)
 
 
 class WebhookService:
-    """Handle Paystack webhook verification and processing."""
+    """Manages webhook registration and delivery."""
 
-    def __init__(self, db: Session):
-        self.db = db
-        self.secret = settings.paystack_secret_key
+    def __init__(self):
+        self.webhooks = {}
+        self.timeout = 10
 
-    def verify_signature(self, payload: bytes, signature: str) -> bool:
-        """Verify Paystack webhook signature."""
-        if not self.secret:
-            return False
+    async def register(self, user_id: str, url: str, events: list) -> str:
+        """Register webhook."""
+        webhook_id = f"wh_{user_id}_{len(self.webhooks)}"
+        self.webhooks[webhook_id] = {
+            "url": url,
+            "events": events,
+            "active": True,
+            "retries": 0
+        }
+        logger.info(f"Webhook registered: {webhook_id}")
+        return webhook_id
 
-        expected_signature = hmac.new(
-            self.secret.encode("utf-8"), payload, hashlib.sha512
+    def _sign_payload(self, payload: str, secret: str) -> str:
+        """Sign webhook payload."""
+        return hmac.new(
+            secret.encode(),
+            payload.encode(),
+            hashlib.sha256
         ).hexdigest()
 
-        return hmac.compare_digest(signature, expected_signature)
+    async def deliver(self, webhook_id: str, event: str,
+                      data: Dict[str, Any], secret: str):
+        """Deliver webhook event."""
+        if webhook_id not in self.webhooks:
+            return
 
-    def process_payment_webhook(self, webhook_data: Dict[str, Any]) -> bool:
-        """Process successful payment webhook."""
-        event = webhook_data.get("event")
-        data = webhook_data.get("data", {})
+        webhook = self.webhooks[webhook_id]
+        if event not in webhook["events"] or not webhook["active"]:
+            return
 
-        if event != "charge.success":
-            return False
+        payload = json.dumps({"event": event, "data": data})
+        signature = self._sign_payload(payload, secret)
 
-        reference = data.get("reference")
-        if not reference:
-            return False
+        try:
+            async with httpx.AsyncClient() as client:
+                await client.post(
+                    webhook["url"],
+                    content=payload,
+                    headers={
+                        "X - Webhook-Signature": signature,
+                        "Content - Type": "application/json"
+                    },
+                    timeout=self.timeout
+                )
+                webhook["retries"] = 0
+        except Exception as e:
+            logger.error(f"Webhook delivery failed: {e}")
+            webhook["retries"] += 1
+            if webhook["retries"] > 3:
+                webhook["active"] = False
 
-        # Find payment log
-        payment_log = (
-            self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
-        )
+    async def get_webhooks(self, user_id: str) -> list:
+        """Get user webhooks."""
+        return [
+            {"id": wh_id, **wh}
+            for wh_id, wh in self.webhooks.items()
+            if user_id in wh_id
+        ]
 
-        if not payment_log or payment_log.credited:
-            return False
 
-        # Verify payment amount matches
-        paid_amount = data.get("amount", 0) / 100  # Paystack returns in kobo
-        if abs(paid_amount - payment_log.amount_ngn) > 1:  # Allow 1 NGN difference
-            return False
-
-        # Credit user account
-        user = self.db.query(User).filter(User.id == payment_log.user_id).first()
-        if not user:
-            return False
-
-        # Add credits to user
-        user.credits += payment_log.namaskah_amount
-
-        # Create transaction record
-        transaction = Transaction(
-            user_id=user.id,
-            amount=payment_log.namaskah_amount,
-            type="credit",
-            description=f"Payment via Paystack - {reference}",
-        )
-        self.db.add(transaction)
-
-        # Update payment log
-        payment_log.status = "completed"
-        payment_log.webhook_received = True
-        payment_log.credited = True
-
-        self.db.commit()
-        return True
+webhook_service = WebhookService()

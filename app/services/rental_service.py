@@ -15,6 +15,7 @@ from app.core.exceptions import (
     ExternalServiceError,
 )
 from app.core.logging import get_logger
+from app.utils.log_sanitization import sanitize_user_id
 from app.models.rental import Rental
 from app.models.user import User
 from app.schemas.rental import (
@@ -50,15 +51,17 @@ class RentalService:
 
             # Initialize TextVerified service (primary SMS provider)
             textverified = TextVerifiedService()
-            
+
             # Purchase rental from TextVerified
             try:
                 # Get phone number from TextVerified
                 phone_number = await textverified.get_phone_number(rental_data.country_code)
                 activation_id = str(uuid.uuid4())  # Generate a unique ID for tracking
-                
-                logger.info(f"Rental purchased from TextVerified: {phone_number}")
-                
+
+                logger.info("Rental purchased from TextVerified", extra={
+                    "phone_masked": phone_number[:3] + "***" + phone_number[-3:] if phone_number else "unknown"
+                })
+
             except ExternalServiceError as e:
                 logger.error(f"TextVerified rental purchase failed: {str(e)}")
                 raise HTTPException(
@@ -90,23 +93,27 @@ class RentalService:
             await self.db.commit()
             await self.db.refresh(rental)
 
-            logger.info(f"Rental created: {rental.id} for user {user_id}")
+            logger.info("Rental created", extra={
+                "rental_id": sanitize_user_id(rental.id),
+                "user_id": sanitize_user_id(user_id)
+            })
 
             return RentalResponse.from_orm(rental)
 
         except Exception as e:
             await self.db.rollback()
-            if isinstance(e, (InsufficientCreditsError, RentalNotFoundError, HTTPException)):
+            if isinstance(e, (InsufficientCreditsError,
+                              RentalNotFoundError, HTTPException)):
                 raise
             logger.error(f"Rental creation failed: {str(e)}")
             raise HTTPException(
                 status_code=500, detail=f"Failed to create rental: {str(e)}"
             )
-    
+
     def _calculate_rental_cost(self, duration_hours: int) -> Decimal:
         """
         Calculate rental cost based on duration.
-        
+
         Pricing tiers:
         - 12 hours: $6
         - 24 hours: $12
@@ -230,13 +237,16 @@ class RentalService:
 
             # Get messages from TextVerified
             messages = []
-            
+
             try:
                 # TextVerified doesn't have a direct check_activation API like 5SIM
                 # In a real implementation, you would store SMS messages as they arrive via webhook
                 # For now, return an empty message list
-                logger.info(f"Retrieved {len(messages)} messages for rental {rental_id}")
-                
+                logger.info("Retrieved messages for rental", extra={
+                    "message_count": len(messages),
+                    "rental_id": sanitize_user_id(rental_id)
+                })
+
             except Exception as e:
                 logger.error(f"Failed to get messages from TextVerified: {str(e)}")
                 # Return empty messages instead of failing

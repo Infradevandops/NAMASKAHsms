@@ -38,8 +38,9 @@ class ServiceFactory:
         if "payment" in self._services:
             await self._services["payment"].close()
 
-
 # Dependency injection helpers
+
+
 def get_service_factory(db: Session) -> ServiceFactory:
     """Get service factory instance."""
     return ServiceFactory(db)

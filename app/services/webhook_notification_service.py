@@ -1,16 +1,15 @@
-"""Webhook and notification service for real-time updates."""
+"""Webhook and notification service for real - time updates."""
 import asyncio
 import httpx
 from typing import Dict, Optional, Any
 from datetime import datetime
 from app.core.logging import get_logger
-from app.core.config import settings
 
 logger = get_logger(__name__)
 
 
 class WebhookNotificationService:
-    """Handle webhook notifications and real-time updates."""
+    """Handle webhook notifications and real - time updates."""
 
     def __init__(self):
         self.timeout = 10
@@ -34,8 +33,8 @@ class WebhookNotificationService:
         }
 
         default_headers = {
-            "Content-Type": "application/json",
-            "User-Agent": "Namaskah/1.0"
+            "Content - Type": "application/json",
+            "User - Agent": "Namaskah/1.0"
         }
         if headers:
             default_headers.update(headers)
@@ -43,14 +42,15 @@ class WebhookNotificationService:
         for attempt in range(self.max_retries):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(url, json=payload, headers=default_headers)
-                    
+                    response = await client.post(url,
+                                                 json=payload, headers=default_headers)
+
                     if response.status_code in [200, 201, 202]:
                         logger.info(f"Webhook sent successfully: {event} to {url}")
                         return True
                     else:
                         logger.warning(f"Webhook failed with status {response.status_code}: {event}")
-                        
+
             except asyncio.TimeoutError:
                 logger.warning(f"Webhook timeout (attempt {attempt + 1}/{self.max_retries}): {event}")
             except Exception as e:

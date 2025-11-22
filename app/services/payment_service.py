@@ -134,7 +134,7 @@ class PaymentService(BaseService[Transaction]):
             return False
 
         expected_signature = hmac.new(
-            self.secret_key.encode("utf-8"), payload, hashlib.sha512
+            self.secret_key.encode("utf - 8"), payload, hashlib.sha512
         ).hexdigest()
 
         return hmac.compare_digest(expected_signature, signature)
@@ -227,7 +227,7 @@ class PaymentService(BaseService[Transaction]):
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
-                    "https://api.exchangerate-api.com/v4/latest/USD", timeout=5.0
+                    "https://api.exchangerate - api.com/v4/latest/USD", timeout=5.0
                 )
                 if response.status_code == 200:
                     rates = response.json().get("rates", {})

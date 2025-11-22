@@ -56,15 +56,15 @@ class AuthService(BaseService[User]):
             user = self.db.query(User).filter(User.email == email).first()
             if not user:
                 return None
-            
+
             # Handle users without password hash (OAuth users)
             if not user.password_hash:
                 return None
-                
+
             # Verify password with proper error handling
             if not verify_password(password, user.password_hash):
                 return None
-                
+
             return user
         except Exception as e:
             # Log authentication error but don't expose details
@@ -97,24 +97,29 @@ class AuthService(BaseService[User]):
 
     def create_api_key(self, user_id: str, name: str) -> APIKey:
         """Create API key for user."""
-        api_key = APIKey(user_id=user_id, key=f"nsk_{generate_api_key()}", name=name)
+        raw_key = f"nsk_{generate_api_key()}"
+        hashed_key = hash_password(raw_key)
+        api_key = APIKey(user_id=user_id, key=hashed_key, name=name)
         self.db.add(api_key)
         self.db.commit()
         self.db.refresh(api_key)
+        # Return object with raw key for display (only shown once)
+        api_key.raw_key = raw_key
         return api_key
 
     def verify_api_key(self, key: str) -> Optional[User]:
         """Verify API key and return associated user."""
-        api_key = (
+        api_keys = (
             self.db.query(APIKey)
-            .filter(APIKey.key == key, APIKey.is_active.is_(True))
-            .first()
+            .filter(APIKey.is_active.is_(True))
+            .all()
         )
 
-        if not api_key:
-            return None
+        for api_key in api_keys:
+            if verify_password(key, api_key.key):
+                return self.get_by_id(api_key.user_id)
 
-        return self.get_by_id(api_key.user_id)
+        return None
 
     def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
         """Deactivate API key for user."""
@@ -192,46 +197,46 @@ class AuthService(BaseService[User]):
         user = self.db.query(User).filter(User.email == email).first()
         if not user:
             return None
-            
+
         # Generate reset token
         reset_token = generate_secure_id("rst", 32)
-        
+
         # Set token and expiry (1 hour)
         user.reset_token = reset_token
         user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
-        
+
         self.db.commit()
         return reset_token
-    
+
     def reset_password(self, token: str, new_password: str) -> bool:
         """Reset password using token."""
         user = self.db.query(User).filter(User.reset_token == token).first()
-        
+
         if not user or not user.reset_token_expires:
             return False
-            
+
         # Check if token is expired
         if datetime.now(timezone.utc) > user.reset_token_expires:
             return False
-            
+
         # Update password and clear reset token
         user.password_hash = hash_password(new_password)
         user.reset_token = None
         user.reset_token_expires = None
-        
+
         self.db.commit()
         return True
-    
+
     def verify_email(self, token: str) -> bool:
         """Verify email using verification token."""
         user = self.db.query(User).filter(User.verification_token == token).first()
-        
+
         if not user:
             return False
-            
+
         user.email_verified = True
         user.verification_token = None
-        
+
         self.db.commit()
         return True
 

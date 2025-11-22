@@ -1,4 +1,4 @@
-"""Auto-topup service for low balance management."""
+"""Auto - topup service for low balance management."""
 from typing import Optional
 
 from sqlalchemy.orm import Session
@@ -8,7 +8,7 @@ from app.services.payment_service import PaymentService
 
 
 class AutoTopupService:
-    """Automatic credit top-up when balance is low."""
+    """Automatic credit top - up when balance is low."""
 
     def __init__(self, db: Session):
         self.db = db
@@ -17,7 +17,7 @@ class AutoTopupService:
         self.default_topup_amount = 25.0  # USD
 
     async def check_and_topup(self, user_id: str) -> Optional[dict]:
-        """Check if user needs auto-topup and initiate if enabled."""
+        """Check if user needs auto - topup and initiate if enabled."""
         user = self.db.query(User).filter(User.id == user_id).first()
 
         if not user or not hasattr(user, "auto_topup_enabled"):
@@ -27,7 +27,7 @@ class AutoTopupService:
         if user.credits > self.low_balance_threshold:
             return None
 
-        # Check if auto-topup is enabled for user
+        # Check if auto - topup is enabled for user
         if not getattr(user, "auto_topup_enabled", False):
             return None
 
@@ -35,7 +35,7 @@ class AutoTopupService:
         topup_amount = getattr(user, "auto_topup_amount", self.default_topup_amount)
 
         try:
-            # Initialize payment for auto-topup
+            # Initialize payment for auto - topup
             result = await self.payment_service.initialize_payment(
                 user_id=user_id,
                 email=user.email,
@@ -54,13 +54,13 @@ class AutoTopupService:
             return {"status": "failed", "error": str(e)}
 
     def enable_auto_topup(self, user_id: str, amount: float = 25.0) -> bool:
-        """Enable auto-topup for user."""
+        """Enable auto - topup for user."""
         user = self.db.query(User).filter(User.id == user_id).first()
 
         if not user:
             return False
 
-        # Add auto-topup fields (would need migration in production)
+        # Add auto - topup fields (would need migration in production)
         user.auto_topup_enabled = True
         user.auto_topup_amount = amount
 
@@ -68,7 +68,7 @@ class AutoTopupService:
         return True
 
     def disable_auto_topup(self, user_id: str) -> bool:
-        """Disable auto-topup for user."""
+        """Disable auto - topup for user."""
         user = self.db.query(User).filter(User.id == user_id).first()
 
         if not user:

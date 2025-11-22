@@ -39,7 +39,7 @@ class TextVerifiedPollingService:
 
     async def _poll_verification(self, verification_id: str, activation_id: str):
         """Poll TextVerified for SMS updates."""
-        max_attempts = 120  # 10 minutes with 5-second intervals
+        max_attempts = 120  # 10 minutes with 5 - second intervals
         attempt = 0
 
         while attempt < max_attempts:

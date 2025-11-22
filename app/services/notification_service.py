@@ -77,7 +77,7 @@ class NotificationService(BaseService[InAppNotification]):
                     response = await client.post(
                         webhook.url,
                         json=webhook_payload,
-                        headers={"Content-Type": "application/json"},
+                        headers={"Content - Type": "application/json"},
                     )
                     results.append(response.status_code < 400)
 
@@ -95,7 +95,7 @@ class NotificationService(BaseService[InAppNotification]):
         notification_type: str = "info",
         verification_id: Optional[str] = None,
     ) -> InAppNotification:
-        """Create in-app notification for user."""
+        """Create in - app notification for user."""
         notification = InAppNotification(
             user_id=user_id,
             title=title,
@@ -113,7 +113,7 @@ class NotificationService(BaseService[InAppNotification]):
     def get_user_notifications(
         self, user_id: str, unread_only: bool = False, limit: int = 50
     ) -> List[Dict[str, Any]]:
-        """Get user's in-app notifications."""
+        """Get user's in - app notifications."""
         query = self.db.query(InAppNotification).filter(
             InAppNotification.user_id == user_id
         )
@@ -226,7 +226,7 @@ class NotificationService(BaseService[InAppNotification]):
 
         prefs = self.get_notification_preferences(user_id)
 
-        # In-app notification
+        # In - app notification
         if prefs["in_app_notifications"]:
             self.create_in_app_notification(
                 user_id=user_id,
