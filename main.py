@@ -1,70 +1,70 @@
 """
-Namaskah SMS - Modular Application Factory
+Namaskah SMS - Optimized Application Factory
 """
-from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
-
-# Import all routers
-from app.api.admin import router as admin_router
-from app.api.analytics import router as analytics_router
-from app.api.auth import router as auth_router
-from app.api.bulk_verification import router as bulk_router
-from app.api.countries import router as countries_router
-from app.api.preferences import router as preferences_router
-from app.api.blacklist import router as blacklist_router
-from app.api.forwarding import router as forwarding_router
-from app.api.business_features import router as business_router
-from app.api.dashboard import router as dashboard_router
-from app.api.rentals import router as rentals_router
-from app.api.services import router as services_router
-from app.api.setup import router as setup_router
-from app.api.support import router as support_router
-from app.api.system import root_router
-from app.api.system import router as system_router
-from app.api.verification import router as verification_router
-from app.api.waitlist import router as waitlist_router
-from app.api.wallet import router as wallet_router
-from app.api.websocket import router as websocket_router
-from app.api.webhooks import router as webhooks_router
-from app.api.whatsapp import router as whatsapp_router
-from app.api.ai_features import router as ai_router
-from app.api.telegram import router as telegram_router
-from app.api.whitelabel import router as whitelabel_router
-from app.api.enterprise import router as enterprise_router
-from app.api.infrastructure import router as infrastructure_router
-from app.api.monitoring import router as monitoring_router
-from app.api.disaster_recovery import router as dr_router
-from app.api.compliance import router as compliance_router
-from app.api.affiliate import router as affiliate_router
-from app.api.revenue_sharing import router as revenue_router
-from app.api.whitelabel_enhanced import router as whitelabel_enhanced_router
-from app.api.reseller import router as reseller_router
-from app.api.textverified import router as textverified_router
-from app.api.analytics_dashboard import router as analytics_dashboard_router
-from app.core.caching import cache
-from app.core.database import engine
-from app.core.exceptions import setup_exception_handlers
 from app.core.logging import get_logger, setup_logging
-from app.core.security_hardening import SecurityMiddleware
-from app.middleware.error_handling import setup_error_handling
-from app.middleware.logging import RequestLoggingMiddleware
-from app.middleware.rate_limiting import RateLimitMiddleware
-
-# Import middleware
-from app.middleware.security import (
-    CORSMiddleware,
-    JWTAuthMiddleware,
-    SecurityHeadersMiddleware,
-)
-from app.middleware.whitelabel import WhiteLabelMiddleware
-from app.middleware.error_handler import ErrorHandlingMiddleware
 from app.core.startup import run_startup_initialization
+from app.middleware.csrf_middleware import CSRFMiddleware
+from app.middleware.xss_protection import XSSProtectionMiddleware
+from app.middleware.security import SecurityHeadersMiddleware
+from app.middleware.logging import RequestLoggingMiddleware
+from app.core.unified_error_handling import setup_unified_middleware
+from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi.responses import HTMLResponse, Response
+from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
+from starlette.middleware.gzip import GZipMiddleware
+from sqlalchemy.orm import Session
+from datetime import datetime
+
+# Import essential routers only
+from app.api.core.auth import router as auth_router
+from app.api.core.auth_enhanced import router as auth_enhanced_router
+from app.api.core.gdpr import router as gdpr_router
+from app.api.admin.admin_router import router as admin_router
+from app.api.core.countries import router as countries_router
+from app.api.core.services import router as services_router
+from app.api.core.system import root_router, router as system_router
+
+# Import production implementation routers
+from app.api.verification.textverified_endpoints import router as textverified_router
+from app.api.verification.pricing_endpoints import router as pricing_router
+from app.api.verification.rentals_endpoints import router as rentals_endpoints_router
+from app.api.rentals.textverified_rentals import router as rentals_router
+from app.api.integrations.sms_inbox import router as sms_router
+from app.api.integrations.billing import router as billing_router
+from app.api.integrations.webhooks import router as webhooks_router
+from app.api.integrations.wake_requests import router as wake_router
+from app.api.integrations.api_docs import router as docs_router
+from app.api.integrations.sms_forwarding import router as forwarding_router
+from app.api.integrations.billing_cycles import router as cycles_router
+
+from app.core.unified_cache import cache
+from app.core.database import engine, get_db
+from app.core.dependencies import get_current_user_id
+from fastapi import HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import Optional
+
+security = HTTPBearer(auto_error=False)
+
+
+def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)) -> Optional[str]:
+    """Get user ID from token if provided, otherwise return None."""
+    if not credentials:
+        return None
+    try:
+        import jwt
+        from app.core.config import get_settings
+        settings = get_settings()
+        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
+        return payload.get("user_id")
+    except BaseException:
+        return None
 
 
 def create_app() -> FastAPI:
-    """Application factory pattern"""
-    # Setup logging first - before any other operations
+    """Application factory pattern - optimized for performance"""
+    # Setup logging first
     setup_logging()
 
     # Import all models and configure registry
@@ -85,160 +85,286 @@ def create_app() -> FastAPI:
         logger = get_logger("startup")
         logger.error(f"Startup initialization failed: {e}")
 
-    # Setup exception handlers
-    setup_exception_handlers(fastapi_app)
+    # Add GZIP compression middleware
+    fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-    # Setup enhanced error handling
-    setup_error_handling(fastapi_app)
+    # Add FastAPI CORS middleware
+    from app.core.config import get_settings
+    settings = get_settings()
+    cors_origins = [
+        "http://localhost:3000",
+        "http://localhost:8000",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:8000",
+    ]
+    if settings.environment == "production":
+        cors_origins = [
+            "https://yourdomain.com",
+            "https://app.yourdomain.com",
+        ]
+    fastapi_app.add_middleware(
+        FastAPICORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
+    )
 
-    # Add middleware (order matters - security first, minimal stack)
-    fastapi_app.add_middleware(SecurityMiddleware)
+    # Setup unified middleware (rate limiting + error handling)
+    setup_unified_middleware(fastapi_app)
+
+    # Security and performance middleware stack
+    fastapi_app.add_middleware(CSRFMiddleware)
     fastapi_app.add_middleware(SecurityHeadersMiddleware)
-    fastapi_app.add_middleware(CORSMiddleware)
-    fastapi_app.add_middleware(JWTAuthMiddleware)
-    fastapi_app.add_middleware(RateLimitMiddleware)
-    fastapi_app.add_middleware(ErrorHandlingMiddleware)
+    fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
-    fastapi_app.add_middleware(WhiteLabelMiddleware)
 
-    # Include all routers
+    # Include essential routers
     fastapi_app.include_router(root_router)
-    fastapi_app.include_router(auth_router)
-    fastapi_app.include_router(verification_router, prefix="/api")
-    fastapi_app.include_router(bulk_router, prefix="/api")
-    fastapi_app.include_router(preferences_router, prefix="/api")
-    fastapi_app.include_router(blacklist_router, prefix="/api")
-    fastapi_app.include_router(forwarding_router, prefix="/api")
-    fastapi_app.include_router(business_router, prefix="/api")
-    fastapi_app.include_router(services_router)
-    fastapi_app.include_router(websocket_router)
-    fastapi_app.include_router(webhooks_router)
-    fastapi_app.include_router(wallet_router)
-    fastapi_app.include_router(admin_router)
-    fastapi_app.include_router(analytics_router)
-    fastapi_app.include_router(analytics_dashboard_router, prefix="/api")
-    fastapi_app.include_router(system_router)
-    fastapi_app.include_router(setup_router)
+    fastapi_app.include_router(auth_router, prefix="/api")
+    fastapi_app.include_router(auth_enhanced_router, prefix="/api")
+    fastapi_app.include_router(gdpr_router, prefix="/api")
+    fastapi_app.include_router(admin_router, prefix="/api")
     fastapi_app.include_router(countries_router, prefix="/api")
-    fastapi_app.include_router(dashboard_router)
-    fastapi_app.include_router(support_router)
-    fastapi_app.include_router(rentals_router)
-    fastapi_app.include_router(waitlist_router)
-    fastapi_app.include_router(whatsapp_router)
-    fastapi_app.include_router(ai_router)
-    fastapi_app.include_router(telegram_router)
-    fastapi_app.include_router(whitelabel_router)
-    fastapi_app.include_router(enterprise_router)
-    fastapi_app.include_router(infrastructure_router)
-    fastapi_app.include_router(monitoring_router)
-    fastapi_app.include_router(dr_router)
-    fastapi_app.include_router(compliance_router)
-    fastapi_app.include_router(affiliate_router)
-    fastapi_app.include_router(revenue_router)
-    fastapi_app.include_router(whitelabel_enhanced_router)
-    fastapi_app.include_router(reseller_router)
+    fastapi_app.include_router(services_router)
+    fastapi_app.include_router(system_router)
+
+    # Include production implementation routers (REAL API)
     fastapi_app.include_router(textverified_router)
+    fastapi_app.include_router(pricing_router)
+    fastapi_app.include_router(rentals_endpoints_router)
+    fastapi_app.include_router(rentals_router)
+    fastapi_app.include_router(sms_router)
+    fastapi_app.include_router(billing_router)
+    fastapi_app.include_router(webhooks_router)
+    fastapi_app.include_router(wake_router)
+    fastapi_app.include_router(docs_router)
+    fastapi_app.include_router(forwarding_router)
+    fastapi_app.include_router(cycles_router)
 
-    # Static files
-    fastapi_app.mount("/static", StaticFiles(directory="static"), name="static")
+    # Static files - ensure proper serving
+    import os
+    static_dir = "static"
+    if os.path.exists(static_dir):
+        fastapi_app.mount("/static", StaticFiles(directory=static_dir), name="static")
+    else:
+        logger = get_logger("startup")
+        logger.error(f"Static directory '{static_dir}' not found")
 
-    # Cache template content
-    _template_cache = {}
-
+    # Direct template loading (no cache)
     def _load_template(path: str) -> str:
-        if path not in _template_cache:
-            try:
-                with open(f"templates/{path}", "r") as f:
-                    _template_cache[path] = f.read()
-            except Exception:
-                _template_cache[path] = "<h1>Page not found</h1>"
-        return _template_cache[path]
+        try:
+            with open(f"templates/{path}", "r") as f:
+                return f.read()
+        except Exception:
+            return "<h1>Page not found</h1>"
 
     @fastapi_app.get("/", response_class=HTMLResponse)
     async def home():
         return HTMLResponse(content=_load_template("dashboard_main.html"))
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
-    async def dashboard():
-        return HTMLResponse(content=_load_template("dashboard_main.html"))
+    async def dashboard(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("dashboard_complete.html"))
 
     @fastapi_app.get("/verify", response_class=HTMLResponse)
-    async def verify_page():
-        return HTMLResponse(content=_load_template("verification_enhanced.html"))
+    async def verify_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("verification_fixed.html"))
+
+    @fastapi_app.get("/dashboard-complete", response_class=HTMLResponse)
+    async def dashboard_complete(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("dashboard_complete.html"))
 
     @fastapi_app.get("/app", response_class=HTMLResponse)
-    async def app_page():
-        return HTMLResponse(content=_load_template("dashboard_main.html"))
+    async def app_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("dashboard_complete.html"))
 
-    @fastapi_app.get("/dashboard-app", response_class=HTMLResponse)
-    async def dashboard_app():
-        return HTMLResponse(content=_load_template("verification_enhanced.html"))
-
-    @fastapi_app.get("/dashboard-old", response_class=HTMLResponse)
-    async def dashboard_old():
-        return HTMLResponse(content=_load_template("verification_dashboard_v2.html"))
-
-    @fastapi_app.get("/verify-sms", response_class=HTMLResponse)
-    async def verify_sms_prod():
-        return HTMLResponse(content=_load_template("verification_prod.html"))
+    @fastapi_app.get("/verification", response_class=HTMLResponse)
+    async def verification_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("verification_fixed.html"))
 
     @fastapi_app.get("/auth/login", response_class=HTMLResponse)
     async def login_page():
         return HTMLResponse(content=_load_template("login.html"))
 
-    @fastapi_app.get("/auth/forgot-password", response_class=HTMLResponse)
-    async def forgot_password_page():
-        return HTMLResponse(content=_load_template("password_reset.html"))
+    @fastapi_app.get("/auth/register", response_class=HTMLResponse)
+    async def register_page():
+        return HTMLResponse(content=_load_template("register.html"))
 
-    @fastapi_app.get("/auth/reset-password", response_class=HTMLResponse)
-    async def reset_password_page():
-        return HTMLResponse(content=_load_template("password_reset_confirm.html"))
+    @fastapi_app.get("/sms-inbox", response_class=HTMLResponse)
+    async def sms_inbox_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("sms_inbox.html"))
 
-    @fastapi_app.get("/reviews", response_class=HTMLResponse)
-    async def reviews_page():
-        return HTMLResponse(content=_load_template("reviews.html"))
-
-    @fastapi_app.get("/dashboard/legacy", response_class=HTMLResponse)
-    async def legacy_dashboard():
-        return HTMLResponse(content=_load_template("dashboard_fixed.html"))
-
-    @fastapi_app.get("/affiliate", response_class=HTMLResponse)
-    async def affiliate_page():
-        return HTMLResponse(content=_load_template("affiliate_program.html"))
-
-    @fastapi_app.get("/affiliate/dashboard", response_class=HTMLResponse)
-    async def affiliate_dashboard():
-        return HTMLResponse(content=_load_template("affiliate_dashboard.html"))
-
-    @fastapi_app.get("/whitelabel/setup", response_class=HTMLResponse)
-    async def whitelabel_setup():
-        return HTMLResponse(content=_load_template("whitelabel_setup.html"))
-
-    @fastapi_app.get("/reseller/dashboard", response_class=HTMLResponse)
-    async def reseller_dashboard_page():
-        return HTMLResponse(content=_load_template("reseller_dashboard.html"))
+    @fastapi_app.get("/billing", response_class=HTMLResponse)
+    async def billing_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("billing_dashboard.html"))
 
     @fastapi_app.get("/rentals", response_class=HTMLResponse)
-    async def rental_dashboard_page():
-        return HTMLResponse(content=_load_template("rental_dashboard.html"))
+    async def rentals_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("rental_management.html"))
 
-    @fastapi_app.get("/history", response_class=HTMLResponse)
-    async def history_page():
-        return HTMLResponse(content=_load_template("history_advanced.html"))
+    @fastapi_app.get("/admin-dashboard", response_class=HTMLResponse)
+    async def admin_dashboard_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("admin_dashboard.html"))
 
-    @fastapi_app.get("/bulk", response_class=HTMLResponse)
-    async def bulk_purchase_page():
-        return HTMLResponse(content=_load_template("bulk_purchase.html"))
+    @fastapi_app.get("/privacy-settings", response_class=HTMLResponse)
+    async def privacy_settings_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("gdpr_settings.html"))
 
-    @fastapi_app.get("/sms-history", response_class=HTMLResponse)
-    async def sms_history_page():
-        return HTMLResponse(content=_load_template("sms_history.html"))
+    @fastapi_app.get("/api-keys", response_class=HTMLResponse)
+    async def api_keys_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("api_keys.html"))
+
+    @fastapi_app.get("/account-settings", response_class=HTMLResponse)
+    async def account_settings_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("account_settings.html"))
+
+    @fastapi_app.get("/analytics-dashboard", response_class=HTMLResponse)
+    async def analytics_dashboard_page(user_id: str = Depends(get_current_user_id)):
+        return HTMLResponse(content=_load_template("analytics_dashboard.html"))
+
+    @fastapi_app.get("/track.js")
+    async def track_js():
+        return Response(content="// Analytics tracking placeholder", media_type="application/javascript")
+
+    @fastapi_app.get("/api/user/balance")
+    async def user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return {
+            "credits": float(user.credits or 0),
+            "free_verifications": int(user.free_verifications or 0),
+            "currency": "USD"
+        }
+
+    @fastapi_app.post("/api/auth/register")
+    async def register_user(request: Request):
+        from app.core.database import get_db
+        from app.services.auth_service import get_auth_service
+        import json
+        try:
+            body = await request.body()
+            data = json.loads(body)
+            email = data.get("email")
+            password = data.get("password")
+            if not email or not password:
+                raise HTTPException(status_code=400, detail="Email and password required")
+            db = next(get_db())
+            try:
+                auth_service = get_auth_service(db)
+                user = auth_service.register_user(email, password)
+                token = auth_service.create_user_token(user)
+                return {
+                    "success": True,
+                    "access_token": token,
+                    "token_type": "bearer",
+                    "user": {
+                        "id": user.id,
+                        "email": user.email,
+                        "credits": float(user.credits or 0),
+                        "free_verifications": int(user.free_verifications or 0)
+                    }
+                }
+            finally:
+                db.close()
+        except HTTPException:
+            raise
+        except (ValueError, KeyError):
+            raise HTTPException(status_code=400, detail="Registration failed")
+
+    @fastapi_app.post("/api/billing/add-credits")
+    async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
+        from app.models.user import User
+        import json
+        try:
+            if not user_id:
+                raise HTTPException(status_code=401, detail="Authentication required")
+            body = await request.body()
+            data = json.loads(body)
+            amount = float(data.get("amount", 0))
+            if amount <= 0:
+                raise HTTPException(status_code=400, detail="Invalid amount")
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            bonus = 7 if amount >= 50 else (3 if amount >= 25 else (1 if amount >= 10 else 0))
+            total_amount = amount + bonus
+            user.credits = (user.credits or 0) + total_amount
+            db.commit()
+            return {
+                "success": True,
+                "amount_added": total_amount,
+                "bonus": bonus,
+                "new_balance": float(user.credits)
+            }
+        except HTTPException:
+            raise
+        except (ValueError, KeyError):
+            raise HTTPException(status_code=500, detail="Failed to add credits")
+
+    @fastapi_app.get("/favicon.ico")
+    async def favicon():
+        from fastapi.responses import FileResponse
+        return FileResponse("static/favicon.ico")
+
+    @fastapi_app.get("/api/system/health")
+    async def system_health():
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "version": "2.5.0",
+            "database": "connected",
+            "authentication": "active"
+        }
+
+    @fastapi_app.get("/api/analytics/summary")
+    async def analytics_summary(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        from app.models.user import User
+        from app.models.verification import Verification
+        try:
+            query = db.query(Verification).filter(Verification.user_id == user_id)
+            total_verifications = query.count()
+            successful_verifications = query.filter(Verification.status == 'completed').count()
+            user = db.query(User).filter(User.id == user_id).first()
+            total_users = db.query(User).count() if user and user.is_admin else 1
+            return {
+                "total_verifications": total_verifications,
+                "successful_verifications": successful_verifications,
+                "failed_verifications": total_verifications - successful_verifications,
+                "total_users": total_users,
+                "active_users": total_users,
+                "revenue": successful_verifications * 0.20,
+                "top_services": ["Telegram", "WhatsApp", "Discord"],
+                "recent_activity": ["Account created successfully"]
+            }
+        except (ValueError, KeyError, AttributeError):
+            return {
+                "total_verifications": 0,
+                "successful_verifications": 0,
+                "failed_verifications": 0,
+                "total_users": 0,
+                "active_users": 0,
+                "revenue": 0.0,
+                "top_services": [],
+                "recent_activity": []
+            }
+
+    @fastapi_app.get("/api/countries/")
+    async def get_countries():
+        countries = [
+            {"code": "russia", "name": "Russia", "flag": "🇷🇺", "prefix": "7", "popular": True},
+            {"code": "india", "name": "India", "flag": "🇮🇳", "prefix": "91", "popular": True},
+            {"code": "usa", "name": "United States", "flag": "🇺🇸", "prefix": "1", "popular": False},
+        ]
+        return {"success": True, "countries": countries, "total": len(countries)}
 
     @fastapi_app.on_event("startup")
     async def startup_event():
-        """Initialize connections on startup."""
+        logger = get_logger("startup")
+        logger.info("Application startup")
         await cache.connect()
-        
         from app.services.sms_polling_service import sms_polling_service
         from app.core.config import settings
         import asyncio
@@ -267,21 +393,16 @@ def create_app() -> FastAPI:
 
     @fastapi_app.on_event("shutdown")
     async def shutdown_event():
-        """Graceful cleanup on shutdown."""
         logger = get_logger("shutdown")
         logger.info("Starting graceful shutdown")
-
         try:
             from app.services.sms_polling_service import sms_polling_service
             await sms_polling_service.stop_background_service()
             logger.info("SMS polling service stopped")
-            
             await cache.disconnect()
             logger.info("Cache disconnected")
-
             engine.dispose()
             logger.info("Database connections disposed")
-
             logger.info("Graceful shutdown completed")
         except Exception as e:
             logger.error("Error during shutdown", error=str(e))

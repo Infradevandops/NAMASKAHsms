@@ -7,10 +7,10 @@ from pydantic import validator
 
 def validate_phone_number(phone: str) -> str:
     """Validate phone number format."""
-    # Remove all non-digit characters except +
+    # Remove all non - digit characters except +
     cleaned = re.sub(r"[^\d+]", "", phone)
 
-    # Check if it starts with + and has 10-15 digits
+    # Check if it starts with + and has 10 - 15 digits
     if not re.match(r"^\+\d{10,15}$", cleaned):
         raise ValueError(
             "Invalid phone number format. Use international format: +1234567890"
@@ -28,7 +28,7 @@ def validate_service_name(service: str) -> str:
     cleaned = service.lower().strip()
 
     # Check for valid characters (alphanumeric, underscore, hyphen)
-    if not re.match(r"^[a-z0-9_-]+$", cleaned):
+    if not re.match(r"^[a - z0-9_-]+$", cleaned):
         raise ValueError(
             "Service name can only contain letters, numbers, underscores, and hyphens"
         )
@@ -59,7 +59,7 @@ def validate_referral_code(code: str) -> str:
     cleaned = code.strip().upper()
 
     # Check format: 6 alphanumeric characters
-    if not re.match(r"^[A-Z0-9]{6}$", cleaned):
+    if not re.match(r"^[A - Z0-9]{6}$", cleaned):
         raise ValueError("Referral code must be 6 alphanumeric characters")
 
     return cleaned
@@ -88,7 +88,7 @@ def validate_webhook_url(url: str) -> str:
     # Basic URL validation
     url_pattern = re.compile(
         r"^https?://"  # http:// or https://
-        r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|"  # domain...
+        r"(?:(?:[A - Z0-9](?:[A - Z0-9-]{0,61}[A - Z0-9])?\.)+[A - Z]{2,6}\.?|"  # domain...
         r"localhost|"  # localhost...
         r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # ...or ip
         r"(?::\d+)?"  # optional port
@@ -108,7 +108,7 @@ def validate_duration_hours(hours: float) -> float:
         raise ValueError("Duration must be positive")
 
     if hours > 8760:  # 1 year
-        raise ValueError("Maximum duration is 1 year (8760 hours)")
+        raise ValueError("Maximum duration == 1 year (8760 hours)")
 
     # Round to 2 decimal places
     return round(hours, 2)
@@ -119,7 +119,7 @@ def validate_area_code(code: str) -> str:
     if not code:
         return code
 
-    # Remove non-digits
+    # Remove non - digits
     cleaned = re.sub(r"\D", "", code)
 
     # Check if it's 3 digits

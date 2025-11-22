@@ -69,7 +69,7 @@ class UserResponse(BaseModel):
                 "is_admin": False,
                 "email_verified": True,
                 "referral_code": "ABC123",
-                "created_at": "2024-01-20T10:00:00Z",
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
     }
@@ -108,7 +108,7 @@ class TokenResponse(BaseModel):
                     "is_admin": False,
                     "email_verified": True,
                     "referral_code": "ABC123",
-                    "created_at": "2024-01-20T10:00:00Z",
+                    "created_at": "2024 - 01-20T10:00:00Z",
                 },
             }
         }
@@ -141,7 +141,7 @@ class APIKeyResponse(BaseModel):
                 "name": "Production API Key",
                 "key": "nsk_abc123def456...",
                 "is_active": True,
-                "created_at": "2024-01-20T10:00:00Z",
+                "created_at": "2024 - 01-20T10:00:00Z",
                 "last_used": None,
             }
         },
@@ -165,8 +165,8 @@ class APIKeyListResponse(BaseModel):
                 "name": "Production API Key",
                 "key_preview": "nsk_abc123...def456",
                 "is_active": True,
-                "created_at": "2024-01-20T10:00:00Z",
-                "last_used": "2024-01-20T15:30:00Z",
+                "created_at": "2024 - 01-20T10:00:00Z",
+                "last_used": "2024 - 01-20T15:30:00Z",
             }
         }
     }

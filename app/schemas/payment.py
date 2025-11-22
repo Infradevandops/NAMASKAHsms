@@ -129,7 +129,7 @@ class TransactionResponse(BaseModel):
                 "amount": 10.0,
                 "type": "credit",
                 "description": "Paystack payment: ref_123",
-                "created_at": "2024-01-20T10:00:00Z",
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
     }
@@ -150,7 +150,7 @@ class TransactionHistoryResponse(BaseModel):
                         "amount": 10.0,
                         "type": "credit",
                         "description": "Paystack payment: ref_123",
-                        "created_at": "2024-01-20T10:00:00Z",
+                        "created_at": "2024 - 01-20T10:00:00Z",
                     }
                 ],
                 "total_count": 1,
@@ -284,7 +284,7 @@ class SubscriptionResponse(BaseModel):
                 "status": "active",
                 "price": 12.5,
                 "discount": "20%",
-                "expires_at": "2024-02-20T10:00:00Z",
+                "expires_at": "2024 - 02-20T10:00:00Z",
                 "features": {"discount": 0.20, "free_verifications": 5},
             }
         }

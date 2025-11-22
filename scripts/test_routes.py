@@ -6,7 +6,7 @@ Tests all public routes to ensure they're working correctly
 
 import requests
 import sys
-from typing import List, Tuple
+from typing import Tuple
 
 def test_route(base_url: str, path: str, expected_status: int = 200) -> Tuple[bool, str, int]:
     """Test a single route and return result."""

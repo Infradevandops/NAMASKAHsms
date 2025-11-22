@@ -15,8 +15,10 @@ class VerificationCreate(BaseModel):
     capability: str = Field(
         default="sms", description="Verification type: sms or voice"
     )
-    operator: Optional[str] = Field(default="any", description="Network operator (any or specific)")
-    pricing_tier: Optional[str] = Field(default="standard", description="Pricing tier: standard or premium")
+    operator: Optional[str] = Field(default="any", description="Network operator (any or \
+    specific)")
+    pricing_tier: Optional[str] = Field(default="standard", description="Pricing tier: standard or \
+    premium")
     reuse: Optional[bool] = Field(default=False, description="Reuse number if possible (may save cost)")
     area_code: Optional[str] = Field(None, description="Preferred area code (+$4)")
     carrier: Optional[str] = Field(None, description="Preferred carrier (+$6)")
@@ -31,7 +33,7 @@ class VerificationCreate(BaseModel):
     def validate_country(cls, v):
         if not v:
             raise ValueError("Country cannot be empty")
-        # Accept both 2-letter codes (US) and full names (usa, england)
+        # Accept both 2 - letter codes (US) and full names (usa, england)
         # Convert to lowercase for consistency with 5SIM API
         return v.lower()
 
@@ -41,13 +43,13 @@ class VerificationCreate(BaseModel):
         if not v or len(v.strip()) == 0:
             raise ValueError("Service name cannot be empty")
         return v.lower().strip()
-    
+
     @validator("pricing_tier")
     def validate_pricing_tier(cls, v):
         if v and v not in ["standard", "premium"]:
             raise ValueError("Pricing tier must be standard or premium")
         return v or "standard"
-    
+
     @validator("operator")
     def validate_operator(cls, v):
         # Accept any operator name, default to "any"
@@ -95,7 +97,7 @@ class VerificationResponse(BaseModel):
                 "cost": 1.0,
                 "requested_carrier": "verizon",
                 "requested_area_code": "212",
-                "created_at": "2024-01-20T10:00:00Z",
+                "created_at": "2024 - 01-20T10:00:00Z",
                 "completed_at": None,
             }
         },
@@ -131,7 +133,7 @@ class NumberRentalRequest(BaseModel):
     mode: str = Field(
         default="always_ready", description="Rental mode: always_ready or manual"
     )
-    auto_extend: bool = Field(default=False, description="Auto-extend rental")
+    auto_extend: bool = Field(default=False, description="Auto - extend rental")
     area_code: Optional[str] = Field(None, description="Preferred area code")
     carrier: Optional[str] = Field(None, description="Preferred carrier")
 
@@ -146,7 +148,7 @@ class NumberRentalRequest(BaseModel):
         if v <= 0:
             raise ValueError("Duration must be positive")
         if v > 8760:  # 1 year
-            raise ValueError("Maximum rental duration is 1 year")
+            raise ValueError("Maximum rental duration == 1 year")
         return v
 
     model_config = {
@@ -188,8 +190,8 @@ class NumberRentalResponse(BaseModel):
                 "cost": 12.0,
                 "mode": "always_ready",
                 "status": "active",
-                "started_at": "2024-01-20T10:00:00Z",
-                "expires_at": "2024-01-21T10:00:00Z",
+                "started_at": "2024 - 01-20T10:00:00Z",
+                "expires_at": "2024 - 01-21T10:00:00Z",
                 "auto_extend": False,
             }
         },
@@ -206,7 +208,7 @@ class ExtendRentalRequest(BaseModel):
         if v <= 0:
             raise ValueError("Additional hours must be positive")
         if v > 8760:  # 1 year
-            raise ValueError("Maximum extension is 1 year")
+            raise ValueError("Maximum extension == 1 year")
         return v
 
     model_config = {"json_schema_extra": {"example": {"additional_hours": 12.0}}}
@@ -275,8 +277,8 @@ class VerificationHistoryResponse(BaseModel):
                         "capability": "sms",
                         "status": "completed",
                         "cost": 1.0,
-                        "created_at": "2024-01-20T10:00:00Z",
-                        "completed_at": "2024-01-20T10:05:00Z",
+                        "created_at": "2024 - 01-20T10:00:00Z",
+                        "completed_at": "2024 - 01-20T10:05:00Z",
                     }
                 ],
                 "total_count": 1,

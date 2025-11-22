@@ -11,7 +11,7 @@ class RentalCreate(BaseModel):
     country_code: str = Field(..., min_length=2, max_length=3)
     duration_hours: int = Field(default=24, ge=1, le=720)  # 1 hour to 1 month
     operator: Optional[str] = Field(default="any", description="Network operator")
-    auto_extend: bool = Field(default=False, description="Auto-extend rental before expiry")
+    auto_extend: bool = Field(default=False, description="Auto - extend rental before expiry")
 
 
 class RentalExtend(BaseModel):
