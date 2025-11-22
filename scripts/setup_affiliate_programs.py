@@ -1,24 +1,27 @@
 #!/usr/bin/env python3
 """Setup affiliate programs in database."""
 
-import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import sys
 
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.models.affiliate import AffiliateProgram
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def setup_affiliate_programs():
     """Initialize affiliate programs in database."""
     db = next(get_db())
-    
+
     # Check if programs already exist
     existing = db.query(AffiliateProgram).first()
     if existing:
         print("Affiliate programs already exist. Skipping setup.")
         return
-    
+
     # Create Individual Referral Program
     referral_program = AffiliateProgram(
         name="Individual Referral Program",
@@ -40,7 +43,7 @@ def setup_affiliate_programs():
         },
         is_active=True
     )
-    
+
     # Create Enterprise Affiliate Program
     enterprise_program = AffiliateProgram(
         name="Enterprise Affiliate Program",
@@ -66,15 +69,16 @@ def setup_affiliate_programs():
         },
         is_active=True
     )
-    
+
     # Add to database
     db.add(referral_program)
     db.add(enterprise_program)
     db.commit()
-    
+
     print("✅ Affiliate programs created successfully!")
     print(f"- {referral_program.name}: {referral_program.commission_rate*100}% commission")
     print(f"- {enterprise_program.name}: {enterprise_program.commission_rate*100}% commission")
+
 
 if __name__ == "__main__":
     setup_affiliate_programs()

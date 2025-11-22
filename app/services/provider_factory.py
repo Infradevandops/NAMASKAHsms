@@ -1,8 +1,8 @@
 """SMS provider factory with multi-provider support."""
-from app.services.textverified_service import TextVerifiedService
-from app.services.sms_provider_interface import ProviderManager
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.services.sms_provider_interface import ProviderManager
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 

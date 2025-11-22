@@ -1,11 +1,13 @@
 """White-label configuration model."""
-from sqlalchemy import Column, String, Boolean, Text, JSON
+from sqlalchemy import JSON, Boolean, Column, String, Text
 from sqlalchemy.orm import relationship
+
 from app.models.base import BaseModel
+
 
 class WhiteLabelConfig(BaseModel):
     __tablename__ = "whitelabel_configs"
-    
+
     domain = Column(String(255), nullable=False, unique=True, index=True)
     company_name = Column(String(100), nullable=False)
     logo_url = Column(String(500), nullable=True)
@@ -20,7 +22,7 @@ class WhiteLabelConfig(BaseModel):
         "telegram": True,
         "analytics": True
     })
-    
+
     # Relationships
     domains = relationship("WhiteLabelDomain", back_populates="config")
     themes = relationship("WhiteLabelTheme", back_populates="config")

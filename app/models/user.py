@@ -27,13 +27,13 @@ class User(BaseModel):
     google_id = Column(String(255), nullable=True, index=True)
     provider = Column(String(50), default="email", nullable=False)
     avatar_url = Column(String(500), nullable=True)
-    
+
     # Affiliate fields
     affiliate_id = Column(String(50), nullable=True)
     partner_type = Column(String(50), nullable=True)
     commission_tier = Column(String(50), nullable=True)
     is_affiliate = Column(Boolean, default=False, nullable=False)
-    
+
     # Relationships
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
     enterprise_account = relationship("EnterpriseAccount", back_populates="user", uselist=False)

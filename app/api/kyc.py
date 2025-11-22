@@ -1,20 +1,21 @@
 """KYC (Know Your Customer) API endpoints."""
+from datetime import date, datetime, timezone
 from typing import List, Optional
-from datetime import datetime, timezone, date
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+
+from fastapi import (APIRouter, Depends, File, Form, HTTPException, UploadFile,
+                     status)
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_admin_user_id
-from app.models.kyc import KYCProfile, KYCDocument, KYCAuditLog, AMLScreening
-from app.models.user import User
-from app.schemas.kyc import (
-    KYCProfileCreate, KYCProfileResponse, KYCDocumentResponse,
-    KYCVerificationDecision, AMLScreeningResponse, KYCStatsResponse
-)
-from app.services.kyc_service import get_kyc_service
-from app.services.document_service import get_document_service
+from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
+from app.models.kyc import AMLScreening, KYCAuditLog, KYCDocument, KYCProfile
+from app.models.user import User
+from app.schemas.kyc import (AMLScreeningResponse, KYCDocumentResponse,
+                             KYCProfileCreate, KYCProfileResponse,
+                             KYCStatsResponse, KYCVerificationDecision)
+from app.services.document_service import get_document_service
+from app.services.kyc_service import get_kyc_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])
@@ -32,14 +33,14 @@ async def create_kyc_profile(
         existing_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
         if existing_profile:
             raise HTTPException(status_code=400, detail="KYC profile already exists")
-        
+
         kyc_service = get_kyc_service(db)
-        
+
         # Create KYC profile
         kyc_profile = await kyc_service.create_profile(user_id, profile_data)
-        
+
         return KYCProfileResponse.from_orm(kyc_profile)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -54,10 +55,10 @@ def get_kyc_profile(
 ):
     """Get current user's KYC profile."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-    
+
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
-    
+
     return KYCProfileResponse.from_orm(kyc_profile)
 
 
@@ -69,16 +70,16 @@ async def update_kyc_profile(
 ):
     """Update KYC profile (only if not verified)."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-    
+
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
-    
+
     if kyc_profile.status == "verified":
         raise HTTPException(status_code=400, detail="Cannot update verified profile")
-    
+
     kyc_service = get_kyc_service(db)
     updated_profile = await kyc_service.update_profile(kyc_profile.id, profile_data)
-    
+
     return KYCProfileResponse.from_orm(updated_profile)
 
 
@@ -95,28 +96,28 @@ async def upload_kyc_document(
         allowed_types = ["passport", "license", "id_card", "utility_bill", "selfie"]
         if document_type not in allowed_types:
             raise HTTPException(status_code=400, detail=f"Invalid document type. Allowed: {allowed_types}")
-        
+
         # Get KYC profile
         kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
         if not kyc_profile:
             raise HTTPException(status_code=404, detail="KYC profile not found. Create profile first.")
-        
+
         document_service = get_document_service(db)
-        
+
         # Upload and process document
         document = await document_service.upload_document(
             file=file,
             document_type=document_type,
             kyc_profile_id=kyc_profile.id
         )
-        
+
         return {
             "id": document.id,
             "document_type": document.document_type,
             "status": document.verification_status,
             "uploaded_at": document.created_at.isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -131,14 +132,14 @@ def get_kyc_documents(
 ):
     """Get user's uploaded KYC documents."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-    
+
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
-    
+
     documents = db.query(KYCDocument).filter(
         KYCDocument.kyc_profile_id == kyc_profile.id
     ).all()
-    
+
     return [KYCDocumentResponse.from_orm(doc) for doc in documents]
 
 
@@ -149,16 +150,16 @@ async def submit_kyc_for_review(
 ):
     """Submit KYC profile for admin review."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-    
+
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
-    
+
     if kyc_profile.status != "unverified":
         raise HTTPException(status_code=400, detail="Profile already submitted or verified")
-    
+
     kyc_service = get_kyc_service(db)
     await kyc_service.submit_for_review(kyc_profile.id)
-    
+
     return {"message": "KYC submitted for review", "status": "pending"}
 
 
@@ -170,7 +171,7 @@ def get_kyc_limits(
     """Get user's current KYC limits."""
     kyc_service = get_kyc_service(db)
     limits = kyc_service.get_user_limits(user_id)
-    
+
     return {
         "verification_level": limits.get("level", "unverified"),
         "daily_limit": limits.get("daily_limit", 10.0),
@@ -191,7 +192,7 @@ def get_pending_kyc_reviews(
     pending_profiles = db.query(KYCProfile).filter(
         KYCProfile.status == "pending"
     ).limit(limit).all()
-    
+
     return [KYCProfileResponse.from_orm(profile) for profile in pending_profiles]
 
 
@@ -204,10 +205,10 @@ async def admin_verify_kyc(
 ):
     """Admin decision on KYC verification."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
-    
+
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
-    
+
     kyc_service = get_kyc_service(db)
     result = await kyc_service.admin_verify(
         kyc_profile_id=kyc_profile_id,
@@ -216,7 +217,7 @@ async def admin_verify_kyc(
         verification_level=decision.verification_level,
         notes=decision.notes
     )
-    
+
     return {
         "message": f"KYC {decision.decision}",
         "new_status": result.status,
@@ -231,13 +232,13 @@ def get_kyc_statistics(
 ):
     """Get KYC statistics (admin only)."""
     from sqlalchemy import func
-    
+
     # Basic stats
     total_profiles = db.query(KYCProfile).count()
     verified_profiles = db.query(KYCProfile).filter(KYCProfile.status == "verified").count()
     pending_profiles = db.query(KYCProfile).filter(KYCProfile.status == "pending").count()
     rejected_profiles = db.query(KYCProfile).filter(KYCProfile.status == "rejected").count()
-    
+
     # Verification levels
     level_stats = db.query(
         KYCProfile.verification_level,
@@ -245,7 +246,7 @@ def get_kyc_statistics(
     ).filter(
         KYCProfile.status == "verified"
     ).group_by(KYCProfile.verification_level).all()
-    
+
     return KYCStatsResponse(
         total_profiles=total_profiles,
         verified_profiles=verified_profiles,
@@ -266,7 +267,7 @@ def get_kyc_audit_trail(
     audit_logs = db.query(KYCAuditLog).filter(
         KYCAuditLog.user_id == user_id
     ).order_by(KYCAuditLog.created_at.desc()).all()
-    
+
     return [
         {
             "id": log.id,
@@ -290,7 +291,7 @@ async def trigger_aml_screening(
     """Trigger AML screening for KYC profile (admin only)."""
     kyc_service = get_kyc_service(db)
     screening_result = await kyc_service.perform_aml_screening(kyc_profile_id)
-    
+
     return {
         "screening_id": screening_result.id,
         "status": screening_result.status,

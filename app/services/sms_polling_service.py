@@ -3,14 +3,15 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Dict, List
 
-# SQLAlchemy Session import not required here; using SessionLocal from core.database
-
-from app.core.database import SessionLocal
-from app.core.logging import get_logger
-from app.core.exceptions import ExternalServiceError
 from app.core.config import settings
+from app.core.database import SessionLocal
+from app.core.exceptions import ExternalServiceError
+from app.core.logging import get_logger
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
+
+# SQLAlchemy Session import not required here; using SessionLocal from core.database
+
 
 logger = get_logger(__name__)
 
@@ -25,7 +26,7 @@ class SMSPollingService:
         """Start polling for SMS for a specific verification."""
         if verification_id in self.polling_tasks:
             return  # Already polling
-        
+
         task = asyncio.create_task(
             self._poll_verification(verification_id, phone_number)
         )
@@ -45,21 +46,21 @@ class SMSPollingService:
         initial_interval = settings.sms_polling_initial_interval_seconds
         max_attempts = int((settings.sms_polling_max_minutes * 60) / max(1, initial_interval))
         attempt = 0
-        
+
         while attempt < max_attempts:
             try:
                 # Get database session
                 db = SessionLocal()
-                
+
                 # Check if verification still exists and is pending
                 verification = db.query(Verification).filter(
                     Verification.id == verification_id
                 ).first()
-                
+
                 if not verification or verification.status != "pending":
                     logger.info(f"Verification {verification_id} no longer pending, stopping poll")
                     break
-                
+
                 # Check TextVerified for SMS
                 try:
                     # TextVerified polling - check if we have messages
@@ -71,12 +72,12 @@ class SMSPollingService:
                     logger.warning(f"TextVerified check failed for {phone_number}: {str(e)}")
                     await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                     continue  # Skip this iteration
-                
+
                 if sms_data and sms_data.get("messages"):
                     # SMS received, update verification
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
-                    
+
                     # Extract SMS text and code
                     latest_sms = sms_data["messages"][-1] if isinstance(sms_data["messages"], list) else sms_data["messages"]
                     if hasattr(verification, 'sms_text'):
@@ -87,21 +88,21 @@ class SMSPollingService:
                         text = latest_sms if isinstance(latest_sms, str) else latest_sms.get("text", "")
                         matches = re.findall(r'\b(\d{4,8})\b', text)
                         verification.sms_code = matches[-1] if matches else ""
-                    
+
                     db.commit()
-                    
+
                     logger.info(f"SMS received for verification {verification_id}")
                     break
-                
+
                 elif sms_data and sms_data.get("status") == "TIMEOUT":
                     # Verification timed out
                     verification.status = "timeout"
                     db.commit()
                     logger.info(f"Verification {verification_id} timed out")
                     break
-                
+
                 db.close()
-                
+
                 # Wait before next poll (adaptive timing)
                 if attempt < 10:
                     await asyncio.sleep(settings.sms_polling_initial_interval_seconds)
@@ -109,9 +110,9 @@ class SMSPollingService:
                     await asyncio.sleep(settings.sms_polling_initial_interval_seconds)
                 else:
                     await asyncio.sleep(settings.sms_polling_later_interval_seconds)
-                
+
                 attempt += 1
-                
+
             except asyncio.CancelledError:
                 logger.info(f"Polling cancelled for verification {verification_id}")
                 break
@@ -123,7 +124,7 @@ class SMSPollingService:
                 logger.error(f"Unexpected polling error for {verification_id}: {str(e)}")
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                 attempt += 1
-        
+
         # Clean up
         if verification_id in self.polling_tasks:
             self.polling_tasks.pop(verification_id)
@@ -132,17 +133,17 @@ class SMSPollingService:
         """Start the background polling service."""
         self.is_running = True
         logger.info("SMS polling service started")
-        
+
         while self.is_running:
             try:
                 # Check for pending verifications that need polling
                 db = SessionLocal()
-                
+
                 pending_verifications = db.query(Verification).filter(
                     Verification.status == "pending",
                     Verification.provider == "textverified"
                 ).all()
-                
+
                 for verification in pending_verifications:
                     if verification.id not in self.polling_tasks:
                         # Start polling for this verification
@@ -150,12 +151,12 @@ class SMSPollingService:
                             verification.id,
                             verification.phone_number,
                         )
-                
+
                 db.close()
-                
+
                 # Check every 30 seconds for new verifications
                 await asyncio.sleep(30)
-                
+
             except Exception as e:
                 logger.error(f"Background service error: {str(e)}")
                 await asyncio.sleep(60)  # Wait longer on error
@@ -163,11 +164,11 @@ class SMSPollingService:
     async def stop_background_service(self):
         """Stop the background polling service."""
         self.is_running = False
-        
+
         # Cancel all polling tasks
         for task in self.polling_tasks.values():
             task.cancel()
-        
+
         self.polling_tasks.clear()
         logger.info("SMS polling service stopped")
 

@@ -1,16 +1,19 @@
 """White-label platform service."""
 from typing import Dict, Optional
+
 from sqlalchemy.orm import Session
-from app.models.whitelabel import WhiteLabelConfig
+
 from app.core.database import get_db
+from app.models.whitelabel import WhiteLabelConfig
+
 
 class WhiteLabelService:
     """White-label platform management."""
-    
+
     async def get_config_by_domain(self, domain: str) -> Optional[Dict]:
         """Get white-label config by domain."""
         db = next(get_db())
-        
+
         try:
             config = db.query(WhiteLabelConfig).filter(
                 WhiteLabelConfig.domain == domain,
@@ -19,10 +22,10 @@ class WhiteLabelService:
         except Exception:
             # Table doesn't exist, return None
             return None
-        
+
         if not config:
             return None
-            
+
         return {
             "company_name": config.company_name,
             "logo_url": config.logo_url,
@@ -31,11 +34,11 @@ class WhiteLabelService:
             "custom_css": config.custom_css,
             "features": config.features
         }
-    
+
     async def create_config(self, domain: str, config_data: Dict) -> Dict:
         """Create new white-label configuration."""
         db = next(get_db())
-        
+
         config = WhiteLabelConfig(
             domain=domain,
             company_name=config_data["company_name"],
@@ -48,11 +51,12 @@ class WhiteLabelService:
                 "sms": True, "whatsapp": True, "telegram": True, "analytics": True
             })
         )
-        
+
         db.add(config)
         db.commit()
-        
+
         return {"success": True, "domain": domain}
+
 
 # Global service instance
 whitelabel_service = WhiteLabelService()

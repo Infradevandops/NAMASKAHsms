@@ -124,7 +124,7 @@ async def purchase_multi_service(
                 status_code=400,
                 detail="Multi-service requires at least 2 services"
             )
-        
+
         # Multi-service would purchase a number and track which services it's for
         # Implementation would extend verification model
         return {

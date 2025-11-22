@@ -5,19 +5,15 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
 from app.core.exceptions import ExternalServiceError
-from app.core.config import settings
+from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification
-from app.schemas import (
-    SuccessResponse,
-    VerificationCreate,
-    VerificationHistoryResponse,
-    VerificationResponse,
-)
+from app.schemas import (SuccessResponse, VerificationCreate,
+                         VerificationHistoryResponse, VerificationResponse)
 from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
@@ -46,7 +42,7 @@ async def get_available_services():
         {"id": "spotify", "name": "Spotify", "category": "entertainment", "icon": "🎵"},
         {"id": "paypal", "name": "PayPal", "category": "finance", "icon": "💳"}
     ]
-    
+
     return {
         "success": True,
         "services": services,
@@ -78,11 +74,11 @@ async def create_verification(
         provider = provider_manager.get_primary_provider()
         if not provider:
             raise HTTPException(status_code=503, detail="TextVerified provider not available")
-        
+
         # Extract parameters with defaults
         country = getattr(verification_data, "country", "US")
         pricing_tier = getattr(verification_data, "pricing_tier", "standard")
-        
+
         # Get balance and check if provider has funds
         try:
             balance_data = await provider.get_balance()
@@ -102,7 +98,7 @@ async def create_verification(
                 status_code=503,
                 detail="TextVerified API authentication failed. Please check API key configuration."
             )
-        
+
         # TextVerified pricing is fixed, typically $0.50-$2.00 per verification
         base_cost = 0.50  # Default cost
         final_cost = base_cost
@@ -128,14 +124,14 @@ async def create_verification(
                 country=country,
                 service=verification_data.service_name
             )
-            
+
             phone_number = number_data["phone_number"]
             activation_id = str(number_data["activation_id"])
-            
+
             # Update cost if TextVerified returned different price
             if "cost" in number_data:
                 final_cost = number_data["cost"]
-            
+
         except HTTPException:
             raise
         except Exception as e:
@@ -145,7 +141,7 @@ async def create_verification(
             else:
                 current_user.free_verifications += 1
             db.commit()
-            
+
             logger.error(f"TextVerified purchase failed: {str(e)}")
             raise HTTPException(
                 status_code=503,
@@ -212,20 +208,20 @@ async def get_verification_status(verification_id: str, db: Session = Depends(ge
         try:
             provider = provider_manager.get_primary_provider()
             activation_id = verification.verification_code
-            
+
             # Get SMS from provider
             sms_code = await provider.get_sms(activation_id)
-            
+
             if sms_code:
                 verification.status = "completed"
                 verification.completed_at = datetime.now(timezone.utc)
-                
+
                 if hasattr(verification, 'sms_code'):
                     verification.sms_code = sms_code
-                
+
                 db.commit()
                 logger.info(f"SMS code received: {sms_code} for {verification_id}")
-                
+
         except Exception as e:
             logger.error(f"SMS provider check failed: {e}")
 
@@ -263,37 +259,37 @@ async def get_verification_messages(verification_id: str, db: Session = Depends(
 
         provider = provider_manager.get_primary_provider()
         activation_id = verification.verification_code
-        
+
         # Get SMS messages from provider
         try:
             provider = provider_manager.get_primary_provider()
             activation_id = verification.verification_code
-            
+
             # Get SMS code from provider
             sms_code = await provider.get_sms(activation_id)
-            
+
             messages = []
             extracted_code = sms_code
-            
+
             if sms_code:
                 messages.append({
                     "text": f"Your verification code is: {sms_code}",
                     "code": sms_code,
                     "date": datetime.now(timezone.utc).isoformat()
                 })
-                
+
                 # Update verification if SMS received
                 if verification.status == "pending":
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
-                    
+
                     if hasattr(verification, 'sms_text'):
                         verification.sms_text = messages[-1]["text"]
                     if hasattr(verification, 'sms_code'):
                         verification.sms_code = extracted_code
-                    
+
                     db.commit()
-            
+
             return {
                 "messages": messages,
                 "status": verification.status,
@@ -302,7 +298,7 @@ async def get_verification_messages(verification_id: str, db: Session = Depends(
                 "phone": verification.phone_number,
                 "provider": "textverified"
             }
-            
+
         except Exception as e:
             logger.error(f"SMS provider failed: {e}")
             return {
@@ -344,15 +340,15 @@ def get_verification_history(
     # Service filter
     if service:
         query = query.filter(Verification.service_name == service)
-    
+
     # Status filter
     if verification_status:
         query = query.filter(Verification.status == verification_status)
-    
+
     # Country filter
     if country:
         query = query.filter(Verification.country == country.lower())
-    
+
     # Date range filter
     if start_date:
         try:
@@ -360,7 +356,7 @@ def get_verification_history(
             query = query.filter(Verification.created_at >= start_dt)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
-    
+
     if end_date:
         try:
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -369,19 +365,19 @@ def get_verification_history(
             query = query.filter(Verification.created_at <= end_dt)
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
-    
+
     # Search by phone number or verification code
     if search:
         search_term = f"%{search}%"
         query = query.filter(
-            (Verification.phone_number.like(search_term)) |
-            (Verification.verification_code.like(search_term))
+            (Verification.phone_number.like(search_term))
+            | (Verification.verification_code.like(search_term))
         )
-    
+
     # Sorting
     sort_field = sort_by.lower()
     sort_direction = sort_order.lower()
-    
+
     if sort_field == "created_at":
         order_column = Verification.created_at
     elif sort_field == "cost":
@@ -390,7 +386,7 @@ def get_verification_history(
         order_column = Verification.status
     else:
         order_column = Verification.created_at  # Default
-    
+
     if sort_direction == "asc":
         query = query.order_by(order_column.asc())
     else:
@@ -417,17 +413,18 @@ async def export_verification_history(
     """Export verification history as CSV"""
     import csv
     import io
+
     from fastapi.responses import StreamingResponse
-    
+
     try:
         # Build query
         query = db.query(Verification).filter(Verification.user_id == user_id)
-        
+
         if service:
             query = query.filter(Verification.service_name == service)
         if verification_status:
             query = query.filter(Verification.status == verification_status)
-        
+
         # Date range filtering
         if start_date:
             try:
@@ -435,7 +432,7 @@ async def export_verification_history(
                 query = query.filter(Verification.created_at >= start_dt)
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid start_date format. Use YYYY-MM-DD")
-        
+
         if end_date:
             try:
                 end_dt = datetime.strptime(end_date, "%Y-%m-%d")
@@ -444,27 +441,27 @@ async def export_verification_history(
                 query = query.filter(Verification.created_at <= end_dt)
             except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid end_date format. Use YYYY-MM-DD")
-        
+
         # Limit to prevent abuse
         MAX_EXPORT = 10000
         total = query.count()
-        
+
         if total > MAX_EXPORT:
             raise HTTPException(
                 status_code=400,
                 detail=f"Export limited to {MAX_EXPORT} records. Please narrow your date range. Found {total} records."
             )
-        
+
         if total == 0:
             raise HTTPException(status_code=404, detail="No verifications found for export")
-        
+
         # Get all verifications
         verifications = query.order_by(Verification.created_at.desc()).all()
-        
+
         # Create CSV in memory
         output = io.StringIO()
         writer = csv.writer(output)
-        
+
         # Write header
         writer.writerow([
             'ID',
@@ -481,7 +478,7 @@ async def export_verification_history(
             'SMS Code',
             'Area Code'
         ])
-        
+
         # Write data
         for v in verifications:
             writer.writerow([
@@ -499,13 +496,13 @@ async def export_verification_history(
                 getattr(v, 'sms_code', '') or '',
                 v.requested_area_code or ''
             ])
-        
+
         # Prepare response
         output.seek(0)
-        
+
         # Generate filename
         filename = f"namaskah_verifications_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-        
+
         return StreamingResponse(
             iter([output.getvalue()]),
             media_type="text/csv",
@@ -513,7 +510,7 @@ async def export_verification_history(
                 "Content-Disposition": f"attachment; filename={filename}"
             }
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -532,7 +529,7 @@ async def get_verification_analytics(
         verifications = db.query(Verification).filter(
             Verification.user_id == user_id
         ).all()
-        
+
         if not verifications:
             return {
                 "success": True,
@@ -544,69 +541,69 @@ async def get_verification_analytics(
                 "by_country": {},
                 "recent_trend": []
             }
-        
+
         # Calculate overall success rate
         total = len(verifications)
         successful = sum(1 for v in verifications if v.status == "completed")
         failed = sum(1 for v in verifications if v.status in ["failed", "timeout", "cancelled"])
         overall_rate = (successful / total * 100) if total > 0 else 0.0
-        
+
         # Success rate by service
         by_service = {}
         for v in verifications:
             service = v.service_name
             if service not in by_service:
                 by_service[service] = {"total": 0, "successful": 0, "rate": 0.0}
-            
+
             by_service[service]["total"] += 1
             if v.status == "completed":
                 by_service[service]["successful"] += 1
-        
+
         # Calculate rates
         for service in by_service:
             total_s = by_service[service]["total"]
             successful_s = by_service[service]["successful"]
             by_service[service]["rate"] = (successful_s / total_s * 100) if total_s > 0 else 0.0
-        
+
         # Sort by total usage
         by_service = dict(sorted(by_service.items(), key=lambda x: x[1]["total"], reverse=True)[:10])
-        
+
         # Success rate by country
         by_country = {}
         for v in verifications:
             country = v.country or "unknown"
             if country not in by_country:
                 by_country[country] = {"total": 0, "successful": 0, "rate": 0.0}
-            
+
             by_country[country]["total"] += 1
             if v.status == "completed":
                 by_country[country]["successful"] += 1
-        
+
         # Calculate rates
         for country in by_country:
             total_c = by_country[country]["total"]
             successful_c = by_country[country]["successful"]
             by_country[country]["rate"] = (successful_c / total_c * 100) if total_c > 0 else 0.0
-        
+
         # Sort by total usage
         by_country = dict(sorted(by_country.items(), key=lambda x: x[1]["total"], reverse=True)[:10])
-        
+
         # Recent trend (last 30 days, grouped by day)
         from datetime import timedelta
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         recent_verifications = [v for v in verifications if v.created_at >= thirty_days_ago]
-        
+
         # Group by date
         trend = {}
         for v in recent_verifications:
             date_key = v.created_at.strftime("%Y-%m-%d")
             if date_key not in trend:
                 trend[date_key] = {"total": 0, "successful": 0}
-            
+
             trend[date_key]["total"] += 1
             if v.status == "completed":
                 trend[date_key]["successful"] += 1
-        
+
         # Convert to list and calculate rates
         recent_trend = []
         for date_key in sorted(trend.keys()):
@@ -619,7 +616,7 @@ async def get_verification_analytics(
                 "successful": successful_t,
                 "rate": round(rate, 1)
             })
-        
+
         return {
             "success": True,
             "overall_rate": round(overall_rate, 1),
@@ -631,7 +628,7 @@ async def get_verification_analytics(
             "by_country": by_country,
             "recent_trend": recent_trend
         }
-        
+
     except Exception as e:
         logger.error(f"Analytics calculation failed: {str(e)}")
         # Return empty analytics instead of crashing
@@ -659,7 +656,7 @@ async def get_sms_history(
             Verification.user_id == user_id,
             Verification.status == "completed"
         ).order_by(Verification.created_at.desc()).all()
-        
+
         history = []
         for v in verifications:
             history.append({
@@ -673,7 +670,7 @@ async def get_sms_history(
                 "country": v.country,
                 "created_at": v.created_at.isoformat() if v.created_at else None
             })
-        
+
         return {
             "success": True,
             "history": history,
@@ -702,7 +699,7 @@ async def cancel_verification(
 
     if verification.status in ["cancelled", "completed"]:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail=f"Cannot cancel {verification.status} verification"
         )
 

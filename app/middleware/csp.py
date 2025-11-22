@@ -2,10 +2,11 @@
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
+
 class CSPMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
-        
+
         # CSP policy to prevent XSS
         csp_policy = (
             "default-src 'self'; "
@@ -16,6 +17,6 @@ class CSPMiddleware(BaseHTTPMiddleware):
             "connect-src 'self' https://api.paystack.co; "
             "frame-ancestors 'none';"
         )
-        
+
         response.headers["Content-Security-Policy"] = csp_policy
         return response

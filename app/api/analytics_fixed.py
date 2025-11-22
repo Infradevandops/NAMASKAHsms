@@ -1,16 +1,17 @@
 """Enhanced Analytics API router with error handling."""
-from typing import List, Optional, Dict, Any
-from datetime import datetime, timezone, timedelta
-from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import func, desc, and_
 import statistics
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import and_, desc, func
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.verification import Verification
-from app.models.transaction import Transaction
 from app.core.logging import get_logger
+from app.models.transaction import Transaction
+from app.models.verification import Verification
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
@@ -26,26 +27,26 @@ def get_user_analytics(
     try:
         period = max(1, min(period, 365))
         start_date = datetime.now(timezone.utc) - timedelta(days=period)
-        
+
         total_verifications = db.query(Verification).filter(
             Verification.user_id == user_id,
             Verification.created_at >= start_date
         ).count()
-        
+
         completed_verifications = db.query(Verification).filter(
             Verification.user_id == user_id,
             Verification.created_at >= start_date,
             Verification.status == "completed"
         ).count()
-        
+
         success_rate = (completed_verifications / total_verifications * 100) if total_verifications > 0 else 0
-        
+
         total_spent = db.query(func.sum(Transaction.amount)).filter(
             Transaction.user_id == user_id,
             Transaction.type == "debit",
             Transaction.created_at >= start_date
         ).scalar() or 0
-        
+
         return {
             "total_verifications": total_verifications,
             "success_rate": round(success_rate, 1),
@@ -58,7 +59,7 @@ def get_user_analytics(
             "efficiency_score": round(success_rate, 1),
             "recommendations": ["Analytics system operational"]
         }
-        
+
     except Exception as e:
         logger.error(f"Analytics error for user {user_id}: {str(e)}")
         return {

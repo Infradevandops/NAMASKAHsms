@@ -5,8 +5,9 @@ Revises: 012_add_affiliate_system
 Create Date: 2024-01-20 10:00:00.000000
 
 """
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 # revision identifiers
 revision = '013_add_5sim_fields'
@@ -19,25 +20,25 @@ def upgrade():
     """Add 5SIM specific fields to verification table."""
     # Add provider field (5sim, textverified, etc.)
     op.add_column('verifications', sa.Column('provider', sa.String(50), default='5sim'))
-    
+
     # Add operator field (any, mts, beeline, etc.)
     op.add_column('verifications', sa.Column('operator', sa.String(50), nullable=True))
-    
+
     # Add pricing tier (standard, premium, bulk)
     op.add_column('verifications', sa.Column('pricing_tier', sa.String(20), default='standard'))
-    
+
     # Add 5SIM activation ID (integer from 5SIM API)
     op.add_column('verifications', sa.Column('activation_id', sa.BigInteger(), nullable=True))
-    
+
     # Add SMS text storage
     op.add_column('verifications', sa.Column('sms_text', sa.Text(), nullable=True))
-    
+
     # Add extracted SMS code
     op.add_column('verifications', sa.Column('sms_code', sa.String(20), nullable=True))
-    
+
     # Add SMS received timestamp
     op.add_column('verifications', sa.Column('sms_received_at', sa.DateTime(), nullable=True))
-    
+
     # Add indexes for performance
     op.create_index('idx_verifications_activation_id', 'verifications', ['activation_id'])
     op.create_index('idx_verifications_provider', 'verifications', ['provider'])
@@ -50,7 +51,7 @@ def downgrade():
     op.drop_index('idx_verifications_status', 'verifications')
     op.drop_index('idx_verifications_provider', 'verifications')
     op.drop_index('idx_verifications_activation_id', 'verifications')
-    
+
     # Drop columns
     op.drop_column('verifications', 'sms_received_at')
     op.drop_column('verifications', 'sms_code')

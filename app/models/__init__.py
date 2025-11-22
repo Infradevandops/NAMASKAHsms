@@ -1,41 +1,21 @@
 """Database models package."""
+from .affiliate import (AffiliateApplication, AffiliateCommission,
+                        AffiliateProgram)
 from .base import Base, BaseModel
-from .system import (
-    ActivityLog,
-    BannedNumber,
-    InAppNotification,
-    ServiceStatus,
-    SupportTicket,
-)
+from .commission import CommissionTier, PayoutRequest, RevenueShare
+from .enterprise import EnterpriseAccount, EnterpriseTier
+from .personal_number import PersonalNumber
+from .reseller import (BulkOperation, CreditAllocation, ResellerAccount,
+                       SubAccount, SubAccountTransaction)
+from .system import (ActivityLog, BannedNumber, InAppNotification,
+                     ServiceStatus, SupportTicket)
 from .transaction import PaymentLog, Transaction
-from .user import (
-    APIKey,
-    NotificationPreferences,
-    NotificationSettings,
-    Referral,
-    Subscription,
-    User,
-    Webhook,
-)
+from .user import (APIKey, NotificationPreferences, NotificationSettings,
+                   Referral, Subscription, User, Webhook)
 from .verification import NumberRental, Verification, VerificationReceipt
 from .whitelabel import WhiteLabelConfig
-from .whitelabel_enhanced import (
-    PartnerFeature,
-    WhiteLabelAsset,
-    WhiteLabelDomain,
-    WhiteLabelTheme,
-)
-from .enterprise import EnterpriseAccount, EnterpriseTier
-from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
-from .commission import CommissionTier, PayoutRequest, RevenueShare
-from .reseller import (
-    BulkOperation,
-    CreditAllocation,
-    ResellerAccount,
-    SubAccount,
-    SubAccountTransaction,
-)
-from .personal_number import PersonalNumber
+from .whitelabel_enhanced import (PartnerFeature, WhiteLabelAsset,
+                                  WhiteLabelDomain, WhiteLabelTheme)
 
 __all__ = [
     # Base

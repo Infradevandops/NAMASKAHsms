@@ -1,8 +1,9 @@
 """Countries API - Get supported countries for SMS verification"""
 from fastapi import APIRouter, HTTPException
+
+from app.core.cache import cache
 from app.core.logging import get_logger
 from app.services.textverified_service import TextVerifiedService
-from app.core.cache import cache
 
 logger = get_logger(__name__)
 
@@ -15,7 +16,7 @@ async def get_all_countries():
     try:
         # Return fallback list (TextVerified is available in 180+ countries)
         return get_fallback_countries()
-        
+
     except Exception as e:
         logger.error(f"Failed to get countries: {str(e)}")
         # Return fallback list
@@ -82,7 +83,7 @@ async def get_country_services(country: str):
             },
             {
                 "id": "whatsapp",
-                "name": "WhatsApp", 
+                "name": "WhatsApp",
                 "cost": 2.50,
                 "available": 50
             },
@@ -93,14 +94,14 @@ async def get_country_services(country: str):
                 "available": 75
             }
         ]
-        
+
         return {
             "success": True,
             "country": country,
             "services": services,
             "total": len(services)
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get services for {country}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to load services: {str(e)}")

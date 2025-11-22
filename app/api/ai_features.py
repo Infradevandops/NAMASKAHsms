@@ -1,12 +1,14 @@
 """AI features API endpoints."""
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.core.dependencies import get_db, get_current_user
-from app.services.smart_routing import smart_router
-from app.services.fraud_detection import fraud_detector
+
+from app.core.dependencies import get_current_user, get_db
 from app.models.user import User
+from app.services.fraud_detection import fraud_detector
+from app.services.smart_routing import smart_router
 
 router = APIRouter(prefix="/ai", tags=["ai"])
+
 
 @router.get("/routing/recommend")
 async def get_routing_recommendation(
@@ -24,6 +26,7 @@ async def get_routing_recommendation(
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @router.post("/fraud/analyze")
 async def analyze_fraud_risk(

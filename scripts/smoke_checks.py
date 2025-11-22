@@ -54,6 +54,7 @@ except Exception as e:
 # Instantiate RateLimitMiddleware
 try:
     from fastapi import FastAPI
+
     from app.middleware.rate_limiting import RateLimitMiddleware
     app = FastAPI()
     rm = RateLimitMiddleware(app)

@@ -15,13 +15,13 @@ def ensure_admin_user():
     try:
         admin_email = "admin@namaskah.app"
         admin_password = "NamaskahAdmin2024!"
-        
+
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
             logger.info("Admin user already exists")
             return
-        
+
         # Create admin user
         admin_user = User(
             email=admin_email,
@@ -31,12 +31,12 @@ def ensure_admin_user():
             email_verified=True,
             free_verifications=100.0
         )
-        
+
         db.add(admin_user)
         db.commit()
-        
+
         logger.info(f"Admin user created: {admin_email}")
-        
+
     except Exception as e:
         logger.error(f"Failed to create admin user: {e}")
         db.rollback()
@@ -47,7 +47,7 @@ def ensure_admin_user():
 def run_startup_initialization():
     """Run all startup initialization tasks."""
     logger.info("Running startup initialization")
-    
+
     try:
         ensure_admin_user()
         logger.info("Startup initialization completed")

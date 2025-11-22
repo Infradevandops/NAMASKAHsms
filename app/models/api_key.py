@@ -1,10 +1,12 @@
 """API Key model for programmatic access."""
-from sqlalchemy import Column, String, DateTime, Boolean
+from sqlalchemy import Boolean, Column, DateTime, String
+
 from app.models.base import BaseModel
+
 
 class APIKey(BaseModel):
     __tablename__ = "api_keys"
-    
+
     user_id = Column(String(36), nullable=False, index=True)
     name = Column(String(100), nullable=False)
     key_hash = Column(String(255), nullable=False, unique=True)

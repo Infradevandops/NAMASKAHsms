@@ -1,25 +1,27 @@
 """Disaster recovery and backup management service."""
 import asyncio
-from typing import Dict, List
 from datetime import datetime, timedelta
+from typing import Dict, List
+
 from app.core.config import settings
+
 
 class DisasterRecoveryService:
     """Disaster recovery and business continuity management."""
-    
+
     def __init__(self):
         self.backup_locations = {
             "primary": "s3://namaskah-backups-us-east",
-            "secondary": "s3://namaskah-backups-eu-west", 
+            "secondary": "s3://namaskah-backups-eu-west",
             "tertiary": "gcs://namaskah-backups-asia"
         }
         self.rto = 300  # Recovery Time Objective: 5 minutes
         self.rpo = 60   # Recovery Point Objective: 1 minute
-    
+
     async def create_backup(self, backup_type: str = "full") -> Dict:
         """Create system backup."""
         timestamp = datetime.utcnow().isoformat()
-        
+
         backup_manifest = {
             "backup_id": f"backup_{timestamp}",
             "type": backup_type,
@@ -34,9 +36,9 @@ class DisasterRecoveryService:
             "size_mb": 1250.5,  # Simulated
             "status": "completed"
         }
-        
+
         return backup_manifest
-    
+
     async def test_recovery(self, backup_id: str) -> Dict:
         """Test disaster recovery procedure."""
         recovery_test = {
@@ -55,9 +57,9 @@ class DisasterRecoveryService:
             "rpo_met": True,
             "status": "success"
         }
-        
+
         return recovery_test
-    
+
     async def get_recovery_status(self) -> Dict:
         """Get current disaster recovery status."""
         return {
@@ -76,7 +78,7 @@ class DisasterRecoveryService:
                 "documentation": True
             }
         }
-    
+
     async def _backup_database(self) -> Dict:
         """Backup database with point-in-time recovery."""
         return {
@@ -86,7 +88,7 @@ class DisasterRecoveryService:
             "encryption": "AES-256",
             "point_in_time": True
         }
-    
+
     async def _backup_redis(self) -> Dict:
         """Backup Redis data."""
         return {
@@ -94,7 +96,7 @@ class DisasterRecoveryService:
             "size_mb": 125.8,
             "compression": "lz4"
         }
-    
+
     async def _backup_static_files(self) -> Dict:
         """Backup static files and uploads."""
         return {
@@ -102,7 +104,7 @@ class DisasterRecoveryService:
             "size_mb": 245.3,
             "files_count": 1250
         }
-    
+
     async def _backup_configuration(self) -> Dict:
         """Backup system configuration."""
         return {
@@ -110,6 +112,7 @@ class DisasterRecoveryService:
             "size_mb": 29.2,
             "includes": ["env_vars", "secrets", "certificates"]
         }
+
 
 # Global disaster recovery service
 disaster_recovery = DisasterRecoveryService()

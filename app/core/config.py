@@ -1,6 +1,6 @@
 """Core configuration management using Pydantic Settings."""
-from typing import Optional
 from functools import lru_cache
+from typing import Optional
 
 try:
     from pydantic_settings import BaseSettings
@@ -47,18 +47,18 @@ class Settings(BaseSettings):
     # SMS Providers
     # SMS-Activate API
     sms_activate_api_key: Optional[str] = None
-    
+
     # GetSMS API
     getsms_api_key: Optional[str] = None
-    
+
     # WhatsApp Business API
     whatsapp_access_token: Optional[str] = None
     whatsapp_phone_number_id: Optional[str] = None
     whatsapp_verify_token: Optional[str] = None
-    
+
     # Telegram Bot API
     telegram_bot_token: Optional[str] = None
-    
+
     # TextVerified API
     textverified_api_key: Optional[str] = None
 

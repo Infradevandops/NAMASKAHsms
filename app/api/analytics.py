@@ -11,16 +11,9 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.transaction import Transaction
 from app.models.verification import Verification
-from app.schemas import (
-    AnalyticsResponse,
-    BusinessMetrics,
-    CompetitiveAnalysis,
-    CountryAnalytics,
-    DailyUsage,
-    PredictiveInsight,
-    ServiceUsage,
-    TrendData,
-)
+from app.schemas import (AnalyticsResponse, BusinessMetrics,
+                         CompetitiveAnalysis, CountryAnalytics, DailyUsage,
+                         PredictiveInsight, ServiceUsage, TrendData)
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
