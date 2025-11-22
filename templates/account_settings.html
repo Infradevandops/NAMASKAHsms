@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Settings - Namaskah</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f8fafc;
+            --border: #475569;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .back-btn:hover { background: rgba(255,255,255,0.2); }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--secondary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: #334155;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 16px;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .setting-item {
+            background: #334155;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .setting-info h3 {
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+        .setting-info p {
+            opacity: 0.7;
+            font-size: 14px;
+        }
+        .toggle {
+            position: relative;
+            width: 50px;
+            height: 24px;
+            background: #475569;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .toggle.active { background: var(--secondary); }
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+        .toggle.active::after { left: 28px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: #334155;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .stat-label { opacity: 0.7; font-size: 12px; margin-top: 4px; }
+        .danger-zone {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 24px;
+        }
+        .success-message {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--secondary);
+            color: var(--secondary);
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>⚙️ Account Settings</h1>
+                <p>Manage your account preferences and security</p>
+            </div>
+            <button class="back-btn" onclick="goBack()">← Back to Dashboard</button>
+        </div>
+
+        <div id="success-message" class="success-message">
+            Settings updated successfully!
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>👤 Profile Information</h2>
+                <form id="profileForm">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" readonly style="opacity: 0.7;">
+                    </div>
+                    <div class="form-group">
+                        <label for="displayName">Display Name</label>
+                        <input type="text" id="displayName" placeholder="Enter your display name">
+                    </div>
+                    <div class="form-group">
+                        <label for="timezone">Timezone</label>
+                        <select id="timezone">
+                            <option value="UTC">UTC (Coordinated Universal Time)</option>
+                            <option value="America/New_York">Eastern Time (ET)</option>
+                            <option value="America/Chicago">Central Time (CT)</option>
+                            <option value="America/Denver">Mountain Time (MT)</option>
+                            <option value="America/Los_Angeles">Pacific Time (PT)</option>
+                            <option value="Europe/London">London (GMT)</option>
+                            <option value="Europe/Paris">Paris (CET)</option>
+                            <option value="Asia/Tokyo">Tokyo (JST)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Update Profile</button>
+                </form>
+            </div>
+
+            <div class="card">
+                <h2>🔒 Security Settings</h2>
+                <form id="securityForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" class="btn btn-danger">Change Password</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>📊 Account Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="totalVerifications">0</div>
+                    <div class="stat-label">Total Verifications</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="totalSpent">$0.00</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="activeRentals">0</div>
+                    <div class="stat-label">Active Rentals</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="accountAge">0 days</div>
+                    <div class="stat-label">Account Age</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🔔 Notification Preferences</h2>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Email Notifications</h3>
+                        <p>Receive email updates about your verifications</p>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'emailNotifications')"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>SMS Alerts</h3>
+                        <p>Get SMS alerts for important account activities</p>
+                    </div>
+                    <div class="toggle" onclick="toggleSetting(this, 'smsAlerts')"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Marketing Emails</h3>
+                        <p>Receive promotional offers and updates</p>
+                    </div>
+                    <div class="toggle" onclick="toggleSetting(this, 'marketingEmails')"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Security Alerts</h3>
+                        <p>Get notified about login attempts and security events</p>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'securityAlerts')"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>🎨 Interface Preferences</h2>
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Dark Mode</h3>
+                        <p>Use dark theme for better viewing experience</p>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'darkMode')"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Compact View</h3>
+                        <p>Show more information in less space</p>
+                    </div>
+                    <div class="toggle" onclick="toggleSetting(this, 'compactView')"></div>
+                </div>
+                <div class="setting-item">
+                    <div class="setting-info">
+                        <h3>Auto-refresh</h3>
+                        <p>Automatically refresh verification status</p>
+                    </div>
+                    <div class="toggle active" onclick="toggleSetting(this, 'autoRefresh')"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="danger-zone">
+            <h2 style="color: var(--danger); margin-bottom: 16px;">⚠️ Danger Zone</h2>
+            <p style="margin-bottom: 16px; opacity: 0.8;">These actions are irreversible. Please be careful.</p>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button class="btn btn-danger" onclick="exportData()">📥 Export All Data</button>
+                <button class="btn btn-danger" onclick="deleteAccount()">🗑️ Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let userSettings = {
+            emailNotifications: true,
+            smsAlerts: false,
+            marketingEmails: false,
+            securityAlerts: true,
+            darkMode: true,
+            compactView: false,
+            autoRefresh: true
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+            loadAccountStats();
+        });
+
+        async function loadUserData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const user = await response.json();
+                
+                document.getElementById('email').value = user.email || '';
+                document.getElementById('displayName').value = user.display_name || '';
+                
+                // Load saved settings
+                const savedSettings = localStorage.getItem('userSettings');
+                if (savedSettings) {
+                    userSettings = { ...userSettings, ...JSON.parse(savedSettings) };
+                }
+                
+                updateToggleStates();
+            } catch (error) {
+                console.error('Failed to load user data:', error);
+            }
+        }
+
+        async function loadAccountStats() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/analytics/summary', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const stats = await response.json();
+                
+                document.getElementById('totalVerifications').textContent = stats.total_verifications || 0;
+                document.getElementById('totalSpent').textContent = `$${(stats.total_verifications * 0.25).toFixed(2)}`;
+                document.getElementById('activeRentals').textContent = stats.active_rentals || 0;
+                
+                // Calculate account age
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                if (user.created_at) {
+                    const created = new Date(user.created_at);
+                    const now = new Date();
+                    const days = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+                    document.getElementById('accountAge').textContent = `${days} days`;
+                }
+            } catch (error) {
+                console.error('Failed to load account stats:', error);
+            }
+        }
+
+        function updateToggleStates() {
+            Object.keys(userSettings).forEach(setting => {
+                const toggle = document.querySelector(`[onclick*="${setting}"]`);
+                if (toggle) {
+                    if (userSettings[setting]) {
+                        toggle.classList.add('active');
+                    } else {
+                        toggle.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        function toggleSetting(element, settingName) {
+            element.classList.toggle('active');
+            userSettings[settingName] = element.classList.contains('active');
+            
+            // Save to localStorage
+            localStorage.setItem('userSettings', JSON.stringify(userSettings));
+            
+            showSuccessMessage();
+        }
+
+        document.getElementById('profileForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const displayName = document.getElementById('displayName').value;
+            const timezone = document.getElementById('timezone').value;
+            
+            try {
+                // In a real app, this would update the profile via API
+                showSuccessMessage();
+            } catch (error) {
+                showAlert('Failed to update profile', 'error');
+            }
+        };
+
+        document.getElementById('securityForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                showAlert('Please fill in all password fields', 'error');
+                return;
+            }
+            
+            if (newPassword !== confirmPassword) {
+                showAlert('New passwords do not match', 'error');
+                return;
+            }
+            
+            if (newPassword.length < 8) {
+                showAlert('Password must be at least 8 characters long', 'error');
+                return;
+            }
+            
+            try {
+                // In a real app, this would change the password via API
+                showSuccessMessage();
+                document.getElementById('securityForm').reset();
+            } catch (error) {
+                showAlert('Failed to change password', 'error');
+            }
+        };
+
+        function exportData() {
+            window.location.href = '/privacy-settings';
+        }
+
+        function deleteAccount() {
+            window.location.href = '/privacy-settings';
+        }
+
+        function goBack() {
+            window.location.href = '/dashboard-complete';
+        }
+
+        function showSuccessMessage() {
+            const message = document.getElementById('success-message');
+            message.style.display = 'block';
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        function showAlert(message, type = 'error') {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: ${type === 'error' ? 'var(--danger)' : 'var(--secondary)'};
+                color: white; padding: 12px 20px; border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

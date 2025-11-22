@@ -501,7 +501,7 @@
                 <div class="cta-content">
                     <h2 class="cta-title">Still have questions?</h2>
                     <p class="cta-subtitle">We're here to help! Get instant support from our team.</p>
-                    <button class="cta-button-primary" onclick="window.location.href='/app'">
+                    <button class="cta-button-primary" onclick="window.location.href='/auth/login'">
                         Get Started Now
                     </button>
                 </div>
@@ -737,7 +737,7 @@
                     <li style="padding: 8px 0; color: var(--text-primary);">✓ Multiple payments</li>
                     <li style="padding: 8px 0; color: var(--text-primary);">✓ 24/7 availability</li>
                 </ul>
-                <button onclick="window.location.href='/app'" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Get Started</button>
+                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Get Started</button>
             </div>
 
             <!-- Developer Plan -->
@@ -758,7 +758,7 @@
                     <li style="padding: 8px 0;">✓ Priority support</li>
                     <li style="padding: 8px 0;">✓ Min. N25 total funded</li>
                 </ul>
-                <button onclick="window.location.href='/app'" style="width: 100%; padding: 12px; background: white; color: var(--accent); border: none; border-radius: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Start Building</button>
+                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: white; color: var(--accent); border: none; border-radius: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Start Building</button>
             </div>
 
             <!-- Enterprise Plan -->
@@ -781,7 +781,7 @@
                     <li style="padding: 8px 0; color: var(--text-primary);">✓ Custom integrations</li>
                     <li style="padding: 8px 0; color: var(--text-primary);">✓ Min. N100 total funded</li>
                 </ul>
-                <button onclick="window.location.href='/app'" style="width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Go Enterprise</button>
+                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Go Enterprise</button>
             </div>
         </div>
         
@@ -1241,16 +1241,16 @@
             try {
                 switch (action) {
                     case 'login':
-                        window.location.href = '/app';
+                        window.location.href = '/auth/login';
                         break;
                     case 'register':
-                        window.location.href = '/app#register';
+                        window.location.href = '/auth/login';
                         break;
                     case 'affiliates':
-                        window.location.href = '/app#affiliates';
+                        window.location.href = '/auth/login';
                         break;
                     default:
-                        window.location.href = '/app';
+                        window.location.href = '/auth/login';
                 }
             } catch (error) {
                 console.error('Navigation error:', error);

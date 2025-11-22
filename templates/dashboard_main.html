@@ -124,6 +124,69 @@
             margin-left: 280px;
             flex: 1;
             padding: 24px;
+            display: flex;
+            gap: 24px;
+        }
+        .content-area {
+            flex: 1;
+        }
+        .services-sidebar {
+            width: 300px;
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            height: fit-content;
+            border: 1px solid var(--border);
+        }
+        .services-sidebar h3 {
+            margin-bottom: 16px;
+            color: var(--primary);
+            font-size: 16px;
+        }
+        .service-item {
+            background: #334155;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .service-item:hover {
+            border-left-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+        .service-item.active {
+            border-left-color: var(--secondary);
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .service-name {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 13px;
+        }
+        .service-price {
+            font-size: 11px;
+            opacity: 0.7;
+        }
+        .service-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .status-available {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--secondary);
+        }
+        .status-limited {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--warning);
+        }
+        .status-unavailable {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
         }
         .top-bar {
             display: flex;
@@ -310,6 +373,11 @@
             .main-content {
                 margin-left: 0;
                 padding: 20px;
+                flex-direction: column;
+            }
+            .services-sidebar {
+                width: 100%;
+                order: -1;
             }
             .header {
                 padding: 20px;
@@ -386,12 +454,12 @@
             <li><button onclick="showSection('verification')">💬 SMS Verification</button></li>
             <li><button onclick="showSection('voice')">☎️ Voice Calls</button></li>
             <li><button onclick="showSection('rentals')">📱 Phone Rentals</button></li>
-            <li><button onclick="showSection('reservations')">🔖 Reservations</button></li>
-            <li><button onclick="showSection('wake')">⏰ Wake Requests</button></li>
+            <li><button onclick="window.location.href='/sms-inbox'">📨 SMS Inbox</button></li>
             <li><button onclick="showSection('forwarding')">↔️ SMS Forwarding</button></li>
             <li><button onclick="showSection('account')">⚙️ Account</button></li>
             <li><button onclick="showSection('billing')">💳 Billing</button></li>
             <li><button onclick="showSection('analytics')">📊 Analytics</button></li>
+            <li><button onclick="window.location.href='/admin-dashboard'">🛡️ Admin</button></li>
         </ul>
         <div class="sidebar-footer">
             <div class="user-info">👤 User Account</div>
@@ -408,9 +476,9 @@
                     <span>💰</span>
                     <span id="balance-display">$0.00</span>
                 </div>
-                <button class="action-btn" onclick="alert('Add Credits feature coming soon')">➕ Add Credits</button>
-                <button class="action-btn" onclick="alert('Notifications feature coming soon')">🔔 Notifications</button>
-                <button class="action-btn" onclick="alert('Profile settings coming soon')">👤 Profile</button>
+                <button class="action-btn" onclick="addCredits()">➕ Add Credits</button>
+                <button class="action-btn" onclick="showNotifications()">🔔 Notifications</button>
+                <button class="action-btn" onclick="showProfile()">👤 Profile</button>
             </div>
         </div>
 
@@ -444,33 +512,47 @@
             </div>
             <h2>Available Services</h2>
             <div class="services-grid">
-                <div class="service-card" onclick="showSection('verification')">
+                <div class="service-card" onclick="window.location.href='/verify'">
                     <div class="service-badge">Active</div>
                     <h3>SMS Verification 💬</h3>
                     <p>Receive SMS codes for account verification and 2FA</p>
                     <div class="service-stats">Used 0 times this month</div>
                     <button class="btn">Get Started</button>
                 </div>
-                <div class="service-card" onclick="showSection('voice')">
-                    <div class="service-badge coming">Coming Soon</div>
-                    <h3>Voice Calls ☎️</h3>
-                    <p>Receive voice calls with verification codes</p>
-                    <div class="service-stats">Not available yet</div>
-                    <button class="btn" style="opacity: 0.5; cursor: not-allowed;">Get Started</button>
-                </div>
-                <div class="service-card" onclick="showSection('rentals')">
+                <div class="service-card" onclick="window.location.href='/rentals'">
                     <div class="service-badge">Active</div>
                     <h3>Phone Rentals 📱</h3>
                     <p>Rent phone numbers for extended periods</p>
                     <div class="service-stats">0 active rentals</div>
                     <button class="btn">Get Started</button>
                 </div>
-                <div class="service-card" onclick="showSection('reservations')">
+                <div class="service-card" onclick="window.location.href='/sms-inbox'">
+                    <div class="service-badge">Active</div>
+                    <h3>SMS Inbox 📨</h3>
+                    <p>Manage and view received SMS messages</p>
+                    <div class="service-stats">0 unread messages</div>
+                    <button class="btn">Open Inbox</button>
+                </div>
+                <div class="service-card" onclick="window.location.href='/billing'">
+                    <div class="service-badge">Active</div>
+                    <h3>Billing & Payments 💳</h3>
+                    <p>Add credits and manage payment history</p>
+                    <div class="service-stats">Current balance: $0.00</div>
+                    <button class="btn">Manage Billing</button>
+                </div>
+                <div class="service-card" onclick="showSection('voice')">
                     <div class="service-badge coming">Coming Soon</div>
-                    <h3>Reservations 🔖</h3>
-                    <p>Reserve numbers in advance for future use</p>
+                    <h3>Voice Calls ☎️</h3>
+                    <p>Receive voice calls with verification codes</p>
                     <div class="service-stats">Not available yet</div>
-                    <button class="btn" style="opacity: 0.5; cursor: not-allowed;">Get Started</button>
+                    <button class="btn" style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
+                </div>
+                <div class="service-card" onclick="showSection('forwarding')">
+                    <div class="service-badge coming">Coming Soon</div>
+                    <h3>SMS Forwarding ↔️</h3>
+                    <p>Forward SMS messages to your personal number</p>
+                    <div class="service-stats">Not available yet</div>
+                    <button class="btn" style="opacity: 0.5; cursor: not-allowed;">Coming Soon</button>
                 </div>
             </div>
 
@@ -522,7 +604,7 @@
             </div>
             <div class="stat-box" style="max-width: 400px; margin-bottom: 20px;">
                 <p style="margin-bottom: 16px;">Rent phone numbers for extended periods</p>
-                <a href="/rentals" class="btn">View Rentals</a>
+                <a href="/rentals" class="btn">Manage Rentals</a>
             </div>
         </div>
 
@@ -573,11 +655,12 @@
         <!-- Billing Section -->
         <div id="billing" class="content-section">
             <div class="header">
-                <h1>💳 Billing History</h1>
-                <p>View all transactions and billing cycles</p>
+                <h1>💳 Billing & Payments</h1>
+                <p>Manage your account balance and payment history</p>
             </div>
-            <div class="stat-box" style="max-width: 400px;">
-                <p style="margin-bottom: 16px;">Coming soon - Contact support for early access</p>
+            <div class="stat-box" style="max-width: 400px; margin-bottom: 20px;">
+                <p style="margin-bottom: 16px;">Add credits, view transactions, and manage payments</p>
+                <a href="/billing" class="btn">Open Billing Dashboard</a>
             </div>
         </div>
 
@@ -592,10 +675,106 @@
                 <a href="/api/analytics/dashboard" class="btn">View Analytics</a>
             </div>
         </div>
+        </div>
+        
+        <!-- Services Sidebar -->
+        <div class="services-sidebar">
+            <h3>🛍️ Available Services</h3>
+            <div id="services-list">
+                <div class="service-item" onclick="selectService('telegram')">
+                    <div class="service-name">📱 Telegram</div>
+                    <div class="service-price">$0.20 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('whatsapp')">
+                    <div class="service-name">💬 WhatsApp</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('discord')">
+                    <div class="service-name">🎮 Discord</div>
+                    <div class="service-price">$0.15 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('instagram')">
+                    <div class="service-name">📸 Instagram</div>
+                    <div class="service-price">$0.30 per SMS</div>
+                    <div class="service-status status-limited">Limited</div>
+                </div>
+                <div class="service-item" onclick="selectService('twitter')">
+                    <div class="service-name">🐦 Twitter/X</div>
+                    <div class="service-price">$0.35 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('facebook')">
+                    <div class="service-name">📘 Facebook</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('google')">
+                    <div class="service-name">🔍 Google</div>
+                    <div class="service-price">$0.20 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('microsoft')">
+                    <div class="service-name">🪟 Microsoft</div>
+                    <div class="service-price">$0.22 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('tiktok')">
+                    <div class="service-name">🎵 TikTok</div>
+                    <div class="service-price">$0.40 per SMS</div>
+                    <div class="service-status status-limited">Limited</div>
+                </div>
+                <div class="service-item" onclick="selectService('snapchat')">
+                    <div class="service-name">👻 Snapchat</div>
+                    <div class="service-price">$0.35 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('linkedin')">
+                    <div class="service-name">💼 LinkedIn</div>
+                    <div class="service-price">$0.30 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('uber')">
+                    <div class="service-name">🚗 Uber</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+                <button class="btn" onclick="window.location.href='/verify'" style="width: 100%; padding: 12px; font-size: 14px;">
+                    🚀 Start Verification
+                </button>
+            </div>
+            
+            <div style="margin-top: 12px;">
+                <button class="btn" onclick="loadMoreServices()" style="width: 100%; padding: 8px; font-size: 12px; background: var(--secondary);">
+                    📋 View All 1,800+ Services
+                </button>
+            </div>
+        </div>
     </div>
 
+    <script src="/static/js/theme-toggle.js"></script>
     <script>
+        // Check authentication
+        function checkAuth() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/auth/login';
+                return false;
+            }
+            return true;
+        }
+        
         function showSection(sectionId) {
+            // Require auth for protected sections
+            if (['verification', 'rentals', 'account', 'billing', 'analytics'].includes(sectionId)) {
+                if (!checkAuth()) return;
+            }
+            
             document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
             document.getElementById(sectionId).classList.add('active');
             
@@ -617,30 +796,205 @@
             document.getElementById('overlay').classList.remove('show');
         }
 
-        function logout() {
+        async function logout() {
+            try {
+                const token = localStorage.getItem('token');
+                await fetch('/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (e) {
+                console.error('Logout error:', e);
+            }
             localStorage.removeItem('token');
+            localStorage.removeItem('user');
             window.location.href = '/auth/login';
         }
 
         async function loadStats() {
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch('/api/analytics/summary', {
+                if (!token) {
+                    // Redirect to login
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                // Load analytics
+                const analyticsResponse = await fetch('/api/analytics/summary', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const data = await response.json();
+                const analyticsData = await analyticsResponse.json();
                 
-                const balance = '$' + (data.total_spent || 0).toFixed(2);
-                document.getElementById('total-verifications').textContent = data.total_verifications || 0;
-                document.getElementById('success-rate').textContent = (data.success_rate || 0) + '%';
+                // Load balance
+                const balanceResponse = await fetch('/api/user/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const balanceData = await balanceResponse.json();
+                
+                const balance = '$' + (balanceData.credits || 0).toFixed(2);
+                document.getElementById('total-verifications').textContent = analyticsData.total_verifications || 0;
+                document.getElementById('success-rate').textContent = ((analyticsData.successful_verifications / Math.max(analyticsData.total_verifications, 1)) * 100).toFixed(0) + '%';
                 document.getElementById('account-balance').textContent = balance;
                 document.getElementById('balance-display').textContent = balance;
+                document.getElementById('active-rentals').textContent = analyticsData.active_rentals || 0;
             } catch (e) {
                 console.error('Failed to load stats:', e);
+                // Set default values on error
+                document.getElementById('balance-display').textContent = '$0.00';
+                document.getElementById('account-balance').textContent = '$0.00';
             }
         }
 
         loadStats();
+        loadServices();
+
+        function selectService(serviceName) {
+            document.querySelectorAll('.service-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            event.target.closest('.service-item').classList.add('active');
+            localStorage.setItem('selectedService', serviceName);
+            
+            showServiceAlert(`${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} selected! Click "Start Verification" to continue.`);
+        }
+
+        async function loadServices() {
+            try {
+                const response = await fetch('/api/verify/services');
+                const data = await response.json();
+                
+                if (data.success && data.services) {
+                    updateServiceAvailability(data.services);
+                }
+            } catch (error) {
+                console.error('Failed to load services:', error);
+            }
+        }
+
+        function updateServiceAvailability(services) {
+            services.forEach(service => {
+                const serviceElement = document.querySelector(`[onclick="selectService('${service.id}')"]`);
+                if (serviceElement) {
+                    const statusElement = serviceElement.querySelector('.service-status');
+                    const priceElement = serviceElement.querySelector('.service-price');
+                    
+                    if (service.available > 50) {
+                        statusElement.className = 'service-status status-available';
+                        statusElement.textContent = 'Available';
+                    } else if (service.available > 0) {
+                        statusElement.className = 'service-status status-limited';
+                        statusElement.textContent = 'Limited';
+                    } else {
+                        statusElement.className = 'service-status status-unavailable';
+                        statusElement.textContent = 'Unavailable';
+                    }
+                    
+                    if (service.cost) {
+                        priceElement.textContent = `$${service.cost.toFixed(2)} per SMS`;
+                    }
+                }
+            });
+        }
+
+        function loadMoreServices() {
+            window.location.href = '/verify';
+        }
+
+        function showServiceAlert(message) {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: var(--secondary); color: white; padding: 12px 20px;
+                border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        function addCredits() {
+            window.location.href = '/billing';
+        }
+
+        function showNotifications() {
+            // Create notification popup
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed; top: 80px; right: 20px; width: 300px; max-height: 400px;
+                background: #1e293b; border: 1px solid #475569; border-radius: 12px;
+                padding: 20px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+                overflow-y: auto;
+            `;
+            
+            popup.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #f8fafc;">🔔 Notifications</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;">×</button>
+                </div>
+                <div style="border-bottom: 1px solid #475569; padding-bottom: 10px; margin-bottom: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 5px;">✅ Welcome to Namaskah SMS!</div>
+                    <div style="font-size: 12px; color: #94a3b8;">Just now</div>
+                </div>
+                <div style="border-bottom: 1px solid #475569; padding-bottom: 10px; margin-bottom: 10px;">
+                    <div style="font-size: 14px; margin-bottom: 5px;">💰 Account credited with welcome bonus</div>
+                    <div style="font-size: 12px; color: #94a3b8;">2 minutes ago</div>
+                </div>
+                <div style="text-align: center; padding: 20px; color: #94a3b8; font-size: 14px;">
+                    You're all caught up! 🎉
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 10000);
+        }
+
+        function showProfile() {
+            // Create profile popup
+            const popup = document.createElement('div');
+            popup.style.cssText = `
+                position: fixed; top: 80px; right: 20px; width: 280px;
+                background: #1e293b; border: 1px solid #475569; border-radius: 12px;
+                padding: 20px; z-index: 1000; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            `;
+            
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            
+            popup.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0; color: #f8fafc;">👤 Profile</h3>
+                    <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 18px;">×</button>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 5px;">Email</div>
+                    <div style="font-size: 16px; color: #f8fafc;">${user.email || 'Not available'}</div>
+                </div>
+                <div style="margin-bottom: 20px;">
+                    <div style="font-size: 14px; color: #94a3b8; margin-bottom: 5px;">Account Type</div>
+                    <div style="font-size: 16px; color: #f8fafc;">Standard User</div>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="window.location.href='/privacy-settings'" style="flex: 1; background: #6366f1; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Privacy Settings</button>
+                    <button onclick="logout()" style="flex: 1; background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 12px;">Logout</button>
+                </div>
+            `;
+            
+            document.body.appendChild(popup);
+            
+            // Auto-remove after 10 seconds
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 10000);
+        }
     </script>
 </body>
 </html>

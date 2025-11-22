@@ -28,7 +28,18 @@
             padding: 24px;
             border-radius: 16px;
             margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
+        .balance-widget {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 8px;
+            text-align: right;
+        }
+        .balance-widget .label { font-size: 12px; opacity: 0.8; }
+        .balance-widget .amount { font-size: 24px; font-weight: bold; }
         .card {
             background: var(--bg-card);
             border-radius: 16px;
@@ -44,7 +55,6 @@
         }
         .alert.show { display: block; }
         .alert-error { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--danger); color: #fca5a5; }
-        .alert-warning { background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning); color: #fcd34d; }
         .alert-success { background: rgba(16, 185, 129, 0.1); border: 1px solid var(--secondary); color: #86efac; }
         .step { display: none; }
         .step.active { display: block; }
@@ -61,7 +71,7 @@
         .btn-danger { background: var(--danger); color: white; }
         .btn:hover { transform: translateY(-2px); opacity: 0.9; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-        .search-box {
+        .search-box, select {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
@@ -122,19 +132,30 @@
             margin-top: 16px;
         }
         .button-group .btn { flex: 1; }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .info-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>📱 SMS Verification</h1>
-            <p>Get verification codes instantly</p>
+            <div>
+                <h1>📱 SMS Verification</h1>
+                <p>Get verification codes instantly</p>
+            </div>
+            <div class="balance-widget">
+                <div class="label">Account Balance</div>
+                <div class="amount">$<span id="balance">0.00</span></div>
+            </div>
         </div>
 
-        <!-- Alert Messages -->
         <div id="alert" class="alert"></div>
 
-        <!-- Progress Indicator -->
         <div class="progress">
             <div class="progress-step" id="progress-1">1. Country</div>
             <div class="progress-step" id="progress-2">2. Service</div>
@@ -147,32 +168,28 @@
             <div class="card">
                 <h2>🌍 Step 1: Select Country</h2>
                 <input type="text" id="country-search" class="search-box" 
-                       placeholder="🔍 Search countries (e.g., Russia, India, USA)..."
-                       oninput="filterCountries()">
+                       placeholder="🔍 Search countries..." oninput="filterCountries()">
                 <div id="countries-grid" class="grid">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading countries...</p>
-                    </div>
+                    <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
                 </div>
             </div>
         </div>
 
-        <!-- Step 2: Select Service -->
+        <!-- Step 2: Select Service & Area Code -->
         <div class="step" id="step-2">
             <div class="card">
                 <h2>🛍️ Step 2: Select Service</h2>
                 <p style="margin-bottom: 16px;">Country: <strong id="selected-country-name"></strong></p>
                 <input type="text" id="service-search" class="search-box"
-                       placeholder="🔍 Search services (e.g., Telegram, WhatsApp)..."
-                       oninput="filterServices()">
+                       placeholder="🔍 Search services..." oninput="filterServices()">
                 <div id="services-grid" class="grid">
-                    <div class="loading">
-                        <div class="spinner"></div>
-                        <p>Loading services...</p>
-                    </div>
+                    <div class="loading"><div class="spinner"></div><p>Loading...</p></div>
                 </div>
-                <button class="btn btn-primary" onclick="goToStep(1)" style="margin-top: 16px;">← Back</button>
+                <h3 style="margin-top: 24px; margin-bottom: 12px;">📍 Area Code (Optional)</h3>
+                <select id="area-code-select" style="margin-bottom: 16px;">
+                    <option value="">Any Area Code</option>
+                </select>
+                <button class="btn btn-primary" onclick="goToStep(1)">← Back</button>
             </div>
         </div>
 
@@ -181,10 +198,22 @@
             <div class="card">
                 <h2>💳 Step 3: Purchase Verification</h2>
                 <div style="background: #334155; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                    <p><strong>Service:</strong> <span id="purchase-service"></span></p>
-                    <p><strong>Country:</strong> <span id="purchase-country"></span></p>
-                    <p><strong>Price:</strong> $<span id="purchase-price"></span></p>
-                    <p><strong>Available:</strong> <span id="purchase-available"></span> numbers</p>
+                    <div class="info-row">
+                        <span>Service:</span>
+                        <strong id="purchase-service"></strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Country:</span>
+                        <strong id="purchase-country"></strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Area Code:</span>
+                        <strong id="purchase-area-code">Any</strong>
+                    </div>
+                    <div class="info-row">
+                        <span>Price:</span>
+                        <strong style="color: var(--secondary);">$<span id="purchase-price"></span></strong>
+                    </div>
                 </div>
                 <button class="btn btn-success" onclick="purchaseVerification()" style="width: 100%; padding: 16px; font-size: 18px;" id="purchase-btn">
                     Purchase for $<span id="final-price"></span>
@@ -201,17 +230,14 @@
                     <div class="spinner" id="waiting-spinner"></div>
                     <h3 style="margin: 20px 0;">Phone Number: <span id="phone-number"></span></h3>
                     <p id="waiting-status">Waiting for SMS code...</p>
-                    <p style="margin-top: 12px; opacity: 0.7;" id="check-interval">Checking every 5 seconds</p>
                     <div id="sms-code" style="display: none; margin-top: 24px; padding: 20px; background: var(--secondary); border-radius: 8px;">
                         <h2>✅ Code Received!</h2>
                         <h1 style="font-size: 48px; margin: 16px 0;"><span id="code-display"></span></h1>
                         <button class="btn btn-primary" onclick="copyCode()" style="margin-top: 16px;">📋 Copy Code</button>
                     </div>
-                    <div class="button-group" style="margin-top: 24px;">
-                        <button class="btn btn-danger" onclick="cancelVerification()" id="cancel-btn">
-                            ❌ Cancel & Refund
-                        </button>
-                    </div>
+                    <button class="btn btn-danger" onclick="cancelVerification()" id="cancel-btn" style="margin-top: 24px;">
+                        ❌ Cancel & Refund
+                    </button>
                 </div>
             </div>
         </div>
@@ -220,16 +246,20 @@
     <script>
         let allCountries = [];
         let allServices = [];
+        let allAreaCodes = [];
         let selectedCountry = null;
         let selectedService = null;
+        let selectedAreaCode = null;
         let currentStep = 1;
         let activationId = null;
         let pollingInterval = null;
         let pollCount = 0;
-        const MAX_POLLS = 120; // 10 minutes at 5 second intervals
+        const MAX_POLLS = 120;
 
         document.addEventListener('DOMContentLoaded', () => {
+            loadBalance();
             loadCountries();
+            loadAreaCodes();
         });
 
         function showAlert(message, type = 'error') {
@@ -239,37 +269,40 @@
             setTimeout(() => alert.classList.remove('show'), 5000);
         }
 
+        async function loadBalance() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/verify/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    document.getElementById('balance').textContent = data.balance.toFixed(2);
+                }
+            } catch (error) {
+                console.error('Balance error:', error);
+            }
+        }
+
         async function loadCountries() {
             try {
                 const response = await fetch('/api/countries/');
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
                 const data = await response.json();
                 if (data.success) {
                     allCountries = data.countries;
                     displayCountries(allCountries);
-                } else {
-                    throw new Error(data.detail || 'Failed to load countries');
                 }
             } catch (error) {
-                console.error('Load countries error:', error);
-                showAlert('Failed to load countries. Please refresh the page.', 'error');
-                document.getElementById('countries-grid').innerHTML = 
-                    '<p style="color: var(--danger); text-align: center;">Failed to load countries</p>';
+                console.error('Countries error:', error);
             }
         }
 
         function displayCountries(countries) {
             const grid = document.getElementById('countries-grid');
-            if (countries.length === 0) {
-                grid.innerHTML = '<p style="text-align: center;">No countries found</p>';
-                return;
-            }
             grid.innerHTML = countries.map(c => `
                 <div class="item" onclick="selectCountry('${c.code}', '${c.name}')">
                     <div style="font-size: 32px; margin-bottom: 8px;">${c.flag}</div>
                     <div style="font-weight: 600;">${c.name}</div>
-                    <div style="font-size: 12px; opacity: 0.7;">+${c.prefix}</div>
                 </div>
             `).join('');
         }
@@ -277,8 +310,7 @@
         function filterCountries() {
             const query = document.getElementById('country-search').value.toLowerCase();
             const filtered = allCountries.filter(c => 
-                c.name.toLowerCase().includes(query) || 
-                c.code.toLowerCase().includes(query)
+                c.name.toLowerCase().includes(query) || c.code.toLowerCase().includes(query)
             );
             displayCountries(filtered);
         }
@@ -293,37 +325,24 @@
         async function loadServices(country) {
             try {
                 const grid = document.getElementById('services-grid');
-                grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading services...</p></div>';
+                grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading...</p></div>';
                 
                 const response = await fetch(`/api/countries/${country}/services`);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                
                 const data = await response.json();
                 if (data.success) {
                     allServices = data.services;
                     displayServices(allServices);
-                } else {
-                    throw new Error(data.detail || 'Failed to load services');
                 }
             } catch (error) {
-                console.error('Load services error:', error);
-                showAlert('Failed to load services for this country.', 'error');
-                document.getElementById('services-grid').innerHTML = 
-                    '<p style="color: var(--danger); text-align: center;">Failed to load services</p>';
+                console.error('Services error:', error);
             }
         }
 
         function displayServices(services) {
             const grid = document.getElementById('services-grid');
-            if (services.length === 0) {
-                grid.innerHTML = '<p style="text-align: center;">No services available for this country</p>';
-                return;
-            }
             grid.innerHTML = services.map(s => `
-                <div class="item" onclick="selectService('${s.id}', '${s.name}', ${s.cost}, ${s.available})">
+                <div class="item" onclick="selectService('${s.id}', '${s.name}')">
                     <div style="font-weight: 600; margin-bottom: 8px;">${s.name}</div>
-                    <div style="color: var(--secondary); font-weight: 600;">$${s.cost.toFixed(2)}</div>
-                    <div style="font-size: 12px; opacity: 0.7;">${s.available} available</div>
                 </div>
             `).join('');
         }
@@ -331,20 +350,44 @@
         function filterServices() {
             const query = document.getElementById('service-search').value.toLowerCase();
             const filtered = allServices.filter(s => 
-                s.name.toLowerCase().includes(query) || 
-                s.id.toLowerCase().includes(query)
+                s.name.toLowerCase().includes(query) || s.id.toLowerCase().includes(query)
             );
             displayServices(filtered);
         }
 
-        function selectService(id, name, cost, available) {
-            selectedService = { id, name, cost, available };
-            document.getElementById('purchase-service').textContent = name;
-            document.getElementById('purchase-country').textContent = selectedCountry.name;
-            document.getElementById('purchase-price').textContent = cost.toFixed(2);
-            document.getElementById('purchase-available').textContent = available;
-            document.getElementById('final-price').textContent = cost.toFixed(2);
-            goToStep(3);
+        async function loadAreaCodes() {
+            try {
+                const response = await fetch('/api/verify/area-codes');
+                const data = await response.json();
+                if (data.success) {
+                    allAreaCodes = data.area_codes;
+                    const select = document.getElementById('area-code-select');
+                    select.innerHTML = '<option value="">Any Area Code</option>' + 
+                        allAreaCodes.map(a => `<option value="${a.code}">${a.code} - ${a.region}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('Area codes error:', error);
+            }
+        }
+
+        async function selectService(id, name) {
+            selectedService = { id, name };
+            selectedAreaCode = document.getElementById('area-code-select').value;
+            
+            try {
+                const response = await fetch('/api/verify/pricing');
+                const data = await response.json();
+                const price = data.pricing[id] || 0;
+                
+                document.getElementById('purchase-service').textContent = name;
+                document.getElementById('purchase-country').textContent = selectedCountry.name;
+                document.getElementById('purchase-area-code').textContent = selectedAreaCode || 'Any';
+                document.getElementById('purchase-price').textContent = price.toFixed(2);
+                document.getElementById('final-price').textContent = price.toFixed(2);
+                goToStep(3);
+            } catch (error) {
+                console.error('Pricing error:', error);
+            }
         }
 
         async function purchaseVerification() {
@@ -353,11 +396,6 @@
             
             try {
                 const token = localStorage.getItem('token');
-                if (!token) {
-                    showAlert('Authentication required. Please log in.', 'error');
-                    return;
-                }
-
                 const response = await fetch('/api/verify/create', {
                     method: 'POST',
                     headers: {
@@ -365,11 +403,8 @@
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        service_name: selectedService.id,
-                        country: selectedCountry.code,
-                        operator: 'any',
-                        pricing_tier: 'standard',
-                        capability: 'sms'
+                        service: selectedService.id,
+                        area_code: selectedAreaCode || null
                     })
                 });
                 
@@ -381,14 +416,14 @@
                     pollCount = 0;
                     goToStep(4);
                     startPolling();
-                    showAlert('Verification purchased! Waiting for SMS...', 'success');
+                    loadBalance();
+                    showAlert('Verification purchased!', 'success');
                 } else {
-                    const errorMsg = data.detail || 'Failed to purchase verification';
-                    showAlert(errorMsg, 'error');
+                    showAlert(data.message || 'Failed to purchase', 'error');
                 }
             } catch (error) {
                 console.error('Purchase error:', error);
-                showAlert('Network error. Please try again.', 'error');
+                showAlert('Network error', 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -400,35 +435,26 @@
 
         async function checkForSMS() {
             pollCount++;
-            
             if (pollCount > MAX_POLLS) {
                 clearInterval(pollingInterval);
                 document.getElementById('waiting-spinner').style.display = 'none';
-                document.getElementById('waiting-status').textContent = 'SMS timeout - no code received';
-                showAlert('SMS timeout. Please try again or contact support.', 'warning');
+                document.getElementById('waiting-status').textContent = 'SMS timeout';
                 return;
             }
 
             try {
                 const token = localStorage.getItem('token');
-                const response = await fetch(`/api/verify/${activationId}`, {
+                const response = await fetch(`/api/verify/${activationId}/status`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
-                if (!response.ok) {
-                    console.error(`Status check failed: ${response.status}`);
-                    return;
-                }
-
                 const data = await response.json();
-                
-                if (data.status === 'completed' && data.verification_code) {
+                if (data.success && data.sms_codes && data.sms_codes.length > 0) {
                     clearInterval(pollingInterval);
                     document.getElementById('waiting-spinner').style.display = 'none';
-                    document.getElementById('check-interval').style.display = 'none';
-                    document.getElementById('code-display').textContent = data.verification_code;
+                    document.getElementById('code-display').textContent = data.sms_codes[0];
                     document.getElementById('sms-code').style.display = 'block';
-                    showAlert('SMS code received!', 'success');
+                    showAlert('SMS received!', 'success');
                 }
             } catch (error) {
                 console.error('Polling error:', error);
@@ -438,17 +464,12 @@
         function copyCode() {
             const code = document.getElementById('code-display').textContent;
             navigator.clipboard.writeText(code).then(() => {
-                showAlert('Code copied to clipboard!', 'success');
-            }).catch(() => {
-                showAlert('Failed to copy code', 'error');
+                showAlert('Code copied!', 'success');
             });
         }
 
         async function cancelVerification() {
-            if (!confirm('Are you sure? You will be refunded.')) return;
-            
-            const btn = document.getElementById('cancel-btn');
-            btn.disabled = true;
+            if (!confirm('Cancel and refund?')) return;
             
             try {
                 clearInterval(pollingInterval);
@@ -459,17 +480,12 @@
                 });
                 
                 if (response.ok) {
-                    showAlert('Verification cancelled and refunded!', 'success');
+                    showAlert('Cancelled and refunded!', 'success');
+                    loadBalance();
                     setTimeout(() => location.reload(), 1500);
-                } else {
-                    const data = await response.json();
-                    showAlert(data.detail || 'Failed to cancel', 'error');
                 }
             } catch (error) {
                 console.error('Cancel error:', error);
-                showAlert('Error cancelling verification', 'error');
-            } finally {
-                btn.disabled = false;
             }
         }
 

@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaskah Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0a0e27;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 0 0 20px 20px;
+            margin-bottom: 20px;
+        }
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo { font-size: 24px; font-weight: bold; }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .balance-card {
+            background: rgba(255,255,255,0.1);
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .balance-card:hover { background: rgba(255,255,255,0.2); }
+        .balance-label { font-size: 12px; opacity: 0.8; }
+        .balance-amount { font-size: 20px; font-weight: bold; }
+        .profile-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .profile-btn:hover { background: rgba(255,255,255,0.2); }
+        .main-container {
+            display: flex;
+            gap: 20px;
+            padding: 0 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .content-area { flex: 1; }
+        .services-sidebar {
+            width: 300px;
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 20px;
+            height: fit-content;
+            border: 1px solid #334155;
+        }
+        .sidebar-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #667eea;
+        }
+        .service-item {
+            background: #334155;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .service-item:hover { 
+            border-left-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+        .service-item.active {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        .service-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+        .service-price { font-size: 11px; opacity: 0.7; }
+        .service-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            margin-top: 4px;
+            display: inline-block;
+        }
+        .status-available { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .status-limited { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .tabs {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            background: #1e293b;
+            border-radius: 12px;
+            padding: 4px;
+        }
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: #667eea;
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .verification-card {
+            background: #1e293b;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #334155;
+        }
+        .card-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .new-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .new-btn:hover { background: #5a67d8; transform: translateY(-2px); }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        .table th {
+            background: #334155;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: #1e293b;
+            min-width: 250px;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            z-index: 1000;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        .dropdown.show .dropdown-content { display: block; }
+        .dropdown-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .dropdown-item:hover { background: #334155; }
+        .logout-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+        .logout-btn:hover { background: rgba(239, 68, 68, 0.2); }
+        .home-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+        .home-btn:hover { background: rgba(255,255,255,0.1); }
+        .quick-actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .action-btn {
+            background: #334155;
+            border: 1px solid #475569;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .action-btn:hover {
+            background: #475569;
+            transform: translateY(-1px);
+        }
+        .start-btn {
+            background: #10b981;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 16px;
+            transition: all 0.3s;
+        }
+        .start-btn:hover { background: #059669; }
+        .view-all-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            width: 100%;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+        .view-all-btn:hover { background: #5a67d8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-left">
+            <button class="home-btn" onclick="goHome()" title="Home">🏠</button>
+            <div class="logo">📱 Namaskah Dashboard</div>
+            <div style="font-size: 14px; opacity: 0.8;">SMS Verification Platform</div>
+        </div>
+        <div class="header-right">
+            <div class="balance-card" onclick="toggleBalanceMenu()">
+                <div class="balance-label">Account Balance</div>
+                <div class="balance-amount">$<span id="balance">18.75</span></div>
+            </div>
+            <div class="dropdown">
+                <button class="profile-btn" onclick="toggleProfileMenu()">👤 Profile</button>
+                <div class="dropdown-content" id="profileMenu">
+                    <div class="dropdown-item" onclick="openAccountSettings()">
+                        ⚙️ Account Settings
+                    </div>
+                    <div class="dropdown-item" onclick="openApiKeys()">
+                        🔑 API Keys
+                    </div>
+                    <div class="dropdown-item" onclick="openBilling()">
+                        💳 Billing & Credits
+                    </div>
+                    <div class="dropdown-item" onclick="openPrivacySettings()">
+                        🔒 Privacy Settings
+                    </div>
+                    <div class="dropdown-item logout-btn" onclick="logout()">
+                        🚪 Logout
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="content-area">
+            <div class="quick-actions">
+                <button class="action-btn" onclick="addCredits()">➕ Add Credits</button>
+                <button class="action-btn" onclick="openInbox()">📨 SMS Inbox</button>
+                <button class="action-btn" onclick="openRentals()">📱 Rentals</button>
+                <button class="action-btn" onclick="openAnalytics()">📊 Analytics</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('verifications')">📋 Verifications</button>
+                <button class="tab" onclick="showTab('rentals')">🏠 Rentals</button>
+                <button class="tab" onclick="showTab('inbox')">📨 Inbox</button>
+                <button class="tab" onclick="showTab('billing')">💳 Billing</button>
+            </div>
+
+            <div id="verifications" class="tab-content active">
+                <div class="verification-card">
+                    <div class="card-header">
+                        <h2>📋 Verifications</h2>
+                        <button class="new-btn" onclick="newVerification()">+ New Verification</button>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Phone Number</th>
+                                <th>Status</th>
+                                <th>Cost</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="verifications-table">
+                            <tr>
+                                <td colspan="6">
+                                    <div class="empty-state">
+                                        <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                                        <h3>No verifications yet</h3>
+                                        <p>Create your first SMS verification to get started</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="rentals" class="tab-content">
+                <div class="verification-card">
+                    <div class="card-header">
+                        <h2>🏠 Phone Rentals</h2>
+                        <button class="new-btn" onclick="newRental()">+ New Rental</button>
+                    </div>
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                        <h3>No active rentals</h3>
+                        <p>Rent phone numbers for extended periods</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="inbox" class="tab-content">
+                <div class="verification-card">
+                    <div class="card-header">
+                        <h2>📨 SMS Inbox</h2>
+                        <button class="new-btn" onclick="syncMessages()">🔄 Sync Messages</button>
+                    </div>
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📨</div>
+                        <h3>No messages yet</h3>
+                        <p>SMS messages from your rentals will appear here</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="billing" class="tab-content">
+                <div class="verification-card">
+                    <div class="card-header">
+                        <h2>💳 Billing History</h2>
+                        <button class="new-btn" onclick="addCredits()">+ Add Credits</button>
+                    </div>
+                    <div class="empty-state">
+                        <div style="font-size: 48px; margin-bottom: 16px;">💳</div>
+                        <h3>No transactions yet</h3>
+                        <p>Your payment history will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="services-sidebar">
+            <h3 class="sidebar-title">🛍️ Available Services</h3>
+            <div id="services-list">
+                <div class="service-item" onclick="selectService('telegram')">
+                    <div class="service-name">📱 Telegram</div>
+                    <div class="service-price">$0.20 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('whatsapp')">
+                    <div class="service-name">💬 WhatsApp</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('discord')">
+                    <div class="service-name">🎮 Discord</div>
+                    <div class="service-price">$0.15 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('instagram')">
+                    <div class="service-name">📸 Instagram</div>
+                    <div class="service-price">$0.30 per SMS</div>
+                    <div class="service-status status-limited">Limited</div>
+                </div>
+                <div class="service-item" onclick="selectService('twitter')">
+                    <div class="service-name">🐦 Twitter/X</div>
+                    <div class="service-price">$0.35 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('facebook')">
+                    <div class="service-name">📘 Facebook</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('google')">
+                    <div class="service-name">🔍 Google</div>
+                    <div class="service-price">$0.20 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('microsoft')">
+                    <div class="service-name">🪟 Microsoft</div>
+                    <div class="service-price">$0.22 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+                <div class="service-item" onclick="selectService('tiktok')">
+                    <div class="service-name">🎵 TikTok</div>
+                    <div class="service-price">$0.40 per SMS</div>
+                    <div class="service-status status-limited">Limited</div>
+                </div>
+                <div class="service-item" onclick="selectService('uber')">
+                    <div class="service-name">🚗 Uber</div>
+                    <div class="service-price">$0.25 per SMS</div>
+                    <div class="service-status status-available">Available</div>
+                </div>
+            </div>
+            
+            <button class="start-btn" onclick="startVerification()">🚀 Start Verification</button>
+            <button class="view-all-btn" onclick="viewAllServices()">📋 View All 1,800+ Services</button>
+        </div>
+    </div>
+
+    <script>
+        let selectedService = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBalance();
+            loadVerifications();
+        });
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        function selectService(serviceName) {
+            document.querySelectorAll('.service-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            event.target.classList.add('active');
+            selectedService = serviceName;
+            localStorage.setItem('selectedService', serviceName);
+            
+            showAlert(`${serviceName.charAt(0).toUpperCase() + serviceName.slice(1)} selected!`);
+        }
+
+        function toggleProfileMenu() {
+            document.getElementById('profileMenu').parentElement.classList.toggle('show');
+        }
+
+        function toggleBalanceMenu() {
+            window.location.href = '/billing';
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        function newVerification() {
+            window.location.href = '/verify';
+        }
+
+        function startVerification() {
+            if (selectedService) {
+                localStorage.setItem('selectedService', selectedService);
+            }
+            window.location.href = '/verify';
+        }
+
+        function viewAllServices() {
+            window.location.href = '/verify';
+        }
+
+        function addCredits() {
+            window.location.href = '/billing';
+        }
+
+        function openInbox() {
+            window.location.href = '/sms-inbox';
+        }
+
+        function openRentals() {
+            window.location.href = '/rentals';
+        }
+
+        function newRental() {
+            window.location.href = '/rentals';
+        }
+
+        function syncMessages() {
+            window.location.href = '/sms-inbox';
+        }
+
+        function openAnalytics() {
+            window.location.href = '/analytics-dashboard';
+        }
+
+        function openAccountSettings() {
+            window.location.href = '/account-settings';
+        }
+
+        function openApiKeys() {
+            window.location.href = '/api-keys';
+        }
+
+        function openBilling() {
+            window.location.href = '/billing';
+        }
+
+        function openPrivacySettings() {
+            window.location.href = '/privacy-settings';
+        }
+
+        async function logout() {
+            try {
+                const token = localStorage.getItem('token');
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+            } catch (e) {
+                console.error('Logout error:', e);
+            }
+            localStorage.clear();
+            window.location.href = '/auth/login';
+        }
+
+        async function loadBalance() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/user/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.credits !== undefined) {
+                    document.getElementById('balance').textContent = data.credits.toFixed(2);
+                }
+            } catch (error) {
+                console.error('Failed to load balance:', error);
+            }
+        }
+
+        async function loadVerifications() {
+            // This would load actual verification data
+            // For now, showing empty state
+        }
+
+        function showAlert(message) {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: #10b981; color: white; padding: 12px 20px;
+                border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('show'));
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing Dashboard - Namaskah</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f8fafc;
+            --border: #475569;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--secondary); color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .amount-option {
+            background: #334155;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .amount-option:hover { border-color: var(--primary); }
+        .amount-option.selected { border-color: var(--secondary); background: rgba(16, 185, 129, 0.1); }
+        .amount-value { font-size: 32px; font-weight: bold; color: var(--primary); }
+        .bonus-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+        .transaction-item {
+            background: #334155;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-completed { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+        .status-pending { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .status-failed { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .balance-display {
+            background: rgba(99, 102, 241, 0.1);
+            border: 2px solid var(--primary);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .balance-amount { font-size: 48px; font-weight: bold; color: var(--primary); }
+        .custom-amount {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: #334155;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Billing Dashboard</h1>
+            <p>Manage your account balance and payment history</p>
+        </div>
+
+        <div class="balance-display">
+            <div style="font-size: 16px; opacity: 0.8; margin-bottom: 8px;">Current Balance</div>
+            <div class="balance-amount">$<span id="current-balance">0.00</span></div>
+            <div style="font-size: 14px; opacity: 0.7; margin-top: 8px;">Available for SMS verification</div>
+        </div>
+
+        <div class="grid">
+            <div class="card">
+                <h2>💰 Add Credits</h2>
+                <p style="margin-bottom: 20px; opacity: 0.8;">Choose an amount to add to your account</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px;">
+                    <div class="amount-option" onclick="selectAmount(10)">
+                        <div class="amount-value">$10</div>
+                        <div class="bonus-badge">+$1 Bonus</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(25)">
+                        <div class="amount-value">$25</div>
+                        <div class="bonus-badge">+$3 Bonus</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(50)">
+                        <div class="amount-value">$50</div>
+                        <div class="bonus-badge">+$7 Bonus</div>
+                    </div>
+                    <div class="amount-option" onclick="selectAmount(100)">
+                        <div class="amount-value">$100</div>
+                        <div class="bonus-badge">+$15 Bonus</div>
+                    </div>
+                </div>
+
+                <input type="number" class="custom-amount" placeholder="Or enter custom amount" id="custom-amount" min="5" max="1000">
+                
+                <button class="btn btn-success" onclick="initializePayment()" style="width: 100%; padding: 16px; font-size: 18px;" id="pay-btn">
+                    Add Credits with Paystack
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>📊 Transaction History</h2>
+                <div id="transactions-container">
+                    <div style="text-align: center; padding: 40px; opacity: 0.7;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                        <p>Loading transactions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+    <script>
+        let selectedAmount = 0;
+        let transactions = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadBalance();
+            loadTransactions();
+        });
+
+        async function loadBalance() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/billing/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('current-balance').textContent = data.balance.toFixed(2);
+                }
+            } catch (error) {
+                console.error('Load balance error:', error);
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/billing/transactions', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    transactions = data.transactions;
+                    displayTransactions();
+                }
+            } catch (error) {
+                console.error('Load transactions error:', error);
+                showEmptyTransactions();
+            }
+        }
+
+        function displayTransactions() {
+            const container = document.getElementById('transactions-container');
+            
+            if (transactions.length === 0) {
+                showEmptyTransactions();
+                return;
+            }
+
+            container.innerHTML = transactions.map(tx => `
+                <div class="transaction-item">
+                    <div>
+                        <div style="font-weight: 600; margin-bottom: 4px;">${tx.type.replace('_', ' ').toUpperCase()}</div>
+                        <div style="font-size: 12px; opacity: 0.7;">${formatDate(tx.created_at)}</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: 600; color: var(--secondary);">$${tx.amount.toFixed(2)}</div>
+                        ${tx.bonus > 0 ? `<div style="font-size: 12px; color: var(--secondary);">+$${tx.bonus} bonus</div>` : ''}
+                        <div class="status-badge status-${tx.status}">${tx.status.toUpperCase()}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showEmptyTransactions() {
+            document.getElementById('transactions-container').innerHTML = `
+                <div style="text-align: center; padding: 40px; opacity: 0.7;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+                    <p>No transactions yet</p>
+                    <p style="font-size: 12px; margin-top: 8px;">Your payment history will appear here</p>
+                </div>
+            `;
+        }
+
+        function selectAmount(amount) {
+            selectedAmount = amount;
+            document.getElementById('custom-amount').value = '';
+            
+            document.querySelectorAll('.amount-option').forEach(el => el.classList.remove('selected'));
+            event.target.closest('.amount-option').classList.add('selected');
+        }
+
+        async function initializePayment() {
+            const customAmount = parseFloat(document.getElementById('custom-amount').value);
+            const amount = customAmount || selectedAmount;
+            
+            if (!amount || amount < 5) {
+                showAlert('Please select or enter an amount (minimum $5)', 'error');
+                return;
+            }
+
+            try {
+                const token = localStorage.getItem('token');
+                const user = JSON.parse(localStorage.getItem('user') || '{}');
+                
+                const response = await fetch('/api/billing/paystack/initialize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        amount: amount,
+                        email: user.email
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Initialize Paystack payment
+                    const handler = PaystackPop.setup({
+                        key: 'pk_test_your_paystack_public_key', // Replace with actual key
+                        email: user.email,
+                        amount: amount * 100, // Convert to kobo
+                        currency: 'USD',
+                        ref: data.transaction_id,
+                        callback: function(response) {
+                            showAlert(`Payment successful! Reference: ${response.reference}`, 'success');
+                            loadBalance();
+                            loadTransactions();
+                        },
+                        onClose: function() {
+                            showAlert('Payment cancelled', 'error');
+                        }
+                    });
+                    handler.openIframe();
+                } else {
+                    showAlert(data.message || 'Failed to initialize payment', 'error');
+                }
+            } catch (error) {
+                console.error('Payment error:', error);
+                showAlert('Payment initialization failed', 'error');
+            }
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: ${type === 'success' ? 'var(--secondary)' : 'var(--danger)'};
+                color: white; padding: 12px 20px; border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+    </script>
+</body>
+</html>

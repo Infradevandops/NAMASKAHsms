@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Inbox - Namaskah</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f8fafc;
+            --border: #475569;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--secondary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .message-item {
+            background: #334155;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid var(--border);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .message-item:hover { border-left-color: var(--primary); }
+        .message-item.unread { border-left-color: var(--secondary); background: rgba(16, 185, 129, 0.05); }
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .message-from { font-weight: 600; color: var(--primary); }
+        .message-time { font-size: 12px; opacity: 0.7; }
+        .message-text { line-height: 1.5; }
+        .unread-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .stat-value { font-size: 24px; font-weight: bold; color: var(--primary); }
+        .stat-label { opacity: 0.7; font-size: 12px; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📨 SMS Inbox</h1>
+                <p>Manage your received SMS messages</p>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="syncMessages()">🔄 Sync Messages</button>
+                <button class="btn btn-success" onclick="markAllRead()">✅ Mark All Read</button>
+            </div>
+        </div>
+
+        <div class="stats">
+            <div class="stat-box">
+                <div class="stat-value" id="total-messages">0</div>
+                <div class="stat-label">Total Messages</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="unread-count">0</div>
+                <div class="stat-label">Unread Messages</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-value" id="today-messages">0</div>
+                <div class="stat-label">Today's Messages</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div id="messages-container">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading messages...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+        let unreadCount = 0;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadMessages();
+            loadUnreadCount();
+        });
+
+        async function loadMessages() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/sms/inbox', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    messages = data.messages;
+                    unreadCount = data.unread_count;
+                    displayMessages();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Load messages error:', error);
+                showEmptyState('Failed to load messages');
+            }
+        }
+
+        function displayMessages() {
+            const container = document.getElementById('messages-container');
+            
+            if (messages.length === 0) {
+                showEmptyState('No messages yet');
+                return;
+            }
+
+            container.innerHTML = messages.map(msg => `
+                <div class="message-item ${!msg.is_read ? 'unread' : ''}" onclick="markAsRead('${msg.id}')">
+                    <div class="message-header">
+                        <div class="message-from">📱 ${msg.from}</div>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            ${!msg.is_read ? '<span class="unread-badge">New</span>' : ''}
+                            <div class="message-time">${formatTime(msg.received_at)}</div>
+                            <button onclick="deleteMessage('${msg.id}', event)" style="background: none; border: none; color: var(--danger); cursor: pointer;">🗑️</button>
+                        </div>
+                    </div>
+                    <div class="message-text">${msg.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function showEmptyState(message) {
+            document.getElementById('messages-container').innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 16px;">📭</div>
+                    <h3>${message}</h3>
+                    <p style="margin-top: 8px; opacity: 0.7;">Messages from your phone rentals will appear here</p>
+                </div>
+            `;
+        }
+
+        async function syncMessages() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/sms/inbox/sync', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`Synced ${data.synced_count} new messages`, 'success');
+                    loadMessages();
+                }
+            } catch (error) {
+                console.error('Sync error:', error);
+                showAlert('Failed to sync messages', 'error');
+            }
+        }
+
+        async function markAsRead(messageId) {
+            try {
+                const token = localStorage.getItem('token');
+                await fetch(`/api/sms/${messageId}/mark-read`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                // Update local state
+                const message = messages.find(m => m.id === messageId);
+                if (message && !message.is_read) {
+                    message.is_read = true;
+                    unreadCount--;
+                    displayMessages();
+                    updateStats();
+                }
+            } catch (error) {
+                console.error('Mark read error:', error);
+            }
+        }
+
+        async function deleteMessage(messageId, event) {
+            event.stopPropagation();
+            if (!confirm('Delete this message?')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                await fetch(`/api/sms/${messageId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                messages = messages.filter(m => m.id !== messageId);
+                displayMessages();
+                updateStats();
+                showAlert('Message deleted', 'success');
+            } catch (error) {
+                console.error('Delete error:', error);
+                showAlert('Failed to delete message', 'error');
+            }
+        }
+
+        async function markAllRead() {
+            const unreadMessages = messages.filter(m => !m.is_read);
+            for (const msg of unreadMessages) {
+                await markAsRead(msg.id);
+            }
+            showAlert('All messages marked as read', 'success');
+        }
+
+        async function loadUnreadCount() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/sms/inbox/unread-count', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                unreadCount = data.unread_count;
+                updateStats();
+            } catch (error) {
+                console.error('Unread count error:', error);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('total-messages').textContent = messages.length;
+            document.getElementById('unread-count').textContent = unreadCount;
+            
+            const today = new Date().toDateString();
+            const todayMessages = messages.filter(m => 
+                new Date(m.received_at).toDateString() === today
+            ).length;
+            document.getElementById('today-messages').textContent = todayMessages;
+        }
+
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diff = now - date;
+            
+            if (diff < 60000) return 'Just now';
+            if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+            if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+            return date.toLocaleDateString();
+        }
+
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: ${type === 'success' ? 'var(--secondary)' : 'var(--danger)'};
+                color: white; padding: 12px 20px; border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+    </script>
+</body>
+</html>
