@@ -1,10 +1,7 @@
 """Services package with dependency injection support."""
 from sqlalchemy.orm import Session
 
-from .auth_service import AuthService
 from .base import BaseService
-from .notification_service import NotificationService
-from .payment_service import PaymentService
 
 
 class ServiceFactory:
@@ -14,21 +11,24 @@ class ServiceFactory:
         self.db = db
         self._services = {}
 
-    def get_auth_service(self) -> AuthService:
+    def get_auth_service(self):
         """Get or create AuthService instance."""
         if "auth" not in self._services:
+            from .auth_service import AuthService
             self._services["auth"] = AuthService(self.db)
         return self._services["auth"]
 
-    def get_payment_service(self) -> PaymentService:
+    def get_payment_service(self):
         """Get or create PaymentService instance."""
         if "payment" not in self._services:
+            from .payment_service import PaymentService
             self._services["payment"] = PaymentService(self.db)
         return self._services["payment"]
 
-    def get_notification_service(self) -> NotificationService:
+    def get_notification_service(self):
         """Get or create NotificationService instance."""
         if "notification" not in self._services:
+            from .notification_service import NotificationService
             self._services["notification"] = NotificationService(self.db)
         return self._services["notification"]
 
@@ -46,26 +46,26 @@ def get_service_factory(db: Session) -> ServiceFactory:
     return ServiceFactory(db)
 
 
-def get_auth_service(db: Session) -> AuthService:
+def get_auth_service(db: Session):
     """Get AuthService instance."""
+    from .auth_service import AuthService
     return AuthService(db)
 
 
-def get_payment_service(db: Session) -> PaymentService:
+def get_payment_service(db: Session):
     """Get PaymentService instance."""
+    from .payment_service import PaymentService
     return PaymentService(db)
 
 
-def get_notification_service(db: Session) -> NotificationService:
+def get_notification_service(db: Session):
     """Get NotificationService instance."""
+    from .notification_service import NotificationService
     return NotificationService(db)
 
 
 __all__ = [
     "BaseService",
-    "AuthService",
-    "PaymentService",
-    "NotificationService",
     "ServiceFactory",
     "get_service_factory",
     "get_auth_service",
