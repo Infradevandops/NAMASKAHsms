@@ -9,7 +9,8 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-
+from app.models.notification import InAppNotification, Webhook, NotificationPreferences
+from app.models.user import User
 from .base import BaseService
 
 logger = logging.getLogger(__name__)
