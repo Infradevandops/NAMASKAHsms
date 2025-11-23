@@ -3,1261 +3,217 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-
-    
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/landing-improvements.css">
-    <script src="/static/js/social-proof.js"></script>
+    <title>Namaskah - SMS Verification Platform</title>
     <style>
-        /* Anti-flicker */
-        html { visibility: visible !important; opacity: 1 !important; }
-        body { opacity: 0; transition: opacity 0.2s ease-in; }
-        body.loaded { opacity: 1; }
-        /* End Anti-flicker */
-        :root {
-            --primary: #667eea;
-            --primary-dark: #5568d3;
-            --secondary: #764ba2;
-            --success: #10b981;
-            --accent: #667eea;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+            line-height: 1.6;
         }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-20px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes phoneRing {
-            0%, 100% { transform: rotate(0deg); }
-            10%, 30% { transform: rotate(-10deg); }
-            20%, 40% { transform: rotate(10deg); }
-            50% { transform: rotate(0deg); }
-        }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7); }
-            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(102, 126, 234, 0); }
-        }
-        @keyframes laughBounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-            40% { transform: translateY(-10px); }
-            60% { transform: translateY(-5px); }
-        }
-        .laughin-banner {
-            background: rgba(255, 215, 0, 0.15);
-            border: 2px solid #ffd700;
-            border-radius: 50px;
-            color: #b8860b;
-            text-align: center;
-            padding: 18px 40px;
-            font-size: 1.4rem;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin: 20px auto;
-            max-width: 400px;
-            position: relative;
-            clip-path: ellipse(100% 100% at 50% 50%);
-        }
-
-
-        .login-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.3);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-        .login-btn:hover::before {
-            width: 300px;
-            height: 300px;
-        }
-        .hamburger-menu.active span:nth-child(1) {
-            transform: rotate(45deg) translate(8px, 8px);
-        }
-        .hamburger-menu.active span:nth-child(2) {
-            opacity: 0;
-        }
-        .hamburger-menu.active span:nth-child(3) {
-            transform: rotate(-45deg) translate(7px, -7px);
-        }
-        .nav-menu {
-            position: fixed;
-            top: 60px;
-            right: -300px;
-            width: 280px;
-            height: calc(100vh - 60px);
-            background: var(--bg-secondary);
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
-            transition: right 0.3s ease;
-            z-index: 1500;
-            padding: 20px;
-            overflow-y: auto;
-            border-top-left-radius: 24px;
-            border-bottom-left-radius: 24px;
-        }
-        .nav-menu.active {
-            right: 0;
-        }
-        .nav-menu a {
-            display: block;
-            padding: 12px 16px;
-            color: var(--text-primary);
-            text-decoration: none;
-            border-radius: 16px;
-            margin-bottom: 8px;
-            transition: all 0.2s;
-            position: relative;
-        }
-        .nav-menu a::after {
-            content: '';
-            position: absolute;
-            bottom: 8px;
-            left: 16px;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-        .nav-menu a:hover {
-            background: var(--accent);
-            color: white;
-            transform: translateX(5px);
-        }
-        .nav-menu a:hover::after {
-            width: calc(100% - 32px);
-        }
-        body { padding: 0; }
-        .landing-nav {
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+        header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: var(--bg-secondary);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 20px 0;
+            border-bottom: 1px solid #475569;
         }
-        .landing-nav .logo {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--text-primary);
-            transition: transform 0.3s ease;
-            position: relative;
+        .logo { font-size: 24px; font-weight: 700; }
+        nav a {
+            color: #f8fafc;
+            text-decoration: none;
+            margin: 0 20px;
+            transition: color 0.3s;
         }
-        .landing-nav .logo:hover {
-            transform: scale(1.05);
+        nav a:hover { color: #6366f1; }
+        .auth-buttons { display: flex; gap: 12px; }
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
         }
-        .landing-nav .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -3px;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-        .landing-nav .logo:hover::after {
-            width: 100%;
-        }
-        .landing-nav button {
-            padding: 8px 16px;
-            font-size: 14px;
-            width: auto;
-        }
-        .hero {
-            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+        .btn-primary {
+            background: #6366f1;
             color: white;
-            padding: 40px 20px;
+        }
+        .btn-primary:hover { background: #4f46e5; }
+        .btn-secondary {
+            background: transparent;
+            color: #f8fafc;
+            border: 1px solid #475569;
+        }
+        .btn-secondary:hover { border-color: #6366f1; }
+        .hero {
             text-align: center;
+            padding: 80px 0;
         }
         .hero h1 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
+            font-size: 48px;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #6366f1, #10b981);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         .hero p {
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            opacity: 0.9;
-        }
-        @media (min-width: 768px) {
-            .hero { padding: 80px 20px; }
-            .hero h1 { font-size: 3rem; }
-            .hero p { font-size: 1.5rem; }
-        }
-        .cta-button {
-            background: white;
-            color: #0077B5;
-            padding: 10px 20px;
-            font-size: 0.95rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: inline-block;
-            margin: 5px;
-        }
-        .cta-button.secondary {
-            background: transparent;
-            border: 2px solid white;
-            color: white;
-        }
-        .cta-button {
-            position: relative;
-            overflow: hidden;
-        }
-        .cta-button::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: rgba(255,255,255,0.8);
-            transition: width 0.3s ease;
-        }
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        .cta-button:hover::after {
-            width: 100%;
-        }
-        @media (min-width: 768px) {
-            .cta-button { padding: 12px 30px; font-size: 1.05rem; }
-        }
-        .features {
-            padding: 30px 15px;
-            max-width: 900px;
-            margin: 0 auto;
-            background: var(--bg-primary);
-        }
-        .features h2 {
-            text-align: center;
-            font-size: 1.8rem;
+            font-size: 18px;
+            color: #cbd5e1;
             margin-bottom: 30px;
-            color: var(--text-primary);
-        }
-        @media (min-width: 768px) {
-            .features { padding: 60px 20px; }
-            .features h2 { font-size: 2.5rem; margin-bottom: 50px; }
-        }
-        .feature-grid {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
             max-width: 600px;
-            margin: 0 auto;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .hero-buttons { display: flex; gap: 12px; justify-content: center; }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin: 60px 0;
         }
         .feature-card {
-            background: var(--bg-card);
-            padding: 20px;
-            border-radius: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            text-align: center;
-            border: 1px solid var(--border);
-            transition: transform 0.3s;
-            width: 100%;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
         }
         .feature-card:hover {
-            transform: translateY(-5px);
+            border-color: #6366f1;
+            transform: translateY(-4px);
         }
-        .feature-card h3 {
-            font-size: 1.2rem;
-            margin: 10px 0;
-            color: var(--text-primary);
-        }
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-        @media (min-width: 768px) {
-            .feature-card { padding: 30px; max-width: 600px; }
-            .feature-card h3 { font-size: 1.5rem; }
-            .feature-card p { font-size: 1rem; }
-        }
-        .pricing {
-            background: var(--bg-secondary);
-            padding: 30px 15px;
+        .feature-icon { font-size: 32px; margin-bottom: 12px; }
+        .feature-card h3 { margin-bottom: 12px; color: #6366f1; }
+        .feature-card p { color: #cbd5e1; font-size: 14px; }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin: 60px 0;
             text-align: center;
-            max-width: 1200px;
-            margin: 0 auto;
         }
-        .pricing h2 {
-            font-size: 1.8rem;
-            margin-bottom: 15px;
-            color: var(--text-primary);
-        }
-        @media (min-width: 768px) {
-            .pricing { padding: 60px 20px; }
-            .pricing h2 { font-size: 2.5rem; }
-        }
-        .price-box {
-            background: white;
+        .stat-item h2 { font-size: 32px; color: #6366f1; margin-bottom: 8px; }
+        .stat-item p { color: #cbd5e1; }
+        .cta {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid #6366f1;
+            border-radius: 12px;
             padding: 40px;
-            border-radius: 32px;
-            max-width: 400px;
-            margin: 30px auto;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .price {
-            font-size: 3rem;
-            color: #667eea;
-            font-weight: bold;
-        }
-        footer {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            padding: 30px 15px;
             text-align: center;
-            border-top: 1px solid var(--border);
+            margin: 60px 0;
         }
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-            transition: all 0.2s;
-            position: relative;
+        .cta h2 { margin-bottom: 20px; }
+        footer {
+            border-top: 1px solid #475569;
+            padding: 40px 0;
+            text-align: center;
+            color: #cbd5e1;
+            margin-top: 60px;
         }
-        footer a::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            width: 0;
-            height: 1px;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-        footer a:hover {
-            color: var(--primary-dark);
-        }
-        footer a:hover::after {
-            width: 100%;
-        }
-        @media (min-width: 768px) {
-            footer { padding: 40px 20px; }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .hero p { font-size: 16px; }
+            nav { display: none; }
+            .hero-buttons { flex-direction: column; }
         }
     </style>
-    <script src="/track.js" defer></script>
-    <script>document.addEventListener('DOMContentLoaded', () => document.body.classList.add('loaded'));</script>
 </head>
 <body>
-    <div class="laughin-banner" style="position: sticky; top: 0; z-index: 200;">
-        Launching Soon
+    <div class="container">
+        <header>
+            <div class="logo">📱 Namaskah SMS</div>
+            <nav>
+                <a href="#features">Features</a>
+                <a href="#pricing">Pricing</a>
+                <a href="#docs">Docs</a>
+            </nav>
+            <div class="auth-buttons">
+                <a href="/auth/login" class="btn btn-secondary">Login</a>
+                <a href="/auth/register" class="btn btn-primary">Sign Up</a>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>SMS Verification Made Simple</h1>
+            <p>Get temporary phone numbers to receive SMS verification codes instantly. Perfect for account verification, 2FA, and testing.</p>
+            <div class="hero-buttons">
+                <a href="/auth/register" class="btn btn-primary">Get Started Free</a>
+                <a href="/verify" class="btn btn-secondary">Try Demo</a>
+            </div>
+        </section>
+
+        <section id="features" class="features">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3>Instant Numbers</h3>
+                <p>Get temporary phone numbers in seconds. No waiting, no setup required.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌍</div>
+                <h3>Global Coverage</h3>
+                <p>Access phone numbers from 150+ countries worldwide.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>Affordable Pricing</h3>
+                <p>Starting from just $0.15 per SMS. Pay only for what you use.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>Secure & Private</h3>
+                <p>Your data is encrypted and never shared with third parties.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Real-time Dashboard</h3>
+                <p>Track all your verifications and manage your account easily.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <h3>API Available</h3>
+                <p>Integrate with our REST API for seamless automation.</p>
+            </div>
+        </section>
+
+        <section class="stats">
+            <div class="stat-item">
+                <h2>1,800+</h2>
+                <p>Services Supported</p>
+            </div>
+            <div class="stat-item">
+                <h2>150+</h2>
+                <p>Countries</p>
+            </div>
+            <div class="stat-item">
+                <h2>99.9%</h2>
+                <p>Uptime</p>
+            </div>
+            <div class="stat-item">
+                <h2>24/7</h2>
+                <p>Support</p>
+            </div>
+        </section>
+
+        <section class="cta">
+            <h2>Ready to Get Started?</h2>
+            <p style="margin-bottom: 20px; color: #cbd5e1;">Join thousands of users who trust Namaskah for SMS verification.</p>
+            <a href="/auth/register" class="btn btn-primary">Create Free Account</a>
+        </section>
+
+        <footer>
+            <p>&copy; 2025 Namaskah SMS. All rights reserved.</p>
+            <p style="margin-top: 10px; font-size: 12px;">
+                <a href="#" style="color: #6366f1; text-decoration: none;">Privacy Policy</a> •
+                <a href="#" style="color: #6366f1; text-decoration: none;">Terms of Service</a> •
+                <a href="#" style="color: #6366f1; text-decoration: none;">Contact</a>
+            </p>
+        </footer>
     </div>
-    
-    <div class="landing-nav">
-        <div class="logo" onclick="window.location.href='/'" style="cursor: pointer; position: relative;">
-            Namaskah
-            <svg width="80" height="8" style="position: absolute; bottom: -5px; left: 0;">
-                <path d="M 0 4 Q 20 0, 40 4 T 80 4" stroke="#667eea" stroke-width="2" fill="none" stroke-linecap="round">
-                    <animate attributeName="d" 
-                        values="M 0 4 Q 20 0, 40 4 T 80 4; M 0 4 Q 20 8, 40 4 T 80 4; M 0 4 Q 20 0, 40 4 T 80 4" 
-                        dur="2s" repeatCount="indefinite"/>
-                </path>
-            </svg>
-        </div>
-        <div style="flex: 1; overflow: hidden; margin: 0 20px; margin-top: 8px;">
-            <div style="animation: scroll-left 15s linear infinite; white-space: nowrap; font-weight: 700; font-size: 16px; background: linear-gradient(90deg, #667eea, #764ba2, #667eea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                Get 1 FREE Verification on Signup! • Earn 10% with Affiliate Program! • Get 1 FREE Verification on Signup! • Earn 10% with Affiliate Program!
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button onclick="safeCTAClick('login')" class="login-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: relative; overflow: hidden; border-radius: 24px;">Login</button>
-            <div class="theme-toggle" onclick="toggleTheme()"></div>
-            <button class="hamburger-menu" onclick="toggleMenu()" style="background: none; border: none; padding: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 4px; width: 30px;">
-                <span style="width: 100%; height: 3px; background: var(--text-primary); border-radius: 2px; transition: all 0.3s;"></span>
-                <span style="width: 100%; height: 3px; background: var(--text-primary); border-radius: 2px; transition: all 0.3s;"></span>
-                <span style="width: 100%; height: 3px; background: var(--text-primary); border-radius: 2px; transition: all 0.3s;"></span>
-            </button>
-        </div>
-    </div>
-    <style>
-        @keyframes scroll-left {
-            0% { transform: translateX(0); }
-            100% { transform: translateX(-33.33%); }
-        }
-    </style>
-    <!-- Live Stats Bar -->
-    <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 12px 20px; text-align: center; font-size: 14px; font-weight: 600; box-shadow: 0 2px 8px rgba(0,0,0,0.1); border-bottom: 3px solid rgba(255,255,255,0.2);">
-        <div style="max-width: 1200px; margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">👥</span>
-                <span id="active-users-count">5,247</span> active users
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">✅</span>
-                <span id="verifications-count">15,234</span> verifications today
-            </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 18px;">⚡</span>
-                <span id="last-verification">Last: 12s ago</span>
-            </div>
-        </div>
-    </div>
-    
-    <div class="hero" style="background: linear-gradient(135deg, #6d5a1e 0%, #8b6914 25%, #5d4a1a 50%, #7a5c1f 75%, #4a3a15 100%); position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% 95%, 0 100%);">
-        <!-- Static Background -->
-        <div class="hero-decoration">
-            <div class="static-icon" style="top: 10%; left: 10%;">📱</div>
-            <div class="static-icon" style="top: 20%; right: 15%;">💬</div>
-            <div class="static-icon" style="top: 60%; left: 5%;">🔐</div>
-            <div class="static-icon" style="top: 70%; right: 10%;">✉️</div>
-            <div class="static-icon" style="top: 40%; left: 20%;">🌐</div>
-            <div class="static-icon" style="top: 50%; right: 25%;">⚡</div>
-            <div class="static-icon" style="top: 15%; right: 40%;">🚀</div>
-            <div class="static-icon" style="top: 75%; left: 35%;">🎯</div>
-        </div>
-        
-        <!-- Content -->
-        <div style="position: relative; z-index: 10;">
-            <h1>Namaskah SMS</h1>
-            <p>Instant SMS Verification for 1,807+ Services</p>
-            <p style="font-size: 0.85rem; margin-bottom: 15px;">WhatsApp | Telegram | Google | Discord | Instagram | Facebook | 1,800+ more</p>
-            <p style="font-size: 0.75rem; margin-bottom: 30px; opacity: 0.8;">Available in 180+ countries worldwide</p>
-            <button class="cta-button" onclick="showWaitlistModal()">
-                Get Started Free
-            </button>
-            <button class="cta-button secondary" onclick="safeCTAClick('affiliates')">Affiliate Program</button>
-        </div>
-    </div>
-    
-    <style>
-        .hero-decoration {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            opacity: 0.3;
-        }
-        
-        .static-icon {
-            position: absolute;
-            font-size: 2rem;
-        }
-        
-        @media (max-width: 768px) {
-            .static-icon {
-                font-size: 1.5rem;
-            }
-        }
-    </style>
-
-    <!-- Test Components for High-Contrast UI -->
-    <div style="background: var(--bg-primary); padding: 40px 20px;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            
-            <!-- Warning Box Test -->
-            <div class="warning-box">
-                <div class="warning-title">Important: Initiating a chargeback without contacting us first may result in:</div>
-                <ul>
-                    <li>Immediate account suspension</li>
-                    <li>Forfeiture of all credits</li>
-                    <li>Ban from future use</li>
-                </ul>
-                <div class="warning-footer">
-                    Always contact support first. We're here to help resolve issues fairly.
-                </div>
-            </div>
-
-            <!-- FAQ Test -->
-            <div class="faq-container" style="margin: 40px 0;">
-                <h2 style="color: white; text-align: center; margin-bottom: 30px;">Frequently Asked Questions</h2>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <h3>Can I get a receipt for my payments?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            <p>Yes! We automatically send receipts to your email after every successful payment. You can also download receipts from your account dashboard at any time.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="faq-item">
-                    <div class="faq-question" onclick="toggleFaq(this)">
-                        <h3>What happens if I don't receive the SMS?</h3>
-                        <span class="faq-icon">+</span>
-                    </div>
-                    <div class="faq-answer">
-                        <div class="faq-answer-content">
-                            <p>If you don't receive an SMS within 10 minutes, you'll get an automatic refund. No questions asked. Our 95%+ success rate means this rarely happens.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CTA Test -->
-            <div class="cta-section">
-                <div class="cta-content">
-                    <h2 class="cta-title">Still have questions?</h2>
-                    <p class="cta-subtitle">We're here to help! Get instant support from our team.</p>
-                    <button class="cta-button-primary" onclick="window.location.href='/auth/login'">
-                        Get Started Now
-                    </button>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Trust Badges -->
-    <div style="background: var(--bg-secondary); padding: 30px 20px; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
-        <style>
-            @media (min-width: 480px) {
-                .trust-badges-grid { grid-template-columns: repeat(2, 1fr) !important; }
-            }
-            @media (min-width: 768px) {
-                .trust-badges-grid { grid-template-columns: repeat(4, 1fr) !important; }
-            }
-        </style>
-        <div class="trust-badges-grid" style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 20px; text-align: center;">
-            <div style="padding: 15px;">
-                <div style="font-size: 32px; margin-bottom: 8px;">🔒</div>
-                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Secure Payment</div>
-                <div style="font-size: 13px; color: var(--text-secondary);">256-bit SSL Encryption</div>
-            </div>
-            <div style="padding: 15px;">
-                <div style="font-size: 32px; margin-bottom: 8px;">⚡</div>
-                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">99.9% Uptime</div>
-                <div style="font-size: 13px; color: var(--text-secondary);">Always Available</div>
-            </div>
-            <div style="padding: 15px;">
-                <div style="font-size: 32px; margin-bottom: 8px;">💰</div>
-                <div style="font-weight: 700; color: var(--text-primary); margin-bottom: 4px;">Auto-Refund</div>
-                <div style="font-size: 13px; color: var(--text-secondary);">Money-Back Guarantee</div>
-            </div>
-            <div style="padding: 15px;">
-                <div style="font-size: 32px; margin-bottom: 8px;">📊</div>
-                <div style="font-weight: 700; color: #10b981; margin-bottom: 4px; font-size: 24px;">95%</div>
-                <div style="font-size: 13px; color: var(--text-secondary);">Success Rate</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Real-time Activity Feed -->
-    <div style="background: var(--bg-primary); padding: 40px 20px;">
-        <div style="max-width: 1200px; margin: 0 auto;">
-            <div style="display: grid; grid-template-columns: 1fr; gap: 30px;">
-                <style>
-                    @media (min-width: 768px) {
-                        .activity-grid { grid-template-columns: 2fr 1fr !important; }
-                    }
-                </style>
-                <div class="activity-grid" style="display: grid; grid-template-columns: 1fr; gap: 30px;">
-                    <div>
-                        <h2 style="font-size: 24px; margin-bottom: 20px; color: var(--text-primary);">🔥 Live Activity</h2>
-                        <div id="activity-feed" style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 15px; min-height: 200px;">
-                            <!-- Activity items will be inserted here -->
-                        </div>
-                        <div style="margin-top: 15px; padding: 12px; background: rgba(102, 126, 234, 0.1); border-radius: 8px; text-align: center;">
-                            <span style="color: var(--text-secondary); font-size: 13px;" id="current-viewers">23 people viewing this page</span>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 style="font-size: 20px; margin-bottom: 15px; color: var(--text-primary);">📈 Popular Services</h3>
-                        <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 15px;">
-                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: var(--text-primary);">WhatsApp</span>
-                                    <span style="color: #10b981; font-weight: 700;">1,234</span>
-                                </div>
-                                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #10b981, #059669); height: 100%; width: 95%; border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: var(--text-primary);">Telegram</span>
-                                    <span style="color: #10b981; font-weight: 700;">987</span>
-                                </div>
-                                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 80%; border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: var(--text-primary);">Binance</span>
-                                    <span style="color: #10b981; font-weight: 700;">856</span>
-                                </div>
-                                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #f59e0b, #d97706); height: 100%; width: 70%; border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                            <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: var(--text-primary);">Instagram</span>
-                                    <span style="color: #10b981; font-weight: 700;">743</span>
-                                </div>
-                                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #ec4899, #be185d); height: 100%; width: 60%; border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span style="font-weight: 600; color: var(--text-primary);">Tinder</span>
-                                    <span style="color: #10b981; font-weight: 700;">621</span>
-                                </div>
-                                <div style="background: #e5e7eb; height: 6px; border-radius: 3px; margin-top: 6px; overflow: hidden;">
-                                    <div style="background: linear-gradient(90deg, #ef4444, #dc2626); height: 100%; width: 50%; border-radius: 3px;"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="features" style="border-top: 1px solid var(--border);">
-        <h2>Why Choose Namaskah?</h2>
-        <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr; gap: 20px;">
-            <style>
-                @media (min-width: 768px) {
-                    .features > div { grid-template-columns: repeat(2, 1fr) !important; }
-                }
-                @media (min-width: 1024px) {
-                    .features > div { grid-template-columns: repeat(3, 1fr) !important; }
-                }
-                .feature-card-enhanced {
-                    background: var(--bg-card);
-                    padding: 30px;
-                    border-radius: 32px;
-                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-                    text-align: center;
-                    border: 2px solid var(--border);
-                    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                    animation: fadeInUp 0.6s ease-out forwards;
-                    opacity: 0;
-                }
-                .feature-card-enhanced:nth-child(1) { animation-delay: 0.1s; }
-                .feature-card-enhanced:nth-child(2) { animation-delay: 0.2s; }
-                .feature-card-enhanced:nth-child(3) { animation-delay: 0.3s; }
-                .feature-card-enhanced:nth-child(4) { animation-delay: 0.4s; }
-                .feature-card-enhanced:nth-child(5) { animation-delay: 0.5s; }
-                .feature-card-enhanced:nth-child(6) { animation-delay: 0.6s; }
-                .feature-card-enhanced:hover {
-                    transform: translateY(-8px) scale(1.02);
-                    box-shadow: 0 12px 24px rgba(102, 126, 234, 0.2);
-                    border-color: var(--accent);
-                }
-                .feature-card-enhanced::after {
-                    content: '';
-                    position: absolute;
-                    bottom: 0;
-                    left: 0;
-                    width: 0;
-                    height: 3px;
-                    background: var(--accent);
-                    transition: width 0.4s ease;
-                    border-radius: 0 0 32px 32px;
-                }
-                .feature-card-enhanced:hover::after {
-                    width: 100%;
-                }
-                .feature-card-enhanced {
-                    position: relative;
-                }
-                @keyframes fadeInUp {
-                    from {
-                        opacity: 0;
-                        transform: translateY(30px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translateY(0);
-                    }
-                }
-            </style>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">⚡</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">Lightning Fast</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Get SMS codes in 60-120 seconds. Service-specific timers ensure optimal delivery.</p>
-            </div>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">📱</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">1,807 Services</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Verify any service: WhatsApp, Telegram, Google, Discord, Instagram, and 1,800+ more.</p>
-            </div>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">💰</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">Pay As You Go</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Only N1 per verification. No subscriptions. No hidden fees.</p>
-            </div>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">🔒</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">Secure & Private</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">Your data is encrypted. Numbers are temporary and disposable.</p>
-            </div>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">🔄</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">Auto-Refund</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">No SMS? Get automatic refund. Risk-free verification.</p>
-            </div>
-            <div class="feature-card-enhanced">
-                <div style="font-size: 3.5rem; margin-bottom: 15px;">🌍</div>
-                <h3 style="font-size: 1.3rem; margin: 15px 0; color: var(--text-primary);">Global Coverage</h3>
-                <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">International numbers. Works worldwide. Multiple payment methods.</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="pricing" style="position: relative; overflow: hidden; border-top: 1px solid var(--border);">
-        <h2>💎 Simple Pricing</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 30px; font-size: 0.95rem;">Choose the plan that fits your needs • Save up to 35%</p>
-            
-        <div style="max-width: 1200px; margin: 0 auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 25px;">
-            <style>
-                @media (min-width: 768px) {
-                    .pricing > div { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important; gap: 35px !important; }
-                }
-            </style>
-            <!-- Pay-as-You-Use -->
-            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 32px; padding: 20px; transition: all 0.3s; display: flex; flex-direction: column;">
-                <div style="text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">🎯</div>
-                    <h3 style="font-size: 1.3rem; color: var(--text-primary); margin: 0 0 8px 0; font-weight: 700;">Pay-as-You-Use</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">Perfect for individuals</p>
-                    <div style="font-size: 2.5rem; font-weight: 900; color: var(--accent); margin: 15px 0;">N1</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.85rem;">per verification</p>
-                </div>
-                <ul style="text-align: left; margin: 20px 0; list-style: none; padding: 0; font-size: 0.85rem; flex-grow: 1;">
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ 1,807 services</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Instant SMS delivery</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Auto-refund guarantee</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Multiple payments</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ 24/7 availability</li>
-                </ul>
-                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: var(--accent); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Get Started</button>
-            </div>
-
-            <!-- Developer Plan -->
-            <div style="background: linear-gradient(135deg, var(--accent), var(--accent-hover)); border: 2px solid #fbbf24; border-radius: 32px; padding: 20px; position: relative; color: white; display: flex; flex-direction: column;">
-                <div style="position: absolute; top: -15px; left: 50%; transform: translateX(-50%); background: #fbbf24; color: #1f2937; padding: 8px 20px; border-radius: 25px; font-weight: 700; font-size: 0.8rem; box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);">🔥 POPULAR</div>
-                <div style="text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">🚀</div>
-                    <h3 style="font-size: 1.3rem; margin: 0 0 8px 0; font-weight: 700;">Developer Plan</h3>
-                    <p style="opacity: 0.95; font-size: 0.85rem; margin-bottom: 15px;">Best for developers</p>
-                    <div style="font-size: 2.5rem; font-weight: 900; margin: 15px 0;">N0.80</div>
-                    <div style="background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: 15px; display: inline-block; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700;">💰 SAVE 20%</div>
-                    <p style="opacity: 0.95; margin-bottom: 20px; font-size: 0.85rem;">per verification</p>
-                </div>
-                <ul style="text-align: left; margin: 20px 0; list-style: none; padding: 0; font-size: 0.85rem; flex-grow: 1;">
-                    <li style="padding: 8px 0;">✓ Everything in Pay-as-You-Use</li>
-                    <li style="padding: 8px 0;">✓ <strong>20% discount</strong></li>
-                    <li style="padding: 8px 0;">✓ API keys & webhooks</li>
-                    <li style="padding: 8px 0;">✓ Priority support</li>
-                    <li style="padding: 8px 0;">✓ Min. N25 total funded</li>
-                </ul>
-                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: white; color: var(--accent); border: none; border-radius: 16px; font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Start Building</button>
-            </div>
-
-            <!-- Enterprise Plan -->
-            <div style="background: var(--bg-card); border: 2px solid var(--success); border-radius: 32px; padding: 20px; transition: all 0.3s; display: flex; flex-direction: column;">
-                <div style="text-align: center;">
-                    <div style="font-size: 2rem; margin-bottom: 10px;">⚡</div>
-                    <h3 style="font-size: 1.3rem; color: var(--text-primary); margin: 0 0 8px 0; font-weight: 700;">Enterprise Plan</h3>
-                    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 15px;">For high-volume</p>
-                    <div style="font-size: 2.5rem; font-weight: 900; color: var(--success); margin: 15px 0;">N0.65</div>
-                    <div style="background: rgba(16,185,129,0.1); padding: 6px 12px; border-radius: 15px; display: inline-block; margin-bottom: 15px; font-size: 0.75rem; font-weight: 700; color: var(--success);">💎 SAVE 35%</div>
-                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.85rem;">per verification</p>
-                </div>
-                <ul style="text-align: left; margin: 20px 0; list-style: none; padding: 0; font-size: 0.85rem; flex-grow: 1;">
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Everything in Developer</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ <strong>35% discount</strong></li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Area code selection</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ ISP preference (Verizon, AT&T)</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Bulk rentals</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Dedicated support</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Custom integrations</li>
-                    <li style="padding: 8px 0; color: var(--text-primary);">✓ Min. N100 total funded</li>
-                </ul>
-                <button onclick="window.location.href='/auth/login'" style="width: 100%; padding: 12px; background: var(--success); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer; margin-top: auto; position: relative; overflow: hidden; transition: all 0.3s ease;">Go Enterprise</button>
-            </div>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px; padding: 15px; background: var(--bg-card); border-radius: 24px; border: 1px solid var(--border);">
-            <p style="font-size: 0.95rem; color: var(--text-primary); font-weight: 600; margin-bottom: 8px;">💰 1N = $2 USD</p>
-            <p style="font-size: 0.85rem; color: var(--text-secondary);">All plans include 1 FREE verification • No hidden fees</p>
-        </div>
-    </div>
-
-    <div style="background: var(--bg-primary); padding: 40px 15px; border-top: 1px solid var(--border);">
-        <div style="max-width: 1200px; margin: 0 auto;">
-        <h2 style="text-align: center; font-size: 1.8rem; margin-bottom: 30px; color: var(--text-primary);">Categories</h2>
-        <style>
-            @media (min-width: 768px) {
-                .categories-section h2 { font-size: 2.5rem !important; }
-            }
-        </style>
-        <div style="max-width: 1400px; margin: 0 auto; padding: 0 15px;">
-            <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 24px; padding: 20px;">
-                <style>
-                    @media (min-width: 480px) {
-                        .categories-grid { grid-template-columns: repeat(2, 1fr) !important; }
-                    }
-                    @media (min-width: 768px) {
-                        .categories-grid { grid-template-columns: repeat(4, 1fr) !important; }
-                    }
-                </style>
-                <div class="categories-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">📱 Social</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Instagram</li>
-                            <li style="padding: 3px 0;">Facebook</li>
-                            <li style="padding: 3px 0;">Twitter/X</li>
-                            <li style="padding: 3px 0;">TikTok</li>
-                            <li style="padding: 3px 0;">Snapchat</li>
-                            <li style="padding: 3px 0;">+ 28 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">💬 Messaging</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">WhatsApp</li>
-                            <li style="padding: 3px 0;">Telegram</li>
-                            <li style="padding: 3px 0;">Discord</li>
-                            <li style="padding: 3px 0;">Signal</li>
-                            <li style="padding: 3px 0;">WeChat</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">💕 Dating</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Tinder</li>
-                            <li style="padding: 3px 0;">Bumble</li>
-                            <li style="padding: 3px 0;">Hinge</li>
-                            <li style="padding: 3px 0;">OkCupid</li>
-                            <li style="padding: 3px 0;">Match</li>
-                            <li style="padding: 3px 0;">+ 58 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">💰 Finance</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">PayPal</li>
-                            <li style="padding: 3px 0;">Venmo</li>
-                            <li style="padding: 3px 0;">CashApp</li>
-                            <li style="padding: 3px 0;">Revolut</li>
-                            <li style="padding: 3px 0;">Wise</li>
-                            <li style="padding: 3px 0;">+ 64 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">🛒 Shopping</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Amazon</li>
-                            <li style="padding: 3px 0;">eBay</li>
-                            <li style="padding: 3px 0;">Alibaba</li>
-                            <li style="padding: 3px 0;">Etsy</li>
-                            <li style="padding: 3px 0;">+ 16 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">🍔 Food</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Uber Eats</li>
-                            <li style="padding: 3px 0;">DoorDash</li>
-                            <li style="padding: 3px 0;">Grubhub</li>
-                            <li style="padding: 3px 0;">+ 7 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">🎮 Gaming</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Steam</li>
-                            <li style="padding: 3px 0;">Roblox</li>
-                            <li style="padding: 3px 0;">Twitch</li>
-                            <li style="padding: 3px 0;">+ 2 more</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 style="color: var(--accent); font-size: 0.9rem; margin: 0 0 10px 0;">₿ Crypto</h4>
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.75rem; color: var(--text-secondary);">
-                            <li style="padding: 3px 0;">Binance</li>
-                            <li style="padding: 3px 0;">Coinbase</li>
-                            <li style="padding: 3px 0;">Kraken</li>
-                            <li style="padding: 3px 0;">+ 4 more</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <p style="text-align: center; margin-top: 30px; color: var(--text-secondary); font-size: 0.9rem;">+ 1,595 more services available</p>
-        </div>
-    </div>
-
-    <div class="how-it-works-section" style="background: var(--bg-secondary); padding: 40px 15px; text-align: center; max-width: 1200px; margin: 0 auto; border-top: 1px solid var(--border);">
-        <style>
-            @media (min-width: 768px) {
-                .how-it-works-section { padding: 60px 20px !important; }
-            }
-        </style>
-        <h2 style="font-size: 1.8rem; margin-bottom: 20px; color: var(--text-primary);">How It Works</h2>
-        <style>
-            @media (min-width: 768px) {
-                .how-it-works-section h2 { font-size: 2.5rem !important; margin-bottom: 30px !important; }
-            }
-        </style>
-        <div class="how-it-works-grid" style="max-width: 800px; margin: 0 auto; padding: 0 15px; display: grid; grid-template-columns: 1fr; gap: 20px;">
-            <div>
-                <div style="font-size: 3rem; color: #10b981;">1️⃣</div>
-                <h3 style="color: var(--text-primary);">Select Service</h3>
-                <p style="color: var(--text-secondary);">Choose from 1,807 services</p>
-            </div>
-            <div>
-                <div style="font-size: 3rem; color: #10b981;">2️⃣</div>
-                <h3 style="color: var(--text-primary);">Get Number</h3>
-                <p style="color: var(--text-secondary);">Receive temporary phone number</p>
-            </div>
-            <div>
-                <div style="font-size: 3rem; color: #10b981;">3️⃣</div>
-                <h3 style="color: var(--text-primary);">Receive SMS</h3>
-                <p style="color: var(--text-secondary);">Get verification code instantly</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="reviews-section" style="background: var(--bg-primary); padding: 40px 15px; border-top: 1px solid var(--border);">
-        <style>
-            @media (min-width: 768px) {
-                .reviews-section { padding: 60px 20px !important; }
-            }
-        </style>
-        <div style="max-width: 900px; margin: 0 auto; background: var(--bg-card); border: 2px solid var(--border); border-radius: 32px; padding: 30px 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
-            <h2 style="text-align: center; font-size: 1.8rem; margin-bottom: 30px; color: var(--text-primary);">What Our Users Say</h2>
-            <style>
-                @media (min-width: 768px) {
-                    .reviews-section h2 { font-size: 2.5rem !important; margin-bottom: 40px !important; }
-                }
-            </style>
-            <div class="reviews-grid" style="display: grid; grid-template-columns: 1fr; gap: 20px;">
-                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 24px; border: 1px solid var(--border);">
-                    <style>
-                        @media (min-width: 768px) {
-                            .reviews-grid > div { padding: 25px !important; }
-                        }
-                    </style>
-                    <div style="font-weight: bold; color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">John Davidson</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Marketing Agency Owner</div>
-                    <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5; font-size: 14px;">"Super fast and reliable! Got my WhatsApp verification in under 30 seconds. The auto-refund feature is a game changer."</p>
-                    <div style="color: #fbbf24; font-size: 20px;">⭐⭐⭐⭐⭐</div>
-                </div>
-
-                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 24px; border: 1px solid var(--border);">
-                    <div style="font-weight: bold; color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">Sarah Mitchell</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Senior Software Engineer</div>
-                    <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5; font-size: 14px;">"As a developer, I love the API integration! The webhooks work flawlessly and the documentation is crystal clear. 1,807 services is insane!"</p>
-                    <div style="color: #fbbf24; font-size: 20px;">⭐⭐⭐⭐⭐</div>
-                </div>
-
-                <div style="background: var(--bg-secondary); padding: 20px; border-radius: 24px; border: 1px solid var(--border);">
-                    <div style="font-weight: bold; color: var(--text-primary); font-size: 16px; margin-bottom: 5px;">Michael Kumar</div>
-                    <div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Entrepreneur</div>
-                    <p style="font-style: italic; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.5; font-size: 14px;">"Best pricing I've found anywhere! Only N1 per verification and the quality is excellent. The referral program is generous too!"</p>
-                    <div style="color: #fbbf24; font-size: 20px;">⭐⭐⭐⭐⭐</div>
-                </div>
-            </div>
-            <div style="text-align: center; margin-top: 30px;">
-                <p class="join-text" style="font-size: 1rem; color: #10b981; font-weight: bold;">Join 5,000+ Happy Users Today! 🚀</p>
-                <style>
-                    @media (min-width: 768px) {
-                        .reviews-section .join-text { font-size: 1.2rem !important; }
-                    }
-                </style>
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <p style="font-size: 1.1rem; margin-bottom: 15px;">Namaskah SMS - Simple. Fast. Focused.</p>
-        <p style="margin-top: 15px; display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 0.85rem;">
-            <a href="/app">Login</a> •
-            <a href="/services">Services</a> •
-            <a href="/pricing">Pricing</a> •
-            <a href="/about">About</a> •
-            <a href="/contact">Contact</a> •
-            <a href="/faq">FAQ</a> •
-            <a href="/reviews">Reviews</a> •
-            <a href="/affiliate">Affiliate</a><br>
-            <a href="/api-docs">API Docs</a> •
-            <a href="/status">Status</a> •
-            <a href="/privacy">Privacy</a> •
-            <a href="/terms">Terms</a> •
-            <a href="/refund">Refund</a> •
-            <a href="/cookies">Cookies</a>
-        </p>
-        <p style="opacity: 0.7; font-size: 0.9rem; margin-top: 15px;">© 2024 Namaskah. All rights reserved.</p>
-    </footer>
-    
-    <!-- Waitlist Modal -->
-    <div id="waitlist-modal" class="modal hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; display: flex; align-items: center; justify-content: center;">
-        <div class="modal-content" style="background: var(--bg-card); padding: 30px; border-radius: 32px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.3); position: relative;">
-            <span class="close" onclick="closeWaitlistModal()" style="position: absolute; top: 15px; right: 20px; font-size: 24px; cursor: pointer; color: var(--text-secondary);">&times;</span>
-            <h2 style="color: var(--text-primary); margin-bottom: 10px;">Join the Waitlist</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">Be the first to know when Namaskah SMS launches!</p>
-            
-            <form id="waitlist-form" onsubmit="submitWaitlist(event)">
-                <div style="margin-bottom: 20px;">
-                    <input type="email" id="waitlist-email" required placeholder="Enter your email address" style="width: 100%; padding: 15px; border: 2px solid var(--border); border-radius: 16px; font-size: 1rem; background: var(--bg-primary); color: var(--text-primary);">
-                </div>
-                
-                <button type="submit" style="width: 100%; padding: 15px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 16px; font-size: 1rem; font-weight: 600; cursor: pointer;">Join Waitlist</button>
-            </form>
-        </div>
-    </div>
-
-    <div id="support-modal" class="modal hidden">
-        <div class="modal-content">
-            <span class="close" onclick="closeSupportModal()">&times;</span>
-            <h2>💬 Contact Support</h2>
-            <p style="color: #6b7280; margin-bottom: 20px;">We're here to help! Send us your inquiry.</p>
-            
-            <form id="support-form" onsubmit="submitSupport(event)">
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Name</label>
-                    <input type="text" id="support-name" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Email</label>
-                    <input type="email" id="support-email" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px;">
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Category</label>
-                    <select id="support-category" required style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; background: white;">
-                        <option value="">Select a category...</option>
-                        <option value="verification">Verification Issues</option>
-                        <option value="payment">Payment & Billing</option>
-                        <option value="account">Account & Login</option>
-                        <option value="api">API & Integration</option>
-                        <option value="refund">Refund Request</option>
-                        <option value="technical">Technical Support</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <label style="font-weight: bold; display: block; margin-bottom: 5px;">Message</label>
-                    <textarea id="support-message" required rows="5" style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 8px; resize: vertical;" placeholder="Describe your issue or question..."></textarea>
-                </div>
-                
-                <button type="submit" style="width: 100%;">Send Message</button>
-            </form>
-        </div>
-    </div>
-    
-    <!-- Navigation Menu -->
-    <div class="nav-menu" id="navMenu">
-        <h3 style="margin-bottom: 20px; color: var(--accent);">Menu</h3>
-        <a href="/">Home</a>
-        <a href="/app">Login / Register</a>
-        <a href="/services">Services</a>
-        <a href="/pricing">Pricing</a>
-        <a href="/about">About Us</a>
-        <a href="/contact">Contact</a>
-        <a href="/faq">FAQ</a>
-        <a href="/reviews">Reviews</a>
-        <a href="/affiliate">Affiliate Program</a>
-        <a href="/api-docs">API Docs</a>
-        <a href="/status">Service Status</a>
-        <hr style="border: 1px solid var(--border); margin: 15px 0;">
-        <a href="/privacy">Privacy Policy</a>
-        <a href="/terms">Terms of Service</a>
-        <a href="/refund">Refund Policy</a>
-        <a href="/cookies">Cookie Policy</a>
-    </div>
-    
-    <script>
-        const theme = localStorage.getItem('theme') || 'dark';
-        document.documentElement.setAttribute('data-theme', theme);
-        
-        function toggleTheme() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-        }
-        
-        function toggleMenu() {
-            const menu = document.getElementById('navMenu');
-            const hamburger = document.querySelector('.hamburger-menu');
-            menu.classList.toggle('active');
-            hamburger.classList.toggle('active');
-        }
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', function(event) {
-            const menu = document.getElementById('navMenu');
-            const hamburger = document.querySelector('.hamburger-menu');
-            if (!menu.contains(event.target) && !hamburger.contains(event.target)) {
-                menu.classList.remove('active');
-                hamburger.classList.remove('active');
-            }
-            
-            // Close modal when clicking outside
-            const modal = document.getElementById('waitlist-modal');
-            if (modal && !modal.classList.contains('hidden') && event.target === modal) {
-                closeWaitlistModal();
-            }
-        });
-        
-        function showWaitlistModal() {
-            const modal = document.getElementById('waitlist-modal');
-            modal.classList.remove('hidden');
-            modal.style.display = 'flex';
-        }
-        
-        function closeWaitlistModal() {
-            const modal = document.getElementById('waitlist-modal');
-            const form = document.getElementById('waitlist-form');
-            modal.classList.add('hidden');
-            modal.style.display = 'none';
-            form.reset();
-        }
-        
-        async function submitWaitlist(event) {
-            event.preventDefault();
-            const email = document.getElementById('waitlist-email').value;
-            
-            // Show loading state
-            const submitBtn = event.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Joining...';
-            submitBtn.disabled = true;
-            
-            try {
-                const res = await fetch('/api/waitlist/join', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ email })
-                });
-                
-                if (res.ok) {
-                    alert('🎉 Thank you for joining our waitlist! We\'ll notify you when Namaskah SMS launches.');
-                    closeWaitlistModal();
-                } else {
-                    // Fallback: Store email locally and show success message
-                    localStorage.setItem('waitlist_email', email);
-                    alert('🎉 Thank you for your interest! We\'ve saved your email and will notify you when we launch.');
-                    closeWaitlistModal();
-                }
-            } catch (error) {
-                // Fallback: Store email locally and show success message
-                localStorage.setItem('waitlist_email', email);
-                alert('🎉 Thank you for your interest! We\'ve saved your email and will notify you when we launch.');
-                closeWaitlistModal();
-            } finally {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-        
-        function showSupportModal() {
-            document.getElementById('support-modal').classList.remove('hidden');
-        }
-        
-        function closeSupportModal() {
-            document.getElementById('support-modal').classList.add('hidden');
-            document.getElementById('support-form').reset();
-        }
-        
-        async function submitSupport(event) {
-            event.preventDefault();
-            const name = document.getElementById('support-name').value;
-            const email = document.getElementById('support-email').value;
-            const category = document.getElementById('support-category').value;
-            const message = document.getElementById('support-message').value;
-            
-            // Show loading state
-            const submitBtn = event.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
-            submitBtn.textContent = 'Sending...';
-            submitBtn.disabled = true;
-            
-            try {
-                const res = await fetch('/api/support/submit', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ name, email, category, message })
-                });
-                
-                if (res.ok) {
-                    const data = await res.json();
-                    alert(`✅ Thank you! Your message has been sent.\n\nTicket ID: ${data.ticket_id}\n\nWe'll respond within 24 hours.`);
-                    closeSupportModal();
-                } else {
-                    // Fallback: Show contact email
-                    alert('✅ Thank you for your message! Please email us directly at support@namaskah.com for immediate assistance.');
-                    closeSupportModal();
-                }
-            } catch (error) {
-                // Fallback: Show contact email
-                alert('✅ Thank you for your message! Please email us directly at support@namaskah.com for immediate assistance.');
-                closeSupportModal();
-            } finally {
-                // Reset button state
-                submitBtn.textContent = originalText;
-                submitBtn.disabled = false;
-            }
-        }
-        
-        // Add phone animation to feature cards
-        document.querySelectorAll('.feature-card').forEach((card, index) => {
-            card.style.animationDelay = `${index * 0.1}s`;
-            card.style.animation = 'slideIn 0.5s ease-out forwards';
-        });
-        
-        // FAQ Toggle Function
-        function toggleFaq(element) {
-            const faqItem = element.closest('.faq-item');
-            const isActive = faqItem.classList.contains('active');
-            
-            // Close all other FAQs
-            document.querySelectorAll('.faq-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            // Toggle current FAQ
-            if (!isActive) {
-                faqItem.classList.add('active');
-            }
-        }
-        
-        // Minimal CTA error handling
-        function safeCTAClick(action) {
-            try {
-                switch (action) {
-                    case 'login':
-                        window.location.href = '/auth/login';
-                        break;
-                    case 'register':
-                        window.location.href = '/auth/login';
-                        break;
-                    case 'affiliates':
-                        window.location.href = '/auth/login';
-                        break;
-                    default:
-                        window.location.href = '/auth/login';
-                }
-            } catch (error) {
-                console.error('Navigation error:', error);
-                alert('⚠️ Navigation failed. Please try again.');
-            }
-        }
-    </script>
-    <script src="/static/js/minimal-error-handling.js"></script>
 </body>
 </html>

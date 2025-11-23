@@ -156,8 +156,10 @@ def create_app() -> FastAPI:
             return "<h1>Page not found</h1>"
 
     @fastapi_app.get("/", response_class=HTMLResponse)
-    async def home():
-        return HTMLResponse(content=_load_template("dashboard_main.html"))
+    async def home(user_id: Optional[str] = Depends(get_optional_user_id)):
+        if user_id:
+            return HTMLResponse(content=_load_template("dashboard_main.html"))
+        return HTMLResponse(content=_load_template("landing.html"))
 
     @fastapi_app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard(user_id: str = Depends(get_current_user_id)):
