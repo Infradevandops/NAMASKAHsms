@@ -5,6 +5,7 @@ from typing import Any, Dict, Optional
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationError
+from app.utils.security import (
     create_access_token,
     generate_api_key,
     generate_secure_id,
@@ -12,6 +13,8 @@ from app.core.exceptions import ValidationError
     verify_password,
     verify_token,
 )
+from app.models.user import User, APIKey
+from app.services.base import BaseService
 
 
 class AuthService(BaseService[User]):
