@@ -3,9 +3,8 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Dict, List
 
-# SQLAlchemy Session import not required here; using SessionLocal from core.database
-
 from app.core.database import SessionLocal
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
