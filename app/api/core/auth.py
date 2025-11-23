@@ -25,7 +25,7 @@ from app.core.auth_security import (
 from app.services import get_auth_service, get_notification_service
 from app.core.config import get_settings
 from app.models.user import User, APIKey
-from app.core.dependencies import get_current_user_id, require_verified_email
+from app.core.dependencies import get_current_user_id
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.core.token_manager import create_tokens, create_session
 
@@ -366,7 +366,9 @@ def create_api_key(
     db: Session = Depends(get_db),
 ):
     """Create new API key for programmatic access."""
-    require_verified_email(user_id, db)
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.email_verified:
+        raise HTTPException(status_code=403, detail="Email verification required")
     auth_service = get_auth_service(db)
     api_key = auth_service.create_api_key(user_id, api_key_data.name)
     return {
