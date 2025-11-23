@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
+import json
 
 # Import essential routers only
 from app.api.core.auth import router as auth_router
@@ -68,12 +69,10 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
 
 def create_app() -> FastAPI:
     """Application factory pattern - optimized for performance"""
-    # Setup logging first
     setup_logging()
 
-    # Import all models and configure registry
-    from app.models.base import Base  # noqa: F401
-    import app.models  # noqa: F401
+    from app.models.base import Base
+    import app.models
     Base.registry.configure()
 
     fastapi_app = FastAPI(
@@ -82,17 +81,14 @@ def create_app() -> FastAPI:
         description="Modular SMS Verification Service",
     )
 
-    # Run startup initialization
     try:
         run_startup_initialization()
     except Exception as e:
         logger = get_logger("startup")
         logger.error(f"Startup initialization failed: {e}")
 
-    # Add GZIP compression middleware
     fastapi_app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-    # Add FastAPI CORS middleware
     settings = get_settings()
     cors_origins = [
         "http://localhost:3000",
@@ -113,16 +109,13 @@ def create_app() -> FastAPI:
         allow_headers=["Content-Type", "Authorization", "X-CSRF-Token"],
     )
 
-    # Setup unified middleware (rate limiting + error handling)
     setup_unified_middleware(fastapi_app)
 
-    # Security and performance middleware stack
     fastapi_app.add_middleware(CSRFMiddleware)
     fastapi_app.add_middleware(SecurityHeadersMiddleware)
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
 
-    # Include essential routers
     fastapi_app.include_router(root_router)
     fastapi_app.include_router(auth_router, prefix="/api")
     fastapi_app.include_router(auth_enhanced_router, prefix="/api")
@@ -132,7 +125,6 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(services_router)
     fastapi_app.include_router(system_router)
 
-    # Include production implementation routers (REAL API)
     fastapi_app.include_router(textverified_router)
     fastapi_app.include_router(pricing_router)
     fastapi_app.include_router(rentals_endpoints_router)
@@ -145,14 +137,12 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(forwarding_router)
     fastapi_app.include_router(cycles_router)
 
-    # Static files - ensure proper serving
     if STATIC_DIR.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
     else:
         logger = get_logger("startup")
         logger.error(f"Static directory '{STATIC_DIR}' not found")
 
-    # Direct template loading (no cache)
     def _load_template(path: str) -> str:
         template_path = (TEMPLATES_DIR / path).resolve()
         if not str(template_path).startswith(str(TEMPLATES_DIR)):
@@ -236,67 +226,78 @@ def create_app() -> FastAPI:
     @fastapi_app.get("/api/user/balance")
     async def user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-        return {
-            "credits": float(user.credits or 0),
-            "free_verifications": int(user.free_verifications or 0),
-            "currency": "USD"
-        }
+        try:
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
+            return {
+                "credits": float(user.credits or 0),
+                "free_verifications": int(user.free_verifications or 0),
+                "currency": "USD"
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger = get_logger("balance")
+            logger.error(f"Balance fetch error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to fetch balance")
 
     @fastapi_app.post("/api/auth/register")
     async def register_user(request: Request):
         from app.core.database import get_db
         from app.services.auth_service import get_auth_service
         from app.schemas.auth import RegisterRequest
-        import json
+        db = None
         try:
             body = await request.body()
             data = json.loads(body)
             reg_data = RegisterRequest(**data)
-            email = reg_data.email
-            password = reg_data.password
             db = next(get_db())
-            try:
-                auth_service = get_auth_service(db)
-                user = auth_service.register_user(email, password)
-                token = auth_service.create_user_token(user)
-                return {
-                    "success": True,
-                    "access_token": token,
-                    "token_type": "bearer",
-                    "user": {
-                        "id": user.id,
-                        "email": user.email,
-                        "credits": float(user.credits or 0),
-                        "free_verifications": int(user.free_verifications or 0)
-                    }
+            auth_service = get_auth_service(db)
+            user = auth_service.register_user(reg_data.email, reg_data.password)
+            token = auth_service.create_user_token(user)
+            return {
+                "success": True,
+                "access_token": token,
+                "token_type": "bearer",
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "credits": float(user.credits or 0),
+                    "free_verifications": int(user.free_verifications or 0)
                 }
-            finally:
-                db.close()
+            }
         except HTTPException:
             raise
-        except (ValueError, KeyError):
-            raise HTTPException(status_code=400, detail="Registration failed")
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON")
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            logger = get_logger("auth")
+            logger.error(f"Registration error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Registration failed")
+        finally:
+            if db:
+                db.close()
 
     @fastapi_app.post("/api/billing/add-credits")
     async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
         from app.schemas.payment import AddCreditsRequest
-        import json
         try:
             if not user_id:
                 raise HTTPException(status_code=401, detail="Authentication required")
             body = await request.body()
             data = json.loads(body)
             credits_data = AddCreditsRequest(**data)
-            amount = credits_data.amount
+            if credits_data.amount <= 0:
+                raise HTTPException(status_code=400, detail="Amount must be positive")
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
-            bonus = 7 if amount >= 50 else (3 if amount >= 25 else (1 if amount >= 10 else 0))
-            total_amount = amount + bonus
+            bonus = 7 if credits_data.amount >= 50 else (3 if credits_data.amount >= 25 else (1 if credits_data.amount >= 10 else 0))
+            total_amount = credits_data.amount + bonus
             user.credits = (user.credits or 0) + total_amount
             db.commit()
             return {
@@ -307,7 +308,13 @@ def create_app() -> FastAPI:
             }
         except HTTPException:
             raise
-        except (ValueError, KeyError, TypeError):
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON")
+        except (ValueError, TypeError) as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            logger = get_logger("billing")
+            logger.error(f"Add credits error: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to add credits")
 
     @fastapi_app.get("/favicon.ico")
@@ -348,7 +355,9 @@ def create_app() -> FastAPI:
                 "top_services": ["Telegram", "WhatsApp", "Discord"],
                 "recent_activity": ["Account created successfully"]
             }
-        except Exception:
+        except Exception as e:
+            logger = get_logger("analytics")
+            logger.error(f"Analytics error: {str(e)}")
             return {
                 "total_verifications": 0,
                 "successful_verifications": 0,
@@ -362,12 +371,17 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/api/countries/")
     async def get_countries():
-        countries = [
-            {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
-            {"code": "india", "name": "India", "prefix": "91", "popular": True},
-            {"code": "usa", "name": "United States", "prefix": "1", "popular": False},
-        ]
-        return {"success": True, "countries": countries, "total": len(countries)}
+        try:
+            countries = [
+                {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
+                {"code": "india", "name": "India", "prefix": "91", "popular": True},
+                {"code": "usa", "name": "United States", "prefix": "1", "popular": False},
+            ]
+            return {"success": True, "countries": countries, "total": len(countries)}
+        except Exception as e:
+            logger = get_logger("countries")
+            logger.error(f"Countries fetch error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to fetch countries")
 
     @fastapi_app.on_event("startup")
     async def startup_event():

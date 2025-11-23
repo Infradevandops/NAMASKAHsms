@@ -47,15 +47,19 @@ def create_safe_error_detail(e):
 @router.get("/services")
 async def get_available_services():
     """Get available services."""
-    return {
-        "success": True,
-        "services": [
-            {"id": "telegram", "name": "Telegram"},
-            {"id": "whatsapp", "name": "WhatsApp"},
-            {"id": "google", "name": "Google"},
-        ],
-        "total": 3
-    }
+    try:
+        return {
+            "success": True,
+            "services": [
+                {"id": "telegram", "name": "Telegram"},
+                {"id": "whatsapp", "name": "WhatsApp"},
+                {"id": "google", "name": "Google"},
+            ],
+            "total": 3
+        }
+    except Exception as e:
+        logger.error(f"Services fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch services")
 
 @router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
 async def create_verification(
@@ -100,6 +104,7 @@ async def create_verification(
         db.commit()
         db.refresh(verification)
 
+        logger.info(f"Verification created: {verification.id}")
         return {
             "id": verification.id,
             "service_name": verification.service_name,
@@ -115,28 +120,35 @@ async def create_verification(
         raise
     except Exception as e:
         logger.error(f"Verification creation failed: {create_safe_error_detail(e)}")
+        db.rollback()
         raise HTTPException(status_code=500, detail="Failed to create verification")
 
 @router.get("/{verification_id}", response_model=VerificationResponse)
 async def get_verification_status(verification_id: str, db: Session = Depends(get_db)):
     """Get verification status."""
-    verification = db.query(Verification).filter(
-        Verification.id == verification_id
-    ).first()
+    try:
+        verification = db.query(Verification).filter(
+            Verification.id == verification_id
+        ).first()
 
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
+        if not verification:
+            raise HTTPException(status_code=404, detail="Verification not found")
 
-    return {
-        "id": verification.id,
-        "service_name": verification.service_name,
-        "phone_number": verification.phone_number,
-        "capability": verification.capability,
-        "status": verification.status,
-        "cost": verification.cost,
-        "created_at": verification.created_at.isoformat(),
-        "completed_at": verification.completed_at.isoformat() if verification.completed_at else None
-    }
+        return {
+            "id": verification.id,
+            "service_name": verification.service_name,
+            "phone_number": verification.phone_number,
+            "capability": verification.capability,
+            "status": verification.status,
+            "cost": verification.cost,
+            "created_at": verification.created_at.isoformat(),
+            "completed_at": verification.completed_at.isoformat() if verification.completed_at else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Status fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch verification status")
 
 @router.get("/history", response_model=VerificationHistoryResponse)
 def get_verification_history(
@@ -144,14 +156,18 @@ def get_verification_history(
     db: Session = Depends(get_db),
 ):
     """Get verification history."""
-    verifications = db.query(Verification).filter(
-        Verification.user_id == user_id
-    ).all()
+    try:
+        verifications = db.query(Verification).filter(
+            Verification.user_id == user_id
+        ).all()
 
-    return VerificationHistoryResponse(
-        verifications=[],
-        total_count=len(verifications),
-    )
+        return VerificationHistoryResponse(
+            verifications=[],
+            total_count=len(verifications),
+        )
+    except Exception as e:
+        logger.error(f"History fetch error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch verification history")
 
 @router.delete("/{verification_id}", response_model=SuccessResponse)
 async def cancel_verification(
@@ -160,15 +176,23 @@ async def cancel_verification(
     db: Session = Depends(get_db),
 ):
     """Cancel verification."""
-    verification = db.query(Verification).filter(
-        Verification.id == verification_id,
-        Verification.user_id == user_id
-    ).first()
+    try:
+        verification = db.query(Verification).filter(
+            Verification.id == verification_id,
+            Verification.user_id == user_id
+        ).first()
 
-    if not verification:
-        raise HTTPException(status_code=404, detail="Verification not found")
+        if not verification:
+            raise HTTPException(status_code=404, detail="Verification not found")
 
-    verification.status = "cancelled"
-    db.commit()
+        verification.status = "cancelled"
+        db.commit()
+        logger.info(f"Verification cancelled: {verification_id}")
 
-    return SuccessResponse(message="Verification cancelled")
+        return SuccessResponse(message="Verification cancelled")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Cancellation error: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to cancel verification")

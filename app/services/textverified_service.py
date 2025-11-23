@@ -17,8 +17,7 @@ class TextVerifiedService(SMSProviderInterface):
 
     def __init__(self):
         self.api_key = settings.textverified_api_key
-        self.api_username = getattr(settings,
-                                    'textverified_email', 'huff_06psalm@icloud.com')
+        self.api_username = getattr(settings, 'textverified_email', 'huff_06psalm@icloud.com')
         self.enabled = bool(self.api_key and self.api_username and textverified)
 
         if self.enabled:
@@ -39,22 +38,23 @@ class TextVerifiedService(SMSProviderInterface):
 
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance."""
-        if not self.enabled:
-            raise Exception("TextVerified not configured")
         try:
+            if not self.enabled:
+                raise Exception("TextVerified not configured")
             balance = self.client.account.balance
             return {
                 "balance": float(balance),
                 "currency": "USD"
             }
         except Exception as e:
-            raise Exception(f"TextVerified balance error: {str(e)}")
+            logger.error(f"TextVerified balance error: {str(e)}")
+            raise
 
     async def buy_number(self, country: str, service: str) -> Dict[str, Any]:
         """Purchase phone number for verification."""
-        if not self.enabled:
-            raise Exception("TextVerified not configured")
         try:
+            if not self.enabled:
+                raise Exception("TextVerified not configured")
             verification = self.client.verifications.create(
                 service_name=service,
                 capability=textverified.ReservationCapability.SMS
@@ -66,13 +66,14 @@ class TextVerifiedService(SMSProviderInterface):
                 "cost": float(verification.total_cost)
             }
         except Exception as e:
-            raise Exception(f"TextVerified purchase error: {str(e)}")
+            logger.error(f"TextVerified purchase error: {str(e)}")
+            raise
 
     async def check_sms(self, activation_id: str) -> Dict[str, Any]:
         """Check for SMS messages."""
-        if not self.enabled:
-            raise Exception("TextVerified not configured")
         try:
+            if not self.enabled:
+                raise Exception("TextVerified not configured")
             verification = self.client.verifications.details(activation_id)
 
             if hasattr(verification, 'sms') and verification.sms:
@@ -90,6 +91,7 @@ class TextVerifiedService(SMSProviderInterface):
                 "status": "pending"
             }
         except Exception as e:
+            logger.error(f"TextVerified check error: {str(e)}")
             return {
                 "sms_code": None,
                 "sms_text": None,
@@ -99,31 +101,44 @@ class TextVerifiedService(SMSProviderInterface):
 
     async def get_pricing(self, country: str, service: str) -> Dict[str, Any]:
         """Get service pricing."""
-        return {
-            "cost": 0.50,
-            "currency": "USD"
-        }
+        try:
+            return {
+                "cost": 0.50,
+                "currency": "USD"
+            }
+        except Exception as e:
+            logger.error(f"Pricing fetch error: {str(e)}")
+            raise
 
     async def get_number(self, service: str, country: str = "US") -> Dict:
         """Get phone number for verification (legacy method)."""
-        result = await self.buy_number(country, service)
-        return {
-            "id": result["activation_id"],
-            "number": result["phone_number"],
-            "cost": result["cost"]
-        }
+        try:
+            result = await self.buy_number(country, service)
+            return {
+                "id": result["activation_id"],
+                "number": result["phone_number"],
+                "cost": result["cost"]
+            }
+        except Exception as e:
+            logger.error(f"Get number error: {str(e)}")
+            raise
 
     async def get_sms(self, activation_id: str) -> Optional[str]:
         """Get SMS code for activation (legacy method)."""
-        result = await self.check_sms(activation_id)
-        return result.get("sms_code")
+        try:
+            result = await self.check_sms(activation_id)
+            return result.get("sms_code")
+        except Exception as e:
+            logger.error(f"Get SMS error: {str(e)}")
+            return None
 
     async def cancel_activation(self, activation_id: str) -> bool:
         """Cancel activation and get refund."""
-        if not self.enabled:
-            return False
         try:
+            if not self.enabled:
+                return False
             self.client.verifications.cancel(activation_id)
+            logger.info(f"Activation cancelled: {activation_id}")
             return True
         except Exception as e:
             logger.error(f"TextVerified cancel failed: {e}")
