@@ -1,4 +1,5 @@
 """Authentication API router."""
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
@@ -13,7 +14,6 @@ from app.schemas.auth import (
     LoginRequest,
     PasswordResetConfirm,
     PasswordResetRequest,
-    SuccessResponse,
     TokenResponse,
     UserCreate,
     UserResponse,
@@ -28,6 +28,9 @@ from app.models.user import User, APIKey
 from app.core.dependencies import get_current_user_id, require_verified_email
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.core.token_manager import create_tokens, create_session
+
+class SuccessResponse(BaseModel):
+    message: str
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
