@@ -1,4 +1,5 @@
 """Consolidated SMS Verification API with unified endpoints."""
+from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
 from app.utils.timezone_utils import utc_now, parse_date_string

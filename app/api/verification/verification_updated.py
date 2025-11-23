@@ -1,4 +1,5 @@
 """SMS Verification API with TextVerified API Integration - Updated Error Handling"""
+from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from datetime import timedelta
 from app.utils.timezone_utils import utc_now, parse_date_string, get_timestamp_filename

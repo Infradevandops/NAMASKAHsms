@@ -1,4 +1,5 @@
 """Reseller program API endpoints."""
+from app.core.database import get_db
 from app.models.user import User
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
