@@ -1,8 +1,31 @@
 """Admin endpoints with RBAC."""
-from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from pydantic import BaseModel
+
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.models.user import User
+
+class SuccessResponse(BaseModel):
+    message: str
+
+async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user_id
+
+async def require_moderator_or_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or (not user.is_admin and not user.is_moderator):
+        raise HTTPException(status_code=403, detail="Moderator or admin access required")
+    return user_id
+
+def get_user_role(db, user_id):
+    class Role:
+        value = "user"
+    return Role()
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
