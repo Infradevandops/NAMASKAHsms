@@ -333,15 +333,27 @@
         async function loadUserData() {
             try {
                 const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
                 const response = await fetch('/api/auth/me', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                const user = await response.json();
                 
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.removeItem('token');
+                        window.location.href = '/auth/login';
+                    }
+                    throw new Error('Failed to load user data');
+                }
+                
+                const user = await response.json();
                 document.getElementById('email').value = user.email || '';
                 document.getElementById('displayName').value = user.display_name || '';
                 
-                // Load saved settings
                 const savedSettings = localStorage.getItem('userSettings');
                 if (savedSettings) {
                     userSettings = { ...userSettings, ...JSON.parse(savedSettings) };
@@ -350,6 +362,7 @@
                 updateToggleStates();
             } catch (error) {
                 console.error('Failed to load user data:', error);
+                showAlert('Failed to load user data', 'error');
             }
         }
 
@@ -404,14 +417,40 @@
         document.getElementById('profileForm').onsubmit = async (e) => {
             e.preventDefault();
             
-            const displayName = document.getElementById('displayName').value;
+            const displayName = document.getElementById('displayName').value.trim();
             const timezone = document.getElementById('timezone').value;
+            const submitBtn = e.target.querySelector('button');
+            
+            if (!displayName) {
+                showAlert('Display name is required', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Updating...';
             
             try {
-                // In a real app, this would update the profile via API
-                showSuccessMessage();
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ display_name: displayName, timezone: timezone })
+                });
+                
+                if (response.ok) {
+                    showSuccessMessage();
+                } else {
+                    showAlert('Failed to update profile', 'error');
+                }
             } catch (error) {
+                console.error('Profile update error:', error);
                 showAlert('Failed to update profile', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Update Profile';
             }
         };
 
@@ -421,6 +460,7 @@
             const currentPassword = document.getElementById('currentPassword').value;
             const newPassword = document.getElementById('newPassword').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
+            const submitBtn = e.target.querySelector('button');
             
             if (!currentPassword || !newPassword || !confirmPassword) {
                 showAlert('Please fill in all password fields', 'error');
@@ -437,21 +477,105 @@
                 return;
             }
             
+            if (currentPassword === newPassword) {
+                showAlert('New password must be different from current password', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Changing...';
+            
             try {
-                // In a real app, this would change the password via API
-                showSuccessMessage();
-                document.getElementById('securityForm').reset();
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        current_password: currentPassword,
+                        new_password: newPassword
+                    })
+                });
+                
+                if (response.ok) {
+                    showSuccessMessage();
+                    document.getElementById('securityForm').reset();
+                } else {
+                    const data = await response.json();
+                    showAlert(data.detail || 'Failed to change password', 'error');
+                }
             } catch (error) {
+                console.error('Password change error:', error);
                 showAlert('Failed to change password', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Change Password';
             }
         };
 
-        function exportData() {
-            window.location.href = '/privacy-settings';
+        async function exportData() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/gdpr/export', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `namaskah-data-export-${new Date().toISOString().split('T')[0]}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    showAlert('Data exported successfully', 'success');
+                } else {
+                    showAlert('Failed to export data', 'error');
+                }
+            } catch (error) {
+                console.error('Export data error:', error);
+                showAlert('Failed to export data', 'error');
+            }
         }
 
         function deleteAccount() {
-            window.location.href = '/privacy-settings';
+            if (!confirm('Are you sure? This action cannot be undone. All your data will be permanently deleted.')) return;
+            if (!confirm('This is your last warning. Delete account?')) return;
+            
+            const password = prompt('Enter your password to confirm account deletion:');
+            if (!password) return;
+            
+            deleteAccountConfirmed(password);
+        }
+        
+        async function deleteAccountConfirmed(password) {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/delete-account', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ password: password })
+                });
+                
+                if (response.ok) {
+                    showAlert('Account deleted successfully', 'success');
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    setTimeout(() => window.location.href = '/', 2000);
+                } else {
+                    const data = await response.json();
+                    showAlert(data.detail || 'Failed to delete account', 'error');
+                }
+            } catch (error) {
+                console.error('Delete account error:', error);
+                showAlert('Failed to delete account', 'error');
+            }
         }
 
         function goBack() {
