@@ -5,8 +5,6 @@ from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
 from app.services.rental_service import RentalService
-from app.schemas.rental import RentalCreate, RentalExtend
-from app.core.exceptions import InsufficientCreditsError
 
 
 @pytest.fixture

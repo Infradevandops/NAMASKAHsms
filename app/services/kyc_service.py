@@ -2,16 +2,10 @@
 from typing import Dict, Optional
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
 
 from app.models.kyc import (
     KYCProfile, KYCDocument, KYCAuditLog, AMLScreening
 )
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas.kyc import KYCProfileCreate
-from app.core.logging import get_logger
-from app.core.exceptions import ValidationError
 
 logger = get_logger(__name__)
 
@@ -225,7 +219,6 @@ class KYCService:
 
             # Age - based risk (younger = higher risk)
             if kyc_profile.date_of_birth:
-                from datetime import date
                 age = date.today().year - kyc_profile.date_of_birth.year
                 if age < 25:
                     risk_score += 0.2

@@ -2,9 +2,7 @@
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from app.models.commission import CommissionTier, RevenueShare
-from app.models.user import User
 from datetime import datetime
-from app.utils.timezone_utils import utc_now
 
 
 class CommissionEngine:

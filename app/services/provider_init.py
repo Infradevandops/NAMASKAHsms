@@ -1,8 +1,5 @@
 """Initialize unified provider orchestrator."""
 from app.services.provider_orchestrator import ProviderOrchestrator, FailoverStrategy
-from app.services.textverified_provider import TextVerifiedProvider
-from app.services.fivesim_provider import FiveSimProvider
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

@@ -2,7 +2,6 @@
 from typing import Dict, List, Any, Optional
 from enum import Enum
 from app.core.logging import get_logger
-from app.services.provider_base import UnifiedProviderBase, ProviderStatus
 
 logger = get_logger(__name__)
 

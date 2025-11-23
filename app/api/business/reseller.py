@@ -2,8 +2,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, get_current_admin_user
-from app.services.reseller_service import get_reseller_service
-from app.models.user import User
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional, Dict
 
@@ -65,7 +63,6 @@ async def create_sub_account(
     """Create new sub - account."""
 
     # Get reseller account
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -99,7 +96,6 @@ async def get_sub_accounts(
 ):
     """Get all sub - accounts."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -121,7 +117,6 @@ async def allocate_credits(
 ):
     """Allocate credits to sub - account."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -155,7 +150,6 @@ async def bulk_credit_topup(
 ):
     """Bulk credit top - up for multiple accounts."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -185,7 +179,6 @@ async def get_usage_report(
 ):
     """Get usage analytics report."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -207,7 +200,6 @@ async def update_custom_pricing(
 ):
     """Update custom pricing for reseller."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -233,7 +225,6 @@ async def get_reseller_dashboard(
 ):
     """Get reseller dashboard data."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.user_id == current_user.id
     ).first()
@@ -271,7 +262,6 @@ async def get_all_resellers(
 ):
     """Get all reseller accounts (admin only)."""
 
-    from app.models.reseller import ResellerAccount
     resellers = db.query(ResellerAccount).join(User).all()
 
     return [
@@ -297,7 +287,6 @@ async def update_reseller_tier(
 ):
     """Update reseller tier (admin only)."""
 
-    from app.models.reseller import ResellerAccount
     reseller = db.query(ResellerAccount).filter(
         ResellerAccount.id == reseller_id
     ).first()

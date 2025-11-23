@@ -3,17 +3,9 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_admin_user_id
-from app.models.system import SupportTicket
-from app.models.transaction import Transaction
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas import SuccessResponse, SupportTicketResponse
-from app.utils.sanitization import sanitize_html, sanitize_email_content
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
@@ -277,7 +269,6 @@ def get_platform_stats(
     """Get platform - wide statistics (admin only)."""
 
     try:
-        from sqlalchemy import text
 
         # Get basic stats with raw SQL for reliability
         result = db.execute(text("SELECT COUNT(*) FROM users")).scalar()
@@ -350,7 +341,6 @@ async def respond_to_ticket(
     db: Session = Depends(get_db),
 ):
     """Respond to support ticket (admin only)."""
-    from app.services import get_notification_service
 
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
     if not ticket:
@@ -534,7 +524,6 @@ async def broadcast_notification(
     db: Session = Depends(get_db),
 ):
     """Broadcast notification to users (admin only)."""
-    from app.services import get_notification_service
 
     # Get target users
     if target_users:

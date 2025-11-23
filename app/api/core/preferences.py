@@ -2,13 +2,8 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.preferences import ServicePreference
-from app.utils.exception_handling import safe_int_conversion
 
 logger = get_logger(__name__)
 
@@ -179,7 +174,7 @@ async def delete_preference(
         }
 
     except HTTPException:
-        raise
+        pass
     except SQLAlchemyError as e:
         logger.error(f"Database error deleting preference: {str(e)}")
         raise HTTPException(status_code=500, detail="Database operation failed")

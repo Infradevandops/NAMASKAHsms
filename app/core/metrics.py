@@ -8,11 +8,8 @@ from typing import Any, Dict
 
 import psutil
 from prometheus_client import CONTENT_TYPE_LATEST
-from prometheus_client import Counter as PrometheusCounter
-from prometheus_client import Gauge, Histogram, generate_latest
 
 from app.core.config import settings
-from app.core.logging import get_logger
 
 logger = get_logger("metrics")
 
@@ -301,7 +298,6 @@ async def record_business_event(event_type: str, status: str = "success", **kwar
     metrics_collector.record_business_event(event_type, status)
 
     # Log business event for analytics
-    from app.core.logging import log_business_event
 
     business_logger = get_logger("business")
     log_business_event(business_logger, event_type, {"status": status, **kwargs})
@@ -317,7 +313,6 @@ async def record_performance_metric(operation: str, duration: float, **kwargs):
     operation_histogram.labels(operation=operation).observe(duration)
 
     # Log performance
-    from app.core.logging import log_performance
 
     performance_logger = get_logger("performance")
     log_performance(performance_logger, operation, duration, kwargs)

@@ -47,7 +47,7 @@ class SecurityConfig:
         "api_key",
         "auth",
         "session",
-        "csrf",
+        "csr",
         "signature",
     ]
 
@@ -61,7 +61,7 @@ class SecurityConfig:
 
     # Security headers to add to responses
     SECURITY_HEADERS = {
-        "X - Content-Type - Options": "nosniff",
+        "X - Content-Type - Options": "nosnif",
         "X - Frame-Options": "DENY",
         "X - XSS-Protection": "1; mode = block",
         "Strict - Transport-Security": "max - age = 31536000; includeSubDomains",
@@ -127,7 +127,6 @@ class SecurityConfig:
     @staticmethod
     def validate_sql_identifier(identifier: str) -> bool:
         """Validate SQL identifier to prevent injection."""
-        import re
 
         # Only allow alphanumeric characters and underscores
         return bool(re.match(r"^[a - zA-Z_][a - zA-Z0 - 9_]*$", identifier))

@@ -5,7 +5,6 @@ from typing import Optional
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
 
 from app.core.logging import get_logger, log_performance
 
@@ -247,7 +246,7 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
                 "count": 0,
                 "avg_time": 0.0,
                 "errors": 0,
-                "min_time": float("inf"),
+                "min_time": float("in"),
                 "max_time": 0.0,
             }
 

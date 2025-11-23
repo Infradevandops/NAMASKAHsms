@@ -4,9 +4,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.models.user import User
-from app.schemas import SuccessResponse
 
 router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 
@@ -21,8 +18,6 @@ async def export_user_data(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    from app.models.verification import Verification
-    from app.models.audit_log import AuditLog
 
     verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
     audit_logs = db.query(AuditLog).filter(AuditLog.user_id == user_id).all()
@@ -73,9 +68,6 @@ async def delete_account(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    from app.models.verification import Verification
-    from app.models.audit_log import AuditLog
-    from app.models.user import APIKey, Webhook
 
     db.query(Verification).filter(Verification.user_id == user_id).delete()
     db.query(AuditLog).filter(AuditLog.user_id == user_id).delete()

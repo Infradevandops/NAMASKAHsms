@@ -1,7 +1,5 @@
 """Provider registry for initializing and managing all SMS providers."""
 from app.services.provider_system import ProviderManager
-from app.services.textverified_provider import TextVerifiedProvider
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

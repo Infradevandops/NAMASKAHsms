@@ -1,26 +1,16 @@
 """SMS Verification API with TextVerified API Integration"""
 from app.services.provider_registry import provider_manager
-from app.schemas import (
     SuccessResponse,
     VerificationCreate,
     VerificationHistoryResponse,
     VerificationResponse,
 )
-from app.models.verification import Verification
-from app.models.user import User
 from datetime import datetime, timezone
-from app.utils.timezone_utils import utc_now, parse_date_string, get_timestamp_filename
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.core.exceptions import ExternalServiceError
-from app.core.config import settings
-from app.utils.log_sanitization import sanitize_user_id
 sanitize_service_name, safe_log_format
 
 logger = get_logger(__name__)
@@ -104,7 +94,7 @@ async def create_verification(
                 )
             logger.info(f"TextVerified balance: ${balance}")
         except HTTPException:
-            raise
+        pass
         except Exception as e:
             logger.error(f"TextVerified API failed: {str(e)}")
             raise HTTPException(
@@ -146,7 +136,7 @@ async def create_verification(
                 final_cost = number_data["cost"]
 
         except HTTPException:
-            raise
+        pass
         except Exception as e:
             # Refund credits on purchase failure
             if actual_cost > 0:
@@ -202,7 +192,7 @@ async def create_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Verification creation failed: %s", str(e), exc_info=True)
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
@@ -325,7 +315,7 @@ async def get_verification_messages(verification_id: str, db: Session = Depends(
             }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Failed to get messages for %s: %s", verification_id, str(e))
         return {
@@ -430,7 +420,6 @@ async def export_verification_history(
     """Export verification history as CSV"""
     import csv
     import io
-    from fastapi.responses import StreamingResponse
 
     try:
         # Build query
@@ -528,7 +517,7 @@ async def export_verification_history(
         )
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Export failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Export failed. Please try again.")
@@ -608,7 +597,6 @@ async def get_verification_analytics(
                                  key=lambda x: x[1]["total"], reverse=True)[:10])
 
         # Recent trend (last 30 days, grouped by day)
-        from datetime import timedelta
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         recent_verifications = [v for v in verifications if v.created_at >= thirty_days_ago]
 
@@ -747,7 +735,6 @@ async def cancel_verification(
     db.commit()
 
     # Stop polling for this verification
-    from app.services.sms_polling_service import sms_polling_service
     await sms_polling_service.stop_polling(verification_id)
 
     return SuccessResponse(

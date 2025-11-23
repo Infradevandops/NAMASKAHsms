@@ -1,10 +1,8 @@
 """Business intelligence and analytics service."""
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func, and_
 from datetime import datetime, timedelta
 from typing import Dict, Any
 from app.models.rental import Rental
-from app.utils.performance import async_cache
 
 
 class BusinessIntelligenceService:

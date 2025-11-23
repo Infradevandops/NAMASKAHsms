@@ -1,8 +1,6 @@
 """Enterprise SLA and account management API."""
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user, get_current_admin_user
-from app.services.enterprise_service import enterprise_service
-from app.models.user import User
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/enterprise", tags=["enterprise"])

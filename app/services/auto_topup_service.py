@@ -4,7 +4,6 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from app.models.user import User
-from app.services.payment_service import PaymentService
 
 
 class AutoTopupService:

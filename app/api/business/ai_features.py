@@ -1,9 +1,6 @@
 """AI features API endpoints."""
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user
-from app.services.smart_routing import smart_router
-from app.services.fraud_detection import fraud_detector
-from app.models.user import User
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 

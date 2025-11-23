@@ -5,7 +5,6 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.models.verification import Verification
-from app.models.user import User
 
 
 class TestConsolidatedVerificationAPI:
@@ -44,7 +43,6 @@ class TestConsolidatedVerificationAPI:
     @pytest.mark.asyncio
     async def test_get_available_services(self):
         """Test getting available services."""
-        from app.api.verification.consolidated_verification import get_available_services
 
         result = await get_available_services()
 
@@ -58,8 +56,6 @@ class TestConsolidatedVerificationAPI:
     async def test_create_verification_success(self, mock_provider_manager,
                                                mock_db, mock_user):
         """Test successful verification creation."""
-        from app.api.verification.consolidated_verification import create_verification
-        from app.schemas import VerificationCreate
 
         # Setup mocks
         mock_provider_manager.get_balance.return_value = {"balance": 100.0}
@@ -100,8 +96,6 @@ class TestConsolidatedVerificationAPI:
     async def test_create_verification_insufficient_credits(self, mock_provider_manager,
                                                             mock_db, mock_user):
         """Test verification creation with insufficient credits."""
-        from app.api.verification.consolidated_verification import create_verification
-        from app.schemas import VerificationCreate
         from fastapi import HTTPException
 
         # Setup mocks
@@ -128,9 +122,6 @@ class TestConsolidatedVerificationAPI:
     async def test_create_verification_provider_failure(self, mock_provider_manager,
                                                         mock_db, mock_user):
         """Test verification creation with provider failure."""
-        from app.api.verification.consolidated_verification import create_verification
-        from app.schemas import VerificationCreate
-        from fastapi import HTTPException
 
         # Setup mocks
         mock_provider_manager.get_balance.return_value = {"balance": 100.0}
@@ -158,7 +149,6 @@ class TestConsolidatedVerificationAPI:
     async def test_get_verification_status_pending(self, mock_provider_manager,
                                                    mock_db, mock_verification):
         """Test getting verification status for pending verification."""
-        from app.api.verification.consolidated_verification import get_verification_status
 
         # Setup mocks
         mock_provider_manager.check_sms.return_value = {"sms_code": None}
@@ -175,7 +165,6 @@ class TestConsolidatedVerificationAPI:
     async def test_get_verification_status_completed(self, mock_provider_manager,
                                                      mock_db, mock_verification):
         """Test getting verification status when SMS is received."""
-        from app.api.verification.consolidated_verification import get_verification_status
 
         # Setup mocks
         mock_provider_manager.check_sms.return_value = {"sms_code": "123456"}
@@ -192,8 +181,6 @@ class TestConsolidatedVerificationAPI:
     @pytest.mark.asyncio
     async def test_get_verification_status_not_found(self, mock_db):
         """Test getting verification status for non - existent verification."""
-        from app.api.verification.consolidated_verification import get_verification_status
-        from fastapi import HTTPException
 
         mock_db.query.return_value.filter.return_value.first.return_value = None
 
@@ -208,7 +195,6 @@ class TestConsolidatedVerificationAPI:
     async def test_get_verification_messages_with_sms(self, mock_provider_manager,
                                                       mock_db, mock_verification):
         """Test getting verification messages when SMS is available."""
-        from app.api.verification.consolidated_verification import get_verification_messages
 
         # Setup mocks
         mock_provider_manager.check_sms.return_value = {"sms_code": "123456"}
@@ -228,7 +214,6 @@ class TestConsolidatedVerificationAPI:
     async def test_get_verification_messages_no_sms(self, mock_provider_manager,
                                                     mock_db, mock_verification):
         """Test getting verification messages when no SMS is available."""
-        from app.api.verification.consolidated_verification import get_verification_messages
 
         # Setup mocks
         mock_provider_manager.check_sms.return_value = {"sms_code": None}
@@ -242,7 +227,6 @@ class TestConsolidatedVerificationAPI:
 
     def test_get_verification_history_basic(self, mock_db, mock_verification):
         """Test getting verification history."""
-        from app.api.verification.consolidated_verification import get_verification_history
 
         # Setup mocks
         mock_query = MagicMock()
@@ -264,7 +248,6 @@ class TestConsolidatedVerificationAPI:
 
     def test_get_verification_history_with_filters(self, mock_db):
         """Test getting verification history with filters."""
-        from app.api.verification.consolidated_verification import get_verification_history
 
         # Setup mocks
         mock_query = MagicMock()
@@ -294,7 +277,6 @@ class TestConsolidatedVerificationAPI:
     @pytest.mark.asyncio
     async def test_get_verification_analytics_empty(self, mock_db):
         """Test getting analytics with no verifications."""
-        from app.api.verification.consolidated_verification import get_verification_analytics
 
         mock_db.query.return_value.filter.return_value.all.return_value = []
 
@@ -309,7 +291,6 @@ class TestConsolidatedVerificationAPI:
     @pytest.mark.asyncio
     async def test_get_verification_analytics_with_data(self, mock_db):
         """Test getting analytics with verification data."""
-        from app.api.verification.consolidated_verification import get_verification_analytics
 
         # Create mock verifications
         completed_verification = MagicMock()
@@ -340,7 +321,6 @@ class TestConsolidatedVerificationAPI:
     async def test_cancel_verification_success(self, mock_db,
                                                mock_verification, mock_user):
         """Test successful verification cancellation."""
-        from app.api.verification.consolidated_verification import cancel_verification
 
         # Setup mocks
         mock_verification.cost = 0.50
@@ -363,8 +343,6 @@ class TestConsolidatedVerificationAPI:
     @pytest.mark.asyncio
     async def test_cancel_verification_not_found(self, mock_db):
         """Test cancelling non - existent verification."""
-        from app.api.verification.consolidated_verification import cancel_verification
-        from fastapi import HTTPException
 
         mock_db.query.return_value.filter.return_value.first.return_value = None
 
@@ -382,8 +360,6 @@ class TestConsolidatedVerificationAPI:
     async def test_cancel_verification_already_completed(self,
                                                          mock_db, mock_verification):
         """Test cancelling already completed verification."""
-        from app.api.verification.consolidated_verification import cancel_verification
-        from fastapi import HTTPException
 
         mock_verification.status = "completed"
         mock_db.query.return_value.filter.return_value.first.return_value = mock_verification

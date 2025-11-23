@@ -39,7 +39,7 @@ class TestPathTraversalPrevention:
     def test_sanitize_filename_normal(self):
         """Test normal filename sanitization."""
         test_cases = [
-            ("document.pdf", "document.pdf"),
+            ("document.pd", "document.pdf"),
             ("my file.txt", "my file.txt"),
             ("report_2024.xlsx", "report_2024.xlsx")
         ]

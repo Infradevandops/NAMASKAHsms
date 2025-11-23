@@ -2,8 +2,6 @@
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
-from app.utils.sanitization import sanitize_html
-from app.utils.log_sanitization import sanitize_log_input
 
 
 class TestSecurityComprehensive:
@@ -248,7 +246,7 @@ class TestSecurityComprehensive:
         """Test MIME sniffing protection."""
         response = client.get("/")
         # Should have X - Content-Type - Options header
-        assert response.headers.get("X - Content-Type - Options") == "nosniff"
+        assert response.headers.get("X - Content-Type - Options") == "nosnif"
 
     def test_information_disclosure(self, client):
         """Test for information disclosure vulnerabilities."""

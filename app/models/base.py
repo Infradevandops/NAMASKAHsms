@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 import uuid
 
 from sqlalchemy import Column, DateTime, String, Boolean
-from sqlalchemy.orm import declarative_base
 
 Base = declarative_base()
 

@@ -1,7 +1,6 @@
 """Provider health check endpoints."""
 from fastapi import APIRouter, HTTPException
 from app.services.provider_registry import provider_manager
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/providers", tags=["providers"])
@@ -41,7 +40,7 @@ async def get_provider_health_by_name(provider_name: str):
             "provider": provider_info
         }
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Error getting provider health: {e}")
         raise HTTPException(status_code=500, detail=str(e))

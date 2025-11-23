@@ -3,10 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.services.textverified_api import get_textverified_client
-from app.models.rental import Rental
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/wake-requests", tags=["wake-requests"])
@@ -57,7 +53,7 @@ async def create_wake_request(
             }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Create wake request error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create wake request")
@@ -82,7 +78,6 @@ async def estimate_wake_window(
             raise HTTPException(status_code=404, detail="Rental not found")
 
         headers = await client.auth_service.get_headers()
-        import httpx
 
         async with httpx.AsyncClient() as http_client:
             response = await http_client.post(
@@ -104,7 +99,7 @@ async def estimate_wake_window(
             }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Estimate wake window error: {e}")
         raise HTTPException(status_code=500, detail="Failed to estimate wake window")
@@ -118,7 +113,6 @@ async def get_wake_request_status(
     """Get wake request status."""
     try:
         headers = await client.auth_service.get_headers()
-        import httpx
 
         async with httpx.AsyncClient() as http_client:
             response = await http_client.get(

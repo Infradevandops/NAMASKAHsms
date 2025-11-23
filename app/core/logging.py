@@ -86,7 +86,6 @@ def setup_logging():
 def setup_log_rotation():
     """Setup log rotation for production."""
     import tempfile
-    from logging.handlers import RotatingFileHandler
 
     # Use secure log directory - prefer app directory or secure temp
     log_dir = os.environ.get("LOG_DIR")

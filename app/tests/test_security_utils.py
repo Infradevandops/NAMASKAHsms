@@ -10,7 +10,6 @@ from app.utils.security import (
 
 def test_password_hashing():
     """Test password hashing and verification."""
-    from app.tests.fixtures import generate_test_password
 
     password = generate_test_password()
 

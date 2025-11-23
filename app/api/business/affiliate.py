@@ -2,8 +2,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_admin_user
-from app.services.affiliate_service import affiliate_service
-from app.models.user import User
 from pydantic import BaseModel, EmailStr
 from typing import List, Optional
 

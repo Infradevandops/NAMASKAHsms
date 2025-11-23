@@ -32,7 +32,6 @@ def mock_db():
 
 def test_get_user_analytics_structure(mock_user, mock_db):
     """Test user analytics endpoint returns correct structure."""
-    from app.api.analytics import get_user_analytics
 
     # Mock database queries
     mock_db.query.return_value.filter.return_value.count.return_value = 10
@@ -50,7 +49,6 @@ def test_get_user_analytics_structure(mock_user, mock_db):
 
 def test_cost_analysis_structure(mock_user, mock_db):
     """Test cost analysis endpoint returns correct structure."""
-    from app.api.analytics import get_cost_analysis
 
     # Mock database queries
     mock_db.query.return_value.filter.return_value.group_by.return_value.all.return_value = []
@@ -65,7 +63,6 @@ def test_cost_analysis_structure(mock_user, mock_db):
 
 def test_export_data_verifications(mock_user, mock_db):
     """Test data export for verifications."""
-    from app.api.analytics import export_data
 
     # Mock verification data
     mock_verification = Mock()

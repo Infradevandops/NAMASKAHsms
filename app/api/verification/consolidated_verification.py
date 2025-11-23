@@ -6,22 +6,13 @@ import csv
 import io
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas import (
     SuccessResponse,
     VerificationCreate,
     VerificationHistoryResponse,
     VerificationResponse,
 )
-from app.services.provider_registry import provider_manager
-from app.utils.data_masking import create_safe_error_detail
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -159,7 +150,7 @@ async def create_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Verification creation failed: {create_safe_error_detail(e)}")
         raise HTTPException(status_code=500, detail="Failed to create verification")

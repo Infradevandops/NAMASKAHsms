@@ -1,9 +1,7 @@
 """Rate limiting middleware."""
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 from app.core.rate_limiter import rate_limiter
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

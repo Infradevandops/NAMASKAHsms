@@ -1,7 +1,6 @@
 """Enterprise SLA and account management service."""
 from typing import Dict, Optional
 from app.models.enterprise import EnterpriseTier, EnterpriseAccount
-from app.core.database import get_db
 
 
 class EnterpriseService:

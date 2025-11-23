@@ -1,7 +1,6 @@
 """FastAPI dependency injection utilities."""
 import jwt
 from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from .config import settings
@@ -66,7 +65,6 @@ def get_admin_user_id(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ) -> str:
     """Get admin user ID (requires admin role)."""
-    from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -80,7 +78,6 @@ def get_current_admin_user(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Get current admin user object (requires admin role)."""
-    from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:

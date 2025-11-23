@@ -3,7 +3,6 @@ from typing import Dict, List
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 from app.core.database import get_db
-from app.models.verification import Verification
 
 
 @dataclass

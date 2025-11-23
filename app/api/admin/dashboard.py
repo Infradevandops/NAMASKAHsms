@@ -4,15 +4,8 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import desc, func
-from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.transaction import Transaction
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas import SuccessResponse
 
 logger = get_logger(__name__)
 

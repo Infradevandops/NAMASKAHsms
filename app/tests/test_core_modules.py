@@ -1,8 +1,5 @@
 """Tests for core modules to complete 100% coverage."""
 from app.core.async_processing import BackgroundTaskManager
-from app.core.caching import CacheManager
-from app.core.feature_flags import FeatureFlagManager
-from app.core.monitoring import MetricsCollector
 
 
 class TestAsyncProcessing:

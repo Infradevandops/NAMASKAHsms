@@ -2,8 +2,6 @@
 import httpx
 from typing import Dict, Any
 from app.services.unified_provider import UnifiedSMSProvider
-from app.core.config import settings
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

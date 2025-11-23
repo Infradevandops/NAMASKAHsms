@@ -5,22 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user
-from app.core.custom_exceptions import (
     InsufficientCreditsError,
     RentalError,
     ResourceNotFoundError,
 )
-from app.core.logging import get_logger
-from app.utils.data_masking import create_safe_error_detail
-from app.models.user import User
-from app.schemas.rental import (
     RentalCreate,
     RentalExtend,
     RentalMessagesResponse,
     RentalResponse,
 )
-from app.services.rental_service import RentalService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/rentals", tags=["Rentals"])

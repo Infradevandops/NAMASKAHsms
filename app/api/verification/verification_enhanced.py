@@ -3,12 +3,6 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas import SuccessResponse, VerificationCreate, VerificationResponse
-from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -53,7 +47,7 @@ async def create_verification(
                     detail="SMS provider balance insufficient. Please contact support."
                 )
         except HTTPException:
-            raise
+        pass
         except Exception as e:
             logger.error(f"Provider balance check failed: {str(e)}")
             raise HTTPException(
@@ -137,7 +131,7 @@ async def create_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Verification creation failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to create verification")
@@ -187,7 +181,7 @@ async def get_verification_status(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Status check failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve verification status")
@@ -245,7 +239,7 @@ async def cancel_verification(
         )
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Cancel failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to cancel verification")
@@ -314,7 +308,7 @@ async def get_verification_messages(
             }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Message endpoint failed: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to retrieve messages")

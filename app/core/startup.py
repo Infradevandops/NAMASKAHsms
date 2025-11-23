@@ -3,9 +3,6 @@ import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from app.core.database import SessionLocal
-from app.core.logging import get_logger
-from app.models.user import User
-from app.utils.security import hash_password
 
 logger = get_logger("startup")
 

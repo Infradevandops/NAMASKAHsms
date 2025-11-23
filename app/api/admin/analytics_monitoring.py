@@ -2,8 +2,6 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.services.analytics_service import AnalyticsService
-from app.services.adaptive_polling import AdaptivePollingService
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 

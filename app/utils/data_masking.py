@@ -108,7 +108,7 @@ class DataMasker:
         if preserve_length:
             return mask_char * len(value)
         else:
-            return f"[REDACTED]"
+            return "[REDACTED]"
 
     @classmethod
     def mask_headers(cls, headers: Dict[str, str]) -> Dict[str, str]:

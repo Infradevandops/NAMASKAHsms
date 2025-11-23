@@ -1,6 +1,5 @@
 """White - label configuration model."""
 from sqlalchemy import Column, String, Boolean, Text, JSON
-from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
 

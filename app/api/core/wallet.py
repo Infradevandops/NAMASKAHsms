@@ -5,11 +5,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.exceptions import PaymentError, ValidationError
-from app.models.transaction import Transaction
-from app.models.user import User
-from app.schemas import (
     PaymentInitialize,
     PaymentInitializeResponse,
     PaymentVerify,
@@ -18,7 +13,6 @@ from app.schemas import (
     TransactionResponse,
     WalletBalanceResponse,
 )
-from app.services import get_payment_service
 
 router = APIRouter(prefix="/wallet", tags=["Wallet"])
 
@@ -106,7 +100,6 @@ async def verify_paystack_payment(
 @router.post("/paystack/webhook")
 async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
     """Handle Paystack webhook notifications."""
-    from app.services.webhook_service import WebhookService
 
     # Get signature and body
     signature = request.headers.get("x - paystack-signature")
@@ -180,7 +173,6 @@ async def export_transactions(
     import io
     import json
 
-    from fastapi.responses import StreamingResponse
 
     transactions = (
         db.query(Transaction)
@@ -254,7 +246,6 @@ def get_spending_summary(
     """Get spending summary and analytics."""
     from datetime import datetime, timedelta, timezone
 
-    from sqlalchemy import func
 
     start_date = datetime.now(timezone.utc) - timedelta(days=days)
 

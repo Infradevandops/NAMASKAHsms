@@ -1,9 +1,6 @@
 """Advanced monitoring API endpoints."""
 from fastapi import APIRouter, Depends, BackgroundTasks
 from app.services.monitoring_service import monitoring_service
-from app.services.alerting_service import alerting_service
-from app.core.dependencies import get_current_admin_user
-from app.models.user import User
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
 

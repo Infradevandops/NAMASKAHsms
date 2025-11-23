@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.core.dependencies import get_db
-from app.models.waitlist import Waitlist
-from app.schemas.waitlist import WaitlistJoin, WaitlistResponse
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
 

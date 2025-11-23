@@ -5,14 +5,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
-from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.transaction import Transaction
-from app.models.verification import Verification
-from app.schemas import (
     AnalyticsResponse,
     BusinessMetrics,
     CompetitiveAnalysis,
@@ -30,7 +23,6 @@ def get_user_analytics(
 ):
     """Get enhanced user analytics with predictions and insights."""
     try:
-        from app.services.analytics_service import AnalyticsCalculator
 
         calculator = AnalyticsCalculator(db, user_id)
         start_date = utc_now() - timedelta(days=period)

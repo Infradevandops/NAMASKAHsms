@@ -5,9 +5,6 @@ from datetime import datetime
 import secrets
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.models.api_key import APIKey
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/keys", tags=["api-keys"])
@@ -100,7 +97,7 @@ async def revoke_api_key(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Revoke API key error: {e}")
         raise HTTPException(status_code=500, detail="Failed to revoke API key")

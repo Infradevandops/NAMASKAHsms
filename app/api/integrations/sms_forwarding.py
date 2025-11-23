@@ -3,10 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.models.sms_forwarding import SMSForwarding
-from app.models.rental import Rental
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/forwarding", tags=["forwarding"])
@@ -62,7 +58,7 @@ async def setup_forwarding(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Setup forwarding error: {e}")
         raise HTTPException(status_code=500, detail="Failed to setup forwarding")
@@ -108,7 +104,7 @@ async def get_forwarding_settings(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Get forwarding settings error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get forwarding settings")
@@ -155,7 +151,7 @@ async def disable_forwarding(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Disable forwarding error: {e}")
         raise HTTPException(status_code=500, detail="Failed to disable forwarding")

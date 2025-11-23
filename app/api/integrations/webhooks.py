@@ -6,11 +6,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.config import settings
-from app.models.sms_message import SMSMessage
-from app.models.rental import Rental
-from app.models.verification import Verification
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/webhooks", tags=["webhooks"])
@@ -87,7 +82,7 @@ async def handle_sms_received(
         return {"success": True}
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail="Webhook processing failed")
@@ -109,7 +104,6 @@ async def handle_billing_cycle_renewed(
         if not verify_webhook_signature(body, signature):
             raise HTTPException(status_code=401, detail="Invalid signature")
 
-        import json
 
         data = json.loads(body)
         event_type = data.get("event")
@@ -136,7 +130,7 @@ async def handle_billing_cycle_renewed(
         return {"success": True}
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail="Webhook processing failed")
@@ -158,7 +152,6 @@ async def handle_verification_completed(
         if not verify_webhook_signature(body, signature):
             raise HTTPException(status_code=401, detail="Invalid signature")
 
-        import json
 
         data = json.loads(body)
         event_type = data.get("event")
@@ -183,7 +176,7 @@ async def handle_verification_completed(
         return {"success": True}
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         raise HTTPException(status_code=500, detail="Webhook processing failed")

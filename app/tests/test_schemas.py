@@ -3,7 +3,6 @@ import pytest
 from app.utils.timezone_utils import utc_now
 from pydantic import ValidationError
 
-from app.schemas import (
     UserCreate, LoginRequest, VerificationCreate, PaymentInitialize,
     validate_phone_number, validate_service_name, validate_currency_amount,
     sanitize_input
@@ -325,7 +324,6 @@ class TestSchemaValidationEdgeCases:
     def test_field_aliases(self):
         """Test field aliases work correctly."""
         # Test that orm_mode works for response schemas
-        from app.schemas.auth import UserResponse
 
         # This would typically come from a database model
         user_data = {

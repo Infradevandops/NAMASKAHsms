@@ -1,10 +1,7 @@
 """Tests for authentication service."""
 import pytest
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from app.models.base import Base
-from app.services.auth_service import AuthService, get_auth_service
-from app.core.exceptions import ValidationError
 
 
 @pytest.fixture

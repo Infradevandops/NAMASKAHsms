@@ -2,7 +2,6 @@
 import pytest
 from unittest.mock import Mock
 from app.api.admin import router
-from app.core.dependencies import get_admin_user_id
 
 
 def test_admin_router_endpoints():
@@ -52,7 +51,6 @@ def mock_db():
 
 def test_get_platform_stats_structure(mock_admin_user, mock_db):
     """Test platform stats endpoint returns correct structure."""
-    from app.api.admin import get_platform_stats
 
     # Mock database queries
     mock_db.query.return_value.count.return_value = 100
@@ -71,7 +69,6 @@ def test_get_platform_stats_structure(mock_admin_user, mock_db):
 
 def test_system_health_endpoint(mock_admin_user, mock_db):
     """Test system health endpoint."""
-    from app.api.admin import get_system_health
 
     # Mock successful database query
     mock_db.execute.return_value = None

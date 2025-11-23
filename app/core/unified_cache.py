@@ -5,7 +5,6 @@ import functools
 from typing import Any, Optional, Callable, Dict
 import redis.asyncio as aioredis
 from app.core.config import settings
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

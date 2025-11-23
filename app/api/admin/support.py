@@ -7,11 +7,6 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_admin_user_id, get_current_user_id
-from app.core.logging import get_logger
-from app.models.system import SupportTicket
-from app.models.user import User
-from app.schemas import SuccessResponse
 
 logger = get_logger(__name__)
 
@@ -129,7 +124,7 @@ async def get_ticket_details(
         return SupportTicketResponse.from_orm(ticket)
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Failed to get ticket details: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get ticket details")
@@ -165,7 +160,7 @@ async def close_ticket(
         )
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Failed to close ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to close ticket")
@@ -399,7 +394,7 @@ async def respond_to_ticket(
         )
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Failed to respond to ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to respond to ticket")

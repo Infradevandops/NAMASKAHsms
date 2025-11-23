@@ -3,10 +3,7 @@ import logging
 from typing import Callable, Dict, Any, Optional
 
 from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
 # from botocore.exceptions import ClientError, BotoCoreError
 # # from cryptography.fernet import InvalidToken
@@ -453,7 +450,6 @@ def setup_unified_error_handling(app):
 
 def setup_unified_middleware(app):
     """Setup all unified middleware for FastAPI app."""
-    from app.core.unified_rate_limiting import setup_unified_rate_limiting
 
     # Setup rate limiting first (should be early in middleware stack)
     setup_unified_rate_limiting(app)

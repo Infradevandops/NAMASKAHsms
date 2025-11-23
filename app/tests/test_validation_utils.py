@@ -122,7 +122,7 @@ def test_validate_date_range():
     # Valid range
     result = validate_date_range("2024 - 01-01T00:00:00Z", "2024 - 01-31T23:59:59Z")
     assert result["is_valid"] is True
-    assert result["days_diff"] > 0
+    assert result["days_dif"] > 0
 
     # Invalid range (end before start)
     result = validate_date_range("2024 - 01-31T00:00:00Z", "2024 - 01-01T00:00:00Z")
@@ -273,7 +273,7 @@ def test_validate_date_range_edge_cases():
     # Same start and end
     result = validate_date_range("2024 - 01-01T00:00:00Z", "2024 - 01-01T00:00:00Z")
     assert result["is_valid"] is True
-    assert result["days_diff"] == 0
+    assert result["days_dif"] == 0
 
     # Very large range
     result = validate_date_range("2000 - 01-01T00:00:00Z", "2024 - 12-31T23:59:59Z")

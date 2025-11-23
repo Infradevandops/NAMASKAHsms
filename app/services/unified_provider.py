@@ -4,7 +4,6 @@ from typing import Dict, Any, Optional
 from enum import Enum
 import asyncio
 from app.utils.timezone_utils import utc_now
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

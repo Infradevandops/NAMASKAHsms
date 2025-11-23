@@ -1,8 +1,6 @@
 """Disaster recovery API endpoints."""
 from fastapi import APIRouter, Depends, BackgroundTasks
 from app.services.disaster_recovery import disaster_recovery
-from app.core.dependencies import get_current_admin_user
-from app.models.user import User
 
 router = APIRouter(prefix="/disaster - recovery", tags=["disaster - recovery"])
 

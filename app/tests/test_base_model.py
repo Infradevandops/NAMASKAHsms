@@ -3,7 +3,6 @@ import pytest
 from datetime import datetime
 from app.models.base import BaseModel, Base
 from sqlalchemy import Column, String, create_engine
-from sqlalchemy.orm import sessionmaker
 
 
 class TestModel(BaseModel):

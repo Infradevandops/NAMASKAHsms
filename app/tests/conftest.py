@@ -2,10 +2,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 
 from app.core.database import get_db
-from app.models.base import Base
 from main import app
 
 # Test database
@@ -55,8 +53,6 @@ def db_session():
 @pytest.fixture
 def test_user(db_session):
     """Create test user."""
-    from app.models.user import User
-    from app.utils.security import hash_password
     from .fixtures import TEST_CREDENTIALS
 
     user = User(
@@ -75,7 +71,6 @@ def test_user(db_session):
 @pytest.fixture
 def auth_headers(client):
     """Authentication headers for test user."""
-    from .fixtures import TEST_CREDENTIALS
 
     response = client.post(
         "/auth/login",
@@ -88,9 +83,6 @@ def auth_headers(client):
 @pytest.fixture
 def admin_user(db_session):
     """Create admin user."""
-    from app.models.user import User
-    from app.utils.security import hash_password
-    from .fixtures import TEST_CREDENTIALS
 
     user = User(
         id="admin_user_123",

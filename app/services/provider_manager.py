@@ -28,7 +28,6 @@ class ProviderManager:
 
     def _init_providers(self):
         """Initialize all available providers."""
-        from app.services.textverified_service_updated import TextVerifiedService
 
         self.providers[ProviderType.TEXTVERIFIED] = TextVerifiedService()
 

@@ -2,8 +2,6 @@
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.core.config import settings
-from app.core.logging import get_logger
-from app.models.verification import Verification
 
 logger = get_logger(__name__)
 

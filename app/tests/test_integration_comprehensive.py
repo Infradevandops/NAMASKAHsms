@@ -2,10 +2,6 @@
 from unittest.mock import patch, Mock, AsyncMock
 
 from app.services.payment_service import PaymentService
-from app.services.notification_service import NotificationService
-from app.services.auth_service import AuthService
-from app.models.user import User, Webhook
-from app.models.transaction import Transaction, PaymentLog
 
 
 class TestDatabaseTransactionHandling:

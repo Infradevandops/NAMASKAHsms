@@ -4,11 +4,8 @@ from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
-from app.models.rental import Rental
-from app.models.user import User
 
 logger = get_logger(__name__)
 

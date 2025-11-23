@@ -1,8 +1,6 @@
 """High-level TextVerified integration service."""
 from typing import Dict, Any, Optional, List
 from app.core.logging import get_logger
-from app.services.textverified_api import get_textverified_client
-from app.core.unified_cache import cache
 
 logger = get_logger(__name__)
 
@@ -121,7 +119,6 @@ class TextVerifiedIntegration:
 
         try:
             services = await self.client.get_services()
-            import json
             await self.cache.set(cache_key, json.dumps(services), ttl=3600)
             return services
         except Exception as e:
@@ -135,12 +132,10 @@ class TextVerifiedIntegration:
         if not force_refresh:
             cached = await self.cache.get(cache_key)
             if cached:
-                import json
                 return json.loads(cached)
 
         try:
             codes = await self.client.get_area_codes()
-            import json
             await self.cache.set(cache_key, json.dumps(codes), ttl=3600)
             return codes
         except Exception as e:

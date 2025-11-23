@@ -4,9 +4,6 @@ from datetime import datetime, timezone
 from typing import Dict
 
 from app.core.database import SessionLocal
-from app.core.logging import get_logger
-from app.models.verification import Verification
-from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
 

@@ -3,9 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.forwarding import ForwardingConfig
 
 logger = get_logger(__name__)
 
@@ -141,7 +138,7 @@ async def test_forwarding(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Failed to test forwarding: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

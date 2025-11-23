@@ -4,7 +4,6 @@ from unittest.mock import Mock
 from datetime import datetime, timezone, timedelta
 
 from app.services.analytics_service import AnalyticsCalculator
-from app.schemas import ServiceUsage, DailyUsage, CountryAnalytics, TrendData
 
 
 class TestAnalyticsCalculator:

@@ -1,6 +1,5 @@
 """Personal phone number model for custom verification."""
 from sqlalchemy import Boolean, Column, String, ForeignKey
-from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
 

@@ -8,9 +8,6 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.exceptions import PaymentError, ValidationError
-from app.models.transaction import PaymentLog, Transaction
-from app.models.user import User
 
 from .base import BaseService
 

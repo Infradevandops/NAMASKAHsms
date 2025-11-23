@@ -3,10 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.services.textverified_api import get_textverified_client
-from app.models.rental import Rental
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/billing-cycles", tags=["billing-cycles"])
@@ -73,7 +69,6 @@ async def renew_billing_cycle(
     """Renew billing cycle."""
     try:
         headers = await client.auth_service.get_headers()
-        import httpx
 
         async with httpx.AsyncClient() as http_client:
             response = await http_client.post(
@@ -105,7 +100,6 @@ async def get_cycle_invoices(
     """Get invoices for billing cycle."""
     try:
         headers = await client.auth_service.get_headers()
-        import httpx
 
         async with httpx.AsyncClient() as http_client:
             response = await http_client.get(

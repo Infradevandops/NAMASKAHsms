@@ -1,8 +1,6 @@
 """Data encryption utilities."""
 from cryptography.fernet import Fernet, InvalidToken
 from app.core.config import settings
-from app.core.logging import get_logger
-from app.utils.exception_handling import handle_encryption_exceptions
 
 logger = get_logger(__name__)
 

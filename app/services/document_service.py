@@ -14,9 +14,6 @@ except ImportError:
 import json
 
 from app.models.kyc import KYCDocument, KYCProfile
-from app.core.logging import get_logger
-from app.core.config import get_settings
-from app.utils.path_security import validate_safe_path, sanitize_filename
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -42,13 +39,13 @@ class DocumentService:
         # Document type requirements
         self.document_requirements = {
             "passport": {"types": ["image/jpeg", "image/png",
-                                   "application/pdf"], "max_size": 5 * 1024 * 1024},
+                                   "application/pd"], "max_size": 5 * 1024 * 1024},
             "license": {"types": ["image/jpeg",
                                   "image/png"], "max_size": 5 * 1024 * 1024},
             "id_card": {"types": ["image/jpeg",
                                   "image/png"], "max_size": 5 * 1024 * 1024},
             "utility_bill": {"types": ["image/jpeg", "image/png",
-                                       "application/pdf"], "max_size": 5 * 1024 * 1024},
+                                       "application/pd"], "max_size": 5 * 1024 * 1024},
             "selfie": {"types": ["image/jpeg",
                                  "image/png"], "max_size": 3 * 1024 * 1024}
         }
@@ -114,7 +111,7 @@ class DocumentService:
             return document
 
         except HTTPException:
-            raise
+        pass
         except Exception as e:
             logger.error("Document upload failed: %s", str(e))
             # Clean up file if it was created

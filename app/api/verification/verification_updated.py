@@ -6,28 +6,19 @@ import csv
 import io
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.core.unified_error_handling import (
     ExternalServiceError as TextVerifiedAPIError,
     InsufficientCreditsError,
     ValidationError as InvalidInputError,
     VerificationError,
     ValidationError as ResourceNotFoundError,
 )
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas import (
     SuccessResponse,
     VerificationCreate,
     VerificationHistoryResponse,
     VerificationResponse,
 )
-from app.services.provider_factory import provider_manager
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -89,7 +80,7 @@ async def create_verification(
             if balance < 0.50:
                 raise TextVerifiedAPIError(f"TextVerified balance too low: ${balance}")
         except TextVerifiedAPIError:
-            raise
+        pass
         except Exception as e:
             raise TextVerifiedAPIError(f"API authentication failed: {str(e)}")
 

@@ -1,10 +1,8 @@
 """Authentication security: rate limiting, lockout, audit logging."""
 from datetime import datetime, timedelta
 from sqlalchemy.orm import Session
-from sqlalchemy import Column, String, DateTime, Boolean
 from app.models.base import Base
 import json
-from app.core.logging import get_logger
 
 logger = get_logger("auth_security")
 
@@ -94,7 +92,6 @@ def lock_account(db: Session, email: str, reason: str = "Too many failed login a
 def record_login_attempt(db: Session, email: str, ip_address: str, success: bool):
     """Record login attempt."""
     try:
-        import uuid
         attempt = LoginAttempt(
             id=str(uuid.uuid4()),
             email=email,
@@ -123,7 +120,6 @@ def audit_log_auth_event(db: Session, event_type: str, user_id: str = None, emai
                          ip_address: str = None, user_agent: str = None, details: dict = None):
     """Log authentication event."""
     try:
-        import uuid
         log = AuthAuditLog(
             id=str(uuid.uuid4()),
             user_id=user_id,

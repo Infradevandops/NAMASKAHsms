@@ -5,9 +5,6 @@ from typing import Any, Dict, Optional
 from sqlalchemy.orm import Session
 
 from app.core.exceptions import ValidationError
-from app.models.user import APIKey, User
-from app.services.base import BaseService
-from app.utils.security import (
     create_access_token,
     generate_api_key,
     generate_secure_id,
@@ -183,7 +180,7 @@ class AuthService(BaseService[User]):
             "google_id": google_id,
             "provider": "google",
             "email_verified": True,
-            "referral_code": generate_secure_id("ref", 6),
+            "referral_code": generate_secure_id("re", 6),
             "free_verifications": 2.0,  # Bonus for Google signup
         }
 

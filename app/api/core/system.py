@@ -2,16 +2,9 @@
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.database import get_db
-from app.core.dependencies import get_current_admin_user
-from app.core.health_checks import check_database_health, check_system_health
-from app.core.monitoring import dashboard_metrics
-from app.schemas import ServiceStatus, ServiceStatusSummary
 
 router = APIRouter(prefix="/system", tags=["System"])
 
@@ -22,7 +15,6 @@ root_router = APIRouter()
 @router.get("/health")
 async def health_check(db: Session = Depends(get_db)):
     """Comprehensive health check with external service monitoring."""
-    from app.core.health_monitor import health_monitor
 
     try:
         system_health = await health_monitor.get_system_health()
@@ -48,7 +40,6 @@ async def health_check(db: Session = Depends(get_db)):
 @router.get("/health/readiness")
 async def readiness_check(db: Session = Depends(get_db)):
     """Kubernetes readiness probe."""
-    from fastapi.responses import JSONResponse
 
     try:
         db_health = check_database_health(db)
@@ -63,7 +54,6 @@ async def readiness_check(db: Session = Depends(get_db)):
 @router.get("/health/liveness")
 async def liveness_check():
     """Kubernetes liveness probe."""
-    from fastapi.responses import JSONResponse
 
     # Simple liveness check - if we can respond, we're alive
     is_alive = True
@@ -75,7 +65,6 @@ async def liveness_check():
 @router.get("/status", response_model=ServiceStatusSummary)
 def get_service_status(db: Session = Depends(get_db)):
     """Get comprehensive service status."""
-    from app.models.system import ServiceStatus as ServiceStatusModel
 
     # Get service statuses from database
     services = db.query(ServiceStatusModel).all()
@@ -167,7 +156,6 @@ def get_public_config():
 @router.get("/metrics")
 async def get_system_metrics():
     """Get system performance metrics with service health."""
-    from app.core.health_monitor import health_monitor
 
     try:
         system_health = await health_monitor.get_system_health()
@@ -210,10 +198,7 @@ async def get_business_metrics():
 @router.get("/metrics/prometheus")
 async def get_prometheus_metrics():
     """Get Prometheus - formatted metrics."""
-    from fastapi.responses import Response
 
-    from app.core.metrics import get_metrics_content_type
-    from app.core.metrics import get_prometheus_metrics as get_prom_metrics
 
     metrics_data = get_prom_metrics()
     return Response(content=metrics_data, media_type=get_metrics_content_type())
@@ -222,7 +207,6 @@ async def get_prometheus_metrics():
 @router.get("/metrics/application")
 async def get_application_metrics():
     """Get application - specific metrics."""
-    from app.core.metrics import metrics_collector
 
     app_metrics = metrics_collector.get_application_metrics()
     health_score = metrics_collector.get_health_score()
@@ -479,7 +463,6 @@ async def admin_page(request: Request, admin_user=Depends(get_current_admin_user
             <style>
                 body { font - family: Arial, sans - serif; margin: 0; padding: 0; background: #f5f7fa; }
                 .header { background: linear - gradient(135deg,
-    #dc2626 0%, #b91c1c 100%); color: white; padding: 20px; }
                 .container { max - width: 1200px; margin: 0 auto; padding: 20px; }
                 .card { background: white; padding: 20px; border - radius: 10px; box - shadow: 0 2px 10px rgba(0,0,0,0.1); margin: 20px 0; }
                 .admin - grid { display: grid; grid - template-columns: repeat(auto - fit,

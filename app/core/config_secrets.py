@@ -1,8 +1,6 @@
 """Configuration loader with AWS Secrets Manager integration."""
 from typing import Optional, Dict, Any
 from app.core.config import Settings
-from app.core.secrets_manager import get_secrets_manager
-from app.core.secrets_audit import get_audit
 import logging
 
 logger = logging.getLogger(__name__)

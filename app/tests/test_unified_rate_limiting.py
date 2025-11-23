@@ -3,7 +3,6 @@ import pytest
 import time
 from unittest.mock import Mock, patch
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from app.core.unified_rate_limiting import (
     TokenBucket,

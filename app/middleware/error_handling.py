@@ -3,9 +3,7 @@ import logging
 from typing import Callable
 
 from fastapi import HTTPException, Request, Response
-from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR
 
 logger = logging.getLogger(__name__)
 

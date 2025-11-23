@@ -1,11 +1,8 @@
 """Complete middleware tests for task 5.4."""
 from unittest.mock import Mock, patch
 from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
 
 from app.middleware.security import JWTAuthMiddleware, APIKeyAuthMiddleware
-from app.middleware.rate_limiting import RateLimitMiddleware
-from app.middleware.logging import RequestLoggingMiddleware
 
 
 class TestJWTAuthMiddleware:

@@ -7,8 +7,6 @@ from typing import Optional
 
 from sqlalchemy import text
 
-from app.core.config import get_settings
-from app.core.database import engine
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +51,6 @@ class MigrationManager:
     def create_migration(message: str) -> bool:
         """Create new migration."""
         try:
-            import shutil
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
@@ -86,7 +83,6 @@ class MigrationManager:
     def rollback_migration(revision: Optional[str] = None) -> bool:
         """Rollback to specific revision or previous."""
         try:
-            import shutil
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
@@ -120,7 +116,6 @@ class MigrationManager:
     def get_current_revision() -> Optional[str]:
         """Get current database revision."""
         try:
-            import shutil
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
@@ -150,7 +145,6 @@ class MigrationManager:
             return False
 
         try:
-            import shutil
             from datetime import datetime
 
             db_path = self.settings.database_url.replace("sqlite:///", "")

@@ -3,15 +3,12 @@ import logging
 import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Any, Dict, List, Optional
 
 import httpx
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.models.system import InAppNotification
-from app.models.user import NotificationPreferences, User, Webhook
 
 from .base import BaseService
 

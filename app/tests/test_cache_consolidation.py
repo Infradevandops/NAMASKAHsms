@@ -266,7 +266,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_cache_countries(self):
         """Test caching countries data."""
-        from app.core.unified_cache import cache_countries, cache
 
         countries_data = [{"code": "US", "name": "United States"}]
         await cache_countries(countries_data)
@@ -277,7 +276,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_cache_services(self):
         """Test caching services data."""
-        from app.core.unified_cache import cache_services, cache
 
         services_data = [{"name": "telegram", "price": 0.5}]
         await cache_services("US", services_data)
@@ -288,7 +286,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_cache_user_data(self):
         """Test caching user data."""
-        from app.core.unified_cache import cache_user_data, cache
 
         user_data = {"name": "John", "credits": 10.0}
         await cache_user_data("123", user_data)
@@ -299,7 +296,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_invalidate_user_cache(self):
         """Test invalidating user cache."""
-        from app.core.unified_cache import invalidate_user_cache, cache
 
         # Set up user - related cache data
         await cache.set("user:123:profile", {"name": "John"})
@@ -321,7 +317,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_cache_verification(self):
         """Test caching verification data."""
-        from app.core.unified_cache import cache_verification, cache
 
         verification_data = {"status": "pending", "phone": "+1234567890"}
         await cache_verification("abc123", verification_data)
@@ -332,7 +327,6 @@ class TestCacheConvenienceFunctions:
     @pytest.mark.asyncio
     async def test_cache_provider_data(self):
         """Test caching provider data."""
-        from app.core.unified_cache import cache_provider_data, cache
 
         provider_data = {"balance": 100.0, "status": "healthy"}
         await cache_provider_data("textverified", "balance", provider_data)
@@ -347,7 +341,6 @@ class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_redis_fallback_behavior(self):
         """Test behavior when Redis fails during operation."""
-        from app.core.unified_cache import cache
 
         # Start with Redis unavailable
         cache.redis_client = None
@@ -371,7 +364,6 @@ class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_decorator_integration(self):
         """Test decorator integration with cache system."""
-        from app.core.unified_cache import cache
 
         execution_count = 0
 

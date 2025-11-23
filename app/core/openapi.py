@@ -1,6 +1,5 @@
 """OpenAPI/Swagger documentation configuration."""
 from fastapi.openapi.utils import get_openapi
-from fastapi import FastAPI
 
 
 def get_openapi_schema(app: FastAPI) -> dict:

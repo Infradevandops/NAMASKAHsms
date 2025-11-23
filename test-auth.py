@@ -2,7 +2,11 @@
 """
 Quick auth test script for Docker debugging
 """
+import os
 import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def test_auth():
     base_url = "http://localhost:8000"
@@ -19,9 +23,13 @@ def test_auth():
     
     # Test 2: Try login
     login_data = {
-        "email": "admin@namaskah.app",
-        "password": "admin123"
+        "email": os.getenv('TEST_EMAIL', 'admin@namaskah.app'),
+        "password": os.getenv('TEST_PASSWORD')
     }
+    
+    if not login_data['password']:
+        print("❌ TEST_PASSWORD not set in .env")
+        return
     
     try:
         response = requests.post(

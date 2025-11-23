@@ -4,11 +4,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.services.textverified_integration import get_textverified_integration
-from app.models.rental import Rental
-from app.models.user import User
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/rentals", tags=["rentals"])
@@ -84,7 +79,7 @@ async def create_rental(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Rental creation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create rental")
@@ -169,7 +164,7 @@ async def extend_rental(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Extend rental error: {e}")
         raise HTTPException(status_code=500, detail="Failed to extend rental")
@@ -203,7 +198,7 @@ async def get_rental_details(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Get rental details error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get rental details")

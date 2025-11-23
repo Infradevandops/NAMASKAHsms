@@ -4,11 +4,6 @@ from sqlalchemy.orm import Session
 from datetime import datetime
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.services.textverified_integration import get_textverified_integration
-from app.models.sms_message import SMSMessage
-from app.models.rental import Rental
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/sms", tags=["sms"])
@@ -136,7 +131,7 @@ async def mark_message_read(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Mark read error: {e}")
         raise HTTPException(status_code=500, detail="Failed to mark message as read")
@@ -189,7 +184,7 @@ async def delete_message(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Delete message error: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete message")

@@ -28,7 +28,7 @@ class TestLogInjectionPrevention:
 
         assert "\x00" not in sanitized
         assert "\x1b" not in sanitized
-        assert "\x7f" not in sanitized
+        assert "\x7" not in sanitized
         assert "Text with" in sanitized
 
     def test_sanitize_log_input_ansi_escape(self):

@@ -3,8 +3,6 @@ from enum import Enum
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.models.user import User
 
 
 class Role(str, Enum):

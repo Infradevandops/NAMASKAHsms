@@ -6,21 +6,13 @@ import io
 import json
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi.responses import StreamingResponse
 from sqlalchemy import func
-from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.custom_exceptions import (
     PaymentError,
     InvalidInputError,
     ResourceNotFoundError,
 )
-from app.core.logging import get_logger
-from app.models.transaction import Transaction
-from app.models.user import User
-from app.schemas import (
     PaymentInitialize,
     PaymentInitializeResponse,
     PaymentVerify,
@@ -29,7 +21,6 @@ from app.schemas import (
     TransactionResponse,
     WalletBalanceResponse,
 )
-from app.services import get_payment_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/wallet", tags=["Wallet"])
@@ -129,7 +120,6 @@ async def verify_paystack_payment(
 async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
     """Handle Paystack webhook notifications."""
     try:
-        from app.services.webhook_service import WebhookService
 
         signature = request.headers.get("x-paystack-signature")
         if not signature:

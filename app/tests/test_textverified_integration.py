@@ -2,8 +2,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from app.services.textverified_auth import TextVerifiedAuthService
-from app.services.textverified_api import TextVerifiedAPIClient
-from app.services.textverified_integration import TextVerifiedIntegration
 
 
 @pytest.mark.asyncio
@@ -186,7 +184,6 @@ async def test_textverified_integration_caching():
 @pytest.mark.asyncio
 async def test_error_handling_retry():
     """Test error handling with retry logic."""
-    from app.services.error_handling import retry_with_backoff, RetryConfig
 
     attempt_count = 0
 
@@ -206,7 +203,6 @@ async def test_error_handling_retry():
 @pytest.mark.asyncio
 async def test_api_error_handler():
     """Test API error handler."""
-    from app.services.error_handling import APIErrorHandler
 
     # Test user-friendly messages
     msg_401 = APIErrorHandler.get_user_message(401)

@@ -352,7 +352,7 @@ class TestEdgeCases:
     def test_circular_references(self):
         """Test handling of circular references (basic case)."""
         data = {"name": "test"}
-        data["self"] = data  # Create circular reference
+        data["sel"] = data  # Create circular reference
 
         # Should not crash, though may not handle circular refs perfectly
         try:

@@ -7,13 +7,10 @@ except ImportError:
 from typing import Dict, Optional, Any
 
 from app.core.config import settings
-from app.core.custom_exceptions import (
     TextVerifiedAPIError,
     ServiceUnavailableError,
     InvalidInputError,
 )
-from app.core.logging import get_logger
-from app.services.sms_provider_interface import SMSProviderInterface
 
 logger = get_logger(__name__)
 
@@ -55,7 +52,7 @@ class TextVerifiedService(SMSProviderInterface):
                 "currency": "USD"
             }
         except ServiceUnavailableError:
-            raise
+        pass
         except Exception as e:
             logger.error(f"TextVerified balance error: {str(e)}")
             raise TextVerifiedAPIError(f"Failed to get balance: {str(e)}")
@@ -132,7 +129,7 @@ class TextVerifiedService(SMSProviderInterface):
                 "currency": "USD"
             }
         except InvalidInputError:
-            raise
+        pass
         except Exception as e:
             logger.error(f"TextVerified pricing error: {str(e)}")
             raise TextVerifiedAPIError(f"Failed to get pricing: {str(e)}")

@@ -6,7 +6,6 @@ from typing import List
 
 from fastapi import HTTPException
 from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
     InsufficientCreditsError,
@@ -14,17 +13,11 @@ from app.core.exceptions import (
     RentalNotFoundError,
     ExternalServiceError,
 )
-from app.core.logging import get_logger
-from app.utils.log_sanitization import sanitize_user_id
-from app.models.rental import Rental
-from app.models.user import User
-from app.schemas.rental import (
     RentalCreate,
     RentalExtend,
     RentalMessagesResponse,
     RentalResponse,
 )
-from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 

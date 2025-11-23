@@ -1,7 +1,6 @@
 """GetSMS provider service (placeholder for future integration)."""
 from typing import Dict, List, Any
 from app.core.logging import get_logger
-from app.services.sms_provider_interface import SMSProviderInterface
 
 logger = get_logger(__name__)
 

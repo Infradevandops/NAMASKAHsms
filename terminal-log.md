@@ -1,100 +1,331 @@
-2025-11-22T18:11:39.514780488Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
-2025-11-22T18:11:39.514950702Z     server.run()
-2025-11-22T18:11:39.514956753Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/server.py", line 61, in run
-2025-11-22T18:11:39.515055646Z     return asyncio.run(self.serve(sockets=sockets))
-2025-11-22T18:11:39.515121478Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.515168879Z   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
-2025-11-22T18:11:39.515288052Z     return runner.run(main)
-2025-11-22T18:11:39.515303213Z            ^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.515348644Z   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
-2025-11-22T18:11:39.515447547Z     return self._loop.run_until_complete(task)
-2025-11-22T18:11:39.515496649Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.515520639Z   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-2025-11-22T18:11:39.515723605Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/server.py", line 68, in serve
-2025-11-22T18:11:39.515809768Z     config.load()
-2025-11-22T18:11:39.515815088Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/config.py", line 467, in load
-2025-11-22T18:11:39.515983973Z     self.loaded_app = import_from_string(self.app)
-2025-11-22T18:11:39.516048965Z                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.516106606Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
-2025-11-22T18:11:39.516257741Z     module = importlib.import_module(module_str)
-2025-11-22T18:11:39.516263451Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.516279921Z   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
-2025-11-22T18:11:39.516459637Z     return _bootstrap._gcd_import(name[level:], package, level)
-2025-11-22T18:11:39.51658109Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:39.516630431Z   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
-2025-11-22T18:11:39.516634572Z   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-2025-11-22T18:11:39.516637592Z   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-2025-11-22T18:11:39.516640342Z   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-2025-11-22T18:11:39.516643362Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-2025-11-22T18:11:39.516645912Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-2025-11-22T18:11:39.516658552Z   File "/app/main.py", line 23, in <module>
-2025-11-22T18:11:39.516750395Z     from app.api.core.auth import router as auth_router
-2025-11-22T18:11:39.516756525Z   File "/app/app/api/core/auth.py", line 10, in <module>
-2025-11-22T18:11:39.516878089Z     from app.schemas import (
-2025-11-22T18:11:39.516881959Z   File "/app/app/schemas/__init__.py", line 35, in <module>
-2025-11-22T18:11:39.51691893Z     from .auth import (
-2025-11-22T18:11:39.51692414Z   File "/app/app/schemas/auth.py", line 21
-2025-11-22T18:11:39.516938791Z     referral_code: Optional[str] = Field(None, description="Optional referral code)
-2025-11-22T18:11:39.516990952Z                                                            ^
-2025-11-22T18:11:39.516994872Z SyntaxError: unterminated string literal (detected at line 21)
-2025-11-22T18:11:42.160879987Z ==> Exited with status 1
-2025-11-22T18:11:42.177171395Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
-2025-11-22T18:11:46.408853392Z ⚠️ Warning: SECRET_KEY appears to be a weak or default value
-2025-11-22T18:11:46.408874852Z ⚠️ Warning: JWT_SECRET_KEY appears to be a weak or default value
-2025-11-22T18:11:52.713626965Z Traceback (most recent call last):
-2025-11-22T18:11:52.713642146Z   File "/home/appuser/.local/bin/uvicorn", line 8, in <module>
-2025-11-22T18:11:52.713652906Z     sys.exit(main())
-2025-11-22T18:11:52.713689097Z              ^^^^^^
-2025-11-22T18:11:52.713695187Z   File "/home/appuser/.local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
-2025-11-22T18:11:52.713956325Z     return self.main(*args, **kwargs)
-2025-11-22T18:11:52.713997956Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.714209742Z   File "/home/appuser/.local/lib/python3.11/site-packages/click/core.py", line 1406, in main
-2025-11-22T18:11:52.714349026Z     rv = self.invoke(ctx)
-2025-11-22T18:11:52.714386737Z          ^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.714392777Z   File "/home/appuser/.local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
-2025-11-22T18:11:52.714613414Z     return ctx.invoke(self.callback, **ctx.params)
-2025-11-22T18:11:52.714645155Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.714668636Z   File "/home/appuser/.local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
-2025-11-22T18:11:52.714894972Z     return callback(*args, **kwargs)
-2025-11-22T18:11:52.714933263Z            ^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.714980595Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/main.py", line 416, in main
-2025-11-22T18:11:52.715105988Z     run(
-2025-11-22T18:11:52.715111188Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
-2025-11-22T18:11:52.715253402Z     server.run()
-2025-11-22T18:11:52.715258503Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/server.py", line 61, in run
-2025-11-22T18:11:52.801202277Z     return asyncio.run(self.serve(sockets=sockets))
-2025-11-22T18:11:52.80130676Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.801346031Z   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
-2025-11-22T18:11:52.802227577Z     return runner.run(main)
-2025-11-22T18:11:52.802233077Z            ^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.802236507Z   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
-2025-11-22T18:11:52.802301619Z     return self._loop.run_until_complete(task)
-2025-11-22T18:11:52.802386161Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.802441313Z   File "uvloop/loop.pyx", line 1518, in uvloop.loop.Loop.run_until_complete
-2025-11-22T18:11:52.802554366Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/server.py", line 68, in serve
-2025-11-22T18:11:52.802625608Z     config.load()
-2025-11-22T18:11:52.802658109Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/config.py", line 467, in load
-2025-11-22T18:11:52.802813444Z     self.loaded_app = import_from_string(self.app)
-2025-11-22T18:11:52.802858725Z                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.802869775Z   File "/home/appuser/.local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
-2025-11-22T18:11:52.802962148Z     module = importlib.import_module(module_str)
-2025-11-22T18:11:52.8030233Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.80302913Z   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
-2025-11-22T18:11:52.80371316Z     return _bootstrap._gcd_import(name[level:], package, level)
-2025-11-22T18:11:52.803788912Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2025-11-22T18:11:52.803805613Z   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
-2025-11-22T18:11:52.803808523Z   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
-2025-11-22T18:11:52.803813253Z   File "<frozen importlib._bootstrap>", line 1147, in _find_and_load_unlocked
-2025-11-22T18:11:52.803819513Z   File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
-2025-11-22T18:11:52.803830983Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-2025-11-22T18:11:52.803836594Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-2025-11-22T18:11:52.803839814Z   File "/app/main.py", line 23, in <module>
-2025-11-22T18:11:52.803924316Z     from app.api.core.auth import router as auth_router
-2025-11-22T18:11:52.803960637Z   File "/app/app/api/core/auth.py", line 10, in <module>
-2025-11-22T18:11:52.80405557Z     from app.schemas import (
-2025-11-22T18:11:52.80405851Z   File "/app/app/schemas/__init__.py", line 35, in <module>
-2025-11-22T18:11:52.804151933Z     from .auth import (
-2025-11-22T18:11:52.804156363Z   File "/app/app/schemas/auth.py", line 21
-2025-11-22T18:11:52.804159163Z     referral_code: Optional[str] = Field(None, description="Optional referral code)
-2025-11-22T18:11:52.804226475Z                                                            ^
-2025-11-22T18:11:52.804237065Z SyntaxError: unterminated string literal (detected at line 21)
+FLK-E999
+Invalid syntax
+Critical
+2
+PYL-E1121
+Too many positional arguments in function call
+Critical
+6
+PYL-E1123
+Unexpected keyword argument in function call
+Critical
+3
+PYL-E1130
+Unary operand used on an unsupported object
+Critical
+1
+PYL-W0705
+Catching previously caught exception
+Critical
+2
+PYL-W0706
+Except handler raises immediately
+Critical
+41
+PYL-E1102
+A non-callable object is being called
+Critical
+2
+PYL-E1120
+Missing argument in function call
+Critical
+1
+PYL-E0602
+Undefined name detected
+Critical
+37
+PTC-W0063
+Unguarded next inside generator
+Critical
+12
+PYL-C0201
+Consider iterating dictionary
+Major
+2
+PYL-W0404
+Multiple imports for an import name detected
+Major
+6
+PYL-W0612
+Unused variable found
+Major
+26
+PYL-W0613
+Function contains unused argument
+Major
+2
+PYL-W0104
+Statement has no effect
+Major
+2
+PYL-R0201
+Consider decorating method with @staticmethod
+Major
+391
+PTC-W0016
+Unnecessary comprehension
+Major
+1
+PYL-W0621
+Re-defined variable from outer scope
+Major
+15
+PTC-W0027
+f-string used without any expression
+Major
+14
+PYL-R1721
+Unnecessary use of comprehension
+Major
+1
+PYL-R1722
+Use of exit() or quit() detected
+Major
+3
+PYL-W0714
+Exceptions are overlapping
+Major
+4
+PTC-W0047
+Empty block of code found
+Major
+1
+PTC-W0048
+if statements can be merged
+Major
+3
+PTC-W0062
+with statements can be merged
+Major
+3
+PY-W2000
+Imported name is not used anywhere in the module
+Major
+9
+PY-W0069
+Consider removing the commented out code block
+Major
+4
+PY-W0077
+Consider merging startswith/endswith checks
+Major
+1
+FLK-E722
+Do not use bare except, specify exception instead
+Minor
+1
+PYL-W0212
+Protected member accessed from outside the class
+Minor
+
+
+
+PYL-W0603
+global statement detected
+Minor
+4
+PYL-W1510
+Subprocess run with ignored non-zero exit
+Minor
+8
+PYL-W1203
+Formatted string passed to logging module
+Minor
+401
+PY-R1000
+Function with cyclomatic complexity higher than threshold
+Minor
+12
+
+Use of exit() or quit() detected PYL-R1722
+ Bug risk
+Major
+ 8 minutes ago — a month old
+ Seen in 2 files
+3
+
+Autofix
+Except handler raises immediately PYL-W0706
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 22 files
+41
+
+Autofix
+Imported name is not used anywhere in the module PY-W2000
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 6 files
+9
+
+Autofix
+Consider removing the commented out code block PY-W0069
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 3 files
+4
+
+Autofix
+Consider iterating dictionary PYL-C0201
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 2 files
+2
+
+Autofix
+Unnecessary comprehension PTC-W0016
+ Performance
+Major
+ 8 minutes ago — 16 days old
+ Seen in 1 file
+1
+
+Autofix
+Unnecessary use of comprehension PYL-R1721
+ Performance
+Major
+ 8 minutes ago — 16 days old
+ Seen in 1 file
+1
+
+Autofix
+Catching previously caught exception PYL-W0705
+ Bug risk
+Critical
+ 8 minutes ago — 9 hours old
+ Seen in 1 file
+2
+
+Autofix
+Multiple imports for an import name detected PYL-W0404
+ Bug risk
+Major
+ 8 minutes ago — a month old
+ Seen in 4 files
+6
+
+Autofix
+Statement has no effect PYL-W0104
+ Anti-pattern
+Major
+ 8 minutes ago — 9 hours old
+ Seen in 2 files
+2
+
+Autofix
+Pin versions in apt get install DOK-DL3008
+ Bug risk
+Major
+ 9 hours ago — 17 days old
+ Seen in 1 file
+2
+
+Autofix
+Avoid additional packages by specifying --no-install-recommends DOK-DL3015
+ Anti-pattern
+Major
+ 9 hours ago — 17 days old
+ Seen in 1 file
+2
+
+Autofix
+Invalid syntax FLK-E999
+ Bug risk
+Critical
+ 8 minutes ago — 16 days old
+ Seen in 2 files
+2
+
+Autofix
+Consider merging startswith/endswith checks PY-W0077
+ Anti-pattern
+Major
+ 8 minutes ago — 9 hours old
+ Seen in 1 file
+1
+
+Autofix
+Missing argument in function call PYL-E1120
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 1 file
+1
+
+Autofix
+Unused variable found PYL-W0612
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 16 files
+26
+
+Autofix
+Function contains unused argument PYL-W0613
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 1 file
+2
+
+Autofix
+Re-defined variable from outer scope PYL-W0621
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 8 files
+15
+
+Autofix
+Unexpected keyword argument in function call PYL-E1123
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 3 files
+3
+
+Autofix
+Undefined name detected PYL-E0602
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 4 files
+37
+
+Autofix
+Too many positional arguments in function call PYL-E1121
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 4 files
+6
+
+Autofix
+Protected member accessed from outside the class PYL-W0212
+ Bug risk
+Minor
+ 8 minutes ago — a month old
+ Seen in 5 files
+7
+
+Autofix
+Unary operand used on an unsupported object PYL-E1130
+ Bug risk
+Critical
+ 8 minutes ago — a month old
+ Seen in 1 file
+1
+
+Autofix
+Exceptions are overlapping PYL-W0714
+ Anti-pattern
+Major
+ 8 minutes ago — a month old
+ Seen in 3 files
+4
+
+Autofix

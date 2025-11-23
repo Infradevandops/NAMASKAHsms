@@ -15,7 +15,6 @@ from app.utils.exception_handling import (
     EncryptionError,
     AWSServiceError,
 )
-from app.core.exceptions import ValidationError, AuthorizationError
 
 
 class TestDatabaseExceptionHandling:

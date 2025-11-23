@@ -6,11 +6,6 @@ from typing import Dict, List
 # SQLAlchemy Session import not required here; using SessionLocal from core.database
 
 from app.core.database import SessionLocal
-from app.core.logging import get_logger
-from app.core.exceptions import ExternalServiceError
-from app.core.config import settings
-from app.models.verification import Verification
-from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 

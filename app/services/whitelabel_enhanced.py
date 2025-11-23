@@ -2,8 +2,6 @@
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from app.models.whitelabel import WhiteLabelConfig
-from app.models.whitelabel_enhanced import WhiteLabelDomain
-from app.models.whitelabel_enhanced import WhiteLabelTheme, WhiteLabelAsset
 
 
 class WhiteLabelEnhancedService:
@@ -56,7 +54,7 @@ class WhiteLabelEnhancedService:
                 "--primary - color": branding_config.get("primary_color", "#667eea"),
                 "--secondary - color": branding_config.get("secondary_color", "#10b981"),
                 "--font - family": branding_config.get("font_family",
-                                                       "Inter, sans - serif"),
+                                                       "Inter, sans - seri"),
                 "--border - radius": "8px",
                 "--shadow": "0 4px 6px rgba(0, 0, 0, 0.1)"
             },

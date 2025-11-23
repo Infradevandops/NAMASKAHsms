@@ -1,13 +1,8 @@
 """Authentication API router."""
 from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.unified_error_handling import AuthenticationError, ValidationError
-from app.models.user import User
-from app.schemas import (
     APIKeyCreate,
     APIKeyListResponse,
     APIKeyResponse,
@@ -20,8 +15,6 @@ from app.schemas import (
     UserCreate,
     UserResponse,
 )
-from app.services import get_auth_service, get_notification_service
-from app.core.auth_security import (
     check_rate_limit, check_account_lockout, record_login_attempt,
     audit_log_auth_event
 )
@@ -34,9 +27,6 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 )
 async def register(user_data: UserCreate, request: Request, db: Session = Depends(get_db)):
     """Register new user account."""
-    from app.core.token_manager import create_tokens
-    from app.core.session_manager import create_session
-    from fastapi.responses import JSONResponse
 
     auth_service = get_auth_service(db)
     notification_service = get_notification_service(db)
@@ -125,7 +115,6 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
 @router.get("/google/config")
 def get_google_config():
     """Serve Google OAuth config."""
-    from app.core.config import get_settings
     settings = get_settings()
     return JSONResponse(
         content={
@@ -150,9 +139,6 @@ async def login_page():
 @router.post("/login", response_model=TokenResponse)
 async def login(login_data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     """Authenticate user with email and password."""
-    from app.core.token_manager import create_tokens
-    from app.core.session_manager import create_session
-    from fastapi.responses import JSONResponse
 
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
@@ -225,7 +211,7 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
         return response
 
     except HTTPException:
-        raise
+        pass
     except AuthenticationError:
         try:
             audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
@@ -248,8 +234,6 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
 
     try:
         from google.auth.transport import requests as google_requests
-        from google.oauth2 import id_token
-        from app.core.config import get_settings
 
         settings = get_settings()
         auth_service = get_auth_service(db)
@@ -369,7 +353,6 @@ def create_api_key(
     db: Session = Depends(get_db),
 ):
     """Create new API key for programmatic access."""
-    from app.core.email_verification import require_verified_email
     require_verified_email(user_id, db)
     auth_service = get_auth_service(db)
     api_key = auth_service.create_api_key(user_id, api_key_data.name)
@@ -388,7 +371,6 @@ def list_api_keys(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """List user's API keys."""
-    from app.models.user import APIKey
 
     api_keys = db.query(APIKey).filter(APIKey.user_id == user_id).all()
 
@@ -412,7 +394,6 @@ def delete_api_key(
     db: Session = Depends(get_db),
 ):
     """Delete API key."""
-    from app.models.user import APIKey
 
     api_key = (
         db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()

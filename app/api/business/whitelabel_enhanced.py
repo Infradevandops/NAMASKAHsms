@@ -1,10 +1,7 @@
 """Enhanced white - label API endpoints."""
 from fastapi import APIRouter, HTTPException, Depends
-from fastapi.responses import Response
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user
-from app.services.whitelabel_enhanced import get_whitelabel_enhanced_service
-from app.models.user import User
 from pydantic import BaseModel
 from typing import Dict, Optional
 
@@ -92,7 +89,6 @@ async def preview_whitelabel(
     service = get_whitelabel_enhanced_service(db)
 
     # Get configuration by ID (for preview)
-    from app.models.whitelabel import WhiteLabelConfig
     config = db.query(WhiteLabelConfig).filter(
         WhiteLabelConfig.id == config_id
     ).first()
@@ -238,7 +234,7 @@ async def get_available_templates():
                 "id": "corporate",
                 "name": "Corporate Professional",
                 "preview": "/static/templates/corporate - preview.png",
-                "colors": ["#1e40af", "#dc2626", "#059669"],
+                "colors": ["#1e40a", "#dc2626", "#059669"],
                 "features": ["responsive", "enterprise", "security_focused"]
             }
         ]
@@ -262,7 +258,7 @@ async def apply_template(
         "modern": {
             "primary_color": "#667eea",
             "secondary_color": "#10b981",
-            "font_family": "Inter, sans - serif",
+            "font_family": "Inter, sans - seri",
             "css_variables": {
                 "--border - radius": "12px",
                 "--shadow": "0 8px 25px rgba(0,0,0,0.1)"
@@ -271,14 +267,14 @@ async def apply_template(
         "minimal": {
             "primary_color": "#1f2937",
             "secondary_color": "#10b981",
-            "font_family": "system - ui, sans - serif",
+            "font_family": "system - ui, sans - seri",
             "css_variables": {
                 "--border - radius": "4px",
                 "--shadow": "0 2px 4px rgba(0,0,0,0.1)"
             }
         },
         "corporate": {
-            "primary_color": "#1e40af",
+            "primary_color": "#1e40a",
             "secondary_color": "#059669",
             "font_family": "Georgia, serif",
             "css_variables": {

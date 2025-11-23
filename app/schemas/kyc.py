@@ -20,7 +20,6 @@ class KYCProfileCreate(BaseModel):
 
     @validator('date_of_birth')
     def validate_age(cls, v):
-        from datetime import date
         today = date.today()
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
         if age < 18:

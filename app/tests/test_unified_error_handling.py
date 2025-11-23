@@ -2,7 +2,6 @@
 import pytest
 from unittest.mock import Mock, patch
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError, OperationalError
 from botocore.exceptions import ClientError
 from cryptography.fernet import InvalidToken
@@ -203,7 +202,6 @@ class TestExceptionHandlers:
     @pytest.mark.asyncio
     async def test_validation_exception_handler(self):
         """Test validation exception handler."""
-        from fastapi.exceptions import RequestValidationError
 
         request = Mock()
         exc = RequestValidationError([{"type": "missing",

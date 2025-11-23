@@ -1,9 +1,7 @@
 """TextVerified API Client using official SDK."""
 import textverified
-from textverified.data import ReservationCapability, NumberType
 from typing import Dict, Any, Optional, List
 from app.core.logging import get_logger
-from app.core.config import settings
 
 logger = get_logger(__name__)
 

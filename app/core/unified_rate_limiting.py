@@ -6,10 +6,8 @@ from dataclasses import dataclass
 
 from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 
 from app.core.config import get_settings
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

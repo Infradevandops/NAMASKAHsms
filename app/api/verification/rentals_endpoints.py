@@ -1,8 +1,6 @@
 """Rental endpoints for TextVerified."""
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user_id
-from app.services.textverified_integration import get_textverified_integration
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/rentals", tags=["rentals"])

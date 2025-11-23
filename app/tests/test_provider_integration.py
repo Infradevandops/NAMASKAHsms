@@ -2,7 +2,6 @@
 import pytest
 from unittest.mock import AsyncMock
 from app.services.unified_provider import ProviderPool
-from app.services.provider_system import UnifiedSMSProvider, ProviderStatus
 
 
 class MockProvider(UnifiedSMSProvider):

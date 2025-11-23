@@ -1,9 +1,6 @@
 """Tests for SQL injection prevention."""
 from sqlalchemy.orm import Session
 from app.core.database_optimization import QueryOptimizer
-from app.models.user import User
-from app.models.verification import Verification
-from app.utils.security import hash_password
 
 
 class TestSQLInjectionPrevention:

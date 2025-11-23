@@ -249,7 +249,6 @@ class ResellerService:
     async def get_usage_report(self, reseller_id: int, days: int = 30) -> Dict:
         """Get usage analytics for reseller."""
 
-        from datetime import timedelta
         start_date = datetime.utcnow() - timedelta(days=days)
 
         # Get sub - accounts

@@ -2,7 +2,6 @@
 from typing import Dict
 from datetime import datetime, timedelta
 from app.core.database import get_db
-from app.models.verification import Verification
 
 
 class FraudDetector:

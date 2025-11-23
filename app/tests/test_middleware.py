@@ -1,7 +1,6 @@
 """Tests for middleware components."""
 from unittest.mock import Mock, patch
 from fastapi import FastAPI, Request
-from fastapi.testclient import TestClient
 from starlette.responses import JSONResponse
 
 from app.middleware import (
@@ -289,7 +288,7 @@ class TestSecurityHeadersMiddleware:
         assert "Referrer - Policy" in response.headers
 
         # Check header values
-        assert response.headers["X - Content-Type - Options"] == "nosniff"
+        assert response.headers["X - Content-Type - Options"] == "nosnif"
         assert response.headers["X - Frame-Options"] == "DENY"
         assert response.headers["X - XSS-Protection"] == "1; mode = block"
 

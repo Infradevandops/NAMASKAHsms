@@ -1,10 +1,7 @@
 """Database optimization utilities for task 12.1."""
 from sqlalchemy import Index, text
-from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
-from app.models.user import User
-from app.models.verification import Verification
 
 
 def create_database_indexes(engine):
@@ -77,7 +74,6 @@ class QueryOptimizer:
     @staticmethod
     def get_verification_stats_optimized(db: Session, user_id: str):
         """Optimized query for verification statistics using ORM."""
-        from sqlalchemy import func
 
         return (
             db.query(

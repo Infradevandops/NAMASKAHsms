@@ -1,8 +1,6 @@
 """TextVerified API endpoints for frontend integration."""
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user_id
-from app.services.provider_factory import provider_manager
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 

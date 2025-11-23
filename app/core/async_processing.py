@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
 
 from app.services.notification_service import NotificationService
-from app.services.payment_service import PaymentService
 
 
 class BackgroundTaskManager:
@@ -66,7 +65,6 @@ async def async_send_webhook(
     try:
         await notification_service.send_webhook(user_id, event_type, payload)
     except Exception as e:
-        import logging
 
         logger = logging.getLogger(__name__)
         logger.error("Webhook delivery failed: %s", e)
@@ -80,7 +78,6 @@ async def async_process_payment_webhook(
         result = payment_service.process_webhook_payment(webhook_data)
         return result
     except Exception as e:
-        import logging
 
         logger = logging.getLogger(__name__)
         logger.error("Payment webhook processing failed: %s", e)
@@ -142,7 +139,6 @@ class AsyncDatabaseOperations:
             return True
         except Exception as e:
             db_session.rollback()
-            import logging
 
             logger = logging.getLogger(__name__)
             logger.error("Bulk credit update failed: %s", e)
@@ -154,7 +150,6 @@ class AsyncDatabaseOperations:
         try:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
-            from sqlalchemy import text
 
             result = db_session.execute(
                 text(
@@ -167,7 +162,6 @@ class AsyncDatabaseOperations:
             return result.rowcount
         except Exception as e:
             db_session.rollback()
-            import logging
 
             logger = logging.getLogger(__name__)
             logger.error("Verification cleanup failed: %s", e)

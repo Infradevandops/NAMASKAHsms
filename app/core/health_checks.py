@@ -2,8 +2,6 @@
 from typing import Any, Dict
 
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import Session
 
 
 def check_database_health(db: Session) -> Dict[str, Any]:

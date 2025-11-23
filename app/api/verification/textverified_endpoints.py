@@ -4,11 +4,6 @@ from sqlalchemy.orm import Session
 import asyncio
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.services.textverified_integration import get_textverified_integration
-from app.models.verification import Verification
-from app.models.user import User
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/verify", tags=["verification"])
@@ -77,7 +72,7 @@ async def create_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Verification creation error: {e}")
         raise HTTPException(status_code=500, detail="Failed to create verification")
@@ -121,7 +116,7 @@ async def get_verification_status(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Get verification status error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get verification status")
@@ -201,7 +196,7 @@ async def cancel_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Cancel verification error: {e}")
         raise HTTPException(status_code=500, detail="Failed to cancel verification")

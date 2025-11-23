@@ -1,7 +1,5 @@
 """Unit tests for utility functions."""
 from app.utils.security import hash_password, verify_password, generate_api_key
-from app.utils.validation import validate_email, validate_phone, sanitize_input
-from app.utils.email import EmailService
 
 
 class TestSecurityUtils:
@@ -20,7 +18,6 @@ class TestSecurityUtils:
 
     def test_verify_password(self):
         """Test password verification."""
-        from .fixtures import generate_test_password
 
         password = generate_test_password()
         hashed = hash_password(password)

@@ -9,11 +9,6 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
-from app.models.user import User
-from app.models.verification import Verification
-from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -280,7 +275,7 @@ async def create_bulk_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Bulk verification creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Bulk purchase failed: {str(e)}")
@@ -331,7 +326,7 @@ async def get_bulk_status(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Failed to get bulk status: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to get bulk status: {str(e)}")
@@ -391,7 +386,7 @@ async def cancel_bulk_verification(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Failed to cancel bulk: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to cancel bulk purchase: {str(e)}")

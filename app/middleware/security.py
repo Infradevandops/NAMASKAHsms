@@ -2,13 +2,9 @@
 from typing import List, Optional
 
 from fastapi import Request, status
-from fastapi.security import HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import JSONResponse
 
 from app.core.config import settings
-from app.core.database import SessionLocal
-from app.services.auth_service import AuthService
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
@@ -241,7 +237,7 @@ class CORSMiddleware(BaseHTTPMiddleware):
             response.headers["Access-Control-Allow-Credentials"] = "true"
 
         # Security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Content-Type-Options"] = "nosnif"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"

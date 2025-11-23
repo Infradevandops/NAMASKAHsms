@@ -157,7 +157,6 @@ response = requests.post(
 print(response.json())
                 """,
                 "get_balance": """
-import requests
 
 headers = {"Authorization": "Bearer YOUR_TOKEN"}
 response = requests.get(

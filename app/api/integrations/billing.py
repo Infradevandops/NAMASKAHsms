@@ -3,10 +3,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.models.user import User
-from app.models.transaction import Transaction
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/billing", tags=["billing"])
@@ -69,7 +65,7 @@ async def initialize_paystack_payment(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Initialize payment error: {e}")
         raise HTTPException(status_code=500, detail="Failed to initialize payment")
@@ -168,7 +164,7 @@ async def get_balance(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error(f"Get balance error: {e}")
         raise HTTPException(status_code=500, detail="Failed to get balance")

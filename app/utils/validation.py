@@ -4,7 +4,6 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
 import phonenumbers
-from phonenumbers import NumberParseException
 
 
 def validate_email(email: str) -> bool:

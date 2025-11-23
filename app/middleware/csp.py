@@ -9,7 +9,7 @@ class CSPMiddleware(BaseHTTPMiddleware):
 
         # CSP policy to prevent XSS
         csp_policy = (
-            "default - src 'self'; "
+            "default - src 'sel'; "
             "script - src 'self' 'unsafe - inline' https://cdn.jsdelivr.net; "
             "style - src 'self' 'unsafe - inline' https://fonts.googleapis.com; "
             "font - src 'self' https://fonts.gstatic.com; "

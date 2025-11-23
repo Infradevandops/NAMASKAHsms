@@ -2,9 +2,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, get_current_admin_user
-from app.services.commission_engine import get_commission_engine
-from app.models.user import User
-from app.models.commission import PayoutRequest, CommissionTier
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
@@ -41,7 +38,6 @@ async def get_affiliate_dashboard(
     total_earnings = current_user.referral_earnings or 0.0
 
     # Get pending earnings
-    from app.models.commission import RevenueShare
     pending_result = db.query(
         db.func.sum(RevenueShare.commission_amount)
     ).filter(
@@ -165,7 +161,6 @@ async def get_commission_history(
     if not current_user.is_affiliate:
         raise HTTPException(status_code=403, detail="Not an affiliate")
 
-    from app.models.commission import RevenueShare
     commissions = db.query(RevenueShare).filter(
         RevenueShare.partner_id == current_user.id
     ).order_by(RevenueShare.created_at.desc()).limit(50).all()

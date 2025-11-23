@@ -10,7 +10,6 @@ import secrets
 from typing import Any, Dict, Optional
 
 from fastapi import HTTPException, Request, status
-from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +104,7 @@ class SecurityHardening:
     def get_security_headers(self) -> Dict[str, str]:
         """Get security headers for responses"""
         return {
-            "X - Content-Type - Options": "nosniff",
+            "X - Content-Type - Options": "nosnif",
             "X - Frame-Options": "DENY",
             "X - XSS-Protection": "1; mode = block",
             "Strict - Transport-Security": "max - age = 31536000; includeSubDomains",

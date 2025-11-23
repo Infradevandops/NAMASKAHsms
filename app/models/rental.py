@@ -1,6 +1,5 @@
 """Rental model for SMS number rentals."""
 from sqlalchemy import Boolean, Column, DateTime, Integer, Numeric, String
-from sqlalchemy.sql import func
 
 from app.models.base import BaseModel
 

@@ -3,10 +3,8 @@ import time
 
 from fastapi import Request, HTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.core.monitoring import error_tracker, performance_monitor
-from app.core.exceptions import NamaskahException
 
 
 class MonitoringMiddleware(BaseHTTPMiddleware):

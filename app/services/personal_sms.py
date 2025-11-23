@@ -5,8 +5,6 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.verification import Verification
-from app.schemas.verification import VerificationCreate
-from app.services.sms_gateway import SMSGateway
 
 
 class PersonalSMSService:

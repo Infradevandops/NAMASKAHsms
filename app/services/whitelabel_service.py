@@ -1,7 +1,6 @@
 """White - label platform service."""
 from typing import Dict, Optional
 from app.models.whitelabel import WhiteLabelConfig
-from app.core.database import get_db
 
 
 class WhiteLabelService:

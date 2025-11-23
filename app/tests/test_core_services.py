@@ -36,14 +36,12 @@ class TestAuthService:
 class TestVerificationService:
     @pytest.mark.asyncio
     async def test_get_countries(self):
-        from app.services.provider_factory import provider_manager
         countries = await provider_manager.get_countries()
         assert isinstance(countries, list)
         assert len(countries) > 0
 
     @pytest.mark.asyncio
     async def test_get_services(self):
-        from app.services.provider_factory import provider_manager
         services = await provider_manager.get_services("US")
         assert isinstance(services, list)
 
@@ -51,7 +49,6 @@ class TestVerificationService:
 class TestCacheService:
     @pytest.mark.asyncio
     async def test_cache_set_get(self):
-        from app.core.caching import cache
         await cache.connect()
 
         key = "test_key"
@@ -64,7 +61,6 @@ class TestCacheService:
 
     @pytest.mark.asyncio
     async def test_cache_delete(self):
-        from app.core.caching import cache
         await cache.connect()
 
         key = "test_key"

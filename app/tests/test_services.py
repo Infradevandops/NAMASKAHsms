@@ -2,9 +2,6 @@
 import pytest
 from unittest.mock import Mock, patch
 from app.services.auth_service import AuthService
-from app.services.payment_service import PaymentService
-from app.services.notification_service import NotificationService
-from app.core.exceptions import AuthenticationError
 
 
 class TestAuthService:

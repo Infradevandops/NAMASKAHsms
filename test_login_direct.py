@@ -1,9 +1,13 @@
 #!/usr/bin/env python3
 """Test login credentials directly"""
 
+import os
+from dotenv import load_dotenv
 from app.core.database import get_db
 from app.models.user import User
 import bcrypt
+
+load_dotenv()
 
 def test_credentials():
     db = next(get_db())
@@ -18,7 +22,10 @@ def test_credentials():
         print(f"   Email verified: {user.email_verified}")
         
         # Test password
-        password = "NamaskahAdmin2024!"
+        password = os.getenv('TEST_ADMIN_PASSWORD')
+        if not password:
+            print("❌ TEST_ADMIN_PASSWORD not set in .env")
+            return False
         if bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
             print("✅ Password matches")
             return True

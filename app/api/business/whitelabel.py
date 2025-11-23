@@ -1,8 +1,6 @@
 """White - label platform API endpoints."""
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.core.dependencies import get_current_admin_user
-from app.services.whitelabel_service import whitelabel_service
-from app.models.user import User
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/whitelabel", tags=["whitelabel"])

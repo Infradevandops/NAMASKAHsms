@@ -3,18 +3,14 @@ import statistics
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 from sqlalchemy import func
-from sqlalchemy.orm import Session
 
 from app.models.transaction import Transaction
-from app.models.verification import Verification
-from app.schemas import (
     ServiceUsage,
     DailyUsage,
     CountryAnalytics,
     TrendData,
     PredictiveInsight,
 )
-from app.utils.timezone_utils import utc_now
 
 
 class AnalyticsCalculator:

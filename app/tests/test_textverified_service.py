@@ -2,7 +2,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
 from app.services.textverified_service import TextVerifiedService
-from app.core.custom_exceptions import TextVerifiedAPIError
 
 
 @pytest.fixture

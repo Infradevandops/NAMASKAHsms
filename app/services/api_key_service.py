@@ -3,9 +3,7 @@ import secrets
 import hashlib
 from datetime import datetime, timedelta
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.models.api_key import APIKey
-from app.models.user import User
 
 
 class APIKeyService:

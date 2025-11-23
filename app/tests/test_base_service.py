@@ -1,9 +1,7 @@
 """Tests for base service infrastructure."""
 import pytest
 from sqlalchemy import create_engine, Column, String
-from sqlalchemy.orm import sessionmaker
 from app.models.base import BaseModel, Base
-from app.services.base import BaseService, get_service
 
 
 class TestServiceModel(BaseModel):

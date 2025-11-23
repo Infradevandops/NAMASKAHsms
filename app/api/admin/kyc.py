@@ -4,15 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File,
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_admin_user_id
-from app.models.kyc import KYCProfile, KYCDocument, KYCAuditLog
-from app.schemas.kyc import (
     KYCProfileCreate, KYCProfileResponse, KYCDocumentResponse,
     KYCVerificationDecision, KYCStatsResponse
 )
-from app.services.kyc_service import get_kyc_service
-from app.services.document_service import get_document_service
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])
@@ -40,7 +34,7 @@ async def create_kyc_profile(
         return KYCProfileResponse.from_orm(kyc_profile)
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("KYC profile creation failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Profile creation failed")
@@ -117,7 +111,7 @@ async def upload_kyc_document(
         }
 
     except HTTPException:
-        raise
+        pass
     except Exception as e:
         logger.error("Document upload failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Document upload failed")
@@ -231,7 +225,6 @@ def get_kyc_statistics(
     db: Session = Depends(get_db)
 ):
     """Get KYC statistics (admin only)."""
-    from sqlalchemy import func
 
     # Basic stats
     total_profiles = db.query(KYCProfile).count()
