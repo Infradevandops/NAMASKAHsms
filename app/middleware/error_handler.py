@@ -25,37 +25,3 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                 content={"success": False, "error": "Internal server error"}
             )
 
-
-class RateLimitMiddleware(BaseHTTPMiddleware):
-    """Lightweight rate limiting middleware."""
-
-    def __init__(self, app, requests_per_minute: int = 60):
-        super().__init__(app)
-        self.requests_per_minute = requests_per_minute
-        self.requests = {}
-
-    async def dispatch(self, request: Request, call_next):
-        client_ip = request.client.host
-        now = utc_now()
-        cutoff = now - timedelta(minutes=1)
-
-        # Clean old entries
-        self.requests = {
-            ip: times for ip, times in self.requests.items()
-            if any(t > cutoff for t in times)
-        }
-
-        # Check rate limit
-        if client_ip not in self.requests:
-            self.requests[client_ip] = []
-
-        self.requests[client_ip] = [t for t in self.requests[client_ip] if t > cutoff]
-
-        if len(self.requests[client_ip]) >= self.requests_per_minute:
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={"success": False, "error": "Rate limit exceeded"}
-            )
-
-        self.requests[client_ip].append(now)
-        return await call_next(request)
