@@ -2,9 +2,18 @@
 from typing import List, Optional
 
 from fastapi import Request, status
+from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
+from app.core.database import SessionLocal
+from app.services.auth import AuthService
+
+class NamaskahException(Exception):
+    def __init__(self, error_code, message):
+        self.error_code = error_code
+        super().__init__(message)
 
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):

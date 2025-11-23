@@ -1,8 +1,12 @@
 """Lightweight error handling middleware."""
 from fastapi import Request, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.core.logging import get_logger
-from datetime import timedelta
+from datetime import timedelta, datetime
+
+def utc_now():
+    return datetime.utcnow()
 
 logger = get_logger(__name__)
 
