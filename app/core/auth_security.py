@@ -1,8 +1,11 @@
 """Authentication security: rate limiting, lockout, audit logging."""
+import json
+import uuid
 from datetime import datetime, timedelta
+from sqlalchemy import Column, String, Boolean, DateTime
 from sqlalchemy.orm import Session
 from app.models.base import Base
-import json
+from app.core.logging import get_logger
 
 logger = get_logger("auth_security")
 
@@ -74,7 +77,6 @@ def check_account_lockout(db: Session, email: str) -> bool:
 def lock_account(db: Session, email: str, reason: str = "Too many failed login attempts", duration_minutes: int = 30):
     """Lock account temporarily."""
     try:
-        import uuid
         lockout = AccountLockout(
             id=str(uuid.uuid4()),
             email=email,

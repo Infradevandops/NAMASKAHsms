@@ -10,6 +10,7 @@ import psutil
 from prometheus_client import CONTENT_TYPE_LATEST
 
 from app.core.config import settings
+from app.core.logging import get_logger, log_business_event, log_performance
 
 logger = get_logger("metrics")
 

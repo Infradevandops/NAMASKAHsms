@@ -5,9 +5,11 @@ from typing import Dict, Optional, Tuple, Any
 from dataclasses import dataclass
 
 from fastapi import Request, status
+from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
