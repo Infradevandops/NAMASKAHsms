@@ -1,4 +1,5 @@
 """Enterprise SLA and account management API."""
+from app.models.user import User
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user, get_current_admin_user
 from pydantic import BaseModel

@@ -1,4 +1,5 @@
 """AI features API endpoints."""
+from app.models.user import User
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.dependencies import get_current_user
 

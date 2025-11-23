@@ -1,4 +1,5 @@
 """White - label platform API endpoints."""
+from app.models.user import User
 from fastapi import APIRouter, HTTPException, Request, Depends
 from app.core.dependencies import get_current_admin_user
 from pydantic import BaseModel

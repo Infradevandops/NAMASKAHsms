@@ -1,4 +1,5 @@
 """Reseller program API endpoints."""
+from app.models.user import User
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from app.core.dependencies import get_db, get_current_user, get_current_admin_user

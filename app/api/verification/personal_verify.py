@@ -1,4 +1,5 @@
 """Personal verification service API endpoints."""
+from app.models.user import User
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 

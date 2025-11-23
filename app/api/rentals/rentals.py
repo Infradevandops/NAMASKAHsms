@@ -1,4 +1,5 @@
 """Rental API endpoints."""
+from app.models.user import User
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
