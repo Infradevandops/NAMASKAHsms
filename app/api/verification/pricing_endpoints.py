@@ -1,4 +1,5 @@
 """Pricing endpoints for TextVerified services."""
+from app.core.logging import get_logger
 from fastapi import APIRouter, HTTPException
 from app.services.textverified_api import get_textverified_client
 

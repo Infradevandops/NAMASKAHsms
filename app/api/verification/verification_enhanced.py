@@ -1,4 +1,5 @@
 """Enhanced SMS Verification API with comprehensive error handling."""
+from app.core.logging import get_logger
 from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
