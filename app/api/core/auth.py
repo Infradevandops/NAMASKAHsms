@@ -27,7 +27,7 @@ from app.core.config import get_settings
 from app.models.user import User, APIKey
 from app.core.dependencies import get_current_user_id
 from app.core.exceptions import AuthenticationError, ValidationError
-from app.core.token_manager import create_tokens, create_session
+from app.core.token_manager import create_tokens
 
 class SuccessResponse(BaseModel):
     message: str
@@ -54,7 +54,6 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
         )
 
         tokens = create_tokens(new_user.id, new_user.email)
-        create_session(db, new_user.id, ip_address, user_agent, tokens["refresh_token"])
 
         try:
             audit_log_auth_event(
@@ -191,7 +190,6 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
             pass
 
         tokens = create_tokens(authenticated_user.id, authenticated_user.email)
-        create_session(db, authenticated_user.id, ip_address, user_agent, tokens["refresh_token"])
 
         user_dict = UserResponse.from_orm(authenticated_user).dict()
         user_dict["created_at"] = user_dict["created_at"].isoformat() if hasattr(user_dict["created_at"], "isoformat") else str(user_dict["created_at"])
