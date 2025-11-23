@@ -1,4 +1,5 @@
 """System API router for health checks and service status."""
+from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Request

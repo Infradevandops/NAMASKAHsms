@@ -1,4 +1,5 @@
 """Disaster recovery API endpoints."""
+from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends, BackgroundTasks
 from app.services.disaster_recovery import disaster_recovery
 

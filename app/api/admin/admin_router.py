@@ -1,4 +1,5 @@
 """Admin endpoints with RBAC."""
+from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db

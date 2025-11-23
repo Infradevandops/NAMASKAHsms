@@ -1,4 +1,5 @@
 """Admin API router for user management and system monitoring."""
+from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from datetime import datetime, timezone
 from typing import List, Optional
 
