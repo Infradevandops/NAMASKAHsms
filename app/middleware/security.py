@@ -8,7 +8,6 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.database import SessionLocal
-from app.services.auth import AuthService
 
 class NamaskahException(Exception):
     def __init__(self, error_code, message):
@@ -72,6 +71,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         # Validate token and get user
         db = SessionLocal()
         try:
+            from app.services.auth import AuthService
             auth_service = AuthService(db)
             user = auth_service.get_user_from_token(token)
 
@@ -128,6 +128,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         # Validate API key
         db = SessionLocal()
         try:
+            from app.services.auth import AuthService
             auth_service = AuthService(db)
             user = auth_service.verify_api_key(api_key)
 
