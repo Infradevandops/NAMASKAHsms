@@ -1,4 +1,5 @@
 """Consolidated Analytics API - All analytics endpoints in one module."""
+from app.core.dependencies import get_current_user_id
 from datetime import datetime, timedelta, timezone
 from app.utils.timezone_utils import utc_now
 from typing import Optional

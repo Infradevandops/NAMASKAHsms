@@ -1,4 +1,5 @@
 """Enhanced Dashboard API router with comprehensive features."""
+from app.core.dependencies import get_current_user_id
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 

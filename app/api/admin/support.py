@@ -1,4 +1,5 @@
 """Support API router for customer support and help desk functionality."""
+from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
 from typing import List, Optional
 

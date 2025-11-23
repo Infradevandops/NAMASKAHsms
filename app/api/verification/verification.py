@@ -1,4 +1,5 @@
 """SMS Verification API with TextVerified API Integration"""
+from app.core.dependencies import get_current_user_id
 from app.services.provider_registry import provider_manager
     SuccessResponse,
     VerificationCreate,

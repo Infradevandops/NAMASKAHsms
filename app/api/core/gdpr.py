@@ -1,4 +1,5 @@
 """GDPR compliance endpoints for data export and account deletion."""
+from app.core.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from datetime import datetime

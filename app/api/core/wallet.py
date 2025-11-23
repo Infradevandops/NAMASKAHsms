@@ -1,4 +1,5 @@
 """Wallet API router for payments and transactions."""
+from app.core.dependencies import get_current_user_id
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request

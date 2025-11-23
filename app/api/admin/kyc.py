@@ -1,4 +1,5 @@
 """KYC (Know Your Customer) API endpoints."""
+from app.core.dependencies import get_current_user_id
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session

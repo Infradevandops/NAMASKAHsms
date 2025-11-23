@@ -1,4 +1,5 @@
 """SMS forwarding configuration endpoints."""
+from app.core.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 

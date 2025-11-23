@@ -1,4 +1,5 @@
 """Wallet API router - Updated Error Handling"""
+from app.core.dependencies import get_current_user_id
 from typing import Optional
 from datetime import datetime, timedelta, timezone
 import csv
