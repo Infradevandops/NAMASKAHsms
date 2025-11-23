@@ -5,6 +5,10 @@ from typing import Dict, List
 
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
+from app.core.config import settings
+from app.models import Verification
+from app.services.textverified_service import TextVerifiedService
+from app.core.exceptions import ExternalServiceError
 
 logger = get_logger(__name__)
 

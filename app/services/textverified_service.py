@@ -6,6 +6,8 @@ except ImportError:
 
 from typing import Dict, Optional, Any
 from app.core.config import settings
+from app.core.logging import get_logger
+from app.services.sms_provider_interface import SMSProviderInterface
 
 logger = get_logger(__name__)
 
