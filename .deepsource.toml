@@ -11,11 +11,3 @@ enabled = false
 [[analyzers]]
 name = "docker"
 enabled = false
-
-[[transformers]]
-name = "autopep8"
-enabled = false
-
-[[transformers]]
-name = "isort"
-enabled = false
