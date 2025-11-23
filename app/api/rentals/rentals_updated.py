@@ -1,4 +1,5 @@
 """Rental API endpoints - Updated Error Handling"""
+from app.core.logging import get_logger
 from app.models.user import User
 from typing import List
 
