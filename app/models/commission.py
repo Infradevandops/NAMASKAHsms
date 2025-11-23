@@ -1,5 +1,6 @@
 """Commission and revenue sharing models."""
 from sqlalchemy import Column, String, Integer, Float, Boolean, JSON, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
 
