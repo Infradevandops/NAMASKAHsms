@@ -1,6 +1,7 @@
 """FastAPI dependency injection utilities."""
 import jwt
 from fastapi import Depends, HTTPException, status, Request
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from .config import settings
