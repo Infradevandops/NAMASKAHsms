@@ -4,6 +4,7 @@ import time
 from typing import Optional
 
 from fastapi import Request
+from starlette.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.logging import get_logger, log_performance
