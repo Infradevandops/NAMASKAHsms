@@ -3,159 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - Namaskah SMS</title>
-    <meta name="description" content="Contact Namaskah SMS - Get support, ask questions, or provide feedback">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <title>Contact Us - Namaskah</title>
     <style>
-        .contact-container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-        .contact-header { text-align: center; margin-bottom: 50px; }
-        .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-        .contact-info { background: var(--bg-card); padding: 40px; border-radius: 16px; border: 1px solid var(--border); }
-        .contact-form { background: var(--bg-card); padding: 40px; border-radius: 16px; border: 1px solid var(--border); }
-        .info-item { margin-bottom: 30px; }
-        .info-item h3 { color: var(--accent); margin-bottom: 10px; }
-        .info-item p { color: var(--text-secondary); line-height: 1.8; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 40px 20px; text-align: center; border-radius: 16px; margin-bottom: 40px; }
+        .header h1 { font-size: 36px; margin-bottom: 12px; }
+        .header p { opacity: 0.9; }
+        .content { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px; }
+        .contact-info { background: #1e293b; border-radius: 12px; padding: 30px; border: 1px solid #475569; }
+        .contact-info h2 { font-size: 24px; color: #6366f1; margin-bottom: 24px; }
+        .contact-item { margin-bottom: 24px; }
+        .contact-item h3 { color: #10b981; margin-bottom: 8px; font-size: 16px; }
+        .contact-item p { opacity: 0.8; }
+        .contact-item a { color: #6366f1; text-decoration: none; }
+        .contact-item a:hover { text-decoration: underline; }
+        .form-container { background: #1e293b; border-radius: 12px; padding: 30px; border: 1px solid #475569; }
+        .form-container h2 { font-size: 24px; color: #6366f1; margin-bottom: 24px; }
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); }
-        .form-group textarea { min-height: 150px; resize: vertical; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; font-size: 14px; font-family: inherit; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #6366f1; }
+        .form-group textarea { resize: vertical; min-height: 120px; }
+        .btn { width: 100%; padding: 12px; background: #6366f1; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn:hover { background: #4f46e5; transform: translateY(-2px); }
+        .btn:disabled { background: #999; cursor: not-allowed; }
+        .back-btn { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #475569; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; }
+        .back-btn:hover { background: #64748b; }
+        .message { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; display: none; }
+        .message.show { display: block; }
+        .message.success { background: rgba(16, 185, 129, 0.1); border: 1px solid #10b981; color: #86efac; }
+        .message.error { background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #fca5a5; }
+        .social-links { display: flex; gap: 12px; margin-top: 20px; }
+        .social-links a { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #334155; border-radius: 8px; color: #f8fafc; text-decoration: none; transition: all 0.3s; }
+        .social-links a:hover { background: #6366f1; }
         @media (max-width: 768px) {
-            .contact-grid { grid-template-columns: 1fr; }
+            .content { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
-
-    <div class="contact-container">
-        <div class="contact-header">
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+        
+        <div class="header">
             <h1>Contact Us</h1>
-            <p style="color: var(--text-secondary); font-size: 1.1rem;">We're here to help. Reach out anytime.</p>
+            <p>Get in touch with our team. We're here to help!</p>
         </div>
 
-        <div class="contact-grid">
+        <div class="content">
             <div class="contact-info">
-                <h2 style="margin-bottom: 30px;">Get in Touch</h2>
+                <h2>Get in Touch</h2>
                 
-                <div class="info-item">
-                    <h3>📧 Email Support</h3>
-                    <p><strong>General:</strong> support@namaskah.app</p>
-                    <p><strong>Privacy:</strong> privacy@namaskah.app</p>
-                    <p><strong>Legal:</strong> legal@namaskah.app</p>
-                    <p><strong>Response Time:</strong> Within 24 hours</p>
+                <div class="contact-item">
+                    <h3>📧 Email</h3>
+                    <p>For general inquiries:</p>
+                    <a href="mailto:support@namaskah.com">support@namaskah.com</a>
+                    <p style="margin-top: 8px; font-size: 14px;">Response time: 2 hours</p>
                 </div>
 
-                <div class="info-item">
-                    <h3>💬 Live Chat</h3>
-                    <p>Available in dashboard for logged-in users</p>
-                    <p><strong>Hours:</strong> 24/7 automated, human support 9 AM - 6 PM UTC</p>
+                <div class="contact-item">
+                    <h3>💼 Business</h3>
+                    <p>For partnerships and enterprise:</p>
+                    <a href="mailto:business@namaskah.com">business@namaskah.com</a>
                 </div>
 
-                <div class="info-item">
-                    <h3>📚 Resources</h3>
-                    <p><a href="/api-docs" style="color: var(--accent);">API Documentation</a></p>
-                    <p><a href="/faq" style="color: var(--accent);">FAQ</a></p>
-                    <p><a href="/status" style="color: var(--accent);">Service Status</a></p>
+                <div class="contact-item">
+                    <h3>🔒 Security</h3>
+                    <p>Report security issues:</p>
+                    <a href="mailto:security@namaskah.com">security@namaskah.com</a>
                 </div>
 
-                <div class="info-item">
-                    <h3>🔗 Social Media</h3>
-                    <p>Twitter: @NamaskahSMS (coming soon)</p>
-                    <p>LinkedIn: Namaskah SMS (coming soon)</p>
+                <div class="contact-item">
+                    <h3>⚖️ Legal</h3>
+                    <p>Legal inquiries:</p>
+                    <a href="mailto:legal@namaskah.com">legal@namaskah.com</a>
                 </div>
 
-                <div class="info-item">
-                    <h3>⏰ Support Hours</h3>
-                    <p><strong>Email:</strong> 24/7 (24-hour response)</p>
-                    <p><strong>Live Chat:</strong> 9 AM - 6 PM UTC</p>
-                    <p><strong>Emergency:</strong> Status page for outages</p>
+                <div class="contact-item">
+                    <h3>🕐 Business Hours</h3>
+                    <p>Monday - Friday: 9:00 AM - 6:00 PM UTC</p>
+                    <p>Saturday - Sunday: Limited support</p>
+                </div>
+
+                <div class="contact-item">
+                    <h3>📍 Headquarters</h3>
+                    <p>Namaskah Inc.<br>Global Operations Center<br>Available worldwide</p>
+                </div>
+
+                <div class="contact-item">
+                    <h3>🌐 Follow Us</h3>
+                    <div class="social-links">
+                        <a href="#" title="Twitter">𝕏</a>
+                        <a href="#" title="LinkedIn">in</a>
+                        <a href="#" title="GitHub">⚙️</a>
+                        <a href="#" title="Discord">💬</a>
+                    </div>
                 </div>
             </div>
 
-            <div class="contact-form">
-                <h2 style="margin-bottom: 30px;">Send Us a Message</h2>
+            <div class="form-container">
+                <h2>Send us a Message</h2>
+                <div id="message" class="message"></div>
                 
                 <form id="contactForm">
                     <div class="form-group">
-                        <label for="name">Name *</label>
+                        <label for="name">Full Name *</label>
                         <input type="text" id="name" name="name" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="email">Email *</label>
+                        <label for="email">Email Address *</label>
                         <input type="email" id="email" name="email" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="category">Category *</label>
-                        <select id="category" name="category" required>
-                            <option value="">Select a category</option>
-                            <option value="technical">Technical Support</option>
-                            <option value="billing">Billing & Payments</option>
-                            <option value="api">API & Integration</option>
-                            <option value="account">Account Issues</option>
-                            <option value="feature">Feature Request</option>
+                        <label for="subject">Subject *</label>
+                        <input type="text" id="subject" name="subject" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="category">Category</label>
+                        <select id="category" name="category" style="width: 100%; padding: 12px; background: #334155; border: 1px solid #475569; border-radius: 8px; color: #f8fafc;">
+                            <option value="support">Support</option>
+                            <option value="sales">Sales Inquiry</option>
+                            <option value="partnership">Partnership</option>
                             <option value="feedback">Feedback</option>
+                            <option value="bug">Bug Report</option>
                             <option value="other">Other</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="message">Message *</label>
-                        <textarea id="message" name="message" required></textarea>
+                        <textarea id="message-text" name="message" required placeholder="Tell us how we can help..."></textarea>
                     </div>
 
-                    <button type="submit" style="width: 100%; padding: 15px; font-size: 1rem;">Send Message</button>
+                    <button type="submit" class="btn" id="submitBtn">Send Message</button>
                 </form>
-
-                <div id="formMessage" style="margin-top: 20px; padding: 15px; border-radius: 8px; display: none;"></div>
             </div>
-        </div>
-
-        <div style="text-align: center; margin-top: 60px; padding: 40px; background: var(--bg-card); border-radius: 16px; border: 1px solid var(--border);">
-            <h2 style="margin-bottom: 20px;">Frequently Asked Questions</h2>
-            <p style="color: var(--text-secondary); margin-bottom: 30px;">Find quick answers to common questions</p>
-            <button onclick="window.location.href='/faq'" style="padding: 12px 30px;">View FAQ</button>
         </div>
     </div>
 
     <script>
-        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+        document.getElementById('contactForm').onsubmit = async (e) => {
             e.preventDefault();
             
-            const formData = {
-                name: document.getElementById('name').value,
-                email: document.getElementById('email').value,
-                category: document.getElementById('category').value,
-                message: document.getElementById('message').value
-            };
-
-            const messageDiv = document.getElementById('formMessage');
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const subject = document.getElementById('subject').value.trim();
+            const category = document.getElementById('category').value;
+            const message = document.getElementById('message-text').value.trim();
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+            
+            if (!name || !email || !subject || !message) {
+                showMessage('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
             
             try {
-                const response = await fetch('/support/submit', {
+                const response = await fetch('/api/contact/send', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
+                    body: JSON.stringify({ name, email, subject, category, message })
                 });
-
-                const data = await response.json();
-
+                
                 if (response.ok) {
-                    messageDiv.style.display = 'block';
-                    messageDiv.style.background = '#d1fae5';
-                    messageDiv.style.color = '#065f46';
-                    messageDiv.textContent = `✓ Message sent! Ticket ID: ${data.ticket_id}. We'll respond within 24 hours.`;
+                    showMessage('Message sent successfully! We\'ll get back to you soon.', 'success');
                     document.getElementById('contactForm').reset();
                 } else {
-                    throw new Error(data.detail || 'Failed to send message');
+                    showMessage('Failed to send message. Please try again.', 'error');
                 }
             } catch (error) {
-                messageDiv.style.display = 'block';
-                messageDiv.style.background = '#fee2e2';
-                messageDiv.style.color = '#991b1b';
-                messageDiv.textContent = `✗ Error: ${error.message}`;
-            }
-        });
-    </script>
-</body>
-</html>
+                console.error('Contact form error:', error);
+                showMessage('Network error. Please try again.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Send Message';\n            }\n        };\n        \n        function showMessage(text, type) {\n            const messageDiv = document.getElementById('message');\n            messageDiv.textContent = text;\n            messageDiv.className = `message show ${type}`;\n            setTimeout(() => messageDiv.classList.remove('show'), 5000);\n        }\n    </script>\n</body>\n</html>
