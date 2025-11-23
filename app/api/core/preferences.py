@@ -1,5 +1,6 @@
 """Service preferences API endpoints."""
 
+from app.core.logging import get_logger
 from app.core.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session

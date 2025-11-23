@@ -1,4 +1,5 @@
 """TextVerified webhook handlers for real-time updates."""
+from app.core.logging import get_logger
 import hmac
 import hashlib
 from fastapi import APIRouter, Request, HTTPException, Depends

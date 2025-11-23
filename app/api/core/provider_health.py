@@ -1,4 +1,5 @@
 """Provider health check endpoints."""
+from app.core.logging import get_logger
 from fastapi import APIRouter, HTTPException
 from app.services.provider_registry import provider_manager
 
