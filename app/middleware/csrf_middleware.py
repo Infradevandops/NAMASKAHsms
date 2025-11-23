@@ -54,6 +54,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     def _is_public_endpoint(self, path: str) -> bool:
         """Check if endpoint is public (no CSRF required)."""
         public_paths = [
+            "/",
             "/api/auth/login",
             "/api/auth/register",
             "/api/auth/google",
