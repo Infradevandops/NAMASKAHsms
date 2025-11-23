@@ -1,8 +1,11 @@
 """Authentication API router."""
 from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlalchemy.orm import Session
+from google.oauth2 import id_token
 
 from app.core.database import get_db
+from app.schemas.auth import (
     APIKeyCreate,
     APIKeyListResponse,
     APIKeyResponse,
@@ -15,9 +18,16 @@ from app.core.database import get_db
     UserCreate,
     UserResponse,
 )
+from app.core.auth_security import (
     check_rate_limit, check_account_lockout, record_login_attempt,
     audit_log_auth_event
 )
+from app.services import get_auth_service, get_notification_service
+from app.core.config import get_settings
+from app.models.user import User, APIKey
+from app.core.dependencies import get_current_user_id, require_verified_email
+from app.core.exceptions import AuthenticationError, ValidationError
+from app.core.token_manager import create_tokens, create_session
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -211,7 +221,7 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
         return response
 
     except HTTPException:
-        pass
+        raise
     except AuthenticationError:
         try:
             audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
