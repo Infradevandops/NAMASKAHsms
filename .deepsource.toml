@@ -2,19 +2,7 @@ version = 1
 
 [[analyzers]]
 name = "python"
-enabled = true
-
-  [analyzers.meta]
-  runtime_version = "3.x.x"
-
-  [[analyzers.exclude_patterns]]
-  pattern = ".venv/**"
-  
-  [[analyzers.exclude_patterns]]
-  pattern = "venv/**"
-  
-  [[analyzers.exclude_patterns]]
-  pattern = "**/site-packages/**"
+enabled = false
 
 [[analyzers]]
 name = "secrets"
