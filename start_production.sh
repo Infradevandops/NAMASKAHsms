@@ -49,6 +49,17 @@ echo ""
 echo "🎯 Starting Uvicorn server..."
 echo "=========================================="
 
+# Check if we can connect to database before running migrations
+if psql $DATABASE_URL -c "SELECT 1" &>/dev/null; then
+    echo "Database accessible, applying migrations..."
+    alembic upgrade head
+else
+    echo "⚠️  Database not accessible (expected if running locally)"
+    echo "Skipping migrations - they will run in production"
+fi
+
+echo ""
+
 # Start Uvicorn with production settings
 uvicorn main:app \
     --host 0.0.0.0 \
