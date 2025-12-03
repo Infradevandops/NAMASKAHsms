@@ -34,9 +34,16 @@ server.log
 .env
 .env.local
 .env.production
+.env.staging
+.env.test
 .venv
 env/
 venv/
+
+# Sensitive Configuration
+.secrets
+secrets.json
+config.json
 
 # IDE
 .vscode/
@@ -90,11 +97,9 @@ unicorn.log
 *.sql.gz
 
 # Certificates & Tokens
-certs/
 *.pem
 *.key
 *.crt
-token.json
 .secrets.baseline
 
 # Docker
@@ -103,50 +108,35 @@ token.json
 # Documentation build
 docs/_build/
 
-# Project artifacts
-*.json
-PHASE_*.md
-ISSUES_*.md
-*_SUMMARY.md
-*_REPORT.md
-CRITICAL_*.md
-IMPLEMENTATION_*.md
-FINDINGS_*.md
-ACTIONS_*.md
-DECISION_*.md
-DEPLOYMENT_*.md
-CHOOSE_*.txt
-FINAL_*.txt
-STATUS_*.txt
-READY_*.md
-COMPLETION_*.md
-INTEGRATION_*.md
-PRODUCTION_*.md
-QUICK_*.md
-OVERHAUL_*.md
-SYSTEM_*.md
-PROJECT_*.md
-AREAS_*.md
-AUTH_*.md
-ADMIN_*.md
-API_*.md
-ERROR_*.md
-FRONTEND_*.md
-SECURITY_*.md
-TEST_*.md
-TEXTVERIFIED_*.md
-TROUBLESHOOTING.md
-NEXT_STEPS.md
-REMAINING_*.md
-CLEANUP_*.md
-AUTHENTICATION_*.md
-POSTGRESQL_*.md
-OPTIMIZATION_*.md
-MIGRATION_*.md
-REAL_*.txt
-DELIVERY_*.txt
+# Relative paths - Build artifacts
+/htmlcov/
+/.coverage
+/.coveragerc
+/.cache_ggshield
+/test.db
+/namaskah_dev.db
 
-# Temporary files
-.secrets.baseline
-fixture_*.py
-test_*.tmp
+# Relative paths - Logs
+/server.log
+
+# Relative paths - IDE
+/.vscode/
+/.idea/
+
+# Relative paths - Environment
+/.env
+/.env.local
+/.env.production
+/.env.development
+/.env.docker
+/.env.test
+
+# Relative paths - Certificates
+/certs/
+
+# Relative paths - Monitoring
+/monitoring/
+
+# Relative paths - Temporary files
+/LOGIN_TEST.html
+/.render-deploy

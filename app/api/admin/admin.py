@@ -1,12 +1,21 @@
 """Admin API router for user management and system monitoring."""
-from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi.responses import HTMLResponse
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_admin_user_id
+from app.models.user import User
+from app.models.verification import Verification
+from app.models.transaction import Transaction
+from app.models.support_ticket import SupportTicket
+from app.schemas.responses import SuccessResponse, SupportTicketResponse
+from app.utils.sanitization import sanitize_html, sanitize_email_content
+from app.services.notification_service import get_notification_service
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
