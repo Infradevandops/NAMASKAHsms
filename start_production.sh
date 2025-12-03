@@ -37,27 +37,22 @@ echo ""
 echo "✅ All validations passed"
 echo ""
 
-# Apply database migrations
-echo "Applying database migrations..."
-alembic upgrade head
-
-if [ $? -ne 0 ]; then
-    echo "⚠️  Migration warning (may be normal if already up to date)"
-fi
-
-echo ""
-echo "🎯 Starting Uvicorn server..."
-echo "=========================================="
-
 # Check if we can connect to database before running migrations
+echo "Checking database connectivity..."
 if psql $DATABASE_URL -c "SELECT 1" &>/dev/null; then
-    echo "Database accessible, applying migrations..."
+    echo "✅ Database accessible, applying migrations..."
     alembic upgrade head
+    if [ $? -ne 0 ]; then
+        echo "⚠️  Migration warning (may be normal if already up to date)"
+    fi
 else
     echo "⚠️  Database not accessible (expected if running locally)"
     echo "Skipping migrations - they will run in production"
 fi
 
+echo ""
+echo "🎯 Starting Uvicorn server..."
+echo "=========================================="
 echo ""
 
 # Start Uvicorn with production settings
