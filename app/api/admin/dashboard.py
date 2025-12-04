@@ -6,8 +6,12 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from sqlalchemy import desc, func
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.models.user import User
+from app.models.verification import Verification, NumberRental
+from app.models.transaction import Transaction
 
 logger = get_logger(__name__)
 
