@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Verification - Namaskah">
+  <title>Verification - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/theme-config.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  
+  <style>
+    .verification-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+    }
+    
+    .verification-header {
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .verification-header h1 {
+      margin: 0;
+    }
+    
+    .verification-tabs {
+      display: flex;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .verification-tab {
+      padding: var(--space-md) var(--space-lg);
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: #6b7280;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    
+    .verification-tab:hover {
+      color: var(--primary);
+    }
+    
+    .verification-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .verification-content {
+      display: none;
+    }
+    
+    .verification-content.active {
+      display: block;
+    }
+    
+    .form-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .form-section h2 {
+      margin-top: 0;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+    }
+    
+    .form-group {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      font-weight: 500;
+      color: #111827;
+    }
+    
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: var(--space-md);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .price-display {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+      text-align: center;
+    }
+    
+    .price-display .label {
+      color: #6b7280;
+      font-size: 0.875rem;
+      margin-bottom: var(--space-sm);
+    }
+    
+    .price-display .price {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    
+    .history-table th {
+      background-color: var(--surface);
+      padding: var(--space-lg);
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .history-table td {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .history-table tbody tr:hover {
+      background-color: var(--surface);
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: 600;
+    }
+    
+    .status-badge.success {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+    
+    .status-badge.pending {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+    
+    .status-badge.failed {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+    }
+    
+    @media (max-width: 768px) {
+      .verification-container {
+        padding: var(--space-lg);
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .verification-tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body data-page="verification" data-tab="{{ tab or 'request' }}">
+  <div class="verification-container">
+    <div class="verification-header">
+      <h1>SMS Verification</h1>
+      <p>Request and manage SMS verifications</p>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="verification-tabs">
+      <button class="verification-tab {% if tab == 'request' or not tab %}active{% endif %}" data-tab="request">
+        Request
+      </button>
+      <button class="verification-tab {% if tab == 'history' %}active{% endif %}" data-tab="history">
+        History
+      </button>
+      <button class="verification-tab {% if tab == 'inbox' %}active{% endif %}" data-tab="inbox">
+        Inbox
+      </button>
+      <button class="verification-tab {% if tab == 'rental' %}active{% endif %}" data-tab="rental">
+        Rental
+      </button>
+    </div>
+    
+    <!-- Request Tab -->
+    <div class="verification-content {% if tab == 'request' or not tab %}active{% endif %}" data-tab="request">
+      <div class="form-section">
+        <h2>Request Verification</h2>
+        <form id="verification-form">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="country">Country</label>
+              <select id="country" name="country" required>
+                <option value="">Select Country</option>
+                {% for country in countries %}
+                <option value="{{ country.code }}">{{ country.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="service">Service</label>
+              <select id="service" name="service" required>
+                <option value="">Select Service</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="price-display">
+            <div class="label">Price</div>
+            <div class="price" id="price">$0.00</div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-lg btn-block">
+            Request Verification
+          </button>
+        </form>
+      </div>
+    </div>
+    
+    <!-- History Tab -->
+    <div class="verification-content {% if tab == 'history' %}active{% endif %}" data-tab="history">
+      <div class="form-section">
+        <h2>Verification History</h2>
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Country</th>
+              <th>Status</th>
+              <th>Cost</th>
+              <th>Date</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="history-list">
+            <!-- Populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <!-- Inbox Tab -->
+    <div class="verification-content {% if tab == 'inbox' %}active{% endif %}" data-tab="inbox">
+      <div class="form-section">
+        <h2>SMS Inbox</h2>
+        <div id="inbox-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+    
+    <!-- Rental Tab -->
+    <div class="verification-content {% if tab == 'rental' %}active{% endif %}" data-tab="rental">
+      <div class="form-section">
+        <h2>Number Rentals</h2>
+        <div id="rental-list">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="/static/js/theme-manager.js"></script>
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>

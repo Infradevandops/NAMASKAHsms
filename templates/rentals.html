@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rentals - Namaskah</title>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.2/src/index.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/rentals.css">
+    <link rel="stylesheet" href="/static/css/rental-modal.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <h2>Namaskah</h2>
+                <button id="sidebar-toggle" class="toggle-btn" title="Toggle sidebar">
+                    <i class="ph ph-list"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/dashboard" class="nav-item" data-view="home">
+                    <i class="ph ph-house"></i>
+                    <span class="text">Home</span>
+                </a>
+                <a href="#" class="nav-item" onclick="openRentalModal(); return false;">
+                    <i class="ph ph-phone"></i>
+                    <span class="text">New Rental</span>
+                </a>
+                <a href="/rentals" class="nav-item active">
+                    <i class="ph ph-list"></i>
+                    <span class="text">My Rentals</span>
+                </a>
+                <a href="/dashboard?view=wallet" class="nav-item" data-view="wallet">
+                    <i class="ph ph-wallet"></i>
+                    <span class="text">Wallet</span>
+                </a>
+                <a href="/dashboard?view=profile" class="nav-item" data-view="profile">
+                    <i class="ph ph-user"></i>
+                    <span class="text">Profile</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout(); return false;">
+                    <i class="ph ph-sign-out"></i>
+                    <span class="text">Logout</span>
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="header">
+                <h1 id="page-title">Number Rentals</h1>
+                <div class="header-right">
+                    <div class="balance-display" id="header-balance">Balance: $0.00</div>
+                    <div class="user-info">
+                        <span id="user-email">Guest</span>
+                    </div>
+                </div>
+            </header>
+
+            <div class="rentals-container">
+                <div class="rentals-header">
+                    <h1>Active Rentals</h1>
+                    <button class="btn btn-primary" onclick="openRentalModal()" style="padding: 12px 24px;">New Rental</button>
+                </div>
+                <div id="rentals-list"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Rental Modal -->
+    <div id="rental-modal" class="rental-modal-overlay" style="display: none;">
+        <div class="rental-modal">
+            <div class="rental-modal-header">
+                <h2>Rent SMS Number</h2>
+                <button class="rental-modal-close" onclick="closeRentalModal()">×</button>
+            </div>
+            
+            <div class="rental-progress">
+                <div class="rental-progress-step active" data-step="1">
+                    <span>1</span>
+                    <div class="rental-progress-step-label">Country</div>
+                </div>
+                <div class="rental-progress-step" data-step="2">
+                    <span>2</span>
+                    <div class="rental-progress-step-label">Service</div>
+                </div>
+                <div class="rental-progress-step" data-step="3">
+                    <span>3</span>
+                    <div class="rental-progress-step-label">Duration</div>
+                </div>
+                <div class="rental-progress-step" data-step="4">
+                    <span>4</span>
+                    <div class="rental-progress-step-label">Confirm</div>
+                </div>
+                <div class="rental-progress-step" data-step="5">
+                    <span>5</span>
+                    <div class="rental-progress-step-label">Done</div>
+                </div>
+            </div>
+
+            <div class="rental-content">
+                <!-- Step 1 -->
+                <div class="rental-step active" data-step="1">
+                    <h3>Select Country</h3>
+                    <div class="rental-step-desc">Choose the country for your rental</div>
+                    <select id="rental-country-select" class="form-select" onchange="onCountryChange()">
+                        <option value="">-- Select Country --</option>
+                    </select>
+                    <div class="step-actions">
+                        <button class="btn btn-primary btn-block" onclick="goToStep(2)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="rental-step" data-step="2">
+                    <h3>Select Service</h3>
+                    <div class="rental-step-desc">Choose the service you need</div>
+                    <select id="rental-service-select" class="form-select" onchange="onServiceChange()">
+                        <option value="">-- Select Service --</option>
+                    </select>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="goToStep(1)">Back</button>
+                        <button class="btn btn-primary" onclick="goToStep(3)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="rental-step" data-step="3">
+                    <h3>Select Duration</h3>
+                    <div class="rental-step-desc">Choose how long you need the number</div>
+                    <select id="rental-duration-select" class="form-select" onchange="onDurationChange()">
+                        <option value="">-- Select Duration --</option>
+                        <option value="12h">12 hours - $6.00</option>
+                        <option value="24h">24 hours - $12.00</option>
+                        <option value="3d">3 days - $30.00</option>
+                        <option value="1w">1 week - $50.00</option>
+                        <option value="1m">1 month - $150.00</option>
+                    </select>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="goToStep(2)">Back</button>
+                        <button class="btn btn-primary" onclick="goToStep(4)">Next</button>
+                    </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="rental-step" data-step="4">
+                    <h3>Confirm Purchase</h3>
+                    <div class="rental-step-desc">Review your selection</div>
+                    <div class="confirmation-box">
+                        <div class="confirmation-item">
+                            <strong>Country:</strong>
+                            <span id="rental-confirm-country">-</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <strong>Service:</strong>
+                            <span id="rental-confirm-service">-</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <strong>Duration:</strong>
+                            <span id="rental-confirm-duration">-</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <strong>Cost:</strong>
+                            <span id="rental-confirm-cost">$0.00</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <strong>Your Balance:</strong>
+                            <span id="rental-confirm-balance">$0.00</span>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" onclick="goToStep(3)">Back</button>
+                        <button class="btn btn-primary" onclick="purchaseRental()">Purchase Now</button>
+                    </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="rental-step" data-step="5">
+                    <h3>Rental Created!</h3>
+                    <div class="rental-step-desc">Your rental is ready to use</div>
+                    <div class="phone-display">
+                        <div class="phone-label">Your Phone Number</div>
+                        <div class="phone-number">
+                            <span id="rental-phone-value">+1234567890</span>
+                            <button class="copy-btn" onclick="copyToClipboard('rental-phone-value')">Copy</button>
+                        </div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-primary btn-block" onclick="closeRentalModal()">Done</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function loadBalance() {
+            try {
+                const response = await fetch('/api/user/balance', {
+                    method: 'GET',
+                    headers: {
+                        'Cache-Control': 'no-cache, no-store, must-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0'
+                    }
+                });
+                if (!response.ok) return;
+                const data = await response.json();
+                const balance = parseFloat(data.credits) || 0;
+                const formatted = '$' + balance.toFixed(2);
+                
+                const headerBalance = document.getElementById('header-balance');
+                if (headerBalance) headerBalance.textContent = 'Balance: ' + formatted;
+            } catch (error) {
+                console.error('Balance load failed:', error);
+            }
+        }
+        
+        window.syncBalance = loadBalance;
+        document.addEventListener('DOMContentLoaded', loadBalance);
+        window.addEventListener('focus', loadBalance);
+
+        async function logout() {
+            if (!confirm('Are you sure you want to logout?')) return;
+            try {
+                await fetch('/api/auth/logout', { method: 'POST' });
+                localStorage.clear();
+                window.location.href = '/auth/login';
+            } catch (error) {
+                window.location.href = '/auth/login';
+            }
+        }
+
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+        });
+
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+    </script>
+    <script src="/static/js/rental-modal.js"></script>
+    <script src="/static/js/rentals.js"></script>
+</body>
+</html>

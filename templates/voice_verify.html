@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Verification - Namaskah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --bg-primary: #0f0f23; --bg-card: #1a1a2e; --bg-input: #16213e;
+      --accent: #0f3460; --accent-light: #533483; --success: #16a085;
+      --text-primary: #ffffff; --text-secondary: #8892b0; --border: #233554;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; }
+    
+    .layout { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--bg-card); border-right: 1px solid var(--border); padding: 12px 8px; box-shadow: var(--shadow); }
+    .logo { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 6px; }
+    .logo-icon { width: 24px; height: 24px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .logo-text { font-size: 14px; font-weight: 600; }
+    .nav-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 4px; color: var(--text-secondary); text-decoration: none; margin-bottom: 1px; font-size: 13px; }
+    .nav-item:hover { background: var(--bg-input); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent); color: white; }
+    .nav-item i { font-size: 14px; width: 14px; }
+    
+    .main { padding: 16px; max-width: 800px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header p { font-size: 12px; color: var(--text-secondary); }
+    
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .card h2 i { font-size: 14px; color: var(--accent-light); }
+    
+    .service-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; }
+    .service-card { background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .service-card:hover { border-color: var(--accent-light); transform: translateY(-2px); }
+    .service-icon { width: 32px; height: 32px; margin: 0 auto 8px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+    .service-name { font-size: 12px; font-weight: 600; margin-bottom: 4px; }
+    .service-price { font-size: 11px; color: var(--text-secondary); }
+    
+    .btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; transition: all 0.2s; }
+    .btn:hover { background: var(--accent-light); }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+    .btn-outline:hover { border-color: var(--accent-light); color: var(--accent-light); }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ph ph-device-mobile"></i></div>
+      <span class="logo-text">Namaskah</span>
+    </div>
+    <nav>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-house"></i> Dashboard</a>
+      <a href="/verify" class="nav-item"><i class="ph ph-chat-circle"></i> SMS Code</a>
+      <a href="/voice-verify" class="nav-item active"><i class="ph ph-phone"></i> Voice Code</a>
+      <a href="/settings" class="nav-item"><i class="ph ph-gear"></i> Settings</a>
+    </nav>
+  </aside>
+  
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1>Voice Verification</h1>
+        <p>Get verification codes via automated phone calls</p>
+      </div>
+      <button class="btn btn-outline" onclick="window.location.href='/dashboard'">
+        <i class="ph ph-house"></i> Dashboard
+      </button>
+    </div>
+    
+    <div class="card">
+      <h2><i class="ph ph-phone"></i> Select Service for Voice Verification</h2>
+      <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;">
+        Voice verification provides automated phone calls with spoken verification codes. Higher success rate for certain services.
+      </p>
+      
+      <div class="service-grid">
+        <div class="service-card" onclick="createVoiceVerification('google')">
+          <div class="service-icon" style="background: #4285F4; color: white;">
+            <i class="ph ph-google-logo"></i>
+          </div>
+          <div class="service-name">Google</div>
+          <div class="service-price">$3.50</div>
+        </div>
+
+        <div class="service-card" onclick="createVoiceVerification('facebook')">
+          <div class="service-icon" style="background: #1877F2; color: white;">
+            <i class="ph ph-facebook-logo"></i>
+          </div>
+          <div class="service-name">Facebook</div>
+          <div class="service-price">$4.00</div>
+        </div>
+
+        <div class="service-card" onclick="createVoiceVerification('microsoft')">
+          <div class="service-icon" style="background: #00A4EF; color: white;">
+            <i class="ph ph-microsoft-outlook-logo"></i>
+          </div>
+          <div class="service-name">Microsoft</div>
+          <div class="service-price">$3.75</div>
+        </div>
+
+        <div class="service-card" onclick="createVoiceVerification('amazon')">
+          <div class="service-icon" style="background: #FF9900; color: white;">
+            <i class="ph ph-amazon-logo"></i>
+          </div>
+          <div class="service-name">Amazon</div>
+          <div class="service-price">$3.25</div>
+        </div>
+
+        <div class="service-card" onclick="createVoiceVerification('paypal')">
+          <div class="service-icon" style="background: #0070BA; color: white;">
+            <i class="ph ph-paypal-logo"></i>
+          </div>
+          <div class="service-name">PayPal</div>
+          <div class="service-price">$4.50</div>
+        </div>
+
+        <div class="service-card" onclick="createVoiceVerification('apple')">
+          <div class="service-icon" style="background: #000000; color: white;">
+            <i class="ph ph-apple-logo"></i>
+          </div>
+          <div class="service-name">Apple</div>
+          <div class="service-price">$4.25</div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="card">
+      <h2><i class="ph ph-info"></i> How Voice Verification Works</h2>
+      <ul style="font-size: 12px; color: var(--text-secondary); line-height: 1.6;">
+        <li>• Select a service that supports voice verification</li>
+        <li>• You'll receive a phone number to use for registration</li>
+        <li>• An automated call will deliver the verification code</li>
+        <li>• Codes are typically 4-6 digits spoken clearly</li>
+        <li>• Higher success rate for services that prefer voice calls</li>
+      </ul>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+async function createVoiceVerification(service) {
+  if (!confirm(`Create voice verification for ${service.charAt(0).toUpperCase() + service.slice(1)}?`)) return;
+  
+  try {
+    const response = await axios.post('/api/verification/voice/create', {
+      service: service,
+      country: 'usa'
+    });
+    
+    if (response.data.success) {
+      alert(`Voice verification created!\\n\\nPhone: ${response.data.phone_number}\\nCost: $${response.data.cost}\\n\\nYou will receive an automated call within 30 seconds.`);
+      window.location.href = `/voice-status/${response.data.verification_id}`;
+    }
+  } catch (error) {
+    alert('Voice verification failed: ' + (error.response?.data?.detail || 'Unknown error'));
+    console.error('Voice verification error:', error);
+  }
+}
+</script>
+</body>
+</html>

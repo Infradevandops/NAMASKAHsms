@@ -1,399 +1,420 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bulk Purchase - Namaskah SMS</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --border: #475569;
-        }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-            background: var(--bg-primary); 
-            color: var(--text-primary); 
-            line-height: 1.6;
-        }
-        
-        .container { 
-            max-width: 1200px; 
-            margin: 0 auto; 
-            padding: 20px;
-        }
-        
-        .header { 
-            background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%); 
-            padding: 24px; 
-            border-radius: 16px; 
-            margin-bottom: 24px;
-        }
-        
-        .card { 
-            background: var(--bg-secondary); 
-            border-radius: 16px; 
-            padding: 24px; 
-            margin-bottom: 24px; 
-            border: 1px solid var(--border);
-        }
-        
-        .discount-tiers {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 20px 0;
-        }
-        
-        .tier-card {
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            padding: 16px;
-            border: 2px solid var(--border);
-            text-align: center;
-        }
-        
-        .tier-card.active {
-            border-color: var(--secondary);
-            background: rgba(16, 185, 129, 0.1);
-        }
-        
-        .tier-quantity {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--primary);
-            margin-bottom: 8px;
-        }
-        
-        .tier-discount {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--secondary);
-        }
-        
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin: 20px 0;
-        }
-        
-        .quantity-input {
-            flex: 1;
-            padding: 12px;
-            border-radius: 8px;
-            background: var(--bg-tertiary);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            font-size: 18px;
-            text-align: center;
-        }
-        
-        .btn { 
-            padding: 12px 24px; 
-            border: none; 
-            border-radius: 8px; 
-            font-weight: 600; 
-            cursor: pointer; 
-            transition: all 0.3s ease;
-        }
-        
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--secondary); color: white; }
-        
-        .price-summary {
-            background: var(--bg-tertiary);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-        
-        .price-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .price-row:last-child {
-            border-bottom: none;
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--secondary);
-            padding-top: 16px;
-        }
-        
-        .savings {
-            color: var(--secondary);
-            font-weight: 600;
-        }
-        
-        .bulk-results {
-            margin-top: 24px;
-        }
-        
-        .result-card {
-            background: var(--bg-tertiary);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .status-success { color: var(--secondary); }
-        .status-failed { color: var(--danger); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bulk purchase - Namaskah">
+  <title>Bulk Purchase - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .bulk-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .bulk-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .bulk-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .bulk-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .bulk-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-header svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    
+    .form-section {
+      margin-bottom: var(--space-xl);
+    }
+    
+    .form-section h3 {
+      margin: 0 0 var(--space-lg) 0;
+      font-size: 1.1rem;
+    }
+    
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .quantity-selector label {
+      margin: 0;
+      font-weight: var(--font-weight-medium);
+      min-width: 150px;
+    }
+    
+    .quantity-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    
+    .quantity-input button {
+      background: var(--surface);
+      border: none;
+      padding: var(--space-md) var(--space-lg);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    
+    .quantity-input button:hover {
+      background: var(--border);
+    }
+    
+    .quantity-input input {
+      border: none;
+      width: 80px;
+      text-align: center;
+      font-size: 1rem;
+      padding: var(--space-md);
+    }
+    
+    .quantity-input input:focus {
+      outline: none;
+    }
+    
+    .price-info {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .price-row:last-child {
+      border-bottom: none;
+    }
+    
+    .price-label {
+      color: var(--neutral);
+    }
+    
+    .price-value {
+      font-weight: var(--font-weight-semibold);
+      color: #111827;
+    }
+    
+    .price-total {
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+    
+    .discount-section {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .discount-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    
+    .discount-item:last-child {
+      border-bottom: none;
+    }
+    
+    .discount-badge {
+      background: var(--success);
+      color: white;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .order-summary {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-total {
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+      padding-top: var(--space-lg);
+      border-top: 2px solid var(--border);
+      margin-top: var(--space-lg);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+    
+    .action-buttons .btn {
+      flex: 1;
+    }
+    
+    @media (max-width: 640px) {
+      .bulk-container {
+        padding: var(--space-lg);
+      }
+      
+      .quantity-selector {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>📦 Bulk Purchase</h1>
-            <p>Buy multiple numbers at once with automatic discounts</p>
-        </div>
-
-        <!-- Discount Tiers -->
-        <div class="card">
-            <h2>💰 Automatic Bulk Discounts</h2>
-            <div class="discount-tiers">
-                <div class="tier-card" id="tier-2">
-                    <div class="tier-quantity">2-4</div>
-                    <div class="tier-discount">5% OFF</div>
-                </div>
-                <div class="tier-card" id="tier-5">
-                    <div class="tier-quantity">5-9</div>
-                    <div class="tier-discount">15% OFF</div>
-                </div>
-                <div class="tier-card" id="tier-10">
-                    <div class="tier-quantity">10-19</div>
-                    <div class="tier-discount">25% OFF</div>
-                </div>
-                <div class="tier-card" id="tier-20">
-                    <div class="tier-quantity">20+</div>
-                    <div class="tier-discount">30% OFF</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Purchase Form -->
-        <div class="card">
-            <h2>🛒 Configure Bulk Purchase</h2>
-            
-            <div style="margin: 20px 0;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Service</label>
-                <select id="service-select" style="width: 100%; padding: 12px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary);">
-                    <option value="telegram">Telegram</option>
-                    <option value="whatsapp">WhatsApp</option>
-                    <option value="google">Google</option>
-                    <option value="facebook">Facebook</option>
-                    <option value="instagram">Instagram</option>
-                    <option value="discord">Discord</option>
-                </select>
-            </div>
-
-            <div style="margin: 20px 0;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Country</label>
-                <select id="country-select" style="width: 100%; padding: 12px; border-radius: 8px; background: var(--bg-tertiary); border: 1px solid var(--border); color: var(--text-primary);">
-                    <option value="usa">🇺🇸 United States</option>
-                    <option value="england">🇬🇧 United Kingdom</option>
-                    <option value="canada">🇨🇦 Canada</option>
-                    <option value="russia">🇷🇺 Russia</option>
-                </select>
-            </div>
-
-            <div style="margin: 20px 0;">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Quantity (2-50)</label>
-                <div class="quantity-selector">
-                    <button class="btn btn-primary" onclick="changeQuantity(-1)">-</button>
-                    <input type="number" id="quantity-input" class="quantity-input" value="5" min="2" max="50" onchange="updatePricing()">
-                    <button class="btn btn-primary" onclick="changeQuantity(1)">+</button>
-                </div>
-            </div>
-
-            <!-- Price Summary -->
-            <div class="price-summary">
-                <div class="price-row">
-                    <span>Base Price (per number):</span>
-                    <span id="base-price">$0.75</span>
-                </div>
-                <div class="price-row">
-                    <span>Quantity:</span>
-                    <span id="quantity-display">5</span>
-                </div>
-                <div class="price-row">
-                    <span>Subtotal:</span>
-                    <span id="subtotal">$3.75</span>
-                </div>
-                <div class="price-row">
-                    <span class="savings">Bulk Discount (<span id="discount-pct">15</span>%):</span>
-                    <span class="savings">-$<span id="discount-amount">0.56</span></span>
-                </div>
-                <div class="price-row">
-                    <span>Total:</span>
-                    <span>$<span id="total-price">3.19</span></span>
-                </div>
-            </div>
-
-            <button class="btn btn-success" onclick="purchaseBulk()" style="width: 100%; padding: 16px; font-size: 16px;">
-                Purchase <span id="btn-quantity">5</span> Numbers - $<span id="btn-price">3.19</span>
-            </button>
-        </div>
-
-        <!-- Results -->
-        <div class="card" id="results-section" style="display: none;">
-            <h2>📊 Purchase Results</h2>
-            <div id="results-summary" style="margin-bottom: 16px;"></div>
-            <div id="results-list" class="bulk-results"></div>
-        </div>
+  <div class="bulk-container">
+    <!-- Header -->
+    <div class="bulk-header">
+      <h1>Bulk Purchase</h1>
+      <p>Get discounts on large orders</p>
     </div>
 
-    <script>
-        const basePrice = 0.75;
-        let currentQuantity = 5;
+    <!-- Purchase Form -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <svg data-feather="shopping-cart"></svg>
+        <h2>Configure Your Order</h2>
+      </div>
 
-        function changeQuantity(delta) {
-            const input = document.getElementById('quantity-input');
-            let newValue = parseInt(input.value) + delta;
-            newValue = Math.max(2, Math.min(50, newValue));
-            input.value = newValue;
-            updatePricing();
-        }
+      <!-- Service Selection -->
+      <div class="form-section">
+        <h3>Select Service</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-md);">
+          <button class="btn btn-primary" style="text-align: left;">
+            <svg class="icon icon-sm" data-feather="check"></svg>
+            SMS Verification
+          </button>
+          <button class="btn btn-outline" style="text-align: left;">
+            <svg class="icon icon-sm" data-feather="mail"></svg>
+            Email Verification
+          </button>
+          <button class="btn btn-outline" style="text-align: left;">
+            <svg class="icon icon-sm" data-feather="phone"></svg>
+            Phone Rental
+          </button>
+        </div>
+      </div>
 
-        function updatePricing() {
-            const quantity = parseInt(document.getElementById('quantity-input').value) || 2;
-            currentQuantity = quantity;
-            
-            // Calculate discount
-            let discountPct = 0;
-            if (quantity >= 20) discountPct = 0.30;
-            else if (quantity >= 10) discountPct = 0.25;
-            else if (quantity >= 5) discountPct = 0.15;
-            else if (quantity >= 2) discountPct = 0.05;
-            
-            const subtotal = basePrice * quantity;
-            const discountAmount = subtotal * discountPct;
-            const total = subtotal - discountAmount;
-            
-            // Update UI
-            document.getElementById('quantity-display').textContent = quantity;
-            document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
-            document.getElementById('discount-pct').textContent = (discountPct * 100).toFixed(0);
-            document.getElementById('discount-amount').textContent = discountAmount.toFixed(2);
-            document.getElementById('total-price').textContent = total.toFixed(2);
-            document.getElementById('btn-quantity').textContent = quantity;
-            document.getElementById('btn-price').textContent = total.toFixed(2);
-            
-            // Update tier cards
-            document.querySelectorAll('.tier-card').forEach(card => card.classList.remove('active'));
-            if (quantity >= 20) document.getElementById('tier-20').classList.add('active');
-            else if (quantity >= 10) document.getElementById('tier-10').classList.add('active');
-            else if (quantity >= 5) document.getElementById('tier-5').classList.add('active');
-            else if (quantity >= 2) document.getElementById('tier-2').classList.add('active');
-        }
+      <!-- Quantity Selection -->
+      <div class="form-section">
+        <h3>Quantity</h3>
+        <div class="quantity-selector">
+          <label for="quantity">Number of Units:</label>
+          <div class="quantity-input">
+            <button onclick="decreaseQuantity()">
+              <svg class="icon icon-sm" data-feather="minus"></svg>
+            </button>
+            <input type="number" id="quantity" value="100" min="1" max="10000" onchange="updatePrice()">
+            <button onclick="increaseQuantity()">
+              <svg class="icon icon-sm" data-feather="plus"></svg>
+            </button>
+          </div>
+        </div>
+      </div>
 
-        async function purchaseBulk() {
-            const service = document.getElementById('service-select').value;
-            const country = document.getElementById('country-select').value;
-            const quantity = currentQuantity;
-            
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/verify/bulk/create', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({
-                        service_name: service,
-                        country: country,
-                        quantity: quantity,
-                        capability: 'sms',
-                        operator: 'any',
-                        pricing_tier: 'standard'
-                    })
-                });
+      <!-- Discount Information -->
+      <div class="discount-section">
+        <h3 style="margin: 0 0 var(--space-lg) 0;">Available Discounts</h3>
+        <div class="discount-item">
+          <span>100-499 units</span>
+          <span class="discount-badge">5% OFF</span>
+        </div>
+        <div class="discount-item">
+          <span>500-999 units</span>
+          <span class="discount-badge">10% OFF</span>
+        </div>
+        <div class="discount-item">
+          <span>1000+ units</span>
+          <span class="discount-badge">15% OFF</span>
+        </div>
+      </div>
+    </div>
 
-                const data = await response.json();
-                
-                if (response.ok) {
-                    displayResults(data);
-                } else {
-                    alert('Error: ' + (data.detail || 'Failed to purchase'));
-                }
-            } catch (error) {
-                alert('Network error: ' + error.message);
-            }
-        }
+    <!-- Price Breakdown -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <svg data-feather="credit-card"></svg>
+        <h2>Price Breakdown</h2>
+      </div>
 
-        function displayResults(data) {
-            const resultsSection = document.getElementById('results-section');
-            const resultsSummary = document.getElementById('results-summary');
-            const resultsList = document.getElementById('results-list');
-            
-            resultsSection.style.display = 'block';
-            
-            // Summary
-            resultsSummary.innerHTML = `
-                <div style="background: var(--bg-tertiary); padding: 16px; border-radius: 8px;">
-                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">
-                        Bulk Purchase: ${data.bulk_id}
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 14px;">Successful</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--secondary);">${data.successful}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 14px;">Failed</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--danger);">${data.failed}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 14px;">Total Cost</div>
-                            <div style="font-size: 24px; font-weight: 700;">$${data.total_cost}</div>
-                        </div>
-                        <div>
-                            <div style="color: var(--text-secondary); font-size: 14px;">Saved</div>
-                            <div style="font-size: 24px; font-weight: 700; color: var(--secondary);">$${data.discount_amount}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Results list
-            resultsList.innerHTML = data.verifications.map((v, i) => `
-                <div class="result-card">
-                    <div>
-                        <span style="font-weight: 600;">#${i + 1}</span>
-                        ${v.success ? 
-                            `<span style="font-family: monospace; margin-left: 12px;">${v.phone_number}</span>` :
-                            `<span style="color: var(--danger); margin-left: 12px;">Failed: ${v.error}</span>`
-                        }
-                    </div>
-                    <div class="${v.success ? 'status-success' : 'status-failed'}">
-                        ${v.success ? '✅ Success' : '❌ Failed'}
-                    </div>
-                </div>
-            `).join('');
-            
-            // Scroll to results
-            resultsSection.scrollIntoView({ behavior: 'smooth' });
-        }
+      <div class="price-info">
+        <div class="price-row">
+          <span class="price-label">Unit Price</span>
+          <span class="price-value">$0.50</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Quantity</span>
+          <span class="price-value" id="displayQuantity">100 units</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Subtotal</span>
+          <span class="price-value" id="subtotal">$50.00</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Discount (5%)</span>
+          <span class="price-value" style="color: var(--success);" id="discount">-$2.50</span>
+        </div>
+        <div class="price-row" style="padding-top: var(--space-lg); border-top: 2px solid var(--border);">
+          <span class="price-label" style="font-weight: var(--font-weight-bold);">Total</span>
+          <span class="price-total" id="total">$47.50</span>
+        </div>
+      </div>
+    </div>
 
-        // Initialize
-        updatePricing();
-    </script>
+    <!-- Order Summary -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <svg data-feather="check-circle"></svg>
+        <h2>Order Summary</h2>
+      </div>
+
+      <div class="order-summary">
+        <div class="summary-item">
+          <span>Service</span>
+          <span>SMS Verification</span>
+        </div>
+        <div class="summary-item">
+          <span>Quantity</span>
+          <span id="summaryQuantity">100 units</span>
+        </div>
+        <div class="summary-item">
+          <span>Unit Price</span>
+          <span>$0.50</span>
+        </div>
+        <div class="summary-item">
+          <span>Discount</span>
+          <span style="color: var(--success);">5% OFF</span>
+        </div>
+        <div class="summary-total">
+          Total: <span id="summaryTotal">$47.50</span>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <svg class="icon" data-feather="info"></svg>
+        <span>Your order will be processed immediately after payment confirmation.</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-outline">
+        <svg class="icon icon-sm" data-feather="arrow-left"></svg>
+        Back
+      </button>
+      <button class="btn btn-primary">
+        <svg class="icon icon-sm" data-feather="credit-card"></svg>
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
+  <script>
+    const unitPrice = 0.50;
+    
+    function updatePrice() {
+      const quantity = parseInt(document.getElementById('quantity').value) || 100;
+      const subtotal = quantity * unitPrice;
+      
+      let discountPercent = 0;
+      if (quantity >= 1000) discountPercent = 15;
+      else if (quantity >= 500) discountPercent = 10;
+      else if (quantity >= 100) discountPercent = 5;
+      
+      const discount = subtotal * (discountPercent / 100);
+      const total = subtotal - discount;
+      
+      document.getElementById('displayQuantity').textContent = quantity + ' units';
+      document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+      document.getElementById('discount').textContent = '-$' + discount.toFixed(2);
+      document.getElementById('total').textContent = '$' + total.toFixed(2);
+      document.getElementById('summaryQuantity').textContent = quantity + ' units';
+      document.getElementById('summaryTotal').textContent = '$' + total.toFixed(2);
+    }
+    
+    function increaseQuantity() {
+      const input = document.getElementById('quantity');
+      input.value = Math.min(parseInt(input.value) + 10, 10000);
+      updatePrice();
+    }
+    
+    function decreaseQuantity() {
+      const input = document.getElementById('quantity');
+      input.value = Math.max(parseInt(input.value) - 10, 1);
+      updatePrice();
+    }
+    
+    updatePrice();
+  </script>
 </body>
 </html>

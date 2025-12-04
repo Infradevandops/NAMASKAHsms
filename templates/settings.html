@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Settings - Namaskah">
+  <title>Settings - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/enterprise-theme.css">
+  <link rel="stylesheet" href="/static/css/design-tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/vendor/font-awesome-fixed.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #6b7280;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 30px;
+    }
+
+    .sidebar {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .sidebar-item {
+      padding: 12px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .sidebar-item:hover {
+      background: #f3f4f6;
+      color: #667eea;
+    }
+
+    .sidebar-item.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #1f2937;
+    }
+
+    .card p {
+      color: #6b7280;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .toggle:last-child {
+      border-bottom: none;
+    }
+
+    .toggle-label {
+      font-weight: 500;
+      color: #374151;
+    }
+
+    .toggle-desc {
+      font-size: 12px;
+      color: #6b7280;
+      margin-top: 4px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: .4s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #667eea;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .success {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+      }
+
+      .sidebar-item {
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Settings</h1>
+      <p>Manage your account preferences and security</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-item active" onclick="switchSection('notifications')">
+          <i class="fas fa-bell"></i> Notifications
+        </div>
+        <div class="sidebar-item" onclick="switchSection('privacy')">
+          <i class="fas fa-lock"></i> Privacy
+        </div>
+        <div class="sidebar-item" onclick="switchSection('security')">
+          <i class="fas fa-shield-alt"></i> Security
+        </div>
+        <div class="sidebar-item" onclick="switchSection('billing')">
+          <i class="fas fa-credit-card"></i> Billing
+        </div>
+        <div class="sidebar-item" onclick="switchSection('danger')">
+          <i class="fas fa-exclamation-triangle"></i> Danger Zone
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div>
+        <!-- Notifications Section -->
+        <div class="section active" id="notifications-section">
+          <div class="card">
+            <h2>Notification Preferences</h2>
+            <p>Choose how you want to be notified</p>
+
+            <div class="error" id="error-message"></div>
+            <div class="success" id="success-message"></div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Email Notifications</div>
+                <div class="toggle-desc">Receive updates via email</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="email-notifications" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">SMS Notifications</div>
+                <div class="toggle-desc">Receive updates via SMS</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="sms-notifications">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Verification Alerts</div>
+                <div class="toggle-desc">Get notified when SMS codes arrive</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="verification-alerts" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Payment Receipts</div>
+                <div class="toggle-desc">Receive payment confirmation emails</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="payment-receipts" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveNotifications()" style="margin-top: 20px;">Save Preferences</button>
+          </div>
+        </div>
+
+        <!-- Privacy Section -->
+        <div class="section" id="privacy-section">
+          <div class="card">
+            <h2>Privacy Settings</h2>
+            <p>Control your data and privacy</p>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Profile Visibility</div>
+                <div class="toggle-desc">Allow others to see your profile</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="profile-visibility">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Analytics Tracking</div>
+                <div class="toggle-desc">Help us improve by sharing usage data</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="analytics-tracking" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+              <label>Data Retention</label>
+              <select id="data-retention">
+                <option value="30">30 days</option>
+                <option value="90" selected>90 days</option>
+                <option value="365">1 year</option>
+                <option value="forever">Forever</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="savePrivacy()" style="margin-top: 20px;">Save Privacy Settings</button>
+          </div>
+        </div>
+
+        <!-- Security Section -->
+        <div class="section" id="security-section">
+          <div class="card">
+            <h2>Security Settings</h2>
+            <p>Manage your account security</p>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Two-Factor Authentication</div>
+                <div class="toggle-desc">Add an extra layer of security</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="two-factor">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+              <label>Active Sessions</label>
+              <p style="color: #6b7280; margin-bottom: 10px;">You have 1 active session</p>
+              <button class="btn btn-danger" onclick="logoutAllDevices()">Logout All Devices</button>
+            </div>
+
+            <div class="form-group" style="margin-top: 20px;">
+              <label>Login History</label>
+              <p style="color: #6b7280; margin-bottom: 10px;">Last login: Today at 10:30 AM</p>
+              <button class="btn btn-primary" onclick="viewLoginHistory()">View Full History</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Billing Section -->
+        <div class="section" id="billing-section">
+          <div class="card">
+            <h2>Billing Settings</h2>
+            <p>Manage your billing preferences</p>
+
+            <div class="form-group">
+              <label>Billing Email</label>
+              <input type="email" id="billing-email" placeholder="billing@example.com">
+            </div>
+
+            <div class="form-group">
+              <label>Billing Address</label>
+              <input type="text" id="billing-address" placeholder="123 Main St">
+            </div>
+
+            <div class="toggle">
+              <div>
+                <div class="toggle-label">Auto-Recharge</div>
+                <div class="toggle-desc">Automatically add credits when balance is low</div>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="auto-recharge">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label>Auto-Recharge Amount</label>
+              <select id="recharge-amount">
+                <option value="10">$10</option>
+                <option value="25">$25</option>
+                <option value="50" selected>$50</option>
+                <option value="100">$100</option>
+              </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="saveBilling()" style="margin-top: 20px;">Save Billing Settings</button>
+          </div>
+        </div>
+
+        <!-- Danger Zone Section -->
+        <div class="section" id="danger-section">
+          <div class="card">
+            <h2>Danger Zone</h2>
+            <p>Irreversible actions</p>
+
+            <div style="background: #fee2e2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+              <h3 style="color: #991b1b; margin-bottom: 10px;">Delete Account</h3>
+              <p style="color: #991b1b; margin-bottom: 15px;">This action cannot be undone. All your data will be permanently deleted.</p>
+              <button class="btn btn-danger" onclick="deleteAccount()">Delete My Account</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/vendor/axios.min.js"></script>
+  <script>
+    function switchSection(section) {
+      // Hide all sections
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+
+      // Show selected section
+      document.getElementById(section + '-section').classList.add('active');
+      event.target.closest('.sidebar-item').classList.add('active');
+    }
+
+    function saveNotifications() {
+      const data = {
+        email_notifications: document.getElementById('email-notifications').checked,
+        sms_notifications: document.getElementById('sms-notifications').checked,
+        verification_alerts: document.getElementById('verification-alerts').checked,
+        payment_receipts: document.getElementById('payment-receipts').checked
+      };
+
+      axios.post('/api/user/settings/notifications', data)
+        .then(() => showSuccess('Notification preferences saved'))
+        .catch(error => showError(error.response?.data?.detail || 'Failed to save'));
+    }
+
+    function savePrivacy() {
+      const data = {
+        profile_visibility: document.getElementById('profile-visibility').checked,
+        analytics_tracking: document.getElementById('analytics-tracking').checked,
+        data_retention: document.getElementById('data-retention').value
+      };
+
+      axios.post('/api/user/settings/privacy', data)
+        .then(() => showSuccess('Privacy settings saved'))
+        .catch(error => showError(error.response?.data?.detail || 'Failed to save'));
+    }
+
+    function saveBilling() {
+      const data = {
+        billing_email: document.getElementById('billing-email').value,
+        billing_address: document.getElementById('billing-address').value,
+        auto_recharge: document.getElementById('auto-recharge').checked,
+        recharge_amount: document.getElementById('recharge-amount').value
+      };
+
+      axios.post('/api/user/settings/billing', data)
+        .then(() => showSuccess('Billing settings saved'))
+        .catch(error => showError(error.response?.data?.detail || 'Failed to save'));
+    }
+
+    function logoutAllDevices() {
+      if (confirm('This will logout all your devices. Continue?')) {
+        axios.post('/api/user/logout-all')
+          .then(() => {
+            showSuccess('All devices logged out');
+            setTimeout(() => window.location.href = '/auth/login', 1000);
+          })
+          .catch(error => showError(error.response?.data?.detail || 'Failed to logout'));
+      }
+    }
+
+    function viewLoginHistory() {
+      alert('Login history feature coming soon');
+    }
+
+    function deleteAccount() {
+      if (confirm('Are you sure? This cannot be undone.')) {
+        const password = prompt('Enter your password to confirm:');
+        if (password) {
+          axios.post('/api/user/delete-account', { password })
+            .then(() => {
+              showSuccess('Account deleted');
+              setTimeout(() => window.location.href = '/', 1000);
+            })
+            .catch(error => showError(error.response?.data?.detail || 'Failed to delete'));
+        }
+      }
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById('success-message');
+      el.textContent = message;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+  </script>
+</body>
+</html>

@@ -1,46 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>500 - Server Error | Namaskah SMS</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .error-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .error-content { text-align: center; max-width: 600px; }
-        .error-code { font-size: 8rem; font-weight: 700; background: linear-gradient(135deg, var(--error) 0%, #dc2626 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin-bottom: 20px; }
-        .error-title { font-size: 2rem; margin-bottom: 15px; }
-        .error-message { color: var(--text-secondary); font-size: 1.1rem; margin-bottom: 40px; line-height: 1.6; }
-        .error-links { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
-        .error-links button { padding: 12px 30px; }
-        .status-link { margin-top: 30px; padding: 15px; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border); }
-        @media (max-width: 768px) {
-            .error-code { font-size: 5rem; }
-            .error-title { font-size: 1.5rem; }
-            .error-links { flex-direction: column; }
-            .error-links button { width: 100%; }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Server error">
+  <title>500 - Server Error</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .error-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      padding: 1rem;
+    }
+    
+    .error-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 3rem 2rem;
+      width: 100%;
+      max-width: 500px;
+      text-align: center;
+    }
+    
+    .error-icon {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 1.5rem;
+      color: var(--error);
+    }
+    
+    .error-code {
+      font-size: 3rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--error);
+      margin-bottom: 0.5rem;
+    }
+    
+    .error-title {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+    }
+    
+    .error-description {
+      color: var(--neutral);
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    
+    .status-info {
+      background: #fef2f2;
+      border: 1px solid #fee2e2;
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      margin-bottom: 2rem;
+      text-align: left;
+      font-size: 0.9rem;
+      color: #7f1d1d;
+    }
+    
+    .status-info strong {
+      display: block;
+      margin-bottom: 0.5rem;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+    }
+    
+    .action-buttons .btn {
+      min-width: 150px;
+    }
+    
+    .support-section {
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .support-section p {
+      color: var(--neutral);
+      font-size: 0.9rem;
+      margin-bottom: 1rem;
+    }
+    
+    .support-links {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    
+    .support-links a {
+      color: var(--primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .support-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-    <div class="error-container">
-        <div class="error-content">
-            <div class="error-code">500</div>
-            <h1 class="error-title">Something Went Wrong</h1>
-            <p class="error-message">
-                We're experiencing technical difficulties. Our team has been notified and is working on a fix. 
-                Please try again in a few moments.
-            </p>
-            <div class="error-links">
-                <button onclick="window.location.reload()">Retry</button>
-                <button onclick="window.location.href='/'" style="background: var(--bg-secondary); color: var(--text-primary);">Go Home</button>
-                <button onclick="window.location.href='/status'" style="background: var(--info);">Check Status</button>
-            </div>
-            <div class="status-link">
-                <p style="color: var(--text-secondary); margin-bottom: 10px;">Need help?</p>
-                <a href="/contact" style="color: var(--accent); text-decoration: none; font-weight: 600;">Contact Support</a>
-            </div>
+  <div class="error-container">
+    <div class="error-card">
+      <svg class="error-icon" data-feather="alert-circle"></svg>
+      <div class="error-code">500</div>
+      <h1 class="error-title">Server Error</h1>
+      <p class="error-description">
+        Something went wrong on our end. Our team has been notified and is working to fix it.
+      </p>
+
+      <div class="status-info">
+        <strong>What happened?</strong>
+        <p>An unexpected error occurred while processing your request. This is not your fault.</p>
+      </div>
+
+      <div class="action-buttons">
+        <button onclick="location.reload()" class="btn btn-primary">
+          <svg class="icon icon-sm" data-feather="refresh-cw"></svg>
+          Try Again
+        </button>
+        <a href="/" class="btn btn-outline">
+          <svg class="icon icon-sm" data-feather="home"></svg>
+          Go Home
+        </a>
+      </div>
+
+      <div class="support-section">
+        <p>If the problem persists, please contact our support team:</p>
+        <div class="support-links">
+          <a href="/status">
+            <svg class="icon icon-sm" data-feather="activity"></svg>
+            Status Page
+          </a>
+          <a href="/contact">
+            <svg class="icon icon-sm" data-feather="mail"></svg>
+            Contact Support
+          </a>
+          <a href="https://docs.namaskah.com" target="_blank">
+            <svg class="icon icon-sm" data-feather="book"></svg>
+            Documentation
+          </a>
         </div>
+      </div>
     </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

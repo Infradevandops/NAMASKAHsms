@@ -133,7 +133,6 @@ async def request_verification(
             f"Balance: ${new_balance:.2f}"
         )
         
-        # Start SMS polling in background
         try:
             from app.services.sms_polling_service import sms_polling_service
             asyncio.create_task(sms_polling_service.start_polling(verification.id))

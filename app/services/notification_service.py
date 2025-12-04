@@ -1,287 +1,317 @@
-"""Notification service for email, SMS, and webhook delivery."""
-import logging
-import smtplib
+"""Notification service for managing in-app notifications."""
 from datetime import datetime, timezone
-from email.mime.multipart import MIMEMultipart
-from typing import Any, Dict, List, Optional
+from typing import Optional, List, Dict, Any
 
-import httpx
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 
-from app.core.config import settings
-from app.models.notification import InAppNotification, Webhook, NotificationPreferences
+from app.core.logging import get_logger
+from app.models.notification import Notification
 from app.models.user import User
-from .base import BaseService
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
-class NotificationService(BaseService[InAppNotification]):
-    """Service for managing notifications and communications."""
+class NotificationService:
+    """Service for managing notifications."""
 
     def __init__(self, db: Session):
-        super().__init__(InAppNotification, db)
+        """Initialize notification service with database session."""
+        self.db = db
 
-    @staticmethod
-    async def send_email(
-        to_email: str, subject: str, body: str, is_html: bool = True
-    ) -> bool:
-        """Send email notification."""
-        if not all([settings.smtp_host, settings.smtp_user, settings.smtp_password]):
-            logger.warning("Email not configured, skipping: %s", subject)
-            return False
-
-        try:
-            msg = MIMEMultipart()
-            msg["From"] = settings.from_email
-            msg["To"] = to_email
-            msg["Subject"] = subject
-
-            msg.attach(MIMEText(body, "html" if is_html else "plain"))
-
-            server = smtplib.SMTP(settings.smtp_host, settings.smtp_port)
-            server.starttls()
-            server.login(settings.smtp_user, settings.smtp_password)
-            server.send_message(msg)
-            server.quit()
-
-            return True
-
-        except Exception as e:
-            logger.error("Email error: %s", e)
-            return False
-
-    async def send_webhook(
-        self, user_id: str, event_type: str, payload: Dict[str, Any]
-    ) -> List[bool]:
-        """Send webhook notifications to user's configured endpoints."""
-        webhooks = (
-            self.db.query(Webhook)
-            .filter(Webhook.user_id == user_id, Webhook.is_active.is_(True))
-            .all()
-        )
-
-        results = []
-
-        for webhook in webhooks:
-            try:
-                webhook_payload = {
-                    "event": event_type,
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                    "data": payload,
-                }
-
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    response = await client.post(
-                        webhook.url,
-                        json=webhook_payload,
-                        headers={"Content - Type": "application/json"},
-                    )
-                    results.append(response.status_code < 400)
-
-            except Exception as e:
-                logger.error("Webhook delivery failed for %s: %s", webhook.url, e)
-                results.append(False)
-
-        return results
-
-    def create_in_app_notification(
+    def create_notification(
         self,
         user_id: str,
+        notification_type: str,
         title: str,
         message: str,
-        notification_type: str = "info",
-        verification_id: Optional[str] = None,
-    ) -> InAppNotification:
-        """Create in - app notification for user."""
-        notification = InAppNotification(
+        data: Optional[Dict[str, Any]] = None
+    ) -> Notification:
+        """Create a new notification.
+        
+        Args:
+            user_id: User ID
+            notification_type: Type of notification
+            title: Notification title
+            message: Notification message
+            data: Additional data
+            
+        Returns:
+            Created notification
+            
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+        
+        # Create notification
+        notification = Notification(
             user_id=user_id,
+            type=notification_type,
             title=title,
             message=message,
-            type=notification_type,
-            verification_id=verification_id,
+            data=data or {}
         )
-
+        
         self.db.add(notification)
         self.db.commit()
-        self.db.refresh(notification)
-
+        
+        logger.info(
+            f"Notification created: User={user_id}, Type={notification_type}, "
+            f"Title={title}"
+        )
+        
         return notification
 
-    def get_user_notifications(
-        self, user_id: str, unread_only: bool = False, limit: int = 50
-    ) -> List[Dict[str, Any]]:
-        """Get user's in - app notifications."""
-        query = self.db.query(InAppNotification).filter(
-            InAppNotification.user_id == user_id
-        )
-
+    def get_notifications(
+        self,
+        user_id: str,
+        unread_only: bool = False,
+        skip: int = 0,
+        limit: int = 20
+    ) -> Dict[str, Any]:
+        """Get notifications for user.
+        
+        Args:
+            user_id: User ID
+            unread_only: Only return unread notifications
+            skip: Number of records to skip
+            limit: Number of records to return
+            
+        Returns:
+            Dictionary with notifications and metadata
+            
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+        
+        # Build query
+        query = self.db.query(Notification).filter(Notification.user_id == user_id)
+        
+        # Filter unread if requested
         if unread_only:
-            query = query.filter(InAppNotification.is_read == False)
-
+            query = query.filter(Notification.read == False)
+        
+        # Get total count
+        total = query.count()
+        
+        # Get notifications
         notifications = (
-            query.order_by(InAppNotification.created_at.desc()).limit(limit).all()
+            query
+            .order_by(desc(Notification.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
         )
-
-        return [
-            {
-                "id": n.id,
-                "title": n.title,
-                "message": n.message,
-                "type": n.type,
-                "is_read": n.is_read,
-                "verification_id": n.verification_id,
-                "created_at": n.created_at.isoformat(),
-            }
-            for n in notifications
-        ]
-
-    def mark_notification_read(self, notification_id: str, user_id: str) -> bool:
-        """Mark notification as read."""
-        notification = (
-            self.db.query(InAppNotification)
-            .filter(
-                InAppNotification.id == notification_id,
-                InAppNotification.user_id == user_id,
-            )
-            .first()
+        
+        logger.info(
+            f"Retrieved {len(notifications)} notifications for user {user_id} "
+            f"(total: {total}, unread_only: {unread_only})"
         )
-
-        if notification:
-            notification.is_read = True
-            self.db.commit()
-            return True
-
-        return False
-
-    def mark_all_read(self, user_id: str) -> int:
-        """Mark all notifications as read for user."""
-        count = (
-            self.db.query(InAppNotification)
-            .filter(
-                InAppNotification.user_id == user_id, InAppNotification.is_read == False
-            )
-            .update({"is_read": True})
-        )
-
-        self.db.commit()
-        return count
-
-    def get_notification_preferences(self, user_id: str) -> Dict[str, bool]:
-        """Get user's notification preferences."""
-        prefs = (
-            self.db.query(NotificationPreferences)
-            .filter(NotificationPreferences.user_id == user_id)
-            .first()
-        )
-
-        if not prefs:
-            # Create default preferences
-            prefs = NotificationPreferences(
-                user_id=user_id,
-                in_app_notifications=True,
-                email_notifications=True,
-                receipt_notifications=True,
-            )
-            self.db.add(prefs)
-            self.db.commit()
-
+        
         return {
-            "in_app_notifications": prefs.in_app_notifications,
-            "email_notifications": prefs.email_notifications,
-            "receipt_notifications": prefs.receipt_notifications,
+            "user_id": user_id,
+            "total": total,
+            "skip": skip,
+            "limit": limit,
+            "notifications": [
+                {
+                    "id": n.id,
+                    "type": n.type,
+                    "title": n.title,
+                    "message": n.message,
+                    "data": n.data,
+                    "read": n.read,
+                    "created_at": n.created_at.isoformat() if n.created_at else None,
+                    "read_at": n.read_at.isoformat() if n.read_at else None
+                }
+                for n in notifications
+            ]
         }
 
-    def update_notification_preferences(
-        self, user_id: str, **preferences
-    ) -> Dict[str, bool]:
-        """Update user's notification preferences."""
-        prefs = (
-            self.db.query(NotificationPreferences)
-            .filter(NotificationPreferences.user_id == user_id)
-            .first()
-        )
+    def get_notification(self, notification_id: str, user_id: str) -> Notification:
+        """Get a specific notification.
+        
+        Args:
+            notification_id: Notification ID
+            user_id: User ID
+            
+        Returns:
+            Notification
+            
+        Raises:
+            ValueError: If notification not found
+        """
+        notification = self.db.query(Notification).filter(
+            Notification.id == notification_id,
+            Notification.user_id == user_id
+        ).first()
+        
+        if not notification:
+            raise ValueError(f"Notification {notification_id} not found")
+        
+        logger.info(f"Retrieved notification: {notification_id}")
+        
+        return notification
 
-        if not prefs:
-            prefs = NotificationPreferences(user_id=user_id)
-            self.db.add(prefs)
-
-        for key, value in preferences.items():
-            if hasattr(prefs, key) and value is not None:
-                setattr(prefs, key, value)
-
+    def mark_as_read(self, notification_id: str, user_id: str) -> Notification:
+        """Mark notification as read.
+        
+        Args:
+            notification_id: Notification ID
+            user_id: User ID
+            
+        Returns:
+            Updated notification
+            
+        Raises:
+            ValueError: If notification not found
+        """
+        notification = self.get_notification(notification_id, user_id)
+        
+        notification.read = True
+        notification.read_at = datetime.now(timezone.utc)
+        
         self.db.commit()
+        
+        logger.info(f"Notification marked as read: {notification_id}")
+        
+        return notification
 
-        return self.get_notification_preferences(user_id)
-
-    async def send_verification_success_notification(
-        self, user_id: str, verification_id: str, service_name: str, phone_number: str
-    ):
-        """Send notification for successful verification."""
+    def mark_all_as_read(self, user_id: str) -> int:
+        """Mark all notifications as read for user.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            Number of notifications marked as read
+            
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-            return
+            raise ValueError(f"User {user_id} not found")
+        
+        # Update all unread notifications
+        count = self.db.query(Notification).filter(
+            Notification.user_id == user_id,
+            Notification.read == False
+        ).update({
+            Notification.read: True,
+            Notification.read_at: datetime.now(timezone.utc)
+        })
+        
+        self.db.commit()
+        
+        logger.info(f"Marked {count} notifications as read for user {user_id}")
+        
+        return count
 
-        prefs = self.get_notification_preferences(user_id)
+    def delete_notification(self, notification_id: str, user_id: str) -> bool:
+        """Delete a notification.
+        
+        Args:
+            notification_id: Notification ID
+            user_id: User ID
+            
+        Returns:
+            True if deleted, False otherwise
+            
+        Raises:
+            ValueError: If notification not found
+        """
+        notification = self.get_notification(notification_id, user_id)
+        
+        self.db.delete(notification)
+        self.db.commit()
+        
+        logger.info(f"Notification deleted: {notification_id}")
+        
+        return True
 
-        # In - app notification
-        if prefs["in_app_notifications"]:
-            self.create_in_app_notification(
-                user_id=user_id,
-                title="Verification Completed",
-                message=f"Your {service_name} verification ({phone_number}) completed successfully!",
-                notification_type="success",
-                verification_id=verification_id,
-            )
-
-        # Email notification
-        if prefs["email_notifications"]:
-            await self.send_email(
-                to_email=user.email,
-                subject=f"✅ {service_name.title()} Verification Completed",
-                body="<h2>Verification Completed Successfully!</h2>"
-                + f"<p>Your {service_name} verification has been completed.</p>"
-                + f"<p><strong>Phone Number:</strong> {phone_number}</p>"
-                + f"<p><strong>Service:</strong> {service_name}</p>"
-                + f"<p><strong>Completed:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>"
-                + f"<p><a href='{settings.base_url}/app'>View Dashboard</a></p>",
-            )
-
-        # Webhook notification
-        await self.send_webhook(
-            user_id=user_id,
-            event_type="verification.completed",
-            payload={
-                "verification_id": verification_id,
-                "service_name": service_name,
-                "phone_number": phone_number,
-                "status": "completed",
-            },
-        )
-
-    async def send_low_balance_notification(self, user_id: str, current_balance: float):
-        """Send low balance notification."""
+    def delete_all_notifications(self, user_id: str) -> int:
+        """Delete all notifications for user.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            Number of notifications deleted
+            
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-            return
+            raise ValueError(f"User {user_id} not found")
+        
+        # Delete all notifications
+        count = self.db.query(Notification).filter(
+            Notification.user_id == user_id
+        ).delete()
+        
+        self.db.commit()
+        
+        logger.info(f"Deleted {count} notifications for user {user_id}")
+        
+        return count
 
-        prefs = self.get_notification_preferences(user_id)
+    def get_unread_count(self, user_id: str) -> int:
+        """Get count of unread notifications for user.
+        
+        Args:
+            user_id: User ID
+            
+        Returns:
+            Count of unread notifications
+            
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+        
+        count = self.db.query(Notification).filter(
+            Notification.user_id == user_id,
+            Notification.read == False
+        ).count()
+        
+        logger.info(f"Unread notification count for user {user_id}: {count}")
+        
+        return count
 
-        if prefs["in_app_notifications"]:
-            self.create_in_app_notification(
-                user_id=user_id,
-                title="Low Balance Warning",
-                message=f"Your balance is low (N{current_balance:.2f}). Add credits to continue using services.",
-                notification_type="warning",
-            )
-
-        if prefs["email_notifications"]:
-            await self.send_email(
-                to_email=user.email,
-                subject="⚠️ Low Balance - Namaskah SMS",
-                body="<h2>Low Balance Warning</h2>"
-                + "<p>Your account balance is running low.</p>"
-                + f"<p><strong>Current Balance:</strong> N{current_balance:.2f}</p>"
-                + "<p>Add credits to continue using our SMS verification services.</p>"
-                + f"<p><a href='{settings.base_url}/app'>Add Credits</a></p>",
-            )
+    def cleanup_old_notifications(self, days: int = 30) -> int:
+        """Delete notifications older than specified days.
+        
+        Args:
+            days: Number of days to keep
+            
+        Returns:
+            Number of notifications deleted
+        """
+        from datetime import timedelta
+        
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        
+        count = self.db.query(Notification).filter(
+            Notification.created_at < cutoff_date
+        ).delete()
+        
+        self.db.commit()
+        
+        logger.info(f"Deleted {count} notifications older than {days} days")
+        
+        return count

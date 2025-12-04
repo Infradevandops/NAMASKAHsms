@@ -3,6 +3,10 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, validator
+from app.schemas.validators import (
+    validate_email,
+    validate_password_strength
+)
 
 
 class RegisterRequest(BaseModel):
@@ -16,14 +20,28 @@ class UserCreate(BaseModel):
 
     email: EmailStr = Field(..., description="Valid email address")
     password: str = Field(
-        ..., min_length=6, description="Password (minimum 6 characters)"
+        ..., min_length=8, description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)"
     )
     referral_code: Optional[str] = Field(None, description="Optional referral code")
 
-    @validator("password")
-    def validate_password(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
+    @validator("email", pre=True)
+    def validate_email_field(cls, v):
+        if not v:
+            raise ValueError("Email cannot be empty")
+        return validate_email(v)
+    
+    @validator("password", pre=True)
+    def validate_password_field(cls, v):
+        if not v:
+            raise ValueError("Password cannot be empty")
+        return validate_password_strength(v)
+    
+    @validator("referral_code", pre=True)
+    def validate_referral_code_field(cls, v):
+        if v:
+            v = v.strip().upper()
+            if len(v) != 6 or not v.isalnum():
+                raise ValueError("Referral code must be 6 alphanumeric characters")
         return v
 
     model_config = {
@@ -84,8 +102,8 @@ class UserResponse(BaseModel):
 class LoginRequest(BaseModel):
     """Schema for user login."""
 
-    email: EmailStr = Field(..., description="User email address")
-    password: str = Field(..., description="User password")
+    email: str = Field(..., description="User email address")
+    password: str = Field(..., min_length=1, description="User password")
 
     model_config = {
         "json_schema_extra": {
@@ -189,14 +207,20 @@ class PasswordResetRequest(BaseModel):
 class PasswordResetConfirm(BaseModel):
     """Schema for password reset confirmation."""
 
-    token: str = Field(..., description="Password reset token")
-    new_password: str = Field(..., min_length=6, description="New password")
+    token: str = Field(..., min_length=1, description="Password reset token")
+    new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)")
 
-    @validator("new_password")
+    @validator("token", pre=True)
+    def validate_token(cls, v):
+        if not v or not v.strip():
+            raise ValueError("Token cannot be empty")
+        return v.strip()
+    
+    @validator("new_password", pre=True)
     def validate_password(cls, v):
-        if len(v) < 6:
-            raise ValueError("Password must be at least 6 characters")
-        return v
+        if not v:
+            raise ValueError("Password cannot be empty")
+        return validate_password_strength(v)
 
     model_config = {
         "json_schema_extra": {

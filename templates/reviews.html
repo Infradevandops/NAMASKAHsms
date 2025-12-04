@@ -1,287 +1,330 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title | default('Reviews - Namaskah SMS') }}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reviews - Namaskah">
+  <title>Reviews - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .reviews-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
     
-    <!-- SEO Meta Tags -->
-    {% include 'meta_tags.html' %}
+    .reviews-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2xl);
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+    }
     
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
-        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
-        .reviews-hero {
-            text-align: center;
-            padding: 80px 20px 60px;
-            color: white;
-        }
-        .reviews-hero h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            margin: 0 0 20px 0;
-            background: linear-gradient(to right, #fff, #f0f0f0);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .reviews-hero p {
-            font-size: 1.5rem;
-            opacity: 0.95;
-            font-weight: 600;
-        }
-        .stats-bar {
-            display: flex;
-            justify-content: center;
-            gap: 60px;
-            margin-top: 40px;
-            flex-wrap: wrap;
-        }
-        .stat-item {
-            text-align: center;
-        }
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            color: #fbbf24;
-        }
-        .stat-label {
-            font-size: 1rem;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-        .reviews-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 40px 20px;
-        }
-        .review-card {
-            background: white;
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-        .review-card::before {
-            content: '"';
-            position: absolute;
-            top: -20px;
-            left: 20px;
-            font-size: 150px;
-            color: #f3f4f6;
-            font-family: Georgia, serif;
-            line-height: 1;
-        }
-        .review-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.2);
-        }
-        .stars {
-            font-size: 28px;
-            color: #fbbf24;
-            margin-bottom: 20px;
-        }
-        .review-text {
-            font-size: 1.2rem;
-            line-height: 1.8;
-            color: #1f2937;
-            margin-bottom: 30px;
-            position: relative;
-            z-index: 1;
-        }
-        .reviewer {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .reviewer-avatar {
-            width: 70px;
-            height: 70px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 800;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
-        }
-        .reviewer-info h4 {
-            margin: 0;
-            font-size: 1.3rem;
-            font-weight: 700;
-            color: #1f2937;
-        }
-        .reviewer-info p {
-            margin: 5px 0 0 0;
-            color: #6b7280;
-            font-size: 1rem;
-        }
-        .verified-badge {
-            display: inline-block;
-            background: #10b981;
-            color: white;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            margin-left: 10px;
-        }
-        .cta-section {
-            background: white;
-            border-radius: 20px;
-            padding: 60px 40px;
-            text-align: center;
-            margin-top: 60px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        }
-        .cta-section h2 {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin: 0 0 20px 0;
-        }
-        .cta-button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px 50px;
-            font-size: 1.3rem;
-            font-weight: 700;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-            transition: all 0.3s;
-        }
-        .cta-button:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
-        }
-    </style>
-    <script src="/static/js/universal-nav.js" defer></script>
+    .reviews-header h1 {
+      margin: 0;
+    }
+    
+    .rating-summary {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      text-align: center;
+    }
+    
+    .rating-value {
+      font-size: 3rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+      margin: 0;
+    }
+    
+    .rating-stars {
+      color: var(--warning);
+      margin: var(--space-md) 0;
+    }
+    
+    .rating-count {
+      color: var(--neutral);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .review-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+    }
+    
+    .review-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .review-author {
+      font-weight: var(--font-weight-semibold);
+      margin: 0;
+    }
+    
+    .review-date {
+      font-size: 0.875rem;
+      color: var(--neutral);
+      margin: var(--space-xs) 0 0 0;
+    }
+    
+    .review-rating {
+      color: var(--warning);
+    }
+    
+    .review-text {
+      color: #374151;
+      margin: 0 0 var(--space-lg) 0;
+      line-height: 1.6;
+    }
+    
+    .review-actions {
+      display: flex;
+      gap: var(--space-md);
+    }
+    
+    .review-actions button {
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.875rem;
+    }
+    
+    .add-review-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+    }
+    
+    .add-review-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+    }
+    
+    .form-group {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-family: var(--font-family-base);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    .rating-input {
+      display: flex;
+      gap: var(--space-md);
+    }
+    
+    .rating-input label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    
+    .pagination button {
+      padding: var(--space-sm) var(--space-md);
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+    
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    @media (max-width: 640px) {
+      .reviews-container {
+        padding: var(--space-lg);
+      }
+      
+      .reviews-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .review-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="reviews-hero">
-        <h1>⭐ Loved by Thousands</h1>
-        <p>See what our users are saying about Namaskah SMS</p>
-        
-        <div class="stats-bar">
-            <div class="stat-item">
-                <div class="stat-number">4.9</div>
-                <div class="stat-label">Average Rating</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">5,000+</div>
-                <div class="stat-label">Happy Users</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-number">50K+</div>
-                <div class="stat-label">Verifications</div>
-            </div>
-        </div>
+  <nav class="navbar">
+    <div class="navbar-brand">Namaskah</div>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="reviews-container">
+    <!-- Header -->
+    <div class="reviews-header">
+      <h1>Customer Reviews</h1>
+      <button class="btn btn-primary">
+        <svg class="icon icon-sm" data-feather="plus"></svg>
+        Write Review
+      </button>
     </div>
 
-    <div class="reviews-container">
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "Absolutely incredible service! I needed to verify multiple WhatsApp accounts for my business and Namaskah SMS made it so easy. The numbers work instantly and the auto-refund feature saved me money when one didn't work. Customer support is top-notch!"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">JD</div>
-                <div class="reviewer-info">
-                    <h4>John Davidson <span class="verified-badge">✓ Verified</span></h4>
-                    <p>Digital Marketing Agency Owner • 🇺🇸 USA</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "As a developer, I love the API integration! The webhooks work flawlessly and the documentation is crystal clear. I've integrated Namaskah SMS into our testing pipeline and it's been running smoothly for months. 1,807 services is insane!"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">SM</div>
-                <div class="reviewer-info">
-                    <h4>Sarah Mitchell <span class="verified-badge">✓ Verified</span></h4>
-                    <p>Senior Software Engineer • 🇬🇧 UK</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "Best pricing I've found anywhere! Only N0.50 per verification and the quality is excellent. I've tried 5 other services and Namaskah is by far the fastest and most reliable. The referral program is generous too - I've earned N15 already!"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">MK</div>
-                <div class="reviewer-info">
-                    <h4>Michael Kumar <span class="verified-badge">✓ Verified</span></h4>
-                    <p>Entrepreneur & Growth Hacker • 🇮🇳 India</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "Lightning fast! I got my Telegram verification code in literally 25 seconds. The dashboard is clean and intuitive. Love the transaction history feature - I can track every penny spent. Highly recommend for anyone needing SMS verification!"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);">AL</div>
-                <div class="reviewer-info">
-                    <h4>Amanda Lee <span class="verified-badge">✓ Verified</span></h4>
-                    <p>Social Media Manager • 🇨🇦 Canada</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "Perfect for QA testing! We use Namaskah SMS to test our app's SMS verification flow across different services. The API is rock solid and the rate limits are generous. Support team responded to my question within 2 hours. A+"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">RC</div>
-                <div class="reviewer-info">
-                    <h4>Robert Chen <span class="verified-badge">✓ Verified</span></h4>
-                    <p>QA Lead at Tech Startup • 🇸🇬 Singapore</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="review-card">
-            <div class="stars">⭐⭐⭐⭐⭐</div>
-            <div class="review-text">
-                "Game changer for my e-commerce business! I needed to verify accounts on multiple platforms and Namaskah made it seamless. The crypto payment option is a huge plus. Clean interface, fast service, fair pricing. What more could you ask for?"
-            </div>
-            <div class="reviewer">
-                <div class="reviewer-avatar" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);">EP</div>
-                <div class="reviewer-info">
-                    <h4>Elena Popov <span class="verified-badge">✓ Verified</span></h4>
-                    <p>E-commerce Entrepreneur • 🇷🇴 Romania</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="cta-section">
-            <h2>Join 5,000+ Happy Users</h2>
-            <p style="font-size: 1.2rem; color: #6b7280; margin-bottom: 30px;">Start verifying with N5 free credits</p>
-            <button class="cta-button" onclick="window.location.href='/app'">Get Started Now 🚀</button>
-            <p style="margin-top: 20px; color: #9ca3af;">
-                <a href="/" style="color: #667eea; margin: 0 15px;">Home</a>
-                <a href="/faq" style="color: #667eea; margin: 0 15px;">FAQ</a>
-                <a href="/api-docs" style="color: #667eea; margin: 0 15px;">API Docs</a>
-            </p>
-        </div>
+    <!-- Rating Summary -->
+    <div class="rating-summary">
+      <p class="rating-value">4.8</p>
+      <p class="rating-stars">★★★★★</p>
+      <p class="rating-count">Based on 234 reviews</p>
     </div>
+
+    <!-- Reviews List -->
+    <div class="reviews-list">
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">John Smith</p>
+            <p class="review-date">November 20, 2025</p>
+          </div>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p class="review-text">Excellent service! The SMS verification is incredibly fast and reliable. Highly recommended for any business.</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+      
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">Jane Doe</p>
+            <p class="review-date">November 18, 2025</p>
+          </div>
+          <span class="review-rating">★★★★☆</span>
+        </div>
+        <p class="review-text">Great service with good pricing. The API documentation could be more detailed, but overall very satisfied.</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+      
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">Bob Johnson</p>
+            <p class="review-date">November 15, 2025</p>
+          </div>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p class="review-text">Perfect for our needs. The customer support team is responsive and helpful. Worth every penny!</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button class="btn btn-sm btn-outline">
+        <svg class="icon icon-sm" data-feather="chevron-left"></svg>
+      </button>
+      <button class="btn btn-sm active">1</button>
+      <button class="btn btn-sm btn-outline">2</button>
+      <button class="btn btn-sm btn-outline">3</button>
+      <button class="btn btn-sm btn-outline">
+        <svg class="icon icon-sm" data-feather="chevron-right"></svg>
+      </button>
+    </div>
+
+    <!-- Add Review Form -->
+    <div class="add-review-section" style="margin-top: var(--space-2xl);">
+      <h2>Share Your Experience</h2>
+      
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="Enter your name">
+      </div>
+      
+      <div class="form-group">
+        <label>Rating</label>
+        <div class="rating-input">
+          <label><input type="radio" name="rating"> ★</label>
+          <label><input type="radio" name="rating"> ★★</label>
+          <label><input type="radio" name="rating"> ★★★</label>
+          <label><input type="radio" name="rating"> ★★★★</label>
+          <label><input type="radio" name="rating" checked> ★★★★★</label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Your Review</label>
+        <textarea placeholder="Share your experience with Namaskah..."></textarea>
+      </div>
+      
+      <button class="btn btn-primary" style="width: 100%;">
+        <svg class="icon icon-sm" data-feather="send"></svg>
+        Submit Review
+      </button>
+    </div>
+  </div>
+
+  <footer style="background-color: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 2rem;">
+    <p>&copy; 2025 Namaskah. All rights reserved.</p>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

@@ -1,0 +1,209 @@
+/* Security & Compliance Section Theme */
+
+.security {
+  padding: var(--space-4xl) var(--space-xl);
+  background: linear-gradient(135deg, #f0f4ff 0%, rgba(212, 175, 55, 0.02) 100%);
+}
+
+.security-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.security-container h2 {
+  font-size: var(--font-size-5xl);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  color: var(--text);
+}
+
+.security-container > p {
+  font-size: var(--font-size-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4xl);
+}
+
+.security-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-2xl);
+  margin-bottom: var(--space-4xl);
+}
+
+.security-badge {
+  background: white;
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  text-align: center;
+  transition: all var(--transition-base);
+}
+
+.security-badge:hover {
+  box-shadow: 0 8px 24px rgba(212, 175, 55, 0.2);
+  transform: translateY(-4px);
+}
+
+.compliance-logo {
+  width: 80px;
+  height: 80px;
+  margin: 0 auto var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-4xl);
+}
+
+.security-badge-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--text);
+  margin-bottom: var(--space-sm);
+}
+
+.security-badge-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.security-features {
+  background: white;
+  border-radius: var(--radius-xl);
+  padding: var(--space-3xl);
+  border: 1px solid var(--border);
+}
+
+.security-features h3 {
+  font-size: var(--font-size-2xl);
+  margin-bottom: var(--space-xl);
+  color: var(--text);
+}
+
+.security-features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--space-2xl);
+}
+
+.security-feature {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.security-feature-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(39, 174, 96, 0.1);
+  border-radius: var(--radius-full);
+  color: var(--success);
+  flex-shrink: 0;
+  font-size: var(--font-size-lg);
+}
+
+.security-feature-content h4 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  margin-bottom: var(--space-sm);
+}
+
+.security-feature-text {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.security-certifications {
+  margin-top: var(--space-3xl);
+  padding-top: var(--space-3xl);
+  border-top: 1px solid var(--border);
+}
+
+.security-certifications h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xl);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: var(--font-weight-bold);
+}
+
+.certifications-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-xl);
+}
+
+.certification-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.certification-icon {
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: var(--radius-lg);
+  color: white;
+  font-size: var(--font-size-2xl);
+  flex-shrink: 0;
+}
+
+.certification-info h4 {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  margin-bottom: var(--space-xs);
+}
+
+.certification-info p {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .security {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .security-container h2 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .security-grid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .security-badge {
+    padding: var(--space-lg);
+  }
+
+  .compliance-logo {
+    width: 60px;
+    height: 60px;
+    font-size: var(--font-size-3xl);
+  }
+
+  .security-features {
+    padding: var(--space-xl);
+  }
+
+  .security-features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .certifications-list {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,6 +1,7 @@
 """Countries API - Get supported countries for SMS verification"""
 from fastapi import APIRouter, HTTPException
 from app.core.logging import get_logger
+from app.core.unified_cache import cache
 
 logger = get_logger(__name__)
 

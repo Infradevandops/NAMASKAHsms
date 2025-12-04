@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="SMS Verification - Namaskah">
+  <title>SMS Verification - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/enterprise-theme.css">
+  <link rel="stylesheet" href="/static/css/design-tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/vendor/feather-fixed.min.css">
+  <link rel="stylesheet" href="/static/css/vendor/font-awesome-fixed.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #6b7280;
+      font-size: 16px;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #1f2937;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #007bff;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0056b3;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat {
+      background: #f3f4f6;
+      padding: 15px;
+      border-radius: 6px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #007bff;
+    }
+
+    .result-section {
+      display: none;
+      background: #f0f9ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 6px;
+      padding: 20px;
+      margin-top: 20px;
+    }
+
+    .result-section.active {
+      display: block;
+    }
+
+    .result-item {
+      margin-bottom: 15px;
+    }
+
+    .result-label {
+      font-size: 12px;
+      color: #6b7280;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .result-value {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1f2937;
+      word-break: break-all;
+    }
+
+    .copy-btn {
+      background: #e5e7eb;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+
+    .copy-btn:hover {
+      background: #d1d5db;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .success {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loading.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #007bff;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .countdown {
+      font-size: 18px;
+      font-weight: 700;
+      color: #007bff;
+      margin: 10px 0;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .history-table th {
+      background: #f3f4f6;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .history-table td {
+      padding: 12px;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .history-table tr:hover {
+      background: #f9fafb;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-timeout {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .status-released {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>SMS Verification</h1>
+      <p>Get instant SMS codes for verification</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Left: Form -->
+      <div class="card">
+        <h2>Request Verification</h2>
+        
+        <div class="error" id="error-message"></div>
+        <div class="success" id="success-message"></div>
+
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Your Balance</div>
+            <div class="stat-value" id="balance-display">$0.00</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Estimated Cost</div>
+            <div class="stat-value" id="estimated-cost">$0.00</div>
+          </div>
+        </div>
+
+        <form id="verification-form">
+          <div class="form-group">
+            <label for="service-select">Service</label>
+            <select id="service-select" required>
+              <option value="">Select a service...</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="country-select">Country</label>
+            <select id="country-select" required>
+              <option value="">Select a country...</option>
+            </select>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="purchase-btn">Get SMS Code</button>
+        </form>
+
+        <div class="loading" id="loading">
+          <div class="spinner"></div>
+          <p style="margin-top: 10px; color: #6b7280;">Processing...</p>
+        </div>
+      </div>
+
+      <!-- Right: Result -->
+      <div class="card">
+        <h2>SMS Code</h2>
+        
+        <div class="result-section" id="result-section">
+          <div class="result-item">
+            <div class="result-label">Phone Number</div>
+            <div class="result-value">
+              <input type="text" id="phone-number" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+              <button class="copy-btn" onclick="copyToClipboard('phone-number')">Copy</button>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-label">SMS Code</div>
+            <div class="result-value">
+              <input type="text" id="sms-code" readonly style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 18px; font-weight: bold; letter-spacing: 2px;">
+              <button class="copy-btn" onclick="copyToClipboard('sms-code')">Copy</button>
+            </div>
+          </div>
+
+          <div class="result-item">
+            <div class="result-label">Time Remaining</div>
+            <div class="countdown" id="countdown">20:00</div>
+          </div>
+
+          <div style="margin-top: 20px;">
+            <button class="btn btn-secondary" id="release-btn" onclick="releaseNumber()">Release Number</button>
+            <button class="btn btn-primary" id="new-verification-btn" onclick="resetForm()" style="margin-left: 10px;">New Verification</button>
+          </div>
+        </div>
+
+        <div id="waiting-message" style="text-align: center; padding: 40px 20px; color: #6b7280;">
+          <p>Waiting for SMS...</p>
+          <div class="spinner" style="margin: 20px auto;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <h2>Recent Verifications</h2>
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th>Country</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Cost</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody id="history-tbody">
+          <tr>
+            <td colspan="6" style="text-align: center; color: #6b7280;">No verifications yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/vendor/axios.min.js"></script>
+  <script src="/static/js/global-balance.js"></script>
+  <script>
+    let currentVerification = null;
+    let pollingInterval = null;
+    let countdownInterval = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadServices();
+      await loadCountries();
+      await loadHistory();
+
+      document.getElementById('verification-form').addEventListener('submit', handleFormSubmit);
+      document.getElementById('service-select').addEventListener('change', updateCostEstimate);
+      document.getElementById('country-select').addEventListener('change', updateCostEstimate);
+    });
+
+    async function loadServices() {
+      try {
+        const response = await axios.get('/api/pricing/services');
+        const select = document.getElementById('service-select');
+        Object.keys(response.data.services).forEach(service => {
+          const option = document.createElement('option');
+          option.value = service;
+          option.textContent = service.charAt(0).toUpperCase() + service.slice(1);
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load services:', error);
+        showError('Failed to load services');
+      }
+    }
+
+    async function loadCountries() {
+      try {
+        const response = await axios.get('/api/countries/');
+        const select = document.getElementById('country-select');
+        
+        // Handle both array and object responses
+        const countries = Array.isArray(response.data) ? response.data : response.data.countries || [];
+        
+        if (countries.length === 0) {
+          showError('No countries available');
+          return;
+        }
+        
+        countries.forEach(country => {
+          const option = document.createElement('option');
+          option.value = country.code;
+          option.textContent = `${country.flag || ''} ${country.name}`.trim();
+          select.appendChild(option);
+        });
+      } catch (error) {
+        console.error('Failed to load countries:', error);
+        showError('Failed to load countries: ' + (error.response?.data?.detail || error.message));
+      }
+    }
+
+    // Balance is synced globally via global-balance.js
+
+    async function updateCostEstimate() {
+      const service = document.getElementById('service-select').value;
+      const country = document.getElementById('country-select').value;
+
+      if (!service || !country) {
+        document.getElementById('estimated-cost').textContent = '$0.00';
+        return;
+      }
+
+      try {
+        const response = await axios.get('/api/pricing/estimate', {
+          params: { service, country }
+        });
+        document.getElementById('estimated-cost').textContent = '$' + response.data.total_cost.toFixed(2);
+      } catch (error) {
+        console.error('Failed to estimate cost:', error);
+      }
+    }
+
+    async function handleFormSubmit(e) {
+      e.preventDefault();
+      
+      const service = document.getElementById('service-select').value;
+      const country = document.getElementById('country-select').value;
+
+      if (!service || !country) {
+        showError('Please select service and country');
+        return;
+      }
+
+      showLoading(true);
+      hideError();
+      hideSuccess();
+
+      try {
+        const response = await axios.post('/api/verification/request', {
+          service,
+          country
+        });
+
+        currentVerification = response.data;
+        document.getElementById('phone-number').value = response.data.phone_number;
+        document.getElementById('sms-code').value = 'Waiting...';
+
+        document.getElementById('verification-form').style.display = 'none';
+        document.getElementById('result-section').classList.add('active');
+        document.getElementById('waiting-message').style.display = 'block';
+
+        showSuccess('Verification purchased! Waiting for SMS...');
+        startPolling();
+        startCountdown();
+      } catch (error) {
+        showError(error.response?.data?.detail || 'Failed to purchase verification');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function startPolling() {
+      let pollCount = 0;
+      const maxPolls = 600; // 20 minutes
+
+      pollingInterval = setInterval(async () => {
+        pollCount++;
+
+        try {
+          const response = await axios.get(`/api/verification/${currentVerification.verification_id}`);
+          
+          if (response.data.status === 'completed' && response.data.sms_code) {
+            document.getElementById('sms-code').value = response.data.sms_code;
+            document.getElementById('waiting-message').style.display = 'none';
+            clearInterval(pollingInterval);
+            clearInterval(countdownInterval);
+            showSuccess('SMS received!');
+            return;
+          }
+
+          if (pollCount >= maxPolls) {
+            clearInterval(pollingInterval);
+            showError('SMS timeout - no code received within 20 minutes');
+            return;
+          }
+        } catch (error) {
+          console.error('Polling error:', error);
+        }
+      }, 2000);
+    }
+
+    function startCountdown() {
+      let timeRemaining = 1200; // 20 minutes
+
+      countdownInterval = setInterval(() => {
+        timeRemaining--;
+        const minutes = Math.floor(timeRemaining / 60);
+        const seconds = timeRemaining % 60;
+        document.getElementById('countdown').textContent = 
+          `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+        if (timeRemaining <= 0) {
+          clearInterval(countdownInterval);
+        }
+      }, 1000);
+    }
+
+    async function releaseNumber() {
+      if (!currentVerification) return;
+
+      if (!confirm('Release this number?')) return;
+
+      try {
+        await axios.post(`/api/verification/${currentVerification.verification_id}/release`);
+        showSuccess('Number released');
+        resetForm();
+      } catch (error) {
+        showError('Failed to release number');
+      }
+    }
+
+    function resetForm() {
+      currentVerification = null;
+      clearInterval(pollingInterval);
+      clearInterval(countdownInterval);
+
+      document.getElementById('verification-form').style.display = 'block';
+      document.getElementById('result-section').classList.remove('active');
+      document.getElementById('waiting-message').style.display = 'block';
+      document.getElementById('verification-form').reset();
+      document.getElementById('phone-number').value = '';
+      document.getElementById('sms-code').value = '';
+      document.getElementById('countdown').textContent = '20:00';
+
+      hideError();
+      hideSuccess();
+      loadHistory();
+    }
+
+    async function loadHistory() {
+      try {
+        const response = await axios.get('/api/verification/history?limit=10');
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = '';
+
+        if (!response.data.verifications || response.data.verifications.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No verifications yet</td></tr>';
+          return;
+        }
+
+        response.data.verifications.forEach(v => {
+          const row = document.createElement('tr');
+          const date = new Date(v.created_at).toLocaleDateString();
+          const statusClass = `status-${v.status}`;
+          
+          row.innerHTML = `
+            <td>${v.service || 'N/A'}</td>
+            <td>${v.country || 'N/A'}</td>
+            <td><code>${v.phone_number || 'N/A'}</code></td>
+            <td><span class="status-badge ${statusClass}">${v.status}</span></td>
+            <td>$${v.cost ? v.cost.toFixed(2) : '0.00'}</td>
+            <td>${date}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      } catch (error) {
+        console.error('Failed to load history:', error);
+      }
+    }
+
+    function copyToClipboard(elementId) {
+      const element = document.getElementById(elementId);
+      navigator.clipboard.writeText(element.value).then(() => {
+        showSuccess('Copied to clipboard!');
+      }).catch(() => {
+        element.select();
+        document.execCommand('copy');
+        showSuccess('Copied to clipboard!');
+      });
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    function hideError() {
+      document.getElementById('error-message').classList.remove('show');
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById('success-message');
+      el.textContent = message;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), 3000);
+    }
+
+    function hideSuccess() {
+      document.getElementById('success-message').classList.remove('show');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').classList.toggle('show', show);
+    }
+  </script>
+</body>
+</html>

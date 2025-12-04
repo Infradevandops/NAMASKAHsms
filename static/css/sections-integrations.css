@@ -1,0 +1,149 @@
+/* Integrations Section Theme */
+
+.integrations {
+  padding: var(--space-4xl) var(--space-xl);
+  background: linear-gradient(135deg, rgba(15, 58, 125, 0.02) 0%, rgba(212, 175, 55, 0.02) 100%);
+}
+
+.integrations-container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.integrations-container h2 {
+  font-size: var(--font-size-5xl);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  color: var(--text);
+}
+
+.integrations-container > p {
+  font-size: var(--font-size-xl);
+  text-align: center;
+  color: var(--text-secondary);
+  margin-bottom: var(--space-4xl);
+}
+
+.integrations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-2xl);
+}
+
+.integration-card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  transition: all var(--transition-base);
+  cursor: pointer;
+  min-height: 200px;
+}
+
+.integration-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 24px rgba(15, 58, 125, 0.1);
+  transform: translateY(-4px);
+}
+
+.integration-logo {
+  width: 60px;
+  height: 60px;
+  margin-bottom: var(--space-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-3xl);
+}
+
+.integration-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--text);
+  margin-bottom: var(--space-md);
+}
+
+.integration-badge {
+  display: inline-block;
+  padding: var(--space-sm) var(--space-md);
+  background: rgba(39, 174, 96, 0.1);
+  color: var(--success);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.integration-badge.coming-soon {
+  background: rgba(243, 156, 18, 0.1);
+  color: var(--warning);
+}
+
+.integration-badge.beta {
+  background: rgba(52, 152, 219, 0.1);
+  color: var(--info);
+}
+
+.integration-description {
+  font-size: var(--font-size-sm);
+  color: var(--text-secondary);
+  margin-top: var(--space-md);
+  line-height: 1.6;
+}
+
+.integrations-categories {
+  margin-top: var(--space-4xl);
+  padding-top: var(--space-4xl);
+  border-top: 1px solid var(--border);
+}
+
+.integration-category {
+  margin-bottom: var(--space-3xl);
+}
+
+.integration-category h3 {
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--space-xl);
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: var(--font-weight-bold);
+}
+
+.integration-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--space-xl);
+}
+
+@media (max-width: 768px) {
+  .integrations {
+    padding: var(--space-2xl) var(--space-lg);
+  }
+
+  .integrations-container h2 {
+    font-size: var(--font-size-3xl);
+  }
+
+  .integrations-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: var(--space-lg);
+  }
+
+  .integration-card {
+    padding: var(--space-lg);
+    min-height: 150px;
+  }
+
+  .integration-logo {
+    width: 50px;
+    height: 50px;
+    font-size: var(--font-size-2xl);
+  }
+}

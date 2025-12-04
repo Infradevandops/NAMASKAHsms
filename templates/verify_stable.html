@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMS Verification - Namaskah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: #1e1e2e;
+      --bg-hover: #252538;
+      --accent: #6366f1;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --text-primary: #ffffff;
+      --text-secondary: #a1a1aa;
+      --border: #27272a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; }
+    
+    .layout { display: grid; grid-template-columns: 280px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--bg-card); border-right: 1px solid var(--border); padding: 24px 16px; }
+    .logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+    .logo-icon { width: 36px; height: 36px; background: linear-gradient(135deg, var(--accent), #8b5cf6); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+    .logo-text { font-size: 18px; font-weight: 700; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 12px; color: var(--text-secondary); text-decoration: none; margin-bottom: 4px; transition: all 0.2s; }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent); color: white; }
+    
+    .main { padding: 32px; }
+    .header { margin-bottom: 32px; }
+    .header h1 { font-size: 28px; margin-bottom: 8px; }
+    .header p { color: var(--text-secondary); }
+    
+    .content { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; max-width: 1200px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 32px; }
+    .card h2 { font-size: 20px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    
+    .balance-display { background: var(--bg-secondary); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center; }
+    .balance-amount { font-size: 32px; font-weight: 700; color: var(--success); margin-bottom: 4px; }
+    .balance-label { font-size: 14px; color: var(--text-secondary); }
+    
+    .form-group { margin-bottom: 24px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 500; color: var(--text-secondary); }
+    .form-input { width: 100%; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; color: var(--text-primary); font-size: 16px; }
+    .form-input:focus { outline: none; border-color: var(--accent); }
+    
+    .search-box { position: relative; margin-bottom: 12px; }
+    .search-input { width: 100%; padding: 12px 16px 12px 44px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 10px; color: var(--text-primary); }
+    .search-icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+    
+    .options-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-height: 300px; overflow-y: auto; }
+    .option-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; cursor: pointer; transition: all 0.2s; }
+    .option-card:hover { border-color: var(--accent); background: var(--bg-hover); }
+    .option-card.selected { border-color: var(--accent); background: rgba(99, 102, 241, 0.1); }
+    .option-icon { width: 40px; height: 40px; margin: 0 auto 8px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .option-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .option-price { font-size: 12px; color: var(--text-secondary); }
+    
+    .btn { background: linear-gradient(135deg, var(--accent), #8b5cf6); color: white; border: none; padding: 16px 24px; border-radius: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s; width: 100%; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    
+    .result-section { text-align: center; }
+    .phone-display { font-size: 24px; font-weight: 600; background: var(--bg-secondary); padding: 20px; border-radius: 12px; margin-bottom: 20px; font-family: monospace; }
+    .code-display { font-size: 48px; font-weight: 700; color: var(--success); letter-spacing: 8px; margin: 24px 0; }
+    .waiting-state { padding: 60px 20px; color: var(--text-secondary); }
+    .waiting-icon { font-size: 48px; margin-bottom: 16px; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    
+    @media (max-width: 1024px) { .layout { grid-template-columns: 1fr; } .sidebar { display: none; } }
+    @media (max-width: 768px) { .content { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ph ph-device-mobile"></i></div>
+      <span class="logo-text">Namaskah</span>
+    </div>
+    <nav>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-house"></i> Dashboard</a>
+      <a href="/verify" class="nav-item active"><i class="ph ph-chat-circle"></i> Get SMS Code</a>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-wallet"></i> Wallet</a>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-clock-clockwise"></i> History</a>
+      <a href="/settings" class="nav-item"><i class="ph ph-gear"></i> Settings</a>
+    </nav>
+  </aside>
+  
+  <main class="main">
+    <div class="header">
+      <h1>SMS Verification</h1>
+      <p>Get instant SMS codes for any service</p>
+    </div>
+    
+    <div class="content">
+      <div class="card">
+        <h2><i class="ph ph-paper-plane"></i> Request Verification</h2>
+        
+        <div class="balance-display">
+          <div class="balance-amount" id="balance-amount">$0.00</div>
+          <div class="balance-label">Available Balance</div>
+        </div>
+        
+        <div class="form-group">
+          <label>Select Service</label>
+          <div class="search-box">
+            <input type="text" class="search-input" id="service-search" placeholder="Search services...">
+            <i class="ph ph-magnifying-glass search-icon"></i>
+          </div>
+          <div class="options-grid" id="services-grid"></div>
+        </div>
+        
+        <div class="form-group">
+          <label>Select Country</label>
+          <div class="search-box">
+            <input type="text" class="search-input" id="country-search" placeholder="Search countries...">
+            <i class="ph ph-magnifying-glass search-icon"></i>
+          </div>
+          <div class="options-grid" id="countries-grid"></div>
+        </div>
+        
+        <button class="btn" id="purchase-btn" onclick="purchaseVerification()">
+          <i class="ph ph-lightning"></i> Get SMS Code - $0.00
+        </button>
+      </div>
+      
+      <div class="card">
+        <h2><i class="ph ph-inbox"></i> SMS Code</h2>
+        <div class="waiting-state" id="waiting-state">
+          <div class="waiting-icon"><i class="ph ph-satellite-dish"></i></div>
+          <p>Select service and country to start</p>
+        </div>
+        <div class="result-section" id="result-section" style="display: none;">
+          <div class="phone-display" id="phone-number"></div>
+          <div class="code-display" id="sms-code">------</div>
+          <p style="color: var(--text-secondary); margin-bottom: 20px;">SMS code will appear here</p>
+          <button class="btn" onclick="copyCode()"><i class="ph ph-copy"></i> Copy Code</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="/static/js/global-balance.js"></script>
+<script>
+let selectedService = null;
+let selectedCountry = null;
+let allServices = [];
+let allCountries = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadBalance();
+  loadServices();
+  loadCountries();
+  setupSearch();
+});
+
+async function loadBalance() {
+  // Balance is synced globally via global-balance.js
+}
+
+async function loadServices() {
+  try {
+    const response = await axios.get('/api/verification/textverified/services');
+    allServices = response.data.services || [];
+    displayServices(allServices);
+  } catch (error) {
+    allServices = [];
+    displayServices(allServices);
+  }
+}
+
+async function loadCountries() {
+  try {
+    const response = await axios.get('/api/verification/textverified/countries');
+    allCountries = response.data.countries || [];
+    displayCountries(allCountries);
+  } catch (error) {
+    allCountries = [];
+    displayCountries(allCountries);
+  }
+}
+
+function displayServices(services) {
+  const grid = document.getElementById('services-grid');
+  grid.innerHTML = services.map(service => `
+    <div class="option-card" onclick="selectService('${service.id}', '${service.name}', ${service.cost})">
+      <div class="option-icon" style="background: var(--accent); color: white;">
+        <i class="ph ph-chat-circle"></i>
+      </div>
+      <div class="option-name">${service.name}</div>
+      <div class="option-price">$${service.cost.toFixed(2)}</div>
+    </div>
+  `).join('');
+}
+
+function displayCountries(countries) {
+  const grid = document.getElementById('countries-grid');
+  grid.innerHTML = countries.map(country => `
+    <div class="option-card" onclick="selectCountry('${country.code}', '${country.name}')">
+      <div class="option-icon" style="background: var(--success); color: white;">
+        <i class="ph ph-globe"></i>
+      </div>
+      <div class="option-name">${country.name}</div>
+      <div class="option-price">+${country.prefix}</div>
+    </div>
+  `).join('');
+}
+
+function setupSearch() {
+  document.getElementById('service-search').addEventListener('input', (e) => {
+    const filtered = allServices.filter(s => 
+      s.name.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+    displayServices(filtered);
+  });
+  
+  document.getElementById('country-search').addEventListener('input', (e) => {
+    const filtered = allCountries.filter(c => 
+      c.name.toLowerCase().includes(e.target.value.toLowerCase())
+    );
+    displayCountries(filtered);
+  });
+}
+
+function selectService(id, name, cost) {
+  selectedService = {id, name, cost};
+  document.querySelectorAll('#services-grid .option-card').forEach(card => card.classList.remove('selected'));
+  event.target.closest('.option-card').classList.add('selected');
+  updatePurchaseButton();
+}
+
+function selectCountry(code, name) {
+  selectedCountry = {code, name};
+  document.querySelectorAll('#countries-grid .option-card').forEach(card => card.classList.remove('selected'));
+  event.target.closest('.option-card').classList.add('selected');
+  updatePurchaseButton();
+}
+
+function updatePurchaseButton() {
+  const btn = document.getElementById('purchase-btn');
+  if (selectedService && selectedCountry) {
+    btn.innerHTML = `<i class="ph ph-lightning"></i> Get SMS Code - $${selectedService.cost.toFixed(2)}`;
+    btn.disabled = false;
+  } else {
+    btn.innerHTML = `<i class="ph ph-lightning"></i> Get SMS Code - $0.00`;
+    btn.disabled = true;
+  }
+}
+
+async function purchaseVerification() {
+  if (!selectedService || !selectedCountry) return;
+  
+  const btn = document.getElementById('purchase-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-spinner"></i> Processing...';
+  
+  try {
+    const response = await axios.post('/api/verification/request', {
+      service: selectedService.id,
+      country: selectedCountry.code
+    });
+    
+    document.getElementById('phone-number').textContent = response.data.phone_number;
+    document.getElementById('waiting-state').style.display = 'none';
+    document.getElementById('result-section').style.display = 'block';
+    
+    // Start polling for SMS
+    pollForSMS(response.data.verification_id);
+    
+  } catch (error) {
+    alert(error.response?.data?.detail || 'Purchase failed');
+    btn.disabled = false;
+    btn.innerHTML = `<i class="ph ph-lightning"></i> Get SMS Code - $${selectedService.cost.toFixed(2)}`;
+  }
+}
+
+function pollForSMS(verificationId) {
+  const interval = setInterval(async () => {
+    try {
+      const response = await axios.get(`/api/verification/${verificationId}`);
+      if (response.data.status === 'completed' && response.data.sms_code) {
+        document.getElementById('sms-code').textContent = response.data.sms_code;
+        clearInterval(interval);
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+    }
+  }, 3000);
+  
+  // Stop polling after 10 minutes
+  setTimeout(() => clearInterval(interval), 600000);
+}
+
+function copyCode() {
+  const code = document.getElementById('sms-code').textContent;
+  navigator.clipboard.writeText(code);
+  alert('Code copied!');
+}
+</script>
+</body>
+</html>

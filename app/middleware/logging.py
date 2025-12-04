@@ -7,7 +7,7 @@ from fastapi import Request
 from starlette.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.logging import get_logger, log_performance
+from app.core.logging import get_logger
 
 # Get structured logger
 logger = get_logger("middleware.logging")
@@ -149,12 +149,12 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             logger.info("HTTP response - success: %s", log_data)
 
         # Log performance metrics
-        log_performance(
-            logger,
-            f"{request.method} {request.url.path}",
-            process_time,
-            {"status_code": response.status_code, "user_id": user_id},
-        )
+        # log_performance(
+        #     logger,
+        #     f"{request.method} {request.url.path}",
+        #     process_time,
+        #     {"status_code": response.status_code, "user_id": user_id},
+        # )
 
     @staticmethod
     def _get_client_ip(request: Request) -> str:

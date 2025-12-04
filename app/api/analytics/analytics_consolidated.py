@@ -8,7 +8,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func
-
+from sqlalchemy.orm import Session
+from app.schemas import (
     AnalyticsResponse,
     BusinessMetrics,
     CompetitiveAnalysis,

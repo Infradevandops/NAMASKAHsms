@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SMS Verification - Namaskah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --bg-primary: #0f0f23; --bg-card: #1a1a2e; --bg-input: #16213e;
+      --accent: #0f3460; --accent-light: #533483; --success: #16a085;
+      --text-primary: #ffffff; --text-secondary: #8892b0; --border: #233554;
+      --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.5; }
+    
+    .layout { display: grid; grid-template-columns: 200px 1fr; min-height: 100vh; }
+    .sidebar { background: var(--bg-card); border-right: 1px solid var(--border); padding: 12px 8px; box-shadow: var(--shadow); }
+    .logo { display: flex; align-items: center; gap: 6px; margin-bottom: 16px; padding: 6px; }
+    .logo-icon { width: 24px; height: 24px; background: var(--accent); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .logo-text { font-size: 14px; font-weight: 600; }
+    .nav-item { display: flex; align-items: center; gap: 6px; padding: 6px 8px; border-radius: 4px; color: var(--text-secondary); text-decoration: none; margin-bottom: 1px; font-size: 13px; }
+    .nav-item:hover { background: var(--bg-input); color: var(--text-primary); }
+    .nav-item.active { background: var(--accent); color: white; }
+    .nav-item i { font-size: 14px; width: 14px; }
+    
+    .main { padding: 16px; max-width: 1200px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+    .header h1 { font-size: 18px; font-weight: 600; }
+    .header p { font-size: 12px; color: var(--text-secondary); }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .balance-chip { display: flex; align-items: center; gap: 6px; background: var(--bg-card); padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .balance-icon { width: 16px; height: 16px; background: var(--success); border-radius: 3px; display: flex; align-items: center; justify-content: center; font-size: 8px; }
+    .balance-text { font-size: 13px; font-weight: 600; color: var(--success); }
+    
+    .tabs { display: flex; margin-bottom: 16px; background: var(--bg-card); border-radius: 6px; padding: 2px; border: 1px solid var(--border); }
+    .tab { padding: 8px 16px; cursor: pointer; color: var(--text-secondary); border-radius: 4px; font-size: 13px; font-weight: 500; transition: all 0.2s; }
+    .tab.active { background: var(--accent); color: white; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    
+    .content { display: grid; grid-template-columns: 400px 1fr; gap: 16px; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow); }
+    .card h2 { font-size: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; font-weight: 600; }
+    .card h2 i { font-size: 14px; color: var(--accent-light); }
+    
+    .form-section { margin-bottom: 16px; }
+    .form-section:last-child { margin-bottom: 0; }
+    .section-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-label { display: block; margin-bottom: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); }
+    
+    .search-select { position: relative; }
+    .search-input { width: 100%; padding: 8px 10px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 4px; color: var(--text-primary); font-size: 13px; transition: border-color 0.2s; }
+    .search-input:focus { outline: none; border-color: var(--accent-light); }
+    .dropdown-list { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-input); border: 1px solid var(--border); border-top: none; border-radius: 0 0 4px 4px; max-height: 180px; overflow-y: auto; z-index: 100; display: none; box-shadow: var(--shadow); }
+    .dropdown-item { padding: 8px 10px; cursor: pointer; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .dropdown-item:hover { background: var(--bg-card); }
+    .dropdown-item:last-child { border-bottom: none; }
+    
+    .btn { background: var(--accent); color: white; border: none; padding: 8px 12px; border-radius: 4px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; transition: all 0.2s; }
+    .btn:hover { background: var(--accent-light); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
+    .btn-outline:hover { border-color: var(--accent-light); color: var(--accent-light); }
+    .btn-sm { padding: 6px 10px; font-size: 12px; }
+    
+    .result-panel { text-align: center; }
+    .phone-display { font-size: 16px; font-weight: 600; background: var(--bg-input); padding: 10px; border-radius: 4px; margin-bottom: 10px; font-family: 'Courier New', monospace; border: 1px solid var(--border); }
+    .sms-code { font-size: 20px; font-weight: 700; color: var(--success); letter-spacing: 1px; margin: 12px 0; font-family: 'Courier New', monospace; }
+    .status-indicator { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .waiting-state { padding: 30px 16px; color: var(--text-secondary); font-size: 13px; text-align: center; }
+    .waiting-icon { font-size: 24px; margin-bottom: 8px; opacity: 0.5; }
+    
+    .btn-group { display: flex; gap: 6px; }
+    .btn-group .btn { flex: 1; }
+    
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+    .stat-item { background: var(--bg-input); padding: 8px; border-radius: 4px; text-align: center; border: 1px solid var(--border); }
+    .stat-value { font-size: 14px; font-weight: 600; color: var(--success); }
+    .stat-label { font-size: 11px; color: var(--text-secondary); }
+    
+    .inbox-list { max-height: 300px; overflow-y: auto; }
+    .inbox-item { padding: 10px; border-bottom: 1px solid var(--border); }
+    .inbox-item:last-child { border-bottom: none; }
+    .inbox-service { font-size: 12px; font-weight: 600; color: var(--accent-light); }
+    .inbox-message { font-size: 13px; margin: 4px 0; }
+    .inbox-time { font-size: 11px; color: var(--text-secondary); }
+    
+    @media (max-width: 768px) { 
+      .layout { grid-template-columns: 1fr; } 
+      .sidebar { display: none; }
+      .content { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="ph ph-device-mobile"></i></div>
+      <span class="logo-text">Namaskah</span>
+    </div>
+    <nav>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-house"></i> Dashboard</a>
+      <a href="/verify" class="nav-item active"><i class="ph ph-chat-circle"></i> Get SMS Code</a>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-wallet"></i> Wallet</a>
+      <a href="/dashboard" class="nav-item"><i class="ph ph-clock-clockwise"></i> History</a>
+      <a href="/settings" class="nav-item"><i class="ph ph-gear"></i> Settings</a>
+    </nav>
+  </aside>
+  
+  <main class="main">
+    <div class="header">
+      <div>
+        <h1>SMS Verification</h1>
+        <p>Get instant SMS codes for any service</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" onclick="window.location.href='/dashboard'">
+          <i class="ph ph-house"></i> Home
+        </button>
+        <div class="balance-chip">
+          <div class="balance-icon"><i class="ph ph-coins"></i></div>
+          <span class="balance-text" id="balance-display">$0.00</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('verification')">Verification</div>
+      <div class="tab" onclick="switchTab('inbox')">Inbox</div>
+    </div>
+    
+    <div class="content">
+      <!-- Verification Tab -->
+      <div class="tab-content active" id="verification-tab">
+        <div class="card">
+          <h2><i class="ph ph-paper-plane"></i> Request SMS Code</h2>
+          
+          <div class="form-section">
+            <div class="section-title">Service Selection</div>
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Service</label>
+                <div class="search-select">
+                  <input type="text" class="search-input" id="service-search" placeholder="Type to search..." autocomplete="off">
+                  <div class="dropdown-list" id="service-dropdown"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Country</label>
+                <div class="search-select">
+                  <input type="text" class="search-input" id="country-search" placeholder="Type to search..." autocomplete="off">
+                  <div class="dropdown-list" id="country-dropdown"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-section">
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-value" id="service-cost">$0.00</div>
+                <div class="stat-label">Cost</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">~30s</div>
+                <div class="stat-label">Delivery</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-value">95%</div>
+                <div class="stat-label">Success</div>
+              </div>
+            </div>
+            <button class="btn" id="purchase-btn" onclick="purchaseVerification()" disabled style="width: 100%;">
+              <i class="ph ph-lightning"></i> Select service and country
+            </button>
+          </div>
+        </div>
+        
+        <div class="card">
+          <h2><i class="ph ph-device-mobile"></i> SMS Reception</h2>
+          <div class="waiting-state" id="waiting-area">
+            <div class="waiting-icon"><i class="ph ph-satellite-dish"></i></div>
+            <div>Ready to receive SMS</div>
+            <div style="font-size: 11px; margin-top: 4px;">Complete form to get phone number</div>
+          </div>
+          <div class="result-panel" id="result-area" style="display: none;">
+            <div class="phone-display" id="phone-display"></div>
+            <div class="status-indicator" id="status-text">
+              <i class="ph ph-clock"></i> Waiting for SMS...
+            </div>
+            <div class="sms-code" id="code-display">------</div>
+            <div class="btn-group">
+              <button class="btn btn-sm" onclick="copyCode()" id="copy-btn" style="display: none;">
+                <i class="ph ph-copy"></i> Copy
+              </button>
+              <button class="btn btn-outline btn-sm" onclick="resetForm()">
+                <i class="ph ph-arrow-clockwise"></i> Reset
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Inbox Tab -->
+      <div class="tab-content" id="inbox-tab">
+        <div class="card" style="grid-column: 1 / -1;">
+          <h2><i class="ph ph-inbox"></i> Message History</h2>
+          <div id="inbox-content">
+            <div class="waiting-state">
+              <i class="ph ph-inbox" style="font-size: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+              <div>No messages yet</div>
+              <div style="font-size: 11px; margin-top: 4px;">SMS codes will appear here</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+let selectedService = null;
+let selectedCountry = null;
+let currentVerification = null;
+let pollingInterval = null;
+let allServices = [];
+let allCountries = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadBalance();
+  loadServices();
+  loadCountries();
+  setupSearchInputs();
+});
+
+async function loadBalance() {
+  try {
+    const response = await axios.get('/api/verification/textverified/balance');
+    document.getElementById('balance-display').textContent = '$' + (response.data.balance || 0).toFixed(2);
+  } catch (error) {
+    try {
+      const response = await axios.get('/api/user/balance');
+      document.getElementById('balance-display').textContent = '$' + (response.data.credits || 0).toFixed(2);
+    } catch (e) {
+      document.getElementById('balance-display').textContent = '$0.00';
+    }
+  }
+}
+
+async function loadServices() {
+  try {
+    const response = await axios.get('/api/verification/textverified/services');
+    allServices = response.data.services || [];
+    populateDropdown('service', allServices, (s) => `${s.name} ($${s.cost.toFixed(2)})`);
+  } catch (error) {
+    console.error('Failed to load services:', error);
+    allServices = [];
+    const dropdown = document.getElementById('service-dropdown');
+    dropdown.innerHTML = '<div class="dropdown-item" style="color: #ef4444;">Failed to load services</div>';
+  }
+}
+
+async function loadCountries() {
+  try {
+    const response = await axios.get('/api/verification/textverified/countries');
+    allCountries = response.data.countries || [];
+    populateDropdown('country', allCountries, (c) => `${c.name} (+${c.prefix})`);
+  } catch (error) {
+    console.error('Failed to load countries:', error);
+    allCountries = [];
+    const dropdown = document.getElementById('country-dropdown');
+    dropdown.innerHTML = '<div class="dropdown-item" style="color: #ef4444;">Failed to load countries</div>';
+  }
+}
+
+function populateDropdown(type, items, displayFn) {
+  const dropdown = document.getElementById(`${type}-dropdown`);
+  dropdown.innerHTML = '';
+  
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'dropdown-item';
+    div.textContent = displayFn(item);
+    div.onclick = () => selectItem(type, item, displayFn(item));
+    dropdown.appendChild(div);
+  });
+}
+
+function setupSearchInputs() {
+  const serviceInput = document.getElementById('service-search');
+  const countryInput = document.getElementById('country-search');
+  
+  serviceInput.addEventListener('input', (e) => filterDropdown('service', e.target.value));
+  serviceInput.addEventListener('focus', () => showDropdown('service'));
+  
+  countryInput.addEventListener('input', (e) => filterDropdown('country', e.target.value));
+  countryInput.addEventListener('focus', () => showDropdown('country'));
+  
+  // Hide dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.search-select')) {
+      hideAllDropdowns();
+    }
+  });
+}
+
+function showDropdown(type) {
+  document.getElementById(`${type}-dropdown`).style.display = 'block';
+}
+
+function hideAllDropdowns() {
+  document.getElementById('service-dropdown').style.display = 'none';
+  document.getElementById('country-dropdown').style.display = 'none';
+}
+
+function filterDropdown(type, query) {
+  const items = type === 'service' ? allServices : allCountries;
+  const displayFn = type === 'service' ? 
+    (s) => `${s.name} ($${s.cost.toFixed(2)})` : 
+    (c) => `${c.name} (+${c.prefix})`;
+  
+  const filtered = items.filter(item => 
+    item.name.toLowerCase().includes(query.toLowerCase())
+  );
+  
+  populateDropdown(type, filtered, displayFn);
+  showDropdown(type);
+}
+
+function selectItem(type, item, displayText) {
+  document.getElementById(`${type}-search`).value = displayText;
+  
+  if (type === 'service') {
+    selectedService = item.id;
+  } else {
+    selectedCountry = item.code;
+  }
+  
+  hideAllDropdowns();
+  updatePurchaseButton();
+}
+
+function switchTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Update tab content
+  document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+  document.getElementById(`${tabName}-tab`).classList.add('active');
+  
+  if (tabName === 'inbox') {
+    loadInbox();
+  }
+}
+
+function updatePurchaseButton() {
+  const btn = document.getElementById('purchase-btn');
+  const costDisplay = document.getElementById('service-cost');
+  
+  if (selectedService && selectedCountry) {
+    const service = allServices.find(s => s.id === selectedService);
+    const price = service ? service.cost.toFixed(2) : '2.00';
+    costDisplay.textContent = `$${price}`;
+    btn.innerHTML = `<i class="ph ph-lightning"></i> Get SMS Code`;
+    btn.disabled = false;
+  } else {
+    costDisplay.textContent = '$0.00';
+    btn.innerHTML = '<i class="ph ph-lightning"></i> Select service and country';
+    btn.disabled = true;
+  }
+}
+
+async function purchaseVerification() {
+  if (!selectedService || !selectedCountry) return;
+  
+  const btn = document.getElementById('purchase-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-spinner ph-spin"></i> Processing...';
+  
+  try {
+    const response = await axios.post('/api/verification/request', {
+      service: selectedService,
+      country: selectedCountry
+    });
+    
+    if (response.data.success) {
+      currentVerification = response.data;
+      document.getElementById('phone-display').textContent = response.data.phone_number;
+      document.getElementById('waiting-area').style.display = 'none';
+      document.getElementById('result-area').style.display = 'block';
+      
+      // Show demo mode indicator if applicable
+      const demoIndicator = response.data.demo_mode ? ' <span style="color: #f39c12;"></span>' : '';
+      document.getElementById('status-text').innerHTML = `<i class="ph ph-clock"></i> Waiting for SMS...${demoIndicator}`;
+      
+      startPolling();
+      loadBalance();
+    } else {
+      throw new Error(response.data.message || 'Purchase failed');
+    }
+    
+  } catch (error) {
+    console.error('Purchase error:', error);
+    const errorMsg = error.response?.data?.detail || error.message || 'Purchase failed. Please try again.';
+    const statusCode = error.response?.status;
+    
+    let displayMsg = errorMsg;
+    if (statusCode === 401) displayMsg = 'Authentication required. Please log in.';
+    else if (statusCode === 400) displayMsg = 'Invalid request: ' + errorMsg;
+    else if (statusCode === 503) displayMsg = 'Service temporarily unavailable. Please try again.';
+    else if (statusCode === 500) displayMsg = 'Server error. Our team has been notified.';
+    
+    alert(displayMsg);
+    btn.disabled = false;
+    updatePurchaseButton();
+  }
+}
+
+function startPolling() {
+  if (!currentVerification) return;
+  
+  let pollCount = 0;
+  const maxPolls = 100; // 5 minutes at 3 second intervals
+  
+  pollingInterval = setInterval(async () => {
+    pollCount++;
+    
+    try {
+      const response = await axios.get(`/api/verification/${currentVerification.verification_id}`);
+      
+      if (response.data.status === 'completed' && response.data.sms_code) {
+        document.getElementById('code-display').textContent = response.data.sms_code;
+        const demoTag = response.data.demo_mode ? ' <span style="color: #f39c12;"></span>' : '';
+        document.getElementById('status-text').innerHTML = `<i class="ph ph-check-circle" style="color: #16a085;"></i> SMS received!${demoTag}`;
+        document.getElementById('copy-btn').style.display = 'block';
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      } else if (response.data.status === 'failed') {
+        document.getElementById('status-text').innerHTML = '<i class="ph ph-x-circle" style="color: #e74c3c;"></i> Verification failed';
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      } else if (pollCount >= maxPolls) {
+        document.getElementById('status-text').innerHTML = '<i class="ph ph-clock" style="color: #f39c12;"></i> Timeout - No SMS received';
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    } catch (error) {
+      console.error('Polling error:', error);
+      if (pollCount >= maxPolls) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    }
+  }, 3000);
+}
+
+function copyCode() {
+  const code = document.getElementById('code-display').textContent;
+  if (code && code !== '------') {
+    navigator.clipboard.writeText(code).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.innerHTML = '<i class="ph ph-check"></i> Copied!';
+      setTimeout(() => {
+        btn.innerHTML = '<i class="ph ph-copy"></i> Copy';
+      }, 2000);
+    });
+  }
+}
+
+function resetForm() {
+  selectedService = null;
+  selectedCountry = null;
+  currentVerification = null;
+  
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+  
+  document.getElementById('service-search').value = '';
+  document.getElementById('country-search').value = '';
+  document.getElementById('waiting-area').style.display = 'block';
+  document.getElementById('result-area').style.display = 'none';
+  hideAllDropdowns();
+  
+  updatePurchaseButton();
+  loadBalance();
+}
+
+async function loadInbox() {
+  const inboxContent = document.getElementById('inbox-content');
+  try {
+    // Simulate loading inbox messages
+    inboxContent.innerHTML = `
+      <div class="waiting-state">
+        <i class="ph ph-inbox" style="font-size: 32px; margin-bottom: 8px; opacity: 0.5;"></i>
+        <div>No messages yet</div>
+        <div style="font-size: 11px; margin-top: 4px;">SMS codes will appear here</div>
+      </div>
+    `;
+  } catch (error) {
+    console.error('Failed to load inbox:', error);
+  }
+}
+</script>
+</body>
+</html>

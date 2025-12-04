@@ -29,6 +29,11 @@ class User(BaseModel):
     provider = Column(String(50), default="email", nullable=False)
     avatar_url = Column(String(500), nullable=True)
 
+    # Token management fields (Task 1.2)
+    refresh_token = Column(String, nullable=True, unique=True, index=True)
+    refresh_token_expires = Column(DateTime, nullable=True)
+    last_login = Column(DateTime, nullable=True)
+
     # Affiliate fields
     affiliate_id = Column(String(50), nullable=True)
     partner_type = Column(String(50), nullable=True)

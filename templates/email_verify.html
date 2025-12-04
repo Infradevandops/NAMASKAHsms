@@ -1,246 +1,306 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Verification - Namaskah SMS</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        
-        .container {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 40px;
-            max-width: 500px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-        }
-        
-        .success {
-            color: #10ac84;
-        }
-        
-        .error {
-            color: #ff6b6b;
-        }
-        
-        .loading {
-            color: #667eea;
-        }
-        
-        h1 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 28px;
-        }
-        
-        p {
-            color: #666;
-            line-height: 1.6;
-            margin-bottom: 20px;
-            font-size: 16px;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-block;
-            transition: transform 0.2s;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-        }
-        
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .resend-section {
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        
-        .resend-btn {
-            background: transparent;
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .resend-btn:hover {
-            background: #667eea;
-            color: white;
-        }
-        
-        .resend-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Verify your email address for Namaskah">
+  <title>Email Verification - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .verification-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem;
+      color: var(--primary);
+    }
+    
+    .code-input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+    
+    .code-input {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition-fast);
+    }
+    
+    .code-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .code-input.filled {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+    
+    .timer {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--neutral);
+    }
+    
+    .timer-value {
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+    }
+    
+    .resend-section {
+      text-align: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .resend-text {
+      font-size: 0.9rem;
+      color: var(--neutral);
+      margin-bottom: 1rem;
+    }
+    
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: var(--font-weight-medium);
+      padding: 0;
+    }
+    
+    .resend-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .resend-btn:hover:not(:disabled) {
+      color: #1d4ed8;
+    }
+    
+    .btn-block {
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div id="loading-state">
-            <div class="icon loading">⏳</div>
-            <h1>Verifying Email...</h1>
-            <p>Please wait while we verify your email address.</p>
-            <div class="spinner"></div>
-        </div>
-        
-        <div id="success-state" style="display: none;">
-            <div class="icon success">✅</div>
-            <h1>Email Verified!</h1>
-            <p>Your email has been successfully verified. Welcome to Namaskah SMS!</p>
-            <p>You can now access all features including your free verification credit.</p>
-            <a href="/app" class="btn">Go to Dashboard</a>
-        </div>
-        
-        <div id="error-state" style="display: none;">
-            <div class="icon error">❌</div>
-            <h1>Verification Failed</h1>
-            <p id="error-message">The verification link is invalid or has expired.</p>
-            
-            <div class="resend-section">
-                <p>Need a new verification email?</p>
-                <button id="resend-btn" class="resend-btn" onclick="resendVerification()">
-                    Resend Verification Email
-                </button>
-                <p style="margin-top: 10px;">
-                    <a href="/app" style="color: #667eea; text-decoration: none;">← Back to Login</a>
-                </p>
-            </div>
-        </div>
-    </div>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <svg class="verification-icon" data-feather="mail"></svg>
+        <h1>Verify Email</h1>
+        <p id="emailDisplay">Verification code sent to your email</p>
+      </div>
 
-    <script>
-        // Get token from URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        
-        if (!token) {
-            showError('No verification token provided');
+      <form id="verifyForm">
+        <div class="code-input-group" id="codeInputs">
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+        </div>
+
+        <div class="timer">
+          <span>Code expires in <span class="timer-value" id="timerValue">5:00</span></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <svg class="icon icon-sm" data-feather="check"></svg>
+          Verify Email
+        </button>
+      </form>
+
+      <div class="resend-section">
+        <p class="resend-text">Didn't receive the code?</p>
+        <button type="button" class="resend-btn" id="resendBtn" onclick="resendCode()">
+          Resend Code
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
+  <script>
+    const codeInputs = document.querySelectorAll('.code-input');
+    const timerValue = document.getElementById('timerValue');
+    const resendBtn = document.getElementById('resendBtn');
+    let timeLeft = 300; // 5 minutes
+    
+    // Handle code input
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1) {
+          e.target.classList.add('filled');
+          if (index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+          }
         } else {
-            verifyEmail(token);
+          e.target.classList.remove('filled');
         }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          codeInputs[index - 1].focus();
+        }
+      });
+      
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const digits = paste.replace(/\D/g, '').split('');
         
-        async function verifyEmail(token) {
-            try {
-                const response = await fetch(`/api/auth/verify?token=${token}`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showSuccess(data.message);
-                } else {
-                    showError(data.detail || 'Verification failed');
-                }
-            } catch (error) {
-                showError('Network error. Please try again.');
-            }
-        }
+        digits.forEach((digit, i) => {
+          if (i < codeInputs.length) {
+            codeInputs[i].value = digit;
+            codeInputs[i].classList.add('filled');
+          }
+        });
         
-        function showSuccess(message) {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('error-state').style.display = 'none';
-            document.getElementById('success-state').style.display = 'block';
-            
-            // Auto-redirect after 3 seconds
-            setTimeout(() => {
-                window.location.href = '/app';
-            }, 3000);
+        if (digits.length === codeInputs.length) {
+          codeInputs[codeInputs.length - 1].focus();
         }
+      });
+    });
+    
+    // Timer
+    function updateTimer() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerValue.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+      
+      if (timeLeft > 0) {
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+      } else {
+        timerValue.textContent = 'Expired';
+        codeInputs.forEach(input => input.disabled = true);
+      }
+    }
+    
+    updateTimer();
+    
+    // Resend code
+    function resendCode() {
+      resendBtn.disabled = true;
+      
+      fetch('/api/email-verify-resend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => {
+        if (response.ok) {
+          showAlert('Verification code resent to your email', 'success', 3000);
+          timeLeft = 300;
+          codeInputs.forEach(input => {
+            input.value = '';
+            input.disabled = false;
+            input.classList.remove('filled');
+          });
+          updateTimer();
+          setTimeout(() => {
+            resendBtn.disabled = false;
+          }, 60000); // 1 minute cooldown
+        } else {
+          showAlert('Failed to resend code', 'error', 3000);
+          resendBtn.disabled = false;
+        }
+      })
+      .catch(() => {
+        showAlert('An error occurred', 'error', 3000);
+        resendBtn.disabled = false;
+      });
+    }
+    
+    // Form submission
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const code = Array.from(codeInputs).map(input => input.value).join('');
+      
+      if (code.length !== 6) {
+        showAlert('Please enter all 6 digits', 'error', 3000);
+        return;
+      }
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true);
+      
+      try {
+        const response = await fetch('/api/email-verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
         
-        function showError(message) {
-            document.getElementById('loading-state').style.display = 'none';
-            document.getElementById('success-state').style.display = 'none';
-            document.getElementById('error-state').style.display = 'block';
-            document.getElementById('error-message').textContent = message;
+        if (response.ok) {
+          showAlert('Email verified successfully!', 'success', 2000);
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1500);
+        } else {
+          const data = await response.json();
+          showAlert(data.message || 'Invalid verification code', 'error', 3000);
         }
-        
-        async function resendVerification() {
-            const btn = document.getElementById('resend-btn');
-            btn.disabled = true;
-            btn.textContent = 'Sending...';
-            
-            try {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    alert('Please log in first to resend verification email');
-                    window.location.href = '/app';
-                    return;
-                }
-                
-                const response = await fetch('/auth/resend-verification', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    alert('Verification email sent! Please check your inbox.');
-                } else {
-                    alert(data.detail || 'Failed to send verification email');
-                }
-            } catch (error) {
-                alert('Network error. Please try again.');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Resend Verification Email';
-            }
-        }
-    </script>
+      } catch (error) {
+        showAlert('An error occurred. Please try again.', 'error', 3000);
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    });
+  </script>
 </body>
 </html>

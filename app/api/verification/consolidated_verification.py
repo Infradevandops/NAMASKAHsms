@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from typing import Optional
 import csv
 import io
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
@@ -46,20 +47,25 @@ def create_safe_error_detail(e):
 
 @router.get("/services")
 async def get_available_services():
-    """Get available services."""
+    """Get available services from TextVerified API."""
     try:
+        from app.services.textverified_service import TextVerifiedService
+        tv_service = TextVerifiedService()
+        
+        if not tv_service.enabled:
+            raise HTTPException(status_code=503, detail="SMS service unavailable")
+        
+        services_data = await tv_service.get_services()
         return {
             "success": True,
-            "services": [
-                {"id": "telegram", "name": "Telegram"},
-                {"id": "whatsapp", "name": "WhatsApp"},
-                {"id": "google", "name": "Google"},
-            ],
-            "total": 3
+            "services": services_data.get("services", []),
+            "total": len(services_data.get("services", []))
         }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Services fetch error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch services")
+        raise HTTPException(status_code=500, detail="Failed to fetch services from TextVerified API")
 
 @router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
 async def create_verification(
@@ -89,15 +95,29 @@ async def create_verification(
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
 
+        # Get TextVerified service
+        from app.services.textverified_service import TextVerifiedService
+        tv_service = TextVerifiedService()
+        
+        if not tv_service.enabled:
+            raise HTTPException(status_code=503, detail="SMS service unavailable")
+        
+        # Purchase number from TextVerified
+        result = await tv_service.buy_number(
+            verification_data.country,
+            verification_data.service_name
+        )
+        
         verification = Verification(
             user_id=user_id,
             service_name=verification_data.service_name,
             capability=verification_data.capability,
             status="pending",
-            cost=actual_cost,
-            phone_number="+1234567890",
+            cost=result["cost"],
+            phone_number=result["phone_number"],
             country=verification_data.country,
-            verification_code="123",
+            activation_id=result["activation_id"],
+            provider="textverified"
         )
 
         db.add(verification)
@@ -169,13 +189,62 @@ def get_verification_history(
         logger.error(f"History fetch error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch verification history")
 
+@router.get("/{verification_id}/status")
+async def get_verification_status_polling(
+    verification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get verification status for polling."""
+    try:
+        verification = db.query(Verification).filter(
+            Verification.id == verification_id,
+            Verification.user_id == user_id
+        ).first()
+        
+        if not verification:
+            raise HTTPException(status_code=404, detail="Verification not found")
+        
+        # Check if SMS received via TextVerified
+        if verification.status == "pending" and verification.activation_id:
+            from app.services.textverified_service import TextVerifiedService
+            tv_service = TextVerifiedService()
+            
+            try:
+                sms_result = await tv_service.get_sms(verification.activation_id)
+                if sms_result and sms_result.get("sms_code"):
+                    verification.sms_code = sms_result["sms_code"]
+                    verification.sms_text = sms_result.get("sms_text", "")
+                    verification.status = "completed"
+                    verification.completed_at = datetime.now(timezone.utc)
+                    db.commit()
+                    logger.info(f"SMS received for verification {verification_id}: {sms_result['sms_code']}")
+            except Exception as e:
+                logger.warning(f"SMS check failed for {verification_id}: {e}")
+        
+        return {
+            "verification_id": verification.id,
+            "status": verification.status,
+            "phone_number": verification.phone_number,
+            "sms_code": verification.sms_code,
+            "sms_text": verification.sms_text,
+            "cost": verification.cost,
+            "created_at": verification.created_at.isoformat(),
+            "completed_at": verification.completed_at.isoformat() if verification.completed_at else None
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Status check error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to check verification status")
+
 @router.delete("/{verification_id}", response_model=SuccessResponse)
 async def cancel_verification(
     verification_id: str,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Cancel verification."""
+    """Cancel verification and release number."""
     try:
         verification = db.query(Verification).filter(
             Verification.id == verification_id,
@@ -184,6 +253,16 @@ async def cancel_verification(
 
         if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
+        
+        # Release number via TextVerified if still active
+        if verification.activation_id and verification.status == "pending":
+            try:
+                from app.services.textverified_service import TextVerifiedService
+                tv_service = TextVerifiedService()
+                await tv_service.cancel_number(verification.activation_id)
+                logger.info(f"Released TextVerified number for {verification_id}")
+            except Exception as e:
+                logger.warning(f"Failed to release number for {verification_id}: {e}")
 
         verification.status = "cancelled"
         db.commit()

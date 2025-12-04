@@ -1,417 +1,367 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Affiliate & Partner Programs - Namaskah</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/enhanced-ui.css">
-    <style>
-        .affiliate-hero {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 80px 0;
-            text-align: center;
-        }
-        .program-card {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            margin: 20px 0;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            transition: transform 0.3s ease;
-        }
-        .program-card:hover {
-            transform: translateY(-5px);
-        }
-        .cta-button {
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-block;
-        }
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
-        }
-        .benefits-list {
-            list-style: none;
-            padding: 0;
-        }
-        .benefits-list li {
-            padding: 8px 0;
-            position: relative;
-            padding-left: 25px;
-        }
-        .benefits-list li:before {
-            content: "✓";
-            color: #10b981;
-            font-weight: bold;
-            position: absolute;
-            left: 0;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-        }
-        .modal-content {
-            background-color: white;
-            margin: 5% auto;
-            padding: 30px;
-            border-radius: 12px;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .close:hover {
-            color: #000;
-        }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        .form-group input, .form-group textarea, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            padding: 10px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .checkbox-item:hover {
-            border-color: #10b981;
-            background-color: #f0fdf4;
-        }
-        .checkbox-item input[type="checkbox"] {
-            margin-right: 10px;
-            width: auto;
-        }
-        .success-message {
-            background-color: #d1fae5;
-            color: #065f46;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-        .error-message {
-            background-color: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Affiliate program - Namaskah">
+  <title>Affiliate Program - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .program-container {
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .program-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .program-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .program-header p {
+      color: var(--neutral);
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .benefit-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      text-align: center;
+    }
+    
+    .benefit-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto var(--space-lg);
+      color: var(--primary);
+    }
+    
+    .benefit-title {
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .benefit-description {
+      color: var(--neutral);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .commission-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .commission-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .commission-section h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .commission-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .commission-table th {
+      background: var(--surface);
+      padding: var(--space-lg);
+      text-align: left;
+      font-weight: var(--font-weight-semibold);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .commission-table td {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .commission-table tbody tr:hover {
+      background: var(--surface);
+    }
+    
+    .tier-badge {
+      display: inline-block;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .tier-gold {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+    
+    .tier-silver {
+      background: rgba(107, 114, 128, 0.1);
+      color: var(--neutral);
+    }
+    
+    .tier-bronze {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+    
+    .signup-section {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      color: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto var(--space-2xl);
+    }
+    
+    .signup-section h2 {
+      color: white;
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .signup-section p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 var(--space-lg) 0;
+    }
+    
+    .signup-section .btn {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .faq-section {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .faq-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+    
+    .faq-question {
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--space-md) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      cursor: pointer;
+    }
+    
+    .faq-question svg {
+      width: 20px;
+      height: 20px;
+      color: var(--primary);
+    }
+    
+    .faq-answer {
+      color: var(--neutral);
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 640px) {
+      .program-container {
+        padding: var(--space-lg);
+      }
+      
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="affiliate-hero">
-        <div class="container">
-            <h1>Join Our Affiliate & Partner Programs</h1>
-            <p class="lead">Earn substantial commissions by promoting Namaskah's SMS verification and WhatsApp Business services</p>
-            <p>Choose the program that fits your business goals and start earning today!</p>
-        </div>
+  <nav class="navbar">
+    <div class="navbar-brand">Namaskah</div>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="program-container">
+    <!-- Header -->
+    <div class="program-header">
+      <h1>Affiliate Program</h1>
+      <p>Earn recurring commissions by referring customers to Namaskah</p>
     </div>
 
-    <div class="container" style="padding: 60px 20px;">
-        <div class="row">
-            <!-- Individual Referral Program -->
-            <div class="col-md-6">
-                <div class="program-card">
-                    <h3>🤝 Individual Referral Program</h3>
-                    <div class="commission-badge" style="background: #10b981; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; margin: 10px 0;">
-                        10% Commission
-                    </div>
-                    <p>Perfect for individuals, bloggers, and small businesses who want to earn by referring customers.</p>
-                    
-                    <h4>Available Services:</h4>
-                    <ul class="benefits-list">
-                        <li>SMS Verification Services (1,800+ providers)</li>
-                        <li>WhatsApp Business Integration</li>
-                        <li>Payment Processing</li>
-                        <li>API Access & Documentation</li>
-                    </ul>
-
-                    <h4>Benefits:</h4>
-                    <ul class="benefits-list">
-                        <li>Earn 10% commission on all referrals</li>
-                        <li>Real-time tracking dashboard</li>
-                        <li>Monthly payouts via Paystack</li>
-                        <li>Marketing materials provided</li>
-                        <li>24/7 support</li>
-                    </ul>
-
-                    <button class="cta-button" onclick="openModal('referral')">
-                        Join Referral Program
-                    </button>
-                </div>
-            </div>
-
-            <!-- Enterprise Affiliate Program -->
-            <div class="col-md-6">
-                <div class="program-card">
-                    <h3>🏢 Enterprise Affiliate Program</h3>
-                    <div class="commission-badge" style="background: #7c3aed; color: white; padding: 5px 15px; border-radius: 20px; display: inline-block; margin: 10px 0;">
-                        15-30% Commission
-                    </div>
-                    <p>Designed for agencies, resellers, and enterprises looking for comprehensive partnership opportunities.</p>
-                    
-                    <h4>Available Options:</h4>
-                    <ul class="benefits-list">
-                        <li>White-label Solutions</li>
-                        <li>Reseller Programs</li>
-                        <li>Custom Integration Support</li>
-                        <li>Dedicated Account Manager</li>
-                        <li>Volume Discounts</li>
-                        <li>Priority Support</li>
-                        <li>Custom Branding</li>
-                        <li>Multi-domain Management</li>
-                    </ul>
-
-                    <h4>Benefits:</h4>
-                    <ul class="benefits-list">
-                        <li>Up to 30% commission rates</li>
-                        <li>Dedicated account manager</li>
-                        <li>Custom pricing negotiations</li>
-                        <li>White-label opportunities</li>
-                        <li>Priority technical support</li>
-                        <li>Quarterly business reviews</li>
-                    </ul>
-
-                    <button class="cta-button" onclick="openModal('enterprise')">
-                        Apply for Enterprise Program
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Why Choose Namaskah -->
-        <div style="text-align: center; margin: 60px 0;">
-            <h2>Why Partner with Namaskah?</h2>
-            <div class="row" style="margin-top: 40px;">
-                <div class="col-md-4">
-                    <h4>🚀 Market Leader</h4>
-                    <p>1,800+ SMS services, 2+ billion WhatsApp users, enterprise-grade platform</p>
-                </div>
-                <div class="col-md-4">
-                    <h4>💰 Competitive Rates</h4>
-                    <p>Industry-leading commission rates with performance bonuses</p>
-                </div>
-                <div class="col-md-4">
-                    <h4>🛡️ Reliable Platform</h4>
-                    <p>99.9% uptime SLA, comprehensive monitoring, enterprise security</p>
-                </div>
-            </div>
-        </div>
+    <!-- Benefits -->
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="trending-up"></svg>
+        <h3 class="benefit-title">High Commissions</h3>
+        <p class="benefit-description">Earn up to 30% recurring commission on every referral</p>
+      </div>
+      
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="gift"></svg>
+        <h3 class="benefit-title">Bonuses</h3>
+        <p class="benefit-description">Earn performance bonuses and tier-based rewards</p>
+      </div>
+      
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="users"></svg>
+        <h3 class="benefit-title">Dedicated Support</h3>
+        <p class="benefit-description">Get personal support from our affiliate team</p>
+      </div>
+      
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="zap"></svg>
+        <h3 class="benefit-title">Marketing Materials</h3>
+        <p class="benefit-description">Access ready-to-use promotional materials</p>
+      </div>
+      
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="bar-chart-2"></svg>
+        <h3 class="benefit-title">Real-time Analytics</h3>
+        <p class="benefit-description">Track clicks, conversions, and earnings in real-time</p>
+      </div>
+      
+      <div class="benefit-card">
+        <svg class="benefit-icon" data-feather="credit-card"></svg>
+        <h3 class="benefit-title">Easy Payouts</h3>
+        <p class="benefit-description">Get paid monthly via bank transfer or PayPal</p>
+      </div>
     </div>
 
-    <!-- Application Modal -->
-    <div id="applicationModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeModal()">&times;</span>
-            <h2 id="modalTitle">Apply for Affiliate Program</h2>
-            
-            <div class="success-message" id="successMessage"></div>
-            <div class="error-message" id="errorMessage"></div>
-            
-            <form id="affiliateForm">
-                <div class="form-group">
-                    <label for="email">Email Address *</label>
-                    <input type="email" id="email" name="email" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="programType">Program Type</label>
-                    <select id="programType" name="programType" required>
-                        <option value="">Select Program</option>
-                        <option value="referral">Individual Referral Program</option>
-                        <option value="enterprise">Enterprise Affiliate Program</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label>Select Your Interests *</label>
-                    <div class="checkbox-group" id="programOptions">
-                        <!-- Options will be populated by JavaScript -->
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="message">Tell us about your business/goals (Optional)</label>
-                    <textarea id="message" name="message" rows="4" placeholder="Describe your business, target audience, or specific goals..."></textarea>
-                </div>
-
-                <button type="submit" class="cta-button" style="width: 100%;">
-                    Submit Application
-                </button>
-            </form>
-        </div>
+    <!-- Commission Structure -->
+    <div class="commission-section">
+      <h2>
+        <svg data-feather="dollar-sign"></svg>
+        Commission Structure
+      </h2>
+      
+      <table class="commission-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Monthly Referrals</th>
+            <th>Commission Rate</th>
+            <th>Bonus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tier-badge tier-bronze">Bronze</span></td>
+            <td>1-10</td>
+            <td>15%</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge tier-silver">Silver</span></td>
+            <td>11-50</td>
+            <td>20%</td>
+            <td>$100/month</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge tier-gold">Gold</span></td>
+            <td>51+</td>
+            <td>30%</td>
+            <td>$500/month</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p style="color: var(--neutral); margin: 0;">Commissions are calculated on the subscription value and paid monthly. Tier status is determined by the number of active referrals.</p>
     </div>
 
-    <script>
-        const programOptions = {
-            referral: [
-                "SMS Verification Services",
-                "WhatsApp Business Integration", 
-                "Payment Processing",
-                "API Access"
-            ],
-            enterprise: [
-                "White-label Solutions",
-                "Reseller Programs", 
-                "Custom Integration Support",
-                "Dedicated Account Manager",
-                "Volume Discounts",
-                "Priority Support",
-                "Custom Branding",
-                "Multi-domain Management"
-            ]
-        };
+    <!-- Sign Up -->
+    <div class="signup-section">
+      <h2>Ready to Start Earning?</h2>
+      <p>Join our affiliate program and start earning commissions today</p>
+      <button class="btn">
+        <svg class="icon icon-sm" data-feather="arrow-right"></svg>
+        Apply Now
+      </button>
+    </div>
 
-        function openModal(programType) {
-            const modal = document.getElementById('applicationModal');
-            const title = document.getElementById('modalTitle');
-            const programSelect = document.getElementById('programType');
-            
-            if (programType === 'referral') {
-                title.textContent = 'Join Individual Referral Program';
-                programSelect.value = 'referral';
-            } else {
-                title.textContent = 'Apply for Enterprise Affiliate Program';
-                programSelect.value = 'enterprise';
-            }
-            
-            updateProgramOptions();
-            modal.style.display = 'block';
-        }
+    <!-- FAQ -->
+    <div class="faq-section">
+      <h2 style="text-align: center; margin-bottom: var(--space-lg);">Frequently Asked Questions</h2>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <svg data-feather="help-circle"></svg>
+          How do I join the affiliate program?
+        </p>
+        <p class="faq-answer">Simply click "Apply Now" and fill out the application form. We'll review your application and get back to you within 24 hours.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <svg data-feather="help-circle"></svg>
+          When do I get paid?
+        </p>
+        <p class="faq-answer">Commissions are paid monthly on the 15th of each month via bank transfer or PayPal. Minimum payout is $50.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <svg data-feather="help-circle"></svg>
+          What's the cookie duration?
+        </p>
+        <p class="faq-answer">We use a 30-day cookie duration, meaning you'll earn commission on any customer who signs up within 30 days of clicking your link.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <svg data-feather="help-circle"></svg>
+          Can I promote on social media?
+        </p>
+        <p class="faq-answer">Yes! You can promote on social media, blogs, websites, and other channels. We provide marketing materials to help you succeed.</p>
+      </div>
+    </div>
+  </div>
 
-        function closeModal() {
-            document.getElementById('applicationModal').style.display = 'none';
-            document.getElementById('affiliateForm').reset();
-            hideMessages();
-        }
+  <footer style="background-color: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 2rem;">
+    <p>&copy; 2025 Namaskah. All rights reserved.</p>
+  </footer>
 
-        function updateProgramOptions() {
-            const programType = document.getElementById('programType').value;
-            const optionsContainer = document.getElementById('programOptions');
-            
-            if (!programType) {
-                optionsContainer.innerHTML = '<p>Please select a program type first.</p>';
-                return;
-            }
-
-            const options = programOptions[programType] || [];
-            optionsContainer.innerHTML = options.map(option => `
-                <div class="checkbox-item">
-                    <input type="checkbox" id="${option.replace(/\s+/g, '_')}" name="programOptions" value="${option}">
-                    <label for="${option.replace(/\s+/g, '_')}">${option}</label>
-                </div>
-            `).join('');
-        }
-
-        function showMessage(type, message) {
-            hideMessages();
-            const messageEl = document.getElementById(type + 'Message');
-            messageEl.textContent = message;
-            messageEl.style.display = 'block';
-        }
-
-        function hideMessages() {
-            document.getElementById('successMessage').style.display = 'none';
-            document.getElementById('errorMessage').style.display = 'none';
-        }
-
-        // Event listeners
-        document.getElementById('programType').addEventListener('change', updateProgramOptions);
-
-        document.getElementById('affiliateForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const selectedOptions = Array.from(document.querySelectorAll('input[name="programOptions"]:checked'))
-                .map(cb => cb.value);
-            
-            if (selectedOptions.length === 0) {
-                showMessage('error', 'Please select at least one program option.');
-                return;
-            }
-
-            const applicationData = {
-                email: formData.get('email'),
-                program_type: formData.get('programType'),
-                program_options: selectedOptions,
-                message: formData.get('message')
-            };
-
-            try {
-                const response = await fetch('/affiliate/apply', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(applicationData)
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showMessage('success', result.message);
-                    document.getElementById('affiliateForm').reset();
-                    updateProgramOptions();
-                } else {
-                    showMessage('error', result.message || 'Application failed. Please try again.');
-                }
-            } catch (error) {
-                showMessage('error', 'Network error. Please check your connection and try again.');
-            }
-        });
-
-        // Close modal when clicking outside
-        window.onclick = function(event) {
-            const modal = document.getElementById('applicationModal');
-            if (event.target === modal) {
-                closeModal();
-            }
-        }
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

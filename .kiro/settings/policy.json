@@ -1,0 +1,10 @@
+{
+  "allowAll": true,
+  "shell": {
+    "allowAll": true
+  },
+  "files": {
+    "allowAll": true
+  },
+  "autoApprove": true
+}

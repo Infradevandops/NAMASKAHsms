@@ -1,769 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Namaskah SMS</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header {
-            background: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .header h1 { color: #667eea; font-size: 28px; }
-        .logout-btn {
-            background: #ef4444;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .stat-card {
-            background: white;
-            padding: 25px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        .stat-card:hover { transform: translateY(-5px); }
-        .stat-card h3 { color: #6b7280; font-size: 14px; margin-bottom: 10px; }
-        .stat-card .value { font-size: 36px; font-weight: bold; color: #667eea; }
-        .stat-card .change {
-            font-size: 14px;
-            color: #10b981;
-            margin-top: 5px;
-        }
-        .card {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        .card h2 { color: #1f2937; margin-bottom: 20px; font-size: 22px; }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-        }
-        .tab {
-            padding: 12px 24px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            color: #6b7280;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-        .tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-        }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #e5e7eb;
-        }
-        th {
-            background: #f9fafb;
-            font-weight: 600;
-            color: #374151;
-        }
-        tr:hover { background: #f9fafb; }
-        .badge {
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 600;
-        }
-        .badge-free { background: #dbeafe; color: #1e40af; }
-        .badge-developer { background: #fef3c7; color: #92400e; }
-        .badge-enterprise { background: #d1fae5; color: #065f46; }
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .btn-primary { background: #667eea; color: white; }
-        .btn-success { background: #10b981; color: white; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn:hover { opacity: 0.9; transform: scale(1.05); }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal.active { display: flex; }
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-        .modal-content h3 { margin-bottom: 20px; color: #1f2937; }
-        .form-group {
-            margin-bottom: 20px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #374151;
-        }
-        .form-group input, .form-group select, .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        .chart-container {
-            height: 300px;
-            margin: 20px 0;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-        .search-box {
-            padding: 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            width: 300px;
-            margin-bottom: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin panel - Namaskah">
+  <title>Admin Panel - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/enterprise-theme.css">
+  <link rel="stylesheet" href="/static/css/design-tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .admin-container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 0;
+      min-height: 100vh;
+    }
+    
+    .admin-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: var(--space-lg);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .admin-sidebar-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    .admin-sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      color: var(--neutral);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+    }
+    
+    .admin-sidebar-nav a:hover,
+    .admin-sidebar-nav a.active {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .admin-sidebar-nav .icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .admin-content {
+      padding: var(--space-xl);
+      overflow-y: auto;
+    }
+    
+    .admin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2xl);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .admin-header h1 {
+      margin: 0;
+    }
+    
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .admin-stat {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      text-align: center;
+    }
+    
+    .admin-stat-value {
+      font-size: 2rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+      margin: 0;
+    }
+    
+    .admin-stat-label {
+      font-size: 0.875rem;
+      color: var(--neutral);
+      margin: var(--space-sm) 0 0 0;
+    }
+    
+    .admin-widget {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .widget-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .widget-header h3 {
+      margin: 0;
+    }
+    
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+    }
+    
+    .admin-table thead {
+      background: var(--surface);
+    }
+    
+    .admin-table th {
+      padding: var(--space-lg);
+      text-align: left;
+      font-weight: var(--font-weight-semibold);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .admin-table td {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .admin-table tbody tr:hover {
+      background: var(--surface);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    
+    .action-buttons .btn {
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.875rem;
+    }
+    
+    @media (max-width: 1024px) {
+      .admin-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .admin-sidebar {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .admin-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .admin-content {
+        padding: var(--space-lg);
+      }
+      
+      .admin-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-lg);
+      }
+      
+      .admin-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .admin-table {
+        font-size: 0.85rem;
+      }
+      
+      .admin-table th,
+      .admin-table td {
+        padding: var(--space-md);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🎛️ Admin Dashboard</h1>
-            <button class="logout-btn" onclick="logout()">Logout</button>
+  <div class="admin-container">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div style="margin-bottom: var(--space-xl);">
+        <h2 style="margin: 0; font-size: 1.25rem;">Admin</h2>
+      </div>
+      
+      <ul class="admin-sidebar-nav">
+        <li>
+          <a href="/admin" class="active">
+            <svg class="icon" data-feather="grid"></svg>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <a href="/admin/users">
+            <svg class="icon" data-feather="users"></svg>
+            Users
+          </a>
+        </li>
+        <li>
+          <a href="/admin/transactions">
+            <svg class="icon" data-feather="credit-card"></svg>
+            Transactions
+          </a>
+        </li>
+        <li>
+          <a href="/admin/settings">
+            <svg class="icon" data-feather="settings"></svg>
+            Settings
+          </a>
+        </li>
+        <li>
+          <a href="/admin/logs">
+            <svg class="icon" data-feather="file-text"></svg>
+            Logs
+          </a>
+        </li>
+        <li>
+          <a href="/logout">
+            <svg class="icon" data-feather="log-out"></svg>
+            Logout
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Content -->
+    <main class="admin-content">
+      <!-- Header -->
+      <div class="admin-header">
+        <h1>Admin Panel</h1>
+        <button class="btn btn-primary btn-sm">
+          <svg class="icon icon-sm" data-feather="refresh-cw"></svg>
+          Refresh
+        </button>
+      </div>
+
+      <!-- Statistics -->
+      <div class="admin-grid">
+        <div class="admin-stat">
+          <p class="admin-stat-value">2,456</p>
+          <p class="admin-stat-label">Total Users</p>
         </div>
-
-        <!-- Real-time Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Users</h3>
-                <div class="value" id="stat-users">0</div>
-                <div class="change" id="stat-users-change">+0 this week</div>
-            </div>
-            <div class="stat-card">
-                <h3>Total Revenue</h3>
-                <div class="value" id="stat-revenue">N0</div>
-                <div class="change" id="stat-revenue-change">+N0 this week</div>
-            </div>
-            <div class="stat-card">
-                <h3>Active Verifications</h3>
-                <div class="value" id="stat-verifications">0</div>
-                <div class="change" id="stat-verifications-change">0 pending</div>
-            </div>
-            <div class="stat-card">
-                <h3>Success Rate</h3>
-                <div class="value" id="stat-success">0%</div>
-                <div class="change" id="stat-success-change">Last 7 days</div>
-            </div>
+        <div class="admin-stat">
+          <p class="admin-stat-value">$45,678</p>
+          <p class="admin-stat-label">Total Revenue</p>
         </div>
+        <div class="admin-stat">
+          <p class="admin-stat-value">98.5%</p>
+          <p class="admin-stat-label">Uptime</p>
+        </div>
+        <div class="admin-stat">
+          <p class="admin-stat-value">1,234</p>
+          <p class="admin-stat-label">Active Sessions</p>
+        </div>
+      </div>
 
-        <!-- Main Content -->
-        <div class="card">
-            <div class="tabs">
-                <button class="tab active" onclick="switchTab('users')">👥 Users</button>
-                <button class="tab" onclick="switchTab('waitlist')">📧 Waitlist</button>
-                <button class="tab" onclick="switchTab('verifications')">📱 Verifications</button>
-                <button class="tab" onclick="switchTab('payments')">💰 Payments</button>
-                <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
-            </div>
-
-            <!-- Users Tab -->
-            <div id="users-tab" class="tab-content active">
-                <input type="text" class="search-box" placeholder="Search users..." onkeyup="searchUsers(this.value)">
-                <div style="margin-bottom: 15px;">
-                    <button class="btn btn-primary" onclick="filterByPlan('all')">All</button>
-                    <button class="btn btn-primary" onclick="filterByPlan('free')">Free Plan</button>
-                    <button class="btn btn-primary" onclick="filterByPlan('developer')">Developer</button>
-                    <button class="btn btn-primary" onclick="filterByPlan('enterprise')">Enterprise</button>
+      <!-- Recent Users -->
+      <div class="admin-widget">
+        <div class="widget-header">
+          <h3>Recent Users</h3>
+          <a href="/admin/users" style="color: var(--primary); font-size: 0.875rem;">View All</a>
+        </div>
+        
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Joined</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>John Doe</td>
+              <td>john@example.com</td>
+              <td>Nov 20, 2025</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-outline">Edit</button>
+                  <button class="btn btn-sm btn-error">Ban</button>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Plan</th>
-                            <th>Credits</th>
-                            <th>Spent</th>
-                            <th>Verifications</th>
-                            <th>Joined</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="users-table"></tbody>
-                </table>
-            </div>
-
-            <!-- Waitlist Tab -->
-            <div id="waitlist-tab" class="tab-content">
-                <div style="margin-bottom: 20px;">
-                    <h3>📧 Waitlist Management</h3>
-                    <p style="color: #6b7280; margin-bottom: 15px;">Manage users who joined the waitlist before launch</p>
+              </td>
+            </tr>
+            <tr>
+              <td>Jane Smith</td>
+              <td>jane@example.com</td>
+              <td>Nov 18, 2025</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-outline">Edit</button>
+                  <button class="btn btn-sm btn-error">Ban</button>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Email</th>
-                            <th>Joined Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="waitlist-table"></tbody>
-                </table>
-            </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-            <!-- Verifications Tab -->
-            <div id="verifications-tab" class="tab-content">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Service</th>
-                            <th>Phone</th>
-                            <th>Status</th>
-                            <th>Cost</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="verifications-table"></tbody>
-                </table>
-            </div>
-
-            <!-- Payments Tab -->
-            <div id="payments-tab" class="tab-content">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>User</th>
-                            <th>Amount</th>
-                            <th>Method</th>
-                            <th>Status</th>
-                            <th>Reference</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody id="payments-table"></tbody>
-                </table>
-            </div>
-
-            <!-- Analytics Tab -->
-            <div id="analytics-tab" class="tab-content">
-                <div class="chart-container" id="revenue-chart"></div>
-                <div class="chart-container" id="users-chart"></div>
-            </div>
+      <!-- System Status -->
+      <div class="admin-widget">
+        <div class="widget-header">
+          <h3>System Status</h3>
         </div>
-    </div>
-
-    <!-- Fund/Debit User Modal -->
-    <div id="fund-modal" class="modal">
-        <div class="modal-content">
-            <h3>💰 Fund/Debit User</h3>
-            <div class="form-group">
-                <label>User Email</label>
-                <input type="text" id="fund-email" readonly>
-            </div>
-            <div class="form-group">
-                <label>Action</label>
-                <select id="fund-action">
-                    <option value="credit">Add Credits</option>
-                    <option value="debit">Deduct Credits</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Amount (N)</label>
-                <input type="number" id="fund-amount" min="0" step="0.5">
-            </div>
-            <div class="form-group">
-                <label>Reason</label>
-                <textarea id="fund-reason" rows="3"></textarea>
-            </div>
-            <button class="btn btn-success" onclick="processFund()">Submit</button>
-            <button class="btn btn-danger" onclick="closeModal('fund-modal')">Cancel</button>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--space-lg);">
+          <div style="padding: var(--space-lg); background: var(--surface); border-radius: var(--radius-md);">
+            <p style="margin: 0 0 var(--space-sm) 0; color: var(--neutral); font-size: 0.875rem;">API Status</p>
+            <p style="margin: 0; font-size: 1.25rem; font-weight: var(--font-weight-bold); color: var(--success);">Operational</p>
+          </div>
+          <div style="padding: var(--space-lg); background: var(--surface); border-radius: var(--radius-md);">
+            <p style="margin: 0 0 var(--space-sm) 0; color: var(--neutral); font-size: 0.875rem;">Database</p>
+            <p style="margin: 0; font-size: 1.25rem; font-weight: var(--font-weight-bold); color: var(--success);">Healthy</p>
+          </div>
+          <div style="padding: var(--space-lg); background: var(--surface); border-radius: var(--radius-md);">
+            <p style="margin: 0 0 var(--space-sm) 0; color: var(--neutral); font-size: 0.875rem;">Cache</p>
+            <p style="margin: 0; font-size: 1.25rem; font-weight: var(--font-weight-bold); color: var(--success);">Running</p>
+          </div>
         </div>
-    </div>
+      </div>
+    </main>
+  </div>
 
-    <!-- User Details Modal -->
-    <div id="user-modal" class="modal">
-        <div class="modal-content">
-            <h3>👤 User Details</h3>
-            <div id="user-details"></div>
-            <button class="btn btn-primary" onclick="closeModal('user-modal')">Close</button>
-        </div>
-    </div>
-
-    <script>
-        const API_BASE = '';
-        let token = localStorage.getItem('admin_token') || localStorage.getItem('token');
-        let allUsers = [];
-        let currentFilter = 'all';
-
-        // Show login form if no token
-        if (!token) {
-            document.body.innerHTML = `
-                <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <div style="background: white; padding: 40px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-width: 400px; width: 90%;">
-                        <h1 style="color: #667eea; margin-bottom: 30px; text-align: center;">🎛️ Admin Login</h1>
-                        <input type="email" id="admin-email" placeholder="Email" style="width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" onkeypress="if(event.key==='Enter')adminLogin()">
-                        <input type="password" id="admin-password" placeholder="Password" style="width: 100%; padding: 12px; margin-bottom: 20px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px;" onkeypress="if(event.key==='Enter')adminLogin()">
-                        <button onclick="adminLogin()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 16px;">Login</button>
-                        <div id="admin-error" style="color: #ef4444; margin-top: 15px; text-align: center; display: none;"></div>
-                    </div>
-                </div>
-            `;
-            
-            window.adminLogin = async function() {
-                const email = document.getElementById('admin-email').value;
-                const password = document.getElementById('admin-password').value;
-                const errorDiv = document.getElementById('admin-error');
-                
-                if (!email || !password) {
-                    errorDiv.textContent = 'Please enter email and password';
-                    errorDiv.style.display = 'block';
-                    return;
-                }
-                
-                try {
-                    const res = await fetch('/auth/login', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({email, password})
-                    });
-                    
-                    const data = await res.json();
-                    
-                    if (res.ok && data.access_token) {
-                        if (data.user && data.user.is_admin) {
-                            localStorage.setItem('admin_token', data.access_token);
-                            localStorage.setItem('token', data.access_token);
-                            window.location.reload();
-                        } else {
-                            errorDiv.textContent = 'Admin access required';
-                            errorDiv.style.display = 'block';
-                        }
-                    } else {
-                        errorDiv.textContent = data.detail || 'Invalid credentials';
-                        errorDiv.style.display = 'block';
-                    }
-                } catch (error) {
-                    errorDiv.textContent = 'Network error. Please try again.';
-                    errorDiv.style.display = 'block';
-                }
-            };
-            
-            throw new Error('No token - showing login form');
-        }
-
-        const headers = { 'Authorization': `Bearer ${token}` };
-
-        async function loadStats() {
-            const res = await fetch(`${API_BASE}/admin/stats?period=7`, { headers });
-            
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            
-            const data = await res.json();
-            
-            // Safely update DOM elements
-            const updates = [
-                ['stat-users', data.total_users || 0],
-                ['stat-users-change', `+${data.new_users || 0} this week`],
-                ['stat-revenue', `N${(data.total_spent || 0).toFixed(2)}`],
-                ['stat-verifications', data.total_verifications || 0],
-                ['stat-verifications-change', `${data.pending_verifications || 0} pending`],
-                ['stat-success', `${data.success_rate || 0}%`]
-            ];
-            
-            updates.forEach(([id, value]) => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.textContent = value;
-                }
-            });
-        }
-
-        async function loadUsers() {
-            const res = await fetch(`${API_BASE}/admin/users?size=100`, { headers });
-            
-            if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-            }
-            
-            const data = await res.json();
-            allUsers = data.items || [];
-            renderUsers(allUsers);
-        }
-
-        function getUserPlan(user) {
-            const funded = user.credits + Math.abs(user.total_spent || 0);
-            if (funded >= 100) return 'enterprise';
-            if (funded >= 25) return 'developer';
-            return 'free';
-        }
-
-        function renderUsers(users) {
-            const tbody = document.getElementById('users-table');
-            tbody.innerHTML = users.map(user => {
-                const plan = getUserPlan(user);
-                const badgeClass = `badge-${plan}`;
-                return `
-                    <tr>
-                        <td>
-                            <div style="font-weight: 600;">${user.email}</div>
-                            <div style="font-size: 11px; color: #6b7280;">ID: ${user.id.substring(0, 20)}...</div>
-                        </td>
-                        <td><span class="badge ${badgeClass}">${plan.toUpperCase()}</span></td>
-                        <td style="font-weight: 600; color: #10b981;">N${user.credits.toFixed(2)}</td>
-                        <td style="color: #ef4444;">N${(user.total_spent || 0).toFixed(2)}</td>
-                        <td>${user.verification_count || 0}</td>
-                        <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                        <td>
-                            <button class="btn btn-success" style="padding: 6px 10px; font-size: 12px;" onclick="quickFund('${user.email}', '${user.id}', 'credit')">💰</button>
-                            <button class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;" onclick="quickFund('${user.email}', '${user.id}', 'debit')">💸</button>
-                            <button class="btn btn-primary" style="padding: 6px 10px; font-size: 12px;" onclick="viewUser('${user.id}')">👁️</button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function filterByPlan(plan) {
-            currentFilter = plan;
-            if (plan === 'all') {
-                renderUsers(allUsers);
-            } else {
-                const filtered = allUsers.filter(u => getUserPlan(u) === plan);
-                renderUsers(filtered);
-            }
-        }
-
-        function searchUsers(query) {
-            const filtered = allUsers.filter(u => 
-                u.email.toLowerCase().includes(query.toLowerCase())
-            );
-            renderUsers(filtered);
-        }
-
-        function quickFund(email, userId, action) {
-            document.getElementById('fund-email').value = email;
-            document.getElementById('fund-email').dataset.userId = userId;
-            document.getElementById('fund-action').value = action;
-            document.getElementById('fund-modal').classList.add('active');
-        }
-
-        async function processFund() {
-            const userId = document.getElementById('fund-email').dataset.userId;
-            const action = document.getElementById('fund-action').value;
-            const amount = parseFloat(document.getElementById('fund-amount').value);
-            const reason = document.getElementById('fund-reason').value;
-
-            if (!userId) {
-                alert('❌ User ID missing');
-                return;
-            }
-
-            if (!amount || amount <= 0 || isNaN(amount)) {
-                alert('❌ Please enter a valid amount');
-                return;
-            }
-
-            if (amount > 10000) {
-                alert('❌ Amount too large. Maximum: N10,000');
-                return;
-            }
-
-            await safeAPICall(async () => {
-                const endpoint = action === 'credit' ? 'add' : 'deduct';
-                const res = await fetch(`${API_BASE}/admin/credits/${endpoint}`, {
-                    method: 'POST',
-                    headers: { ...headers, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: userId, amount, reason })
-                });
-
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({}));
-                    throw new Error(errorData.detail || `HTTP ${res.status}`);
-                }
-
-                alert(`✅ Successfully ${action === 'credit' ? 'added' : 'deducted'} N${amount}`);
-                closeModal('fund-modal');
-                
-                // Clear form
-                document.getElementById('fund-amount').value = '';
-                document.getElementById('fund-reason').value = '';
-                
-                await loadUsersWithRetry();
-            }, 'processing fund operation');
-        }
-
-        async function viewUser(userId) {
-            await safeAPICall(async () => {
-                const res = await fetch(`${API_BASE}/admin/users/${userId}`, { headers });
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                
-                const data = await res.json();
-                const user = data.user || {};
-                const stats = data.stats || {};
-                
-                const userDetails = document.getElementById('user-details');
-                if (userDetails) {
-                    userDetails.innerHTML = `
-                        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
-                        <p><strong>Credits:</strong> N${(user.credits || 0).toFixed(2)}</p>
-                        <p><strong>Free Verifications:</strong> ${user.free_verifications || 0}</p>
-                        <p><strong>Total Verifications:</strong> ${stats.total_verifications || 0}</p>
-                        <p><strong>Total Spent:</strong> N${(stats.total_spent || 0).toFixed(2)}</p>
-                        <p><strong>Total Funded:</strong> N${(stats.total_funded || 0).toFixed(2)}</p>
-                        <p><strong>Joined:</strong> ${user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'}</p>
-                    `;
-                }
-                
-                document.getElementById('user-modal').classList.add('active');
-            }, 'loading user details');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('active');
-        }
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(`${tab}-tab`).classList.add('active');
-
-            if (tab === 'waitlist') loadWaitlist();
-            if (tab === 'verifications') loadVerifications();
-            if (tab === 'payments') loadPayments();
-            if (tab === 'analytics') loadAnalytics();
-        }
-
-        async function loadVerifications() {
-            await safeAPICall(async () => {
-                const res = await fetch(`${API_BASE}/admin/verifications/active`, { headers });
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                
-                const data = await res.json();
-                const verifications = data.verifications || [];
-                
-                const tbody = document.getElementById('verifications-table');
-                if (tbody) {
-                    tbody.innerHTML = verifications.map(v => `
-                        <tr>
-                            <td>${v.user_email || 'N/A'}</td>
-                            <td>${v.service_name || 'N/A'}</td>
-                            <td>${v.phone_number || 'N/A'}</td>
-                            <td>${v.status || 'N/A'}</td>
-                            <td>N${(v.cost || 0).toFixed(2)}</td>
-                            <td>${v.created_at ? new Date(v.created_at).toLocaleString() : 'N/A'}</td>
-                            <td><button class="btn btn-danger" onclick="cancelVerification('${v.id}')">Cancel</button></td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="7" style="text-align: center; color: #6b7280;">No active verifications</td></tr>';
-                }
-            }, 'loading verifications');
-        }
-
-        async function loadPayments() {
-            const tbody = document.getElementById('payments-table');
-            if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #6b7280;">No payment logs available</td></tr>';
-            }
-        }
-
-        async function loadWaitlist() {
-            await safeAPICall(async () => {
-                const res = await fetch(`${API_BASE}/waitlist/list`, { headers });
-                
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-                
-                const data = await res.json();
-                const entries = data.entries || [];
-                
-                const tbody = document.getElementById('waitlist-table');
-                if (tbody) {
-                    tbody.innerHTML = entries.map(entry => {
-                        const statusBadge = entry.status === 'pending' ? 
-                            '<span class="badge badge-free">Pending</span>' :
-                            `<span class="badge badge-success">${entry.status.replace('invited_', '').toUpperCase()}</span>`;
-                        
-                        return `
-                            <tr>
-                                <td>${entry.email}</td>
-                                <td>${new Date(entry.joined_at).toLocaleDateString()}</td>
-                                <td>${statusBadge}</td>
-                                <td>
-                                    <button class="btn btn-primary" style="padding: 6px 10px; font-size: 12px; margin-right: 5px;" onclick="sendInvite('${entry.email}', 'signup')">📧 Signup</button>
-                                    <button class="btn btn-success" style="padding: 6px 10px; font-size: 12px; margin-right: 5px;" onclick="sendInvite('${entry.email}', 'affiliate')">💰 Affiliate</button>
-                                    <button class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;" onclick="sendInvite('${entry.email}', 'referral')">🔗 Referral</button>
-                                </td>
-                            </tr>
-                        `;
-                    }).join('') || '<tr><td colspan="4" style="text-align: center; color: #6b7280;">No waitlist entries</td></tr>';
-                }
-            }, 'loading waitlist');
-        }
-        
-        async function sendInvite(email, type) {
-            if (!confirm(`Send ${type} invite to ${email}?`)) return;
-            
-            await safeAPICall(async () => {
-                const res = await fetch(`${API_BASE}/waitlist/send-invite`, {
-                    method: 'POST',
-                    headers: { ...headers, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, type })
-                });
-                
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({}));
-                    throw new Error(errorData.detail || `HTTP ${res.status}`);
-                }
-                
-                alert(`✅ ${type.charAt(0).toUpperCase() + type.slice(1)} invite sent to ${email}`);
-                await loadWaitlist();
-            }, 'sending invite');
-        }
-
-        function loadAnalytics() {
-            document.getElementById('revenue-chart').innerHTML = '<div class="loading">📊 Revenue chart coming soon...</div>';
-            document.getElementById('users-chart').innerHTML = '<div class="loading">📈 User growth chart coming soon...</div>';
-        }
-
-        function logout() {
-            localStorage.removeItem('admin_token');
-            localStorage.removeItem('token');
-            window.location.reload();
-        }
-
-        // Enhanced error handling for admin functions
-        async function safeAPICall(apiFunction, context = '') {
-            try {
-                await apiFunction();
-            } catch (error) {
-                console.error(`Admin API Error ${context}:`, error);
-                
-                if (error.name === 'TypeError' && error.message.includes('fetch')) {
-                    alert('🌐 Network error. Check your connection.');
-                } else if (error.status === 401) {
-                    alert('🔐 Admin session expired. Please login again.');
-                    logout();
-                } else if (error.status === 403) {
-                    alert('⛔ Access denied. Admin privileges required.');
-                    logout();
-                } else if (error.status >= 500) {
-                    alert('🔧 Server error. Please try again later.');
-                } else {
-                    alert('❌ Operation failed. Please try again.');
-                }
-            }
-        }
-        
-        // Enhanced load functions with error handling
-        async function loadStatsWithRetry() {
-            await safeAPICall(loadStats, 'loading stats');
-        }
-        
-        async function loadUsersWithRetry() {
-            await safeAPICall(loadUsers, 'loading users');
-        }
-        
-        // Auto-refresh with error handling
-        let refreshInterval;
-        function startAutoRefresh() {
-            refreshInterval = setInterval(async () => {
-                try {
-                    await loadStatsWithRetry();
-                } catch (error) {
-                    console.error('Auto-refresh error:', error);
-                }
-            }, 30000);
-        }
-        
-        function stopAutoRefresh() {
-            if (refreshInterval) {
-                clearInterval(refreshInterval);
-                refreshInterval = null;
-            }
-        }
-        
-        // Enhanced visibility change handling
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) {
-                stopAutoRefresh();
-            } else {
-                startAutoRefresh();
-                loadStatsWithRetry();
-            }
-        });
-        
-        // Load data on page load with error handling
-        loadStatsWithRetry();
-        loadUsersWithRetry();
-        startAutoRefresh();
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

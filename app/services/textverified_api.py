@@ -1,9 +1,12 @@
 """TextVerified API Client using official SDK."""
 import textverified
+from textverified import NumberType, ReservationCapability
 from typing import Dict, Any, Optional, List
 from app.core.logging import get_logger
+from app.core.config import get_settings
 
 logger = get_logger(__name__)
+settings = get_settings()
 
 
 class TextVerifiedAPIClient:
@@ -19,14 +22,19 @@ class TextVerifiedAPIClient:
         """Get account balance from TextVerified API."""
         try:
             account = self.client.account.me()
+            balance = float(account.current_balance)
+            logger.info(f"TextVerified balance fetched: ${balance}")
             return {
-                "balance": float(account.current_balance),
+                "balance": balance,
                 "currency": "USD",
                 "account_id": account.username,
             }
+        except AttributeError as e:
+            logger.error(f"TextVerified API attribute error (check API key): {e}")
+            raise
         except Exception as e:
-            logger.error(f"Failed to get account balance: {e}")
-            raise Exception(f"Failed to get account balance: {str(e)}")
+            logger.error(f"Failed to get account balance: {type(e).__name__}: {e}")
+            raise
 
     async def create_verification(
         self,
@@ -72,15 +80,16 @@ class TextVerifiedAPIClient:
     async def get_sms_messages(self, reservation_id: str) -> List[Dict[str, Any]]:
         """Get SMS messages for a reservation."""
         try:
-            messages = self.client.sms.list(reservation_id=reservation_id)
+            messages = self.client.sms.list()
             result = []
             for msg in messages.data:
-                result.append({
-                    "id": msg.id,
-                    "text": msg.sms_content,
-                    "from": getattr(msg, "from", None),
-                    "received_at": msg.created_at,
-                })
+                if hasattr(msg, 'reservation_id') and msg.reservation_id == reservation_id:
+                    result.append({
+                        "id": msg.id,
+                        "text": msg.sms_content,
+                        "from": getattr(msg, "from", None),
+                        "received_at": msg.created_at,
+                    })
             return result
         except Exception as e:
             logger.error(f"Failed to get SMS messages: {e}")
@@ -166,9 +175,15 @@ class TextVerifiedAPIClient:
             )
             result = []
             for service in services:
-                svc_name = getattr(service, 'service_name', str(service))
+                if hasattr(service, 'service_name'):
+                    svc_name = service.service_name
+                elif hasattr(service, 'name'):
+                    svc_name = service.name
+                else:
+                    svc_name = str(service)
+                
                 result.append({
-                    "id": svc_name,
+                    "id": svc_name.lower(),
                     "name": svc_name,
                     "category": "messaging",
                 })

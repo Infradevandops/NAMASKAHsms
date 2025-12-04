@@ -1,28 +1,28 @@
-"""White - label configuration model."""
-from sqlalchemy import Column, String, Boolean, Text, JSON
+"""White-label configuration model."""
+from sqlalchemy import Column, String, JSON, DateTime, Boolean
 from sqlalchemy.orm import relationship
-from app.models.base import BaseModel
+from datetime import datetime
+from .base import Base
 
 
-class WhiteLabelConfig(BaseModel):
-    __tablename__ = "whitelabel_configs"
+class WhiteLabelConfig(Base):
+    """White-label configuration for partners."""
+    __tablename__ = "whitelabel_config"
 
-    domain = Column(String(255), nullable=False, unique=True, index=True)
-    company_name = Column(String(100), nullable=False)
-    logo_url = Column(String(500), nullable=True)
-    primary_color = Column(String(7), default="#667eea")
-    secondary_color = Column(String(7), default="#10b981")
-    custom_css = Column(Text, nullable=True)
-    api_subdomain = Column(String(100), nullable=True)
-    is_active = Column(Boolean, default=True)
-    features = Column(JSON, default=lambda: {
-        "sms": True,
-        "whatsapp": True,
-        "telegram": True,
-        "analytics": True
-    })
+    id = Column(String(36), primary_key=True)
+    partner_id = Column(String(36), nullable=False, unique=True)
+    domain = Column(String(255), nullable=False)
+    logo_url = Column(String(500))
+    primary_color = Column(String(7))
+    secondary_color = Column(String(7))
+    custom_branding = Column(JSON)
+    enabled = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
-    # Relationships
     domains = relationship("WhiteLabelDomain", back_populates="config")
     themes = relationship("WhiteLabelTheme", back_populates="config")
     assets = relationship("WhiteLabelAsset", back_populates="config")
+
+    def __repr__(self):
+        return f"<WhiteLabelConfig(partner_id={self.partner_id}, domain={self.domain})>"

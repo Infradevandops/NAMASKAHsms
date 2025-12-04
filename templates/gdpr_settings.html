@@ -1,358 +1,361 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy & Data - Namaskah</title>
-    <style>
-        :root {
-            --primary: #6366f1;
-            --secondary: #10b981;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --bg-dark: #0f172a;
-            --bg-card: #1e293b;
-            --text: #f8fafc;
-            --border: #475569;
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-dark);
-            color: var(--text);
-        }
-        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
-        .header {
-            background: linear-gradient(135deg, var(--primary), #4f46e5);
-            padding: 24px;
-            border-radius: 16px;
-            margin-bottom: 24px;
-        }
-        .card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid var(--border);
-        }
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-success { background: var(--secondary); color: white; }
-        .btn-danger { background: var(--danger); color: white; }
-        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
-        .warning-box {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid var(--warning);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .danger-box {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid var(--danger);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .info-box {
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid var(--primary);
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        .data-item {
-            background: #334155;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .data-label { font-weight: 600; }
-        .data-value { opacity: 0.8; font-size: 14px; }
-        .checkbox-group {
-            margin: 16px 0;
-        }
-        .checkbox-group label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
-        .checkbox-group input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GDPR settings - Namaskah">
+  <title>GDPR Settings - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .settings-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .settings-header {
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .settings-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .settings-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .settings-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-header svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-lg) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+    
+    .setting-info h3 {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: 0.95rem;
+    }
+    
+    .setting-info p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--neutral);
+    }
+    
+    .setting-action {
+      display: flex;
+      gap: var(--space-md);
+    }
+    
+    .setting-action .btn {
+      padding: var(--space-sm) var(--space-lg);
+      font-size: 0.875rem;
+    }
+    
+    .consent-section {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .consent-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-md);
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .consent-item:last-child {
+      border-bottom: none;
+    }
+    
+    .consent-checkbox {
+      margin-top: 2px;
+    }
+    
+    .consent-info h4 {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: 0.95rem;
+    }
+    
+    .consent-info p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--neutral);
+    }
+    
+    .activity-log {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+    
+    .activity-entry {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .activity-entry:last-child {
+      border-bottom: none;
+    }
+    
+    .activity-time {
+      font-size: 0.875rem;
+      color: var(--neutral);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+    
+    .action-buttons .btn {
+      flex: 1;
+    }
+    
+    @media (max-width: 640px) {
+      .settings-container {
+        padding: var(--space-lg);
+      }
+      
+      .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-md);
+      }
+      
+      .setting-action {
+        width: 100%;
+      }
+      
+      .setting-action .btn {
+        flex: 1;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔒 Privacy & Data Management</h1>
-            <p>Manage your personal data and privacy settings</p>
-        </div>
-
-        <div class="card">
-            <h2>📊 Data Export (GDPR)</h2>
-            <div class="info-box">
-                <h3>🛡️ Your Data Rights</h3>
-                <p>Under GDPR, you have the right to receive a copy of all personal data we hold about you. This includes:</p>
-                <ul style="margin: 12px 0 0 20px;">
-                    <li>Account information and settings</li>
-                    <li>SMS verification history</li>
-                    <li>Transaction and billing records</li>
-                    <li>Activity logs and audit trails</li>
-                </ul>
-            </div>
-            
-            <div class="checkbox-group">
-                <label>
-                    <input type="checkbox" id="include-verifications" checked>
-                    Include SMS verification history
-                </label>
-                <label>
-                    <input type="checkbox" id="include-transactions" checked>
-                    Include transaction history
-                </label>
-                <label>
-                    <input type="checkbox" id="include-logs" checked>
-                    Include activity logs
-                </label>
-            </div>
-
-            <button class="btn btn-primary" onclick="exportData()" style="width: 100%;">
-                📥 Download My Data (JSON Format)
-            </button>
-        </div>
-
-        <div class="card">
-            <h2>📋 Current Data Summary</h2>
-            <div id="data-summary">
-                <div style="text-align: center; padding: 20px; opacity: 0.7;">
-                    Loading data summary...
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>⚠️ Account Deletion</h2>
-            <div class="danger-box">
-                <h3>🚨 Permanent Account Deletion</h3>
-                <p><strong>Warning:</strong> This action is irreversible and will permanently delete:</p>
-                <ul style="margin: 12px 0 0 20px;">
-                    <li>Your account and all personal information</li>
-                    <li>All SMS verification history</li>
-                    <li>Transaction and billing records</li>
-                    <li>Any remaining account balance</li>
-                    <li>All associated data and logs</li>
-                </ul>
-                <p style="margin-top: 12px;"><strong>This cannot be undone.</strong></p>
-            </div>
-
-            <div class="warning-box">
-                <h3>📝 Before You Delete</h3>
-                <p>Please consider:</p>
-                <ul style="margin: 8px 0 0 20px;">
-                    <li>Export your data first if you need it</li>
-                    <li>Cancel any active phone rentals</li>
-                    <li>Use any remaining account balance</li>
-                    <li>Contact support if you have questions</li>
-                </ul>
-            </div>
-
-            <div class="checkbox-group">
-                <label>
-                    <input type="checkbox" id="confirm-deletion">
-                    I understand this action is permanent and irreversible
-                </label>
-                <label>
-                    <input type="checkbox" id="confirm-data-loss">
-                    I understand all my data will be permanently deleted
-                </label>
-                <label>
-                    <input type="checkbox" id="confirm-balance-loss">
-                    I understand any remaining balance will be lost
-                </label>
-            </div>
-
-            <button class="btn btn-danger" onclick="deleteAccount()" style="width: 100%;" id="delete-btn" disabled>
-                🗑️ Permanently Delete My Account
-            </button>
-        </div>
-
-        <div class="card">
-            <h2>📞 Need Help?</h2>
-            <p>If you have questions about your data or privacy:</p>
-            <ul style="margin: 12px 0 0 20px;">
-                <li>📧 Email: privacy@namaskah.app</li>
-                <li>💬 Live chat support</li>
-                <li>📚 Privacy Policy: <a href="/privacy" style="color: var(--primary);">/privacy</a></li>
-            </ul>
-        </div>
+  <div class="settings-container">
+    <!-- Header -->
+    <div class="settings-header">
+      <h1>GDPR Settings</h1>
+      <p>Manage your data and privacy preferences</p>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            loadDataSummary();
-            setupDeletionConfirmation();
-        });
+    <!-- Data Export -->
+    <div class="settings-card">
+      <div class="card-header">
+        <svg data-feather="download"></svg>
+        <h2>Data Export</h2>
+      </div>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Download Your Data</h3>
+          <p>Export all your personal data in a portable format (JSON)</p>
+        </div>
+        <div class="setting-action">
+          <button class="btn btn-primary btn-sm">
+            <svg class="icon icon-sm" data-feather="download"></svg>
+            Export Data
+          </button>
+        </div>
+      </div>
+      
+      <div class="setting-item">
+        <div class="setting-info">
+          <h3>Last Export</h3>
+          <p>November 15, 2025 at 2:30 PM</p>
+        </div>
+      </div>
+    </div>
 
-        async function loadDataSummary() {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/gdpr/export', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                
-                displayDataSummary(data);
-            } catch (error) {
-                console.error('Load data summary error:', error);
-                document.getElementById('data-summary').innerHTML = `
-                    <div style="text-align: center; padding: 20px; color: var(--danger);">
-                        Failed to load data summary
-                    </div>
-                `;
-            }
-        }
+    <!-- Data Deletion -->
+    <div class="settings-card">
+      <div class="card-header">
+        <svg data-feather="trash-2"></svg>
+        <h2>Data Deletion</h2>
+      </div>
+      
+      <div class="alert alert-warning">
+        <svg class="icon" data-feather="alert-triangle"></svg>
+        <span>Deleting your account is permanent and cannot be undone. All your data will be permanently removed.</span>
+      </div>
+      
+      <div class="setting-item" style="margin-top: var(--space-lg);">
+        <div class="setting-info">
+          <h3>Delete Account</h3>
+          <p>Permanently delete your account and all associated data</p>
+        </div>
+        <div class="setting-action">
+          <button class="btn btn-error btn-sm">
+            <svg class="icon icon-sm" data-feather="trash-2"></svg>
+            Delete Account
+          </button>
+        </div>
+      </div>
+    </div>
 
-        function displayDataSummary(data) {
-            const container = document.getElementById('data-summary');
-            
-            container.innerHTML = `
-                <div class="data-item">
-                    <div>
-                        <div class="data-label">Account Information</div>
-                        <div class="data-value">Email, settings, preferences</div>
-                    </div>
-                    <div style="color: var(--primary); font-weight: 600;">1 record</div>
-                </div>
-                <div class="data-item">
-                    <div>
-                        <div class="data-label">SMS Verifications</div>
-                        <div class="data-value">Verification history and codes</div>
-                    </div>
-                    <div style="color: var(--primary); font-weight: 600;">${data.verifications?.length || 0} records</div>
-                </div>
-                <div class="data-item">
-                    <div>
-                        <div class="data-label">Activity Logs</div>
-                        <div class="data-value">Login history and actions</div>
-                    </div>
-                    <div style="color: var(--primary); font-weight: 600;">${data.audit_logs?.length || 0} records</div>
-                </div>
-                <div class="data-item">
-                    <div>
-                        <div class="data-label">Account Created</div>
-                        <div class="data-value">Registration date</div>
-                    </div>
-                    <div style="color: var(--secondary); font-weight: 600;">${formatDate(data.user?.created_at)}</div>
-                </div>
-            `;
-        }
+    <!-- Privacy Preferences -->
+    <div class="settings-card">
+      <div class="card-header">
+        <svg data-feather="lock"></svg>
+        <h2>Privacy Preferences</h2>
+      </div>
+      
+      <div class="consent-section">
+        <div class="consent-item">
+          <input type="checkbox" class="consent-checkbox" checked>
+          <div class="consent-info">
+            <h4>Essential Cookies</h4>
+            <p>Required for basic functionality. Always enabled.</p>
+          </div>
+        </div>
+        
+        <div class="consent-item">
+          <input type="checkbox" class="consent-checkbox" checked>
+          <div class="consent-info">
+            <h4>Analytics Cookies</h4>
+            <p>Help us understand how you use our service</p>
+          </div>
+        </div>
+        
+        <div class="consent-item">
+          <input type="checkbox" class="consent-checkbox">
+          <div class="consent-info">
+            <h4>Marketing Cookies</h4>
+            <p>Used for personalized advertising and promotions</p>
+          </div>
+        </div>
+        
+        <div class="consent-item">
+          <input type="checkbox" class="consent-checkbox" checked>
+          <div class="consent-info">
+            <h4>Email Communications</h4>
+            <p>Receive updates and notifications via email</p>
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn btn-primary" style="width: 100%;">
+        <svg class="icon icon-sm" data-feather="save"></svg>
+        Save Preferences
+      </button>
+    </div>
 
-        async function exportData() {
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/gdpr/export', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                
-                // Create and download JSON file
-                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `namaskah-data-export-${new Date().toISOString().split('T')[0]}.json`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-                
-                showAlert('Data export downloaded successfully!', 'success');
-            } catch (error) {
-                console.error('Export data error:', error);
-                showAlert('Failed to export data', 'error');
-            }
-        }
+    <!-- Activity Log -->
+    <div class="settings-card">
+      <div class="card-header">
+        <svg data-feather="activity"></svg>
+        <h2>Activity Log</h2>
+      </div>
+      
+      <div class="activity-log">
+        <div class="activity-entry">
+          <div>
+            <strong>Login</strong>
+            <p style="margin: var(--space-xs) 0 0 0; font-size: 0.875rem; color: var(--neutral);">From 192.168.1.1</p>
+          </div>
+          <span class="activity-time">Today 2:30 PM</span>
+        </div>
+        
+        <div class="activity-entry">
+          <div>
+            <strong>Password Changed</strong>
+            <p style="margin: var(--space-xs) 0 0 0; font-size: 0.875rem; color: var(--neutral);">Security update</p>
+          </div>
+          <span class="activity-time">Nov 20, 2025</span>
+        </div>
+        
+        <div class="activity-entry">
+          <div>
+            <strong>Data Export</strong>
+            <p style="margin: var(--space-xs) 0 0 0; font-size: 0.875rem; color: var(--neutral);">GDPR request</p>
+          </div>
+          <span class="activity-time">Nov 15, 2025</span>
+        </div>
+        
+        <div class="activity-entry">
+          <div>
+            <strong>Login</strong>
+            <p style="margin: var(--space-xs) 0 0 0; font-size: 0.875rem; color: var(--neutral);">From 192.168.1.1</p>
+          </div>
+          <span class="activity-time">Nov 10, 2025</span>
+        </div>
+        
+        <div class="activity-entry">
+          <div>
+            <strong>Account Created</strong>
+            <p style="margin: var(--space-xs) 0 0 0; font-size: 0.875rem; color: var(--neutral);">Initial setup</p>
+          </div>
+          <span class="activity-time">Oct 1, 2025</span>
+        </div>
+      </div>
+    </div>
 
-        function setupDeletionConfirmation() {
-            const checkboxes = ['confirm-deletion', 'confirm-data-loss', 'confirm-balance-loss'];
-            const deleteBtn = document.getElementById('delete-btn');
-            
-            checkboxes.forEach(id => {
-                document.getElementById(id).addEventListener('change', () => {
-                    const allChecked = checkboxes.every(checkboxId => 
-                        document.getElementById(checkboxId).checked
-                    );
-                    deleteBtn.disabled = !allChecked;
-                });
-            });
-        }
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <a href="/account" class="btn btn-outline">
+        <svg class="icon icon-sm" data-feather="arrow-left"></svg>
+        Back
+      </a>
+      <button class="btn btn-primary">
+        <svg class="icon icon-sm" data-feather="save"></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
 
-        async function deleteAccount() {
-            const finalConfirm = prompt(
-                'This will PERMANENTLY delete your account and ALL data.\\n\\n' +
-                'Type "DELETE MY ACCOUNT" to confirm:'
-            );
-            
-            if (finalConfirm !== 'DELETE MY ACCOUNT') {
-                showAlert('Account deletion cancelled', 'warning');
-                return;
-            }
-            
-            try {
-                const token = localStorage.getItem('token');
-                const response = await fetch('/api/gdpr/account', {
-                    method: 'DELETE',
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showAlert('Account deleted successfully', 'success');
-                    localStorage.clear();
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 2000);
-                } else {
-                    showAlert(data.detail || 'Failed to delete account', 'error');
-                }
-            } catch (error) {
-                console.error('Delete account error:', error);
-                showAlert('Failed to delete account', 'error');
-            }
-        }
-
-        function formatDate(timestamp) {
-            if (!timestamp) return 'Unknown';
-            const date = new Date(timestamp);
-            return date.toLocaleDateString();
-        }
-
-        function showAlert(message, type = 'success') {
-            const alert = document.createElement('div');
-            alert.style.cssText = `
-                position: fixed; top: 20px; right: 20px; z-index: 1000;
-                background: ${type === 'success' ? 'var(--secondary)' : type === 'warning' ? 'var(--warning)' : 'var(--danger)'};
-                color: white; padding: 12px 20px; border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            `;
-            alert.textContent = message;
-            document.body.appendChild(alert);
-            setTimeout(() => alert.remove(), 3000);
-        }
-    </script>
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

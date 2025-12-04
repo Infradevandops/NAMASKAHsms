@@ -1,6 +1,8 @@
 """High-level TextVerified integration service."""
 from typing import Dict, Any, Optional, List
 from app.core.logging import get_logger
+from app.services.textverified_api import get_textverified_client
+from app.core.unified_cache import cache
 
 logger = get_logger(__name__)
 
@@ -109,12 +111,12 @@ class TextVerifiedIntegration:
 
     async def get_services_list(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """Get available services with caching."""
+        import json
         cache_key = "textverified:services"
 
         if not force_refresh:
             cached = await self.cache.get(cache_key)
             if cached:
-                import json
                 return json.loads(cached)
 
         try:
@@ -127,6 +129,7 @@ class TextVerifiedIntegration:
 
     async def get_area_codes_list(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """Get available area codes with caching."""
+        import json
         cache_key = "textverified:area_codes"
 
         if not force_refresh:

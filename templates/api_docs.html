@@ -1,576 +1,354 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ title | default('API Documentation - Namaskah SMS') }}</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="API documentation - Namaskah">
+  <title>API Documentation - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <style>
+    .docs-container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 0;
+      min-height: 100vh;
+    }
     
-    <!-- SEO Meta Tags -->
-    {% include 'meta_tags.html' %}
+    .docs-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: var(--space-lg);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
     
-    <!-- Google Analytics -->
-    {% include 'analytics.html' %}
+    .docs-sidebar-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
     
-    <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .docs-container { max-width: 1200px; margin: 0 auto; padding: 20px; }
-        .sidebar { position: sticky; top: 20px; background: var(--bg-card); padding: 20px; border-radius: 12px; border: 1px solid var(--border); }
-        .sidebar h3 { color: var(--text-primary); font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.7; }
-        .sidebar a { display: block; padding: 10px 14px; color: var(--text-secondary); text-decoration: none; border-radius: 8px; margin-bottom: 4px; transition: all 0.2s; font-size: 14px; border-left: 3px solid transparent; }
-        .sidebar a:hover { background: var(--bg-secondary); color: var(--text-primary); border-left-color: var(--accent); transform: translateX(3px); }
-        .sidebar a.active { background: var(--accent); color: white; font-weight: 600; border-left-color: var(--accent); box-shadow: 0 2px 8px rgba(139, 105, 20, 0.3); }
-        .endpoint { background: var(--bg-card); padding: 20px; margin-bottom: 20px; border-radius: 12px; border-left: 4px solid #667eea; border: 1px solid var(--border); }
-        .method { display: inline-block; padding: 4px 12px; border-radius: 4px; font-weight: bold; color: white; margin-right: 10px; font-size: 12px; }
-        .method.post { background: #10b981; }
-        .method.get { background: #3b82f6; }
-        .method.delete { background: #ef4444; }
-        .method.put { background: #f59e0b; }
-        .code-block { background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 13px; margin: 10px 0; border: 1px solid #334155; line-height: 1.6; }
-        .param { background: var(--bg-secondary); padding: 12px; margin: 8px 0; border-radius: 6px; border-left: 3px solid var(--accent); }
-        .response-example { background: #f0fdf4; border: 1px solid #10b981; padding: 15px; border-radius: 8px; margin: 10px 0; color: #065f46; }
-        .warning-box { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 6px; margin: 15px 0; color: #92400e; }
-        .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 15px; border-radius: 6px; margin: 15px 0; color: #1e3a8a; }
-        .success-box { background: #d1fae5; border-left: 4px solid #10b981; padding: 15px; border-radius: 6px; margin: 15px 0; color: #065f46; }
-        @media (min-width: 768px) {
-            .docs-layout { display: grid; grid-template-columns: 250px 1fr; gap: 30px; }
-        }
-    </style>
-    <script src="/static/js/universal-nav.js" defer></script>
+    .docs-sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      color: var(--neutral);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      font-size: 0.95rem;
+    }
+    
+    .docs-sidebar-nav a:hover,
+    .docs-sidebar-nav a.active {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .docs-sidebar-nav .icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .docs-content {
+      padding: var(--space-xl);
+      overflow-y: auto;
+    }
+    
+    .docs-header {
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .docs-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .docs-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .docs-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .docs-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .docs-section h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .docs-section h3 {
+      margin: var(--space-lg) 0 var(--space-md) 0;
+      font-size: 1.1rem;
+    }
+    
+    .docs-section p {
+      margin: 0 0 var(--space-md) 0;
+      line-height: 1.6;
+      color: #374151;
+    }
+    
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      font-family: var(--font-family-mono);
+      font-size: 0.875rem;
+      overflow-x: auto;
+      margin: var(--space-lg) 0;
+    }
+    
+    .endpoint {
+      background: var(--surface);
+      border-left: 4px solid var(--primary);
+      padding: var(--space-lg);
+      margin: var(--space-lg) 0;
+      border-radius: var(--radius-md);
+    }
+    
+    .endpoint-method {
+      display: inline-block;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      font-weight: var(--font-weight-semibold);
+      font-size: 0.875rem;
+      margin-right: var(--space-md);
+    }
+    
+    .method-get {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+    
+    .method-post {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+    }
+    
+    .method-delete {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+    
+    .endpoint-path {
+      font-family: var(--font-family-mono);
+      font-size: 0.95rem;
+    }
+    
+    @media (max-width: 1024px) {
+      .docs-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .docs-sidebar {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .docs-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .docs-content {
+        padding: var(--space-lg);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="docs-container">
-        <header style="text-align: center; margin-bottom: 40px;">
-            <h1>Namaskah API Documentation</h1>
-            <p style="color: var(--text-secondary); margin: 10px 0;">Complete REST API reference for SMS verification</p>
-            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                <button onclick="window.location.href='/'">Home</button>
-                <button onclick="window.location.href='/app'" style="background: #10b981;">Get Started</button>
-                <button onclick="window.location.href='/docs'" style="background: #667eea;">Interactive Docs</button>
-            </div>
-        </header>
+  <div class="docs-container">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <div style="margin-bottom: var(--space-xl);">
+        <h2 style="margin: 0; font-size: 1.25rem;">API Docs</h2>
+      </div>
+      
+      <ul class="docs-sidebar-nav">
+        <li>
+          <a href="#overview" class="active">
+            <svg class="icon" data-feather="book"></svg>
+            Overview
+          </a>
+        </li>
+        <li>
+          <a href="#authentication">
+            <svg class="icon" data-feather="lock"></svg>
+            Authentication
+          </a>
+        </li>
+        <li>
+          <a href="#endpoints">
+            <svg class="icon" data-feather="code"></svg>
+            Endpoints
+          </a>
+        </li>
+        <li>
+          <a href="#errors">
+            <svg class="icon" data-feather="alert-circle"></svg>
+            Errors
+          </a>
+        </li>
+        <li>
+          <a href="#rate-limits">
+            <svg class="icon" data-feather="zap"></svg>
+            Rate Limits
+          </a>
+        </li>
+      </ul>
+    </aside>
 
-        <div class="docs-layout">
-            <aside class="sidebar">
-                <h3 style="margin-bottom: 15px;">Contents</h3>
-                <a href="#getting-started">Getting Started</a>
-                <a href="#authentication">Authentication</a>
-                <a href="#api-keys">API Keys</a>
-                <a href="#endpoints">Endpoints</a>
-                <a href="#verifications">Verifications</a>
-                <a href="#wallet">Wallet</a>
-                <a href="#webhooks">Webhooks</a>
-                <a href="#rate-limits">Rate Limits</a>
-                <a href="#errors">Error Codes</a>
-                <a href="#examples">Examples</a>
-            </aside>
+    <!-- Content -->
+    <main class="docs-content">
+      <!-- Header -->
+      <div class="docs-header">
+        <h1>API Documentation</h1>
+        <p>Complete guide to integrating with Namaskah API</p>
+      </div>
 
-            <main>
-                <section id="getting-started" class="card">
-                    <h2>Getting Started</h2>
-                    <p>Welcome to the Namaskah SMS API. This API allows you to programmatically create SMS verifications, manage your wallet, and integrate SMS verification into your applications.</p>
-                    
-                    <div class="info-box">
-                        <strong>Base URL:</strong> <code>https://api.namaskah.app</code><br>
-                        <strong>Format:</strong> JSON<br>
-                        <strong>Protocol:</strong> HTTPS only
-                    </div>
+      <!-- Overview -->
+      <div class="docs-section" id="overview">
+        <h2>
+          <svg data-feather="book"></svg>
+          Overview
+        </h2>
+        <p>The Namaskah API provides a RESTful interface for SMS verification, email verification, and phone rental services.</p>
+        <p><strong>Base URL:</strong> https://api.namaskah.com/v1</p>
+        <p><strong>Response Format:</strong> JSON</p>
+      </div>
 
-                    <h3>Quick Start (3 Steps)</h3>
-                    <ol style="line-height: 2;">
-                        <li><strong>Register:</strong> Create account at <a href="/app">/app</a></li>
-                        <li><strong>Generate API Key:</strong> Dashboard → Settings → API Keys</li>
-                        <li><strong>Make Request:</strong> Use API key in X-API-Key header</li>
-                    </ol>
-                </section>
-
-                <section id="authentication" class="card">
-                    <h2>Authentication</h2>
-                    <p>Namaskah API supports two authentication methods:</p>
-
-                    <h3>Method 1: API Key (Recommended)</h3>
-                    <div class="success-box">
-                        <strong>Best for:</strong> Server-to-server integrations, automated scripts, production applications
-                    </div>
-                    <div class="code-block">curl https://api.namaskah.app/verify/create \
-  -H "X-API-Key: nsk_your_api_key_here" \
-  -H "Content-Type: application/json" \
-  -d '{"service_name":"whatsapp"}'</div>
-
-                    <h3>Method 2: JWT Token</h3>
-                    <div class="info-box">
-                        <strong>Best for:</strong> User-facing applications, temporary access, testing
-                    </div>
-                    <div class="code-block">curl https://api.namaskah.app/verify/create \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"service_name":"whatsapp"}'</div>
-                </section>
-
-                <section id="api-keys" class="card">
-                    <h2>API Key Management</h2>
-                    
-                    <h3>Who Can Access API Keys?</h3>
-                    <div class="success-box">
-                        <strong>All registered users</strong> can generate unlimited API keys from their dashboard.<br><br>
-                        <strong>Location:</strong> Dashboard → Settings → Show Advanced → API Keys<br>
-                        <strong>Cost:</strong> Free to generate (usage charged per verification)
-                    </div>
-
-                    <h3>Pricing Tiers</h3>
-                    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                        <tr style="background: var(--bg-secondary);">
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Tier</th>
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Price</th>
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Requirement</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Pay-as-You-Go</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">N1.00/verification</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">None</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Developer</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">N0.80/verification (20% off)</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Min. N25 funded</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Enterprise</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">N0.65/verification (35% off)</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Min. N100 funded</td>
-                        </tr>
-                    </table>
-
-                    <div class="warning-box">
-                        <strong>Important:</strong> API keys inherit your account's pricing tier and wallet balance. Ensure sufficient credits before making API calls.
-                    </div>
-
-                    <h3>Security Best Practices</h3>
-                    <ul style="line-height: 1.8;">
-                        <li>Never expose API keys in client-side code or public repositories</li>
-                        <li>Store API keys in environment variables</li>
-                        <li>Use separate keys for development and production</li>
-                        <li>Rotate keys regularly (every 90 days recommended)</li>
-                        <li>Revoke compromised keys immediately</li>
-                        <li>Monitor usage from dashboard</li>
-                    </ul>
-                </section>
-
-                <section id="endpoints" class="card">
-                    <h2>API Endpoints Overview</h2>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="background: var(--bg-secondary);">
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Category</th>
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Endpoints</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Authentication</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Register, Login, Profile</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Verifications</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Create, Check, Messages, Cancel</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Wallet</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Fund, Balance, Transactions</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">API Keys</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Create, List, Revoke</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Webhooks</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Create, List, Delete</td>
-                        </tr>
-                    </table>
-                </section>
-
-                <section id="verifications">
-                    <h2 class="card" style="padding: 15px;">SMS Verifications</h2>
-
-                    <div class="endpoint">
-                        <h3><span class="method post">POST</span>/verify/create</h3>
-                        <p>Create a new SMS verification for a service</p>
-                        
-                        <div class="param">
-                            <strong>Headers:</strong><br>
-                            <code>X-API-Key: nsk_your_key</code> or <code>Authorization: Bearer token</code>
-                        </div>
-                        
-                        <div class="param">
-                            <strong>Body Parameters:</strong><br>
-                            <code>service_name</code> (string, required) - Service identifier (e.g., "whatsapp", "telegram")<br>
-                            <code>capability</code> (string, optional) - "sms" or "voice" (default: "sms")
-                        </div>
-
-                        <div class="response-example">
-                            <strong>Success Response (200):</strong>
-                            <div class="code-block">{
-  "id": "ver_abc123",
-  "phone_number": "+1-555-123-4567",
-  "service": "whatsapp",
-  "status": "pending",
-  "cost": 1.0,
-  "expires_at": "2024-01-18T12:30:00Z",
-  "created_at": "2024-01-18T12:00:00Z"
-}</div>
-                        </div>
-
-                        <div class="code-block">curl -X POST https://api.namaskah.app/verify/create \
-  -H "X-API-Key: nsk_your_key" \
-  -H "Content-Type: application/json" \
-  -d '{"service_name":"whatsapp","capability":"sms"}'</div>
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method get">GET</span>/verify/{id}</h3>
-                        <p>Check verification status</p>
-                        
-                        <div class="response-example">
-                            <strong>Response:</strong>
-                            <div class="code-block">{
-  "id": "ver_abc123",
-  "status": "completed",
-  "phone_number": "+1-555-123-4567",
-  "service": "whatsapp"
-}</div>
-                        </div>
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method get">GET</span>/verify/{id}/messages</h3>
-                        <p>Retrieve SMS messages for verification</p>
-                        
-                        <div class="response-example">
-                            <strong>Response:</strong>
-                            <div class="code-block">{
-  "verification_id": "ver_abc123",
-  "messages": [
-    {
-      "text": "Your WhatsApp code is 123456",
-      "received_at": "2024-01-18T12:05:00Z"
-    }
-  ]
-}</div>
-                        </div>
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method delete">DELETE</span>/verify/{id}</h3>
-                        <p>Cancel verification and receive refund</p>
-                        
-                        <div class="response-example">
-                            <strong>Response:</strong>
-                            <div class="code-block">{
-  "message": "Verification cancelled",
-  "refunded": 1.0,
-  "new_balance": 10.0
-}</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="wallet">
-                    <h2 class="card" style="padding: 15px;">Wallet Management</h2>
-
-                    <div class="endpoint">
-                        <h3><span class="method get">GET</span>/wallet/balance</h3>
-                        <p>Get current wallet balance</p>
-                        
-                        <div class="response-example">
-                            <strong>Response:</strong>
-                            <div class="code-block">{
-  "balance": 25.50,
-  "currency": "N",
-  "tier": "developer"
-}</div>
-                        </div>
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method post">POST</span>/wallet/fund</h3>
-                        <p>Initialize wallet funding</p>
-                        
-                        <div class="param">
-                            <strong>Body:</strong><br>
-                            <code>amount</code> (number, required) - Amount in USD (min: 5.00)<br>
-                            <code>payment_method</code> (string, required) - "paystack", "bitcoin", "ethereum", "solana", "usdt"
-                        </div>
-
-                        <div class="response-example">
-                            <strong>Response:</strong>
-                            <div class="code-block">{
-  "payment_url": "https://checkout.paystack.com/...",
-  "reference": "ref_xyz789",
-  "amount": 10.00
-}</div>
-                        </div>
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method get">GET</span>/wallet/transactions</h3>
-                        <p>Get transaction history</p>
-                        
-                        <div class="param">
-                            <strong>Query Parameters:</strong><br>
-                            <code>limit</code> (number, optional) - Results per page (default: 50)<br>
-                            <code>offset</code> (number, optional) - Pagination offset
-                        </div>
-                    </div>
-                </section>
-
-                <section id="webhooks">
-                    <h2 class="card" style="padding: 15px;">Webhooks</h2>
-
-                    <div class="info-box">
-                        <strong>Webhooks</strong> allow you to receive real-time notifications when SMS messages arrive. Configure webhook URLs from your dashboard.
-                    </div>
-
-                    <div class="endpoint">
-                        <h3><span class="method post">POST</span>/developer/webhooks</h3>
-                        <p>Register a webhook URL</p>
-                        
-                        <div class="param">
-                            <strong>Body:</strong><br>
-                            <code>url</code> (string, required) - Your webhook endpoint URL (must be HTTPS)
-                        </div>
-
-                        <div class="response-example">
-                            <strong>Webhook Payload (sent to your URL):</strong>
-                            <div class="code-block">{
-  "event": "sms.received",
-  "verification_id": "ver_abc123",
-  "phone_number": "+1-555-123-4567",
-  "messages": [
-    {
-      "text": "Your code is 123456",
-      "received_at": "2024-01-18T12:05:00Z"
-    }
-  ],
-  "timestamp": "2024-01-18T12:05:01Z"
-}</div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="rate-limits" class="card">
-                    <h2>Rate Limits</h2>
-                    <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-                        <tr style="background: var(--bg-secondary);">
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Limit Type</th>
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Limit</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Requests per minute</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">100</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Requests per hour</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">1,000</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Concurrent verifications</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">10</td>
-                        </tr>
-                    </table>
-
-                    <div class="warning-box">
-                        <strong>Rate Limit Headers:</strong><br>
-                        <code>X-RateLimit-Limit</code> - Total requests allowed<br>
-                        <code>X-RateLimit-Remaining</code> - Requests remaining<br>
-                        <code>X-RateLimit-Reset</code> - Time when limit resets
-                    </div>
-                </section>
-
-                <section id="errors" class="card">
-                    <h2>Error Codes</h2>
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <tr style="background: var(--bg-secondary);">
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Code</th>
-                            <th style="padding: 12px; text-align: left; border: 1px solid var(--border);">Meaning</th>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">400</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Bad Request - Invalid parameters</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">401</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Unauthorized - Invalid API key or token</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">402</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Payment Required - Insufficient balance</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">404</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Not Found - Resource doesn't exist</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">429</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Too Many Requests - Rate limit exceeded</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 12px; border: 1px solid var(--border);">500</td>
-                            <td style="padding: 12px; border: 1px solid var(--border);">Internal Server Error</td>
-                        </tr>
-                    </table>
-
-                    <div class="response-example">
-                        <strong>Error Response Format:</strong>
-                        <div class="code-block">{
-  "error": {
-    "code": "insufficient_balance",
-    "message": "Insufficient wallet balance",
-    "details": "Required: N1.00, Available: N0.50"
-  }
-}</div>
-                    </div>
-                </section>
-
-                <section id="examples" class="card">
-                    <h2>Code Examples</h2>
-
-                    <h3>Python</h3>
-                    <div class="code-block">import requests
-
-API_KEY = "nsk_your_api_key"
-BASE_URL = "https://api.namaskah.app"
-
-headers = {
-    "X-API-Key": API_KEY,
-    "Content-Type": "application/json"
-}
-
-# Create verification
-response = requests.post(
-    f"{BASE_URL}/verify/create",
-    headers=headers,
-    json={"service_name": "whatsapp"}
-)
-
-verification = response.json()
-print(f"Phone: {verification['phone_number']}")
-
-# Check messages
-messages = requests.get(
-    f"{BASE_URL}/verify/{verification['id']}/messages",
-    headers=headers
-).json()
-
-print(f"Messages: {messages}")</div>
-
-                    <h3>Node.js</h3>
-                    <div class="code-block">const axios = require('axios');
-
-const API_KEY = 'nsk_your_api_key';
-const BASE_URL = 'https://api.namaskah.app';
-
-const headers = {
-  'X-API-Key': API_KEY,
-  'Content-Type': 'application/json'
-};
-
-// Create verification
-const createVerification = async () => {
-  const response = await axios.post(
-    `${BASE_URL}/verify/create`,
-    { service_name: 'telegram' },
-    { headers }
-  );
-  
-  console.log('Phone:', response.data.phone_number);
-  return response.data.id;
-};
-
-// Check messages
-const checkMessages = async (verificationId) => {
-  const response = await axios.get(
-    `${BASE_URL}/verify/${verificationId}/messages`,
-    { headers }
-  );
-  
-  console.log('Messages:', response.data.messages);
-};</div>
-
-                    <h3>PHP</h3>
-                    <div class="code-block"><?php
-$apiKey = 'nsk_your_api_key';
-$baseUrl = 'https://api.namaskah.app';
-
-$headers = [
-    'X-API-Key: ' . $apiKey,
-    'Content-Type: application/json'
-];
-
-// Create verification
-$ch = curl_init($baseUrl . '/verify/create');
-curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-curl_setopt($ch, CURLOPT_POST, true);
-curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
-    'service_name' => 'whatsapp'
-]));
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-$response = json_decode(curl_exec($ch), true);
-echo "Phone: " . $response['phone_number'];
-curl_close($ch);
-?></div>
-                </section>
-
-                <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-align: center;">
-                    <h2 style="color: white;">Ready to Get Started?</h2>
-                    <p style="margin: 15px 0;">Create your account and get your API key in minutes</p>
-                    <button onclick="window.location.href='/app'" style="background: white; color: #667eea; padding: 12px 30px; font-size: 16px; font-weight: 600;">Get API Key Now</button>
-                </div>
-            </main>
+      <!-- Authentication -->
+      <div class="docs-section" id="authentication">
+        <h2>
+          <svg data-feather="lock"></svg>
+          Authentication
+        </h2>
+        <p>All API requests require authentication using an API key. Include your API key in the request header:</p>
+        <div class="code-block">
+Authorization: Bearer YOUR_API_KEY
         </div>
+        <p>Get your API key from your <a href="/account/api-keys">account settings</a>.</p>
+      </div>
 
-        <footer style="text-align: center; margin-top: 60px; padding: 30px 20px; border-top: 1px solid var(--border); color: var(--text-secondary);">
-            <p style="margin-bottom: 15px;">Namaskah SMS - Enterprise SMS Verification API</p>
-            <p style="display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; font-size: 14px;">
-                <a href="/" style="color: var(--text-secondary); text-decoration: none;">Home</a>
-                <a href="/app" style="color: var(--text-secondary); text-decoration: none;">Dashboard</a>
-                <a href="/docs" style="color: var(--text-secondary); text-decoration: none;">Interactive Docs</a>
-                <a href="/status" style="color: var(--text-secondary); text-decoration: none;">API Status</a>
-                <a href="/faq" style="color: var(--text-secondary); text-decoration: none;">FAQ</a>
-            </p>
-            <p style="margin-top: 15px; opacity: 0.7;">© 2024 Namaskah. All rights reserved.</p>
-        </footer>
-    </div>
+      <!-- Endpoints -->
+      <div class="docs-section" id="endpoints">
+        <h2>
+          <svg data-feather="code"></svg>
+          Endpoints
+        </h2>
+        
+        <h3>SMS Verification</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/sms/send</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send SMS verification code</p>
+        </div>
+        
+        <div class="code-block">
+{
+  "phone": "+------7890",
+  "country": "US",
+  "message": "Your code is: {code}"
+}
+        </div>
+        
+        <h3>Email Verification</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/email/send</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send email verification code</p>
+        </div>
+        
+        <h3>Verify Code</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/verify</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Verify a code</p>
+        </div>
+      </div>
 
-    <script>
-        // Smooth scroll for sidebar links
-        document.querySelectorAll('.sidebar a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = document.querySelector(link.getAttribute('href'));
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Update active state
-                document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
-                link.classList.add('active');
-            });
-        });
+      <!-- Error Codes -->
+      <div class="docs-section" id="errors">
+        <h2>
+          <svg data-feather="alert-circle"></svg>
+          Error Codes
+        </h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--surface);">
+              <th style="padding: var(--space-lg); text-align: left; border-bottom: 2px solid var(--border);">Code</th>
+              <th style="padding: var(--space-lg); text-align: left; border-bottom: 2px solid var(--border);">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">400</td>
+              <td style="padding: var(--space-lg);">Bad Request</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">401</td>
+              <td style="padding: var(--space-lg);">Unauthorized</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">429</td>
+              <td style="padding: var(--space-lg);">Rate Limit Exceeded</td>
+            </tr>
+            <tr>
+              <td style="padding: var(--space-lg);">500</td>
+              <td style="padding: var(--space-lg);">Internal Server Error</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
-        // Highlight active section on scroll
-        window.addEventListener('scroll', () => {
-            const sections = document.querySelectorAll('section[id]');
-            let current = '';
-            
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (scrollY >= sectionTop - 100) {
-                    current = section.getAttribute('id');
-                }
-            });
-            
-            document.querySelectorAll('.sidebar a').forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === `#${current}`) {
-                    link.classList.add('active');
-                }
-            });
-        });
-    </script>
+      <!-- Rate Limits -->
+      <div class="docs-section" id="rate-limits">
+        <h2>
+          <svg data-feather="zap"></svg>
+          Rate Limits
+        </h2>
+        <p>API requests are rate limited to prevent abuse:</p>
+        <ul style="margin: 0 0 var(--space-lg) var(--space-lg);">
+          <li>Free tier: 100 requests/hour</li>
+          <li>Pro tier: 1,000 requests/hour</li>
+          <li>Enterprise: Custom limits</li>
+        </ul>
+        <p>Rate limit information is included in response headers:</p>
+        <div class="code-block">
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1700000000
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

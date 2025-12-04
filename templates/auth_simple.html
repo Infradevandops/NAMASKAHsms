@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Namaskah - Authentication">
+  <title>Namaskah - Sign In</title>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 400px;
+      width: 100%;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 10px;
+      color: #1f2937;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #6b7280;
+      margin-bottom: 30px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      margin-bottom: 8px;
+      color: #374151;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-primary:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .success {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    .links {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 20px;
+      font-size: 14px;
+    }
+
+    a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .toggle-form {
+      text-align: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+    }
+
+    .toggle-form p {
+      color: #6b7280;
+      margin-bottom: 10px;
+    }
+
+    .toggle-btn {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      padding: 10px 20px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .toggle-btn:hover {
+      background: #f9fafb;
+    }
+
+    .form-section {
+      display: none;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .loading {
+      display: none;
+      text-align: center;
+    }
+
+    .spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #667eea;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 30px 20px;
+      }
+
+      h1 {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="logo">📱 Namaskah</div>
+      
+      <div class="error" id="error-message"></div>
+      <div class="success" id="success-message"></div>
+
+      <!-- Login Form -->
+      <div class="form-section active" id="login-form">
+        <h1>Sign In</h1>
+        <p class="subtitle">Enter your credentials to continue</p>
+
+        <form onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="login-btn">Sign In</button>
+        </form>
+
+        <div class="links">
+          <a href="/">Back to Home</a>
+          <a href="/password-reset">Forgot Password?</a>
+        </div>
+
+        <div class="toggle-form">
+          <p>Don't have an account?</p>
+          <button class="toggle-btn" onclick="toggleForm()">Create Account</button>
+        </div>
+      </div>
+
+      <!-- Register Form -->
+      <div class="form-section" id="register-form">
+        <h1>Create Account</h1>
+        <p class="subtitle">Sign up to get started</p>
+
+        <form onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label for="register-email">Email</label>
+            <input type="email" id="register-email" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" required>
+          </div>
+
+          <button type="submit" class="btn btn-primary" id="register-btn">Create Account</button>
+        </form>
+
+        <div class="links">
+          <a href="/">Back to Home</a>
+        </div>
+
+        <div class="toggle-form">
+          <p>Already have an account?</p>
+          <button class="toggle-btn" onclick="toggleForm()">Sign In</button>
+        </div>
+      </div>
+
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/vendor/axios.min.js"></script>
+  <script>
+    function toggleForm() {
+      document.getElementById('login-form').classList.toggle('active');
+      document.getElementById('register-form').classList.toggle('active');
+      hideError();
+      hideSuccess();
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+
+      showLoading(true);
+      hideError();
+      hideSuccess();
+
+      try {
+        const response = await axios.post('/api/auth/login', {
+          email,
+          password
+        });
+
+        // Store token in both localStorage and cookie for auth
+        localStorage.setItem('access_token', response.data.access_token);
+        document.cookie = `access_token=${response.data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+        if (response.data.refresh_token) {
+          document.cookie = `refresh_token=${response.data.refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
+        }
+        showSuccess('Login successful! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      } catch (error) {
+        showError(error.response?.data?.detail || 'Login failed');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const confirm = document.getElementById('register-confirm').value;
+
+      if (password !== confirm) {
+        showError('Passwords do not match');
+        return;
+      }
+
+      if (password.length < 8) {
+        showError('Password must be at least 8 characters');
+        return;
+      }
+
+      showLoading(true);
+      hideError();
+      hideSuccess();
+
+      try {
+        const response = await axios.post('/api/auth/register', {
+          email,
+          password
+        });
+
+        // Store token in both localStorage and cookie for auth
+        localStorage.setItem('access_token', response.data.access_token);
+        document.cookie = `access_token=${response.data.access_token}; path=/; max-age=86400; SameSite=Lax`;
+        if (response.data.refresh_token) {
+          document.cookie = `refresh_token=${response.data.refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
+        }
+        showSuccess('Account created! Redirecting...');
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+      } catch (error) {
+        showError(error.response?.data?.detail || 'Registration failed');
+      } finally {
+        showLoading(false);
+      }
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    function hideError() {
+      document.getElementById('error-message').classList.remove('show');
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById('success-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    function hideSuccess() {
+      document.getElementById('success-message').classList.remove('show');
+    }
+
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
