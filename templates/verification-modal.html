@@ -44,9 +44,10 @@
         <select id="country-select" class="form-select" onchange="onCountryChange()">
           <option value="">-- Select Country --</option>
         </select>
-        <button class="btn btn-primary btn-block" onclick="goToStep(2)" style="margin-top: 20px;">
-          Next
-        </button>
+        <div class="step-actions" style="margin-top: 20px;">
+          <button class="btn btn-secondary" onclick="closeVerificationModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="goToStep(2)" style="flex: 1;">Next</button>
+        </div>
       </div>
 
       <!-- Step 2: Service Selection -->
