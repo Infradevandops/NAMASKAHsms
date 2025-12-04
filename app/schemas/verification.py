@@ -1,287 +1,136 @@
 """Verification request/response schemas."""
-from datetime import datetime
-from typing import List, Optional
-
 from pydantic import BaseModel, Field, validator
+from typing import Optional
+from datetime import datetime
 
 
-class VerificationCreate(BaseModel):
-    """Schema for creating SMS/voice verification."""
-
-    service_name: str = Field(
-        ..., min_length=1, description="Service name (e.g., telegram, whatsapp)"
-    )
-    country: str = Field(default="US", description="Country code for verification")
-    capability: str = Field(
-        default="sms", description="Verification type: sms or voice"
-    )
-    operator: Optional[str] = Field(default="any", description="Network operator (any or \
-    specific)")
-    pricing_tier: Optional[str] = Field(default="standard", description="Pricing tier: standard or \
-    premium")
-    reuse: Optional[bool] = Field(default=False, description="Reuse number if possible (may save cost)")
-    area_code: Optional[str] = Field(None, description="Preferred area code (+$4)")
-    carrier: Optional[str] = Field(None, description="Preferred carrier (+$6)")
-
-    @validator("capability")
-    def validate_capability(cls, v):
-        if v not in ["sms", "voice"]:
-            raise ValueError("Capability must be sms or voice")
-        return v
-
-    @validator("country")
-    def validate_country(cls, v):
-        if not v:
-            raise ValueError("Country cannot be empty")
-        # Accept both 2 - letter codes (US) and full names (usa, england)
-        # Convert to lowercase for consistency with 5SIM API
-        return v.lower()
-
-    @validator("service_name")
-    def validate_service_name(cls, v):
-        # Basic service name validation
-        if not v or len(v.strip()) == 0:
-            raise ValueError("Service name cannot be empty")
-        return v.lower().strip()
-
-    @validator("pricing_tier")
-    def validate_pricing_tier(cls, v):
-        if v and v not in ["standard", "premium"]:
-            raise ValueError("Pricing tier must be standard or premium")
-        return v or "standard"
-
-    @validator("operator")
-    def validate_operator(cls, v):
-        # Accept any operator name, default to "any"
-        return v or "any"
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "service_name": "telegram",
-                "country": "US",
-                "capability": "sms",
-                "operator": "any",
-                "pricing_tier": "standard",
-                "reuse": False,
-                "area_code": "212",
-                "carrier": "verizon",
-            }
+class VerificationRequest(BaseModel):
+    """Request to purchase SMS verification."""
+    service: str = Field(..., description="Service name (telegram, whatsapp, etc)")
+    country: str = Field(default="US", description="Country code")
+    capability: str = Field(default="sms", description="sms or voice")
+    
+    @validator('country')
+    def normalize_country(cls, v):
+        """Normalize country codes to uppercase ISO format."""
+        country_map = {
+            'usa': 'US', 'united states': 'US', 'us': 'US',
+            'canada': 'CA', 'ca': 'CA',
+            'uk': 'GB', 'united kingdom': 'GB', 'gb': 'GB',
+            'russia': 'RU', 'ru': 'RU',
+            'india': 'IN', 'in': 'IN',
+            'germany': 'DE', 'de': 'DE',
+            'france': 'FR', 'fr': 'FR'
         }
-    }
+        return country_map.get(v.lower(), v.upper())
+    
+    @validator('service')
+    def normalize_service(cls, v):
+        """Normalize service names to lowercase."""
+        return v.lower().strip()
 
 
 class VerificationResponse(BaseModel):
-    """Schema for verification response."""
-
-    id: str
-    service_name: str
-    phone_number: Optional[str]
-    capability: str
-    status: str
-    cost: float
-    requested_carrier: Optional[str]
-    requested_area_code: Optional[str]
-    created_at: datetime
-    completed_at: Optional[datetime]
-
-    model_config = {
-        "from_attributes": True,
-        "json_schema_extra": {
-            "example": {
-                "id": "verification_1642680000000",
-                "service_name": "telegram",
-                "phone_number": "+1234567890",
-                "capability": "sms",
-                "status": "pending",
-                "cost": 1.0,
-                "requested_carrier": "verizon",
-                "requested_area_code": "212",
-                "created_at": "2024 - 01-20T10:00:00Z",
-                "completed_at": None,
-            }
-        },
-    }
-
-
-class MessageResponse(BaseModel):
-    """Schema for SMS messages response."""
-
+    """Response after purchasing verification."""
     verification_id: str
-    messages: List[str] = Field(..., description="List of SMS messages received")
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "verification_id": "verification_1642680000000",
-                "messages": [
-                    "Your verification code is: 123456",
-                    "Code expires in 10 minutes",
-                ],
-            }
-        }
-    }
+    phone_number: str
+    service: str
+    country: str
+    cost: float
+    status: str
+    activation_id: str
 
 
-class NumberRentalRequest(BaseModel):
-    """Schema for number rental request."""
-
-    service_name: Optional[str] = Field(
-        None, description="Service for rental (optional)"
-    )
-    duration_hours: float = Field(..., gt=0, description="Rental duration in hours")
-    mode: str = Field(
-        default="always_ready", description="Rental mode: always_ready or manual"
-    )
-    auto_extend: bool = Field(default=False, description="Auto - extend rental")
-    area_code: Optional[str] = Field(None, description="Preferred area code")
-    carrier: Optional[str] = Field(None, description="Preferred carrier")
-
-    @validator("mode")
-    def validate_mode(cls, v):
-        if v not in ["always_ready", "manual"]:
-            raise ValueError("Mode must be always_ready or manual")
-        return v
-
-    @validator("duration_hours")
-    def validate_duration(cls, v):
-        if v <= 0:
-            raise ValueError("Duration must be positive")
-        if v > 8760:  # 1 year
-            raise ValueError("Maximum rental duration == 1 year")
-        return v
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "service_name": "telegram",
-                "duration_hours": 24.0,
-                "mode": "always_ready",
-                "auto_extend": False,
-                "area_code": "212",
-                "carrier": "verizon",
-            }
-        }
-    }
-
-
-class NumberRentalResponse(BaseModel):
-    """Schema for number rental response."""
-
+class VerificationDetail(BaseModel):
+    """Detailed verification information."""
     id: str
     phone_number: str
-    service_name: Optional[str]
-    duration_hours: float
-    cost: float
-    mode: str
+    service: str
+    country: str
     status: str
-    started_at: datetime
-    expires_at: datetime
-    auto_extend: bool
-
-    model_config = {
-        "from_attributes": True,
-        "json_schema_extra": {
-            "example": {
-                "id": "rental_1642680000000",
-                "phone_number": "+1234567890",
-                "service_name": "telegram",
-                "duration_hours": 24.0,
-                "cost": 12.0,
-                "mode": "always_ready",
-                "status": "active",
-                "started_at": "2024 - 01-20T10:00:00Z",
-                "expires_at": "2024 - 01-21T10:00:00Z",
-                "auto_extend": False,
-            }
-        },
-    }
+    sms_code: Optional[str] = None
+    sms_text: Optional[str] = None
+    cost: float
+    created_at: datetime
+    completed_at: Optional[datetime] = None
+    sms_received_at: Optional[datetime] = None
 
 
-class ExtendRentalRequest(BaseModel):
-    """Schema for extending rental duration."""
-
-    additional_hours: float = Field(..., gt=0, description="Additional hours to extend")
-
-    @validator("additional_hours")
-    def validate_additional_hours(cls, v):
-        if v <= 0:
-            raise ValueError("Additional hours must be positive")
-        if v > 8760:  # 1 year
-            raise ValueError("Maximum extension == 1 year")
-        return v
-
-    model_config = {"json_schema_extra": {"example": {"additional_hours": 12.0}}}
-
-
-class RetryVerificationRequest(BaseModel):
-    """Schema for retrying verification."""
-
-    retry_type: str = Field(..., description="Retry type: voice, same, or new")
-
-    @validator("retry_type")
-    def validate_retry_type(cls, v):
-        if v not in ["voice", "same", "new"]:
-            raise ValueError("Retry type must be voice, same, or new")
-        return v
-
-    model_config = {"json_schema_extra": {"example": {"retry_type": "voice"}}}
-
-
-class ServicePriceResponse(BaseModel):
-    """Schema for service pricing information."""
-
-    service_name: str
-    tier: str
-    base_price: float
-    base_price_usd: float
-    voice_premium: float
-    user_plan: str
-    monthly_verifications: int
-    addons: dict
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "service_name": "telegram",
-                "tier": "popular",
-                "base_price": 1.0,
-                "base_price_usd": 2.0,
-                "voice_premium": 0.25,
-                "user_plan": "starter",
-                "monthly_verifications": 5,
-                "addons": {
-                    "custom_area_code": 4.0,
-                    "guaranteed_carrier": 6.0,
-                    "priority_queue": 2.0,
-                },
-            }
-        }
-    }
+class VerificationHistory(BaseModel):
+    """Verification history item."""
+    id: str
+    phone_number: str
+    service: str
+    country: str
+    status: str
+    cost: float
+    created_at: datetime
+    completed_at: Optional[datetime] = None
 
 
 class VerificationHistoryResponse(BaseModel):
-    """Schema for verification history."""
+    """Verification history response."""
+    total: int
+    skip: int
+    limit: int
+    verifications: list[VerificationHistory]
 
-    verifications: List[VerificationResponse]
-    total_count: int
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "verifications": [
-                    {
-                        "id": "verification_1642680000000",
-                        "service_name": "telegram",
-                        "phone_number": "+1234567890",
-                        "capability": "sms",
-                        "status": "completed",
-                        "cost": 1.0,
-                        "created_at": "2024 - 01-20T10:00:00Z",
-                        "completed_at": "2024 - 01-20T10:05:00Z",
-                    }
-                ],
-                "total_count": 1,
-            }
-        }
-    }
+class ReleaseResponse(BaseModel):
+    """Response after releasing verification."""
+    success: bool
+    message: str
+    verification_id: str
+    status: str
+
+
+class NumberRentalRequest(BaseModel):
+    """Request to rent a phone number."""
+    service: str = Field(..., description="Service name")
+    country: str = Field(default="US", description="Country code")
+    duration_days: int = Field(default=30, description="Rental duration in days")
+    renewable: bool = Field(default=False, description="Whether rental is renewable")
+
+
+class NumberRentalResponse(BaseModel):
+    """Response after renting a number."""
+    rental_id: str
+    phone_number: str
+    service: str
+    country: str
+    cost: float
+    duration_days: int
+    expires_at: datetime
+    renewable: bool
+
+
+class ExtendRentalRequest(BaseModel):
+    """Request to extend a rental."""
+    rental_id: str = Field(..., description="Rental ID to extend")
+    duration_days: int = Field(default=30, description="Additional duration in days")
+
+
+class RetryVerificationRequest(BaseModel):
+    """Request to retry verification."""
+    verification_id: str = Field(..., description="Verification ID to retry")
+
+
+class ServicePriceResponse(BaseModel):
+    """Service pricing information."""
+    service: str
+    country: str
+    price: float
+    currency: str
+
+
+class VerificationCreate(BaseModel):
+    """Create verification request."""
+    service: str
+    country: str = "US"
+    capability: str = "sms"
+
+
+class MessageResponse(BaseModel):
+    """Generic message response."""
+    message: str
+    success: bool = True
