@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Namaskah</title>
-    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.2/src/index.css">
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
     <link rel="stylesheet" href="/static/css/dashboard.css">
     <link rel="stylesheet" href="/static/css/verification-modal.css">
     <link rel="stylesheet" href="/static/css/rental-modal.css">
@@ -12,6 +12,7 @@
 </head>
 <body>
     <div class="dashboard-container">
+        <!-- Sidebar -->
         <aside id="sidebar" class="sidebar">
             <div class="sidebar-header">
                 <h2>Namaskah</h2>
@@ -22,47 +23,72 @@
             <nav class="sidebar-nav">
                 <a href="/dashboard" class="nav-item active" data-view="home">
                     <i class="ph ph-house"></i>
-                    <span class="text">Home</span>
+                    <span class="nav-text">Home</span>
                 </a>
-                <a href="#" class="nav-item" onclick="openVerificationModal(); return false;">
+                <a href="#" class="nav-item" id="new-verification-btn">
                     <i class="ph ph-envelope"></i>
-                    <span class="text">New Verification</span>
+                    <span class="nav-text">New Verification</span>
                 </a>
-                <a href="/rentals" class="nav-item">
+                <a href="/dashboard?view=rentals" class="nav-item" data-view="rentals">
                     <i class="ph ph-phone"></i>
-                    <span class="text">Rentals</span>
+                    <span class="nav-text">Rentals</span>
                 </a>
                 <a href="/dashboard?view=wallet" class="nav-item" data-view="wallet">
                     <i class="ph ph-wallet"></i>
-                    <span class="text">Wallet</span>
+                    <span class="nav-text">Wallet</span>
                 </a>
                 <a href="/dashboard?view=profile" class="nav-item" data-view="profile">
                     <i class="ph ph-user"></i>
-                    <span class="text">Profile</span>
+                    <span class="nav-text">Profile</span>
                 </a>
                 <a href="/dashboard?view=settings" class="nav-item" data-view="settings">
                     <i class="ph ph-gear"></i>
-                    <span class="text">Settings</span>
+                    <span class="nav-text">Settings</span>
                 </a>
-                <a href="#" class="nav-item" onclick="logout(); return false;">
+                <a href="#" class="nav-item" id="logout-btn">
                     <i class="ph ph-sign-out"></i>
-                    <span class="text">Logout</span>
+                    <span class="nav-text">Logout</span>
                 </a>
             </nav>
         </aside>
 
+        <!-- Main Content -->
         <main class="main-content">
+            <!-- Header -->
             <header class="header">
                 <h1 id="page-title">Dashboard</h1>
                 <div class="header-right">
-                    <div class="balance-display" id="header-balance">Balance: $0.00</div>
-                    <div class="user-info">
-                        <span id="user-email">Guest</span>
+                    <button class="header-icon-btn" id="notifications-btn" title="Notifications">
+                        <i class="ph ph-bell"></i>
+                        <span class="notification-badge" id="notification-badge" style="display:none;">0</span>
+                    </button>
+                    <div class="balance-display" id="header-balance">$0.00</div>
+                    <div class="user-menu" id="user-menu">
+                        <button class="user-avatar" id="user-avatar-btn">
+                            <span id="user-initials">U</span>
+                        </button>
+                        <div class="user-dropdown" id="user-dropdown">
+                            <div class="dropdown-header">
+                                <span id="dropdown-email">user@example.com</span>
+                            </div>
+                            <a href="/dashboard?view=profile" class="dropdown-item">
+                                <i class="ph ph-user"></i> Profile
+                            </a>
+                            <a href="/dashboard?view=settings" class="dropdown-item">
+                                <i class="ph ph-gear"></i> Settings
+                            </a>
+                            <hr class="dropdown-divider">
+                            <a href="#" class="dropdown-item" id="dropdown-logout">
+                                <i class="ph ph-sign-out"></i> Logout
+                            </a>
+                        </div>
                     </div>
                 </div>
             </header>
 
+            <!-- Content Area -->
             <div id="content-area" class="content-area">
+                <!-- Home View -->
                 <div id="home-view" class="view active">
                     <div class="stats-grid">
                         <div class="stat-card">
@@ -87,25 +113,54 @@
                             </div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-icon"><i class="ph ph-currency-dollar"></i></div>
+                            <div class="stat-icon balance-icon"><i class="ph ph-currency-dollar"></i></div>
                             <div class="stat-info">
-                                <div class="stat-value" id="stat-balance">$0.00</div>
+                                <div class="stat-value stat-balance" id="stat-balance">$0.00</div>
                                 <div class="stat-label">Account Balance</div>
                             </div>
                         </div>
                     </div>
                     <div class="quick-actions">
-                        <button class="btn btn-primary" onclick="openVerificationModal()">New Verification</button>
-                        <a href="/dashboard?view=wallet" class="btn btn-secondary">Add Credits</a>
+                        <button class="btn btn-primary" id="quick-verification-btn">
+                            <i class="ph ph-plus"></i> New Verification
+                        </button>
+                        <button class="btn btn-secondary" id="quick-credits-btn">
+                            <i class="ph ph-wallet"></i> Add Credits
+                        </button>
                     </div>
                     <div class="card">
-                        <h2>Recent Activity</h2>
+                        <div class="card-header">
+                            <h2>Recent Activity</h2>
+                            <a href="/dashboard?view=history" class="view-all-link">View All</a>
+                        </div>
                         <div id="recent-activity" class="activity-list">
-                            <div class="loading">Loading...</div>
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <span>Loading activity...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Rentals View -->
+                <div id="rentals-view" class="view">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2>Active Rentals</h2>
+                            <button class="btn btn-primary btn-sm" id="new-rental-btn">
+                                <i class="ph ph-plus"></i> New Rental
+                            </button>
+                        </div>
+                        <div id="rentals-list" class="activity-list">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <span>Loading rentals...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet View -->
                 <div id="wallet-view" class="view">
                     <div class="card">
                         <h2>Wallet</h2>
@@ -113,32 +168,47 @@
                             <div class="balance-label">Available Credits</div>
                             <div class="balance-value" id="wallet-balance">$0.00</div>
                         </div>
-                        <div class="quick-actions" style="margin-top: 20px;">
-                            <button class="btn btn-primary" onclick="showAddCreditsModal()">Add Credits</button>
+                        <div class="quick-actions">
+                            <button class="btn btn-primary" id="add-credits-btn">
+                                <i class="ph ph-plus"></i> Add Credits
+                            </button>
                         </div>
-                        <div style="margin-top: 30px;">
+                    </div>
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
                             <h3>Transaction History</h3>
-                            <div id="transactions-list" class="activity-list">
-                                <div class="loading">Loading...</div>
+                        </div>
+                        <div id="transactions-list" class="activity-list">
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <span>Loading transactions...</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Profile View -->
                 <div id="profile-view" class="view">
                     <div class="card">
                         <h2>Profile</h2>
                         <div id="profile-form-container">
-                            <div class="loading">Loading...</div>
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <span>Loading profile...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Settings View -->
                 <div id="settings-view" class="view">
                     <div class="card">
                         <h2>Settings</h2>
                         <div id="settings-form-container">
-                            <div class="loading">Loading...</div>
+                            <div class="loading-state">
+                                <div class="spinner"></div>
+                                <span>Loading settings...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -147,132 +217,174 @@
     </div>
 
     <!-- Verification Modal -->
-    <div id="verification-modal" class="modal-overlay" style="display: none;">
-      <div class="verification-modal">
-        <div class="verification-header">
-          <h2>SMS Verification</h2>
-          <button class="modal-close" onclick="closeVerificationModal()">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
-        <div class="verification-progress">
-          <div class="progress-step active" data-step="1"><div class="progress-number">1</div><div class="progress-label">Country</div></div>
-          <div class="progress-line"></div>
-          <div class="progress-step" data-step="2"><div class="progress-number">2</div><div class="progress-label">Service</div></div>
-          <div class="progress-line"></div>
-          <div class="progress-step" data-step="3"><div class="progress-number">3</div><div class="progress-label">Confirm</div></div>
-          <div class="progress-line"></div>
-          <div class="progress-step" data-step="4"><div class="progress-number">4</div><div class="progress-label">Code</div></div>
-        </div>
-        <div class="verification-content">
-          <div class="verification-step active" data-step="1">
-            <div class="step-title">Select Country</div>
-            <div class="step-description">Choose the country for your verification</div>
-            <select id="country-select" class="form-select" onchange="onCountryChange()"><option value="">-- Select Country --</option></select>
-            <button class="btn btn-primary btn-block" onclick="goToStep(2)" style="margin-top: 20px;">Next</button>
-          </div>
-          <div class="verification-step" data-step="2">
-            <div class="step-title">Select Service</div>
-            <div class="step-description">Choose the service you need verification for</div>
-            <select id="service-select" class="form-select" onchange="onServiceChange()"><option value="">-- Select Service --</option></select>
-            <div class="service-price" id="service-price" style="display: none;"><div class="price-label">Estimated Price</div><div class="price-value" id="price-value">$0.00</div></div>
-            <div class="step-actions"><button class="btn btn-secondary" onclick="goToStep(1)">Back</button><button class="btn btn-primary" onclick="goToStep(3)" style="flex: 1;">Next</button></div>
-          </div>
-          <div class="verification-step" data-step="3">
-            <div class="step-title">Confirm Purchase</div>
-            <div class="step-description">Review your selection before purchasing</div>
-            <div class="confirmation-box">
-              <div class="confirmation-item"><span class="label">Country:</span><span class="value" id="confirm-country">-</span></div>
-              <div class="confirmation-item"><span class="label">Service:</span><span class="value" id="confirm-service">-</span></div>
-              <div class="confirmation-item"><span class="label">Cost:</span><span class="value" id="confirm-cost">$0.00</span></div>
-              <div class="confirmation-item"><span class="label">Your Balance:</span><span class="value" id="confirm-balance">$0.00</span></div>
+    <div id="verification-modal" class="modal-overlay">
+        <div class="modal-container verification-modal">
+            <div class="modal-header">
+                <h2>SMS Verification</h2>
+                <button class="modal-close-btn" id="verification-close-btn" aria-label="Close">
+                    <i class="ph ph-x"></i>
+                </button>
             </div>
-            <div class="step-actions"><button class="btn btn-secondary" onclick="goToStep(2)">Back</button><button class="btn btn-primary" onclick="purchaseVerification()" style="flex: 1;">Purchase Now</button></div>
-          </div>
-          <div class="verification-step" data-step="4">
-            <div class="step-title">Verification Code</div>
-            <div class="step-description">Your SMS code will appear here</div>
-            <div class="phone-display"><div class="phone-label">Your Phone Number</div><div class="phone-number" id="phone-number"><span id="phone-value">+1 (555) 123-4567</span><button class="copy-btn" onclick="copyToClipboard('phone-value')" title="Copy phone number"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button></div></div>
-            <div class="sms-code-container" id="sms-code-container" style="display: none;"><div class="sms-label">Your Verification Code</div><div class="sms-code" id="sms-code"><span id="code-value">------</span><button class="copy-btn" onclick="copyToClipboard('code-value')" title="Copy code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg></button></div><div class="sms-text" id="sms-text"></div></div>
-            <div class="polling-status" id="polling-status"><div class="spinner"></div><div class="status-text">Waiting for SMS code...</div></div>
-            <div class="step-actions"><button class="btn btn-secondary" onclick="closeVerificationModal()">Close</button><button class="btn btn-primary" onclick="copyToClipboard('code-value')" id="copy-code-btn" style="display: none; flex: 1;">Copy Code</button></div>
-          </div>
+            <div class="verification-progress">
+                <div class="progress-step active" data-step="1">
+                    <div class="progress-number">1</div>
+                    <div class="progress-label">Country</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="2">
+                    <div class="progress-number">2</div>
+                    <div class="progress-label">Service</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="3">
+                    <div class="progress-number">3</div>
+                    <div class="progress-label">Confirm</div>
+                </div>
+                <div class="progress-line"></div>
+                <div class="progress-step" data-step="4">
+                    <div class="progress-number">4</div>
+                    <div class="progress-label">Code</div>
+                </div>
+            </div>
+            <div class="modal-body verification-content">
+                <!-- Step 1: Country -->
+                <div class="verification-step active" data-step="1">
+                    <div class="step-title">Select Country</div>
+                    <div class="step-description">Choose the country for your verification</div>
+                    <select id="country-select" class="form-select">
+                        <option value="">-- Select Country --</option>
+                    </select>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="step1-cancel">Cancel</button>
+                        <button class="btn btn-primary" id="step1-next">Next</button>
+                    </div>
+                </div>
+                <!-- Step 2: Service -->
+                <div class="verification-step" data-step="2">
+                    <div class="step-title">Select Service</div>
+                    <div class="step-description">Choose the service you need verification for</div>
+                    <select id="service-select" class="form-select">
+                        <option value="">-- Select Service --</option>
+                    </select>
+                    <div class="service-price" id="service-price">
+                        <div class="price-label">Estimated Price</div>
+                        <div class="price-value" id="price-value">$0.00</div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="step2-back">Back</button>
+                        <button class="btn btn-primary" id="step2-next">Next</button>
+                    </div>
+                </div>
+                <!-- Step 3: Confirm -->
+                <div class="verification-step" data-step="3">
+                    <div class="step-title">Confirm Purchase</div>
+                    <div class="step-description">Review your selection before purchasing</div>
+                    <div class="confirmation-box">
+                        <div class="confirmation-item">
+                            <span class="label">Country:</span>
+                            <span class="value" id="confirm-country">-</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <span class="label">Service:</span>
+                            <span class="value" id="confirm-service">-</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <span class="label">Cost:</span>
+                            <span class="value" id="confirm-cost">$0.00</span>
+                        </div>
+                        <div class="confirmation-item">
+                            <span class="label">Your Balance:</span>
+                            <span class="value" id="confirm-balance">$0.00</span>
+                        </div>
+                    </div>
+                    <div id="insufficient-warning" class="warning-message" style="display:none;">
+                        <i class="ph ph-warning"></i> Insufficient balance. Please add credits.
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="step3-back">Back</button>
+                        <button class="btn btn-primary" id="step3-purchase">Purchase Now</button>
+                    </div>
+                </div>
+                <!-- Step 4: Code -->
+                <div class="verification-step" data-step="4">
+                    <div class="step-title">Verification Code</div>
+                    <div class="step-description">Your SMS code will appear here</div>
+                    <div class="phone-display">
+                        <div class="phone-label">Your Phone Number</div>
+                        <div class="phone-number">
+                            <span id="phone-value">+1 (555) 123-4567</span>
+                            <button class="copy-btn" id="copy-phone-btn" title="Copy phone number">
+                                <i class="ph ph-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="sms-code-container" id="sms-code-container">
+                        <div class="sms-label">Your Verification Code</div>
+                        <div class="sms-code">
+                            <span id="code-value">------</span>
+                            <button class="copy-btn" id="copy-code-btn" title="Copy code">
+                                <i class="ph ph-copy"></i>
+                            </button>
+                        </div>
+                        <div class="sms-text" id="sms-text"></div>
+                    </div>
+                    <div class="polling-status" id="polling-status">
+                        <div class="spinner"></div>
+                        <div class="status-text">Waiting for SMS code...</div>
+                    </div>
+                    <div class="step-actions">
+                        <button class="btn btn-secondary" id="step4-close">Close</button>
+                        <button class="btn btn-primary" id="step4-copy" style="display:none;">Copy Code</button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
 
-    <div id="add-credits-modal" class="modal" style="display:none;">
-        <div class="modal-content">
-            <button class="modal-close" onclick="closeAddCreditsModal()">
-                <i class="ph ph-x"></i>
-            </button>
-            <h2>Add Credits</h2>
-            <div class="package-grid">
-                <div class="package" onclick="selectPackage(10, 1)">
-                    <div class="package-amount">$10</div>
-                    <div class="package-bonus">+$1 bonus</div>
-                </div>
-                <div class="package" onclick="selectPackage(25, 3)">
-                    <div class="package-amount">$25</div>
-                    <div class="package-bonus">+$3 bonus</div>
-                </div>
-                <div class="package" onclick="selectPackage(50, 7)">
-                    <div class="package-amount">$50</div>
-                    <div class="package-bonus">+$7 bonus</div>
-                </div>
-                <div class="package" onclick="selectPackage(100, 15)">
-                    <div class="package-amount">$100</div>
-                    <div class="package-bonus">+$15 bonus</div>
-                </div>
+    <!-- Add Credits Modal -->
+    <div id="credits-modal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Add Credits</h2>
+                <button class="modal-close-btn" id="credits-close-btn" aria-label="Close">
+                    <i class="ph ph-x"></i>
+                </button>
             </div>
-            <div style="margin-top: 20px;">
-                <label>Total Amount</label>
-                <input type="number" id="credit-amount" placeholder="0.00" step="0.01">
-            </div>
-            <div style="margin-top: 20px;display:flex;gap:10px;">
-                <button class="btn btn-primary" onclick="proceedToPayment()" style="flex:1;">Proceed</button>
-                <button class="btn btn-secondary" onclick="closeAddCreditsModal()" style="flex:1;">Cancel</button>
+            <div class="modal-body">
+                <div class="package-grid">
+                    <div class="package" data-amount="10" data-bonus="1">
+                        <div class="package-amount">$10</div>
+                        <div class="package-bonus">+$1 bonus</div>
+                    </div>
+                    <div class="package" data-amount="25" data-bonus="3">
+                        <div class="package-amount">$25</div>
+                        <div class="package-bonus">+$3 bonus</div>
+                    </div>
+                    <div class="package" data-amount="50" data-bonus="7">
+                        <div class="package-amount">$50</div>
+                        <div class="package-bonus">+$7 bonus</div>
+                    </div>
+                    <div class="package" data-amount="100" data-bonus="15">
+                        <div class="package-amount">$100</div>
+                        <div class="package-bonus">+$15 bonus</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="credit-amount">Custom Amount</label>
+                    <input type="number" id="credit-amount" placeholder="0.00" step="0.01" min="1">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="credits-cancel-btn">Cancel</button>
+                    <button class="btn btn-primary" id="credits-proceed-btn">Proceed to Payment</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <script>
-        async function loadBalance() {
-            try {
-                const response = await fetch('/api/user/balance', {
-                    method: 'GET',
-                    headers: {
-                        'Cache-Control': 'no-cache, no-store, must-revalidate',
-                        'Pragma': 'no-cache',
-                        'Expires': '0'
-                    }
-                });
-                if (!response.ok) return;
-                const data = await response.json();
-                const balance = parseFloat(data.credits) || 0;
-                const formatted = '$' + balance.toFixed(2);
-                
-                const headerBalance = document.getElementById('header-balance');
-                const statBalance = document.getElementById('stat-balance');
-                const walletBalance = document.getElementById('wallet-balance');
-                
-                if (headerBalance) headerBalance.textContent = 'Balance: ' + formatted;
-                if (statBalance) statBalance.textContent = formatted;
-                if (walletBalance) walletBalance.textContent = formatted;
-            } catch (error) {
-                console.error('Balance load failed:', error);
-            }
-        }
-        
-        window.syncBalance = loadBalance;
-        document.addEventListener('DOMContentLoaded', loadBalance);
-        window.addEventListener('focus', loadBalance);
-    </script>
-    <script src="/static/js/verification-modal.js"></script>
-    <script src="/static/js/rental-modal.js"></script>
+    <!-- Toast Container -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Scripts -->
     <script src="/static/js/dashboard.js"></script>
 </body>
 </html>
