@@ -70,7 +70,7 @@ def get_optional_user_id(credentials: Optional[HTTPAuthorizationCredentials] = D
         import jwt
         from app.core.config import get_settings
         settings = get_settings()
-        payload = jwt.decode(credentials.credentials, settings.secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(credentials.credentials, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         return payload.get("user_id")
     except Exception:
         return None
