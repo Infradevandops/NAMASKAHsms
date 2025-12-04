@@ -281,6 +281,7 @@
         }
     }
 
+
     async function loadDashboardStats() {
         try {
             const response = await fetch('/api/dashboard/stats');
@@ -513,6 +514,7 @@
             .catch(() => showToast('Failed to export data', 'error'));
     };
 
+
     // ==================== Verification Modal ====================
     function openVerificationModal() {
         const modal = document.getElementById('verification-modal');
@@ -545,13 +547,23 @@
         state.verification.cost = 0;
         state.verification.verificationId = null;
         
-        document.getElementById('country-select').value = '';
-        document.getElementById('service-select').innerHTML = '<option value="">-- Select Service --</option>';
-        document.getElementById('service-price').style.display = 'none';
-        document.getElementById('sms-code-container').style.display = 'none';
-        document.getElementById('polling-status').style.display = 'flex';
-        document.getElementById('step4-copy').style.display = 'none';
-        document.getElementById('insufficient-warning').style.display = 'none';
+        const countrySelect = document.getElementById('country-select');
+        const serviceSelect = document.getElementById('service-select');
+        
+        if (countrySelect) countrySelect.value = '';
+        if (serviceSelect) serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
+        
+        const priceEl = document.getElementById('service-price');
+        const codeEl = document.getElementById('sms-code-container');
+        const pollEl = document.getElementById('polling-status');
+        const copyEl = document.getElementById('step4-copy');
+        const warnEl = document.getElementById('insufficient-warning');
+        
+        if (priceEl) priceEl.style.display = 'none';
+        if (codeEl) codeEl.style.display = 'none';
+        if (pollEl) pollEl.style.display = 'flex';
+        if (copyEl) copyEl.style.display = 'none';
+        if (warnEl) warnEl.style.display = 'none';
     }
 
     async function loadCountries() {
@@ -561,6 +573,8 @@
             state.verification.countries = data.countries || [];
             
             const select = document.getElementById('country-select');
+            if (!select) return;
+            
             select.innerHTML = '<option value="">-- Select Country --</option>';
             
             state.verification.countries.forEach(country => {
@@ -576,43 +590,53 @@
     }
 
     async function onCountryChange() {
-        const country = document.getElementById('country-select').value;
-        state.verification.country = country;
+        const countryCode = document.getElementById('country-select').value;
+        state.verification.country = countryCode;
         
         const serviceSelect = document.getElementById('service-select');
-        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
-        document.getElementById('service-price').style.display = 'none';
+        if (!serviceSelect) return;
         
-        if (!country) return;
+        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
+        
+        const priceEl = document.getElementById('service-price');
+        if (priceEl) priceEl.style.display = 'none';
+        
+        if (!countryCode) return;
 
         try {
-            const response = await fetch(`/api/countries/${country}/services`);
+            const response = await fetch(`/api/countries/${countryCode}/services`);
             const data = await response.json();
-            state.verification.services[country] = data.services || [];
+            state.verification.services[countryCode] = data.services || [];
             
-            state.verification.services[country].forEach(service => {
+            state.verification.services[countryCode].forEach(service => {
                 const option = document.createElement('option');
                 option.value = service.name;
                 option.textContent = `${service.name} - $${(service.cost || 0.50).toFixed(2)}`;
-                select.appendChild(option);
+                serviceSelect.appendChild(option);
             });
         } catch (error) {
             console.error('Failed to load services:', error);
+            showToast('Failed to load services', 'error');
         }
     }
 
     function onServiceChange() {
-        const service = document.getElementById('service-select').value;
-        state.verification.service = service;
+        const serviceName = document.getElementById('service-select').value;
+        state.verification.service = serviceName;
         
-        if (service && state.verification.country) {
+        const priceEl = document.getElementById('service-price');
+        const priceValue = document.getElementById('price-value');
+        
+        if (serviceName && state.verification.country) {
             const services = state.verification.services[state.verification.country] || [];
-            const serviceData = services.find(s => s.name === service);
+            const serviceData = services.find(s => s.name === serviceName);
             if (serviceData) {
                 state.verification.cost = serviceData.cost || 0.50;
-                document.getElementById('price-value').textContent = '$' + state.verification.cost.toFixed(2);
-                document.getElementById('service-price').style.display = 'block';
+                if (priceValue) priceValue.textContent = '$' + state.verification.cost.toFixed(2);
+                if (priceEl) priceEl.style.display = 'block';
             }
+        } else {
+            if (priceEl) priceEl.style.display = 'none';
         }
     }
 
@@ -647,26 +671,33 @@
         // Step 3: Update confirmation
         if (step === 3) {
             const countryOption = document.querySelector(`#country-select option[value="${state.verification.country}"]`);
-            document.getElementById('confirm-country').textContent = countryOption?.textContent || state.verification.country;
-            document.getElementById('confirm-service').textContent = state.verification.service;
-            document.getElementById('confirm-cost').textContent = '$' + state.verification.cost.toFixed(2);
-            document.getElementById('confirm-balance').textContent = '$' + state.balance.toFixed(2);
+            const confirmCountry = document.getElementById('confirm-country');
+            const confirmService = document.getElementById('confirm-service');
+            const confirmCost = document.getElementById('confirm-cost');
+            const confirmBalance = document.getElementById('confirm-balance');
+            
+            if (confirmCountry) confirmCountry.textContent = countryOption?.textContent || state.verification.country;
+            if (confirmService) confirmService.textContent = state.verification.service;
+            if (confirmCost) confirmCost.textContent = '$' + state.verification.cost.toFixed(2);
+            if (confirmBalance) confirmBalance.textContent = '$' + state.balance.toFixed(2);
             
             // Check insufficient balance
             const warning = document.getElementById('insufficient-warning');
             const purchaseBtn = document.getElementById('step3-purchase');
             if (state.balance < state.verification.cost) {
-                warning.style.display = 'flex';
-                purchaseBtn.disabled = true;
+                if (warning) warning.style.display = 'flex';
+                if (purchaseBtn) purchaseBtn.disabled = true;
             } else {
-                warning.style.display = 'none';
-                purchaseBtn.disabled = false;
+                if (warning) warning.style.display = 'none';
+                if (purchaseBtn) purchaseBtn.disabled = false;
             }
         }
     }
 
     async function purchaseVerification() {
         const btn = document.getElementById('step3-purchase');
+        if (!btn) return;
+        
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-sm"></span> Processing...';
 
@@ -697,7 +728,8 @@
             }
 
             state.verification.verificationId = data.verification_id || data.id;
-            document.getElementById('phone-value').textContent = data.phone_number;
+            const phoneEl = document.getElementById('phone-value');
+            if (phoneEl) phoneEl.textContent = data.phone_number;
             
             goToVerificationStep(4);
             startSMSPolling();
@@ -722,11 +754,17 @@
                     clearInterval(pollInterval);
                     state.verification.pollingInterval = null;
                     
-                    document.getElementById('code-value').textContent = data.sms_code;
-                    document.getElementById('sms-text').textContent = data.sms_text || '';
-                    document.getElementById('sms-code-container').style.display = 'block';
-                    document.getElementById('polling-status').style.display = 'none';
-                    document.getElementById('step4-copy').style.display = 'block';
+                    const codeEl = document.getElementById('code-value');
+                    const textEl = document.getElementById('sms-text');
+                    const containerEl = document.getElementById('sms-code-container');
+                    const pollEl = document.getElementById('polling-status');
+                    const copyEl = document.getElementById('step4-copy');
+                    
+                    if (codeEl) codeEl.textContent = data.sms_code;
+                    if (textEl) textEl.textContent = data.sms_text || '';
+                    if (containerEl) containerEl.style.display = 'block';
+                    if (pollEl) pollEl.style.display = 'none';
+                    if (copyEl) copyEl.style.display = 'block';
                     
                     showToast('SMS code received!', 'success');
                 }
@@ -747,13 +785,15 @@
         }, 5 * 60 * 1000);
     }
 
+
     // ==================== Credits Modal ====================
     function openCreditsModal() {
         const modal = document.getElementById('credits-modal');
         if (modal) {
             modal.classList.add('show');
             document.body.style.overflow = 'hidden';
-            document.getElementById('credit-amount').value = '';
+            const amountInput = document.getElementById('credit-amount');
+            if (amountInput) amountInput.value = '';
             document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
         }
     }
@@ -771,13 +811,16 @@
         const bonus = parseFloat(element.dataset.bonus);
         const total = amount + bonus;
         
-        document.getElementById('credit-amount').value = total.toFixed(2);
+        const amountInput = document.getElementById('credit-amount');
+        if (amountInput) amountInput.value = total.toFixed(2);
+        
         document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
         element.classList.add('selected');
     }
 
     async function proceedToPayment() {
-        const amount = parseFloat(document.getElementById('credit-amount').value);
+        const amountInput = document.getElementById('credit-amount');
+        const amount = parseFloat(amountInput?.value);
         
         if (!amount || amount <= 0) {
             showToast('Please enter a valid amount', 'warning');
@@ -785,6 +828,8 @@
         }
 
         const btn = document.getElementById('credits-proceed-btn');
+        if (!btn) return;
+        
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-sm"></span> Processing...';
 
@@ -847,8 +892,16 @@
 
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
+        
+        const iconMap = {
+            success: 'check-circle',
+            error: 'x-circle',
+            warning: 'warning',
+            info: 'info'
+        };
+        
         toast.innerHTML = `
-            <i class="ph ph-${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : type === 'warning' ? 'warning' : 'info'}"></i>
+            <i class="ph ph-${iconMap[type] || 'info'}"></i>
             <span>${escapeHtml(message)}</span>
         `;
         
@@ -879,6 +932,7 @@
     window.closeVerificationModal = closeVerificationModal;
     window.openCreditsModal = openCreditsModal;
     window.closeCreditsModal = closeCreditsModal;
+    window.loadProfile = loadProfile;
     window.openRentalModal = function() { showToast('Rental feature coming soon', 'info'); };
 
 })();
