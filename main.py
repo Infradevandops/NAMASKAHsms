@@ -879,7 +879,8 @@ def create_app() -> FastAPI:
         
         # Check database connectivity
         try:
-            db.execute("SELECT 1")
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
             health["services"]["database"] = "connected"
             health["checks"]["database"] = True
         except Exception as e:
@@ -1383,7 +1384,8 @@ def create_app() -> FastAPI:
         
         # Check database
         try:
-            db.execute("SELECT 1")
+            from sqlalchemy import text
+            db.execute(text("SELECT 1"))
             diagnostics_data["database"]["connected"] = True
             diagnostics_data["database"]["type"] = "postgresql" if "postgresql" in settings.database_url else "sqlite"
         except Exception as e:

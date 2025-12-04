@@ -441,9 +441,10 @@ def get_system_health(
     """Get comprehensive system health status (admin only)."""
     # Database health
     try:
-        db.execute("SELECT 1")
+        from sqlalchemy import text
+        db.execute(text("SELECT 1"))
         db_status = "healthy"
-    except (ValueError, AttributeError):
+    except Exception:
         db_status = "unhealthy"
 
     # User statistics

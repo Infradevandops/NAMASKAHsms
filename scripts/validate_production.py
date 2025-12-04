@@ -95,9 +95,10 @@ def check_database():
     print("🔍 Checking database...")
     
     try:
+        from sqlalchemy import text
         from app.core.database import engine
         with engine.connect() as conn:
-            conn.execute("SELECT 1")
+            conn.execute(text("SELECT 1"))
         print("✅ Database connected")
         return True
     except ImportError:
