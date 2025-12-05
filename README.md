@@ -36,7 +36,7 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 SECRET_KEY=your-32-char-secret-key
 JWT_SECRET_KEY=your-32-char-jwt-secret
 DATABASE_URL=postgresql://user:pass@host:port/db
-TEXTVERIFIED_API_KEY=your-api-key
+SMS_PROVIDER_API_KEY=your-api-key
 ```
 
 ---

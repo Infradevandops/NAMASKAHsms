@@ -30,7 +30,7 @@ data:
   REDIS_MAX_CONNECTIONS: "50"
   RATE_LIMIT_REQUESTS: "100"
   RATE_LIMIT_WINDOW: "3600"
-  TEXTVERIFIED_BASE_URL: "https://www.textverified.com"
+  SMS_PROVIDER_BASE_URL: "https://api.smsprovider.com"
 
 ---
 # Secret for sensitive configuration
@@ -40,8 +40,8 @@ metadata:
   name: namaskah-secrets
   namespace: namaskah-prod
 stringData:
-  # TextVerified API Key only (others removed by request)
-  TEXTVERIFIED_API_KEY: "REQUIRED_YOUR_TEXTVERIFIED_API_KEY"
+  # SMS Provider API Key (configure via secure secret store or CI/CD pipeline)
+  SMS_PROVIDER_API_KEY: "REQUIRED_YOUR_API_KEY"
   # Other secrets should be provided via your secure secret store or CI/CD pipeline
 
 ---

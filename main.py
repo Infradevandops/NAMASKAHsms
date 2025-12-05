@@ -1255,19 +1255,131 @@ def create_app() -> FastAPI:
             logger.error(f"Balance test error: {type(e).__name__}: {str(e)}")
             return {"error": f"{type(e).__name__}: {str(e)}"}
 
+    # Comprehensive countries list (mirrors SMS provider offerings)
+    COUNTRIES_LIST = [
+        # North America
+        {"code": "usa", "name": "United States", "prefix": "1", "popular": True},
+        {"code": "canada", "name": "Canada", "prefix": "1", "popular": True},
+        {"code": "mexico", "name": "Mexico", "prefix": "52", "popular": False},
+        # Europe
+        {"code": "uk", "name": "United Kingdom", "prefix": "44", "popular": True},
+        {"code": "germany", "name": "Germany", "prefix": "49", "popular": False},
+        {"code": "france", "name": "France", "prefix": "33", "popular": False},
+        {"code": "italy", "name": "Italy", "prefix": "39", "popular": False},
+        {"code": "spain", "name": "Spain", "prefix": "34", "popular": False},
+        {"code": "netherlands", "name": "Netherlands", "prefix": "31", "popular": False},
+        {"code": "poland", "name": "Poland", "prefix": "48", "popular": False},
+        {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
+        {"code": "ukraine", "name": "Ukraine", "prefix": "380", "popular": False},
+        {"code": "sweden", "name": "Sweden", "prefix": "46", "popular": False},
+        {"code": "norway", "name": "Norway", "prefix": "47", "popular": False},
+        {"code": "finland", "name": "Finland", "prefix": "358", "popular": False},
+        # Asia
+        {"code": "india", "name": "India", "prefix": "91", "popular": True},
+        {"code": "china", "name": "China", "prefix": "86", "popular": False},
+        {"code": "japan", "name": "Japan", "prefix": "81", "popular": False},
+        {"code": "south_korea", "name": "South Korea", "prefix": "82", "popular": False},
+        {"code": "singapore", "name": "Singapore", "prefix": "65", "popular": False},
+        {"code": "thailand", "name": "Thailand", "prefix": "66", "popular": False},
+        {"code": "vietnam", "name": "Vietnam", "prefix": "84", "popular": False},
+        {"code": "philippines", "name": "Philippines", "prefix": "63", "popular": False},
+        {"code": "indonesia", "name": "Indonesia", "prefix": "62", "popular": False},
+        {"code": "malaysia", "name": "Malaysia", "prefix": "60", "popular": False},
+        # Oceania
+        {"code": "australia", "name": "Australia", "prefix": "61", "popular": False},
+        {"code": "new_zealand", "name": "New Zealand", "prefix": "64", "popular": False},
+        # South America
+        {"code": "brazil", "name": "Brazil", "prefix": "55", "popular": False},
+        {"code": "argentina", "name": "Argentina", "prefix": "54", "popular": False},
+        {"code": "chile", "name": "Chile", "prefix": "56", "popular": False},
+        {"code": "colombia", "name": "Colombia", "prefix": "57", "popular": False},
+        # Africa
+        {"code": "south_africa", "name": "South Africa", "prefix": "27", "popular": False},
+        {"code": "nigeria", "name": "Nigeria", "prefix": "234", "popular": False},
+        {"code": "egypt", "name": "Egypt", "prefix": "20", "popular": False},
+        # Middle East
+        {"code": "israel", "name": "Israel", "prefix": "972", "popular": False},
+        {"code": "uae", "name": "United Arab Emirates", "prefix": "971", "popular": False},
+        {"code": "saudi_arabia", "name": "Saudi Arabia", "prefix": "966", "popular": False},
+    ]
+
+    # Comprehensive services list (mirrors SMS provider offerings)
+    SERVICES_LIST = [
+        # Dating & Social
+        {"id": "ourtime", "name": "OurTime", "category": "dating", "cost": 2.25},
+        {"id": "tinder", "name": "Tinder", "category": "dating", "cost": 2.50},
+        {"id": "bumble", "name": "Bumble", "category": "dating", "cost": 2.50},
+        {"id": "match", "name": "Match.com", "category": "dating", "cost": 2.25},
+        {"id": "pof", "name": "Plenty of Fish", "category": "dating", "cost": 2.00},
+        {"id": "facebook", "name": "Facebook", "category": "social", "cost": 2.00},
+        {"id": "instagram", "name": "Instagram", "category": "social", "cost": 2.50},
+        {"id": "twitter", "name": "Twitter/X", "category": "social", "cost": 1.75},
+        {"id": "tiktok", "name": "TikTok", "category": "social", "cost": 2.25},
+        {"id": "snapchat", "name": "Snapchat", "category": "social", "cost": 2.00},
+        {"id": "linkedin", "name": "LinkedIn", "category": "social", "cost": 2.75},
+        # Messaging
+        {"id": "telegram", "name": "Telegram", "category": "messaging", "cost": 2.00},
+        {"id": "whatsapp", "name": "WhatsApp", "category": "messaging", "cost": 2.50},
+        {"id": "discord", "name": "Discord", "category": "messaging", "cost": 1.75},
+        {"id": "signal", "name": "Signal", "category": "messaging", "cost": 2.00},
+        {"id": "viber", "name": "Viber", "category": "messaging", "cost": 1.75},
+        {"id": "line", "name": "LINE", "category": "messaging", "cost": 2.00},
+        # Tech & Services
+        {"id": "google", "name": "Google", "category": "tech", "cost": 1.50},
+        {"id": "microsoft", "name": "Microsoft", "category": "tech", "cost": 1.75},
+        {"id": "apple", "name": "Apple", "category": "tech", "cost": 2.00},
+        {"id": "amazon", "name": "Amazon", "category": "tech", "cost": 1.75},
+        {"id": "uber", "name": "Uber", "category": "services", "cost": 2.00},
+        {"id": "lyft", "name": "Lyft", "category": "services", "cost": 2.00},
+        {"id": "doordash", "name": "DoorDash", "category": "services", "cost": 1.75},
+        {"id": "grubhub", "name": "GrubHub", "category": "services", "cost": 1.75},
+        # Gaming
+        {"id": "steam", "name": "Steam", "category": "gaming", "cost": 1.50},
+        {"id": "twitch", "name": "Twitch", "category": "gaming", "cost": 2.00},
+        {"id": "epic", "name": "Epic Games", "category": "gaming", "cost": 1.75},
+        # Finance
+        {"id": "paypal", "name": "PayPal", "category": "finance", "cost": 2.50},
+        {"id": "venmo", "name": "Venmo", "category": "finance", "cost": 2.25},
+        {"id": "cashapp", "name": "Cash App", "category": "finance", "cost": 2.25},
+        {"id": "coinbase", "name": "Coinbase", "category": "finance", "cost": 2.75},
+        # Entertainment
+        {"id": "netflix", "name": "Netflix", "category": "entertainment", "cost": 2.00},
+        {"id": "spotify", "name": "Spotify", "category": "entertainment", "cost": 1.75},
+        {"id": "reddit", "name": "Reddit", "category": "social", "cost": 1.50},
+        {"id": "pinterest", "name": "Pinterest", "category": "social", "cost": 2.00},
+    ]
+
     @fastapi_app.get("/api/countries/")
     async def get_countries():
+        """Get list of available countries for SMS verification"""
         try:
-            countries = [
-                {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
-                {"code": "india", "name": "India", "prefix": "91", "popular": True},
-                {"code": "usa", "name": "United States", "prefix": "1", "popular": False},
-            ]
-            return {"success": True, "countries": countries, "total": len(countries)}
+            # Sort by popular first, then alphabetically
+            sorted_countries = sorted(COUNTRIES_LIST, key=lambda x: (not x.get("popular", False), x["name"]))
+            return {"success": True, "countries": sorted_countries, "total": len(sorted_countries)}
         except Exception as e:
             logger = get_logger("countries")
             logger.error(f"Countries fetch error: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to fetch countries")
+
+    @fastapi_app.get("/api/countries/{country_code}/services")
+    async def get_services_by_country(country_code: str):
+        """Get available services for a specific country"""
+        try:
+            # Verify country exists
+            country = next((c for c in COUNTRIES_LIST if c["code"].lower() == country_code.lower()), None)
+            if not country:
+                raise HTTPException(status_code=404, detail=f"Country '{country_code}' not found")
+            
+            # All services available for all countries (can be customized per country if needed)
+            services = [{"name": s["name"], "cost": s["cost"], "category": s["category"]} for s in SERVICES_LIST]
+            
+            return {"success": True, "country": country["name"], "services": services, "total": len(services)}
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger = get_logger("services")
+            logger.error(f"Services fetch error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to fetch services")
 
     @fastapi_app.on_event("startup")
     async def startup_event():

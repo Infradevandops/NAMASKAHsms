@@ -87,8 +87,8 @@ JWT_SECRET_KEY=your-jwt-secret-32-chars-min
 DATABASE_URL=postgresql://user:pass@host:port/db
 
 # SMS Providers
-TEXTVERIFIED_API_KEY=your-textverified-key
-FIVESIM_API_KEY=your-5sim-key
+SMS_PROVIDER_API_KEY=your-sms-provider-key
+SMS_PROVIDER_EMAIL=your-email@example.com
 
 # Optional
 REDIS_URL=redis://localhost:6379/0

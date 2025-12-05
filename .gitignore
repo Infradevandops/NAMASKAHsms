@@ -140,3 +140,18 @@ docs/_build/
 # Relative paths - Temporary files
 /LOGIN_TEST.html
 /.render-deploy
+
+# Kiro IDE specs and settings
+.kiro/
+
+# Task/Progress documentation (internal only)
+DASHBOARD_STABILIZATION.md
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_READY.md
+FIXES_SUMMARY.md
+FORCE_REDEPLOY.md
+IMPLEMENTATION_COMPLETE.md
+PRODUCTION_ERROR_FIX.md
+PRODUCTION_FIXES.md
+PRODUCTION_TROUBLESHOOTING.md
+QUICK_START.md

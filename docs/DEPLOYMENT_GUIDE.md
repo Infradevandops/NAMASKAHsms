@@ -30,8 +30,8 @@ DATABASE_URL=postgresql://<user>:<password>@localhost:5432/namaskah
 REDIS_URL=redis://localhost:6379/0
 
 # API Keys
-TEXTVERIFIED_API_KEY=<your-api-key>
-TEXTVERIFIED_EMAIL=<your-email>
+SMS_PROVIDER_API_KEY=<your-api-key>
+SMS_PROVIDER_EMAIL=<your-email>
 
 # Environment
 ENVIRONMENT=production
