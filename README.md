@@ -1,108 +1,155 @@
 # Namaskah SMS Verification Platform
 
-**Version**: 2.5.0 - Production Ready ✅  
-**Status**: All Core Features Complete  
-**Last Updated**: 2025-12-03
+**Version**: 3.0.0 - Tiered SaaS Platform 🚀  
+**Status**: Production Ready with Versioning  
+**Last Updated**: 2025-12-07
 
 ---
 
-## Quick Start
+## 🎯 Choose Your Plan
+
+Namaskah now offers **3 tiers** designed for different use cases:
+
+| Feature | Freemium | Starter | Turbo |
+|---------|----------|---------|-------|
+| **Price** | Free (No card) | $9/mo | $13.99/mo |
+| **SMS Verification** | ✅ Random only | ✅ Enhanced | ✅ Premium |
+| **API Keys** | ❌ Web only | ✅ 5 keys | ✅ Unlimited |
+| **Area Code Selection** | ❌ | ✅ | ✅ |
+| **ISP/Carrier Filter** | ❌ | ❌ | ✅ |
+| **Daily Limit** | 100/day | 1000/day | 10,000/day |
+| **Countries** | 5 countries | 20 countries | All 50+ |
+| **Support** | Community | Email | Priority |
+
+---
+
+## 🚀 Quick Start
 
 ```bash
+# Clone and setup
+git clone https://github.com/yourusername/namaskah-sms.git
+cd namaskah-sms
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env with your settings
+
+# Run the application
 ./start.sh
 # or
 uvicorn main:app --host 127.0.0.1 --port 8000
 ```
 
-**Open**: `http://localhost:8000/verify`
+**Open**: `http://localhost:8000`
 
 ---
 
-## Key Features
+## ✨ Key Features
 
-- **SMS Verification**: Get codes instantly
-- **Multiple Countries**: Russia, India, USA, and more
-- **Real-time Status**: Track verification progress
-- **Mobile Optimized**: Works on all devices
-- **Secure**: OWASP compliant, JWT authentication
-- **Rate Limited**: Protection against abuse
+### 🔐 Multi-Tier Access
+- **Freemium**: Get started with basic verification services
+- **Starter**: Add area code selection for targeted numbers
+- **Turbo**: Full ISP filtering and advanced features
+
+### 📱 SMS Verification
+- Instant SMS verification codes
+- 50+ countries supported
+- Multiple services (Telegram, WhatsApp, etc.)
+- Real-time status tracking
+
+### 🔑 API Key Management
+- Generate secure API keys
+- Usage tracking and analytics
+- Tier-based rate limiting
+- Easy key rotation
+
+### 💳 Flexible Billing
+- Credit-based system
+- Bonus credits on purchases
+- Multiple payment methods
+- Transparent pricing
+
+### 🛡️ Enterprise Security
+- OWASP Top 10 compliant
+- JWT authentication
+- CSRF protection
+- Rate limiting
+- Secure logging
 
 ---
 
-## Configuration
+## 🔌 API Endpoints
+
+### Authentication
+- `POST /api/auth/register` - Create account
+- `POST /api/auth/login` - Login
+- `POST /api/auth/refresh` - Refresh token
+- `POST /api/auth/logout` - Logout
+
+### SMS Verification
+- `POST /api/verify/create` - Purchase verification
+- `GET /api/verify/status/{id}` - Check SMS status
+- `GET /api/verify/{id}/messages` - Get messages
+
+### API Keys 🆕
+- `GET /api/keys` - List your API keys
+- `POST /api/keys/generate` - Generate new key
+- `DELETE /api/keys/{id}` - Revoke key
+- `GET /api/keys/{id}/usage` - Usage stats
+
+### Countries & Services
+- `GET /api/countries/` - List countries
+- `GET /api/countries/{country}/services` - Get services
+
+### Billing
+- `POST /api/billing/add-credits` - Add credits
+- `GET /api/billing/balance` - Get balance
+- `GET /api/billing/history` - Payment history
+
+### Tiers 🆕
+- `GET /api/tiers` - List available tiers
+- `GET /api/user/tier` - Get current tier
+- `POST /api/user/tier/upgrade` - Upgrade tier
+
+---
+
+## 📊 Configuration
 
 ```bash
 # .env file required
 SECRET_KEY=your-32-char-secret-key
 JWT_SECRET_KEY=your-32-char-jwt-secret
 DATABASE_URL=postgresql://user:pass@host:port/db
-SMS_PROVIDER_API_KEY=your-api-key
+SMS_PROVIDER_API_KEY=your-textverified-api-key
+
+# Optional: Payment integration
+STRIPE_SECRET_KEY=your-stripe-key
+PAYPAL_CLIENT_ID=your-paypal-id
 ```
 
 ---
 
-## Main Endpoints
-
-- `GET /verify` - Verification page
-- `POST /api/verify/create` - Purchase verification
-- `GET /api/verify/status/{id}` - Check SMS status
-- `GET /api/countries/` - List countries
-- `GET /api/countries/{country}/services` - Get services
-- `POST /api/billing/add-credits` - Add credits
-- `GET /api/sms/inbox` - SMS inbox
-- `GET /api/gdpr/export` - Export user data
-
----
-
-## Documentation
-
-- `docs/API_DOCUMENTATION.md` - API reference
-- `docs/DEPLOYMENT_PROCEDURES.md` - Deployment guide
-- `docs/SECURITY_AND_COMPLIANCE.md` - Security details
-
----
-
-## Database Setup
-
-```bash
-# Create missing tables
-python3 fix_missing_tables.py
-
-# Apply migrations
-alembic upgrade head
-```
-
----
-
-## Testing
-
-```bash
-# Health check
-curl http://localhost:8000/api/system/health
-
-# SMS inbox
-curl -H "Authorization: Bearer TOKEN" http://localhost:8000/api/sms/inbox
-
-# Add credits
-curl -X POST http://localhost:8000/api/billing/add-credits \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"amount": 50}'
-```
-
----
-
-## Project Structure
+## 🗂️ Project Structure
 
 ```
 app/
-├── api/              # API endpoints
+├── api/              # API endpoints by domain
+│   ├── admin/        # Admin dashboard
+│   ├── billing/      # Payment & tiers
+│   ├── core/         # Auth, countries, services
+│   ├── verification/ # SMS verification
+│   └── ...
 ├── core/             # Core functionality
+│   ├── config.py     # Configuration
+│   ├── database.py   # Database setup
+│   └── ...
 ├── middleware/       # Security middleware
 ├── models/           # Database models
-├── schemas/          # Request/response schemas
-├── services/         # Business logic
-└── utils/            # Utilities
+├── schemas/          # API schemas
+└── services/         # Business logic
 
 templates/            # HTML templates
 static/               # CSS, JS, images
@@ -112,24 +159,148 @@ scripts/              # Utility scripts
 
 ---
 
-## Security
+## 🗄️ Database Setup
+
+```bash
+# Create tables
+python3 fix_missing_tables.py
+
+# Run migrations
+alembic upgrade head
+
+# Migrate users to tiers (for existing installations)
+python3 scripts/migrate_users_to_tiers.py
+```
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run all tests
+pytest
+
+# With coverage
+pytest --cov=app --cov-report=html
+
+# Specific test file
+pytest tests/test_api/test_tier_endpoints.py -v
+
+# Health check
+curl http://localhost:8000/api/system/health
+```
+
+---
+
+## 📚 Enterprise Documentation
+
+- [Enterprise Roadmap](docs/ENTERPRISE_ROADMAP.md) - Strategic phases for scaling.
+- [Implementation Guide](docs/NEXT_PHASES_IMPLEMENTATION.md) - Immediate next steps for developers.
+- [API Documentation](docs/TIER_API_DOCUMENTATION.md)
+- [Tier Deployment Guide](docs/TIER_DEPLOYMENT_GUIDE.md)
+- **[Security](./docs/SECURITY_AND_COMPLIANCE.md)** - Security details
+
+---
+
+## 🔒 Security Features
 
 - ✅ OWASP Top 10 compliant
 - ✅ Input sanitization (XSS prevention)
 - ✅ SQL injection protection
 - ✅ CSRF token protection
-- ✅ Rate limiting
+- ✅ Rate limiting (tier-based)
 - ✅ JWT authentication
+- ✅ API key security (hashed storage)
 - ✅ Secure logging (no sensitive data)
 
 ---
 
-## Support
+## 🚢 Deployment
 
-- Check logs: `tail -f server.log`
-- Restart: `pkill -f "uvicorn main:app" && ./start.sh`
-- Database: `python3 fix_missing_tables.py`
+### Docker
+```bash
+# Development
+docker-compose up
+
+# Production
+docker-compose -f docker-compose.prod.yml up -d
+```
+
+### Kubernetes
+```bash
+kubectl apply -f k8s-deployment.yaml
+```
+
+### Manual
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run with gunicorn
+gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+```
 
 ---
 
-**Built with FastAPI + Advanced Security**
+## 🤝 Support
+
+- **Community**: GitHub Discussions
+- **Email**: support@namaskah.com (Starter+)
+- **Priority**: Dedicated Slack (Turbo)
+- **Documentation**: https://docs.namaskah.com
+
+---
+
+## 📈 Roadmap
+
+### Q1 2026
+- ✅ Tier system launch
+- ✅ API key management
+- 🔄 SDK libraries (Python, JS, Go)
+- 🔄 Webhook builder
+
+### Q2 2026
+- Geographic targeting
+- Device type filtering
+- Referral program
+- Volume discounts
+
+### Q3 2026
+- Enterprise tier
+- Team management
+- SSO integration
+- White-label options
+
+[**Full Roadmap →**](./docs/ROADMAP.md)
+
+---
+
+## 🛠️ Built With
+
+- **FastAPI** - Modern Python web framework
+- **SQLAlchemy** - Python SQL toolkit
+- **PostgreSQL** - Primary database
+- **Redis** - Caching layer
+- **TextVerified** - SMS provider
+- **JWT** - Authentication
+- **Docker** - Containerization
+- **Kubernetes** - Orchestration
+
+---
+
+## 📝 License
+
+MIT License - See [LICENSE](./LICENSE) file
+
+---
+
+## 🙏 Acknowledgments
+
+- TextVerified for SMS services
+- FastAPI community
+- All contributors
+
+---
+
+**Ready to verify? Sign up for free at [namaskah.com](https://namaskah.com)** 🚀
+

@@ -1,0 +1,145 @@
+/* NAMASKAH THEME: DARK (VERCEL-INSPIRED) */
+
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@300;400;600&display=swap');
+
+:root {
+    /* Semantic Colors */
+    --bg-body: #000000;
+    --bg-card: #111111;
+    --bg-sidebar: #000000;
+    --bg-header: rgba(0, 0, 0, 0.8);
+
+    --text-main: #EDEDED;
+    --text-muted: #888888;
+    --text-on-primary: #000000;
+
+    --primary: #EDEDED;
+    /* White action */
+    --primary-hover: #FFFFFF;
+    --accent: #0070F3;
+    /* Blue */
+
+    --border: #333333;
+    --border-focus: #FFFFFF;
+
+    /* Decoration */
+    --radius: 5px;
+    --font-family: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    /* COMPATIBILITY: Design Tokens Overrides (Landing Page) */
+    --color-primary: #EDEDED;
+    /* White action */
+    --color-primary-light: #FFFFFF;
+    --color-background: #000000;
+    --color-surface: #111111;
+    --color-surface-secondary: #222222;
+    --color-text: #EDEDED;
+    --color-text-secondary: #888888;
+    --color-border: #333333;
+
+    /* Make dark mode shadows subtle or glowing */
+    --shadow-sm: none;
+    --shadow-lg: 0 0 20px rgba(0, 0, 0, 0.5);
+    --shadow-xl: 0 0 30px rgba(0, 0, 0, 0.8);
+    --radius-xl: 8px;
+}
+
+/* GLOBAL RESETS */
+body {
+    background: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    font-family: var(--font-family) !important;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    color: var(--text-main) !important;
+    letter-spacing: -0.5px;
+}
+
+.stat-value,
+.balance-value,
+.price-value {
+    font-family: var(--font-mono) !important;
+}
+
+/* BUTTONS */
+.btn-primary,
+button[type="submit"] {
+    background: var(--primary) !important;
+    color: var(--text-on-primary) !important;
+    border-radius: var(--radius) !important;
+    font-weight: 600 !important;
+    border: 1px solid transparent !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary:hover,
+button[type="submit"]:hover {
+    background: var(--primary-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+}
+
+/* CARDS */
+.card,
+.stat-card,
+.container,
+.modal-container {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    box-shadow: none !important;
+}
+
+/* INPUTS */
+input,
+select {
+    background: #000000 !important;
+    border: 1px solid var(--border) !important;
+    color: #FFF !important;
+}
+
+input:focus {
+    border-color: var(--border-focus) !important;
+}
+
+/* DASHBOARD SPECIFIC */
+.sidebar {
+    background: var(--bg-sidebar) !important;
+    border-right: 1px solid var(--border) !important;
+}
+
+.sidebar-header h2 {
+    font-family: var(--font-mono);
+    letter-spacing: -1px;
+}
+
+.nav-item {
+    color: var(--text-muted) !important;
+    border-left: none !important;
+}
+
+.nav-item.active {
+    background: transparent !important;
+    color: var(--text-main) !important;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* LOGIN PAGE SPECIFIC */
+body[data-page="login"] {
+    background: #000 !important;
+}
+
+body[data-page="login"] .container {
+    background: #111 !important;
+    border: 1px solid #333 !important;
+}
+
+body[data-page="login"] h2,
+body[data-page="login"] label {
+    color: #EDEDED !important;
+}

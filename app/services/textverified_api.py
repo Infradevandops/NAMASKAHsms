@@ -100,18 +100,30 @@ class TextVerifiedAPIClient:
         service: str,
         duration_days: int,
         renewable: bool = False,
+        area_code: Optional[str] = None,
+        carrier: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Create phone number rental."""
+        """Create phone number rental with optional area code and carrier selection."""
         try:
             duration_map = {7: "sevenDay", 30: "thirtyDay", 1: "oneDay"}
             duration = duration_map.get(duration_days, "sevenDay")
 
-            rental = self.client.reservations.rental.create(
-                service_name=service,
-                capability=ReservationCapability.SMS,
-                duration=duration,
-                is_renewable=renewable
-            )
+            kwargs = {
+                "service_name": service,
+                "capability": ReservationCapability.SMS,
+                "duration": duration,
+                "is_renewable": renewable
+            }
+            
+            # Add area code if specified
+            if area_code:
+                kwargs["area_code_select_option"] = [area_code]
+            
+            # Add carrier if specified
+            if carrier:
+                kwargs["carrier_select_option"] = [carrier]
+
+            rental = self.client.reservations.rental.create(**kwargs)
 
             return {
                 "id": rental.id,
@@ -119,6 +131,8 @@ class TextVerifiedAPIClient:
                 "cost": float(rental.total_cost),
                 "expires_at": rental.created_at,
                 "renewable": renewable,
+                "area_code": area_code,
+                "carrier": carrier,
             }
         except Exception as e:
             logger.error(f"Failed to create rental: {e}")
@@ -167,29 +181,33 @@ class TextVerifiedAPIClient:
             raise Exception(f"Failed to extend rental: {str(e)}")
 
     async def get_services(self) -> List[Dict[str, Any]]:
-        """Get available services."""
+        """Get available services from TextVerified."""
         try:
+            from textverified import ReservationType
             services = self.client.services.list(
                 number_type=NumberType.MOBILE,
-                reservation_type="verification"
+                reservation_type=ReservationType.VERIFICATION
             )
             result = []
+            seen_names = set()
+            
             for service in services:
-                if hasattr(service, 'service_name'):
-                    svc_name = service.service_name
-                elif hasattr(service, 'name'):
-                    svc_name = service.name
-                else:
-                    svc_name = str(service)
+                # Extract service name from SDK object
+                svc_name = getattr(service, 'service_name', None) or getattr(service, 'name', str(service))
                 
+                # Skip duplicates
+                if svc_name in seen_names:
+                    continue
+                    
+                seen_names.add(svc_name)
                 result.append({
-                    "id": svc_name.lower(),
+                    "id": svc_name.lower().replace(" ", ""),
                     "name": svc_name,
-                    "category": "messaging",
+                    "category": "messaging"
                 })
             return result
         except Exception as e:
-            logger.error(f"Failed to get services: {e}")
+            logger.error(f"Failed to get services from TextVerified: {e}")
             return []
 
     async def get_area_codes(self) -> List[Dict[str, Any]]:

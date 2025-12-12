@@ -10,61 +10,49 @@ let verificationState = {
 };
 
 async function initVerificationModal() {
-  await loadCountries();
+  verificationState.country = 'usa';
+  await loadServices();
 }
 
-async function loadCountries() {
-  try {
-    const response = await fetch('/api/countries/');
-    const data = await response.json();
-    verificationState.countries = data.countries || [];
-    
-    const select = document.getElementById('country-select');
-    if (!select) return;
-    
-    select.innerHTML = '<option value="">-- Select Country --</option>';
-    
-    verificationState.countries.forEach(country => {
-      const option = document.createElement('option');
-      option.value = country.code;
-      option.textContent = `${country.name} (${country.code})`;
-      select.appendChild(option);
-    });
-  } catch (error) {
-    console.error('Failed to load countries:', error);
-  }
-}
-
-async function onCountryChange() {
-  const country = document.getElementById('country-select').value;
-  verificationState.country = country;
+async function loadServices() {
+  const select = document.getElementById('serviceSelect');
+  if (!select) return;
   
-  if (!country) {
-    document.getElementById('service-select').innerHTML = '<option value="">-- Select Service --</option>';
-    return;
-  }
-
+  select.innerHTML = '<option value="">Loading services...</option>';
+  select.disabled = true;
+  
   try {
-    const response = await fetch(`/api/countries/${country}/services`);
+    const response = await fetch('/api/countries/usa/services');
     const data = await response.json();
-    verificationState.services[country] = data.services || [];
     
-    const select = document.getElementById('service-select');
-    select.innerHTML = '<option value="">-- Select Service --</option>';
+    if (!data.success || !data.services) {
+      console.error('Failed to load services:', data);
+      select.innerHTML = '<option value="">Failed to load services</option>';
+      return;
+    }
     
-    verificationState.services[country].forEach(service => {
+    verificationState.services['usa'] = data.services;
+    select.innerHTML = '<option value="">Choose a service...</option>';
+    
+    data.services.forEach(service => {
       const option = document.createElement('option');
       option.value = service.name;
       option.textContent = service.name;
       select.appendChild(option);
     });
+    
+    select.disabled = false;
+    console.log(`✅ Loaded ${data.services.length} services`);
   } catch (error) {
-    console.error('Failed to load services:', error);
+    console.error('❌ Failed to load services:', error);
+    select.innerHTML = '<option value="">Error loading services</option>';
   }
 }
 
+// Country change not needed - USA only
+
 function onServiceChange() {
-  const service = document.getElementById('service-select').value;
+  const service = document.getElementById('serviceSelect').value;
   verificationState.service = service;
   
   if (service && verificationState.country) {
@@ -78,11 +66,6 @@ function onServiceChange() {
 }
 
 function goToStep(step) {
-  if (step === 2 && !verificationState.country) {
-    alert('Please select a country');
-    return;
-  }
-  
   if (step === 3 && !verificationState.service) {
     alert('Please select a service');
     return;
@@ -101,8 +84,7 @@ function goToStep(step) {
   document.querySelector(`[data-step="${step}"]`).classList.add('active');
 
   if (step === 3) {
-    const countryName = document.querySelector(`option[value="${verificationState.country}"]`)?.textContent || verificationState.country;
-    document.getElementById('confirm-country').textContent = countryName;
+    document.getElementById('confirm-country').textContent = 'United States';
     document.getElementById('confirm-service').textContent = verificationState.service;
     document.getElementById('confirm-cost').textContent = `$${verificationState.cost.toFixed(2)}`;
     
@@ -201,10 +183,10 @@ function copyToClipboard(elementId) {
   });
 }
 
-function openVerificationModal() {
+async function openVerificationModal() {
   document.getElementById('verification-modal').style.display = 'flex';
-  initVerificationModal();
-  goToStep(1);
+  goToStep(2);
+  await initVerificationModal();
 }
 
 function closeVerificationModal() {
@@ -229,7 +211,6 @@ function closeVerificationModal() {
 window.openVerificationModal = openVerificationModal;
 window.closeVerificationModal = closeVerificationModal;
 window.goToStep = goToStep;
-window.onCountryChange = onCountryChange;
 window.onServiceChange = onServiceChange;
 window.purchaseVerification = purchaseVerification;
 window.copyToClipboard = copyToClipboard;

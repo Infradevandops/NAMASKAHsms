@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Namaskah - Authentication">
+  <meta name="csrf-token" content="{{ csrf_token }}">
   <title>Namaskah - Sign In</title>
   
   <style>
@@ -303,28 +304,59 @@
       hideSuccess();
     }
 
+    function validateEmail(email) {
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function validatePassword(password) {
+      return password && password.length >= 8;
+    }
+
     async function handleLogin(e) {
       e.preventDefault();
       
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
 
+      // Validation
+      if (!email || !password) {
+        showError('Email and password are required');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        showError('Please enter a valid email address');
+        return;
+      }
+
+      if (!validatePassword(password)) {
+        showError('Password must be at least 8 characters');
+        return;
+      }
+
       showLoading(true);
       hideError();
       hideSuccess();
 
       try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         const response = await axios.post('/api/auth/login', {
           email,
           password
+        }, {
+          headers: {
+            'X-CSRF-Token': csrfToken
+          }
         });
 
-        // Store token in both localStorage and cookie for auth
-        localStorage.setItem('access_token', response.data.access_token);
-        document.cookie = `access_token=${response.data.access_token}; path=/; max-age=86400; SameSite=Lax`;
-        if (response.data.refresh_token) {
-          document.cookie = `refresh_token=${response.data.refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
+        // Store tokens in localStorage for auth-check.js
+        if (response.data.access_token) {
+          localStorage.setItem('access_token', response.data.access_token);
+          localStorage.setItem('refresh_token', response.data.refresh_token);
+          localStorage.setItem('token_expires_at', Date.now() + (response.data.expires_in * 1000));
+          localStorage.setItem('user_email', response.data.user?.email || email);
         }
+
         showSuccess('Login successful! Redirecting...');
         setTimeout(() => {
           window.location.href = '/dashboard';
@@ -336,6 +368,11 @@
       }
     }
 
+    function validatePasswordStrength(password) {
+      // At least 8 chars, 1 uppercase, 1 number, 1 special char
+      return /^(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+    }
+
     async function handleRegister(e) {
       e.preventDefault();
       
@@ -343,8 +380,14 @@
       const password = document.getElementById('register-password').value;
       const confirm = document.getElementById('register-confirm').value;
 
-      if (password !== confirm) {
-        showError('Passwords do not match');
+      // Validation
+      if (!email || !password || !confirm) {
+        showError('All fields are required');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        showError('Please enter a valid email address');
         return;
       }
 
@@ -353,22 +396,39 @@
         return;
       }
 
+      if (!validatePasswordStrength(password)) {
+        showError('Password must contain uppercase, number, and special character (@$!%*?&)');
+        return;
+      }
+
+      if (password !== confirm) {
+        showError('Passwords do not match');
+        return;
+      }
+
       showLoading(true);
       hideError();
       hideSuccess();
 
       try {
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
         const response = await axios.post('/api/auth/register', {
           email,
           password
+        }, {
+          headers: {
+            'X-CSRF-Token': csrfToken
+          }
         });
 
-        // Store token in both localStorage and cookie for auth
-        localStorage.setItem('access_token', response.data.access_token);
-        document.cookie = `access_token=${response.data.access_token}; path=/; max-age=86400; SameSite=Lax`;
-        if (response.data.refresh_token) {
-          document.cookie = `refresh_token=${response.data.refresh_token}; path=/; max-age=2592000; SameSite=Lax`;
+        // Store tokens in localStorage for auth-check.js
+        if (response.data.access_token) {
+          localStorage.setItem('access_token', response.data.access_token);
+          localStorage.setItem('refresh_token', response.data.refresh_token);
+          localStorage.setItem('token_expires_at', Date.now() + (response.data.expires_in * 1000));
+          localStorage.setItem('user_email', response.data.user?.email || email);
         }
+
         showSuccess('Account created! Redirecting...');
         setTimeout(() => {
           window.location.href = '/dashboard';

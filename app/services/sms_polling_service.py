@@ -56,10 +56,15 @@ class SMSPollingService:
                     logger.info(f"Verification {verification_id} no longer pending, stopping poll")
                     break
 
+                # Use activation_id (TextVerified's ID) not our internal verification_id
+                if not verification.activation_id:
+                    logger.warning(f"No activation_id for verification {verification_id}, stopping poll")
+                    break
+                
                 try:
-                    sms_data = await self.textverified.check_sms(verification_id)
+                    sms_data = await self.textverified.check_sms(verification.activation_id)
                 except Exception as e:
-                    logger.warning(f"TextVerified check failed for {phone_number}: {str(e)}")
+                    logger.warning(f"TextVerified check failed for {verification.activation_id}: {str(e)}")
                     await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                     attempt += 1
                     continue

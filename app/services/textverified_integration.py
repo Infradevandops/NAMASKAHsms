@@ -77,11 +77,17 @@ class TextVerifiedIntegration:
         service: str,
         duration_days: int,
         renewable: bool = False,
+        area_code: Optional[str] = None,
+        carrier: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Create real phone number rental."""
+        """Create real phone number rental with optional area code and carrier."""
         try:
             result = await self.client.create_rental(
-                service=service, duration_days=duration_days, renewable=renewable
+                service=service,
+                duration_days=duration_days,
+                renewable=renewable,
+                area_code=area_code,
+                carrier=carrier
             )
             logger.info(f"Rental created: {result['id']}")
             return result
@@ -112,7 +118,7 @@ class TextVerifiedIntegration:
     async def get_services_list(self, force_refresh: bool = False) -> List[Dict[str, Any]]:
         """Get available services with caching."""
         import json
-        cache_key = "textverified:services"
+        cache_key = "textverified:services_v3"
 
         if not force_refresh:
             cached = await self.cache.get(cache_key)
@@ -120,7 +126,25 @@ class TextVerifiedIntegration:
                 return json.loads(cached)
 
         try:
-            services = await self.client.get_services()
+            raw_services = await self.client.get_services()
+            # Format for frontend: {id, name, cost, category}
+            services = []
+            seen_ids = set()
+            
+            for svc in raw_services:
+                svc_id = svc.get("id", svc.get("name", "").lower())
+                
+                # Skip duplicates
+                if svc_id in seen_ids:
+                    continue
+                    
+                seen_ids.add(svc_id)
+                services.append({
+                    "id": svc_id,
+                    "name": svc.get("name", "Unknown"),
+                    "cost": 2.00,  # Default, will be fetched via pricing API
+                    "category": svc.get("category", "other")
+                })
             await self.cache.set(cache_key, json.dumps(services), ttl=3600)
             return services
         except Exception as e:

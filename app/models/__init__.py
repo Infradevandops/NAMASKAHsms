@@ -9,7 +9,6 @@ from .system import (
 )
 from .transaction import PaymentLog, Transaction
 from .user import (
-    APIKey,
     NotificationPreferences,
     NotificationSettings,
     Referral,
@@ -17,6 +16,7 @@ from .user import (
     User,
     Webhook,
 )
+from .api_key import APIKey  # Import from separate api_key module
 from .verification import NumberRental, Verification, VerificationReceipt
 from .whitelabel import WhiteLabelConfig
 from .whitelabel_enhanced import (
@@ -49,6 +49,7 @@ __all__ = [
     "Referral",
     "Subscription",
     "NotificationPreferences",
+    "UserPreference",
     # Verification models
     "Verification",
     "NumberRental",

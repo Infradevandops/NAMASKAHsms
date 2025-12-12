@@ -1,938 +1,924 @@
 /**
- * Namaskah Dashboard - Main JavaScript
- * Single source of truth for dashboard functionality
+ * Namaskah Dashboard - Refactored Main Entry Point
+ * Uses modular architecture with StateManager, API layer, and event bus
  */
-(function() {
-    'use strict';
 
-    // State
-    const state = {
-        user: null,
-        balance: 0,
-        currentView: 'home',
-        verification: {
-            step: 1,
-            country: null,
-            service: null,
-            cost: 0,
-            verificationId: null,
-            pollingInterval: null,
-            countries: [],
-            services: {}
-        }
-    };
+import { stateManager } from './modules/state.js';
+import { api } from './modules/api.js';
+import { handleError, logError } from './modules/errors.js';
+import { validateVerification } from './modules/validation.js';
+import { showToast, hideModals, escapeHtml, formatDate, updateBalanceDisplay, showLoading, hideLoading } from './modules/ui.js';
+import { cache } from './utils/cache.js';
+import { eventBus, events } from './utils/events.js';
 
-    // DOM Ready
-    document.addEventListener('DOMContentLoaded', init);
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', init);
 
-    function init() {
-        setupEventListeners();
-        loadUserData();
-        loadBalance();
-        setupViewSwitching();
-        hideModals();
+/**
+ * Initialize dashboard
+ * @returns {void}
+ */
+function init() {
+  setupEventListeners();
+  setupOfflineDetection();
+  hideModals();
+  setupViewSwitching();
+
+  // Load recent activity
+  loadRecentActivity();
+
+  // Load user data with error handling
+  loadUserData().catch(err => {
+    console.error('Failed to load user data:', err);
+    showToast('Could not load user profile. Using defaults.', 'warning');
+  });
+
+  loadBalance().catch(err => {
+    console.error('Failed to load balance:', err);
+    showToast('Could not load balance. Please refresh.', 'warning');
+  });
+}
+
+/**
+ * Setup event listeners
+ * @returns {void}
+ */
+function setupEventListeners() {
+  // Sidebar toggle
+  const sidebarToggle = document.getElementById('sidebar-toggle');
+  if (sidebarToggle) {
+    sidebarToggle.addEventListener('click', toggleSidebar);
+  }
+
+  // User menu
+  const userAvatarBtn = document.getElementById('user-avatar-btn');
+  if (userAvatarBtn) {
+    userAvatarBtn.addEventListener('click', toggleUserDropdown);
+  }
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', function (e) {
+    const dropdown = document.getElementById('user-dropdown');
+    const avatarBtn = document.getElementById('user-avatar-btn');
+    if (dropdown && !dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
+      dropdown.classList.remove('show');
+    }
+  });
+
+  // Logout buttons
+  document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
+  document.getElementById('dropdown-logout')?.addEventListener('click', handleLogout);
+
+  // Verification modal
+  document.getElementById('new-verification-btn')?.addEventListener('click', openVerificationModal);
+  document.getElementById('quick-verification-btn')?.addEventListener('click', openVerificationModal);
+  document.getElementById('verification-close-btn')?.addEventListener('click', closeVerificationModal);
+  document.getElementById('step1-cancel')?.addEventListener('click', closeVerificationModal);
+  document.getElementById('step1-next')?.addEventListener('click', () => goToVerificationStep(2));
+  document.getElementById('step2-back')?.addEventListener('click', () => goToVerificationStep(1));
+  document.getElementById('step2-next')?.addEventListener('click', () => goToVerificationStep(3));
+  document.getElementById('step3-back')?.addEventListener('click', () => goToVerificationStep(2));
+  document.getElementById('step3-purchase')?.addEventListener('click', purchaseVerification);
+  document.getElementById('step4-close')?.addEventListener('click', closeVerificationModal);
+
+  // Area code and service selects
+  document.getElementById('area-code-select')?.addEventListener('change', onAreaCodeChange);
+  document.getElementById('service-select')?.addEventListener('change', onServiceChange);
+  document.getElementById('carrier-select')?.addEventListener('change', onCarrierChange);
+
+  // Close modals on Escape key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') {
+      hideModals();
+    }
+  });
+
+  // Refresh balance on window focus
+  window.addEventListener('focus', loadBalance);
+
+  setupCreditHandlers();
+  setupRentalHandlers();
+}
+
+/**
+ * Setup offline detection
+ * @returns {void}
+ */
+function setupOfflineDetection() {
+  window.addEventListener('online', () => {
+    showToast('Back online! Syncing data...', 'success');
+    loadUserData();
+    loadBalance();
+  });
+
+  window.addEventListener('offline', () => {
+    showToast('You are offline. Some features may not work.', 'warning');
+  });
+
+  if (!navigator.onLine) {
+    showToast('You are offline. Some features may not work.', 'warning');
+  }
+}
+
+/**
+ * Toggle sidebar
+ * @returns {void}
+ */
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
+  }
+}
+
+/**
+ * Toggle user dropdown
+ * @returns {void}
+ */
+function toggleUserDropdown() {
+  const dropdown = document.getElementById('user-dropdown');
+  if (dropdown) {
+    dropdown.classList.toggle('show');
+  }
+}
+
+/**
+ * Load user data
+ * @async
+ * @returns {void}
+ */
+async function loadUserData() {
+  try {
+    // Set a timeout to prevent hanging (increased to 10s)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch('/api/user/profile', {
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        showToast('Session expired. Redirecting to login...', 'warning');
+        setTimeout(() => window.location.href = '/auth/login', 1500);
+        return;
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const user = await response.json();
+    stateManager.setState({ user });
+
+    const emailEl = document.getElementById('dropdown-email');
+    const initialsEl = document.getElementById('user-initials');
+
+    if (emailEl) emailEl.textContent = user.email || 'User';
+    if (initialsEl) {
+      const initials = (user.email || 'U').charAt(0).toUpperCase();
+      initialsEl.textContent = initials;
+    }
+  } catch (error) {
+    logError('loadUserData', error);
+
+    // Set default user display if endpoint fails
+    const emailEl = document.getElementById('dropdown-email');
+    const initialsEl = document.getElementById('user-initials');
+    if (emailEl) emailEl.textContent = 'User';
+    if (initialsEl) initialsEl.textContent = 'U';
+
+    // Only show error if it's not an abort (timeout is expected if server is down)
+    if (error.name !== 'AbortError') {
+      console.warn('Could not load user profile:', error.message);
+    }
+  }
+}
+
+/**
+ * Handle logout
+ * @async
+ * @param {Event} e - Event object
+ * @returns {void}
+ */
+async function handleLogout(e) {
+  e.preventDefault();
+  if (!confirm('Are you sure you want to logout?')) return;
+
+  try {
+    await fetch('/api/auth/logout', { method: 'POST' });
+  } catch (error) {
+    logError('handleLogout', error);
+  }
+  localStorage.clear();
+  window.location.href = '/auth/login';
+}
+
+/**
+ * Load balance
+ * @async
+ * @returns {void}
+ */
+async function loadBalance() {
+  try {
+    // Set a timeout to prevent hanging (increased to 10s)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    const response = await fetch('/api/user/balance', {
+      headers: { 'Cache-Control': 'no-cache' },
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        showToast('Session expired. Redirecting to login...', 'warning');
+        setTimeout(() => window.location.href = '/auth/login', 1500);
+        return;
+      }
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    const data = await response.json();
+    const balance = parseFloat(data.credits) || 0;
+    stateManager.setState({ balance });
+    updateBalanceDisplay(balance);
+  } catch (error) {
+    logError('loadBalance', error);
+
+    // Set default balance if endpoint fails
+    updateBalanceDisplay(0);
+
+    // Only show error if it's not an abort
+    if (error.name !== 'AbortError') {
+      console.warn('Could not load balance:', error.message);
+    }
+  }
+}
+
+/**
+ * Setup view switching
+ * @returns {void}
+ */
+function setupViewSwitching() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const view = urlParams.get('view') || 'home';
+  switchView(view);
+
+  document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+    item.addEventListener('click', function (e) {
+      e.preventDefault();
+      const targetView = this.getAttribute('data-view');
+      switchView(targetView);
+      updateURL(targetView);
+    });
+  });
+
+  if (localStorage.getItem('sidebarCollapsed') === 'true') {
+    document.getElementById('sidebar')?.classList.add('collapsed');
+  }
+}
+
+/**
+ * Switch view
+ * @param {string} viewName - View name
+ * @returns {void}
+ */
+function switchView(viewName) {
+  stateManager.setState({ currentView: viewName });
+
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const targetView = document.getElementById(`${viewName}-view`);
+  if (targetView) {
+    targetView.classList.add('active');
+  }
+
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+    if (item.getAttribute('data-view') === viewName) {
+      item.classList.add('active');
+    }
+  });
+
+  // Initialize view content
+  switch (viewName) {
+    case 'rentals':
+      loadRentalsView();
+      break;
+    case 'wallet':
+      loadWalletView();
+      break;
+    case 'profile':
+      loadProfileView();
+      break;
+    case 'settings':
+      loadSettingsView();
+      break;
+  }
+}
+
+/**
+ * Update URL
+ * @param {string} view - View name
+ * @returns {void}
+ */
+function updateURL(view) {
+  const url = view === 'home' ? '/dashboard' : `/dashboard?view=${view}`;
+  window.history.pushState({ view }, '', url);
+}
+
+/**
+ * Open verification modal
+ * @returns {void}
+ */
+function openVerificationModal() {
+  const modal = document.getElementById('verification-modal');
+  if (modal) {
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+    resetVerificationState();
+    loadAreaCodes();
+    loadCarriers();
+    goToVerificationStep(1);
+  }
+}
+
+/**
+ * Close verification modal
+ * @returns {void}
+ */
+function closeVerificationModal() {
+  const modal = document.getElementById('verification-modal');
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  const state = stateManager.getState();
+  if (state.verification.pollingInterval) {
+    clearInterval(state.verification.pollingInterval);
+  }
+}
+
+/**
+ * Reset verification state
+ * @returns {void}
+ */
+function resetVerificationState() {
+  stateManager.setState({
+    verification: {
+      step: 1,
+      areaCode: null,
+      service: null,
+      carrier: null,
+      cost: 0,
+      verificationId: null,
+      pollingInterval: null,
+      areaCodes: [],
+      services: [],
+      carriers: []
+    }
+  });
+
+  document.getElementById('area-code-select').value = '';
+  document.getElementById('service-select').innerHTML = '<option value="">-- Select Service --</option>';
+  document.getElementById('carrier-select').innerHTML = '<option value="">-- Any Carrier --</option>';
+}
+
+/**
+ * Load area codes
+ * @async
+ * @returns {void}
+ */
+async function loadAreaCodes() {
+  try {
+    showLoading('area-code-select');
+
+    const cached = cache.get('areaCodes');
+    let data;
+
+    if (cached) {
+      data = cached;
+    } else {
+      const response = await api.getAreaCodes();
+      if (!response.success) throw new Error('Failed to load area codes');
+      data = response;
+      cache.set('areaCodes', data, 86400000); // 24 hours
     }
 
-    // ==================== Event Listeners ====================
-    function setupEventListeners() {
-        // Sidebar toggle
-        const sidebarToggle = document.getElementById('sidebar-toggle');
-        if (sidebarToggle) {
-            sidebarToggle.addEventListener('click', toggleSidebar);
-        }
+    const select = document.getElementById('area-code-select');
+    select.innerHTML = '<option value="">-- Select Area Code --</option>';
 
-        // User menu
-        const userAvatarBtn = document.getElementById('user-avatar-btn');
-        if (userAvatarBtn) {
-            userAvatarBtn.addEventListener('click', toggleUserDropdown);
-        }
-
-        // Close dropdown when clicking outside
-        document.addEventListener('click', function(e) {
-            const dropdown = document.getElementById('user-dropdown');
-            const avatarBtn = document.getElementById('user-avatar-btn');
-            if (dropdown && !dropdown.contains(e.target) && !avatarBtn.contains(e.target)) {
-                dropdown.classList.remove('show');
-            }
-        });
-
-        // Logout buttons
-        document.getElementById('logout-btn')?.addEventListener('click', handleLogout);
-        document.getElementById('dropdown-logout')?.addEventListener('click', handleLogout);
-
-        // Verification modal
-        document.getElementById('new-verification-btn')?.addEventListener('click', openVerificationModal);
-        document.getElementById('quick-verification-btn')?.addEventListener('click', openVerificationModal);
-        document.getElementById('verification-close-btn')?.addEventListener('click', closeVerificationModal);
-        document.getElementById('step1-cancel')?.addEventListener('click', closeVerificationModal);
-        document.getElementById('step1-next')?.addEventListener('click', () => goToVerificationStep(2));
-        document.getElementById('step2-back')?.addEventListener('click', () => goToVerificationStep(1));
-        document.getElementById('step2-next')?.addEventListener('click', () => goToVerificationStep(3));
-        document.getElementById('step3-back')?.addEventListener('click', () => goToVerificationStep(2));
-        document.getElementById('step3-purchase')?.addEventListener('click', purchaseVerification);
-        document.getElementById('step4-close')?.addEventListener('click', closeVerificationModal);
-        document.getElementById('step4-copy')?.addEventListener('click', () => copyToClipboard('code-value'));
-        document.getElementById('copy-phone-btn')?.addEventListener('click', () => copyToClipboard('phone-value'));
-        document.getElementById('copy-code-btn')?.addEventListener('click', () => copyToClipboard('code-value'));
-
-        // Country/Service selects
-        document.getElementById('country-select')?.addEventListener('change', onCountryChange);
-        document.getElementById('service-select')?.addEventListener('change', onServiceChange);
-
-        // Credits modal
-        document.getElementById('quick-credits-btn')?.addEventListener('click', openCreditsModal);
-        document.getElementById('add-credits-btn')?.addEventListener('click', openCreditsModal);
-        document.getElementById('credits-close-btn')?.addEventListener('click', closeCreditsModal);
-        document.getElementById('credits-cancel-btn')?.addEventListener('click', closeCreditsModal);
-        document.getElementById('credits-proceed-btn')?.addEventListener('click', proceedToPayment);
-
-        // Package selection
-        document.querySelectorAll('.package').forEach(pkg => {
-            pkg.addEventListener('click', function() {
-                selectPackage(this);
-            });
-        });
-
-        // Close modals on overlay click
-        document.querySelectorAll('.modal-overlay').forEach(overlay => {
-            overlay.addEventListener('click', function(e) {
-                if (e.target === this) {
-                    hideModals();
-                }
-            });
-        });
-
-        // Close modals on Escape key
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                hideModals();
-            }
-        });
-
-        // Refresh balance on window focus
-        window.addEventListener('focus', loadBalance);
+    // Check tier access
+    if (window.tierManager && !window.tierManager.checkFeatureAccess('area_codes')) {
+      window.tierManager.lockFeature(select.parentElement, 'area_codes', 'starter');
+      select.disabled = true;
+      return;
     }
 
-    // ==================== Sidebar ====================
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        if (sidebar) {
-            sidebar.classList.toggle('collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-        }
-    }
-
-    // ==================== User Menu ====================
-    function toggleUserDropdown() {
-        const dropdown = document.getElementById('user-dropdown');
-        if (dropdown) {
-            dropdown.classList.toggle('show');
-        }
-    }
-
-    async function loadUserData() {
-        try {
-            const response = await fetch('/api/user/profile');
-            if (!response.ok) return;
-            const user = await response.json();
-            state.user = user;
-            
-            const emailEl = document.getElementById('dropdown-email');
-            const initialsEl = document.getElementById('user-initials');
-            
-            if (emailEl) emailEl.textContent = user.email || 'User';
-            if (initialsEl) {
-                const initials = (user.email || 'U').charAt(0).toUpperCase();
-                initialsEl.textContent = initials;
-            }
-        } catch (error) {
-            console.error('Failed to load user data:', error);
-        }
-    }
-
-    async function handleLogout(e) {
-        e.preventDefault();
-        if (!confirm('Are you sure you want to logout?')) return;
-        
-        try {
-            await fetch('/api/auth/logout', { method: 'POST' });
-        } catch (error) {
-            console.error('Logout error:', error);
-        }
-        localStorage.clear();
-        window.location.href = '/auth/login';
-    }
-
-    // ==================== Balance ====================
-    async function loadBalance() {
-        try {
-            const response = await fetch('/api/user/balance', {
-                headers: { 'Cache-Control': 'no-cache' }
-            });
-            if (!response.ok) return;
-            const data = await response.json();
-            state.balance = parseFloat(data.credits) || 0;
-            updateBalanceDisplay();
-        } catch (error) {
-            console.error('Failed to load balance:', error);
-        }
-    }
-
-    function updateBalanceDisplay() {
-        const formatted = '$' + state.balance.toFixed(2);
-        const elements = [
-            document.getElementById('header-balance'),
-            document.getElementById('stat-balance'),
-            document.getElementById('wallet-balance')
-        ];
-        elements.forEach(el => {
-            if (el) el.textContent = formatted;
-        });
-    }
-
-    // Global sync function
-    window.syncBalance = loadBalance;
-
-    // ==================== View Switching ====================
-    function setupViewSwitching() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const view = urlParams.get('view') || 'home';
-        switchView(view);
-
-        document.querySelectorAll('.nav-item[data-view]').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                const targetView = this.getAttribute('data-view');
-                switchView(targetView);
-                updateURL(targetView);
-            });
-        });
-
-        // Restore sidebar state
-        if (localStorage.getItem('sidebarCollapsed') === 'true') {
-            document.getElementById('sidebar')?.classList.add('collapsed');
-        }
-    }
-
-    function switchView(viewName) {
-        state.currentView = viewName;
-        
-        // Hide all views
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        
-        // Show target view
-        const targetView = document.getElementById(`${viewName}-view`);
-        if (targetView) {
-            targetView.classList.add('active');
-        }
-
-        // Update nav active state
-        document.querySelectorAll('.nav-item').forEach(item => {
-            item.classList.remove('active');
-            if (item.getAttribute('data-view') === viewName) {
-                item.classList.add('active');
-            }
-        });
-
-        // Update page title
-        const titles = {
-            home: 'Dashboard',
-            rentals: 'Rentals',
-            wallet: 'Wallet',
-            profile: 'Profile',
-            settings: 'Settings'
-        };
-        const titleEl = document.getElementById('page-title');
-        if (titleEl) titleEl.textContent = titles[viewName] || 'Dashboard';
-
-        // Load view-specific content
-        loadViewContent(viewName);
-    }
-
-    function updateURL(view) {
-        const url = view === 'home' ? '/dashboard' : `/dashboard?view=${view}`;
-        window.history.pushState({ view }, '', url);
-    }
-
-    window.addEventListener('popstate', function(e) {
-        const view = e.state?.view || 'home';
-        switchView(view);
+    data.area_codes.forEach(code => {
+      const option = document.createElement('option');
+      option.value = code.area_code;
+      option.textContent = `${code.area_code} (${code.state})`;
+      select.appendChild(option);
     });
 
-    // ==================== View Content Loading ====================
-    function loadViewContent(viewName) {
-        switch (viewName) {
-            case 'home':
-                loadDashboardStats();
-                loadRecentActivity();
-                break;
-            case 'rentals':
-                loadRentals();
-                break;
-            case 'wallet':
-                loadTransactions();
-                break;
-            case 'profile':
-                loadProfile();
-                break;
-            case 'settings':
-                loadSettings();
-                break;
-        }
+    console.log(`Loaded ${data.area_codes.length} area codes`);
+  } catch (error) {
+    logError('loadAreaCodes', error);
+    showToast(handleError(error), 'error');
+  } finally {
+    hideLoading('area-code-select');
+  }
+}
+
+/**
+ * Load carriers
+ * @async
+ * @returns {void}
+ */
+async function loadCarriers() {
+  try {
+    const cached = cache.get('carriers');
+    let data;
+
+    if (cached) {
+      data = cached;
+    } else {
+      const response = await api.getCarriers();
+      if (!response.success) throw new Error('Failed to load carriers');
+      data = response;
+      cache.set('carriers', data, 86400000); // 24 hours
     }
 
+    const select = document.getElementById('carrier-select');
+    select.innerHTML = '<option value="">-- Any Carrier --</option>';
 
-    async function loadDashboardStats() {
-        try {
-            const response = await fetch('/api/dashboard/stats');
-            if (!response.ok) return;
-            const data = await response.json();
-            
-            const statsMap = {
-                'stat-verifications': data.total_verifications || 0,
-                'stat-success-rate': (data.success_rate || 0) + '%',
-                'stat-rentals': data.active_rentals || 0
-            };
-            
-            Object.entries(statsMap).forEach(([id, value]) => {
-                const el = document.getElementById(id);
-                if (el) el.textContent = value;
-            });
-        } catch (error) {
-            console.error('Failed to load stats:', error);
-        }
+    // Check tier access
+    if (window.tierManager && !window.tierManager.checkFeatureAccess('isp_filter')) {
+      window.tierManager.lockFeature(select.parentElement, 'isp_filter', 'turbo');
+      select.disabled = true;
+      return;
     }
 
-    async function loadRecentActivity() {
-        const container = document.getElementById('recent-activity');
-        if (!container) return;
+    data.carriers.forEach(carrier => {
+      const option = document.createElement('option');
+      option.value = carrier.id;
+      option.textContent = carrier.name;
+      select.appendChild(option);
+    });
 
-        try {
-            const response = await fetch('/api/dashboard/activity/recent');
-            if (!response.ok) throw new Error('Failed to load');
-            const data = await response.json();
-            
-            if (!data.activities || data.activities.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="ph ph-clock"></i><p>No recent activity</p></div>';
-                return;
-            }
+    console.log(`Loaded ${data.carriers.length} carriers`);
+  } catch (error) {
+    logError('loadCarriers', error);
+    showToast(handleError(error), 'error');
+  }
+}
 
-            container.innerHTML = data.activities.map(activity => `
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <div class="activity-service">${escapeHtml(activity.service_name || 'Unknown')}</div>
-                        <div class="activity-details">${escapeHtml(activity.phone_number || '')} • $${(activity.cost || 0).toFixed(2)}</div>
-                    </div>
-                    <span class="activity-status status-${activity.status || 'pending'}">${activity.status || 'pending'}</span>
-                </div>
-            `).join('');
-        } catch (error) {
-            container.innerHTML = '<div class="empty-state"><p>Unable to load activity</p></div>';
-        }
+/**
+ * Handle area code change
+ * @async
+ * @returns {void}
+ */
+async function onAreaCodeChange() {
+  const areaCode = document.getElementById('area-code-select').value;
+  stateManager.setState({ verification: { areaCode } });
+  eventBus.emit(events.AREA_CODE_CHANGED, areaCode);
+
+  await loadServices(areaCode);
+  await updatePricing();
+}
+
+/**
+ * Load services
+ * @async
+ * @param {string} areaCode - Area code
+ * @returns {void}
+ */
+async function loadServices(areaCode) {
+  try {
+    showLoading('service-select');
+
+    const cacheKey = `services_${areaCode}`;
+    const cached = cache.get(cacheKey);
+    let data;
+
+    if (cached) {
+      data = cached;
+    } else {
+      const response = await api.getServices(areaCode);
+      if (!response.success) throw new Error('Failed to load services');
+      data = response;
+      cache.set(cacheKey, data, 3600000); // 1 hour
     }
 
-    async function loadRentals() {
-        const container = document.getElementById('rentals-list');
-        if (!container) return;
+    const select = document.getElementById('service-select');
+    select.innerHTML = '<option value="">-- Select Service --</option>';
 
-        try {
-            const response = await fetch('/api/rentals/active');
-            if (!response.ok) throw new Error('Failed to load');
-            const data = await response.json();
-            
-            if (!data.rentals || data.rentals.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="ph ph-phone"></i><p>No active rentals</p><button class="btn btn-primary btn-sm" onclick="openRentalModal()">Get a Rental</button></div>';
-                return;
-            }
+    data.services.forEach(service => {
+      const option = document.createElement('option');
+      option.value = service.name;
+      option.textContent = service.name;
+      option.dataset.cost = service.cost || 0;
+      select.appendChild(option);
+    });
 
-            container.innerHTML = data.rentals.map(rental => `
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <div class="activity-service">${escapeHtml(rental.phone_number)}</div>
-                        <div class="activity-details">${escapeHtml(rental.service)} • Expires: ${formatDate(rental.expires_at)}</div>
-                    </div>
-                    <span class="activity-status status-${rental.status}">${rental.status}</span>
-                </div>
-            `).join('');
-        } catch (error) {
-            container.innerHTML = '<div class="empty-state"><p>Unable to load rentals</p></div>';
-        }
+    console.log(`Loaded ${data.services.length} services`);
+  } catch (error) {
+    logError('loadServices', error);
+    showToast(handleError(error), 'error');
+  } finally {
+    hideLoading('service-select');
+  }
+}
+
+/**
+ * Handle service change
+ * @returns {void}
+ */
+function onServiceChange() {
+  const service = document.getElementById('service-select').value;
+  stateManager.setState({ verification: { service } });
+  eventBus.emit(events.SERVICE_CHANGED, service);
+  updatePricing();
+}
+
+/**
+ * Handle carrier change
+ * @returns {void}
+ */
+function onCarrierChange() {
+  const carrier = document.getElementById('carrier-select').value;
+  stateManager.setState({ verification: { carrier } });
+  eventBus.emit(events.CARRIER_CHANGED, carrier);
+  updatePricing();
+}
+
+/**
+ * Update pricing
+ * @async
+ * @returns {void}
+ */
+async function updatePricing() {
+  const state = stateManager.getState();
+  const service = state.verification.service;
+  const areaCode = state.verification.areaCode || 'any';
+  const carrier = state.verification.carrier || 'any';
+
+  if (!service) return;
+
+  try {
+    const cacheKey = `pricing_${service}_${areaCode}_${carrier}`;
+    const cached = cache.get(cacheKey);
+    let pricing;
+
+    if (cached) {
+      pricing = cached;
+    } else {
+      pricing = await api.getPricing(service, areaCode, carrier);
+      cache.set(cacheKey, pricing, 300000); // 5 minutes
     }
 
-    async function loadTransactions() {
-        const container = document.getElementById('transactions-list');
-        if (!container) return;
+    const priceEl = document.getElementById('service-price');
+    priceEl.innerHTML = `
+      <div class="pricing-breakdown">
+        <div class="pricing-line">
+          <span>Base price:</span>
+          <span>$${pricing.base_price.toFixed(2)}</span>
+        </div>
+        ${pricing.area_code_premium > 0 ? `
+          <div class="pricing-line">
+            <span>Area code premium:</span>
+            <span>+$${pricing.area_code_premium.toFixed(2)}</span>
+          </div>
+        ` : ''}
+        ${pricing.carrier_premium > 0 ? `
+          <div class="pricing-line">
+            <span>Carrier premium:</span>
+            <span>+$${pricing.carrier_premium.toFixed(2)}</span>
+          </div>
+        ` : ''}
+        <div class="pricing-line total">
+          <span>Total:</span>
+          <span>$${pricing.total_price.toFixed(2)}</span>
+        </div>
+      </div>
+    `;
 
-        try {
-            const response = await fetch('/api/billing/transactions?limit=20');
-            if (!response.ok) throw new Error('Failed to load');
-            const data = await response.json();
-            
-            if (!data.transactions || data.transactions.length === 0) {
-                container.innerHTML = '<div class="empty-state"><i class="ph ph-receipt"></i><p>No transactions yet</p></div>';
-                return;
-            }
+    stateManager.setState({ verification: { cost: pricing.total_price } });
+  } catch (error) {
+    logError('updatePricing', error);
+  }
+}
 
-            container.innerHTML = data.transactions.map(t => `
-                <div class="activity-item">
-                    <div class="activity-info">
-                        <div class="activity-service">${escapeHtml(t.type || t.description)}</div>
-                        <div class="activity-details">${formatDate(t.created_at)}</div>
-                    </div>
-                    <span class="transaction-amount ${t.amount >= 0 ? 'positive' : 'negative'}">
-                        ${t.amount >= 0 ? '+' : ''}$${Math.abs(t.amount).toFixed(2)}
-                    </span>
-                </div>
-            `).join('');
-        } catch (error) {
-            container.innerHTML = '<div class="empty-state"><p>Unable to load transactions</p></div>';
-        }
+/**
+ * Go to verification step
+ * @param {number} step - Step number
+ * @returns {void}
+ */
+function goToVerificationStep(step) {
+  const state = stateManager.getState();
+
+  if (step === 2 && !state.verification.areaCode) {
+    showToast('Please select an area code', 'warning');
+    return;
+  }
+  if (step === 3 && !state.verification.service) {
+    showToast('Please select a service', 'warning');
+    return;
+  }
+
+  stateManager.setState({ verification: { step } });
+
+  document.querySelectorAll('.progress-step').forEach(el => {
+    const s = parseInt(el.dataset.step);
+    el.classList.remove('active', 'completed');
+    if (s < step) el.classList.add('completed');
+    if (s === step) el.classList.add('active');
+  });
+
+  document.querySelectorAll('[id^="step"]').forEach(el => {
+    el.style.display = 'none';
+  });
+  const stepEl = document.getElementById(`step${step}`);
+  if (stepEl) stepEl.style.display = 'block';
+}
+
+/**
+ * Purchase verification
+ * @async
+ * @returns {void}
+ */
+async function purchaseVerification() {
+  const state = stateManager.getState();
+  const { service, areaCode, carrier, cost } = state.verification;
+
+  const validation = validateVerification({ service, areaCode, carrier });
+  if (!validation.valid) {
+    const errors = Object.values(validation.errors).join(', ');
+    showToast(errors, 'error');
+    return;
+  }
+
+  if (state.balance < cost) {
+    showToast('Insufficient balance. Please add credits.', 'error');
+    return;
+  }
+
+  try {
+    eventBus.emit(events.VERIFICATION_STARTED, { service, areaCode, carrier });
+    const result = await api.purchaseVerification(service, areaCode, carrier);
+
+    if (result.success) {
+      showToast('Verification purchased successfully', 'success');
+      eventBus.emit(events.VERIFICATION_COMPLETED, result);
+      goToVerificationStep(4);
+      loadBalance();
+    } else {
+      throw new Error(result.detail || 'Purchase failed');
     }
+  } catch (error) {
+    logError('purchaseVerification', error);
+    eventBus.emit(events.ERROR_OCCURRED, error);
+    showToast(handleError(error), 'error');
+  }
+}
 
-    async function loadProfile() {
-        const container = document.getElementById('profile-form-container');
-        if (!container) return;
+/**
+ * Load Rentals View
+ */
+async function loadRentalsView() {
+  const rentalsListEl = document.getElementById('rentals-list');
+  if (!rentalsListEl) return;
 
-        try {
-            const response = await fetch('/api/user/profile');
-            if (!response.ok) throw new Error('Failed to load');
-            const user = await response.json();
-            
-            container.innerHTML = `
-                <form id="profile-form">
-                    <div class="form-group">
-                        <label for="profile-email">Email</label>
-                        <input type="email" id="profile-email" value="${escapeHtml(user.email || '')}" disabled>
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-name">Full Name</label>
-                        <input type="text" id="profile-name" value="${escapeHtml(user.name || '')}" placeholder="Your name">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-phone">Phone</label>
-                        <input type="text" id="profile-phone" value="${escapeHtml(user.phone || '')}" placeholder="Your phone">
-                    </div>
-                    <div class="form-group">
-                        <label for="profile-country">Country</label>
-                        <input type="text" id="profile-country" value="${escapeHtml(user.country || '')}" placeholder="Your country">
-                    </div>
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" onclick="loadProfile()">Cancel</button>
-                    </div>
-                </form>
-            `;
+  try {
+    const response = await fetch('/api/rentals');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const rentals = data.rentals || data || [];
 
-            document.getElementById('profile-form').addEventListener('submit', saveProfile);
-        } catch (error) {
-            container.innerHTML = '<div class="empty-state"><p>Unable to load profile</p></div>';
-        }
+    if (rentals.length === 0) {
+      rentalsListEl.innerHTML = '<div class="empty-state" style="padding: 60px 20px; text-align: center;"><i class="ph ph-phone" style="font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px;"></i><h3 style="margin: 0 0 8px 0;">No Active Rentals</h3><p style="color: var(--gray-500); margin: 0;">You don\'t have any active phone rentals yet.</p></div>';
+    } else {
+      rentalsListEl.innerHTML = rentals.map(r => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(r.phone_number || 'N/A')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(r.service_name || 'Unknown')}</div></div><div style="text-align: right;"><div style="font-weight: 600;">$${(r.cost || 0).toFixed(2)}</div></div></div>`).join('');
     }
+  } catch (error) {
+    logError('loadRentalsView', error);
+    rentalsListEl.innerHTML = '<div class="empty-state" style="padding: 40px 20px; text-align: center;"><i class="ph ph-warning-circle" style="font-size: 48px; opacity: 0.5; color: #ef4444;"></i><p>Failed to load rentals</p></div>';
+  }
+}
 
-    async function saveProfile(e) {
-        e.preventDefault();
-        
-        const data = {
-            name: document.getElementById('profile-name').value,
-            phone: document.getElementById('profile-phone').value,
-            country: document.getElementById('profile-country').value
-        };
+/**
+ * Load Wallet View
+ */
+async function loadWalletView() {
+  const transactionsListEl = document.getElementById('transactions-list');
+  if (!transactionsListEl) return;
 
-        try {
-            const response = await fetch('/api/user/profile', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
-            });
+  try {
+    const response = await fetch('/api/wallet/transactions');
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const transactions = data.transactions || data || [];
 
-            if (response.ok) {
-                showToast('Profile updated successfully', 'success');
-            } else {
-                showToast('Failed to update profile', 'error');
-            }
-        } catch (error) {
-            showToast('Error updating profile', 'error');
-        }
+    if (transactions.length === 0) {
+      transactionsListEl.innerHTML = '<div class="empty-state" style="padding: 60px 20px; text-align: center;"><i class="ph ph-receipt" style="font-size: 64px; opacity: 0.3; display: block; margin-bottom: 16px;"></i><h3 style="margin: 0 0 8px 0;">No Transactions</h3><p style="color: var(--gray-500); margin: 0;">Your transaction history will appear here.</p></div>';
+    } else {
+      transactionsListEl.innerHTML = transactions.map(tx => `<div class="activity-item" style="padding: 16px; border-bottom: 1px solid #e5e7eb;"><div><div style="font-weight: 600;">${escapeHtml(tx.type || 'Transaction')}</div><div style="font-size: 14px; color: #6b7280;">${escapeHtml(tx.description || '')}</div></div><div style="text-align: right; color: ${tx.amount >= 0 ? '#10b981' : '#ef4444'};">${tx.amount >= 0 ? '+' : ''}$${Math.abs(tx.amount || 0).toFixed(2)}</div></div>`).join('');
     }
+  } catch (error) {
+    logError('loadWalletView', error);
+    transactionsListEl.innerHTML = '<div class="empty-state" style="padding: 40px 20px; text-align: center;"><i class="ph ph-warning-circle" style="font-size: 48px; opacity: 0.5; color: #ef4444;"></i><p>Failed to load transactions</p></div>';
+  }
+}
 
-    function loadSettings() {
-        const container = document.getElementById('settings-form-container');
-        if (!container) return;
+/**
+ * Load Profile View
+ */
+async function loadProfileView() {
+  const profileContainerEl = document.getElementById('profile-form-container');
+  if (!profileContainerEl) return;
 
-        container.innerHTML = `
-            <div class="settings-section">
-                <h3>Notifications</h3>
-                <label class="toggle-label">
-                    <input type="checkbox" id="email-notifications" checked>
-                    <span>Email Notifications</span>
-                </label>
-                <label class="toggle-label">
-                    <input type="checkbox" id="sms-notifications" checked>
-                    <span>SMS Notifications</span>
-                </label>
-            </div>
-            <div class="settings-section">
-                <h3>Security</h3>
-                <button class="btn btn-secondary btn-block" onclick="changePassword()">Change Password</button>
-            </div>
-            <div class="settings-section">
-                <h3>Data</h3>
-                <button class="btn btn-secondary btn-block" onclick="exportData()">Export My Data</button>
-            </div>
-        `;
+  try {
+    const response = await fetch('/api/user/profile', {
+      credentials: 'include'
+    });
+    if (!response.ok) {
+      if (response.status === 401) {
+        window.location.href = '/auth/login';
+        return;
+      }
+      throw new Error(`HTTP ${response.status}`);
     }
+    const user = await response.json();
+    profileContainerEl.innerHTML = `<form style="max-width: 600px;"><div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 500;">Email</label><input type="email" value="${escapeHtml(user.email || '')}" readonly style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;"><small style="display: block; margin-top: 4px; color: #6b7280;">Email cannot be changed</small></div><div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 500;">User ID</label><input type="text" value="${escapeHtml(user.id || '')}" readonly style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; font-family: monospace;"></div><div style="margin-bottom: 20px;"><label style="display: block; margin-bottom: 8px; font-weight: 500;">Member Since</label><input type="text" value="${user.created_at ? formatDate(user.created_at) : 'N/A'}" readonly style="width: 100%; padding: 12px; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb;"></div></form>`;
+  } catch (error) {
+    logError('loadProfileView', error);
+    profileContainerEl.innerHTML = '<div class="empty-state" style="padding: 40px 20px; text-align: center;"><i class="ph ph-warning-circle" style="font-size: 48px; opacity: 0.5; color: #ef4444;"></i><p>Failed to load profile</p></div>';
+  }
+}
 
-    window.changePassword = function() {
-        const newPassword = prompt('Enter new password (min 8 characters):');
-        if (!newPassword) return;
-        if (newPassword.length < 8) {
-            showToast('Password must be at least 8 characters', 'error');
-            return;
-        }
+/**
+ * Load Settings View
+ */
+async function loadSettingsView() {
+  const settingsContainerEl = document.getElementById('settings-form-container');
+  if (!settingsContainerEl) return;
 
-        fetch('/api/user/change-password', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ password: newPassword })
-        }).then(r => {
-            if (r.ok) showToast('Password changed successfully', 'success');
-            else showToast('Failed to change password', 'error');
-        }).catch(() => showToast('Error changing password', 'error'));
+  // Render form
+  settingsContainerEl.innerHTML = `
+    <div style="max-width: 600px;">
+      <h3 style="margin: 0 0 24px 0;">Account Settings</h3>
+      
+      <div class="card" style="padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 16px 0;">Notifications</h4>
+        <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px;">
+          <input type="checkbox" id="email-notifications" checked style="margin-right: 12px; width: 18px; height: 18px;">
+          <span>Email notifications (Verification updates)</span>
+        </label>
+        <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px;">
+          <input type="checkbox" id="payment-notifications" checked style="margin-right: 12px; width: 18px; height: 18px;">
+          <span>Payment receipts</span>
+        </label>
+      </div>
+
+      <div class="card" style="padding: 20px; margin-bottom: 20px;">
+         <h4 style="margin: 0 0 16px 0;">Privacy</h4>
+         <label style="display: flex; align-items: center; cursor: pointer; margin-bottom: 12px;">
+            <input type="checkbox" id="profile-visibility" style="margin-right: 12px;">
+            <span>Profile Visibility (Public)</span>
+         </label>
+         <label style="display: flex; align-items: center; cursor: pointer;">
+            <input type="checkbox" id="analytics-tracking" checked style="margin-right: 12px;">
+            <span>Allow Analytics</span>
+         </label>
+      </div>
+
+      <div class="card" style="padding: 20px; margin-bottom: 20px;">
+        <h4 style="margin: 0 0 16px 0;">Security</h4>
+        <button class="btn btn-secondary btn-sm" onclick="window.location.href='/auth/password-reset'">
+          <i class="ph ph-lock"></i> Change Password
+        </button>
+        <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+             <button class="btn btn-danger btn-sm" id="delete-account-btn">Delete Account</button>
+        </div>
+      </div>
+
+      <div style="padding-top: 20px; border-top: 1px solid #e5e7eb;">
+        <button id="save-settings-btn" class="btn btn-primary">
+          <i class="ph ph-floppy-disk"></i> Save Settings
+        </button>
+      </div>
+    </div>`;
+
+  // Bind Events
+  document.getElementById('save-settings-btn')?.addEventListener('click', async () => {
+    const notifData = {
+      verification_alerts: document.getElementById('email-notifications').checked,
+      payment_receipts: document.getElementById('payment-notifications').checked
+    };
+    const privacyData = {
+      profile_visibility: document.getElementById('profile-visibility').checked,
+      analytics_tracking: document.getElementById('analytics-tracking').checked
     };
 
-    window.exportData = function() {
-        fetch('/api/gdpr/export')
-            .then(r => r.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'my-data.json';
-                a.click();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch(() => showToast('Failed to export data', 'error'));
-    };
+    try {
+      const btn = document.getElementById('save-settings-btn');
+      btn.innerHTML = '<div class="spinner-small"></div> Saving...';
+      btn.disabled = true;
 
+      await Promise.all([
+        api.saveSettings('notifications', notifData),
+        api.saveSettings('privacy', privacyData)
+      ]);
+      showToast('Settings saved successfully', 'success');
+    } catch (e) {
+      showToast(e.message, 'error');
+      logError('saveSettings', e);
+    } finally {
+      const btn = document.getElementById('save-settings-btn');
+      if (btn) {
+        btn.innerHTML = '<i class="ph ph-floppy-disk"></i> Save Settings';
+        btn.disabled = false;
+      }
+    }
+  });
 
-    // ==================== Verification Modal ====================
-    function openVerificationModal() {
-        const modal = document.getElementById('verification-modal');
-        if (modal) {
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            resetVerificationState();
-            loadCountries();
-            goToVerificationStep(1);
-        }
+  document.getElementById('delete-account-btn')?.addEventListener('click', () => {
+    const pwd = prompt("Enter your password to confirm deletion:");
+    if (pwd) {
+      api.deleteAccount(pwd).then(() => {
+        alert('Account deleted.');
+        window.location.href = '/auth/register';
+      }).catch(err => showToast(err.message, 'error'));
+    }
+  });
+}
+
+/**
+ * Setup Credit Handlers (Modal & Payment)
+ */
+function setupCreditHandlers() {
+  const modal = document.getElementById('credits-modal');
+  const openBtns = [document.getElementById('quick-credits-btn'), document.getElementById('add-credits-btn')];
+  const closeBtns = [document.getElementById('credits-close-btn'), document.getElementById('credits-cancel-btn')];
+  const proceedBtn = document.getElementById('credits-proceed-btn');
+  const customInput = document.getElementById('credit-amount');
+  const packages = document.querySelectorAll('.package');
+
+  let selectedAmount = 0;
+
+  function openModal() {
+    if (modal) modal.classList.add('show');
+  }
+
+  function closeModal() {
+    if (modal) modal.classList.remove('show');
+    packages.forEach(p => p.classList.remove('selected'));
+    if (customInput) customInput.value = '';
+    selectedAmount = 0;
+  }
+
+  openBtns.forEach(btn => btn?.addEventListener('click', openModal));
+  closeBtns.forEach(btn => btn?.addEventListener('click', closeModal));
+
+  packages.forEach(pkg => {
+    pkg.addEventListener('click', () => {
+      packages.forEach(p => p.classList.remove('selected'));
+      pkg.classList.add('selected');
+      selectedAmount = parseFloat(pkg.dataset.amount);
+      if (customInput) customInput.value = '';
+    });
+  });
+
+  customInput?.addEventListener('input', () => {
+    packages.forEach(p => p.classList.remove('selected'));
+    selectedAmount = parseFloat(customInput.value);
+  });
+
+  proceedBtn?.addEventListener('click', async () => {
+    if (!selectedAmount || selectedAmount < 1) {
+      showToast('Please select an amount (minimum $1)', 'warning');
+      return;
     }
 
-    function closeVerificationModal() {
-        const modal = document.getElementById('verification-modal');
-        if (modal) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-        
-        if (state.verification.pollingInterval) {
-            clearInterval(state.verification.pollingInterval);
-            state.verification.pollingInterval = null;
-        }
+    try {
+      const originalText = proceedBtn.innerHTML;
+      proceedBtn.innerHTML = '<div class="spinner-small"></div> Processing...';
+      proceedBtn.disabled = true;
+
+      const result = await api.initializePayment(selectedAmount);
+      if (result.authorization_url) {
+        window.location.href = result.authorization_url;
+      } else {
+        throw new Error('No payment URL returned');
+      }
+    } catch (e) {
+      showToast(e.message, 'error');
+      proceedBtn.disabled = false;
+      proceedBtn.innerHTML = 'Proceed to Payment';
     }
+  });
+}
 
-    function resetVerificationState() {
-        state.verification.step = 1;
-        state.verification.country = null;
-        state.verification.service = null;
-        state.verification.cost = 0;
-        state.verification.verificationId = null;
-        
-        const countrySelect = document.getElementById('country-select');
-        const serviceSelect = document.getElementById('service-select');
-        
-        if (countrySelect) countrySelect.value = '';
-        if (serviceSelect) serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
-        
-        const priceEl = document.getElementById('service-price');
-        const codeEl = document.getElementById('sms-code-container');
-        const pollEl = document.getElementById('polling-status');
-        const copyEl = document.getElementById('step4-copy');
-        const warnEl = document.getElementById('insufficient-warning');
-        
-        if (priceEl) priceEl.style.display = 'none';
-        if (codeEl) codeEl.style.display = 'none';
-        if (pollEl) pollEl.style.display = 'flex';
-        if (copyEl) copyEl.style.display = 'none';
-        if (warnEl) warnEl.style.display = 'none';
-    }
-
-    async function loadCountries() {
-        try {
-            const response = await fetch('/api/countries/');
-            const data = await response.json();
-            state.verification.countries = data.countries || [];
-            
-            const select = document.getElementById('country-select');
-            if (!select) return;
-            
-            select.innerHTML = '<option value="">-- Select Country --</option>';
-            
-            state.verification.countries.forEach(country => {
-                const option = document.createElement('option');
-                option.value = country.code;
-                option.textContent = `${country.name} (${country.code})`;
-                select.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Failed to load countries:', error);
-            showToast('Failed to load countries', 'error');
-        }
-    }
-
-    async function onCountryChange() {
-        const countryCode = document.getElementById('country-select').value;
-        state.verification.country = countryCode;
-        
-        const serviceSelect = document.getElementById('service-select');
-        if (!serviceSelect) return;
-        
-        serviceSelect.innerHTML = '<option value="">-- Select Service --</option>';
-        
-        const priceEl = document.getElementById('service-price');
-        if (priceEl) priceEl.style.display = 'none';
-        
-        if (!countryCode) return;
-
-        try {
-            const response = await fetch(`/api/countries/${countryCode}/services`);
-            const data = await response.json();
-            state.verification.services[countryCode] = data.services || [];
-            
-            state.verification.services[countryCode].forEach(service => {
-                const option = document.createElement('option');
-                option.value = service.name;
-                option.textContent = `${service.name} - $${(service.cost || 0.50).toFixed(2)}`;
-                serviceSelect.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Failed to load services:', error);
-            showToast('Failed to load services', 'error');
-        }
-    }
-
-    function onServiceChange() {
-        const serviceName = document.getElementById('service-select').value;
-        state.verification.service = serviceName;
-        
-        const priceEl = document.getElementById('service-price');
-        const priceValue = document.getElementById('price-value');
-        
-        if (serviceName && state.verification.country) {
-            const services = state.verification.services[state.verification.country] || [];
-            const serviceData = services.find(s => s.name === serviceName);
-            if (serviceData) {
-                state.verification.cost = serviceData.cost || 0.50;
-                if (priceValue) priceValue.textContent = '$' + state.verification.cost.toFixed(2);
-                if (priceEl) priceEl.style.display = 'block';
-            }
-        } else {
-            if (priceEl) priceEl.style.display = 'none';
-        }
-    }
-
-    function goToVerificationStep(step) {
-        // Validation
-        if (step === 2 && !state.verification.country) {
-            showToast('Please select a country', 'warning');
-            return;
-        }
-        if (step === 3 && !state.verification.service) {
-            showToast('Please select a service', 'warning');
-            return;
-        }
-
-        state.verification.step = step;
-
-        // Update progress indicators
-        document.querySelectorAll('.progress-step').forEach(el => {
-            const s = parseInt(el.dataset.step);
-            el.classList.remove('active', 'completed');
-            if (s < step) el.classList.add('completed');
-            if (s === step) el.classList.add('active');
-        });
-
-        // Show correct step content
-        document.querySelectorAll('.verification-step').forEach(el => {
-            el.classList.remove('active');
-        });
-        const stepEl = document.querySelector(`.verification-step[data-step="${step}"]`);
-        if (stepEl) stepEl.classList.add('active');
-
-        // Step 3: Update confirmation
-        if (step === 3) {
-            const countryOption = document.querySelector(`#country-select option[value="${state.verification.country}"]`);
-            const confirmCountry = document.getElementById('confirm-country');
-            const confirmService = document.getElementById('confirm-service');
-            const confirmCost = document.getElementById('confirm-cost');
-            const confirmBalance = document.getElementById('confirm-balance');
-            
-            if (confirmCountry) confirmCountry.textContent = countryOption?.textContent || state.verification.country;
-            if (confirmService) confirmService.textContent = state.verification.service;
-            if (confirmCost) confirmCost.textContent = '$' + state.verification.cost.toFixed(2);
-            if (confirmBalance) confirmBalance.textContent = '$' + state.balance.toFixed(2);
-            
-            // Check insufficient balance
-            const warning = document.getElementById('insufficient-warning');
-            const purchaseBtn = document.getElementById('step3-purchase');
-            if (state.balance < state.verification.cost) {
-                if (warning) warning.style.display = 'flex';
-                if (purchaseBtn) purchaseBtn.disabled = true;
-            } else {
-                if (warning) warning.style.display = 'none';
-                if (purchaseBtn) purchaseBtn.disabled = false;
-            }
-        }
-    }
-
-    async function purchaseVerification() {
-        const btn = document.getElementById('step3-purchase');
-        if (!btn) return;
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-sm"></span> Processing...';
-
-        try {
-            const response = await fetch('/api/verify/create', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    country: state.verification.country,
-                    service_name: state.verification.service,
-                    capability: 'sms'
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.status === 402) {
-                showToast('Insufficient credits. Please add credits.', 'error');
-                return;
-            }
-            if (response.status === 503) {
-                showToast('Service temporarily unavailable', 'error');
-                return;
-            }
-            if (!response.ok) {
-                showToast(data.detail || 'Purchase failed', 'error');
-                return;
-            }
-
-            state.verification.verificationId = data.verification_id || data.id;
-            const phoneEl = document.getElementById('phone-value');
-            if (phoneEl) phoneEl.textContent = data.phone_number;
-            
-            goToVerificationStep(4);
-            startSMSPolling();
-            loadBalance();
-            
-            showToast('Verification started!', 'success');
-        } catch (error) {
-            showToast('Network error: ' + error.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Purchase Now';
-        }
-    }
-
-    function startSMSPolling() {
-        const pollInterval = setInterval(async () => {
-            try {
-                const response = await fetch(`/api/verify/${state.verification.verificationId}/status`);
-                const data = await response.json();
-
-                if (data.sms_code) {
-                    clearInterval(pollInterval);
-                    state.verification.pollingInterval = null;
-                    
-                    const codeEl = document.getElementById('code-value');
-                    const textEl = document.getElementById('sms-text');
-                    const containerEl = document.getElementById('sms-code-container');
-                    const pollEl = document.getElementById('polling-status');
-                    const copyEl = document.getElementById('step4-copy');
-                    
-                    if (codeEl) codeEl.textContent = data.sms_code;
-                    if (textEl) textEl.textContent = data.sms_text || '';
-                    if (containerEl) containerEl.style.display = 'block';
-                    if (pollEl) pollEl.style.display = 'none';
-                    if (copyEl) copyEl.style.display = 'block';
-                    
-                    showToast('SMS code received!', 'success');
-                }
-            } catch (error) {
-                console.error('Polling error:', error);
-            }
-        }, 3000);
-
-        state.verification.pollingInterval = pollInterval;
-
-        // Stop after 5 minutes
-        setTimeout(() => {
-            if (state.verification.pollingInterval) {
-                clearInterval(state.verification.pollingInterval);
-                state.verification.pollingInterval = null;
-                showToast('SMS polling timed out', 'warning');
-            }
-        }, 5 * 60 * 1000);
-    }
-
-
-    // ==================== Credits Modal ====================
-    function openCreditsModal() {
-        const modal = document.getElementById('credits-modal');
-        if (modal) {
-            modal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-            const amountInput = document.getElementById('credit-amount');
-            if (amountInput) amountInput.value = '';
-            document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
-        }
-    }
-
-    function closeCreditsModal() {
-        const modal = document.getElementById('credits-modal');
-        if (modal) {
-            modal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-    }
-
-    function selectPackage(element) {
-        const amount = parseFloat(element.dataset.amount);
-        const bonus = parseFloat(element.dataset.bonus);
-        const total = amount + bonus;
-        
-        const amountInput = document.getElementById('credit-amount');
-        if (amountInput) amountInput.value = total.toFixed(2);
-        
-        document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
-        element.classList.add('selected');
-    }
-
-    async function proceedToPayment() {
-        const amountInput = document.getElementById('credit-amount');
-        const amount = parseFloat(amountInput?.value);
-        
-        if (!amount || amount <= 0) {
-            showToast('Please enter a valid amount', 'warning');
-            return;
-        }
-
-        const btn = document.getElementById('credits-proceed-btn');
-        if (!btn) return;
-        
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-sm"></span> Processing...';
-
-        try {
-            const response = await fetch('/api/billing/add-credits', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ amount: amount })
-            });
-
-            const data = await response.json();
-            
-            if (response.ok) {
-                showToast(`Credits added! New balance: $${data.new_balance.toFixed(2)}`, 'success');
-                closeCreditsModal();
-                loadBalance();
-                if (state.currentView === 'wallet') {
-                    loadTransactions();
-                }
-            } else {
-                showToast(data.detail || 'Failed to add credits', 'error');
-            }
-        } catch (error) {
-            showToast('Error: ' + error.message, 'error');
-        } finally {
-            btn.disabled = false;
-            btn.textContent = 'Proceed to Payment';
-        }
-    }
-
-    // ==================== Modals Utility ====================
-    function hideModals() {
-        document.querySelectorAll('.modal-overlay').forEach(modal => {
-            modal.classList.remove('show');
-        });
-        document.body.style.overflow = '';
-        
-        if (state.verification.pollingInterval) {
-            clearInterval(state.verification.pollingInterval);
-            state.verification.pollingInterval = null;
-        }
-    }
-
-    // ==================== Utilities ====================
-    function copyToClipboard(elementId) {
-        const element = document.getElementById(elementId);
-        if (!element) return;
-        
-        const text = element.textContent;
-        navigator.clipboard.writeText(text).then(() => {
-            showToast('Copied to clipboard!', 'success');
-        }).catch(() => {
-            showToast('Failed to copy', 'error');
-        });
-    }
-
-    function showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast toast-${type}`;
-        
-        const iconMap = {
-            success: 'check-circle',
-            error: 'x-circle',
-            warning: 'warning',
-            info: 'info'
-        };
-        
-        toast.innerHTML = `
-            <i class="ph ph-${iconMap[type] || 'info'}"></i>
-            <span>${escapeHtml(message)}</span>
-        `;
-        
-        container.appendChild(toast);
-        
-        setTimeout(() => toast.classList.add('show'), 10);
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => toast.remove(), 300);
-        }, 3000);
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }
-
-    // ==================== Global Exports ====================
-    window.openVerificationModal = openVerificationModal;
-    window.closeVerificationModal = closeVerificationModal;
-    window.openCreditsModal = openCreditsModal;
-    window.closeCreditsModal = closeCreditsModal;
-    window.loadProfile = loadProfile;
-    window.openRentalModal = function() { showToast('Rental feature coming soon', 'info'); };
-
-})();
+// Export for testing
+export { init, loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers };

@@ -34,6 +34,9 @@ from app.api.core.system import router as system_router
 # Import production implementation routers
 from app.api.verification.textverified_endpoints import router as textverified_router
 from app.api.verification.rentals_endpoints import router as rentals_endpoints_router
+from app.api.verification.pricing import router as pricing_router
+from app.api.verification.carrier_endpoints import router as carrier_router
+from app.api.verification.consolidated_verification import router as verify_router
 from app.api.rentals.textverified_rentals import router as rentals_router
 from app.api.integrations.sms_inbox import router as sms_router
 from app.api.integrations.billing import router as billing_router
@@ -50,6 +53,11 @@ from app.api.billing.payment_history_endpoints import router as payment_history_
 from app.api.billing.pricing_endpoints import router as billing_pricing_router
 from app.api.billing.refund_endpoints import router as refund_router
 from app.api.analytics.dashboard_analytics import router as dashboard_analytics_router
+from app.api.billing.tier_endpoints import router as tier_router
+from app.api.core.api_key_endpoints import router as api_key_router
+from app.api.core.user_settings import router as user_settings_router
+from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
+from app.api.preview_router import router as preview_router
 
 from app.core.unified_cache import cache
 from app.core.database import engine, get_db
@@ -163,12 +171,21 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(gdpr_router, prefix="/api")
     fastapi_app.include_router(admin_router, prefix="/api")
     fastapi_app.include_router(countries_router, prefix="/api")
+    fastapi_app.include_router(dashboard_router, prefix="/api")
+    fastapi_app.include_router(dashboard_analytics_router, prefix="/api")
+    fastapi_app.include_router(tier_router, prefix="/api")
+    fastapi_app.include_router(api_key_router, prefix="/api")
+    fastapi_app.include_router(user_settings_router, prefix="/api")
+    fastapi_app.include_router(user_settings_endpoints_router)
+    fastapi_app.include_router(verify_router, prefix="/api")
     fastapi_app.include_router(services_router)
     fastapi_app.include_router(system_router)
+    fastapi_app.include_router(textverified_router)  # Fix: Add TextVerified router for balance endpoint
 
-    fastapi_app.include_router(textverified_router)
-    fastapi_app.include_router(rentals_endpoints_router)
-    fastapi_app.include_router(rentals_router)
+    # fastapi_app.include_router(rentals_endpoints_router)
+    fastapi_app.include_router(pricing_router)
+    fastapi_app.include_router(carrier_router)
+    fastapi_app.include_router(rentals_router, prefix="/api")
     fastapi_app.include_router(sms_router)
     fastapi_app.include_router(billing_router)
     fastapi_app.include_router(webhooks_router)
@@ -184,6 +201,9 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(billing_pricing_router)
     fastapi_app.include_router(refund_router)
     fastapi_app.include_router(dashboard_analytics_router, prefix="/api")
+    fastapi_app.include_router(tier_router)
+    fastapi_app.include_router(api_key_router)
+    fastapi_app.include_router(preview_router)
 
     # Initialize Jinja2 templates
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -302,6 +322,14 @@ def create_app() -> FastAPI:
         else:
             user = db.query(User).filter(User.id == user_id).first()
         return templates.TemplateResponse("verify_standard.html", {"request": request, "user": user})
+
+    @fastapi_app.get("/verification-modal", response_class=HTMLResponse)
+    async def verification_modal(request: Request):
+        return templates.TemplateResponse("verification_modal.html", {"request": request})
+
+    @fastapi_app.get("/rental-modal", response_class=HTMLResponse)
+    async def rental_modal(request: Request):
+        return templates.TemplateResponse("rental_modal.html", {"request": request})
 
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -460,6 +488,65 @@ def create_app() -> FastAPI:
         except Exception as e:
             raise HTTPException(status_code=500, detail="Failed to fetch balance")
 
+    @fastapi_app.post("/api/verification/purchase")
+    async def purchase_verification(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Purchase verification with optional area code and carrier"""
+        try:
+            body = await request.json()
+            service = body.get("service")
+            area_code = body.get("area_code")
+            carrier = body.get("carrier")
+
+            if not service:
+                raise HTTPException(status_code=400, detail="Service required")
+
+            # Get user
+            from app.models.user import User
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(status_code=401, detail="User not found")
+
+            # Get pricing
+            from app.api.verification.pricing import get_verification_pricing
+            pricing_result = await get_verification_pricing(service, area_code, carrier)
+
+            # Check balance
+            if user.credits < pricing_result["total_price"]:
+                raise HTTPException(status_code=402, detail="Insufficient balance")
+
+            # Create verification with TextVerified
+            from app.services.textverified_integration import get_textverified_integration
+            integration = get_textverified_integration()
+
+            verification = await integration.create_verification(
+                service=service,
+                area_code=area_code if area_code and area_code != "any" else None,
+                carrier=carrier if carrier and carrier != "any" else None
+            )
+
+            # Deduct credits
+            user.credits -= pricing_result["total_price"]
+            db.commit()
+
+            logger = get_logger("purchase")
+            logger.info(f"Verification purchased: {verification['id']} for user {user_id}")
+
+            return {
+                "success": True,
+                "verification_id": verification["id"],
+                "phone_number": verification["phone_number"],
+                "cost": pricing_result["total_price"],
+                "area_code": area_code,
+                "carrier": carrier
+            }
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger = get_logger("purchase")
+            logger.error(f"Purchase failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Purchase failed")
+
     @fastapi_app.get("/api/user/profile")
     async def get_user_profile(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
@@ -476,12 +563,17 @@ def create_app() -> FastAPI:
                 Verification.status == 'completed'
             ).count()
             
-            # Get rental stats
-            from app.models.rental import Rental
-            active_rentals = db.query(Rental).filter(
-                Rental.user_id == user_id, 
-                Rental.status == 'active'
-            ).count()
+            # Get rental stats (handle missing table gracefully)
+            try:
+                from app.models.rental import Rental
+                active_rentals = db.query(Rental).filter(
+                    Rental.user_id == user_id, 
+                    Rental.status == 'active'
+                ).count()
+            except Exception as rental_error:
+                # Rentals table may not exist yet or other DB error
+                # Silently default to 0 rentals
+                active_rentals = 0
             
             return {
                 "id": user.id,
@@ -490,10 +582,11 @@ def create_app() -> FastAPI:
                 "phone": getattr(user, 'phone', None),
                 "country": getattr(user, 'country', None),
                 "credits": float(user.credits or 0),
+                "is_active": getattr(user, 'is_active', True),
                 "created_at": user.created_at.isoformat() if hasattr(user, 'created_at') and user.created_at else None,
                 "last_login": user.last_login.isoformat() if hasattr(user, 'last_login') and user.last_login else None,
                 "total_verifications": total_verifications,
-                "success_rate": successful / total_verifications if total_verifications > 0 else 0,
+                "success_rate": successful /total_verifications if total_verifications > 0 else 0,
                 "active_rentals": active_rentals
             }
         except HTTPException:
@@ -584,6 +677,67 @@ def create_app() -> FastAPI:
             if db:
                 db.close()
 
+    # TASK 1.3: Login Endpoint
+    @fastapi_app.post("/api/auth/login")
+    async def login_user(request: Request):
+        from app.core.database import get_db
+        from app.models.user import User
+        from passlib.context import CryptContext
+        from app.core.token_manager import create_tokens
+        
+        db = None
+        try:
+            body = await request.body()
+            data = json.loads(body)
+            email = data.get('email')
+            password = data.get('password')
+            
+            if not email or not password:
+                raise HTTPException(status_code=400, detail="Email and password required")
+            
+            db = next(get_db())
+            
+            # Find user
+            user = db.query(User).filter(User.email == email).first()
+            if not user:
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+            # Verify password
+            pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+            if not pwd_context.verify(password, user.hashed_password):
+                raise HTTPException(status_code=401, detail="Invalid credentials")
+            
+            # Create tokens
+            tokens = create_tokens(user.id, user.email)
+            
+            # Update last login
+            user.last_login = datetime.now()
+            db.commit()
+            
+            return {
+                "success": True,
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "token_type": tokens["token_type"],
+                "expires_in": tokens["expires_in"],
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "credits": float(user.credits or 0)
+                }
+            }
+        except HTTPException:
+            raise
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=400, detail="Invalid JSON")
+        except Exception as e:
+            logger = get_logger("auth")
+            logger.error(f"Login error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Login failed")
+        finally:
+            if db:
+                db.close()
+
     @fastapi_app.post("/api/billing/add-credits")
     async def add_credits(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
@@ -670,7 +824,7 @@ def create_app() -> FastAPI:
             # Return empty list if table doesn't exist
             return {"notifications": []}
 
-    @fastapi_app.get("/api/billing/transactions")
+    @fastapi_app.get("/api/wallet/transactions")
     async def get_transactions(
         user_id: str = Depends(get_current_user_id), 
         db: Session = Depends(get_db),
@@ -805,50 +959,29 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/api/verification/{verification_id}")
     async def get_verification_status(verification_id: str, db: Session = Depends(get_db)):
-        """Get verification status - supports both demo and authenticated modes."""
-        import random
-        
+        """Get verification status - production mode only."""
         logger = get_logger("verification")
         
         try:
-            # Validate UUID format
             if not verification_id or len(verification_id) < 10:
                 raise HTTPException(status_code=400, detail="Invalid verification ID")
             
             logger.info(f"Checking status for verification: {verification_id}")
             
-            # Try to find in database first (authenticated mode)
             from app.models.verification import Verification
             verification = db.query(Verification).filter(Verification.id == verification_id).first()
             
-            if verification:
-                # Real verification from database
-                return {
-                    "verification_id": verification.id,
-                    "status": verification.status,
-                    "phone_number": verification.phone_number,
-                    "sms_code": verification.sms_code,
-                    "sms_text": verification.sms_text,
-                    "cost": float(verification.cost) if verification.cost else 0,
-                    "created_at": verification.created_at.isoformat() if verification.created_at else datetime.now().isoformat(),
-                    "demo_mode": False
-                }
-            
-            # Demo mode - simulate SMS delivery after 3 seconds
-            import time
-            time.sleep(1)  # Simulate processing delay
-            
-            sms_code = str(random.randint(100000, 999999))
-            phone_number = f"+1555{random.randint(1000000, 9999999)}"
+            if not verification:
+                raise HTTPException(status_code=404, detail="Verification not found")
             
             return {
-                "verification_id": verification_id,
-                "status": "completed",
-                "phone_number": phone_number,
-                "sms_code": sms_code,
-                "cost": 2.00,
-                "created_at": datetime.now().isoformat(),
-                "demo_mode": True
+                "verification_id": verification.id,
+                "status": verification.status,
+                "phone_number": verification.phone_number,
+                "sms_code": verification.sms_code,
+                "sms_text": verification.sms_text,
+                "cost": float(verification.cost) if verification.cost else 0,
+                "created_at": verification.created_at.isoformat() if verification.created_at else datetime.now().isoformat()
             }
             
         except HTTPException:
@@ -974,225 +1107,150 @@ def create_app() -> FastAPI:
                 "recent_activity": []
             }
 
-    @fastapi_app.get("/api/verification/textverified/countries")
-    async def get_textverified_countries():
-        """Get live countries from TextVerified API"""
+    @fastapi_app.get("/api/verification/textverified/area-codes")
+    async def get_textverified_area_codes():
+        """Get REAL area codes from TextVerified API for US states"""
         try:
             from app.services.textverified_integration import get_textverified_integration
             integration = get_textverified_integration()
             area_codes = await integration.get_area_codes_list()
             
-            # Convert area codes to countries format
-            countries = []
+            formatted = []
             for code in area_codes:
-                country_name = code.get("country_name", "Unknown")
-                if country_name and country_name != "Unknown" and len(country_name) > 2:
-                    countries.append({
-                        "code": code.get("country", "unknown").lower(),
-                        "name": country_name,
-                        "prefix": code.get("area_code", "0"),
-                        "available": True
-                    })
+                formatted.append({
+                    "area_code": code.get("area_code", ""),
+                    "city": code.get("city", "Unknown"),
+                    "state": code.get("state", "US"),
+                    "available": True
+                })
             
-            # If we got valid countries from API, return them
-            if countries and len(countries) > 5:  # Need reasonable number of countries
-                return {"success": True, "countries": countries, "total": len(countries)}
-                
+            return {"success": True, "area_codes": formatted, "total": len(formatted)}
         except Exception as e:
-            logger = get_logger("textverified")
-            logger.error(f"TextVerified countries error: {str(e)}")
-        
-        # Use comprehensive list (TextVerified API returns empty for new accounts)
-        logger = get_logger("textverified")
-        logger.info("Using comprehensive countries list")
-        fallback = [
-            # North America
-            {"code": "usa", "name": "United States", "prefix": "1", "available": True},
-            {"code": "canada", "name": "Canada", "prefix": "1", "available": True},
-            {"code": "mexico", "name": "Mexico", "prefix": "52", "available": True},
-            # Europe
-            {"code": "uk", "name": "United Kingdom", "prefix": "44", "available": True},
-            {"code": "germany", "name": "Germany", "prefix": "49", "available": True},
-            {"code": "france", "name": "France", "prefix": "33", "available": True},
-            {"code": "italy", "name": "Italy", "prefix": "39", "available": True},
-            {"code": "spain", "name": "Spain", "prefix": "34", "available": True},
-            {"code": "netherlands", "name": "Netherlands", "prefix": "31", "available": True},
-            {"code": "poland", "name": "Poland", "prefix": "48", "available": True},
-            {"code": "russia", "name": "Russia", "prefix": "7", "available": True},
-            {"code": "ukraine", "name": "Ukraine", "prefix": "380", "available": True},
-            {"code": "sweden", "name": "Sweden", "prefix": "46", "available": True},
-            {"code": "norway", "name": "Norway", "prefix": "47", "available": True},
-            {"code": "finland", "name": "Finland", "prefix": "358", "available": True},
-            # Asia
-            {"code": "india", "name": "India", "prefix": "91", "available": True},
-            {"code": "china", "name": "China", "prefix": "86", "available": True},
-            {"code": "japan", "name": "Japan", "prefix": "81", "available": True},
-            {"code": "south_korea", "name": "South Korea", "prefix": "82", "available": True},
-            {"code": "singapore", "name": "Singapore", "prefix": "65", "available": True},
-            {"code": "thailand", "name": "Thailand", "prefix": "66", "available": True},
-            {"code": "vietnam", "name": "Vietnam", "prefix": "84", "available": True},
-            {"code": "philippines", "name": "Philippines", "prefix": "63", "available": True},
-            {"code": "indonesia", "name": "Indonesia", "prefix": "62", "available": True},
-            {"code": "malaysia", "name": "Malaysia", "prefix": "60", "available": True},
-            # Oceania
-            {"code": "australia", "name": "Australia", "prefix": "61", "available": True},
-            {"code": "new_zealand", "name": "New Zealand", "prefix": "64", "available": True},
-            # South America
-            {"code": "brazil", "name": "Brazil", "prefix": "55", "available": True},
-            {"code": "argentina", "name": "Argentina", "prefix": "54", "available": True},
-            {"code": "chile", "name": "Chile", "prefix": "56", "available": True},
-            {"code": "colombia", "name": "Colombia", "prefix": "57", "available": True},
-            # Africa
-            {"code": "south_africa", "name": "South Africa", "prefix": "27", "available": True},
-            {"code": "nigeria", "name": "Nigeria", "prefix": "234", "available": True},
-            {"code": "egypt", "name": "Egypt", "prefix": "20", "available": True},
-            # Middle East
-            {"code": "israel", "name": "Israel", "prefix": "972", "available": True},
-            {"code": "uae", "name": "United Arab Emirates", "prefix": "971", "available": True},
-            {"code": "saudi_arabia", "name": "Saudi Arabia", "prefix": "966", "available": True}
-        ]
-        return {"success": True, "countries": fallback, "total": len(fallback), "source": "comprehensive"}
+            logger = get_logger("area_codes")
+            logger.error(f"Area codes error: {str(e)}")
+            return {"success": False, "error": str(e), "area_codes": []}
 
+    # TextVerified countries endpoint - USA only
+    @fastapi_app.get("/api/verification/textverified/countries")
+    async def get_textverified_countries():
+        """Get countries - USA only (TextVerified supports USA only)"""
+        return {
+            "success": True,
+            "countries": [{"code": "usa", "name": "United States", "prefix": "1"}],
+            "total": 1
+        }
+
+    # TextVerified services endpoint - fetch from API
     @fastapi_app.get("/api/verification/textverified/services")
     async def get_textverified_services():
         """Get live services from TextVerified API"""
         try:
             from app.services.textverified_integration import get_textverified_integration
             integration = get_textverified_integration()
-            services = await integration.get_services_list()
-            
-            # Format services for frontend
-            formatted_services = []
-            for service in services:
-                service_name = service.get("name", "Unknown")
-                if service_name and service_name != "Unknown" and len(service_name) > 2:
-                    formatted_services.append({
-                        "id": service.get("id", service_name).lower(),
-                        "name": service_name,
-                        "category": service.get("category", "other"),
-                        "available": True,
-                        "cost": service.get("cost", 2.00)
-                    })
-            
-            # If we got valid services from API, return them
-            if formatted_services and len(formatted_services) > 10:  # Need reasonable number of services
-                return {"success": True, "services": formatted_services, "total": len(formatted_services)}
-                
+            services = await integration.get_services_list(force_refresh=True)
+            return {"success": True, "services": services, "total": len(services)}
         except Exception as e:
             logger = get_logger("textverified")
             logger.error(f"TextVerified services error: {str(e)}")
-        
-        # Use comprehensive list (TextVerified API returns empty for new accounts)
-        logger = get_logger("textverified")
-        logger.info("Using comprehensive services list")
-        fallback = [
-            # Dating & Social
-            {"id": "ourtime", "name": "OurTime", "category": "dating", "available": True, "cost": 2.25},
-            {"id": "tinder", "name": "Tinder", "category": "dating", "available": True, "cost": 2.50},
-            {"id": "bumble", "name": "Bumble", "category": "dating", "available": True, "cost": 2.50},
-            {"id": "match", "name": "Match.com", "category": "dating", "available": True, "cost": 2.25},
-            {"id": "pof", "name": "Plenty of Fish", "category": "dating", "available": True, "cost": 2.00},
-            {"id": "facebook", "name": "Facebook", "category": "social", "available": True, "cost": 2.00},
-            {"id": "instagram", "name": "Instagram", "category": "social", "available": True, "cost": 2.50},
-            {"id": "twitter", "name": "Twitter", "category": "social", "available": True, "cost": 1.75},
-            {"id": "tiktok", "name": "TikTok", "category": "social", "available": True, "cost": 2.25},
-            {"id": "snapchat", "name": "Snapchat", "category": "social", "available": True, "cost": 2.00},
-            {"id": "linkedin", "name": "LinkedIn", "category": "social", "available": True, "cost": 2.75},
-            # Messaging
-            {"id": "telegram", "name": "Telegram", "category": "messaging", "available": True, "cost": 2.00},
-            {"id": "whatsapp", "name": "WhatsApp", "category": "messaging", "available": True, "cost": 2.50},
-            {"id": "discord", "name": "Discord", "category": "messaging", "available": True, "cost": 1.75},
-            {"id": "signal", "name": "Signal", "category": "messaging", "available": True, "cost": 2.00},
-            {"id": "viber", "name": "Viber", "category": "messaging", "available": True, "cost": 1.75},
-            {"id": "line", "name": "LINE", "category": "messaging", "available": True, "cost": 2.00},
-            # Tech & Services
-            {"id": "google", "name": "Google", "category": "tech", "available": True, "cost": 1.50},
-            {"id": "microsoft", "name": "Microsoft", "category": "tech", "available": True, "cost": 1.75},
-            {"id": "apple", "name": "Apple", "category": "tech", "available": True, "cost": 2.00},
-            {"id": "amazon", "name": "Amazon", "category": "tech", "available": True, "cost": 1.75},
-            {"id": "uber", "name": "Uber", "category": "services", "available": True, "cost": 2.00},
-            {"id": "lyft", "name": "Lyft", "category": "services", "available": True, "cost": 2.00},
-            {"id": "doordash", "name": "DoorDash", "category": "services", "available": True, "cost": 1.75},
-            {"id": "grubhub", "name": "GrubHub", "category": "services", "available": True, "cost": 1.75},
-            # Gaming
-            {"id": "steam", "name": "Steam", "category": "gaming", "available": True, "cost": 1.50},
-            {"id": "twitch", "name": "Twitch", "category": "gaming", "available": True, "cost": 2.00},
-            {"id": "epic", "name": "Epic Games", "category": "gaming", "available": True, "cost": 1.75},
-            # Finance
-            {"id": "paypal", "name": "PayPal", "category": "finance", "available": True, "cost": 2.50},
-            {"id": "venmo", "name": "Venmo", "category": "finance", "available": True, "cost": 2.25},
-            {"id": "cashapp", "name": "Cash App", "category": "finance", "available": True, "cost": 2.25},
-            {"id": "coinbase", "name": "Coinbase", "category": "finance", "available": True, "cost": 2.75},
-            # Other
-            {"id": "netflix", "name": "Netflix", "category": "entertainment", "available": True, "cost": 2.00},
-            {"id": "spotify", "name": "Spotify", "category": "entertainment", "available": True, "cost": 1.75},
-            {"id": "reddit", "name": "Reddit", "category": "social", "available": True, "cost": 1.50},
-            {"id": "pinterest", "name": "Pinterest", "category": "social", "available": True, "cost": 2.00}
-        ]
-        return {"success": True, "services": fallback, "total": len(fallback), "source": "comprehensive"}
+            raise HTTPException(status_code=500, detail="Failed to fetch services from TextVerified")
 
     @fastapi_app.post("/api/verification/voice/create")
-    async def create_voice_verification(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
-        import uuid
-        import json
-        import random
-        
+    async def create_voice_verification(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Create voice verification using TextVerified API."""
         try:
-            body = await request.body()
-            data = json.loads(body)
-            service = data.get('service')
-            country = data.get('country', 'usa')
+            body = await request.json()
+            service = body.get('service')
+            country = body.get('country', 'usa')
             
             if not service:
                 raise HTTPException(status_code=400, detail="Service required")
             
-            # Voice verification pricing (higher than SMS)
-            voice_pricing = {
-                'google': 3.50, 'facebook': 4.00, 'microsoft': 3.75, 'amazon': 3.25,
-                'paypal': 4.50, 'apple': 4.25, 'linkedin': 3.75, 'twitter': 3.50,
-                'instagram': 4.00, 'discord': 3.25, 'telegram': 3.00, 'whatsapp': 3.75
-            }
-            cost = voice_pricing.get(service.lower(), 3.50)
+            from app.models.user import User
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user:
+                raise HTTPException(status_code=404, detail="User not found")
             
-            verification_id = str(uuid.uuid4())
-            phone_number = f"+1555{random.randint(1000000, 9999999)}"
+            from app.services.textverified_service import TextVerifiedService
+            import textverified
+            tv_service = TextVerifiedService()
+            
+            if not tv_service.enabled:
+                raise HTTPException(status_code=503, detail="Voice service unavailable")
+            
+            # Create voice verification with TextVerified
+            verification = tv_service.client.verifications.create(
+                service_name=service,
+                capability=textverified.ReservationCapability.VOICE
+            )
+            
+            cost = float(verification.total_cost)
+            
+            if user.credits < cost:
+                raise HTTPException(status_code=402, detail="Insufficient credits")
+            
+            from app.models.verification import Verification
+            db_verification = Verification(
+                user_id=user_id,
+                service_name=service,
+                phone_number=f"+1{verification.number}",
+                country=country,
+                capability="voice",
+                cost=cost,
+                provider="textverified",
+                activation_id=verification.id,
+                status="pending"
+            )
+            db.add(db_verification)
+            user.credits -= cost
+            db.commit()
+            db.refresh(db_verification)
             
             return {
                 "success": True,
-                "verification_id": verification_id,
-                "phone_number": phone_number,
+                "verification_id": db_verification.id,
+                "phone_number": db_verification.phone_number,
                 "status": "calling",
                 "cost": cost,
-                "type": "voice",
-                "message": "Voice call will arrive within 30 seconds"
+                "type": "voice"
             }
             
         except HTTPException:
             raise
         except Exception as e:
             logger = get_logger("voice_verification")
-            logger.error(f"Voice verification request failed: {str(e)}")
-            raise HTTPException(status_code=500, detail="Voice verification request failed")
+            logger.error(f"Voice verification failed: {str(e)}")
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Voice verification failed")
 
     @fastapi_app.get("/api/verification/voice/{verification_id}")
-    async def get_voice_verification_status(verification_id: str, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
-        import random
-        import time
-        
-        # Simulate voice call processing
-        time.sleep(1)
-        voice_code = str(random.randint(1000, 9999))  # 4-digit codes for voice
-        
-        return {
-            "verification_id": verification_id,
-            "status": "completed",
-            "phone_number": f"+1555{random.randint(1000000, 9999999)}",
-            "voice_code": voice_code,
-            "type": "voice",
-            "cost": 3.50,
-            "created_at": datetime.now().isoformat(),
-            "message": "Voice call completed. Code delivered."
-        }
+    async def get_voice_verification_status(verification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Get voice verification status from database."""
+        try:
+            from app.models.verification import Verification
+            verification = db.query(Verification).filter(
+                Verification.id == verification_id,
+                Verification.user_id == user_id,
+                Verification.capability == "voice"
+            ).first()
+            
+            if not verification:
+                raise HTTPException(status_code=404, detail="Voice verification not found")
+            
+            return {
+                "verification_id": verification.id,
+                "status": verification.status,
+                "phone_number": verification.phone_number,
+                "voice_code": verification.sms_code,
+                "type": "voice",
+                "cost": float(verification.cost) if verification.cost else 0,
+                "created_at": verification.created_at.isoformat() if verification.created_at else datetime.now().isoformat()
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger = get_logger("voice_verification")
+            logger.error(f"Voice status check failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to check voice verification status")
 
     @fastapi_app.get("/voice-verify", response_class=HTMLResponse)
     async def voice_verify_page(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
@@ -1255,131 +1313,7 @@ def create_app() -> FastAPI:
             logger.error(f"Balance test error: {type(e).__name__}: {str(e)}")
             return {"error": f"{type(e).__name__}: {str(e)}"}
 
-    # Comprehensive countries list (mirrors SMS provider offerings)
-    COUNTRIES_LIST = [
-        # North America
-        {"code": "usa", "name": "United States", "prefix": "1", "popular": True},
-        {"code": "canada", "name": "Canada", "prefix": "1", "popular": True},
-        {"code": "mexico", "name": "Mexico", "prefix": "52", "popular": False},
-        # Europe
-        {"code": "uk", "name": "United Kingdom", "prefix": "44", "popular": True},
-        {"code": "germany", "name": "Germany", "prefix": "49", "popular": False},
-        {"code": "france", "name": "France", "prefix": "33", "popular": False},
-        {"code": "italy", "name": "Italy", "prefix": "39", "popular": False},
-        {"code": "spain", "name": "Spain", "prefix": "34", "popular": False},
-        {"code": "netherlands", "name": "Netherlands", "prefix": "31", "popular": False},
-        {"code": "poland", "name": "Poland", "prefix": "48", "popular": False},
-        {"code": "russia", "name": "Russia", "prefix": "7", "popular": True},
-        {"code": "ukraine", "name": "Ukraine", "prefix": "380", "popular": False},
-        {"code": "sweden", "name": "Sweden", "prefix": "46", "popular": False},
-        {"code": "norway", "name": "Norway", "prefix": "47", "popular": False},
-        {"code": "finland", "name": "Finland", "prefix": "358", "popular": False},
-        # Asia
-        {"code": "india", "name": "India", "prefix": "91", "popular": True},
-        {"code": "china", "name": "China", "prefix": "86", "popular": False},
-        {"code": "japan", "name": "Japan", "prefix": "81", "popular": False},
-        {"code": "south_korea", "name": "South Korea", "prefix": "82", "popular": False},
-        {"code": "singapore", "name": "Singapore", "prefix": "65", "popular": False},
-        {"code": "thailand", "name": "Thailand", "prefix": "66", "popular": False},
-        {"code": "vietnam", "name": "Vietnam", "prefix": "84", "popular": False},
-        {"code": "philippines", "name": "Philippines", "prefix": "63", "popular": False},
-        {"code": "indonesia", "name": "Indonesia", "prefix": "62", "popular": False},
-        {"code": "malaysia", "name": "Malaysia", "prefix": "60", "popular": False},
-        # Oceania
-        {"code": "australia", "name": "Australia", "prefix": "61", "popular": False},
-        {"code": "new_zealand", "name": "New Zealand", "prefix": "64", "popular": False},
-        # South America
-        {"code": "brazil", "name": "Brazil", "prefix": "55", "popular": False},
-        {"code": "argentina", "name": "Argentina", "prefix": "54", "popular": False},
-        {"code": "chile", "name": "Chile", "prefix": "56", "popular": False},
-        {"code": "colombia", "name": "Colombia", "prefix": "57", "popular": False},
-        # Africa
-        {"code": "south_africa", "name": "South Africa", "prefix": "27", "popular": False},
-        {"code": "nigeria", "name": "Nigeria", "prefix": "234", "popular": False},
-        {"code": "egypt", "name": "Egypt", "prefix": "20", "popular": False},
-        # Middle East
-        {"code": "israel", "name": "Israel", "prefix": "972", "popular": False},
-        {"code": "uae", "name": "United Arab Emirates", "prefix": "971", "popular": False},
-        {"code": "saudi_arabia", "name": "Saudi Arabia", "prefix": "966", "popular": False},
-    ]
-
-    # Comprehensive services list (mirrors SMS provider offerings)
-    SERVICES_LIST = [
-        # Dating & Social
-        {"id": "ourtime", "name": "OurTime", "category": "dating", "cost": 2.25},
-        {"id": "tinder", "name": "Tinder", "category": "dating", "cost": 2.50},
-        {"id": "bumble", "name": "Bumble", "category": "dating", "cost": 2.50},
-        {"id": "match", "name": "Match.com", "category": "dating", "cost": 2.25},
-        {"id": "pof", "name": "Plenty of Fish", "category": "dating", "cost": 2.00},
-        {"id": "facebook", "name": "Facebook", "category": "social", "cost": 2.00},
-        {"id": "instagram", "name": "Instagram", "category": "social", "cost": 2.50},
-        {"id": "twitter", "name": "Twitter/X", "category": "social", "cost": 1.75},
-        {"id": "tiktok", "name": "TikTok", "category": "social", "cost": 2.25},
-        {"id": "snapchat", "name": "Snapchat", "category": "social", "cost": 2.00},
-        {"id": "linkedin", "name": "LinkedIn", "category": "social", "cost": 2.75},
-        # Messaging
-        {"id": "telegram", "name": "Telegram", "category": "messaging", "cost": 2.00},
-        {"id": "whatsapp", "name": "WhatsApp", "category": "messaging", "cost": 2.50},
-        {"id": "discord", "name": "Discord", "category": "messaging", "cost": 1.75},
-        {"id": "signal", "name": "Signal", "category": "messaging", "cost": 2.00},
-        {"id": "viber", "name": "Viber", "category": "messaging", "cost": 1.75},
-        {"id": "line", "name": "LINE", "category": "messaging", "cost": 2.00},
-        # Tech & Services
-        {"id": "google", "name": "Google", "category": "tech", "cost": 1.50},
-        {"id": "microsoft", "name": "Microsoft", "category": "tech", "cost": 1.75},
-        {"id": "apple", "name": "Apple", "category": "tech", "cost": 2.00},
-        {"id": "amazon", "name": "Amazon", "category": "tech", "cost": 1.75},
-        {"id": "uber", "name": "Uber", "category": "services", "cost": 2.00},
-        {"id": "lyft", "name": "Lyft", "category": "services", "cost": 2.00},
-        {"id": "doordash", "name": "DoorDash", "category": "services", "cost": 1.75},
-        {"id": "grubhub", "name": "GrubHub", "category": "services", "cost": 1.75},
-        # Gaming
-        {"id": "steam", "name": "Steam", "category": "gaming", "cost": 1.50},
-        {"id": "twitch", "name": "Twitch", "category": "gaming", "cost": 2.00},
-        {"id": "epic", "name": "Epic Games", "category": "gaming", "cost": 1.75},
-        # Finance
-        {"id": "paypal", "name": "PayPal", "category": "finance", "cost": 2.50},
-        {"id": "venmo", "name": "Venmo", "category": "finance", "cost": 2.25},
-        {"id": "cashapp", "name": "Cash App", "category": "finance", "cost": 2.25},
-        {"id": "coinbase", "name": "Coinbase", "category": "finance", "cost": 2.75},
-        # Entertainment
-        {"id": "netflix", "name": "Netflix", "category": "entertainment", "cost": 2.00},
-        {"id": "spotify", "name": "Spotify", "category": "entertainment", "cost": 1.75},
-        {"id": "reddit", "name": "Reddit", "category": "social", "cost": 1.50},
-        {"id": "pinterest", "name": "Pinterest", "category": "social", "cost": 2.00},
-    ]
-
-    @fastapi_app.get("/api/countries/")
-    async def get_countries():
-        """Get list of available countries for SMS verification"""
-        try:
-            # Sort by popular first, then alphabetically
-            sorted_countries = sorted(COUNTRIES_LIST, key=lambda x: (not x.get("popular", False), x["name"]))
-            return {"success": True, "countries": sorted_countries, "total": len(sorted_countries)}
-        except Exception as e:
-            logger = get_logger("countries")
-            logger.error(f"Countries fetch error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to fetch countries")
-
-    @fastapi_app.get("/api/countries/{country_code}/services")
-    async def get_services_by_country(country_code: str):
-        """Get available services for a specific country"""
-        try:
-            # Verify country exists
-            country = next((c for c in COUNTRIES_LIST if c["code"].lower() == country_code.lower()), None)
-            if not country:
-                raise HTTPException(status_code=404, detail=f"Country '{country_code}' not found")
-            
-            # All services available for all countries (can be customized per country if needed)
-            services = [{"name": s["name"], "cost": s["cost"], "category": s["category"]} for s in SERVICES_LIST]
-            
-            return {"success": True, "country": country["name"], "services": services, "total": len(services)}
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger = get_logger("services")
-            logger.error(f"Services fetch error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to fetch services")
+    # Countries and services are fetched from TextVerified API via routers
 
     @fastapi_app.on_event("startup")
     async def startup_event():

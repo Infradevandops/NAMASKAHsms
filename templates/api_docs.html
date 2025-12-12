@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/components.css') }}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     .docs-container {
       display: grid;
@@ -192,31 +192,31 @@
       <ul class="docs-sidebar-nav">
         <li>
           <a href="#overview" class="active">
-            <svg class="icon" data-feather="book"></svg>
+            <i class="ph ph-book"></i>
             Overview
           </a>
         </li>
         <li>
           <a href="#authentication">
-            <svg class="icon" data-feather="lock"></svg>
+            <i class="ph ph-lock"></i>
             Authentication
           </a>
         </li>
         <li>
           <a href="#endpoints">
-            <svg class="icon" data-feather="code"></svg>
+            <i class="ph ph-code"></i>
             Endpoints
           </a>
         </li>
         <li>
           <a href="#errors">
-            <svg class="icon" data-feather="alert-circle"></svg>
+            <i class="ph ph-alert-circle"></i>
             Errors
           </a>
         </li>
         <li>
           <a href="#rate-limits">
-            <svg class="icon" data-feather="zap"></svg>
+            <i class="ph ph-zap"></i>
             Rate Limits
           </a>
         </li>
@@ -234,7 +234,7 @@
       <!-- Overview -->
       <div class="docs-section" id="overview">
         <h2>
-          <svg data-feather="book"></svg>
+          <i class="ph ph-book"></i>
           Overview
         </h2>
         <p>The Namaskah API provides a RESTful interface for SMS verification, email verification, and phone rental services.</p>
@@ -245,7 +245,7 @@
       <!-- Authentication -->
       <div class="docs-section" id="authentication">
         <h2>
-          <svg data-feather="lock"></svg>
+          <i class="ph ph-lock"></i>
           Authentication
         </h2>
         <p>All API requests require authentication using an API key. Include your API key in the request header:</p>
@@ -258,7 +258,7 @@ Authorization: Bearer YOUR_API_KEY
       <!-- Endpoints -->
       <div class="docs-section" id="endpoints">
         <h2>
-          <svg data-feather="code"></svg>
+          <i class="ph ph-code"></i>
           Endpoints
         </h2>
         
@@ -295,7 +295,7 @@ Authorization: Bearer YOUR_API_KEY
       <!-- Error Codes -->
       <div class="docs-section" id="errors">
         <h2>
-          <svg data-feather="alert-circle"></svg>
+          <i class="ph ph-alert-circle"></i>
           Error Codes
         </h2>
         <table style="width: 100%; border-collapse: collapse;">
@@ -329,7 +329,7 @@ Authorization: Bearer YOUR_API_KEY
       <!-- Rate Limits -->
       <div class="docs-section" id="rate-limits">
         <h2>
-          <svg data-feather="zap"></svg>
+          <i class="ph ph-zap"></i>
           Rate Limits
         </h2>
         <p>API requests are rate limited to prevent abuse:</p>
@@ -348,7 +348,7 @@ X-RateLimit-Reset: 1700000000
     </main>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  
   <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

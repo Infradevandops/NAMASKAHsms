@@ -24,22 +24,26 @@ def ensure_admin_user():
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            # Update password to ensure it's correct
+            # Update password and tier to ensure it's correct
             existing_admin.password_hash = hash_password(admin_password)
             existing_admin.is_admin = True
             existing_admin.email_verified = True
+            existing_admin.subscription_tier = 'turbo'
+            existing_admin.credits = 10000.0
+            existing_admin.free_verifications = 1000.0
             db.commit()
-            logger.info("Admin user verified and updated")
+            logger.info("Admin user verified and updated with Turbo tier")
             return
 
-        # Create admin user
+        # Create admin user with Turbo tier access
         admin_user = User(
             email=admin_email,
             password_hash=hash_password(admin_password),
-            credits=1000.0,
+            credits=10000.0,
             is_admin=True,
             email_verified=True,
-            free_verifications=100.0
+            free_verifications=1000.0,
+            subscription_tier='turbo'
         )
 
         db.add(admin_user)

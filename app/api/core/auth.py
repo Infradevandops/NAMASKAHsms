@@ -1,9 +1,12 @@
 """Authentication API router."""
-from pydantic import BaseModel
-from fastapi import APIRouter, Depends, HTTPException, status, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from datetime import timedelta
+from typing import Optional
+from pydantic import BaseModel # Added back BaseModel as it's used by SuccessResponse
+
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse # Keep JSONResponse and HTMLResponse as they are used later
 from sqlalchemy.orm import Session
-from google.oauth2 import id_token
+from google.oauth2 import id_token # Keep id_token as it might be used for Google OAuth
 
 from app.core.database import get_db
 from app.schemas.auth import (
@@ -24,7 +27,9 @@ from app.core.auth_security import (
 )
 from app.services import get_auth_service, get_notification_service
 from app.core.config import get_settings
-from app.models.user import User, APIKey
+from app.utils.security import create_access_token, hash_password, verify_password
+from app.models.user import User
+from app.models.api_key import APIKey
 from app.core.dependencies import get_current_user_id
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.core.token_manager import create_tokens

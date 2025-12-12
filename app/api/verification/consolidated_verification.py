@@ -36,7 +36,7 @@ class VerificationResponse(BaseModel):
     status: str
     cost: float
     created_at: str
-    completed_at: str = None
+    completed_at: Optional[str] = None
 
 class VerificationHistoryResponse(BaseModel):
     verifications: list

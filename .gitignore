@@ -144,14 +144,38 @@ docs/_build/
 # Kiro IDE specs and settings
 .kiro/
 
-# Task/Progress documentation (internal only)
-DASHBOARD_STABILIZATION.md
-DEPLOYMENT_GUIDE.md
-DEPLOYMENT_READY.md
-FIXES_SUMMARY.md
-FORCE_REDEPLOY.md
-IMPLEMENTATION_COMPLETE.md
-PRODUCTION_ERROR_FIX.md
-PRODUCTION_FIXES.md
-PRODUCTION_TROUBLESHOOTING.md
+# Task/Progress documentation (internal only - session notes)
+*IMPLEMENTATION*.md
+*DASHBOARD*.md
+*DEPLOYMENT*.md
+*FIXES*.md
+*TROUBLESHOOTING*.md
+*STABILIZATION*.md
+*REORGANIZATION*.md
+*SUMMARY*.md
 QUICK_START.md
+FINAL_*.md
+COMPLETE_*.md
+CRITICAL_*.md
+RENTAL_SYSTEM_IMPLEMENTATION.md
+TEXTVERIFIED_IMPLEMENTATION.md
+
+# Temporary fix/migration scripts
+fix_*.py
+migrate_*.py
+test_*.py
+scripts/temp_*.py
+
+# Backup files
+*.backup
+*.bak
+*~
+templates/*.backup
+
+# Screenshots and media (testing only)
+*.png
+*.jpg
+*.jpeg
+*.gif
+screenshots/
+images/test/

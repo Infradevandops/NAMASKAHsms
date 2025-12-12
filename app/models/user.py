@@ -20,6 +20,12 @@ class User(BaseModel):
     verification_token = Column(String)
     reset_token = Column(String)
     reset_token_expires = Column(DateTime)
+    
+    # Subscription tier (Task: Versioning)
+    subscription_tier = Column(String(20), default="freemium", nullable=False, index=True)
+    tier_upgraded_at = Column(DateTime)  # When user last upgraded
+    tier_expires_at = Column(DateTime)  # For subscription expiration
+    
     referral_code = Column(String, unique=True, index=True)
     referred_by = Column(String)
     referral_earnings = Column(Float, default=0.0, nullable=False)
@@ -52,15 +58,7 @@ class User(BaseModel):
     personal_numbers = relationship("PersonalNumber", back_populates="user")
 
 
-class APIKey(BaseModel):
-    """API key for programmatic access."""
-
-    __tablename__ = "api_keys"
-
-    user_id = Column(String, nullable=False, index=True)
-    key = Column(String, unique=True, nullable=False, index=True)
-    name = Column(String, nullable=False)
-    is_active = Column(Boolean, default=True, nullable=False)
+# APIKey is defined in app/models/api_key.py to avoid duplication
 
 
 class Webhook(BaseModel):

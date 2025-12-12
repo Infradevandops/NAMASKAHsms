@@ -67,35 +67,52 @@
         return false;
     }
 
-    // Refresh token
+    // TASK 2.4: Token Refresh with Race Condition Prevention
+    let refreshPromise = null;
+
     async function refreshToken() {
+        // If refresh is already in progress, return the existing promise
+        if (refreshPromise) {
+            return refreshPromise;
+        }
+
         const refreshToken = localStorage.getItem('refresh_token');
         
         if (!refreshToken) {
             return false;
         }
 
-        try {
-            const response = await fetch('/api/auth/refresh', {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${refreshToken}`,
-                    'Content-Type': 'application/json'
+        // Create the refresh promise
+        refreshPromise = (async () => {
+            try {
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${refreshToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    localStorage.setItem('token_expires_at', Date.now() + (data.expires_in * 1000));
+                    return true;
                 }
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                localStorage.setItem('access_token', data.access_token);
-                localStorage.setItem('refresh_token', data.refresh_token);
-                localStorage.setItem('token_expires_at', Date.now() + (data.expires_in * 1000));
-                return true;
+            } catch (error) {
+                console.error('Token refresh error:', error);
             }
-        } catch (error) {
-            console.error('Token refresh error:', error);
-        }
 
-        return false;
+            return false;
+        })();
+
+        try {
+            return await refreshPromise;
+        } finally {
+            // Clear the promise after it completes
+            refreshPromise = null;
+        }
     }
 
     // Run check when DOM is ready

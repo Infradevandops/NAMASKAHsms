@@ -1,0 +1,91 @@
+/* NAMASKAH THEME: SOFT (NOTION-INSPIRED) */
+
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&display=swap');
+
+:root {
+    --bg-body: #FDFBF7;
+    --bg-card: #FFFFFF;
+    --bg-sidebar: #F7F6F3;
+
+    --text-main: #37352F;
+    --primary: #FF7E67;
+    --primary-bg: #FFE4DE;
+
+    --radius: 12px;
+    --radius-lg: 16px;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    --font-serif: "Merriweather", serif;
+    --font-sans: "Nunito", sans-serif;
+
+    /* COMPATIBILITY: Design Tokens Overrides (Landing Page) */
+    --color-primary: #FF7E67;
+    --color-primary-light: #FF9E8D;
+    --color-background: #FDFBF7;
+    --color-surface: #FFFFFF;
+    --color-text: #37352F;
+    --color-border: rgba(0, 0, 0, 0.05);
+
+    --radius-xl: 24px;
+    /* Very round cards */
+    --radius-2xl: 32px;
+    /* Hero cards */
+    --font-family-base: var(--font-sans);
+    --font-family-display: var(--font-serif);
+}
+
+body {
+    background: var(--bg-body) !important;
+    font-family: var(--font-sans) !important;
+    color: var(--text-main) !important;
+}
+
+h1,
+h2,
+h3 {
+    font-family: var(--font-serif) !important;
+}
+
+.btn-primary,
+button[type="submit"] {
+    background: #2C2C2C !important;
+    border-radius: var(--radius) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+.card,
+.container {
+    background: var(--bg-card) !important;
+    border-radius: var(--radius-lg) !important;
+    box-shadow: var(--shadow) !important;
+    border: 1px solid rgba(0, 0, 0, 0.03) !important;
+}
+
+/* Sidebar */
+.sidebar {
+    background: var(--bg-sidebar) !important;
+    border-right: none !important;
+}
+
+.nav-item.active {
+    background: var(--primary-bg) !important;
+    color: #D9480F !important;
+    border-radius: var(--radius) !important;
+    border-left: none !important;
+}
+
+/* Login Page overrides */
+body[data-page="login"] {
+    background: var(--bg-body) !important;
+}
+
+body[data-page="login"] .container {
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05) !important;
+}
+
+input {
+    border-radius: var(--radius) !important;
+    background: #F7F6F3 !important;
+    border: none !important;
+}

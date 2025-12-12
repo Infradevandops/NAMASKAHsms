@@ -1,16 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Settings - Namaskah">
   <title>Settings - Namaskah</title>
-  
+
   <link rel="stylesheet" href="/static/css/enterprise-theme.css">
   <link rel="stylesheet" href="/static/css/design-tokens.css">
   <link rel="stylesheet" href="/static/css/components.css">
   <link rel="stylesheet" href="/static/css/vendor/font-awesome-fixed.min.css">
-  
+  <link rel="stylesheet" href="/static/css/tier-components.css">
+
   <style>
     * {
       margin: 0;
@@ -35,7 +37,7 @@
       padding: 30px;
       border-radius: 8px;
       margin-bottom: 30px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .header h1 {
@@ -57,7 +59,7 @@
       background: white;
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
       height: fit-content;
     }
 
@@ -85,7 +87,7 @@
       background: white;
       border-radius: 8px;
       padding: 30px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
 
     .card h2 {
@@ -110,7 +112,8 @@
       color: #374151;
     }
 
-    input, select {
+    input,
+    select {
       width: 100%;
       padding: 12px;
       border: 1px solid #d1d5db;
@@ -119,7 +122,8 @@
       font-family: inherit;
     }
 
-    input:focus, select:focus {
+    input:focus,
+    select:focus {
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
@@ -185,11 +189,11 @@
       border-radius: 50%;
     }
 
-    input:checked + .slider {
+    input:checked+.slider {
       background-color: #667eea;
     }
 
-    input:checked + .slider:before {
+    input:checked+.slider:before {
       transform: translateX(26px);
     }
 
@@ -274,6 +278,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <!-- Header -->
@@ -286,11 +291,14 @@
     <div class="content">
       <!-- Sidebar -->
       <div class="sidebar">
-        <div class="sidebar-item active" onclick="switchSection('notifications')">
+        <div class="sidebar-item active" onclick="switchSection('notifications', event)">
           <i class="fas fa-bell"></i> Notifications
         </div>
-        <div class="sidebar-item" onclick="switchSection('privacy')">
-          <i class="fas fa-lock"></i> Privacy
+        <div class="sidebar-item" onclick="switchSection('subscription', event)">
+          <i class="fas fa-crown"></i> Subscription
+        </div>
+        <div class="sidebar-item" onclick="switchSection('privacy', event)">
+          <i class="fas fa-user-shield"></i> Privacy
         </div>
         <div class="sidebar-item" onclick="switchSection('security')">
           <i class="fas fa-shield-alt"></i> Security
@@ -358,7 +366,33 @@
               </label>
             </div>
 
-            <button class="btn btn-primary" onclick="saveNotifications()" style="margin-top: 20px;">Save Preferences</button>
+            <button class="btn btn-primary" onclick="saveNotifications()" style="margin-top: 20px;">Save
+              Preferences</button>
+          </div>
+        </div>
+
+        <!-- Subscription Section -->
+        <div class="section" id="subscription-section">
+          <div class="card">
+            <h2>Subscription Plan</h2>
+            <div class="current-plan-info"
+              style="margin-bottom: 30px; padding: 20px; background: #f9fafb; border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">Current Plan</h3>
+                <span id="settings-current-tier-badge" class="tier-badge">Loading...</span>
+              </div>
+              <p id="settings-tier-description" style="margin-bottom: 15px;">Manage your subscription tier and billing
+                cycle.</p>
+
+              <div id="settings-tier-actions" style="display: flex; gap: 10px;">
+                <a href="/pricing" class="btn btn-primary" style="text-decoration: none;">View Plans & Upgrade</a>
+              </div>
+            </div>
+
+            <h3>Billing History</h3>
+            <div id="billing-history-list" style="margin-top: 15px;">
+              <p style="color: #6b7280; font-style: italic;">No billing history available.</p>
+            </div>
           </div>
         </div>
 
@@ -400,7 +434,8 @@
               </select>
             </div>
 
-            <button class="btn btn-primary" onclick="savePrivacy()" style="margin-top: 20px;">Save Privacy Settings</button>
+            <button class="btn btn-primary" onclick="savePrivacy()" style="margin-top: 20px;">Save Privacy
+              Settings</button>
           </div>
         </div>
 
@@ -472,7 +507,8 @@
               </select>
             </div>
 
-            <button class="btn btn-primary" onclick="saveBilling()" style="margin-top: 20px;">Save Billing Settings</button>
+            <button class="btn btn-primary" onclick="saveBilling()" style="margin-top: 20px;">Save Billing
+              Settings</button>
           </div>
         </div>
 
@@ -482,9 +518,11 @@
             <h2>Danger Zone</h2>
             <p>Irreversible actions</p>
 
-            <div style="background: #fee2e2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+            <div
+              style="background: #fee2e2; border: 1px solid #fecaca; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
               <h3 style="color: #991b1b; margin-bottom: 10px;">Delete Account</h3>
-              <p style="color: #991b1b; margin-bottom: 15px;">This action cannot be undone. All your data will be permanently deleted.</p>
+              <p style="color: #991b1b; margin-bottom: 15px;">This action cannot be undone. All your data will be
+                permanently deleted.</p>
               <button class="btn btn-danger" onclick="deleteAccount()">Delete My Account</button>
             </div>
           </div>
@@ -584,6 +622,37 @@
       el.classList.add('show');
       setTimeout(() => el.classList.remove('show'), 3000);
     }
+
+    // Initialize Tier Info on Settings Page
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Wait for auth check
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          const response = await axios.get('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` } });
+          const tier = response.data.current_tier;
+
+          const badge = document.getElementById('settings-current-tier-badge');
+          if (badge) {
+            badge.textContent = tier.toUpperCase();
+            badge.className = `tier-badge tier-badge-${tier}`;
+          }
+
+          const desc = document.getElementById('settings-tier-description');
+          if (desc) {
+            if (tier === 'freemium') {
+              desc.textContent = 'You are on the Free plan. Upgrade to unlock API access and premium features.';
+            } else {
+              desc.textContent = `You are subscribed to the ${tier.charAt(0).toUpperCase() + tier.slice(1)} plan.`;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to load tier info', e);
+        }
+      }
+    });
   </script>
+  <script type="module" src="/static/js/tier-manager.js"></script>
 </body>
+
 </html>

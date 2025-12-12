@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
   <link rel="stylesheet" href="/static/css/components.css') }}">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.css">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <style>
     .error-container {
       display: flex;
@@ -116,7 +116,7 @@
 <body>
   <div class="error-container">
     <div class="error-card">
-      <svg class="error-icon" data-feather="alert-circle"></svg>
+      <i class="error-icon ph ph-alert-circle"></i>
       <div class="error-code">500</div>
       <h1 class="error-title">Server Error</h1>
       <p class="error-description">
@@ -130,11 +130,11 @@
 
       <div class="action-buttons">
         <button onclick="location.reload()" class="btn btn-primary">
-          <svg class="icon icon-sm" data-feather="refresh-cw"></svg>
+          <i class="ph ph-refresh-cw"></i>
           Try Again
         </button>
         <a href="/" class="btn btn-outline">
-          <svg class="icon icon-sm" data-feather="home"></svg>
+          <i class="ph ph-home"></i>
           Go Home
         </a>
       </div>
@@ -143,15 +143,15 @@
         <p>If the problem persists, please contact our support team:</p>
         <div class="support-links">
           <a href="/status">
-            <svg class="icon icon-sm" data-feather="activity"></svg>
+            <i class="ph ph-activity"></i>
             Status Page
           </a>
           <a href="/contact">
-            <svg class="icon icon-sm" data-feather="mail"></svg>
+            <i class="ph ph-mail"></i>
             Contact Support
           </a>
           <a href="https://docs.namaskah.com" target="_blank">
-            <svg class="icon icon-sm" data-feather="book"></svg>
+            <i class="ph ph-book"></i>
             Documentation
           </a>
         </div>
@@ -159,7 +159,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+  
   <script src="/static/js/design-system.js') }}"></script>
 </body>
 </html>

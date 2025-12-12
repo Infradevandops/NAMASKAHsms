@@ -38,7 +38,10 @@ async def get_analytics_summary(
         
         # Calculate trends
         thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
-        recent_verifications = [v for v in verifications if v.created_at >= thirty_days_ago]
+        recent_verifications = [
+            v for v in verifications 
+            if v.created_at and v.created_at.replace(tzinfo=timezone.utc) >= thirty_days_ago
+        ]
         recent_total = len(recent_verifications)
         recent_successful = sum(1 for v in recent_verifications if v.status == "completed")
         
@@ -46,7 +49,7 @@ async def get_analytics_summary(
         sixty_days_ago = datetime.now(timezone.utc) - timedelta(days=60)
         previous_verifications = [
             v for v in verifications 
-            if sixty_days_ago <= v.created_at < thirty_days_ago
+            if v.created_at and sixty_days_ago <= v.created_at.replace(tzinfo=timezone.utc) < thirty_days_ago
         ]
         previous_total = len(previous_verifications)
 

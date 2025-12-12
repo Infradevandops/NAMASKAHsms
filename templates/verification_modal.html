@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Verification</title>
+    <style>
+        :root {
+            --primary: #FF7E67;
+            --primary-light: #FFE4DE;
+            --bg-body: #FDFBF7;
+            --bg-card: #FFFFFF;
+            --text-main: #37352F;
+            --text-muted: #9B9A97;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            padding: 20px;
+        }
+
+        .modal {
+            background: var(--bg-card);
+            border-radius: 16px;
+            width: 90%;
+            max-width: 550px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: var(--bg-card);
+            z-index: 10;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(0, 0, 0, 0.05);
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+        
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-main);
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: var(--text-main);
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-light);
+        }
+
+        .area-code-item {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .area-code-item:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+        }
+
+        .area-code-item.selected {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            font-weight: 600;
+        }
+
+        .area-code-city {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .number-display {
+            background: var(--primary-light);
+            padding: 16px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 16px 0;
+            display: none;
+        }
+
+        .number-display.show {
+            display: block;
+        }
+
+        .number-display .label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .number-display .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+            font-family: monospace;
+        }
+
+        .pricing-info {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+
+        .pricing-info strong {
+            color: var(--text-main);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            gap: 12px;
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-card);
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 126, 103, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: var(--text-main);
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .step-indicator {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .step {
+            flex: 1;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .step.active {
+            background: var(--primary);
+        }
+
+        .step.completed {
+            background: var(--success);
+        }
+
+        .error-message {
+            background: #fee2e2;
+            color: var(--error);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: var(--success);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--primary-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="modal-overlay" id="verificationModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>SMS Verification</h2>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="step-indicator">
+                    <div class="step completed" id="step1"></div>
+                    <div class="step active" id="step2"></div>
+                    <div class="step" id="step3"></div>
+                </div>
+
+                <div class="error-message" id="errorMsg"></div>
+                <div class="success-message" id="successMsg"></div>
+
+                <!-- Step 1: Service Selection -->
+                <div id="step1-content">
+                    <div class="form-group">
+                        <label>Select Service</label>
+                        <select id="serviceSelect" onchange="onServiceChange()">
+                            <option value="">Choose a service...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Step 2: Area Code Selection -->
+                <div id="step2-content" style="display:none;">
+                    <div class="form-group">
+                        <label id="step2Label">Configure Your Number</label>
+                        <div id="areaCodeList" style="max-height: 400px; overflow-y: auto;"></div>
+                    </div>
+
+                    <div class="pricing-info">
+                        <strong id="pricingCost">$2.00</strong> will be deducted from your balance
+                    </div>
+                </div>
+
+                <!-- Step 3: Confirmation -->
+                <div id="step3-content" style="display:none;">
+                    <div style="text-align: center; padding: 20px 0;">
+                        <div style="font-size: 48px; margin-bottom: 16px;">📱</div>
+                        <h3 style="margin-bottom: 8px;">Verification Created</h3>
+                        
+                        <div class="number-display show">
+                            <div class="label">Your Phone Number</div>
+                            <div class="number" id="displayNumber">Loading...</div>
+                        </div>
+                        
+                        <div style="margin: 16px 0; padding: 16px; background: #f9fafb; border-radius: 8px;">
+                            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">SMS Code</div>
+                            <div id="smsCode" style="font-size: 32px; font-weight: 700; color: var(--primary); font-family: monospace;">Waiting...</div>
+                            <button id="copyBtn" onclick="copySmsCode()" style="margin-top: 8px; padding: 8px 16px; background: var(--primary); color: white; border: none; border-radius: 6px; cursor: pointer; display: none;">Copy Code</button>
+                        </div>
+                        
+                        <div id="verificationId" style="margin-top: 16px; font-family: monospace; font-size: 12px; color: var(--text-muted);"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="previousStep()">Back</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentStep = 1;
+        let services = [];
+        let areaCodes = [];
+        let carriers = [];
+        let selectedService = null;
+        let selectedAreaCode = null;
+        let selectedCarrier = null;
+        let userTier = 'freemium';
+        let tierConfig = {};
+
+        // Initialize
+        async function initModal() {
+            await loadUserTier();
+            await loadServices();
+            updateStepUI();
+        }
+        
+        // Load user tier
+        async function loadUserTier() {
+            try {
+                const response = await fetch(`${API_BASE}/user/tier`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    userTier = data.tier_name?.toLowerCase() || 'freemium';
+                    tierConfig = data.config || {};
+                    console.log(`✅ User tier: ${userTier}`);
+                }
+            } catch (error) {
+                console.log('⚠️ Failed to load tier, defaulting to freemium');
+                userTier = 'freemium';
+            }
+        }
+
+        // Load services
+        async function loadServices() {
+            const select = document.getElementById('serviceSelect');
+            select.innerHTML = '<option value="">Loading services...</option>';
+            select.disabled = true;
+            
+            try {
+                const response = await fetch(`${API_BASE}/countries/usa/services`);
+                const data = await response.json();
+                
+                if (data.success && data.services) {
+                    services = data.services;
+                    populateServices();
+                    console.log(`✅ Loaded ${services.length} services`);
+                } else {
+                    showError('Failed to load services');
+                    select.innerHTML = '<option value="">Failed to load</option>';
+                }
+            } catch (error) {
+                console.error('❌ Error loading services:', error);
+                showError('Failed to load services');
+                select.innerHTML = '<option value="">Error loading</option>';
+            }
+        }
+
+        // Populate services dropdown
+        function populateServices() {
+            const select = document.getElementById('serviceSelect');
+            select.innerHTML = '<option value="">Choose a service...</option>';
+            
+            services.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id || service.name;
+                option.textContent = service.name;
+                select.appendChild(option);
+            });
+            
+            select.disabled = false;
+        }
+
+        // On service change
+        async function onServiceChange() {
+            selectedService = document.getElementById('serviceSelect').value;
+            if (!selectedService) return;
+
+            // Load area codes and carriers based on tier
+            if (userTier === 'starter' || userTier === 'turbo') {
+                await loadAreaCodes();
+            }
+            
+            if (userTier === 'turbo') {
+                await loadCarriers();
+            }
+            
+            populateStep2Content();
+        }
+        
+        // Load area codes (Starter+ only)
+        async function loadAreaCodes() {
+            try {
+                const response = await fetch(`${API_BASE}/countries/usa/area-codes`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        areaCodes = data.area_codes || [];
+                    }
+                } else if (response.status === 402) {
+                    console.log('Area codes require Starter+ tier');
+                    areaCodes = [];
+                }
+            } catch (error) {
+                console.log('Failed to load area codes:', error);
+                areaCodes = [];
+            }
+        }
+        
+        // Load carriers (Turbo only)
+        async function loadCarriers() {
+            try {
+                const response = await fetch(`${API_BASE}/countries/usa/carriers`, {
+                    credentials: 'include'
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.success) {
+                        carriers = data.carriers || [];
+                    }
+                } else if (response.status === 402) {
+                    console.log('Carriers require Turbo tier');
+                    carriers = [];
+                }
+            } catch (error) {
+                console.log('Failed to load carriers:', error);
+                carriers = [];
+            }
+        }
+
+        // Populate step 2 content based on tier
+        function populateStep2Content() {
+            const list = document.getElementById('areaCodeList');
+            const label = document.getElementById('step2Label');
+            list.innerHTML = '';
+            
+            if (userTier === 'freemium') {
+                label.textContent = 'Number Assignment (Freemium)';
+                // Freemium: Auto-random, no selection
+                list.innerHTML = `
+                    <div style="padding: 24px; text-align: center; background: #f9fafb; border-radius: 8px;">
+                        <div style="font-size: 32px; margin-bottom: 12px;">🎲</div>
+                        <h4 style="margin-bottom: 8px;">Random Assignment</h4>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+                            You'll receive a random US number from any area code and carrier.
+                        </p>
+                        <div style="font-size: 12px; color: var(--text-muted); padding: 12px; background: white; border-radius: 6px;">
+                            💡 Upgrade to <strong>Starter ($9/mo)</strong> to select area codes<br>
+                            💡 Upgrade to <strong>Turbo ($13.99/mo)</strong> for ISP filtering
+                        </div>
+                    </div>
+                `;
+                selectedAreaCode = null;
+                selectedCarrier = null;
+            } else if (userTier === 'starter') {
+                label.textContent = 'Select Area Code (Starter Plan)';
+                // Starter: Area code selection only
+                list.innerHTML = '';
+                
+                const anyOption = document.createElement('div');
+                anyOption.className = 'area-code-item selected';
+                anyOption.innerHTML = `
+                    <div>🎲 Any Area Code (Random)</div>
+                    <div class="area-code-city">Let the system choose</div>
+                `;
+                anyOption.onclick = () => selectAreaCode(null, anyOption);
+                list.appendChild(anyOption);
+                
+                areaCodes.forEach(code => {
+                    const item = document.createElement('div');
+                    item.className = 'area-code-item';
+                    item.innerHTML = `
+                        <div>${code.code} - ${code.name}</div>
+                        <div class="area-code-city">Available for selection</div>
+                    `;
+                    item.onclick = () => selectAreaCode(code, item);
+                    list.appendChild(item);
+                });
+                
+                const upgradeNote = document.createElement('div');
+                upgradeNote.style.cssText = 'margin-top: 12px; padding: 12px; background: #f9fafb; border-radius: 6px; font-size: 12px; color: var(--text-muted);';
+                upgradeNote.innerHTML = '💡 Upgrade to <strong>Turbo ($13.99/mo)</strong> to filter by ISP/Carrier';
+                list.appendChild(upgradeNote);
+            } else if (userTier === 'turbo') {
+                label.textContent = 'Select Area Code & Carrier (Turbo Plan)';
+                // Turbo: Both area code AND carrier selection
+                list.innerHTML = '';
+                
+                // Area code section
+                const areaSection = document.createElement('div');
+                areaSection.style.marginBottom = '20px';
+                areaSection.innerHTML = '<div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">AREA CODE</div>';
+                
+                const anyAreaOption = document.createElement('div');
+                anyAreaOption.className = 'area-code-item selected';
+                anyAreaOption.innerHTML = `
+                    <div>🎲 Any Area Code</div>
+                    <div class="area-code-city">Random selection</div>
+                `;
+                anyAreaOption.onclick = () => selectAreaCode(null, anyAreaOption);
+                areaSection.appendChild(anyAreaOption);
+                
+                const displayCodes = areaCodes.length > 15 ? areaCodes.slice(0, 15) : areaCodes;
+                displayCodes.forEach(code => {
+                    const item = document.createElement('div');
+                    item.className = 'area-code-item';
+                    item.innerHTML = `
+                        <div>${code.code} - ${code.name}</div>
+                        <div class="area-code-city">Premium selection</div>
+                    `;
+                    item.onclick = () => selectAreaCode(code, item);
+                    areaSection.appendChild(item);
+                });
+                
+                list.appendChild(areaSection);
+                
+                // Carrier section
+                const carrierSection = document.createElement('div');
+                carrierSection.innerHTML = '<div style="font-size: 13px; font-weight: 600; margin-bottom: 8px; margin-top: 16px; color: var(--text-muted);">CARRIER / ISP</div>';
+                
+                carriers.forEach((carrier, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'area-code-item' + (index === carriers.length - 1 ? ' selected' : '');
+                    item.innerHTML = `
+                        <div>${carrier.name}</div>
+                        <div class="area-code-city">${carrier.id === 'any' ? 'Random carrier' : 'Specific carrier'}</div>
+                    `;
+                    item.onclick = () => selectCarrier(carrier, item);
+                    carrierSection.appendChild(item);
+                });
+                
+                list.appendChild(carrierSection);
+                
+                // Default to "Any Carrier"
+                if (carriers.length > 0) {
+                    selectedCarrier = carriers[carriers.length - 1];
+                }
+            }
+        }
+
+        // Select area code
+        function selectAreaCode(code, element) {
+            selectedAreaCode = code;
+            // Only remove 'selected' from area code items in the same section
+            const parent = element.parentElement;
+            parent.querySelectorAll('.area-code-item').forEach(el => {
+                if (el.parentElement === parent) {
+                    el.classList.remove('selected');
+                }
+            });
+            element.classList.add('selected');
+            
+            // Update pricing
+            const service = services.find(s => s.id === selectedService || s.name === selectedService);
+            document.getElementById('pricingCost').textContent = `$${(service?.cost || 2.00).toFixed(2)}`;
+        }
+        
+        // Select carrier (Turbo only)
+        function selectCarrier(carrier, element) {
+            selectedCarrier = carrier;
+            // Only remove 'selected' from carrier items
+            const parent = element.parentElement;
+            parent.querySelectorAll('.area-code-item').forEach(el => {
+                if (el.parentElement === parent) {
+                    el.classList.remove('selected');
+                }
+            });
+            element.classList.add('selected');
+        }
+
+        // Next step
+        function nextStep() {
+            if (currentStep === 1 && !selectedService) {
+                showError('Please select a service');
+                return;
+            }
+
+            if (currentStep === 2) {
+                purchaseVerification();
+                return;
+            }
+
+            currentStep++;
+            updateStepUI();
+        }
+
+        // Previous step
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepUI();
+            }
+        }
+
+        // Update step UI
+        function updateStepUI() {
+            // Hide all steps
+            document.getElementById('step1-content').style.display = 'none';
+            document.getElementById('step2-content').style.display = 'none';
+            document.getElementById('step3-content').style.display = 'none';
+
+            // Show current step
+            document.getElementById(`step${currentStep}-content`).style.display = 'block';
+
+            // Update indicators
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                step.classList.remove('active', 'completed');
+                if (i < currentStep) step.classList.add('completed');
+                if (i === currentStep) step.classList.add('active');
+            }
+
+            // Update button
+            const nextBtn = document.getElementById('nextBtn');
+            if (currentStep === 3) {
+                nextBtn.textContent = 'Done';
+                nextBtn.onclick = closeModal;
+            } else {
+                nextBtn.textContent = 'Next';
+                nextBtn.onclick = nextStep;
+            }
+
+            // Show/hide back button
+            document.querySelectorAll('.btn-secondary')[0].style.display = currentStep === 1 ? 'none' : 'block';
+        }
+
+        // Purchase verification
+        async function purchaseVerification() {
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = true;
+            nextBtn.innerHTML = '<span class="loading"></span>';
+
+            try {
+                const requestBody = {
+                    service_name: selectedService,
+                    country: 'US',
+                    capability: 'sms'
+                };
+                
+                // Add area_code if user selected one (Starter/Turbo)
+                if (selectedAreaCode && selectedAreaCode.code) {
+                    requestBody.area_code = selectedAreaCode.code;
+                }
+                
+                // Add carrier if user selected one (Turbo only)
+                if (selectedCarrier && selectedCarrier.id && selectedCarrier.id !== 'any') {
+                    requestBody.carrier = selectedCarrier.id;
+                }
+
+                console.log('📤 Purchase request:', requestBody);
+
+                const response = await fetch(`${API_BASE}/verify/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(requestBody)
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('verificationId').textContent = `ID: ${data.id}`;
+                    document.getElementById('displayNumber').textContent = data.phone_number || 'N/A';
+                    currentStep = 3;
+                    updateStepUI();
+                    showSuccess('Verification created successfully!');
+                    
+                    // Start polling for SMS code
+                    pollForSmsCode(data.id);
+                } else {
+                    const error = await response.json();
+                    showError(error.detail || 'Purchase failed. Please try again.');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            } finally {
+                nextBtn.disabled = false;
+                nextBtn.innerHTML = 'Next';
+            }
+        }
+        
+        // Poll for SMS code
+        let pollInterval = null;
+        async function pollForSmsCode(verificationId) {
+            let attempts = 0;
+            const maxAttempts = 60; // 5 minutes
+            
+            pollInterval = setInterval(async () => {
+                attempts++;
+                
+                if (attempts > maxAttempts) {
+                    clearInterval(pollInterval);
+                    document.getElementById('smsCode').textContent = 'Timeout - Check dashboard';
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`${API_BASE}/verify/${verificationId}/status`, {
+                        credentials: 'include'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        
+                        if (data.sms_code) {
+                            document.getElementById('smsCode').textContent = data.sms_code;
+                            document.getElementById('copyBtn').style.display = 'inline-block';
+                            clearInterval(pollInterval);
+                            showSuccess('SMS code received!');
+                        } else {
+                            document.getElementById('smsCode').textContent = `Waiting... (${attempts}s)`;
+                        }
+                    }
+                } catch (error) {
+                    console.log('Poll error:', error);
+                }
+            }, 5000); // Poll every 5 seconds
+        }
+        
+        // Copy SMS code
+        function copySmsCode() {
+            const code = document.getElementById('smsCode').textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyBtn');
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => btn.textContent = 'Copy Code', 2000);
+            });
+        }
+
+        // Show error
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        // Show success
+        function showSuccess(msg) {
+            const el = document.getElementById('successMsg');
+            el.textContent = msg;
+            el.classList.add('show');
+            setTimeout(() => el.classList.remove('show'), 5000);
+        }
+
+        // Close modal
+        function closeModal() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+            }
+            if (window.closeVerificationModal) {
+                window.closeVerificationModal();
+            } else {
+                document.getElementById('verificationModal').style.display = 'none';
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', initModal);
+    </script>
+</body>
+</html>
