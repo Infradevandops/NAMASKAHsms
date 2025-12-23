@@ -11,7 +11,7 @@ from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '001_add_subscription_tiers'
-down_revision = 'cb2a98627849'  # Latest merge head
+down_revision = 'f6a9a9aafab3'  # After performance indexes
 branch_labels = None
 depends_on = None
 
