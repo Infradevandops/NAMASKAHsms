@@ -11,7 +11,7 @@ from datetime import datetime
 
 # revision identifiers, used by Alembic.
 revision = '001_add_subscription_tiers'
-down_revision = None  # Update this to previous migration if exists
+down_revision = 'cb2a98627849'  # Latest merge head
 branch_labels = None
 depends_on = None
 
@@ -62,26 +62,32 @@ def upgrade():
         # Column might not exist or already renamed
         pass
     
-    # Seed subscription tiers
-    op.execute("""
-        INSERT INTO subscription_tiers (id, tier, name, description, price_monthly, payment_required,
-                                        has_api_access, has_area_code_selection, has_isp_filtering,
-                                        api_key_limit, daily_verification_limit, monthly_verification_limit,
-                                        country_limit, sms_retention_days, support_level,
-                                        rate_limit_per_minute, rate_limit_per_hour, features)
-        VALUES
-        (gen_random_uuid(), 'freemium', 'Freemium', 'Free tier with basic features', 0, false,
-         false, false, false, 0, 100, 3000, 5, 1, 'community', 10, 100,
-         '{"webhooks": false, "priority_routing": false, "custom_branding": false}'),
-        
-        (gen_random_uuid(), 'starter', 'Starter', 'Developer tier with API access and area code selection', 900, true,
-         true, true, false, 5, 1000, 30000, 20, 7, 'email', 50, 1000,
-         '{"webhooks": true, "priority_routing": false, "custom_branding": false}'),
-        
-        (gen_random_uuid(), 'turbo', 'Turbo', 'Premium tier with ISP filtering and unlimited API keys', 1399, true,
-         true, true, true, -1, 10000, 300000, -1, 30, 'priority', 200, 10000,
-         '{"webhooks": true, "priority_routing": true, "custom_branding": true}')
-    """)
+    # Seed subscription tiers (skip if already exists)
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    if 'subscription_tiers' in inspector.get_table_names():
+        op.execute("""
+            INSERT INTO subscription_tiers (id, tier, name, description, price_monthly, payment_required,
+                                            has_api_access, has_area_code_selection, has_isp_filtering,
+                                            api_key_limit, daily_verification_limit, monthly_verification_limit,
+                                            country_limit, sms_retention_days, support_level,
+                                            rate_limit_per_minute, rate_limit_per_hour, features)
+            SELECT gen_random_uuid(), 'freemium', 'Freemium', 'Free tier with basic features', 0, false,
+             false, false, false, 0, 100, 3000, 5, 1, 'community', 10, 100,
+             '{"webhooks": false, "priority_routing": false, "custom_branding": false}'::json
+            WHERE NOT EXISTS (SELECT 1 FROM subscription_tiers WHERE tier = 'freemium')
+            UNION ALL
+            SELECT gen_random_uuid(), 'starter', 'Starter', 'Developer tier with API access and area code selection', 900, true,
+             true, true, false, 5, 1000, 30000, 20, 7, 'email', 50, 1000,
+             '{"webhooks": true, "priority_routing": false, "custom_branding": false}'::json
+            WHERE NOT EXISTS (SELECT 1 FROM subscription_tiers WHERE tier = 'starter')
+            UNION ALL
+            SELECT gen_random_uuid(), 'turbo', 'Turbo', 'Premium tier with ISP filtering and unlimited API keys', 1399, true,
+             true, true, true, -1, 10000, 300000, -1, 30, 'priority', 200, 10000,
+             '{"webhooks": true, "priority_routing": true, "custom_branding": true}'::json
+            WHERE NOT EXISTS (SELECT 1 FROM subscription_tiers WHERE tier = 'turbo')
+        """)
 
 
 def downgrade():
