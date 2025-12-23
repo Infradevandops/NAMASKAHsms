@@ -17,6 +17,18 @@ depends_on = None
 
 def upgrade() -> None:
     """Create SMS forwarding table."""
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    
+    # Skip if table already exists
+    if 'sms_forwarding' in inspector.get_table_names():
+        print("⚠️  sms_forwarding table already exists, skipping")
+        return
+    
+    # Check if rentals table exists for foreign key
+    has_rentals = 'rentals' in inspector.get_table_names()
+    
     op.create_table(
         'sms_forwarding',
         sa.Column('id', sa.String(36), nullable=False),
@@ -31,10 +43,17 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(), nullable=False),
         sa.Column('updated_at', sa.DateTime(), nullable=False),
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
-        sa.ForeignKeyConstraint(['rental_id'], ['rentals.id'], ),
         sa.PrimaryKeyConstraint('id'),
     )
     op.create_index('ix_sms_forwarding_user_id', 'sms_forwarding', ['user_id'])
+    
+    # Only add rental foreign key if rentals table exists
+    if has_rentals:
+        op.create_foreign_key(
+            'fk_sms_forwarding_rental_id',
+            'sms_forwarding', 'rentals',
+            ['rental_id'], ['id']
+        )
 
 
 def downgrade() -> None:
