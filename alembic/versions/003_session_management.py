@@ -14,7 +14,12 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.create_table(
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    
+    if 'user_sessions' not in inspector.get_table_names():
+        op.create_table(
         'user_sessions',
         sa.Column('id', sa.String(), nullable=False),
         sa.Column('user_id', sa.String(), nullable=True),
@@ -27,9 +32,9 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('refresh_token')
     )
-    op.create_index(op.f('ix_user_sessions_user_id'), 'user_sessions', ['user_id'], unique=False)
-    op.create_index(op.f('ix_user_sessions_expires_at'), 'user_sessions', ['expires_at'], unique=False)
-    op.create_index(op.f('ix_user_sessions_created_at'), 'user_sessions', ['created_at'], unique=False)
+        op.create_index(op.f('ix_user_sessions_user_id'), 'user_sessions', ['user_id'], unique=False)
+        op.create_index(op.f('ix_user_sessions_expires_at'), 'user_sessions', ['expires_at'], unique=False)
+        op.create_index(op.f('ix_user_sessions_created_at'), 'user_sessions', ['created_at'], unique=False)
 
 def downgrade():
     op.drop_index(op.f('ix_user_sessions_created_at'), table_name='user_sessions')

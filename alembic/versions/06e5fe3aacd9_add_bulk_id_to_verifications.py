@@ -18,8 +18,15 @@ depends_on = None
 
 def upgrade() -> None:
     # Add bulk_id column to verifications table
-    op.add_column('verifications', sa.Column('bulk_id', sa.String(), nullable=True))
-    op.create_index('ix_verifications_bulk_id', 'verifications', ['bulk_id'])
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    
+    # Check if column already exists
+    columns = [col['name'] for col in inspector.get_columns('verifications')]
+    if 'bulk_id' not in columns:
+        op.add_column('verifications', sa.Column('bulk_id', sa.String(), nullable=True))
+        op.create_index('ix_verifications_bulk_id', 'verifications', ['bulk_id'])
 
 
 def downgrade() -> None:

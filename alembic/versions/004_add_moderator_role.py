@@ -14,7 +14,13 @@ branch_labels = None
 depends_on = None
 
 def upgrade():
-    op.add_column('users', sa.Column('is_moderator', sa.Boolean(), nullable=True, server_default='0'))
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    
+    columns = [col['name'] for col in inspector.get_columns('users')]
+    if 'is_moderator' not in columns:
+        op.add_column('users', sa.Column('is_moderator', sa.Boolean(), nullable=True, server_default='0'))
 
 def downgrade():
     op.drop_column('users', 'is_moderator')
