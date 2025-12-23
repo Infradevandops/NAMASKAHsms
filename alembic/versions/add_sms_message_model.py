@@ -11,7 +11,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = 'add_sms_message_model'
-down_revision = None
+down_revision = '001_consolidated'  # After base schema
 branch_labels = None
 depends_on = None
 
