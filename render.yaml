@@ -2,7 +2,7 @@ services:
   - type: web
     name: namaskah-sms
     env: python
-    buildCommand: pip install -r requirements.txt && alembic upgrade head && python create_admin_render.py
+    buildCommand: pip install -r requirements.txt && python migrate_safe.py && python create_admin_render.py
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
