@@ -17,6 +17,14 @@ depends_on = None
 
 def upgrade() -> None:
     """Create all tables with proper schema."""
+    from sqlalchemy import inspect
+    bind = op.get_bind()
+    inspector = inspect(bind)
+    
+    # Skip if tables already exist (production database)
+    if 'users' in inspector.get_table_names():
+        print("⚠️  Tables already exist, skipping consolidated migration")
+        return
 
     # Users table
     op.create_table(
@@ -47,10 +55,10 @@ def upgrade() -> None:
         sa.Column("commission_tier", sa.String(50), nullable=True),
         sa.Column("is_affiliate", sa.Boolean(), default=False),
     )
-    op.create_index("ix_users_email", "users", ["email"])
-    op.create_index("ix_users_google_id", "users", ["google_id"])
-    op.create_index("ix_users_referral_code", "users", ["referral_code"])
-    op.create_index("ix_users_provider", "users", ["provider"])
+        op.create_index("ix_users_email", "users", ["email"])
+        op.create_index("ix_users_google_id", "users", ["google_id"])
+        op.create_index("ix_users_referral_code", "users", ["referral_code"])
+        op.create_index("ix_users_provider", "users", ["provider"])
 
     # API Keys table
     op.create_table(
