@@ -55,10 +55,10 @@ def upgrade() -> None:
         sa.Column("commission_tier", sa.String(50), nullable=True),
         sa.Column("is_affiliate", sa.Boolean(), default=False),
     )
-        op.create_index("ix_users_email", "users", ["email"])
-        op.create_index("ix_users_google_id", "users", ["google_id"])
-        op.create_index("ix_users_referral_code", "users", ["referral_code"])
-        op.create_index("ix_users_provider", "users", ["provider"])
+    op.create_index("ix_users_email", "users", ["email"])
+    op.create_index("ix_users_google_id", "users", ["google_id"])
+    op.create_index("ix_users_referral_code", "users", ["referral_code"])
+    op.create_index("ix_users_provider", "users", ["provider"])
 
     # API Keys table
     op.create_table(
