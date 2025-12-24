@@ -33,11 +33,11 @@ from app.api.core.system import router as system_router
 
 # Import production implementation routers
 from app.api.verification.textverified_endpoints import router as textverified_router
-from app.api.verification.rentals_endpoints import router as rentals_endpoints_router
+
 from app.api.verification.pricing import router as pricing_router
 from app.api.verification.carrier_endpoints import router as carrier_router
 from app.api.verification.consolidated_verification import router as verify_router
-from app.api.rentals.textverified_rentals import router as rentals_router
+
 from app.api.integrations.sms_inbox import router as sms_router
 from app.api.integrations.billing import router as billing_router
 from app.api.integrations.webhooks import router as webhooks_router
@@ -58,7 +58,6 @@ from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.user_settings import router as user_settings_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
 from app.api.preview_router import router as preview_router
-from app.api.emergency_fix import router as emergency_router
 
 from app.core.unified_cache import cache
 from app.core.database import engine, get_db
@@ -186,7 +185,7 @@ def create_app() -> FastAPI:
     # fastapi_app.include_router(rentals_endpoints_router)
     fastapi_app.include_router(pricing_router)
     fastapi_app.include_router(carrier_router)
-    fastapi_app.include_router(rentals_router, prefix="/api")
+
     fastapi_app.include_router(sms_router)
     fastapi_app.include_router(billing_router)
     fastapi_app.include_router(webhooks_router)
@@ -205,7 +204,6 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(tier_router)
     fastapi_app.include_router(api_key_router)
     fastapi_app.include_router(preview_router)
-    fastapi_app.include_router(emergency_router)
 
     # Initialize Jinja2 templates
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
@@ -329,9 +327,7 @@ def create_app() -> FastAPI:
     async def verification_modal(request: Request):
         return templates.TemplateResponse("verification_modal.html", {"request": request})
 
-    @fastapi_app.get("/rental-modal", response_class=HTMLResponse)
-    async def rental_modal(request: Request):
-        return templates.TemplateResponse("rental_modal.html", {"request": request})
+
 
     @fastapi_app.get("/verification", response_class=HTMLResponse)
     async def verification_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -445,11 +441,7 @@ def create_app() -> FastAPI:
         user = db.query(User).filter(User.id == user_id).first()
         return templates.TemplateResponse("wallet.html", {"request": request, "user": user})
 
-    @fastapi_app.get("/rentals", response_class=HTMLResponse)
-    async def rentals_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-        from app.models.user import User
-        user = db.query(User).filter(User.id == user_id).first()
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+
 
     @fastapi_app.get("/admin-dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -565,17 +557,8 @@ def create_app() -> FastAPI:
                 Verification.status == 'completed'
             ).count()
             
-            # Get rental stats (handle missing table gracefully)
-            try:
-                from app.models.rental import Rental
-                active_rentals = db.query(Rental).filter(
-                    Rental.user_id == user_id, 
-                    Rental.status == 'active'
-                ).count()
-            except Exception as rental_error:
-                # Rentals table may not exist yet or other DB error
-                # Silently default to 0 rentals
-                active_rentals = 0
+            # Get rental stats (disabled - feature removed)
+            active_rentals = 0
             
             return {
                 "id": user.id,
