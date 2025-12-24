@@ -51,5 +51,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-# Start app directly (database already migrated)
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Run migrations then start app
+CMD ["/bin/bash", "-c", "alembic upgrade head || true && uvicorn main:app --host 0.0.0.0 --port 8000 --workers 1"]
