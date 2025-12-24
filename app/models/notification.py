@@ -11,7 +11,7 @@ class Notification(BaseModel):
     __tablename__ = "notifications"
 
     user_id = Column(String, nullable=False, index=True)
-    type = Column(String, nullable=False, index=True)  # payment_success, payment_failed, refund_success
+    type = Column(String, nullable=True, index=True)  # payment_success, payment_failed, refund_success, info
     title = Column(String, nullable=False)
     message = Column(String, nullable=False)
     data = Column(JSON)  # Additional data (reference, amount, etc)
