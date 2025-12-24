@@ -76,4 +76,8 @@ def run_migrations_online() -> None:
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    # Check SKIP_MIGRATIONS before doing anything
+    if os.getenv('SKIP_MIGRATIONS', '').lower() in ('true', '1', 'yes'):
+        print("⚠️  SKIP_MIGRATIONS enabled, skipping all migrations")
+    else:
+        run_migrations_online()
