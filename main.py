@@ -58,6 +58,7 @@ from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.user_settings import router as user_settings_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
 from app.api.preview_router import router as preview_router
+from app.api.emergency_fix import router as emergency_router
 
 from app.core.unified_cache import cache
 from app.core.database import engine, get_db
@@ -204,6 +205,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(tier_router)
     fastapi_app.include_router(api_key_router)
     fastapi_app.include_router(preview_router)
+    fastapi_app.include_router(emergency_router)
 
     # Initialize Jinja2 templates
     templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
