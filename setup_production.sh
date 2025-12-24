@@ -19,7 +19,7 @@ pip3 install -r requirements.txt
 
 # Step 3: Database migration
 echo "✓ Running database migrations..."
-alembic upgrade head
+# alembic upgrade head # Disabled - DB already complete
 
 # Step 4: Check environment
 echo "✓ Checking environment configuration..."

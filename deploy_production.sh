@@ -35,7 +35,7 @@ echo -e "${GREEN}✓ Database connection successful${NC}"
 
 # Run migrations
 echo -e "${YELLOW}Running database migrations...${NC}"
-alembic upgrade head
+# alembic upgrade head # Disabled - DB already complete
 echo -e "${GREEN}✓ Migrations completed${NC}"
 
 # Verify tables

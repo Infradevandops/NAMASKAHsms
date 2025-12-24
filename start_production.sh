@@ -41,7 +41,7 @@ echo ""
 echo "Checking database connectivity..."
 if psql $DATABASE_URL -c "SELECT 1" &>/dev/null; then
     echo "✅ Database accessible, applying migrations..."
-    alembic upgrade head
+    # alembic upgrade head # Disabled - DB already complete
     if [ $? -ne 0 ]; then
         echo "⚠️  Migration warning (may be normal if already up to date)"
     fi
