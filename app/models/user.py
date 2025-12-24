@@ -55,7 +55,6 @@ class User(BaseModel):
     reseller_account = relationship("ResellerAccount",
                                     back_populates="user", uselist=False)
     partner_features = relationship("PartnerFeature", back_populates="partner")
-    personal_numbers = relationship("PersonalNumber", back_populates="user")
 
 
 # APIKey is defined in app/models/api_key.py to avoid duplication

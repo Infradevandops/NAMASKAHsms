@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db
+from app.models.user import User
 
 security = HTTPBearer(auto_error=False)
 

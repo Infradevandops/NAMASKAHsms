@@ -1,1 +1,0 @@
-"""Payment system tests."""

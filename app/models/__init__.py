@@ -35,7 +35,6 @@ from .reseller import (
     SubAccount,
     SubAccountTransaction,
 )
-from .personal_number import PersonalNumber
 
 __all__ = [
     # Base
@@ -86,6 +85,4 @@ __all__ = [
     "ResellerAccount",
     "SubAccount",
     "SubAccountTransaction",
-    # Personal number model
-    "PersonalNumber",
 ]

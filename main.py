@@ -38,13 +38,6 @@ from app.api.verification.pricing import router as pricing_router
 from app.api.verification.carrier_endpoints import router as carrier_router
 from app.api.verification.consolidated_verification import router as verify_router
 
-from app.api.integrations.sms_inbox import router as sms_router
-from app.api.integrations.billing import router as billing_router
-from app.api.integrations.webhooks import router as webhooks_router
-from app.api.integrations.wake_requests import router as wake_router
-from app.api.integrations.api_docs import router as docs_router
-from app.api.integrations.sms_forwarding import router as forwarding_router
-from app.api.integrations.billing_cycles import router as cycles_router
 from app.api.admin.dashboard import router as dashboard_router
 from app.api.verification.purchase_endpoints import router as purchase_router
 from app.api.billing.payment_endpoints import router as payment_router
@@ -52,7 +45,6 @@ from app.api.billing.credit_endpoints import router as credit_router
 from app.api.billing.payment_history_endpoints import router as payment_history_router
 from app.api.billing.pricing_endpoints import router as billing_pricing_router
 from app.api.billing.refund_endpoints import router as refund_router
-from app.api.analytics.dashboard_analytics import router as dashboard_analytics_router
 from app.api.billing.tier_endpoints import router as tier_router
 from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.user_settings import router as user_settings_router
@@ -172,7 +164,6 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(admin_router, prefix="/api")
     fastapi_app.include_router(countries_router, prefix="/api")
     fastapi_app.include_router(dashboard_router, prefix="/api")
-    fastapi_app.include_router(dashboard_analytics_router, prefix="/api")
     fastapi_app.include_router(tier_router, prefix="/api")
     fastapi_app.include_router(api_key_router, prefix="/api")
     fastapi_app.include_router(user_settings_router, prefix="/api")
@@ -185,24 +176,12 @@ def create_app() -> FastAPI:
     # fastapi_app.include_router(rentals_endpoints_router)
     fastapi_app.include_router(pricing_router)
     fastapi_app.include_router(carrier_router)
-
-    fastapi_app.include_router(sms_router)
-    fastapi_app.include_router(billing_router)
-    fastapi_app.include_router(webhooks_router)
-    fastapi_app.include_router(wake_router)
-    fastapi_app.include_router(docs_router)
-    fastapi_app.include_router(forwarding_router)
-    fastapi_app.include_router(cycles_router)
-    fastapi_app.include_router(dashboard_router, prefix="/api")
     fastapi_app.include_router(purchase_router)
     fastapi_app.include_router(payment_router)
     fastapi_app.include_router(credit_router)
     fastapi_app.include_router(payment_history_router)
     fastapi_app.include_router(billing_pricing_router)
     fastapi_app.include_router(refund_router)
-    fastapi_app.include_router(dashboard_analytics_router, prefix="/api")
-    fastapi_app.include_router(tier_router)
-    fastapi_app.include_router(api_key_router)
     fastapi_app.include_router(preview_router)
 
     # Initialize Jinja2 templates

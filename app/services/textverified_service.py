@@ -10,12 +10,10 @@ from typing import Dict, Optional, Any
 from datetime import datetime, timedelta
 from app.core.config import settings
 from app.core.logging import get_logger
-from app.services.sms_provider_interface import SMSProviderInterface
-
 logger = get_logger(__name__)
 
 
-class TextVerifiedService(SMSProviderInterface):
+class TextVerifiedService:
     """TextVerified provider implementation using official package."""
 
     def __init__(self):
