@@ -462,14 +462,8 @@
             <a href="#" class="nav-item" data-section="voice">
                 <i class="ph ph-microphone"></i> <span>Voice Verification</span>
             </a>
-            <a href="#" class="nav-item" data-section="rentals">
-                <i class="ph ph-calendar"></i> <span>Rentals</span>
-            </a>
             
             <div class="nav-section-title">Account</div>
-            <a href="#" class="nav-item" data-section="api-keys">
-                <i class="ph ph-key"></i> <span>API Keys</span>
-            </a>
             <a href="#" class="nav-item" data-section="billing">
                 <i class="ph ph-wallet"></i> <span>Billing & Credits</span>
             </a>
@@ -481,6 +475,9 @@
             </a>
             
             <div class="nav-section-title">Settings</div>
+            <a href="#" class="nav-item" data-section="api-keys">
+                <i class="ph ph-key"></i> <span>API Keys</span>
+            </a>
             <a href="#" class="nav-item" data-section="profile">
                 <i class="ph ph-user"></i> <span>Profile</span>
             </a>
@@ -514,7 +511,7 @@
                 </div>
                 <span class="tier-badge" id="tier-badge-display">Freemium</span>
                 <div class="balance-badge" id="balance-display">$0.00</div>
-                <button class="btn-primary" onclick="showRentalModal()"><i class="ph ph-calendar-check"></i> New Rental +</button>
+
             </div>
         </header>
 
@@ -745,48 +742,7 @@
             </div>
         </div>
 
-        <!-- Rentals Section -->
-        <div id="rentals-section" class="section" style="display:none;">
-            <h3 class="section-title">Phone Number Rentals</h3>
-            <p style="color:var(--text-muted); margin-bottom:16px;">Rent a phone number for extended use (7-30 days)</p>
-            
-            <div class="grid-2" style="margin-bottom:16px;">
-                <div>
-                    <label>Service</label>
-                    <select id="rental-service-select" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                        <option value="">Select Service...</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Duration</label>
-                    <select id="rental-duration-select" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
-                        <option value="1">1 Day - $2.50</option>
-                        <option value="7" selected>7 Days - $15</option>
-                        <option value="30">30 Days - $50</option>
-                    </select>
-                </div>
-            </div>
-            
-            <button class="btn-primary" onclick="createRental()" style="width:100%; margin-bottom:16px;">Create Rental</button>
-            
-            <div class="card-table">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Number</th>
-                            <th>Service</th>
-                            <th>Expires</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="rentals-table">
-                        <tr>
-                            <td colspan="4" class="loading"><div class="spinner"></div>Loading rentals...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
 
         <!-- Notifications Section -->
         <div id="notifications-section" class="section" style="display:none;">
@@ -1097,10 +1053,7 @@
                     loadApiKeys();
                     loadedSections.apiKeys = true;
                 }
-                if (section === 'rentals' && !loadedSections.rentals) {
-                    loadRentals();
-                    loadedSections.rentals = true;
-                }
+
             }
         }
         
@@ -1241,21 +1194,7 @@
                 });
         }
         
-        function showRentalModal() {
-            fetch('/rental-modal?v=' + Date.now())
-                .then(r => r.text())
-                .then(html => {
-                    const overlay = document.createElement('div');
-                    overlay.innerHTML = html;
-                    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;';
-                    document.body.appendChild(overlay);
-                    window.closeRentalModal = () => {
-                        overlay.remove();
-                        loadBalance().catch(() => {});
-                        loadRentals().catch(() => {});
-                    };
-                });
-        }
+
         async function generateApiKey() {
             const name = prompt('Enter API key name:', 'My API Key');
             if (!name) return;
@@ -1379,67 +1318,7 @@
                 console.log('Payment verification check failed');
             }
         }
-        async function createRental() {
-            const service = document.getElementById('rental-service-select').value;
-            const duration = document.getElementById('rental-duration-select').value;
-            
-            if (!service) {
-                alert('Please select a service');
-                return;
-            }
-            
-            if (!confirm(`Create ${duration}-day rental for ${service}?`)) return;
-            
-            try {
-                const response = await fetch(`${API_BASE}/rentals/create`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        service: service,
-                        duration_days: parseInt(duration),
-                        renewable: duration === '30'
-                    }),
-                    timeout: 5000
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    alert(`Rental created!\n\nNumber: ${data.phone_number}\nExpires: ${data.expires_at}`);
-                    loadRentals();
-                    loadBalance();
-                } else {
-                    const error = await response.json();
-                    alert('Failed to create rental: ' + (error.detail || 'Unknown error'));
-                }
-            } catch (error) {
-                alert('Error creating rental: ' + error.message);
-            }
-        }
-        
-        async function loadRentals() {
-            try {
-                const response = await fetch(`${API_BASE}/rentals/active`, {timeout: 5000});
-                if (response.ok) {
-                    const data = await response.json();
-                    const tbody = document.getElementById('rentals-table');
-                    if (data.rentals && data.rentals.length > 0) {
-                        tbody.innerHTML = data.rentals.map(rental => `
-                            <tr>
-                                <td>${rental.phone_number}</td>
-                                <td>${rental.service}</td>
-                                <td>${new Date(rental.expires_at).toLocaleDateString()}</td>
-                                <td><span class="tag tag-green">${rental.status}</span></td>
-                            </tr>
-                        `).join('');
-                    } else {
-                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No active rentals</td></tr>';
-                    }
-                }
-            } catch (error) {
-                const tbody = document.getElementById('rentals-table');
-                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No active rentals</td></tr>';
-            }
-        }
+
         async function saveSettings() {
             const emailNotifications = document.getElementById('email-notifications').checked;
             const smsAlerts = document.getElementById('sms-alerts').checked;
