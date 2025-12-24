@@ -53,6 +53,11 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
+    # Skip migrations if SKIP_MIGRATIONS env var is set
+    if os.getenv('SKIP_MIGRATIONS', '').lower() in ('true', '1', 'yes'):
+        print("⚠️  SKIP_MIGRATIONS enabled, skipping migrations")
+        return
+    
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
