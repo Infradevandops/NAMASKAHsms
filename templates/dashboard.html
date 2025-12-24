@@ -1478,11 +1478,29 @@
             }
         }
 
+        // Auto-collapse sidebar on mobile
+        function autoCollapseSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        }
+
         // Initialize on load
         window.addEventListener('load', () => {
             initDashboard();
             syncAdminBalance();
             setInterval(syncAdminBalance, 30000);
+            
+            // Auto-collapse on navigation click (mobile)
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    setTimeout(autoCollapseSidebar, 100);
+                });
+            });
         });
 
         // Ensure Phosphor icons are loaded

@@ -9,6 +9,7 @@ from app.core.logging import get_logger
 from app.core.config import settings
 from app.models import Verification
 from app.services.textverified_service import TextVerifiedService
+from app.services.notification_service import NotificationService
 from app.core.exceptions import ExternalServiceError
 
 logger = get_logger(__name__)
@@ -80,12 +81,38 @@ class SMSPollingService:
                         matches = re.findall(r'\b(\d{4,8})\b', text)
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
+                    
+                    # Notification: SMS Code Received
+                    try:
+                        notif_service = NotificationService(db)
+                        notif_service.create_notification(
+                            user_id=verification.user_id,
+                            notification_type="verification_complete",
+                            title="SMS Code Received",
+                            message=f"Code {verification.sms_code} received for {verification.service_name}"
+                        )
+                    except Exception:
+                        pass
+                    
                     logger.info(f"SMS received for verification {verification_id}")
                     break
 
                 elif sms_data and sms_data.get("status") == "TIMEOUT":
                     verification.status = "timeout"
                     db.commit()
+                    
+                    # Notification: Verification Failed
+                    try:
+                        notif_service = NotificationService(db)
+                        notif_service.create_notification(
+                            user_id=verification.user_id,
+                            notification_type="verification_failed",
+                            title="Verification Timeout",
+                            message=f"No SMS received for {verification.service_name}"
+                        )
+                    except Exception:
+                        pass
+                    
                     logger.info(f"Verification {verification_id} timed out")
                     break
 

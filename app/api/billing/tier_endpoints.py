@@ -6,6 +6,7 @@ from datetime import datetime
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.services.tier_manager import TierManager
+from app.services.notification_service import NotificationService
 from app.core.tier_config import TierConfig
 from app.schemas.tier import TierInfo, UserTierInfo, TierUpgradeRequest, TierUpgradeResponse
 from app.models.user import User
@@ -116,6 +117,18 @@ async def upgrade_tier(
     success = tier_manager.upgrade_tier(user_id, target_tier)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to upgrade tier")
+    
+    # Notification: Tier Upgraded
+    try:
+        notif_service = NotificationService(db)
+        notif_service.create_notification(
+            user_id=user_id,
+            notification_type="tier_upgraded",
+            title="Tier Upgraded",
+            message=f"Successfully upgraded to {target_tier.title()} tier"
+        )
+    except Exception:
+        pass
     
     user = db.query(User).filter(User.id == user_id).first()
     

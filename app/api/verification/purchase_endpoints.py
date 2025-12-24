@@ -10,6 +10,7 @@ import random
 from app.core.database import get_db
 from app.core.logging import get_logger
 from app.services.textverified_service import TextVerifiedService
+from app.services.notification_service import NotificationService
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
@@ -123,8 +124,33 @@ async def request_verification(
         new_balance = user.credits
         logger.info(f"Deducting ${result['cost']:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}")
         
+        # Low balance warning
+        if new_balance < 5.0 and old_balance >= 5.0:
+            try:
+                notif_service = NotificationService(db)
+                notif_service.create_notification(
+                    user_id=user_id,
+                    notification_type="low_balance",
+                    title="Low Balance Warning",
+                    message=f"Your balance is ${new_balance:.2f}. Add credits to continue."
+                )
+            except Exception:
+                pass
+        
         db.commit()
         logger.info(f"Transaction committed successfully for verification {verification.id}")
+        
+        # Notification: Verification Initiated
+        try:
+            notif_service = NotificationService(db)
+            notif_service.create_notification(
+                user_id=user_id,
+                notification_type="verification_initiated",
+                title="Verification Started",
+                message=f"SMS verification for {request.service} initiated"
+            )
+        except Exception:
+            pass
         
         logger.info(
             f"✓ Verification {verification.id} completed successfully | "
