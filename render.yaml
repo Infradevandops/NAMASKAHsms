@@ -2,7 +2,7 @@ services:
   - type: web
     name: namaskah-sms
     env: python
-    buildCommand: pip install -r requirements.txt && python fix_alembic.py
+    buildCommand: pip install -r requirements.txt && python fix_alembic.py && mv alembic alembic.disabled
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: ENVIRONMENT
