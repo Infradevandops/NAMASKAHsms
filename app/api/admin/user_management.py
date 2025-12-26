@@ -10,7 +10,7 @@ from app.models.user import User
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/admin/users", tags=["Admin User Management"])
+router = APIRouter(prefix="/api/admin/users", tags=["Admin User Management"])
 
 
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):

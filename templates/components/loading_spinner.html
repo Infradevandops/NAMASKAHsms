@@ -1,0 +1,60 @@
+<!-- Loading Spinner Component -->
+<style>
+    .spinner-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(var(--bg-card-rgb), 0.8);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10;
+        backdrop-filter: blur(2px);
+        border-radius: inherit;
+    }
+
+    .spinner {
+        width: 32px;
+        height: 32px;
+        border: 3px solid rgba(var(--primary-rgb), 0.3);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+<div id="loading-spinner-template" style="display:none;">
+    <div class="spinner-overlay">
+        <div class="spinner"></div>
+    </div>
+</div>
+
+<script>
+    function showLoading(element) {
+        if (!element) return;
+        const template = document.getElementById('loading-spinner-template');
+        const clone = template.firstElementChild.cloneNode(true);
+        clone.id = 'active-loader';
+
+        // Ensure parent is relative
+        const style = window.getComputedStyle(element);
+        if (style.position === 'static') element.style.position = 'relative';
+
+        element.appendChild(clone);
+        return clone;
+    }
+
+    function hideLoading(element) {
+        if (!element) return;
+        const loader = element.querySelector('#active-loader');
+        if (loader) loader.remove();
+    }
+</script>

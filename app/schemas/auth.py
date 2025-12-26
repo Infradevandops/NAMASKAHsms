@@ -2,7 +2,7 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from app.schemas.validators import (
     validate_email,
     validate_password_strength
@@ -24,19 +24,22 @@ class UserCreate(BaseModel):
     )
     referral_code: Optional[str] = Field(None, description="Optional referral code")
 
-    @validator("email", pre=True)
+    @field_validator("email", mode="before")
+    @classmethod
     def validate_email_field(cls, v):
         if not v:
             raise ValueError("Email cannot be empty")
         return validate_email(v)
     
-    @validator("password", pre=True)
+    @field_validator("password", mode="before")
+    @classmethod
     def validate_password_field(cls, v):
         if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
     
-    @validator("referral_code", pre=True)
+    @field_validator("referral_code", mode="before")
+    @classmethod
     def validate_referral_code_field(cls, v):
         if v:
             v = v.strip().upper()
@@ -61,7 +64,8 @@ class UserUpdate(BaseModel):
     email: Optional[EmailStr] = Field(None, description="New email address")
     password: Optional[str] = Field(None, min_length=6, description="New password")
 
-    @validator("password")
+    @field_validator("password", mode="before")
+    @classmethod
     def validate_password(cls, v):
         if v and len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
@@ -210,13 +214,15 @@ class PasswordResetConfirm(BaseModel):
     token: str = Field(..., min_length=1, description="Password reset token")
     new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)")
 
-    @validator("token", pre=True)
+    @field_validator("token", mode="before")
+    @classmethod
     def validate_token(cls, v):
         if not v or not v.strip():
             raise ValueError("Token cannot be empty")
         return v.strip()
     
-    @validator("new_password", pre=True)
+    @field_validator("new_password", mode="before")
+    @classmethod
     def validate_password(cls, v):
         if not v:
             raise ValueError("Password cannot be empty")

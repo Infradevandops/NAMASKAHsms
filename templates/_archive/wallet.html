@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Wallet - Namaskah">
+  <title>Wallet - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/enterprise-theme.css">
+  <link rel="stylesheet" href="/static/css/design-tokens.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/vendor/font-awesome-fixed.min.css">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f9fafb;
+      color: #1f2937;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      color: #6b7280;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .card h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: #1f2937;
+    }
+
+    .balance-display {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 30px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .balance-label {
+      font-size: 14px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .balance-value {
+      font-size: 48px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .balance-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #5568d3;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+
+    .btn-secondary:hover {
+      background: #f9fafb;
+    }
+
+    .package-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .package {
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .package:hover {
+      border-color: #667eea;
+      box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+    }
+
+    .package.selected {
+      border-color: #667eea;
+      background: #f0f4ff;
+    }
+
+    .package-amount {
+      font-size: 24px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 5px;
+    }
+
+    .package-bonus {
+      font-size: 12px;
+      color: #10b981;
+      font-weight: 600;
+    }
+
+    .transaction-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    .transaction-table th {
+      background: #f3f4f6;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .transaction-table td {
+      padding: 12px;
+      border-bottom: 1px solid #d1d5db;
+    }
+
+    .transaction-table tr:hover {
+      background: #f9fafb;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-failed {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .error {
+      background: #fee2e2;
+      border: 1px solid #fecaca;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .success {
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success.show {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+
+      .package-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .balance-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1>Wallet</h1>
+      <p>Manage your credits and billing</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Balance Card -->
+      <div class="card">
+        <h2>Your Balance</h2>
+        
+        <div class="balance-display">
+          <div class="balance-label">Available Credits</div>
+          <div class="balance-value" id="balance-amount">$0.00</div>
+          <div class="balance-actions">
+            <button class="btn btn-secondary" onclick="showAddCredits()">Add Credits</button>
+          </div>
+        </div>
+
+        <div style="background: #f3f4f6; padding: 15px; border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+            <span style="color: #6b7280;">Total Spent</span>
+            <span style="font-weight: 600;" id="total-spent">$0.00</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #6b7280;">Verifications Used</span>
+            <span style="font-weight: 600;" id="verifications-used">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Add Credits Card -->
+      <div class="card" id="add-credits-card" style="display: none;">
+        <h2>Add Credits</h2>
+        
+        <div class="error" id="error-message"></div>
+        <div class="success" id="success-message"></div>
+
+        <p style="color: #6b7280; margin-bottom: 20px;">Select a package or enter custom amount</p>
+
+        <div class="package-grid">
+          <div class="package" onclick="selectPackage(10, 1)">
+            <div class="package-amount">$10</div>
+            <div class="package-bonus">+$1 bonus</div>
+          </div>
+          <div class="package" onclick="selectPackage(25, 3)">
+            <div class="package-amount">$25</div>
+            <div class="package-bonus">+$3 bonus</div>
+          </div>
+          <div class="package" onclick="selectPackage(50, 7)">
+            <div class="package-amount">$50</div>
+            <div class="package-bonus">+$7 bonus</div>
+          </div>
+          <div class="package" onclick="selectPackage(100, 15)">
+            <div class="package-amount">$100</div>
+            <div class="package-bonus">+$15 bonus</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px;">
+          <label style="display: block; font-weight: 500; margin-bottom: 8px;">Total Amount</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" id="amount-input" placeholder="0.00" style="flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 6px;">
+            <button class="btn btn-primary" onclick="proceedToPayment()">Proceed</button>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary" onclick="hideAddCredits()" style="width: 100%; margin-top: 10px;">Cancel</button>
+      </div>
+    </div>
+
+    <!-- Transaction History -->
+    <div class="card">
+      <h2>Transaction History</h2>
+      
+      <table class="transaction-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="transaction-tbody">
+          <tr>
+            <td colspan="5" style="text-align: center; color: #6b7280;">No transactions yet</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="/static/js/vendor/axios.min.js"></script>
+  <script src="/static/js/global-balance.js"></script>
+  <script>
+    let selectedPackage = null;
+
+    // Load wallet data
+    async function loadWallet() {
+      try {
+        // Balance is synced globally via global-balance.js
+        // Load transaction history
+        const historyResponse = await axios.get('/api/billing/transactions?limit=10');
+        populateTransactions(historyResponse.data.transactions);
+      } catch (error) {
+        console.error('Failed to load wallet:', error);
+      }
+    }
+
+    function populateTransactions(transactions) {
+      const tbody = document.getElementById('transaction-tbody');
+      tbody.innerHTML = '';
+
+      if (!transactions || transactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #6b7280;">No transactions yet</td></tr>';
+        return;
+      }
+
+      transactions.forEach(t => {
+        const row = document.createElement('tr');
+        const date = new Date(t.created_at).toLocaleDateString();
+        const statusClass = `status-${t.status}`;
+        
+        row.innerHTML = `
+          <td>${date}</td>
+          <td>${t.type}</td>
+          <td>$${t.amount.toFixed(2)}</td>
+          <td><span class="status-badge ${statusClass}">${t.status}</span></td>
+          <td>${t.description || '-'}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function showAddCredits() {
+      document.getElementById('add-credits-card').style.display = 'block';
+    }
+
+    function hideAddCredits() {
+      document.getElementById('add-credits-card').style.display = 'none';
+      document.getElementById('amount-input').value = '';
+      selectedPackage = null;
+    }
+
+    function selectPackage(amount, bonus) {
+      selectedPackage = { amount, bonus };
+      document.getElementById('amount-input').value = (amount + bonus).toFixed(2);
+      
+      // Update UI
+      document.querySelectorAll('.package').forEach(p => p.classList.remove('selected'));
+      event.target.closest('.package').classList.add('selected');
+    }
+
+    async function proceedToPayment() {
+      const amount = parseFloat(document.getElementById('amount-input').value);
+      
+      if (!amount || amount <= 0) {
+        showError('Please enter a valid amount');
+        return;
+      }
+
+      try {
+        // Initialize payment with Paystack
+        const response = await axios.post('/api/billing/initialize-payment', {
+          amount: amount * 100 // Convert to kobo
+        });
+
+        // Redirect to Paystack
+        window.location.href = response.data.authorization_url;
+      } catch (error) {
+        showError(error.response?.data?.detail || 'Failed to initialize payment');
+      }
+    }
+
+    function showError(message) {
+      const el = document.getElementById('error-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    function showSuccess(message) {
+      const el = document.getElementById('success-message');
+      el.textContent = message;
+      el.classList.add('show');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', loadWallet);
+  </script>
+</body>
+</html>

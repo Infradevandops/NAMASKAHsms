@@ -1,6 +1,6 @@
 """Payment processing endpoints for Paystack integration."""
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 import json
@@ -23,7 +23,8 @@ class InitializePaymentRequest(BaseModel):
     """Request model for payment initialization."""
     amount_usd: float = Field(..., gt=0, le=10000, description="Amount in USD")
     
-    @validator('amount_usd')
+    @field_validator('amount_usd', mode="before")
+    @classmethod
     def validate_amount(cls, v):
         """Validate payment amount."""
         if v < 0.01:

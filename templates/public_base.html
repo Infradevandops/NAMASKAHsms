@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<style>
+.public-layout { min-height: 100vh; display: flex; flex-direction: column; }
+.public-header { background: white; border-bottom: 1px solid rgba(0,0,0,0.05); padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+.logo { font-size: 24px; font-weight: 700; color: var(--text-main); text-decoration: none; }
+.nav-links { display: flex; gap: 24px; align-items: center; }
+.nav-links a { color: var(--text-main); text-decoration: none; font-weight: 600; font-size: 15px; transition: color 0.2s; }
+.nav-links a:hover { color: var(--primary); }
+.public-content { flex: 1; padding: 40px; }
+.public-footer { background: var(--bg-sidebar); border-top: 1px solid rgba(0,0,0,0.05); padding: 24px 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+@media (max-width: 768px) {
+    .public-header { padding: 16px 20px; }
+    .public-content { padding: 20px; }
+    .nav-links { gap: 12px; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="public-layout">
+    <header class="public-header">
+        <a href="/" class="logo">Namaskah</a>
+        <nav class="nav-links">
+            <a href="/landing">Pricing</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+            {% if user %}
+            <a href="/dashboard" style="background: var(--primary); color: white; padding: 8px 16px; border-radius: 8px;">Dashboard</a>
+            {% else %}
+            <a href="/auth/login">Login</a>
+            <a href="/auth/register" style="background: var(--primary); color: white; padding: 8px 16px; border-radius: 8px;">Sign Up</a>
+            {% endif %}
+        </nav>
+    </header>
+    
+    <main class="public-content">
+        {% block public_content %}{% endblock %}
+    </main>
+    
+    <footer class="public-footer">
+        <div style="margin-bottom: 12px;">
+            <a href="/privacy" style="color: var(--text-muted); margin: 0 12px;">Privacy</a>
+            <a href="/terms" style="color: var(--text-muted); margin: 0 12px;">Terms</a>
+            <a href="/refund" style="color: var(--text-muted); margin: 0 12px;">Refund</a>
+            <a href="/status" style="color: var(--text-muted); margin: 0 12px;">Status</a>
+        </div>
+        <div>&copy; 2025 Namaskah SMS. All rights reserved.</div>
+    </footer>
+</div>
+{% endblock %}

@@ -29,6 +29,20 @@ class PricingCalculator:
 
         row = result.fetchone()
         if not row:
+            if tier == "payg":
+                return {
+                    "tier": "payg",
+                    "name": "Pay As You Go",
+                    "price_monthly": 0.0,
+                    "quota_usd": 0.0,
+                    "overage_rate": 0.0,
+                    "has_api_access": False,
+                    "has_area_code_selection": False,
+                    "has_isp_filtering": False,
+                    "api_key_limit": 1,
+                    "support_level": "basic"
+                }
+
             # Default to Pay-As-You-Go if tier not found
             return self.get_tier_config("payg")
 
@@ -118,8 +132,8 @@ class PricingCalculator:
 
         # Insert or update usage record
         self.db.execute(text("""
-            INSERT INTO user_quotas (id, user_id, month_year, quota_used_usd, sms_count)
-            VALUES (:id, :user_id, :month_year, :quota_used_usd, 1)
+            INSERT INTO user_quotas (id, user_id, month_year, quota_used_usd, sms_count, created_at)
+            VALUES (:id, :user_id, :month_year, :quota_used_usd, 1, CURRENT_TIMESTAMP)
             ON CONFLICT(user_id, month_year) DO UPDATE SET
                 quota_used_usd = quota_used_usd + :quota_used_usd,
                 sms_count = sms_count + 1,

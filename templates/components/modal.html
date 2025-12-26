@@ -1,0 +1,170 @@
+<!-- Modal Component -->
+<style>
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal {
+    background: var(--bg-card);
+    border-radius: var(--radius-card);
+    padding: 32px;
+    width: 100%;
+    max-width: 480px;
+    transform: translateY(20px);
+    transition: transform 0.3s ease;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+}
+
+.modal-overlay.active .modal {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    color: var(--text-primary);
+}
+
+.modal-body {
+    margin-bottom: 32px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.btn-secondary:hover {
+    border-color: var(--text-primary);
+    color: var(--text-primary);
+}
+
+/* Modal Variants */
+.modal-danger .btn-primary {
+    background: #FF4757;
+    color: white;
+}
+</style>
+
+<div id="modal-template" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirm Action</h3>
+            <button class="modal-close" onclick="closeModal(this)">&times;</button>
+        </div>
+        <div class="modal-body">
+            Are you sure you want to proceed?
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal(this)">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function openModal(options = {}) {
+    const template = document.getElementById('modal-template');
+    const modal = template.cloneNode(true);
+    modal.id = 'active-modal';
+    
+    // Set content
+    if (options.title) modal.querySelector('.modal-title').textContent = options.title;
+    if (options.body) modal.querySelector('.modal-body').textContent = options.body;
+    if (options.confirmText) modal.querySelector('#modal-confirm-btn').textContent = options.confirmText;
+    
+    // Variant
+    if (options.variant === 'danger') {
+        modal.querySelector('.modal').classList.add('modal-danger');
+    }
+
+    // Event listeners
+    const confirmBtn = modal.querySelector('#modal-confirm-btn');
+    confirmBtn.onclick = async () => {
+        if (options.onConfirm) {
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Processing...';
+            try {
+                await options.onConfirm();
+                closeModal(modal);
+            } catch (e) {
+                console.error(e);
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = options.confirmText || 'Confirm';
+                alert('Action failed: ' + e.message);
+            }
+        } else {
+            closeModal(modal);
+        }
+    };
+    
+    modal.onclick = (e) => {
+        if (e.target === modal) closeModal(modal);
+    };
+
+    document.body.appendChild(modal);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
+    
+    return modal;
+}
+
+function closeModal(element) {
+    const modal = element.closest('.modal-overlay');
+    modal.classList.remove('active');
+    setTimeout(() => {
+        modal.remove();
+    }, 300);
+}
+</script>

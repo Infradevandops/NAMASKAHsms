@@ -491,3 +491,40 @@ class TextVerifiedService:
         except Exception as e:
             logger.error(f"TextVerified cancel failed: {e}")
             return False
+
+    async def get_account_balance(self) -> float:
+        """Get account balance as float.
+        
+        Returns:
+            Current balance in USD
+        """
+        try:
+            data = await self.get_balance()
+            return data["balance"]
+        except Exception:
+            return 0.0
+
+    async def get_area_codes_list(self, service: str, country: str = "US") -> list:
+        """Get available area codes for a service.
+        
+        Args:
+            service: Service name
+            country: Country code (default US)
+            
+        Returns:
+            List of area codes
+        """
+        try:
+            if not self.enabled:
+                return []
+            
+            # Note: TextVerified Python SDK specific implementation
+            # We wrap this in try/except safely
+            if hasattr(self.client, 'area_codes'):
+                codes = self.client.area_codes.list(service_name=service)
+                return [str(c.area_code) for c in codes] if codes else []
+            
+            return []
+        except Exception as e:
+            logger.warning(f"Failed to fetch area codes: {e}")
+            return []

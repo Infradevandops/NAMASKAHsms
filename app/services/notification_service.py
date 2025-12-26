@@ -315,3 +315,10 @@ class NotificationService:
         logger.info(f"Deleted {count} notifications older than {days} days")
         
         return count
+
+    async def send_email(self, to_email: str, subject: str, body: str, template: str = None, data: dict = None) -> bool:
+        """Send an email notification."""
+        logger.info(f"Sending email to {to_email}. Subject: {subject}")
+        # In a real app, this would use an email backend (SES, SendGrid, SMTP)
+        # For now, we simulate success
+        return True

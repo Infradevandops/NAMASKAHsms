@@ -1,5 +1,5 @@
 """Subscription tier model for multi-tier SaaS platform."""
-from sqlalchemy import Boolean, Column, String, Integer, JSON
+from sqlalchemy import Boolean, Column, String, Integer, JSON, Float
 from enum import Enum as PyEnum
 
 from app.models.base import BaseModel
@@ -25,6 +25,8 @@ class SubscriptionTier(BaseModel):
     # Pricing
     price_monthly = Column(Integer, default=0, nullable=False)  # Price in cents (0 for freemium)
     payment_required = Column(Boolean, default=False, nullable=False)  # True for paid tiers
+    quota_usd = Column(Float, default=0.0)
+    overage_rate = Column(Float, default=0.0)
     
     # Feature flags
     has_api_access = Column(Boolean, default=False, nullable=False)

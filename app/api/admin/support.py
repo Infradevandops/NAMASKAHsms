@@ -33,8 +33,7 @@ class SupportTicketResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
 
 @router.post("/tickets", response_model=SuccessResponse)

@@ -1,0 +1,1548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Namaskah Dashboard</title>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF7E67;
+            --primary-light: #FFE4DE;
+            --bg-body: #FDFBF7;
+            --bg-sidebar: #F7F6F3;
+            --bg-card: #FFFFFF;
+            --text-main: #37352F;
+            --text-muted: #9B9A97;
+            --sidebar-width: 260px;
+            --radius-card: 16px;
+            --radius-btn: 12px;
+            --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.03);
+            --font-main: 'Nunito', sans-serif;
+            --font-serif: 'Merriweather', serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        .dashboard-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-sidebar);
+            position: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid rgba(0,0,0,0.05);
+            overflow-y: auto;
+            transition: width 0.3s, transform 0.3s;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+        }
+
+        .sidebar.collapsed .sidebar-header {
+            padding: 20px 12px;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .sidebar.collapsed .sidebar-header h2 {
+            font-size: 16px;
+            text-align: center;
+        }
+
+        .sidebar.collapsed .nav-section-title {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-item span {
+            display: none;
+        }
+
+        .sidebar.collapsed .nav-item {
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .sidebar.collapsed .nav-item i {
+            margin: 0;
+        }
+
+        .sidebar.collapsed .sidebar-footer {
+            padding: 12px 8px;
+        }
+
+        .sidebar-toggle {
+            background: transparent;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 20px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .sidebar-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+                width: var(--sidebar-width);
+            }
+            
+            .main-content {
+                margin-left: 0 !important;
+                padding: 80px 20px 20px;
+            }
+
+            .sidebar-toggle {
+                left: 20px !important;
+            }
+        }
+
+        @media (min-width: 769px) {
+            .sidebar {
+                transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .main-content {
+                transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+        }
+
+        .sidebar-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .sidebar-header h2 {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--text-main);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            opacity: 0.8;
+        }
+
+        .nav-item:hover {
+            background: rgba(55, 53, 47, 0.08);
+            opacity: 1;
+        }
+
+        .nav-item.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: var(--shadow-soft);
+            opacity: 1;
+        }
+
+        .nav-section-title {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            transition: margin-left 0.3s;
+        }
+
+        .main-content.collapsed {
+            margin-left: 80px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+        }
+
+        .balance-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+        .btn-primary {
+            background: #2C2C2C;
+            color: white;
+            padding: 10px 20px;
+            border-radius: var(--radius-btn);
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 24px;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+            box-shadow: none;
+        }
+
+        .stat-icon.blue { background: #dbeafe; color: #2563eb; }
+        .stat-icon.green { background: #dcfce7; color: #16a34a; }
+        .stat-icon.purple { background: #f3e8ff; color: #9333ea; }
+        .stat-icon.orange { background: #fed7aa; color: #ea580c; }
+
+        .stat-value {
+            font-family: var(--font-serif);
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .card-table {
+            background: var(--bg-card);
+            border-radius: var(--radius-card);
+            padding: 8px;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th {
+            text-align: left;
+            color: var(--text-muted);
+            padding: 16px 24px;
+            font-weight: 600;
+            font-size: 14px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table td {
+            padding: 16px 24px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .tag-green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .tag-yellow {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .tag-red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .tier-badge {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #d1d5db;
+            margin-bottom: 16px;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+        }
+
+        .empty-state p {
+            margin-bottom: 24px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+        }
+
+        .error {
+            background: #FADBD8;
+            color: #C5221F;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="dashboard-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>Namaskah</h2>
+            <button class="sidebar-toggle" onclick="toggleSidebar()">
+                <i class="ph ph-list"></i>
+            </button>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-section="overview">
+                <i class="ph ph-squares-four"></i> <span>Dashboard</span>
+            </a>
+            
+            <div class="nav-section-title">Verification</div>
+            <a href="#" class="nav-item" data-section="verify">
+                <i class="ph ph-phone"></i> <span>SMS Verification</span>
+            </a>
+            <a href="#" class="nav-item" data-section="voice">
+                <i class="ph ph-microphone"></i> <span>Voice Verification</span>
+            </a>
+            
+            <div class="nav-section-title">Account</div>
+            <a href="#" class="nav-item" data-section="billing">
+                <i class="ph ph-wallet"></i> <span>Billing & Credits</span>
+            </a>
+            <a href="#" class="nav-item" data-section="history">
+                <i class="ph ph-clock-counter-clockwise"></i> <span>History</span>
+            </a>
+            <a href="#" class="nav-item" data-section="tier">
+                <i class="ph ph-crown"></i> <span>Subscription Tier</span>
+            </a>
+            
+            <!-- Admin Section - Only visible for admins -->
+            {% if user and user.is_admin %}
+            <div class="nav-section-title" style="margin-top: 20px; color: #ef4444;">Admin</div>
+            <a href="/admin/pricing-templates" class="nav-item" style="background: #fee2e2; color: #991b1b;">
+                <i class="ph ph-currency-dollar"></i> <span>💰 Pricing Templates</span>
+            </a>
+            <a href="/admin/verification-history" class="nav-item" style="background: #fee2e2; color: #991b1b;">
+                <i class="ph ph-list-bullets"></i> <span>📊 Verification History</span>
+            </a>
+            <a href="/admin-dashboard" class="nav-item" style="background: #fee2e2; color: #991b1b;">
+                <i class="ph ph-gauge"></i> <span>🎛️ Admin Dashboard</span>
+            </a>
+            {% endif %}
+            
+            <div class="nav-section-title">Settings</div>
+            <a href="#" class="nav-item" data-section="api-keys">
+                <i class="ph ph-key"></i> <span>API Keys</span>
+            </a>
+            <a href="#" class="nav-item" data-section="profile">
+                <i class="ph ph-user"></i> <span>Profile</span>
+            </a>
+            <a href="#" class="nav-item" data-section="notifications">
+                <i class="ph ph-bell"></i> <span>Notifications</span>
+            </a>
+            <a href="#" class="nav-item" data-section="settings">
+                <i class="ph ph-gear"></i> <span>Settings</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="#" class="nav-item" onclick="logout()">
+                <i class="ph ph-sign-out"></i> <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="header">
+            <h1 id="page-title">Dashboard</h1>
+            <div class="header-right">
+                <div style="position:relative;">
+                    <button onclick="toggleNotifications()" style="background:none;border:none;font-size:24px;cursor:pointer;position:relative;">
+                        🔔
+                        <span id="notification-badge" style="position:absolute;top:-5px;right:-5px;background:#FF7E67;color:white;border-radius:50%;width:20px;height:20px;font-size:12px;display:none;">0</span>
+                    </button>
+                    <div id="notifications-panel" style="position:absolute;top:40px;right:0;background:white;border:1px solid #ddd;border-radius:8px;width:300px;max-height:400px;overflow-y:auto;display:none;box-shadow:0 4px 12px rgba(0,0,0,0.1);z-index:1000;">
+                        <div style="padding:16px;border-bottom:1px solid #eee;font-weight:600;">Notifications</div>
+                        <div id="notifications-list" style="padding:8px;"></div>
+                    </div>
+                </div>
+                <span class="tier-badge" id="tier-badge-display">Freemium</span>
+                <div class="balance-badge" id="balance-display">$0.00</div>
+
+            </div>
+        </header>
+
+        <!-- Overview Section -->
+        <div id="overview-section" class="section">
+            <div class="stats-grid" id="stats-container">
+                <div class="stat-card">
+                    <div class="stat-icon blue"><i class="ph ph-envelope"></i></div>
+                    <div class="stat-label">Total SMS</div>
+                    <div class="stat-value" id="total-sms">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green"><i class="ph ph-check-circle"></i></div>
+                    <div class="stat-label">Successful</div>
+                    <div class="stat-value" id="successful-sms">0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon purple"><i class="ph ph-diamond"></i></div>
+                    <div class="stat-label">Total Spent</div>
+                    <div class="stat-value" id="total-spent">$0</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange"><i class="ph ph-chart-bar"></i></div>
+                    <div class="stat-label">Success Rate</div>
+                    <div class="stat-value" id="success-rate">0%</div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3 class="section-title">Recent Activity</h3>
+                <div id="empty-activity-state" class="empty-state" style="display:none;">
+                    <i class="ph ph-inbox"></i>
+                    <h3>No Recent Activity</h3>
+                    <p>Your verification history will appear here</p>
+                    <button class="btn-primary" onclick="showRentalModal()">Start Verification</button>
+                </div>
+                <div class="card-table" id="activity-table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Number</th>
+                                <th>Time</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-table">
+                            <tr>
+                                <td colspan="4" class="loading"><div class="spinner"></div>Loading activity...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS Verification Section -->
+        <div id="verify-section" class="section" style="display:none;">
+            <h3 class="section-title">SMS Verification</h3>
+            <p style="color:var(--text-muted); margin-bottom:16px;">Get instant SMS verification codes for any service</p>
+            <button class="btn-primary" onclick="window.location.href='/verify'" style="width:100%;">
+                <i class="ph ph-phone"></i> Get SMS Code
+            </button>
+        </div>
+
+        <!-- API Keys Section -->
+        <div id="api-keys-section" class="section" style="display:none;">
+            <h3 class="section-title">API Keys</h3>
+            <button class="btn-primary" onclick="generateApiKey()">Generate New Key</button>
+            <div class="card-table" style="margin-top:16px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Created</th>
+                            <th>Usage</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="api-keys-table">
+                        <tr>
+                            <td colspan="4" class="loading"><div class="spinner"></div>Loading API keys...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Billing Section -->
+        <div id="billing-section" class="section" style="display:none;">
+            <h3 class="section-title">Billing & Credits</h3>
+            <div class="grid-2">
+                <div class="stat-card">
+                    <div class="stat-label">Current Balance</div>
+                    <div class="stat-value" id="billing-balance">$0.00</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Monthly Spent</div>
+                    <div class="stat-value" id="monthly-spent">$0.00</div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="addCredits()">Add Credits</button>
+            <div class="card-table" style="margin-top:16px;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table">
+                        <tr>
+                            <td colspan="4" class="loading"><div class="spinner"></div>Loading transactions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile-section" class="section" style="display:none;">
+            <h3 class="section-title">Profile</h3>
+            <div class="card-table">
+                <div style="padding:24px;">
+                    <div style="margin-bottom:16px;">
+                        <label>Email</label>
+                        <input type="email" id="profile-email" readonly style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label>Name</label>
+                        <input type="text" id="profile-name" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label>Country</label>
+                        <input type="text" id="profile-country" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                    </div>
+                    <button class="btn-primary" onclick="updateProfile()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tier Section -->
+        <div id="tier-section" class="section" style="display:none;">
+            <h3 class="section-title">Subscription Tier</h3>
+            <p style="color:var(--text-muted); margin-bottom:24px;">Choose the plan that fits your needs</p>
+            
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-bottom:24px;">
+                <!-- Freemium -->
+                <div class="stat-card" style="border:2px solid #e5e7eb;">
+                    <div style="text-align:center;">
+                        <h4 style="font-size:18px; margin-bottom:8px;">Freemium</h4>
+                        <div style="font-size:32px; font-weight:700; color:var(--primary); margin-bottom:16px;">$0<span style="font-size:14px;">/mo</span></div>
+                        <ul style="text-align:left; list-style:none; padding:0; margin-bottom:16px; font-size:14px;">
+                            <li style="margin-bottom:8px;">✅ 100 SMS/day</li>
+                            <li style="margin-bottom:8px;">✅ Random numbers</li>
+                            <li style="margin-bottom:8px;">✅ 5 countries</li>
+                            <li style="margin-bottom:8px;">❌ No API access</li>
+                            <li style="margin-bottom:8px;">❌ No area codes</li>
+                        </ul>
+                        <button class="btn-primary" disabled style="width:100%; opacity:0.5;">Current Plan</button>
+                    </div>
+                </div>
+                
+                <!-- Starter -->
+                <div class="stat-card" style="border:2px solid var(--primary);">
+                    <div style="text-align:center;">
+                        <h4 style="font-size:18px; margin-bottom:8px;">Starter</h4>
+                        <div style="font-size:32px; font-weight:700; color:var(--primary); margin-bottom:16px;">$9<span style="font-size:14px;">/mo</span></div>
+                        <ul style="text-align:left; list-style:none; padding:0; margin-bottom:16px; font-size:14px;">
+                            <li style="margin-bottom:8px;">✅ 1,000 SMS/day</li>
+                            <li style="margin-bottom:8px;">✅ Area code selection</li>
+                            <li style="margin-bottom:8px;">✅ 20 countries</li>
+                            <li style="margin-bottom:8px;">✅ 5 API keys</li>
+                            <li style="margin-bottom:8px;">✅ Email support</li>
+                        </ul>
+                        <button class="btn-primary" onclick="upgradeTier('starter')" style="width:100%;">Upgrade to Starter</button>
+                    </div>
+                </div>
+                
+                <!-- Turbo -->
+                <div class="stat-card" style="border:2px solid #10b981;">
+                    <div style="text-align:center;">
+                        <h4 style="font-size:18px; margin-bottom:8px;">Turbo</h4>
+                        <div style="font-size:32px; font-weight:700; color:#10b981; margin-bottom:16px;">$13.99<span style="font-size:14px;">/mo</span></div>
+                        <ul style="text-align:left; list-style:none; padding:0; margin-bottom:16px; font-size:14px;">
+                            <li style="margin-bottom:8px;">✅ 10,000 SMS/day</li>
+                            <li style="margin-bottom:8px;">✅ ISP/Carrier filter</li>
+                            <li style="margin-bottom:8px;">✅ All 50+ countries</li>
+                            <li style="margin-bottom:8px;">✅ Unlimited API keys</li>
+                            <li style="margin-bottom:8px;">✅ Priority support</li>
+                        </ul>
+                        <button class="btn-primary" onclick="upgradeTier('turbo')" style="width:100%; background:#10b981;">Upgrade to Turbo</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div style="text-align:center;">
+                    <div class="stat-label">Your Current Tier</div>
+                    <div class="stat-value" id="current-tier-display" style="color:var(--primary);">Freemium</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div id="history-section" class="section" style="display:none;">
+            <h3 class="section-title">Verification History</h3>
+            <div class="card-table">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Service</th>
+                            <th>Country</th>
+                            <th>Number</th>
+                            <th>Status</th>
+                            <th>Cost</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table">
+                        <tr>
+                            <td colspan="6" class="loading"><div class="spinner"></div>Loading history...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
+        <!-- Notifications Section -->
+        <div id="notifications-section" class="section" style="display:none;">
+            <h3 class="section-title">Notifications</h3>
+            <div class="card-table">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Message</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="notifications-table">
+                        <tr>
+                            <td colspan="3" class="loading"><div class="spinner"></div>Loading notifications...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="section" style="display:none;">
+            <h3 class="section-title">Settings</h3>
+            <div class="card-table">
+                <div style="padding:24px;">
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                        <input type="checkbox" id="email-notifications">
+                        Email Notifications
+                    </label>
+                    <label style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+                        <input type="checkbox" id="sms-alerts">
+                        SMS Alerts
+                    </label>
+                    <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice Verification Section -->
+        <div id="voice-section" class="section" style="display:none;">
+            <h3 class="section-title">Voice Verification</h3>
+            <p style="color:var(--text-muted); margin-bottom:16px;">Receive verification codes via voice call</p>
+            <div class="grid-2">
+                <div>
+                    <label>Service</label>
+                    <select id="voice-service-select" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                        <option>Select Service...</option>
+                    </select>
+                </div>
+                <div>
+                    <label>Country</label>
+                    <select id="voice-country-select" style="width:100%; padding:8px; border-radius:8px; border:1px solid #ddd;">
+                        <option>Select Country...</option>
+                    </select>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="createVoiceVerification()" style="margin-top:16px;">Request Voice Call</button>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = '/api';
+        let currentUser = null;
+
+        // Cache flags
+        const loadedSections = {};
+
+        // Format time ago helper
+        function formatTimeAgo(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return 'Just now';
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m ago`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h ago`;
+            const days = Math.floor(hours / 24);
+            if (days < 7) return `${days}d ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Initialize dashboard
+        async function initDashboard() {
+            setupNavigation();
+            // Load critical data first
+            await Promise.all([
+                loadUserProfile().catch(() => {}),
+                loadBalance().catch(() => {}),
+                loadAnalytics().catch(() => {})
+            ]);
+            loadRecentActivity().catch(() => {});
+            // Defer non-critical data
+            setTimeout(() => {
+                loadCountries().catch(() => {});
+                loadServices().catch(() => {});
+                loadNotifications().catch(() => {});
+                loadCurrentTier().catch(() => {});
+            }, 500);
+        }
+        
+        // Sync admin balance with TextVerified API (admin only)
+        async function syncAdminBalance() {
+            try {
+                const response = await fetch(`${API_BASE}/verification/textverified/balance`, {timeout: 5000});
+                if (response.status === 401 || response.status === 403 || response.status === 404) {
+                    // Not admin or endpoint not available - silently skip
+                    return;
+                }
+                if (response.ok) {
+                    const data = await response.json();
+                    const balance = typeof data === 'number' ? data : (data.balance || 0);
+                    document.getElementById('balance-display').textContent = `$${balance.toFixed(2)}`;
+                }
+            } catch (error) {
+                // Silently fail - not critical
+            }
+        }
+
+        // Load user profile
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/user/profile`, {timeout: 5000});
+                if (response.ok) {
+                    currentUser = await response.json();
+                    document.getElementById('profile-email').value = currentUser.email || '';
+                    document.getElementById('profile-name').value = currentUser.name || '';
+                    document.getElementById('profile-country').value = currentUser.country || '';
+                }
+            } catch (error) {
+                console.log('Profile load skipped');
+            }
+        }
+
+        // Load balance
+        async function loadBalance() {
+            try {
+                // Try TextVerified API balance first (for admin reference)
+                const response = await fetch(`${API_BASE}/verification/textverified/balance`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const balance = data.balance || 0;
+                    document.getElementById('balance-display').textContent = `$${balance.toFixed(2)}`;
+                    if (document.getElementById('billing-balance')) {
+                        document.getElementById('billing-balance').textContent = `$${balance.toFixed(2)}`;
+                    }
+                    return;
+                }
+            } catch (error) {
+                console.log('TextVerified balance unavailable, trying user balance');
+            }
+            
+            // Fallback to user balance
+            try {
+                const response = await fetch(`${API_BASE}/user/balance`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const balance = data.credits || 0;
+                    document.getElementById('balance-display').textContent = `$${balance.toFixed(2)}`;
+                    if (document.getElementById('billing-balance')) {
+                        document.getElementById('billing-balance').textContent = `$${balance.toFixed(2)}`;
+                    }
+                } else {
+                    document.getElementById('balance-display').textContent = '$0.00';
+                }
+            } catch (error) {
+                document.getElementById('balance-display').textContent = '$0.00';
+            }
+        }
+
+        // Load analytics
+        async function loadAnalytics() {
+            try {
+                const response = await fetch(`${API_BASE}/analytics/summary`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('total-sms').textContent = data.total_verifications || 0;
+                    document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
+                    document.getElementById('total-spent').textContent = `$${(data.revenue || 0).toFixed(2)}`;
+                    const rate = data.success_rate ? (data.success_rate * 100).toFixed(1) : 0;
+                    document.getElementById('success-rate').textContent = `${rate}%`;
+                }
+            } catch (error) {
+                document.getElementById('total-sms').textContent = '0';
+                document.getElementById('successful-sms').textContent = '0';
+                document.getElementById('total-spent').textContent = '$0.00';
+                document.getElementById('success-rate').textContent = '0%';
+            }
+        }
+
+        // Load countries
+        async function loadCountries() {
+            try {
+                const response = await fetch(`${API_BASE}/countries/`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const list = data.countries || [];
+                    const selects = ['country-select', 'voice-country-select'];
+                    selects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        list.forEach(country => {
+                            const option = document.createElement('option');
+                            option.value = country.code;
+                            option.textContent = country.name;
+                            select.appendChild(option);
+                        });
+                    });
+                }
+            } catch (error) {
+                console.log('Countries load failed');
+            }
+        }
+
+        // Load services
+        async function loadServices() {
+            try {
+                const response = await fetch(`${API_BASE}/verification/textverified/services`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const list = data.services || [];
+                    const selects = ['voice-service-select', 'rental-service-select'];
+                    selects.forEach(selectId => {
+                        const select = document.getElementById(selectId);
+                        if (select) {
+                            list.forEach(service => {
+                                const option = document.createElement('option');
+                                option.value = service.id;
+                                option.textContent = service.name;
+                                select.appendChild(option);
+                            });
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log('Services load failed');
+            }
+        }
+
+        // Load recent activity
+        async function loadRecentActivity() {
+            try {
+                const response = await fetch(`${API_BASE}/dashboard/activity/recent`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('activity-table');
+                    const emptyState = document.getElementById('empty-activity-state');
+                    const tableContainer = document.getElementById('activity-table-container');
+                    
+                    tbody.innerHTML = '';
+                    if (data.activities && data.activities.length > 0) {
+                        emptyState.style.display = 'none';
+                        tableContainer.style.display = 'block';
+                        data.activities.forEach(activity => {
+                            const statusClass = activity.status === 'completed' ? 'tag-green' : 
+                                              activity.status === 'failed' ? 'tag-red' : 'tag-yellow';
+                            const statusIcon = activity.status === 'completed' ? '<i class="ph ph-check"></i>' : 
+                                             activity.status === 'failed' ? '<i class="ph ph-x"></i>' : 
+                                             '<i class="ph ph-clock"></i>';
+                            const timeAgo = activity.created_at ? formatTimeAgo(new Date(activity.created_at)) : 'Just now';
+                            const row = `<tr>
+                                <td>${activity.service_name || 'N/A'}</td>
+                                <td>${activity.phone_number || 'N/A'}</td>
+                                <td>${timeAgo}</td>
+                                <td><span class="tag ${statusClass}">${statusIcon} ${activity.status || 'pending'}</span></td>
+                            </tr>`;
+                            tbody.innerHTML += row;
+                        });
+                    } else {
+                        emptyState.style.display = 'block';
+                        tableContainer.style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                const emptyState = document.getElementById('empty-activity-state');
+                const tableContainer = document.getElementById('activity-table-container');
+                emptyState.style.display = 'block';
+                tableContainer.style.display = 'none';
+            }
+        }
+
+        // Setup navigation
+        function setupNavigation() {
+            document.querySelectorAll('.nav-item[data-section]').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const section = item.dataset.section;
+                    showSection(section);
+                    document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                });
+            });
+        }
+
+        // Show section
+        function showSection(section) {
+            document.querySelectorAll('[id$="-section"]').forEach(el => el.style.display = 'none');
+            const sectionEl = document.getElementById(`${section}-section`);
+            if (sectionEl) {
+                sectionEl.style.display = 'block';
+                document.getElementById('page-title').textContent = section.charAt(0).toUpperCase() + section.slice(1).replace('-', ' ');
+                
+                // Lazy load data only once per section
+                if (section === 'history' && !loadedSections.history) {
+                    loadHistory();
+                    loadedSections.history = true;
+                }
+                if (section === 'api-keys' && !loadedSections.apiKeys) {
+                    loadApiKeys();
+                    loadedSections.apiKeys = true;
+                }
+
+            }
+        }
+        
+        // Load verification history
+        async function loadHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/wallet/transactions?limit=50`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('history-table');
+                    
+                    if (data.transactions && data.transactions.length > 0) {
+                        tbody.innerHTML = data.transactions
+                            .filter(t => t.type === 'SMS Verification' || t.description?.includes('Verification'))
+                            .map(t => {
+                                const statusClass = t.status === 'completed' ? 'tag-green' : 
+                                                   t.status === 'failed' ? 'tag-red' : 'tag-yellow';
+                                return `
+                                    <tr>
+                                        <td>${t.description?.split(' - ')[0] || 'N/A'}</td>
+                                        <td>${t.description?.split(' - ')[1] || 'USA'}</td>
+                                        <td>+1 XXX-XXXX</td>
+                                        <td><span class="tag ${statusClass}">${t.status || 'pending'}</span></td>
+                                        <td>$${Math.abs(t.amount).toFixed(2)}</td>
+                                        <td>${new Date(t.created_at).toLocaleDateString()}</td>
+                                    </tr>
+                                `;
+                            }).join('');
+                    } else {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No verification history</td></tr>';
+                    }
+                } else {
+                    document.getElementById('history-table').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">Failed to load history</td></tr>';
+                }
+            } catch (error) {
+                document.getElementById('history-table').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No verification history</td></tr>';
+            }
+        }
+
+        // Purchase verification
+        async function purchaseVerification() {
+            const service = document.getElementById('service-select').value;
+            const country = document.getElementById('country-select').value;
+            if (!service || !country) {
+                alert('Please select service and country');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/verification/purchase`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, country }),
+                    timeout: 5000
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Verification created: ${data.phone_number}`);
+                    loadBalance().catch(() => {});
+                } else {
+                    alert('Purchase failed: ' + response.status);
+                }
+            } catch (error) {
+                alert('Purchase error: ' + error.message);
+            }
+        }
+
+        // Create voice verification
+        async function createVoiceVerification() {
+            const service = document.getElementById('voice-service-select').value;
+            const country = document.getElementById('voice-country-select').value;
+            if (!service || !country) {
+                alert('Please select service and country');
+                return;
+            }
+            try {
+                const response = await fetch(`${API_BASE}/verification/voice/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ service, country }),
+                    timeout: 5000
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Voice call initiated to: ${data.phone_number}`);
+                } else {
+                    alert('Voice verification failed');
+                }
+            } catch (error) {
+                alert('Voice verification error: ' + error.message);
+            }
+        }
+
+        // Update profile
+        async function updateProfile() {
+            try {
+                const response = await fetch(`${API_BASE}/user/profile`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('profile-name').value,
+                        country: document.getElementById('profile-country').value
+                    }),
+                    timeout: 5000
+                });
+                if (response.ok) {
+                    alert('Profile updated successfully');
+                } else {
+                    alert('Profile update failed');
+                }
+            } catch (error) {
+                alert('Profile update error: ' + error.message);
+            }
+        }
+
+        // Logout
+        function logout() {
+            fetch(`${API_BASE}/auth/logout`, { method: 'POST', timeout: 5000 }).then(() => {
+                window.location.href = '/';
+            }).catch(() => {
+                window.location.href = '/';
+            });
+        }
+
+        // Button functions
+        function showVerifyModal() { 
+            fetch('/verification-modal')
+                .then(r => r.text())
+                .then(html => {
+                    const overlay = document.createElement('div');
+                    overlay.innerHTML = html;
+                    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:9999;';
+                    document.body.appendChild(overlay);
+                    window.closeVerificationModal = () => {
+                        overlay.remove();
+                        loadBalance().catch(() => {});
+                        loadRecentActivity().catch(() => {});
+                    };
+                });
+        }
+        
+
+        async function generateApiKey() {
+            const name = prompt('Enter API key name:', 'My API Key');
+            if (!name) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/keys/generate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name }),
+                    timeout: 5000
+                });
+                
+                if (response.status === 402) {
+                    alert('API key access requires Starter tier or higher. Please upgrade.');
+                    return;
+                }
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`API Key Generated!\n\nKey: ${data.key}\n\nSave this key securely - it won\'t be shown again!`);
+                    loadApiKeys();
+                } else {
+                    const error = await response.json();
+                    alert('Failed to generate API key: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error generating API key: ' + error.message);
+            }
+        }
+        
+        async function loadApiKeys() {
+            try {
+                const response = await fetch(`${API_BASE}/keys/`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const tbody = document.getElementById('api-keys-table');
+                    if (data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#999;">No API keys yet</td></tr>';
+                    } else {
+                        tbody.innerHTML = data.map(key => `
+                            <tr>
+                                <td>${key.key_preview}</td>
+                                <td>${new Date(key.created_at).toLocaleDateString()}</td>
+                                <td>${key.request_count || 0}</td>
+                                <td><button onclick="revokeApiKey('${key.id}')">Revoke</button></td>
+                            </tr>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.log('API keys load failed');
+            }
+        }
+        
+        async function revokeApiKey(keyId) {
+            if (!confirm('Are you sure you want to revoke this API key?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/keys/${keyId}`, {
+                    method: 'DELETE',
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    alert('API key revoked successfully');
+                    loadApiKeys();
+                } else {
+                    alert('Failed to revoke API key');
+                }
+            } catch (error) {
+                alert('Error revoking API key: ' + error.message);
+            }
+        }
+        async function addCredits() {
+            const amount = prompt('Enter amount to add ($):', '10');
+            if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+            
+            const amountUsd = parseFloat(amount);
+            
+            try {
+                const response = await fetch(`${API_BASE}/billing/initialize-payment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount_usd: amountUsd }),
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    // Open Paystack payment page
+                    window.open(data.authorization_url, '_blank');
+                    alert(`Payment initialized!\n\nAmount: $${amountUsd}\nReference: ${data.reference}\n\nYou will be redirected to Paystack to complete payment.`);
+                    
+                    // Poll for payment verification
+                    setTimeout(() => verifyPayment(data.reference), 5000);
+                } else {
+                    const error = await response.json();
+                    alert('Payment initialization failed: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error initializing payment: ' + error.message);
+            }
+        }
+        
+        async function verifyPayment(reference) {
+            try {
+                const response = await fetch(`${API_BASE}/billing/verify-payment/${reference}`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'success') {
+                        alert(`Payment successful!\n\n$${data.amount_usd} credits added to your account.`);
+                        loadBalance();
+                    } else {
+                        alert('Payment status: ' + data.status);
+                    }
+                }
+            } catch (error) {
+                console.log('Payment verification check failed');
+            }
+        }
+
+        async function saveSettings() {
+            const emailNotifications = document.getElementById('email-notifications').checked;
+            const smsAlerts = document.getElementById('sms-alerts').checked;
+            
+            try {
+                const response = await fetch(`${API_BASE}/user/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email_notifications: emailNotifications,
+                        sms_alerts: smsAlerts
+                    }),
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    alert('Settings saved successfully');
+                } else {
+                    alert('Failed to save settings');
+                }
+            } catch (error) {
+                alert('Error saving settings: ' + error.message);
+            }
+        }
+        
+        async function upgradeTier(tier) {
+            if (!confirm(`Upgrade to ${tier.charAt(0).toUpperCase() + tier.slice(1)} tier?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/tiers/upgrade`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_tier: tier }),
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Successfully upgraded to ${tier}!\n\nNew features unlocked.`);
+                    loadCurrentTier();
+                    loadBalance();
+                } else {
+                    const error = await response.json();
+                    alert('Upgrade failed: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error upgrading tier: ' + error.message);
+            }
+        }
+        
+        async function loadCurrentTier() {
+            try {
+                const response = await fetch(`${API_BASE}/tiers/current`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const tierName = data.tier_name || 'Freemium';
+                    document.getElementById('current-tier-display').textContent = tierName;
+                    
+                    // Update button states based on current tier
+                    const buttons = document.querySelectorAll('[onclick^="upgradeTier"]');
+                    buttons.forEach(btn => {
+                        const targetTier = btn.getAttribute('onclick').match(/upgradeTier\('(\w+)'\)/)[1];
+                        if (data.current_tier === targetTier) {
+                            btn.textContent = 'Current Plan';
+                            btn.disabled = true;
+                            btn.style.opacity = '0.5';
+                        }
+                    });
+                }
+            } catch (error) {
+                console.log('Tier load failed');
+            }
+        }
+        
+        // Upgrade tier
+        async function upgradeTier(tier) {
+            if (!confirm(`Upgrade to ${tier.charAt(0).toUpperCase() + tier.slice(1)} tier?`)) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/tiers/upgrade`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tier: tier }),
+                    timeout: 5000
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(`Successfully upgraded to ${tier}!\n\nNew features unlocked. Refresh to see changes.`);
+                    loadUserProfile();
+                    location.reload();
+                } else {
+                    const error = await response.json();
+                    alert('Upgrade failed: ' + (error.detail || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error upgrading tier: ' + error.message);
+            }
+        }
+        
+        // Load current tier
+        async function loadCurrentTier() {
+            try {
+                const response = await fetch(`${API_BASE}/user/tier`, {timeout: 5000});
+                if (response.ok) {
+                    const data = await response.json();
+                    const tierName = data.tier_name || 'Freemium';
+                    document.getElementById('current-tier-display').textContent = tierName;
+                    
+                    // Update tier badge in header
+                    const tierBadge = document.getElementById('tier-badge-display');
+                    if (tierBadge) {
+                        tierBadge.textContent = tierName;
+                        tierBadge.className = `tier-badge tier-${tierName.toLowerCase()}`;
+                    }
+                }
+            } catch (error) {
+                console.log('Tier load failed');
+            }
+        }
+        function toggleNotifications() {
+            const panel = document.getElementById('notifications-panel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'block') {
+                loadNotifications();
+            }
+        }
+        function loadNotifications() {
+            fetch(`${API_BASE}/notifications`, {timeout: 5000})
+                .then(r => r.ok ? r.json() : {notifications: []})
+                .then(data => {
+                    const list = document.getElementById('notifications-list');
+                    const badge = document.getElementById('notification-badge');
+                    const notifs = data.notifications || [];
+                    badge.textContent = notifs.length;
+                    badge.style.display = notifs.length > 0 ? 'block' : 'none';
+                    list.innerHTML = notifs.length > 0 
+                        ? notifs.map(n => `<div style="padding:12px;border-bottom:1px solid #eee;font-size:14px;">${n.message || n.title}</div>`).join('')
+                        : '<div style="padding:12px;color:#999;">No notifications</div>';
+                })
+                .catch(() => {
+                    document.getElementById('notifications-list').innerHTML = '<div style="padding:12px;color:#999;">No notifications</div>';
+                });
+        }
+
+        // Toggle sidebar collapse/expand
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                sidebar.classList.toggle('active');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                mainContent.classList.toggle('collapsed');
+            }
+        }
+
+        // Auto-collapse sidebar on mobile
+        function autoCollapseSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('load', () => {
+            initDashboard();
+            
+            // Start real-time updates
+            setInterval(() => {
+                loadBalance();
+                loadAnalytics();
+                loadRecentActivity();
+            }, 30000); // Update every 30 seconds
+            
+            // Auto-collapse on navigation click (mobile)
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    setTimeout(autoCollapseSidebar, 100);
+                });
+            });
+        });
+
+        // Ensure Phosphor icons are loaded
+        if (typeof window.ph === 'undefined') {
+            console.log('Phosphor icons loading...');
+        }
+    </script>
+    
+    <!-- Real-time Dashboard Script -->
+    <script src="/static/js/real-time-dashboard.js"></script>
+</body>
+</html>

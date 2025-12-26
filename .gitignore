@@ -164,6 +164,9 @@ docs/_build/
 *ENHANCEMENT*.md
 *BREAKING*.md
 *FLOW*.md
+*TASKS*.md
+*MIGRATION*.md
+*SKELETON*.md
 QUICK_START.md
 FINAL_*.md
 COMPLETE_*.md
@@ -174,8 +177,9 @@ TASKS.md
 TEST_GUIDE.md
 README_QUICK.md
 SMS_INTERFACES_COMPARISON.txt
-
-# Temporary fix/migration scripts
+docs/TEMPLATE_*.md
+docs/USER_FLOWS.md
+docs/QUICK_START_*.md
 fix_*.py
 migrate_*.py
 test_*.py
@@ -194,3 +198,5 @@ templates/*.backup
 *.gif
 screenshots/
 images/test/
+
+# Temporary fix/migration scripts

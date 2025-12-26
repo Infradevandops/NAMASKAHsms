@@ -56,17 +56,17 @@ async def landing_page(request: Request, db: Session = Depends(get_db)):
 @router.get("/auth/login", response_class=HTMLResponse)
 async def login_page(request: Request):
     """Login page."""
-    return templates.TemplateResponse("auth.html", {"request": request})
+    return templates.TemplateResponse("login.html", {"request": request})
 
 @router.get("/auth/register", response_class=HTMLResponse)
 async def register_page(request: Request):
     """Register page."""
-    return templates.TemplateResponse("auth.html", {"request": request})
+    return templates.TemplateResponse("register.html", {"request": request})
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_page_alt(request: Request):
     """Register page (alt route)."""
-    return templates.TemplateResponse("auth.html", {"request": request})
+    return templates.TemplateResponse("register.html", {"request": request})
 
 # ============================================================================
 # AUTHENTICATED PAGES
@@ -112,7 +112,7 @@ async def history_page(request: Request, user_id: str = Depends(get_current_user
     """Verification history page."""
     from app.models.user import User
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("verification.html", {"request": request, "tab": "history", "user": user})
+    return templates.TemplateResponse("history.html", {"request": request, "tab": "history", "user": user})
 
 # ============================================================================
 # ADMIN PAGES

@@ -1,5 +1,5 @@
 """Verification request/response schemas."""
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -10,7 +10,8 @@ class VerificationRequest(BaseModel):
     country: str = Field(default="US", description="Country code")
     capability: str = Field(default="sms", description="sms or voice")
     
-    @validator('country')
+    @field_validator('country', mode="before")
+    @classmethod
     def normalize_country(cls, v):
         """Normalize country codes to uppercase ISO format."""
         country_map = {
@@ -24,7 +25,8 @@ class VerificationRequest(BaseModel):
         }
         return country_map.get(v.lower(), v.upper())
     
-    @validator('service')
+    @field_validator('service', mode="before")
+    @classmethod
     def normalize_service(cls, v):
         """Normalize service names to lowercase."""
         return v.lower().strip()

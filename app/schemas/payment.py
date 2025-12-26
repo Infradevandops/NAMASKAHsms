@@ -2,14 +2,15 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class AddCreditsRequest(BaseModel):
     """Schema for adding credits request."""
     amount: float = Field(..., gt=0, description="Amount to add (minimum $5)")
 
-    @validator("amount")
+    @field_validator("amount", mode="before")
+    @classmethod
     def validate_amount(cls, v):
         if v < 5.0:
             raise ValueError("Minimum amount is $5")
@@ -24,7 +25,8 @@ class PaymentInitialize(BaseModel):
     amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
     payment_method: str = Field(default="paystack", description="Payment method")
 
-    @validator("amount_usd")
+    @field_validator("amount_usd", mode="before")
+    @classmethod
     def validate_amount(cls, v):
         if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
@@ -32,7 +34,8 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
-    @validator("payment_method")
+    @field_validator("payment_method", mode="before")
+    @classmethod
     def validate_payment_method(cls, v):
         if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
@@ -181,7 +184,8 @@ class RefundRequest(BaseModel):
     )
     reason: str = Field(..., description="Refund reason")
 
-    @validator("amount")
+    @field_validator("amount", mode="before")
+    @classmethod
     def validate_amount(cls, v):
         if v is not None and v <= 0:
             raise ValueError("Refund amount must be positive")
@@ -269,7 +273,8 @@ class SubscriptionRequest(BaseModel):
 
     plan_id: str = Field(..., description="Plan ID to subscribe to")
 
-    @validator("plan_id")
+    @field_validator("plan_id", mode="before")
+    @classmethod
     def validate_plan_id(cls, v):
         if v not in ["pro", "turbo"]:
             raise ValueError("Plan ID must be pro or turbo")

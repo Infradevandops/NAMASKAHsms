@@ -1,0 +1,36 @@
+<div class="balance-chip" id="balance-display">$0.00</div>
+
+<style>
+.balance-chip { background: var(--primary-light); color: var(--primary); padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; cursor: pointer; transition: transform 0.2s; }
+.balance-chip:hover { transform: scale(1.05); }
+.balance-chip.loading::after { content: '...'; animation: dots 1s infinite; }
+@keyframes dots { 0%, 20% { content: '.'; } 40% { content: '..'; } 60%, 100% { content: '...'; } }
+</style>
+
+<script>
+async function loadBalance() {
+    const display = document.getElementById('balance-display');
+    display.classList.add('loading');
+    
+    try {
+        const res = await fetch('/api/user/balance', {
+            headers: { 'Cache-Control': 'no-cache' }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            const balance = data.credits || 0;
+            display.textContent = `$${balance.toFixed(2)}`;
+        } else {
+            display.textContent = '$0.00';
+        }
+    } catch (error) {
+        display.textContent = '$0.00';
+    } finally {
+        display.classList.remove('loading');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadBalance);
+setInterval(loadBalance, 30000);
+</script>

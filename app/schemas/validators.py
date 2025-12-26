@@ -3,7 +3,7 @@ import re
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
-from pydantic import validator, field_validator
+from pydantic import field_validator
 
 
 def validate_phone_number(phone: str) -> str:
@@ -162,31 +162,36 @@ def validate_carrier_name(carrier: str) -> str:
 class ValidationMixin:
     """Mixin class with common validators for Pydantic models."""
 
-    @validator("phone_number", pre=True, allow_reuse=True)
+    @field_validator("phone_number", mode="before")
+    @classmethod
     def validate_phone(cls, v):
         if v:
             return validate_phone_number(v)
         return v
 
-    @validator("service_name", pre=True, allow_reuse=True)
+    @field_validator("service_name", mode="before")
+    @classmethod
     def validate_service(cls, v):
         if v:
             return validate_service_name(v)
         return v
 
-    @validator("referral_code", pre=True, allow_reuse=True)
+    @field_validator("referral_code", mode="before")
+    @classmethod
     def validate_referral(cls, v):
         if v:
             return validate_referral_code(v)
         return v
 
-    @validator("area_code", pre=True, allow_reuse=True)
+    @field_validator("area_code", mode="before")
+    @classmethod
     def validate_area(cls, v):
         if v:
             return validate_area_code(v)
         return v
 
-    @validator("carrier", pre=True, allow_reuse=True)
+    @field_validator("carrier", mode="before")
+    @classmethod
     def validate_carrier(cls, v):
         if v:
             return validate_carrier_name(v)

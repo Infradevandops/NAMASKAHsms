@@ -16,6 +16,10 @@ from sqlalchemy.pool import StaticPool
 from app.models.base import Base
 from app.core.database import get_db
 from app.core.config import settings
+from app.models.user import User
+from app.models.subscription_tier import SubscriptionTier
+from app.models.user_quota import UserQuota
+from app.utils.security import hash_password
 import main
 
 
@@ -89,3 +93,43 @@ def user_token():
     def _create_token(user_id: str, email: str = "user@test.com"):
         return create_test_token(user_id, email)
     return _create_token
+
+
+@pytest.fixture
+def regular_user(db: Session):
+    """Create a regular user in the database."""
+    user = User(
+        id="user_123",
+        email="user@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        free_verifications=1.0,
+        subscription_tier="freemium",
+        is_active=True,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(user)
+    db.commit()
+    return user
+
+
+@pytest.fixture
+def admin_user(db: Session):
+    """Create an admin user in the database."""
+    user = User(
+        id="admin_123",
+        email="admin@test.com",
+        password_hash=hash_password("adminpass123"),
+        email_verified=True,
+        is_admin=True,
+        credits=100.0,
+        free_verifications=10.0,
+        subscription_tier="turbo",
+        is_active=True,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(user)
+    db.commit()
+    return user

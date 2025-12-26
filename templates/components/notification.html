@@ -1,0 +1,121 @@
+<!-- Toast Notification Component -->
+<style>
+    .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        pointer-events: none;
+    }
+
+    .toast {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 16px;
+        min-width: 300px;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        transform: translateX(120%);
+        transition: transform 0.3s ease;
+        pointer-events: auto;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .toast.active {
+        transform: translateX(0);
+    }
+
+    .toast::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: var(--primary);
+    }
+
+    .toast-success::before {
+        background: #2ecc71;
+    }
+
+    .toast-error::before {
+        background: #ff4757;
+    }
+
+    .toast-info::before {
+        background: var(--primary);
+    }
+
+    .toast-content {
+        flex: 1;
+    }
+
+    .toast-title {
+        font-weight: 600;
+        margin-bottom: 4px;
+        color: var(--text-primary);
+    }
+
+    .toast-message {
+        font-size: 14px;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        font-size: 18px;
+        color: var(--text-muted);
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .toast-close:hover {
+        color: var(--text-primary);
+    }
+</style>
+
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+    const Toast = {
+        show(type, title, message, duration = 5000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+
+            toast.innerHTML = `
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+
+            container.appendChild(toast);
+
+            // Trigger animation
+            requestAnimationFrame(() => toast.classList.add('active'));
+
+            if (duration > 0) {
+                setTimeout(() => {
+                    toast.classList.remove('active');
+                    setTimeout(() => toast.remove(), 300);
+                }, duration);
+            }
+        },
+
+        success(title, message) { this.show('success', title, message); },
+        error(title, message) { this.show('error', title, message); },
+        info(title, message) { this.show('info', title, message); }
+    };
+</script>

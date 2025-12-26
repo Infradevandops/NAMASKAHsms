@@ -46,8 +46,8 @@ class VerificationStatusResponse(BaseModel):
     retry_count: int = Field(0, description="Number of retry attempts")
     error_message: Optional[str] = Field(None, description="Error message if failed")
     
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "verification_id": "550e8400-e29b-41d4-a716-446655440000",
                 "status": "completed",
@@ -67,6 +67,7 @@ class VerificationStatusResponse(BaseModel):
                 "error_message": None
             }
         }
+    }
 
 
 class VerificationRequestResponse(BaseModel):
@@ -82,8 +83,8 @@ class VerificationRequestResponse(BaseModel):
     activation_id: str = Field(..., description="Provider activation ID")
     message: Optional[str] = Field(None, description="Additional message")
     
-    class Config:
-        json_schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "success": True,
                 "verification_id": "550e8400-e29b-41d4-a716-446655440000",
@@ -96,3 +97,4 @@ class VerificationRequestResponse(BaseModel):
                 "message": "Verification created successfully. SMS will arrive within 30 seconds."
             }
         }
+    }

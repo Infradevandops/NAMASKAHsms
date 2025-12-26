@@ -13,7 +13,7 @@ from app.models.verification import Verification
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/admin/verifications", tags=["Admin Verification History"])
+router = APIRouter(prefix="/api/admin/verifications", tags=["Admin Verification History"])
 
 
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):

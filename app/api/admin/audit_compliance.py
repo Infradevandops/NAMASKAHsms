@@ -12,7 +12,7 @@ from app.models.audit_log import AuditLog
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/admin/compliance", tags=["Admin Audit & Compliance"])
+router = APIRouter(prefix="/api/admin/compliance", tags=["Admin Audit & Compliance"])
 
 
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
