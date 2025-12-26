@@ -50,6 +50,19 @@ class User(BaseModel):
     commission_tier = Column(String(50), nullable=True)
     is_affiliate = Column(Boolean, default=False, nullable=False)
 
+    # Admin management fields
+    tier_id = Column(String(50), default="payg", nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
+    is_suspended = Column(Boolean, default=False, nullable=False)
+    suspended_at = Column(DateTime, nullable=True)
+    suspension_reason = Column(String(500), nullable=True)
+    is_banned = Column(Boolean, default=False, nullable=False)
+    banned_at = Column(DateTime, nullable=True)
+    ban_reason = Column(String(500), nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=False)
+    deleted_at = Column(DateTime, nullable=True)
+    deletion_reason = Column(String(500), nullable=True)
+
     # Relationships
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
     enterprise_account = relationship("EnterpriseAccount",

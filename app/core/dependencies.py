@@ -1,5 +1,6 @@
 """FastAPI dependency injection utilities."""
 import jwt
+from typing import Optional
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -87,3 +88,20 @@ def get_current_admin_user(
             status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
         )
     return user
+
+
+def get_optional_user_id(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> Optional[str]:
+    """Get user ID from JWT token if provided, otherwise return None."""
+    if not credentials:
+        return None
+    try:
+        payload = jwt.decode(
+            credentials.credentials,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+        )
+        return payload.get("user_id")
+    except jwt.InvalidTokenError:
+        return None
