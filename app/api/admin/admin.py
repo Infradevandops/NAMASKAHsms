@@ -276,52 +276,86 @@ def activate_user(
 def get_platform_stats(
     admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
 ):
-    """Get platform - wide statistics (admin only)."""
-
+    """Get platform-wide statistics (admin only)."""
     try:
-
-        # Get basic stats with raw SQL for reliability
-        result = db.execute(text("SELECT COUNT(*) FROM users")).scalar()
-        total_users = result or 0
-
-        # Try to get verifications count
-        try:
-            result = db.execute(text("SELECT COUNT(*) FROM verifications")).scalar()
-            total_verifications = result or 0
-        except (ValueError, AttributeError):
-            total_verifications = 0
-
-        # Try to get transactions sum
-        try:
-            result = db.execute(
-                text(
-                    "SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'"
-                )
-            ).scalar()
-            total_spent = float(result or 0)
-        except (ValueError, AttributeError):
-            total_spent = 0.0
-
+        # Total users
+        total_users = db.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0
+        
+        # New users (last 30 days)
+        new_users = db.execute(
+            text("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '30 days'")
+        ).scalar() or 0
+        
+        # Total verifications
+        total_verifications = db.execute(text("SELECT COUNT(*) FROM verifications")).scalar() or 0
+        
+        # Pending verifications
+        pending_verifications = db.execute(
+            text("SELECT COUNT(*) FROM verifications WHERE status = 'pending'")
+        ).scalar() or 0
+        
+        # Completed verifications
+        completed_verifications = db.execute(
+            text("SELECT COUNT(*) FROM verifications WHERE status = 'completed'")
+        ).scalar() or 0
+        
+        # Success rate
+        success_rate = (completed_verifications / total_verifications * 100) if total_verifications > 0 else 0
+        
+        # Total revenue (sum of debit transactions)
+        total_revenue = db.execute(
+            text("SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'")
+        ).scalar() or 0
+        
+        # Popular services (top 5)
+        popular_services_raw = db.execute(
+            text("""
+                SELECT service_name, COUNT(*) as count 
+                FROM verifications 
+                WHERE service_name IS NOT NULL 
+                GROUP BY service_name 
+                ORDER BY count DESC 
+                LIMIT 5
+            """)
+        ).fetchall()
+        popular_services = [{"name": row[0], "count": row[1]} for row in popular_services_raw]
+        
+        # Daily usage (last 7 days)
+        daily_usage_raw = db.execute(
+            text("""
+                SELECT DATE(created_at) as date, COUNT(*) as count
+                FROM verifications
+                WHERE created_at >= NOW() - INTERVAL '7 days'
+                GROUP BY DATE(created_at)
+                ORDER BY date DESC
+            """)
+        ).fetchall()
+        daily_usage = [{"date": str(row[0]), "count": row[1]} for row in daily_usage_raw]
+        
         return {
             "total_users": total_users,
-            "new_users": 0,
+            "new_users": new_users,
             "total_verifications": total_verifications,
-            "success_rate": 95.0,
-            "total_spent": total_spent,
-            "popular_services": [],
-            "daily_usage": [],
+            "pending_verifications": pending_verifications,
+            "completed_verifications": completed_verifications,
+            "success_rate": round(success_rate, 1),
+            "total_revenue": float(total_revenue),
+            "popular_services": popular_services,
+            "daily_usage": daily_usage,
         }
-
-    except (ValueError, AttributeError):
-        # Ultimate fallback
+    except Exception as e:
+        # Fallback with actual error logging
         return {
-            "total_users": 1,
+            "total_users": 0,
             "new_users": 0,
             "total_verifications": 0,
+            "pending_verifications": 0,
+            "completed_verifications": 0,
             "success_rate": 0.0,
-            "total_spent": 0.0,
+            "total_revenue": 0.0,
             "popular_services": [],
             "daily_usage": [],
+            "error": str(e)
         }
 
 

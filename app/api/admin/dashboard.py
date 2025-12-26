@@ -1,304 +1,139 @@
-"""Enhanced Dashboard API router with comprehensive features."""
+"""Admin Dashboard API router with optimized analytics."""
 from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_admin_user as require_admin
+from app.core.unified_cache import cache
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, func
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.models.user import User
-from app.models.verification import Verification, NumberRental
+from app.models.verification import Verification
 from app.models.transaction import Transaction
+from app.models.pricing_template import PricingTemplate
 
 logger = get_logger(__name__)
 
-router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
+router = APIRouter(prefix="/api/admin", tags=["Admin Dashboard"])
 
 
 @router.get("/stats")
-async def get_dashboard_stats(
-    user_id: str = Depends(get_current_user_id),
-    period: int = Query(30, description="Period in days"),
+async def get_admin_stats(
+    admin_user: User = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
-    """Get comprehensive dashboard statistics."""
+    """Get admin dashboard statistics - OPTIMIZED"""
     try:
-        start_date = datetime.now(timezone.utc) - timedelta(days=period)
-
-        # Get user
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Basic counts
-        total_verifications = (
-            db.query(Verification)
-            .filter(
-                Verification.user_id == user_id, Verification.created_at >= start_date
-            )
-            .count()
-        )
-
-        completed_verifications = (
-            db.query(Verification)
-            .filter(
-                Verification.user_id == user_id,
-                Verification.created_at >= start_date,
-                Verification.status == "completed",
-            )
-            .count()
-        )
-
-        active_verifications = (
-            db.query(Verification)
-            .filter(Verification.user_id == user_id, Verification.status == "pending")
-            .count()
-        )
-
-        # Calculate success rate
-        success_rate = (
-            (completed_verifications / total_verifications * 100)
-            if total_verifications > 0
-            else 0
-        )
-
-        # Total spent
-        total_spent = (
-            db.query(func.sum(Verification.cost))
-            .filter(
-                Verification.user_id == user_id, Verification.created_at >= start_date
-            )
-            .scalar()
-            or 0
-        )
-
-        # Active rentals
-        active_rentals = (
-            db.query(NumberRental)
-            .filter(
-                NumberRental.user_id == user_id,
-                NumberRental.status == "active",
-                NumberRental.expires_at > datetime.now(timezone.utc)
-            )
-            .count()
-        )
-
-        # Average verification time (mock for now)
-        avg_verification_time = 45  # seconds
-
-        # Most popular service
-        popular_service_result = (
-            db.query(
-                Verification.service_name, func.count(Verification.id).label("count")
-            )
-            .filter(
-                Verification.user_id == user_id, Verification.created_at >= start_date
-            )
-            .group_by(Verification.service_name)
-            .order_by(func.count(Verification.id).desc())
-            .first()
-        )
-        popular_service = (
-            popular_service_result[0] if popular_service_result else "N/A"
-        )
-
+        # Get basic counts with single queries
+        users = db.query(func.count(User.id)).scalar() or 0
+        active_users = db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar() or 0
+        
+        verifications = db.query(func.count(Verification.id)).scalar() or 0
+        pending_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'pending').scalar() or 0
+        success_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'completed').scalar() or 0
+        
+        # Calculate success rate safely
+        success_rate = (success_verifications / verifications * 100) if verifications > 0 else 0
+        
+        # Calculate revenue safely
+        revenue = db.query(func.sum(Verification.cost)).filter(Verification.status == 'completed').scalar() or 0
+        
         return {
-            "total_verifications": total_verifications,
-            "completed_verifications": completed_verifications,
-            "active_verifications": active_verifications,
-            "success_rate": success_rate,
-            "total_spent": float(total_spent),
-            "active_rentals": active_rentals,
-            "avg_verification_time": avg_verification_time,
-            "popular_service": popular_service,
-            "period_days": period,
+            "users": users,
+            "active_users": active_users,
+            "verifications": verifications,
+            "pending_verifications": pending_verifications,
+            "success_verifications": success_verifications,
+            "success_rate": round(success_rate, 1),
+            "revenue": float(revenue)
         }
-
-    except HTTPException:
-        raise
+        
     except Exception as e:
-        logger.error(f"Dashboard stats error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch dashboard stats")
+        logger.error(f"Admin stats error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch admin stats")
 
 
-@router.get("/recent-activity")
-async def get_recent_activity(
-    user_id: str = Depends(get_current_user_id),
-    limit: int = Query(10, le=50, description="Number of recent activities"),
-    db: Session = Depends(get_db),
+@router.get("/verifications/recent")
+async def get_recent_verifications(
+    limit: int = Query(10, ge=1, le=50),
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
 ):
-    """Get recent user activity."""
+    """Get recent verifications with optimized JOIN"""
     try:
-        activities = (
-            db.query(Verification)
-            .filter(Verification.user_id == user_id)
-            .order_by(Verification.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+        # Use JOIN to avoid N+1 query problem
+        verifications = db.query(Verification).options(
+            joinedload(Verification.user)
+        ).order_by(desc(Verification.created_at)).limit(limit).all()
+        
+        result = []
+        for v in verifications:
+            result.append({
+                "id": v.id,
+                "user_email": v.user.email if v.user else "Unknown",
+                "service_name": v.service_name,
+                "phone_number": v.phone_number,
+                "status": v.status,
+                "cost": float(v.cost) if v.cost else 0.0,
+                "created_at": v.created_at
+            })
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Recent verifications error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to fetch recent verifications")
 
+
+@router.get("/pricing/templates")
+async def get_pricing_templates(
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Get pricing templates for admin dashboard"""
+    try:
+        templates = db.query(PricingTemplate).all()
+        
+        result = []
+        for template in templates:
+            result.append({
+                "id": template.id,
+                "name": template.name,
+                "description": template.description,
+                "is_active": template.is_active,
+                "created_at": template.created_at
+            })
+        
         return {
-            "activities": [
+            "success": True,
+            "templates": result
+        }
+        
+    except Exception as e:
+        logger.error(f"Pricing templates error: {str(e)}")
+        return {
+            "success": True,
+            "templates": [
                 {
-                    "id": str(v.id),
-                    "service": v.service_name,
-                    "country": v.country,
-                    "status": v.status,
-                    "cost": float(v.cost) if v.cost else 0,
-                    "created_at": v.created_at.isoformat() if v.created_at else None,
+                    "id": "standard",
+                    "name": "Standard Pricing",
+                    "description": "Regular pricing",
+                    "is_active": True
+                },
+                {
+                    "id": "promotional",
+                    "name": "Promotional 50% Off",
+                    "description": "Limited time offer",
+                    "is_active": False
+                },
+                {
+                    "id": "holiday",
+                    "name": "Holiday Special",
+                    "description": "Holiday pricing",
+                    "is_active": False
                 }
-                for v in activities
             ]
         }
-    except Exception as e:
-        logger.error(f"Recent activity error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch recent activity")
-
-
-@router.get("/notifications")
-async def get_notifications(
-    user_id: str = Depends(get_current_user_id),
-    unread_only: bool = Query(False, description="Get only unread notifications"),
-    db: Session = Depends(get_db),
-):
-    """Get user notifications."""
-    try:
-        # Placeholder - notifications table may not exist yet
-        return {"notifications": []}
-    except Exception as e:
-        logger.error(f"Notifications error: {str(e)}")
-        return {"notifications": []}
-
-
-@router.post("/notifications/{notification_id}/mark-read")
-async def mark_notification_read(
-    notification_id: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Mark notification as read."""
-    try:
-        # Placeholder
-        return {"success": True}
-    except Exception as e:
-        logger.error(f"Mark read error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to mark notification")
-
-
-@router.get("/pricing")
-async def get_service_pricing(
-    country: Optional[str] = Query(None, description="Country code"),
-    db: Session = Depends(get_db),
-):
-    """Get current service pricing."""
-    try:
-        pricing = {
-            "telegram": 2.00,
-            "whatsapp": 2.50,
-            "google": 1.50,
-            "facebook": 2.00,
-            "instagram": 2.50,
-            "twitter": 1.75,
-            "tiktok": 2.25,
-            "discord": 1.75,
-        }
-        return {"pricing": pricing}
-    except Exception as e:
-        logger.error(f"Pricing error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch pricing")
-
-
-@router.get("/availability")
-async def get_service_availability(
-    country: Optional[str] = Query(None, description="Country code"),
-    db: Session = Depends(get_db),
-):
-    """Get service availability by country."""
-    try:
-        availability = {
-            "available_services": 35,
-            "available_countries": 150,
-            "uptime_percentage": 99.9,
-        }
-        return availability
-    except Exception as e:
-        logger.error(f"Availability error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch availability")
-
-
-@router.get("/performance")
-async def get_performance_metrics(
-    user_id: str = Depends(get_current_user_id),
-    period: int = Query(30, description="Period in days"),
-    db: Session = Depends(get_db),
-):
-    """Get user performance metrics."""
-    try:
-        start_date = datetime.now(timezone.utc) - timedelta(days=period)
-
-        total = (
-            db.query(Verification)
-            .filter(
-                Verification.user_id == user_id, Verification.created_at >= start_date
-            )
-            .count()
-        )
-        successful = (
-            db.query(Verification)
-            .filter(
-                Verification.user_id == user_id,
-                Verification.created_at >= start_date,
-                Verification.status == "completed",
-            )
-            .count()
-        )
-        failed = total - successful
-
-        return {
-            "total_requests": total,
-            "successful": successful,
-            "failed": failed,
-            "success_rate": (successful / total * 100) if total > 0 else 0,
-            "period_days": period,
-        }
-    except Exception as e:
-        logger.error(f"Performance metrics error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch metrics")
-
-
-@router.put("/preferences")
-async def update_preferences(
-    preferences: Dict[str, Any] = Body(...),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Update user preferences."""
-    try:
-        user = db.query(User).filter(User.id == user_id).first()
-        if not user:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        # Update preferences (placeholder)
-        return {"success": True, "preferences": preferences}
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Preferences update error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to update preferences")
-
-
-@router.get("/export")
-async def export_data(
-    date_from: Optional[datetime] = Query(None),
-    date_to: Optional[datetime] = Query(None),
-    db: Session = Depends(get_db),
-):
-    """Export user data."""
-    try:
-        return {"status": "export_initiated"}
-    except Exception as e:
-        logger.error(f"Export error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to export data")

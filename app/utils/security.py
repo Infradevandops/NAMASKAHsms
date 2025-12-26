@@ -1,32 +1,30 @@
 """Security utilities for password hashing, JWT tokens, and API keys."""
 import secrets
 import string
+import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import jwt
-from passlib.context import CryptContext
 
 from app.core.config import settings
-
-# Password hashing context - using bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt (max 72 bytes)."""
-    # Truncate to 72 bytes to comply with bcrypt limit
-    if len(password.encode('utf-8')) > 72:
-        password = password[:72]
-    return pwd_context.hash(password)
+    password_bytes = password.encode('utf-8')[:72]
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
-    # Truncate to 72 bytes to comply with bcrypt limit
-    if len(plain_password.encode('utf-8')) > 72:
-        plain_password = plain_password[:72]
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        password_bytes = plain_password.encode('utf-8')[:72]
+        hash_bytes = hashed_password.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hash_bytes)
+    except Exception:
+        return False
 
 
 def create_access_token(

@@ -144,7 +144,7 @@ docs/_build/
 # Kiro IDE specs and settings
 .kiro/
 
-# Task/Progress documentation (internal only - session notes)
+# Task/Progress documentation (internal only)
 *IMPLEMENTATION*.md
 *DASHBOARD*.md
 *DEPLOYMENT*.md
@@ -153,12 +153,27 @@ docs/_build/
 *STABILIZATION*.md
 *REORGANIZATION*.md
 *SUMMARY*.md
+*ROADMAP*.md
+*STATUS*.md
+*CHECKLIST*.md
+*CREDENTIALS*.md
+*QUICK*.md
+*ANALYSIS*.md
+*ASSESSMENT*.md
+*POLISHING*.md
+*ENHANCEMENT*.md
+*BREAKING*.md
+*FLOW*.md
 QUICK_START.md
 FINAL_*.md
 COMPLETE_*.md
 CRITICAL_*.md
 RENTAL_SYSTEM_IMPLEMENTATION.md
 TEXTVERIFIED_IMPLEMENTATION.md
+TASKS.md
+TEST_GUIDE.md
+README_QUICK.md
+SMS_INTERFACES_COMPARISON.txt
 
 # Temporary fix/migration scripts
 fix_*.py

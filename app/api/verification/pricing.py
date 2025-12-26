@@ -56,8 +56,8 @@ async def get_verification_pricing(
                     }
                 )
 
-        from app.services.textverified_integration import get_textverified_integration
-        integration = get_textverified_integration()
+        from app.services.textverified_service import TextVerifiedService
+        integration = TextVerifiedService()
 
         # Get base price from TextVerified
         base_price = await integration.get_service_pricing(service)

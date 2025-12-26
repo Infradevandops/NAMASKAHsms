@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Namaskah - Premium SMS Verification Platform</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <style>
+    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav x-data="{ open: false }" class="fixed top-0 w-full backdrop-blur-xl bg-black/50 border-b border-white/10 z-50">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+      <div class="flex items-center gap-2">
+        <i class="ph ph-device-mobile text-2xl text-cyan-400"></i>
+        <span class="font-bold text-xl tracking-tight">Namaskah</span>
+      </div>
+      
+      <!-- Desktop Nav -->
+      <div class="hidden md:flex gap-8 text-sm">
+        <a href="#pricing" class="text-zinc-400 hover:text-white transition">Pricing</a>
+        <a href="#features" class="text-zinc-400 hover:text-white transition">Features</a>
+        <a href="/docs" class="text-zinc-400 hover:text-white transition">API Docs</a>
+      </div>
+      
+      <div class="hidden md:flex gap-4">
+        <a href="/auth/login" class="px-4 py-2 text-sm text-zinc-400 hover:text-white transition">Login</a>
+        <a href="/auth/register" class="px-6 py-2 bg-cyan-500 rounded-lg text-sm font-semibold hover:bg-cyan-400 transition">Start Verifying →</a>
+      </div>
+      
+      <!-- Mobile Menu Button -->
+      <button @click="open = !open" class="md:hidden">
+        <i class="ph ph-list text-2xl"></i>
+      </button>
+    </div>
+    
+    <!-- Mobile Menu -->
+    <div x-show="open" x-transition class="md:hidden border-t border-white/10 bg-black/90 backdrop-blur-xl">
+      <div class="px-6 py-4 space-y-4">
+        <a href="#pricing" class="block text-zinc-400">Pricing</a>
+        <a href="#features" class="block text-zinc-400">Features</a>
+        <a href="/docs" class="block text-zinc-400">API Docs</a>
+        <a href="/auth/login" class="block text-zinc-400">Login</a>
+        <a href="/auth/register" class="block px-6 py-2 bg-cyan-500 rounded-lg text-center">Start Verifying</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="min-h-screen flex items-center justify-center px-6 pt-20">
+    <div class="max-w-4xl mx-auto text-center">
+      <h1 class="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
+        Instant SMS Verification<br>
+        <span class="text-cyan-400">That Actually Works</span>
+      </h1>
+      <p class="text-xl text-zinc-400 mb-12 max-w-2xl mx-auto">
+        Real SIM cards. No VoIP. 100% success rate. Trusted by 10,000+ developers worldwide.
+      </p>
+      
+      <!-- CTAs -->
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
+        <a href="/auth/register" class="px-8 py-4 bg-cyan-500 rounded-xl text-lg font-semibold hover:bg-cyan-400 transition">
+          Start Verifying →
+        </a>
+        <a href="/docs" class="px-8 py-4 border border-white/20 rounded-xl text-lg hover:bg-white/5 transition">
+          View API Docs
+        </a>
+      </div>
+      
+      <!-- Search Bar with Autocomplete -->
+      <div x-data="{ 
+        search: '', 
+        services: [],
+        showDropdown: false,
+        filteredServices() {
+          if (!this.search || this.search.length < 2) return [];
+          return this.services.filter(s => 
+            s.name.toLowerCase().includes(this.search.toLowerCase())
+          ).slice(0, 8);
+        },
+        async fetchServices() {
+          try {
+            const res = await fetch('/api/verification/textverified/services');
+            const data = await res.json();
+            this.services = data.services || [];
+          } catch (e) {
+            console.error('Failed to fetch services:', e);
+          }
+        },
+        selectService(serviceName) {
+          window.location.href = '/verify?service=' + serviceName;
+        }
+      }" x-init="fetchServices()" class="relative max-w-2xl mx-auto">
+        <i class="ph ph-magnifying-glass absolute left-6 top-6 text-zinc-500 text-xl"></i>
+        <input 
+          x-model="search"
+          type="text" 
+          placeholder="Which service do you need to verify?"
+          class="w-full glass border border-white/10 rounded-2xl py-6 pl-16 pr-24 text-xl focus:outline-none focus:ring-4 focus:ring-cyan-500/20 focus:border-cyan-500/50 transition placeholder:text-zinc-600"
+          @keyup.enter="search.length > 0 && selectService(search)"
+          @focus="showDropdown = true"
+          @blur="setTimeout(() => showDropdown = false, 200)"
+        >
+        <kbd class="absolute right-4 top-6 px-3 py-1 bg-zinc-800/50 rounded-lg border border-white/10 text-xs text-zinc-500 font-mono hidden sm:block">ENTER</kbd>
+        
+        <!-- Autocomplete Dropdown -->
+        <div 
+          x-show="showDropdown && filteredServices().length > 0" 
+          x-transition
+          class="absolute top-full mt-2 w-full bg-zinc-900/95 backdrop-blur-xl rounded-2xl border border-white/10 max-h-80 overflow-y-auto shadow-2xl z-50"
+        >
+          <template x-for="service in filteredServices()" :key="service.name">
+            <div 
+              @click="selectService(service.name)"
+              class="p-4 hover:bg-white/5 cursor-pointer border-b border-white/5 last:border-0 transition flex items-center justify-between"
+            >
+              <div>
+                <div class="font-semibold text-white" x-text="service.name"></div>
+                <div class="text-sm text-zinc-500">SMS Verification</div>
+              </div>
+              <div class="text-xs text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded-full">Available</div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bento Grid Features -->
+  <section id="features" class="py-24 max-w-7xl mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+      
+      <!-- Main Feature (8 cols) -->
+      <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform overflow-hidden relative group">
+        <div class="relative z-10">
+          <div class="w-12 h-12 bg-cyan-500/20 rounded-2xl flex items-center justify-center text-cyan-400 mb-6">
+            <i class="ph ph-device-mobile text-3xl"></i>
+          </div>
+          <h3 class="text-3xl font-bold text-white mb-4 leading-tight">Real SIM Cards<br>Not Virtual Numbers</h3>
+          <p class="text-zinc-400 text-lg max-w-md leading-relaxed">
+            Unlike competitors, we use physical mobile devices. Pass 100% of non-VoIP checks with guaranteed delivery.
+          </p>
+          <div class="mt-8 flex flex-wrap gap-4">
+            <span class="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> No Bans
+            </span>
+            <span class="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> High Success
+            </span>
+            <span class="flex items-center gap-2 text-xs font-bold text-cyan-400 uppercase tracking-widest">
+              <i class="ph ph-check-circle"></i> Auto-Refund
+            </span>
+          </div>
+        </div>
+        <i class="ph ph-device-mobile absolute -right-10 top-10 text-[400px] opacity-5 group-hover:opacity-10 transition"></i>
+      </div>
+      
+      <!-- Privacy Card (4 cols) -->
+      <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
+        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+          <i class="ph ph-lock text-2xl text-zinc-400"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-white mb-3">Pure Privacy</h3>
+          <p class="text-zinc-400 leading-relaxed">No personal info required. Pay with crypto and stay anonymous.</p>
+        </div>
+      </div>
+      
+      <!-- API Card (4 cols) -->
+      <div class="md:col-span-4 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform flex flex-col justify-between">
+        <div class="w-12 h-12 bg-zinc-800 rounded-2xl flex items-center justify-center">
+          <i class="ph ph-code text-2xl text-zinc-400"></i>
+        </div>
+        <div>
+          <h3 class="text-2xl font-bold text-white mb-3">API Built for Scale</h3>
+          <p class="text-zinc-400 leading-relaxed">Integrate in minutes. Fetch numbers programmatically at speed.</p>
+        </div>
+      </div>
+      
+      <!-- Live Availability (8 cols) -->
+      <div class="md:col-span-8 p-10 rounded-[2.5rem] glass border border-white/10 hover:scale-[1.02] transition-transform">
+        <div class="flex justify-between items-center mb-8">
+          <h3 class="text-2xl font-bold text-white">Live Availability</h3>
+          <span class="text-xs font-mono text-zinc-500 uppercase">Updated 1s ago</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <!-- WhatsApp -->
+          <div 
+            onclick="window.location.href='/verify?service=whatsapp'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">💬</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">WhatsApp</div>
+            <div class="text-sm text-zinc-500">From $2.50</div>
+          </div>
+          <!-- Telegram -->
+          <div 
+            onclick="window.location.href='/verify?service=telegram'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">✈️</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">Telegram</div>
+            <div class="text-sm text-zinc-500">From $2.00</div>
+          </div>
+          <!-- Google -->
+          <div 
+            onclick="window.location.href='/verify?service=google'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">🔍</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">Google</div>
+            <div class="text-sm text-zinc-500">From $1.50</div>
+          </div>
+          <!-- Discord -->
+          <div 
+            onclick="window.location.href='/verify?service=discord'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">🎮</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">Discord</div>
+            <div class="text-sm text-zinc-500">From $1.75</div>
+          </div>
+          <!-- Facebook -->
+          <div 
+            onclick="window.location.href='/verify?service=facebook'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">👤</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">Facebook</div>
+            <div class="text-sm text-zinc-500">From $2.00</div>
+          </div>
+          <!-- Instagram -->
+          <div 
+            onclick="window.location.href='/verify?service=instagram'"
+            class="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.05] hover:border-cyan-500/30 transition cursor-pointer group"
+          >
+            <div class="flex justify-between items-start mb-3">
+              <span class="text-2xl group-hover:scale-110 transition">📷</span>
+              <span class="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full">Available</span>
+            </div>
+            <div class="font-bold text-white">Instagram</div>
+            <div class="text-sm text-zinc-500">From $2.50</div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Pricing Section -->
+  <section id="pricing" class="py-24 max-w-7xl mx-auto px-6">
+    <h2 class="text-4xl md:text-5xl font-bold text-white text-center mb-4">Choose Your Plan</h2>
+    <p class="text-xl text-zinc-400 text-center mb-16">Start free, upgrade as you grow</p>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      
+      <!-- Freemium -->
+      <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all">
+        <h3 class="text-2xl font-bold text-white mt-4">Freemium</h3>
+        <div class="text-4xl font-bold text-white my-6">Free</div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 100 verifications/day
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 5 countries
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> Random numbers
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> Web only
+          </li>
+        </ul>
+        <a href="/auth/register?tier=freemium" class="block w-full bg-zinc-800 py-3 rounded-xl font-semibold text-center hover:bg-zinc-700 transition">
+          Get Started
+        </a>
+      </div>
+      
+      <!-- Starter (Popular) -->
+      <div class="p-8 rounded-3xl glass border-2 border-cyan-500 hover:scale-105 transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
+        <h3 class="text-2xl font-bold text-white mt-4">Starter</h3>
+        <div class="text-4xl font-bold text-white my-6">$9<span class="text-lg text-zinc-500">/mo</span></div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 1,000 verifications/day
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 20 countries
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> Area code selection
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 5 API keys
+          </li>
+        </ul>
+        <a href="/auth/register?tier=starter" class="block w-full bg-cyan-500 py-3 rounded-xl font-semibold text-center hover:bg-cyan-400 transition">
+          Get Started
+        </a>
+      </div>
+      
+      <!-- Turbo -->
+      <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all">
+        <h3 class="text-2xl font-bold text-white mt-4">Turbo</h3>
+        <div class="text-4xl font-bold text-white my-6">$13.99<span class="text-lg text-zinc-500">/mo</span></div>
+        <ul class="space-y-3 mb-8">
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> 10,000 verifications/day
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> All 50+ countries
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> ISP/Carrier filter
+          </li>
+          <li class="flex items-center gap-2 text-zinc-400">
+            <i class="ph ph-check text-cyan-400"></i> Unlimited API keys
+          </li>
+        </ul>
+        <a href="/auth/register?tier=turbo" class="block w-full bg-cyan-500 py-3 rounded-xl font-semibold text-center hover:bg-cyan-400 transition">
+          Get Started
+        </a>
+      </div>
+      
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-20 border-t border-white/5 bg-black/50 backdrop-blur-xl pt-24 pb-12 px-6">
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
+      
+      <!-- Brand -->
+      <div class="col-span-2">
+        <div class="flex items-center gap-2 font-bold text-xl mb-6">
+          <i class="ph ph-device-mobile text-2xl text-cyan-400"></i>
+          <span>Namaskah</span>
+        </div>
+        <p class="text-zinc-500 text-sm max-w-xs mb-8 leading-relaxed">
+          Premium SMS verification platform. Trusted by 10,000+ developers worldwide.
+        </p>
+        <div class="flex gap-4">
+          <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition">
+            <i class="ph ph-twitter-logo"></i>
+          </a>
+          <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition">
+            <i class="ph ph-github-logo"></i>
+          </a>
+        </div>
+      </div>
+      
+      <!-- Platform -->
+      <div>
+        <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Platform</h4>
+        <ul class="space-y-4 text-sm text-zinc-500">
+          <li><a href="/verify" class="hover:text-cyan-400 transition">Verifications</a></li>
+          <li><a href="/pricing" class="hover:text-cyan-400 transition">Pricing</a></li>
+          <li><a href="/api" class="hover:text-cyan-400 transition">API</a></li>
+        </ul>
+      </div>
+      
+      <!-- Resources -->
+      <div>
+        <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Resources</h4>
+        <ul class="space-y-4 text-sm text-zinc-500">
+          <li><a href="/docs" class="hover:text-cyan-400 transition">API Docs</a></li>
+          <li><a href="/status" class="hover:text-cyan-400 transition">Status</a></li>
+          <li><a href="/support" class="hover:text-cyan-400 transition">Support</a></li>
+          <li><a href="/faq" class="hover:text-cyan-400 transition">FAQ</a></li>
+        </ul>
+      </div>
+      
+      <!-- Legal -->
+      <div>
+        <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-widest">Legal</h4>
+        <ul class="space-y-4 text-sm text-zinc-500">
+          <li><a href="/terms" class="hover:text-cyan-400 transition">Terms</a></li>
+          <li><a href="/privacy" class="hover:text-cyan-400 transition">Privacy</a></li>
+          <li><a href="/cookies" class="hover:text-cyan-400 transition">Cookies</a></li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Bottom Bar -->
+    <div class="max-w-7xl mx-auto pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
+      <p class="text-zinc-600 text-xs">© 2025 Namaskah. All rights reserved.</p>
+      <div class="flex gap-6 opacity-30 hover:opacity-100 transition">
+        <span class="text-[10px] font-black">BITCOIN</span>
+        <span class="text-[10px] font-black">ETHEREUM</span>
+        <span class="text-[10px] font-black">LITECOIN</span>
+        <span class="text-[10px] font-black">VISA</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

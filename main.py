@@ -27,6 +27,12 @@ from app.api.core.auth import router as auth_router
 from app.api.core.auth_enhanced import router as auth_enhanced_router
 from app.api.core.gdpr import router as gdpr_router
 from app.api.admin.admin_router import router as admin_router
+from app.api.admin.dashboard import router as dashboard_router
+from app.api.admin.verification_analytics import router as verification_analytics_router
+# from app.api.admin.pricing_templates import router as pricing_templates_router  # Disabled - file doesn't exist
+from app.api.admin.verification_history import router as verification_history_router
+from app.api.admin.analytics import router as analytics_router
+from app.api.admin.export import router as export_router
 from app.api.core.countries import router as countries_router
 from app.api.core.services import router as services_router
 from app.api.core.system import router as system_router
@@ -49,6 +55,7 @@ from app.api.billing.tier_endpoints import router as tier_router
 from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.user_settings import router as user_settings_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
+from app.api.core.preferences import router as preferences_router
 from app.api.preview_router import router as preview_router
 
 from app.core.unified_cache import cache
@@ -161,17 +168,37 @@ def create_app() -> FastAPI:
     # Skip auth_enhanced_router as it conflicts with main.py auth endpoints
     # fastapi_app.include_router(auth_enhanced_router, prefix="/api")
     fastapi_app.include_router(gdpr_router, prefix="/api")
-    fastapi_app.include_router(admin_router, prefix="/api")
+    # Skip admin_router to avoid conflicts with new enhanced stats router
+    # fastapi_app.include_router(admin_router, prefix="/api")
+    fastapi_app.include_router(dashboard_router, prefix="/api")
+    fastapi_app.include_router(verification_analytics_router)
+    # fastapi_app.include_router(pricing_templates_router)  # Disabled - file doesn't exist
+    fastapi_app.include_router(verification_history_router)
+    # Include admin routers
+    from app.api.admin.stats import router as stats_router
+    # from app.api.admin.pricing_api import router as pricing_api_router  # Disabled - doesn't exist
+    from app.api.admin.actions import router as actions_router
+    from app.api.admin.pricing_control import router as pricing_control_router
+    from app.api.admin.verification_actions import router as verification_actions_router
+    fastapi_app.include_router(stats_router)
+    fastapi_app.include_router(analytics_router)
+    fastapi_app.include_router(export_router)
+    fastapi_app.include_router(verification_history_router)
+    # fastapi_app.include_router(pricing_api_router)  # Disabled
+    fastapi_app.include_router(actions_router)
+    fastapi_app.include_router(pricing_control_router)
+    fastapi_app.include_router(verification_actions_router)
     fastapi_app.include_router(countries_router, prefix="/api")
     fastapi_app.include_router(dashboard_router, prefix="/api")
     fastapi_app.include_router(tier_router, prefix="/api")
     fastapi_app.include_router(api_key_router, prefix="/api")
     fastapi_app.include_router(user_settings_router, prefix="/api")
     fastapi_app.include_router(user_settings_endpoints_router)
+    fastapi_app.include_router(preferences_router)
     fastapi_app.include_router(verify_router, prefix="/api")
     fastapi_app.include_router(services_router)
     fastapi_app.include_router(system_router)
-    fastapi_app.include_router(textverified_router)  # Fix: Add TextVerified router for balance endpoint
+    fastapi_app.include_router(textverified_router, prefix="/api")  # Fix: Add TextVerified router for balance endpoint
 
     # fastapi_app.include_router(rentals_endpoints_router)
     fastapi_app.include_router(pricing_router)
@@ -193,11 +220,47 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/", response_class=HTMLResponse)
     async def home(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
+        # Check preferences for first-time visitors
+        has_preferences = False
+        
         if user_id:
             from app.models.user import User
             user = db.query(User).filter(User.id == user_id).first()
-            return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
-        return templates.TemplateResponse("landing_modern.html", {"request": request})
+            has_preferences = user and user.language and user.currency
+            if has_preferences:
+                return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+        else:
+            # Check cookie for non-authenticated users
+            has_preferences = request.cookies.get('preferences_set') == 'true'
+        
+        # Redirect to welcome if no preferences set
+        if not has_preferences:
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url="/welcome", status_code=302)
+        
+        # Show landing page
+        from app.models.subscription_tier import SubscriptionTier
+        from app.models.user import User
+        
+        tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
+        user_count = db.query(User).count()
+        
+        services = []
+        try:
+            from app.services.textverified_service import TextVerifiedService
+            integration = TextVerifiedService()
+            services = await integration.get_services_list()
+        except Exception as e:
+            logger = get_logger("landing")
+            logger.warning(f"Failed to fetch services: {e}")
+        
+        return templates.TemplateResponse("landing.html", {
+            "request": request,
+            "tiers": tiers,
+            "services": services[:12] if services else [],
+            "user_count": user_count,
+            "user": None
+        })
 
 
 
@@ -300,7 +363,7 @@ def create_app() -> FastAPI:
             user = type('User', (), {'id': 'test', 'email': 'test@example.com', 'credits': 0})()
         else:
             user = db.query(User).filter(User.id == user_id).first()
-        return templates.TemplateResponse("verify_standard.html", {"request": request, "user": user})
+        return templates.TemplateResponse("verify.html", {"request": request, "user": user})
 
     @fastapi_app.get("/verification-modal", response_class=HTMLResponse)
     async def verification_modal(request: Request):
@@ -316,15 +379,19 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/auth/login", response_class=HTMLResponse)
     async def login_page(request: Request):
-        return templates.TemplateResponse("auth_simple.html", {"request": request})
+        return templates.TemplateResponse("auth.html", {"request": request})
 
     @fastapi_app.get("/auth/register", response_class=HTMLResponse)
     async def register_page(request: Request):
-        return templates.TemplateResponse("auth_simple.html", {"request": request})
+        return templates.TemplateResponse("auth.html", {"request": request})
+
+    @fastapi_app.get("/welcome", response_class=HTMLResponse)
+    async def welcome_page(request: Request):
+        return templates.TemplateResponse("welcome.html", {"request": request})
 
     @fastapi_app.get("/register", response_class=HTMLResponse)
     async def register_page_alt(request: Request):
-        return templates.TemplateResponse("auth_simple.html", {"request": request})
+        return templates.TemplateResponse("auth.html", {"request": request})
 
     @fastapi_app.get("/profile", response_class=HTMLResponse)
     async def profile_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -422,13 +489,155 @@ def create_app() -> FastAPI:
 
 
 
+    @fastapi_app.get("/admin", response_class=HTMLResponse)
+    async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
+        """Admin dashboard with server-side rendering for immediate data display"""
+        from app.models.user import User
+        from app.models.verification import Verification
+        from app.models.transaction import Transaction
+        from sqlalchemy import func
+        import jwt
+        from app.core.config import get_settings
+        
+        # Try to get token from cookie or Authorization header
+        token = request.cookies.get('access_token')
+        if not token:
+            auth_header = request.headers.get('authorization', '')
+            if auth_header.startswith('Bearer '):
+                token = auth_header[7:]
+        
+        if not token:
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url='/auth/login?redirect=/admin', status_code=302)
+        
+        try:
+            # Verify token
+            settings = get_settings()
+            payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+            user_id = payload.get('user_id')
+            
+            if not user_id:
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse(url='/auth/login?error=invalid_token', status_code=302)
+            
+            # Get user
+            user = db.query(User).filter(User.id == user_id).first()
+            if not user or not user.is_admin:
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse(url='/auth/login?error=admin_required', status_code=302)
+            
+            # Get stats with error handling
+            try:
+                total_users = db.query(func.count(User.id)).scalar() or 0
+            except:
+                total_users = 0
+                
+            try:
+                active_users = db.query(func.count(User.id)).scalar() or 0  # Simplified since is_active may not exist
+            except:
+                active_users = total_users
+                
+            try:
+                total_verifications = db.query(func.count(Verification.id)).scalar() or 0
+            except:
+                total_verifications = 0
+                
+            try:
+                pending_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'pending').scalar() or 0
+            except:
+                pending_verifications = 0
+                
+            try:
+                success_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'completed').scalar() or 0
+            except:
+                success_verifications = 0
+                
+            success_rate = (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
+            
+            try:
+                total_revenue = db.query(func.sum(Transaction.amount)).filter(Transaction.type == 'credit').scalar() or 0
+            except:
+                total_revenue = 0
+            
+            # Get recent verifications with user details
+            verifications = []
+            try:
+                verifications = db.query(
+                    Verification.id,
+                    Verification.user_id,
+                    Verification.service_name,
+                    Verification.phone_number,
+                    Verification.status,
+                    Verification.cost,
+                    Verification.created_at,
+                    User.email.label('user_email')
+                ).join(User, Verification.user_id == User.id).order_by(
+                    Verification.created_at.desc()
+                ).limit(10).all()
+            except Exception as e:
+                logger = get_logger("admin")
+                logger.warning(f"Could not fetch verifications: {e}")
+            
+            # Pricing templates
+            pricing_templates = [
+                {"name": "Freemium", "price": 0, "sms_cost": 2.50, "features": ["Random US numbers", "100/day"], "active": True},
+                {"name": "Starter", "price": 8.99, "sms_cost": 0.50, "features": ["Area code filtering", "1,000/day"], "active": True},
+                {"name": "Pro", "price": 25.00, "sms_cost": 0.30, "features": ["Area + ISP filtering", "10,000/day"], "active": True},
+                {"name": "Custom", "price": 35.00, "sms_cost": 0.20, "features": ["All features", "Unlimited"], "active": True}
+            ]
+            
+            stats = {
+                "users": total_users,
+                "active_users": active_users,
+                "verifications": total_verifications,
+                "pending_verifications": pending_verifications,
+                "success_verifications": success_verifications,
+                "success_rate": round(success_rate, 1),
+                "revenue": float(total_revenue)
+            }
+            
+            return templates.TemplateResponse("admin/simple_dashboard.html", {
+                "request": request, 
+                "user": user,
+                "stats": stats,
+                "verifications": verifications,
+                "pricing_templates": pricing_templates
+            })
+            
+        except jwt.InvalidTokenError:
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url='/auth/login?error=invalid_token&redirect=/admin', status_code=302)
+        except Exception as e:
+            logger = get_logger("admin")
+            logger.error(f"Admin dashboard error: {e}")
+            from fastapi.responses import RedirectResponse
+            return RedirectResponse(url='/auth/login?error=server_error&redirect=/admin', status_code=302)
+
     @fastapi_app.get("/admin-dashboard", response_class=HTMLResponse)
-    async def admin_dashboard_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    async def admin_dashboard_page(request: Request):
+        from fastapi.responses import RedirectResponse
+        # Redirect to pricing templates (client-side admin page)
+        return RedirectResponse(url="/admin/pricing-templates", status_code=302)
+
+    @fastapi_app.get("/admin/pricing-templates", response_class=HTMLResponse)
+    async def admin_pricing_templates_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
         user = db.query(User).filter(User.id == user_id).first()
         if not user or not user.is_admin:
             raise HTTPException(status_code=403, detail="Admin access required")
-        return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+        return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
+
+    @fastapi_app.get("/admin/verification-history", response_class=HTMLResponse)
+    async def admin_verification_history_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or not user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        return templates.TemplateResponse("admin/verification_history.html", {"request": request, "user": user})
+
+    @fastapi_app.get("/test-login", response_class=HTMLResponse)
+    async def test_login_page(request: Request):
+        return templates.TemplateResponse("test_login.html", {"request": request})
 
     @fastapi_app.get("/analytics-dashboard", response_class=HTMLResponse)
     async def analytics_dashboard_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
@@ -488,8 +697,8 @@ def create_app() -> FastAPI:
                 raise HTTPException(status_code=402, detail="Insufficient balance")
 
             # Create verification with TextVerified
-            from app.services.textverified_integration import get_textverified_integration
-            integration = get_textverified_integration()
+            from app.services.textverified_service import TextVerifiedService
+            integration = TextVerifiedService()
 
             verification = await integration.create_verification(
                 service=service,
@@ -666,16 +875,19 @@ def create_app() -> FastAPI:
             if not user:
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             
-            # Verify password
+            # Verify password (use correct field name)
             pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-            if not pwd_context.verify(password, user.hashed_password):
+            if not pwd_context.verify(password, user.password_hash):
                 raise HTTPException(status_code=401, detail="Invalid credentials")
             
             # Create tokens
             tokens = create_tokens(user.id, user.email)
             
-            # Update last login
+            # Update last login and refresh token
             user.last_login = datetime.now()
+            user.refresh_token = tokens["refresh_token"]
+            from app.core.token_manager import get_refresh_token_expiry
+            user.refresh_token_expires = get_refresh_token_expiry()
             db.commit()
             
             return {
@@ -1075,8 +1287,8 @@ def create_app() -> FastAPI:
     async def get_textverified_area_codes():
         """Get REAL area codes from TextVerified API for US states"""
         try:
-            from app.services.textverified_integration import get_textverified_integration
-            integration = get_textverified_integration()
+            from app.services.textverified_service import TextVerifiedService
+            integration = TextVerifiedService()
             area_codes = await integration.get_area_codes_list()
             
             formatted = []
@@ -1109,8 +1321,8 @@ def create_app() -> FastAPI:
     async def get_textverified_services():
         """Get live services from TextVerified API"""
         try:
-            from app.services.textverified_integration import get_textverified_integration
-            integration = get_textverified_integration()
+            from app.services.textverified_service import TextVerifiedService
+            integration = TextVerifiedService()
             services = await integration.get_services_list(force_refresh=True)
             return {"success": True, "services": services, "total": len(services)}
         except Exception as e:
@@ -1124,15 +1336,26 @@ def create_app() -> FastAPI:
         try:
             body = await request.json()
             service = body.get('service')
-            country = body.get('country', 'usa')
+            area_code = body.get('area_code')
+            carrier = body.get('carrier')
             
             if not service:
                 raise HTTPException(status_code=400, detail="Service required")
             
             from app.models.user import User
+            from app.models.tier import Tier
             user = db.query(User).filter(User.id == user_id).first()
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
+            
+            # FLAW 8 FIX: Tier restrictions
+            tier = db.query(Tier).filter(Tier.id == user.tier_id).first() if user.tier_id else None
+            if tier and tier.name == "Freemium":
+                raise HTTPException(status_code=403, detail="Voice verification requires Starter tier or higher")
+            
+            # Area code/carrier only for Turbo
+            if (area_code or carrier) and (not tier or tier.name != "Turbo"):
+                raise HTTPException(status_code=403, detail="Area code/carrier selection requires Turbo tier")
             
             from app.services.textverified_service import TextVerifiedService
             import textverified
@@ -1141,23 +1364,38 @@ def create_app() -> FastAPI:
             if not tv_service.enabled:
                 raise HTTPException(status_code=503, detail="Voice service unavailable")
             
-            # Create voice verification with TextVerified
-            verification = tv_service.client.verifications.create(
-                service_name=service,
-                capability=textverified.ReservationCapability.VOICE
-            )
+            # FLAW 7 FIX: Check balance BEFORE API call
+            estimated_cost = settings.voice_estimated_cost
+            if user.credits < estimated_cost:
+                raise HTTPException(status_code=402, detail="Insufficient credits")
+            
+            # Create voice verification with TextVerified (with retry)
+            verification = None
+            for attempt in range(settings.voice_max_retry_attempts):
+                try:
+                    verification = tv_service.client.verifications.create(
+                        service_name=service,
+                        capability=textverified.ReservationCapability.VOICE,
+                        area_code=area_code if area_code else None,
+                        carrier=carrier if carrier else None
+                    )
+                    break
+                except Exception as e:
+                    if attempt == settings.voice_max_retry_attempts - 1:
+                        raise HTTPException(status_code=503, detail=f"TextVerified API failed: {str(e)}")
+                    await asyncio.sleep(2 ** attempt)
+            
+            if not verification:
+                raise HTTPException(status_code=503, detail="Failed to create voice verification")
             
             cost = float(verification.total_cost)
-            
-            if user.credits < cost:
-                raise HTTPException(status_code=402, detail="Insufficient credits")
             
             from app.models.verification import Verification
             db_verification = Verification(
                 user_id=user_id,
                 service_name=service,
                 phone_number=f"+1{verification.number}",
-                country=country,
+                country="usa",
                 capability="voice",
                 cost=cost,
                 provider="textverified",
@@ -1168,6 +1406,29 @@ def create_app() -> FastAPI:
             user.credits -= cost
             db.commit()
             db.refresh(db_verification)
+            
+            # FLAW 1 FIX: Add notifications (safe - won't break flow)
+            try:
+                from app.services.notification_service import NotificationService
+                notification_service = NotificationService(db)
+                notification_service.create_notification(
+                    user_id=user_id,
+                    title="Voice Verification Initiated",
+                    message=f"Voice call initiated for {service}. Phone: {db_verification.phone_number}",
+                    type="verification_initiated"
+                )
+                
+                # Low balance warning
+                if user.credits < 5:
+                    notification_service.create_notification(
+                        user_id=user_id,
+                        title="Low Balance Warning",
+                        message=f"Your balance is ${user.credits:.2f}. Add credits to continue.",
+                        type="low_balance"
+                    )
+            except Exception as notif_error:
+                logger = get_logger("voice_verification")
+                logger.warning(f"Notification failed but verification succeeded: {notif_error}")
             
             return {
                 "success": True,
@@ -1188,33 +1449,8 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/api/verification/voice/{verification_id}")
     async def get_voice_verification_status(verification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-        """Get voice verification status from database."""
-        try:
-            from app.models.verification import Verification
-            verification = db.query(Verification).filter(
-                Verification.id == verification_id,
-                Verification.user_id == user_id,
-                Verification.capability == "voice"
-            ).first()
-            
-            if not verification:
-                raise HTTPException(status_code=404, detail="Voice verification not found")
-            
-            return {
-                "verification_id": verification.id,
-                "status": verification.status,
-                "phone_number": verification.phone_number,
-                "voice_code": verification.sms_code,
-                "type": "voice",
-                "cost": float(verification.cost) if verification.cost else 0,
-                "created_at": verification.created_at.isoformat() if verification.created_at else datetime.now().isoformat()
-            }
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger = get_logger("voice_verification")
-            logger.error(f"Voice status check failed: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to check voice verification status")
+        """DEPRECATED: Use /api/verification/{verification_id} instead."""
+        return await get_verification_status(verification_id, db)
 
     @fastapi_app.get("/voice-verify", response_class=HTMLResponse)
     async def voice_verify_page(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
@@ -1253,8 +1489,8 @@ def create_app() -> FastAPI:
             }
             
             try:
-                from app.services.textverified_integration import get_textverified_integration
-                integration = get_textverified_integration()
+                from app.services.textverified_service import TextVerifiedService
+                integration = TextVerifiedService()
                 result["tests"]["integration_created"] = True
             except Exception as e:
                 result["tests"]["integration_created"] = False
@@ -1315,6 +1551,7 @@ def create_app() -> FastAPI:
         
         # Start SMS polling service
         from app.services.sms_polling_service import sms_polling_service
+        from app.services.voice_polling_service import voice_polling_service
         import asyncio
 
         async def _run_sms_service_supervisor():
@@ -1336,8 +1573,29 @@ def create_app() -> FastAPI:
                 except Exception as e:
                     sms_logger.error(f"SMS supervisor error: {e}")
                     await asyncio.sleep(5)
+        
+        async def _run_voice_service_supervisor():
+            voice_logger = get_logger("voice-supervisor")
+            while True:
+                try:
+                    await asyncio.wait_for(
+                        voice_polling_service.start_background_service(),
+                        timeout=settings.async_task_timeout_seconds,
+                    )
+                    voice_logger.info("Voice polling service exited; restarting supervisor in 5s")
+                    await asyncio.sleep(5)
+                except asyncio.TimeoutError:
+                    voice_logger.warning("Voice polling service timed out; restarting")
+                    await asyncio.sleep(2)
+                except asyncio.CancelledError:
+                    voice_logger.info("Voice supervisor cancelled")
+                    break
+                except Exception as e:
+                    voice_logger.error(f"Voice supervisor error: {e}")
+                    await asyncio.sleep(5)
 
         asyncio.create_task(_run_sms_service_supervisor())
+        asyncio.create_task(_run_voice_service_supervisor())
         startup_logger.info("Application startup completed successfully")
 
     @fastapi_app.on_event("shutdown")
@@ -1346,8 +1604,10 @@ def create_app() -> FastAPI:
         shutdown_logger.info("Starting graceful shutdown")
         try:
             from app.services.sms_polling_service import sms_polling_service
+            from app.services.voice_polling_service import voice_polling_service
             await sms_polling_service.stop_background_service()
-            shutdown_logger.info("SMS polling service stopped")
+            await voice_polling_service.stop_background_service()
+            shutdown_logger.info("Polling services stopped")
             await cache.disconnect()
             shutdown_logger.info("Cache disconnected")
             engine.dispose()

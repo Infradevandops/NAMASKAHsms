@@ -74,6 +74,12 @@ class Settings(BaseSettings):
     sms_polling_initial_interval_seconds: int = 5
     sms_polling_later_interval_seconds: int = 10
     sms_polling_error_backoff_seconds: int = 15
+    
+    # Voice polling configuration
+    voice_polling_interval_seconds: int = 5
+    voice_polling_timeout_minutes: int = 5
+    voice_estimated_cost: float = 3.50
+    voice_max_retry_attempts: int = 3
 
     # Paystack
     paystack_secret_key: Optional[str] = None

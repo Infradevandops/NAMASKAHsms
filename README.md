@@ -8,18 +8,24 @@
 
 ## 🎯 Choose Your Plan
 
-Namaskah now offers **3 tiers** designed for different use cases:
+Namaskah offers **4 tiers** designed for different use cases:
 
-| Feature | Freemium | Starter | Turbo |
-|---------|----------|---------|-------|
-| **Price** | Free (No card) | $9/mo | $13.99/mo |
-| **SMS Verification** | ✅ Random only | ✅ Enhanced | ✅ Premium |
-| **API Keys** | ❌ Web only | ✅ 5 keys | ✅ Unlimited |
-| **Area Code Selection** | ❌ | ✅ | ✅ |
-| **ISP/Carrier Filter** | ❌ | ❌ | ✅ |
-| **Daily Limit** | 100/day | 1000/day | 10,000/day |
-| **Countries** | 5 countries | 20 countries | All 50+ |
-| **Support** | Community | Email | Priority |
+| Feature | Pay-As-You-Go (Trial) | Starter | Pro | Custom |
+|---------|----------------------|---------|-----|--------|
+| **Price** | $0/mo | $8.99/mo | $25/mo | $35/mo |
+| **Included Quota** | None | $10 (~4 SMS) | $30 (~12 SMS) | $50 (~20 SMS) |
+| **Per SMS** | $2.50 | Included, then +$0.50 | Included, then +$0.30 | Included, then +$0.20 |
+| **API Access** | ❌ | ✅ 5 keys | ✅ 10 keys | ✅ Unlimited |
+| **Area Code Selection** | ❌ | ✅ | ✅ | ✅ |
+| **ISP/Carrier Filter** | ❌ | ❌ | ✅ | ✅ |
+| **Countries** | All 50+ | All 50+ | All 50+ | All 50+ |
+| **Support** | Community | Email | Priority | Dedicated |
+
+**Subscription Benefits**: 
+- ✅ **Included quota** resets monthly
+- ✅ **Lower overage rates** - Fixed increase ($0.20-$0.50) vs $2.50 per SMS
+- ✅ **API access** for automation
+- ✅ **No interruption** when quota exhausted
 
 ---
 
@@ -50,9 +56,10 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 ## ✨ Key Features
 
 ### 🔐 Multi-Tier Access
-- **Freemium**: Get started with basic verification services
-- **Starter**: Add area code selection for targeted numbers
-- **Turbo**: Full ISP filtering and advanced features
+- **Pay-As-You-Go (Trial)**: Test unlimited at $2.50/SMS, no commitment
+- **Starter**: $8.99/mo with quota, then +$0.50/SMS overage
+- **Pro**: $25/mo with larger quota, then +$0.30/SMS overage
+- **Custom**: $35/mo with premium quota, then +$0.20/SMS overage
 
 ### 📱 SMS Verification
 - Instant SMS verification codes

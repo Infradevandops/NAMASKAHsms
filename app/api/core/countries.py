@@ -110,8 +110,8 @@ async def get_usa_area_codes():
         if cached_result:
             return cached_result
 
-        from app.services.textverified_integration import get_textverified_integration
-        integration = get_textverified_integration()
+        from app.services.textverified_service import TextVerifiedService
+        integration = TextVerifiedService()
         raw_codes = await integration.get_area_codes_list()
 
         # Transform to frontend-expected format
@@ -183,8 +183,8 @@ async def get_country_services(country: str):
         return cached_result
 
     try:
-        from app.services.textverified_integration import get_textverified_integration
-        integration = get_textverified_integration()
+        from app.services.textverified_service import TextVerifiedService
+        integration = TextVerifiedService()
         services = await integration.get_services_list(force_refresh=True)
 
         result = {

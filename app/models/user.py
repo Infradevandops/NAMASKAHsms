@@ -40,6 +40,10 @@ class User(BaseModel):
     refresh_token_expires = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
 
+    # User preferences (language/currency)
+    language = Column(String(10), default="en", nullable=False)
+    currency = Column(String(10), default="USD", nullable=False)
+
     # Affiliate fields
     affiliate_id = Column(String(50), nullable=True)
     partner_type = Column(String(50), nullable=True)

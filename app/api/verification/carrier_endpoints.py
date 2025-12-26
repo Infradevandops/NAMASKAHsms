@@ -39,8 +39,8 @@ async def get_available_carriers(
     
     try:
         # Get carriers from TextVerified integration
-        from app.services.textverified_integration import get_textverified_integration
-        integration = get_textverified_integration()
+        from app.services.textverified_service import TextVerifiedService
+        integration = TextVerifiedService()
         
         carriers = await integration.get_available_carriers(country)
         
@@ -85,8 +85,8 @@ async def get_available_area_codes(
     
     try:
         # Get area codes from TextVerified integration
-        from app.services.textverified_integration import get_textverified_integration
-        integration = get_textverified_integration()
+        from app.services.textverified_service import TextVerifiedService
+        integration = TextVerifiedService()
         
         area_codes = await integration.get_available_area_codes(country)
         

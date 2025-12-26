@@ -74,14 +74,25 @@ async def request_verification(
             )
         logger.info("TextVerified service initialized successfully")
         
-        # Check user has sufficient credits first
-        estimated_cost = 2.50  # Default estimate
-        logger.info(f"User {user_id} current balance: ${user.credits:.2f}, estimated cost: ${estimated_cost:.2f}")
-        if user.credits < estimated_cost:
-            logger.warning(f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${estimated_cost:.2f}")
+        # Calculate SMS cost using new pricing system
+        from app.services.pricing_calculator import PricingCalculator
+        
+        calculator = PricingCalculator(db)
+        user_tier = getattr(user, 'tier_id', 'payg') or 'payg'
+        
+        # Get pricing for this SMS
+        pricing_info = calculator.calculate_sms_cost(user_id, user_tier)
+        sms_cost = pricing_info["cost_per_sms"]
+        
+        logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}, within quota: {pricing_info['within_quota']}")
+        
+        # Check user has sufficient credits
+        logger.info(f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}")
+        if user.credits < sms_cost:
+            logger.warning(f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}")
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Insufficient credits. Available: ${user.credits:.2f}, Required: ~${estimated_cost:.2f}"
+                detail=f"Insufficient credits. Available: ${user.credits:.2f}, Required: ${sms_cost:.2f}"
             )
         
         # Purchase number from TextVerified
@@ -92,12 +103,13 @@ async def request_verification(
         )
         logger.info(f"Number purchased successfully: {result['phone_number']}, cost: ${result['cost']:.2f}")
         
-        # Double-check credits after getting actual cost
-        if user.credits < result["cost"]:
-            logger.error(f"User {user_id} has insufficient credits after purchase: ${user.credits:.2f} < ${result['cost']:.2f}")
+        # Double-check credits after getting actual cost (use calculated cost, not TextVerified cost)
+        actual_cost = sms_cost  # Use our pricing system cost
+        if user.credits < actual_cost:
+            logger.error(f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${actual_cost:.2f}")
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Insufficient credits. Required: ${result['cost']:.2f}, Available: ${user.credits:.2f}"
+                detail=f"Insufficient credits. Required: ${actual_cost:.2f}, Available: ${user.credits:.2f}"
             )
         
         # Create verification record
@@ -108,7 +120,7 @@ async def request_verification(
             phone_number=result["phone_number"],
             country=request.country,
             capability=request.capability,
-            cost=result["cost"],
+            cost=actual_cost,  # Use our calculated cost
             provider="textverified",
             activation_id=result["activation_id"],
             status="pending",
@@ -118,11 +130,14 @@ async def request_verification(
         db.flush()  # Get the ID before commit
         logger.info(f"Verification record created with ID: {verification.id}")
         
-        # Deduct credits from user
+        # Deduct credits from user (use our calculated cost)
         old_balance = user.credits
-        user.credits -= result["cost"]
+        user.credits -= actual_cost
         new_balance = user.credits
-        logger.info(f"Deducting ${result['cost']:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}")
+        logger.info(f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}")
+        
+        # Record usage for quota tracking
+        calculator.record_sms_usage(user_id, actual_cost)
         
         # Low balance warning
         if new_balance < 5.0 and old_balance >= 5.0:
@@ -155,7 +170,7 @@ async def request_verification(
         logger.info(
             f"✓ Verification {verification.id} completed successfully | "
             f"User: {user_id} | Service: {request.service} | Country: {request.country} | "
-            f"Phone: {result['phone_number']} | Cost: ${result['cost']:.2f} | "
+            f"Phone: {result['phone_number']} | Cost: ${actual_cost:.2f} | "
             f"Balance: ${new_balance:.2f}"
         )
         
@@ -172,7 +187,7 @@ async def request_verification(
             "phone_number": result["phone_number"],
             "service": request.service,
             "country": request.country,
-            "cost": result["cost"],
+            "cost": actual_cost,
             "status": "pending",
             "activation_id": result["activation_id"],
             "demo_mode": False
