@@ -533,10 +533,7 @@ async function resetForm() {
   // Cancel pending verification if exists
   if (currentVerification && currentVerification.id) {
     try {
-      await fetch(`/api/verify/${currentVerification.id}`, {
-        method: 'DELETE',
-        credentials: 'include'
-      });
+      await axios.delete(`/api/verify/${currentVerification.id}`);
       console.log('✅ Verification cancelled');
     } catch (error) {
       console.error('Failed to cancel verification:', error);

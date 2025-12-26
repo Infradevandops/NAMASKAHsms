@@ -349,20 +349,43 @@ class TextVerifiedService:
         except Exception as e:
             logger.error(f"Get services error: {str(e)}")
             raise
-        """Get phone number for verification (legacy method).
+
+    async def create_verification(self, service: str, area_code: str = None, carrier: str = None) -> Dict[str, Any]:
+        """Create verification with TextVerified API.
         
+        Args:
+            service: Service name (e.g., 'telegram')
+            area_code: Optional area code
+            carrier: Optional carrier
+            
+        Returns:
+            Dict with id, phone_number, and cost
+            
         Validates: Requirements 4.1, 4.3, 4.5
         """
         try:
-            logger.debug(f"Getting number for {service} in {country}")
-            result = await self.buy_number(country, service)
-            return {
-                "id": result["activation_id"],
-                "number": result["phone_number"],
-                "cost": result["cost"]
+            if not self.enabled:
+                raise Exception("TextVerified not configured")
+            
+            logger.info(f"Creating verification for {service}")
+            
+            # Use the textverified package to create verification
+            verification = self.client.verifications.create(
+                service_name=service,
+                capability=textverified.ReservationCapability.SMS
+            )
+            
+            result = {
+                "id": verification.id,
+                "phone_number": f"+1{verification.number}",
+                "cost": float(verification.total_cost)
             }
+            
+            logger.info(f"Verification created: {result['id']}")
+            return result
+            
         except Exception as e:
-            logger.error(f"Get number error: {str(e)}")
+            logger.error(f"Create verification error: {str(e)}")
             raise
 
     async def get_number(self, service: str, country: str = "US") -> Dict:

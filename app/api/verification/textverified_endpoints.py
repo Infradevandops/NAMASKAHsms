@@ -114,46 +114,71 @@ async def get_status(db: Session = Depends(get_db)):
     return {"status": "operational"}
 
 
-    @router.get("/services")
-    async def get_services() -> Dict[str, Any]:
-        """Get available services from TextVerified API.
+@router.get("/services")
+async def get_services() -> Dict[str, Any]:
+    """Get available services from TextVerified API.
+    
+    Returns:
+        - success: Boolean indicating success
+        - services: List of available services
+        - total: Total number of services
+    
+    HTTP Status Codes:
+        - 200: Services retrieved successfully
+        - 503: Service unavailable
+    
+    Validates: Requirements 4.1, 4.3, 4.5
+    """
+    try:
+        logger.info("Services endpoint called")
+        service = TextVerifiedService()
         
-        Returns:
-            - success: Boolean indicating success
-            - services: List of available services
-            - total: Total number of services
-        
-        HTTP Status Codes:
-            - 200: Services retrieved successfully
-            - 503: Service unavailable
-        
-        Validates: Requirements 4.1, 4.3, 4.5
-        """
-        try:
-            logger.info("Services endpoint called")
-            service = TextVerifiedService()
-            
-            if not service.enabled:
-                raise HTTPException(
-                    status_code=503,
-                    detail="TextVerified service not configured"
-                )
-            
-            services_list = await service.get_services_list()
-            logger.info(f"Retrieved {len(services_list)} services from TextVerified API")
-            
+        if not service.enabled:
+            # Fallback services if TextVerified not configured
+            fallback_services = [
+                {"id": "telegram", "name": "Telegram", "cost": 0.50},
+                {"id": "whatsapp", "name": "WhatsApp", "cost": 0.75},
+                {"id": "google", "name": "Google", "cost": 0.50},
+                {"id": "facebook", "name": "Facebook", "cost": 0.60},
+                {"id": "instagram", "name": "Instagram", "cost": 0.65},
+                {"id": "twitter", "name": "Twitter", "cost": 0.55},
+                {"id": "discord", "name": "Discord", "cost": 0.45},
+                {"id": "tiktok", "name": "TikTok", "cost": 0.70}
+            ]
+            logger.warning("TextVerified not configured, using fallback services")
             return {
                 "success": True,
-                "services": services_list,
-                "total": len(services_list),
-                "source": "textverified_api"
+                "services": fallback_services,
+                "total": len(fallback_services),
+                "source": "fallback"
             }
-            
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Services endpoint error: {str(e)}")
-            raise HTTPException(
-                status_code=503,
-                detail=f"Failed to fetch services from TextVerified API: {str(e)}"
-            )
+        
+        services_list = await service.get_services_list()
+        logger.info(f"Retrieved {len(services_list)} services from TextVerified API")
+        
+        return {
+            "success": True,
+            "services": services_list,
+            "total": len(services_list),
+            "source": "textverified_api"
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Services endpoint error: {str(e)}")
+        # Return fallback services on error
+        fallback_services = [
+            {"id": "telegram", "name": "Telegram", "cost": 0.50},
+            {"id": "whatsapp", "name": "WhatsApp", "cost": 0.75},
+            {"id": "google", "name": "Google", "cost": 0.50},
+            {"id": "facebook", "name": "Facebook", "cost": 0.60}
+        ]
+        logger.warning(f"TextVerified API failed, using fallback: {str(e)}")
+        return {
+            "success": True,
+            "services": fallback_services,
+            "total": len(fallback_services),
+            "source": "fallback",
+            "error": str(e)
+        }
