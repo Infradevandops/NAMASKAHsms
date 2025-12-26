@@ -240,30 +240,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadBalance() {
   try {
-    // Try TextVerified API balance first (for admin reference)
-    const response = await axios.get('/api/verification/textverified/balance');
-    document.getElementById('balance-display').textContent = '$' + (response.data.balance || 0).toFixed(2);
-  } catch (error) {
-    // Fallback to user balance
-    try {
-      const response = await axios.get('/api/user/balance');
-      document.getElementById('balance-display').textContent = '$' + (response.data.credits || 0).toFixed(2);
-    } catch (e) {
+    const response = await axios.get('/api/user/balance', {
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
+    
+    if (response.data && typeof response.data.credits === 'number') {
+      const balance = response.data.credits;
+      document.getElementById('balance-display').textContent = `$${balance.toFixed(2)}`;
+    } else {
       document.getElementById('balance-display').textContent = '$0.00';
     }
+  } catch (error) {
+    console.error('Balance fetch failed:', error);
+    document.getElementById('balance-display').textContent = '$0.00';
   }
 }
 
 async function loadServices() {
   try {
     const response = await axios.get('/api/verification/textverified/services');
-    allServices = response.data.services || [];
-    populateDropdown('service', allServices, (s) => `${s.name} ($${s.cost.toFixed(2)})`);
+    if (response.data && response.data.services) {
+      allServices = response.data.services;
+      populateDropdown('service', allServices, (s) => `${s.name} ($${s.cost.toFixed(2)})`);
+      console.log(`Loaded ${allServices.length} services from TextVerified API`);
+    } else {
+      throw new Error('No services data received');
+    }
   } catch (error) {
-    console.error('Failed to load services:', error);
+    console.error('Failed to load services from TextVerified API:', error);
     allServices = [];
     const dropdown = document.getElementById('service-dropdown');
-    dropdown.innerHTML = '<div class="dropdown-item" style="color: #ef4444;">Failed to load services</div>';
+    dropdown.innerHTML = '<div class="dropdown-item" style="color: #ef4444;">TextVerified API not configured</div>';
   }
 }
 
@@ -284,14 +295,61 @@ function populateDropdown(type, items, displayFn) {
 
 function setupSearchInputs() {
   const serviceInput = document.getElementById('service-search');
+  let selectedIndex = -1;
   
-  serviceInput.addEventListener('input', (e) => filterDropdown('service', e.target.value));
-  serviceInput.addEventListener('focus', () => showDropdown('service'));
+  serviceInput.addEventListener('input', (e) => {
+    selectedIndex = -1; // Reset selection on new input
+    filterDropdown('service', e.target.value);
+  });
+  
+  serviceInput.addEventListener('focus', () => {
+    if (serviceInput.value.trim()) {
+      filterDropdown('service', serviceInput.value);
+    } else {
+      populateDropdown('service', allServices, (s) => `${s.name} ($${s.cost.toFixed(2)})`);
+      showDropdown('service');
+    }
+  });
+  
+  // Keyboard navigation
+  serviceInput.addEventListener('keydown', (e) => {
+    const dropdown = document.getElementById('service-dropdown');
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+      updateSelection(items, selectedIndex);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedIndex = Math.max(selectedIndex - 1, -1);
+      updateSelection(items, selectedIndex);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0 && items[selectedIndex]) {
+        items[selectedIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      hideAllDropdowns();
+      serviceInput.blur();
+    }
+  });
   
   // Hide dropdowns when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.search-select')) {
       hideAllDropdowns();
+    }
+  });
+}
+
+function updateSelection(items, selectedIndex) {
+  items.forEach((item, index) => {
+    if (index === selectedIndex) {
+      item.style.background = 'var(--primary-light)';
+      item.scrollIntoView({ block: 'nearest' });
+    } else {
+      item.style.background = '';
     }
   });
 }
@@ -310,11 +368,25 @@ function filterDropdown(type, query) {
     (s) => `${s.name} ($${s.cost.toFixed(2)})` : 
     (c) => `${c.name} (+${c.prefix})`;
   
-  const filtered = items.filter(item => 
-    item.name.toLowerCase().includes(query.toLowerCase())
-  );
+  if (!query.trim()) {
+    // Show all items if no search query
+    populateDropdown(type, items, displayFn);
+  } else {
+    // Filter items based on search query (case insensitive)
+    const filtered = items.filter(item => 
+      item.name.toLowerCase().includes(query.toLowerCase()) ||
+      item.id.toLowerCase().includes(query.toLowerCase())
+    );
+    
+    populateDropdown(type, filtered, displayFn);
+    
+    // Show "no results" message if no matches
+    if (filtered.length === 0) {
+      const dropdown = document.getElementById(`${type}-dropdown`);
+      dropdown.innerHTML = '<div class="dropdown-item" style="color: #999; font-style: italic;">No services found</div>';
+    }
+  }
   
-  populateDropdown(type, filtered, displayFn);
   showDropdown(type);
 }
 
@@ -383,7 +455,7 @@ async function purchaseVerification() {
       document.getElementById('status-text').innerHTML = `<i class="ph ph-clock"></i> Waiting for SMS...`;
       
       startPolling(response.data.id);
-      loadBalance();
+      await loadBalance();
     } else {
       throw new Error('Invalid response from server');
     }
@@ -487,7 +559,7 @@ async function resetForm() {
   hideAllDropdowns();
   
   updatePurchaseButton();
-  loadBalance();
+  await loadBalance();
 }
 
 async function loadInbox() {

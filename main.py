@@ -184,6 +184,14 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(analytics_router)
     fastapi_app.include_router(export_router)
     fastapi_app.include_router(verification_history_router)
+    
+    # Include real-time dashboard endpoints
+    from app.api.core.analytics_enhanced import router as analytics_enhanced_router
+    from app.api.core.balance_sync import router as balance_sync_router
+    from app.api.verification.status_polling import router as status_polling_router
+    fastapi_app.include_router(analytics_enhanced_router)
+    fastapi_app.include_router(balance_sync_router)
+    fastapi_app.include_router(status_polling_router)
     # fastapi_app.include_router(pricing_api_router)  # Disabled
     fastapi_app.include_router(actions_router)
     fastapi_app.include_router(pricing_control_router)
@@ -659,15 +667,21 @@ def create_app() -> FastAPI:
             if not user:
                 raise HTTPException(status_code=404, detail="User not found")
             
+            # Regular users get their individual balance from database
             credits = float(user.credits or 0)
+            
             return {
                 "credits": credits,
+                "balance": credits,  # For compatibility
                 "free_verifications": int(user.free_verifications or 0),
-                "currency": "USD"
+                "currency": "USD",
+                "formatted_balance": f"${credits:.2f}"
             }
         except HTTPException:
             raise
         except Exception as e:
+            logger = get_logger("balance")
+            logger.error(f"Balance fetch error: {str(e)}")
             raise HTTPException(status_code=500, detail="Failed to fetch balance")
 
     @fastapi_app.post("/api/verification/purchase")
@@ -1323,12 +1337,22 @@ def create_app() -> FastAPI:
         try:
             from app.services.textverified_service import TextVerifiedService
             integration = TextVerifiedService()
+            
+            if not integration.enabled:
+                raise HTTPException(
+                    status_code=503,
+                    detail="TextVerified service not configured"
+                )
+            
             services = await integration.get_services_list(force_refresh=True)
             return {"success": True, "services": services, "total": len(services)}
         except Exception as e:
             logger = get_logger("textverified")
             logger.error(f"TextVerified services error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to fetch services from TextVerified")
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to fetch services from TextVerified API: {str(e)}"
+            )
 
     @fastapi_app.post("/api/verification/voice/create")
     async def create_voice_verification(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):

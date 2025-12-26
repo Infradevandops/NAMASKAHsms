@@ -1520,8 +1520,13 @@
         // Initialize on load
         window.addEventListener('load', () => {
             initDashboard();
-            syncAdminBalance();
-            setInterval(syncAdminBalance, 30000);
+            
+            // Start real-time updates
+            setInterval(() => {
+                loadBalance();
+                loadAnalytics();
+                loadRecentActivity();
+            }, 30000); // Update every 30 seconds
             
             // Auto-collapse on navigation click (mobile)
             document.querySelectorAll('.nav-item').forEach(item => {
@@ -1536,5 +1541,8 @@
             console.log('Phosphor icons loading...');
         }
     </script>
+    
+    <!-- Real-time Dashboard Script -->
+    <script src="/static/js/real-time-dashboard.js"></script>
 </body>
 </html>

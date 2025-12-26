@@ -296,6 +296,75 @@ class TextVerifiedService:
             logger.error(f"Pricing fetch error: {str(e)}")
             raise
 
+    async def get_services_list(self, force_refresh: bool = False) -> list:
+        """Get list of available services from TextVerified API.
+        
+        Returns:
+            List of services with id, name, and cost
+            
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        try:
+            if not self.enabled:
+                logger.error("Services list requested but service not enabled")
+                raise Exception("TextVerified not configured")
+            
+            logger.debug("Fetching services list from TextVerified API")
+            
+            # Get services from TextVerified API with correct enum values
+            services_data = self.client.services.list(
+                number_type="sms",
+                reservation_type="verification"
+            )
+            
+            formatted_services = []
+            for service in services_data:
+                formatted_services.append({
+                    "id": str(service.id),
+                    "name": service.name,
+                    "cost": float(getattr(service, 'cost', 0.50))
+                })
+            
+            logger.info(f"Retrieved {len(formatted_services)} services from TextVerified API")
+            return formatted_services
+            
+        except Exception as e:
+            logger.error(f"TextVerified services API error: {str(e)}")
+            raise
+
+    async def get_services(self) -> Dict[str, Any]:
+        """Get services in API response format.
+        
+        Returns:
+            Dict with services list
+            
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        try:
+            services_list = await self.get_services_list()
+            return {
+                "services": services_list,
+                "total": len(services_list)
+            }
+        except Exception as e:
+            logger.error(f"Get services error: {str(e)}")
+            raise
+        """Get phone number for verification (legacy method).
+        
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        try:
+            logger.debug(f"Getting number for {service} in {country}")
+            result = await self.buy_number(country, service)
+            return {
+                "id": result["activation_id"],
+                "number": result["phone_number"],
+                "cost": result["cost"]
+            }
+        except Exception as e:
+            logger.error(f"Get number error: {str(e)}")
+            raise
+
     async def get_number(self, service: str, country: str = "US") -> Dict:
         """Get phone number for verification (legacy method).
         
@@ -313,18 +382,76 @@ class TextVerifiedService:
             logger.error(f"Get number error: {str(e)}")
             raise
 
-    async def get_sms(self, activation_id: str) -> Optional[str]:
-        """Get SMS code for activation (legacy method).
+    async def get_sms(self, activation_id: str) -> Dict[str, Any]:
+        """Get SMS code for activation with full response.
         
         Validates: Requirements 4.1, 4.3, 4.5
         """
         try:
             logger.debug(f"Getting SMS for activation {activation_id}")
             result = await self.check_sms(activation_id)
-            return result.get("sms_code")
+            return result
         except Exception as e:
             logger.error(f"Get SMS error: {str(e)}")
-            return None
+            return {
+                "sms_code": None,
+                "sms_text": None,
+                "status": "error",
+                "error": str(e)
+            }
+
+    async def cancel_number(self, activation_id: str) -> bool:
+        """Cancel number and get refund (alias for cancel_activation).
+        
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        return await self.cancel_activation(activation_id)
+
+    async def get_verification_status(self, activation_id: str) -> Dict[str, Any]:
+        """Get verification status from TextVerified API.
+        
+        Args:
+            activation_id: TextVerified activation ID
+            
+        Returns:
+            Dict with status, sms_code, and sms_text
+            
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        try:
+            if not self.enabled:
+                raise Exception("TextVerified not configured")
+            
+            logger.debug(f"Getting verification status for {activation_id}")
+            verification = self.client.verifications.details(activation_id)
+            
+            # Check if SMS received
+            sms_code = None
+            sms_text = None
+            status = "pending"
+            
+            if hasattr(verification, 'sms') and verification.sms:
+                for sms in verification.sms:
+                    if hasattr(sms, 'message') and sms.message:
+                        sms_code = sms.message
+                        sms_text = sms.message
+                        status = "completed"
+                        break
+            
+            return {
+                "status": status,
+                "sms_code": sms_code,
+                "sms_text": sms_text
+            }
+            
+        except Exception as e:
+            logger.error(f"Verification status error: {str(e)}")
+            return {
+                "status": "error",
+                "sms_code": None,
+                "sms_text": None,
+                "error": str(e)
+            }
 
     async def cancel_activation(self, activation_id: str) -> bool:
         """Cancel activation and get refund.

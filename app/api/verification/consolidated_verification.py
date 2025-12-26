@@ -17,7 +17,7 @@ from app.models.verification import Verification
 from app.models.user import User
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/verify", tags=["Verification"])
+router = APIRouter(prefix="/api/verify", tags=["Verification"])
 
 class SuccessResponse(BaseModel):
     message: str

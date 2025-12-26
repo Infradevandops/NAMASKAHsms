@@ -20,11 +20,13 @@
             const statBalance = document.getElementById('stat-balance');
             const walletBalance = document.getElementById('wallet-balance');
             const balanceAmount = document.getElementById('balance-amount');
+            const balanceDisplay = document.getElementById('balance-display');
             
             if (headerBalance) headerBalance.textContent = 'Balance: ' + formatted;
             if (statBalance) statBalance.textContent = formatted;
             if (walletBalance) walletBalance.textContent = formatted;
             if (balanceAmount) balanceAmount.textContent = formatted;
+            if (balanceDisplay) balanceDisplay.textContent = formatted;
         } catch (error) {
             console.error('Balance load failed:', error);
         }

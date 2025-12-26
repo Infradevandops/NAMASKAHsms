@@ -112,3 +112,48 @@ async def get_status(db: Session = Depends(get_db)):
     """Get TextVerified service status (legacy endpoint)."""
     logger.debug("Status endpoint called")
     return {"status": "operational"}
+
+
+    @router.get("/services")
+    async def get_services() -> Dict[str, Any]:
+        """Get available services from TextVerified API.
+        
+        Returns:
+            - success: Boolean indicating success
+            - services: List of available services
+            - total: Total number of services
+        
+        HTTP Status Codes:
+            - 200: Services retrieved successfully
+            - 503: Service unavailable
+        
+        Validates: Requirements 4.1, 4.3, 4.5
+        """
+        try:
+            logger.info("Services endpoint called")
+            service = TextVerifiedService()
+            
+            if not service.enabled:
+                raise HTTPException(
+                    status_code=503,
+                    detail="TextVerified service not configured"
+                )
+            
+            services_list = await service.get_services_list()
+            logger.info(f"Retrieved {len(services_list)} services from TextVerified API")
+            
+            return {
+                "success": True,
+                "services": services_list,
+                "total": len(services_list),
+                "source": "textverified_api"
+            }
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Services endpoint error: {str(e)}")
+            raise HTTPException(
+                status_code=503,
+                detail=f"Failed to fetch services from TextVerified API: {str(e)}"
+            )
