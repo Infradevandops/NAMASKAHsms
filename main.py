@@ -176,11 +176,13 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(verification_history_router)
     # Include admin routers
     from app.api.admin.stats import router as stats_router
+    from app.api.admin.tier_management import router as tier_management_router
     # from app.api.admin.pricing_api import router as pricing_api_router  # Disabled - doesn't exist
     from app.api.admin.actions import router as actions_router
     from app.api.admin.pricing_control import router as pricing_control_router
     from app.api.admin.verification_actions import router as verification_actions_router
     fastapi_app.include_router(stats_router)
+    fastapi_app.include_router(tier_management_router, prefix="/api")
     fastapi_app.include_router(analytics_router)
     fastapi_app.include_router(export_router)
     fastapi_app.include_router(verification_history_router)
@@ -228,50 +230,61 @@ def create_app() -> FastAPI:
 
     @fastapi_app.get("/", response_class=HTMLResponse)
     async def home(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
-        # Check preferences for first-time visitors
-        has_preferences = False
-        
-        if user_id:
+        try:
+            # Check preferences for first-time visitors
+            has_preferences = False
+            
+            if user_id:
+                from app.models.user import User
+                user = db.query(User).filter(User.id == user_id).first()
+                has_preferences = user and user.language and user.currency
+                if has_preferences:
+                    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+            else:
+                # Check cookie for non-authenticated users
+                has_preferences = request.cookies.get('preferences_set') == 'true'
+            
+            # Redirect to welcome if no preferences set
+            if not has_preferences:
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse(url="/welcome", status_code=302)
+            
+            # Show landing page
+            from app.models.subscription_tier import SubscriptionTier
             from app.models.user import User
-            user = db.query(User).filter(User.id == user_id).first()
-            has_preferences = user and user.language and user.currency
-            if has_preferences:
-                return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
-        else:
-            # Check cookie for non-authenticated users
-            has_preferences = request.cookies.get('preferences_set') == 'true'
-        
-        # Redirect to welcome if no preferences set
-        if not has_preferences:
+            
+            tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
+            user_count = db.query(User).count()
+            
+            services = []
+            try:
+                from app.services.textverified_service import TextVerifiedService
+                integration = TextVerifiedService()
+                services = await integration.get_services_list()
+            except Exception as e:
+                logger = get_logger("landing")
+                logger.warning(f"Failed to fetch services: {e}")
+                # Use fallback services
+                services = [
+                    {"id": "telegram", "name": "Telegram", "cost": 0.50},
+                    {"id": "whatsapp", "name": "WhatsApp", "cost": 0.75},
+                    {"id": "google", "name": "Google", "cost": 0.50},
+                    {"id": "facebook", "name": "Facebook", "cost": 0.60}
+                ]
+            
+            return templates.TemplateResponse("landing.html", {
+                "request": request,
+                "tiers": tiers,
+                "services": services[:12] if services else [],
+                "user_count": user_count,
+                "user": None
+            })
+        except Exception as e:
+            logger = get_logger("home")
+            logger.error(f"Home route error: {e}")
+            # Return welcome page on error
             from fastapi.responses import RedirectResponse
             return RedirectResponse(url="/welcome", status_code=302)
-        
-        # Show landing page
-        from app.models.subscription_tier import SubscriptionTier
-        from app.models.user import User
-        
-        tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
-        user_count = db.query(User).count()
-        
-        services = []
-        try:
-            from app.services.textverified_service import TextVerifiedService
-            integration = TextVerifiedService()
-            services = await integration.get_services_list()
-        except Exception as e:
-            logger = get_logger("landing")
-            logger.warning(f"Failed to fetch services: {e}")
-        
-        return templates.TemplateResponse("landing.html", {
-            "request": request,
-            "tiers": tiers,
-            "services": services[:12] if services else [],
-            "user_count": user_count,
-            "user": None
-        })
-
-
-
     # Task 1.2: Token Refresh Endpoint
     @fastapi_app.post("/api/auth/refresh")
     async def refresh_token(request: Request, db: Session = Depends(get_db)):
@@ -498,128 +511,12 @@ def create_app() -> FastAPI:
 
 
     @fastapi_app.get("/admin", response_class=HTMLResponse)
-    async def admin_dashboard(request: Request, db: Session = Depends(get_db)):
-        """Admin dashboard with server-side rendering for immediate data display"""
+    async def admin_dashboard(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
         from app.models.user import User
-        from app.models.verification import Verification
-        from app.models.transaction import Transaction
-        from sqlalchemy import func
-        import jwt
-        from app.core.config import get_settings
-        
-        # Try to get token from cookie or Authorization header
-        token = request.cookies.get('access_token')
-        if not token:
-            auth_header = request.headers.get('authorization', '')
-            if auth_header.startswith('Bearer '):
-                token = auth_header[7:]
-        
-        if not token:
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url='/auth/login?redirect=/admin', status_code=302)
-        
-        try:
-            # Verify token
-            settings = get_settings()
-            payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
-            user_id = payload.get('user_id')
-            
-            if not user_id:
-                from fastapi.responses import RedirectResponse
-                return RedirectResponse(url='/auth/login?error=invalid_token', status_code=302)
-            
-            # Get user
-            user = db.query(User).filter(User.id == user_id).first()
-            if not user or not user.is_admin:
-                from fastapi.responses import RedirectResponse
-                return RedirectResponse(url='/auth/login?error=admin_required', status_code=302)
-            
-            # Get stats with error handling
-            try:
-                total_users = db.query(func.count(User.id)).scalar() or 0
-            except:
-                total_users = 0
-                
-            try:
-                active_users = db.query(func.count(User.id)).scalar() or 0  # Simplified since is_active may not exist
-            except:
-                active_users = total_users
-                
-            try:
-                total_verifications = db.query(func.count(Verification.id)).scalar() or 0
-            except:
-                total_verifications = 0
-                
-            try:
-                pending_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'pending').scalar() or 0
-            except:
-                pending_verifications = 0
-                
-            try:
-                success_verifications = db.query(func.count(Verification.id)).filter(Verification.status == 'completed').scalar() or 0
-            except:
-                success_verifications = 0
-                
-            success_rate = (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
-            
-            try:
-                total_revenue = db.query(func.sum(Transaction.amount)).filter(Transaction.type == 'credit').scalar() or 0
-            except:
-                total_revenue = 0
-            
-            # Get recent verifications with user details
-            verifications = []
-            try:
-                verifications = db.query(
-                    Verification.id,
-                    Verification.user_id,
-                    Verification.service_name,
-                    Verification.phone_number,
-                    Verification.status,
-                    Verification.cost,
-                    Verification.created_at,
-                    User.email.label('user_email')
-                ).join(User, Verification.user_id == User.id).order_by(
-                    Verification.created_at.desc()
-                ).limit(10).all()
-            except Exception as e:
-                logger = get_logger("admin")
-                logger.warning(f"Could not fetch verifications: {e}")
-            
-            # Pricing templates
-            pricing_templates = [
-                {"name": "Freemium", "price": 0, "sms_cost": 2.50, "features": ["Random US numbers", "100/day"], "active": True},
-                {"name": "Starter", "price": 8.99, "sms_cost": 0.50, "features": ["Area code filtering", "1,000/day"], "active": True},
-                {"name": "Pro", "price": 25.00, "sms_cost": 0.30, "features": ["Area + ISP filtering", "10,000/day"], "active": True},
-                {"name": "Custom", "price": 35.00, "sms_cost": 0.20, "features": ["All features", "Unlimited"], "active": True}
-            ]
-            
-            stats = {
-                "users": total_users,
-                "active_users": active_users,
-                "verifications": total_verifications,
-                "pending_verifications": pending_verifications,
-                "success_verifications": success_verifications,
-                "success_rate": round(success_rate, 1),
-                "revenue": float(total_revenue)
-            }
-            
-            return templates.TemplateResponse("admin/simple_dashboard.html", {
-                "request": request, 
-                "user": user,
-                "stats": stats,
-                "verifications": verifications,
-                "pricing_templates": pricing_templates
-            })
-            
-        except jwt.InvalidTokenError:
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url='/auth/login?error=invalid_token&redirect=/admin', status_code=302)
-        except Exception as e:
-            logger = get_logger("admin")
-            logger.error(f"Admin dashboard error: {e}")
-            from fastapi.responses import RedirectResponse
-            return RedirectResponse(url='/auth/login?error=server_error&redirect=/admin', status_code=302)
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or not user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        return templates.TemplateResponse("admin/dashboard.html", {"request": request, "user": user})
 
     @fastapi_app.get("/admin-dashboard", response_class=HTMLResponse)
     async def admin_dashboard_page(request: Request):
@@ -634,6 +531,14 @@ def create_app() -> FastAPI:
         if not user or not user.is_admin:
             raise HTTPException(status_code=403, detail="Admin access required")
         return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
+
+    @fastapi_app.get("/admin/tier-management", response_class=HTMLResponse)
+    async def admin_tier_management_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        from app.models.user import User
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user or not user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin access required")
+        return templates.TemplateResponse("admin/tier_management.html", {"request": request, "user": user})
 
     @fastapi_app.get("/admin/verification-history", response_class=HTMLResponse)
     async def admin_verification_history_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):

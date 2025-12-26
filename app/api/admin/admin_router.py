@@ -2,10 +2,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from datetime import datetime, timezone, timedelta
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
+from app.core.tier_config import TierConfig
+from app.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 class SuccessResponse(BaseModel):
     message: str
@@ -116,4 +121,76 @@ async def get_stats(
         "admin_users": admin_users,
         "moderator_users": moderator_users,
         "regular_users": total_users - admin_users - moderator_users
+    }
+
+
+class SetUserTierRequest(BaseModel):
+    tier: str
+    duration_days: int = 30
+
+
+@router.post("/users/{user_id}/tier")
+async def set_user_tier(
+    user_id: str,
+    request: SetUserTierRequest,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Set user tier directly (admin only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    valid_tiers = ["payg", "starter", "pro", "custom"]
+    if request.tier not in valid_tiers:
+        raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
+    
+    old_tier = getattr(user, 'tier_id', 'payg') or 'payg'
+    user.tier_id = request.tier
+    
+    if request.tier != "payg":
+        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
+    else:
+        user.tier_expires_at = None
+    
+    db.commit()
+    logger.info(f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}")
+    
+    return {
+        "success": True,
+        "message": f"User tier updated from {old_tier} to {request.tier}",
+        "user_id": user_id,
+        "new_tier": request.tier,
+        "expires_at": user.tier_expires_at
+    }
+
+
+@router.get("/users/{user_id}/tier")
+async def get_user_tier(
+    user_id: str,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """Get user's current tier info (admin only)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    tier = getattr(user, 'tier_id', 'payg') or 'payg'
+    tier_config = TierConfig.get_tier_config(tier, db)
+    
+    return {
+        "user_id": user_id,
+        "email": user.email,
+        "current_tier": tier,
+        "tier_name": tier_config["name"],
+        "expires_at": user.tier_expires_at,
+        "tier_config": {
+            "price_monthly": tier_config["price_monthly"],
+            "quota_usd": tier_config["quota_usd"],
+            "api_key_limit": tier_config["api_key_limit"],
+            "has_api_access": tier_config["has_api_access"],
+            "has_area_code_selection": tier_config["has_area_code_selection"],
+            "has_isp_filtering": tier_config["has_isp_filtering"]
+        }
     }
