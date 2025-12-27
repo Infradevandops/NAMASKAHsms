@@ -29,11 +29,17 @@ async def welcome_page(request: Request):
 async def landing_page(request: Request, db: Session = Depends(get_db)):
     """Landing page with pricing tiers."""
     try:
-        from app.models.subscription_tier import SubscriptionTier
         from app.models.user import User
         
-        tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
-        user_count = db.query(User).count()
+        # Try to get tiers, but don't fail if table doesn't exist
+        tiers = []
+        user_count = 0
+        try:
+            from app.models.subscription_tier import SubscriptionTier
+            tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
+            user_count = db.query(User).count()
+        except Exception as db_error:
+            logger.warning(f"Database query failed, using defaults: {db_error}")
         
         services = [
             {"id": "telegram", "name": "Telegram", "cost": 0.50},
