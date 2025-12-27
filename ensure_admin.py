@@ -32,7 +32,7 @@ else:
     
     admin = User(
         email="admin@namaskah.app",
-        password_hash=hash_password("admin123"),
+        password_hash=hash_password("Namaskah@Admin2024"),
         is_admin=True,
         email_verified=True,
         credits=1000.0
