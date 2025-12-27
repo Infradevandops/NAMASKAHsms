@@ -85,17 +85,23 @@
       document.cookie = `currency=${currency}; path=/; max-age=31536000`;
       
       // Try to save to user account if authenticated
-      try {
-        await fetch('/api/user/preferences', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ language, currency })
-        });
-      } catch (error) {
-        // Ignore if not authenticated
+      const token = localStorage.getItem('access_token');
+      if (token) {
+        try {
+          await fetch('/api/user/preferences', {
+            method: 'PUT',
+            headers: { 
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ language, currency })
+          });
+        } catch (error) {
+          // Ignore if fails
+        }
       }
       
-      window.location.href = '/';
+      window.location.href = '/landing';
     }
 
     window.addEventListener('DOMContentLoaded', () => {
