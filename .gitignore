@@ -199,4 +199,15 @@ templates/*.backup
 screenshots/
 images/test/
 
-# Temporary fix/migration scripts
+# Temporary fix/migration scripts# Task and planning documents
+*TASKS*.md
+*TASK*.md
+*TODO*.md
+*MIGRATION*.md
+*SKELETON*.md
+*IMPLEMENTATION*.md
+*VERIFICATION*.md
+docs/TEMPLATE_*.md
+docs/USER_FLOWS*.md
+docs/NOTIFICATION_*.md
+docs/ACCEPTANCE_*.md
