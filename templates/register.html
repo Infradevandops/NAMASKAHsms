@@ -6,28 +6,39 @@
 {{ super() }}
 <style>
     .auth-container {
-        max-width: 400px;
-        margin: 40px auto;
+        max-width: 440px;
+        margin: 20px auto;
         background: white;
-        padding: 32px;
+        padding: 40px;
         border-radius: 16px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         border: 1px solid rgba(0, 0, 0, 0.05);
     }
 
-    .auth-title {
-        font-size: 24px;
-        font-weight: 700;
-        text-align: center;
-        margin-bottom: 8px;
-        color: #1a1a1a;
+    .auth-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 32px;
+        background: var(--bg-sidebar);
+        padding: 4px;
+        border-radius: 12px;
     }
 
-    .auth-subtitle {
+    .auth-tab {
+        flex: 1;
+        padding: 12px;
         text-align: center;
-        color: #666;
-        font-size: 14px;
-        margin-bottom: 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-muted);
+    }
+
+    .auth-tab.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .form-group {
@@ -39,7 +50,7 @@
         margin-bottom: 8px;
         font-weight: 500;
         font-size: 14px;
-        color: #333;
+        color: var(--text-main);
     }
 
     .form-input {
@@ -49,12 +60,20 @@
         border-radius: 8px;
         font-size: 15px;
         transition: border-color 0.2s;
+        background: white !important;
+    }
+
+    .form-input:-webkit-autofill,
+    .form-input:-webkit-autofill:hover,
+    .form-input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+        -webkit-text-fill-color: var(--text-main) !important;
     }
 
     .form-input:focus {
         border-color: var(--primary);
         outline: none;
-        box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.1);
+        box-shadow: 0 0 0 3px var(--primary-light);
     }
 
     .btn-auth {
@@ -67,24 +86,16 @@
         font-weight: 600;
         font-size: 16px;
         cursor: pointer;
-        transition: transform 0.1s;
+        transition: all 0.2s;
+    }
+
+    .btn-auth:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
     }
 
     .btn-auth:active {
         transform: scale(0.98);
-    }
-
-    .auth-footer {
-        text-align: center;
-        margin-top: 24px;
-        font-size: 14px;
-        color: #666;
-    }
-
-    .auth-footer a {
-        color: var(--primary);
-        text-decoration: none;
-        font-weight: 500;
     }
 
     .error-msg {
@@ -98,7 +109,6 @@
         display: none;
     }
 
-    /* Password Strength */
     .strength-meter {
         height: 4px;
         background: #eee;
@@ -146,21 +156,23 @@
 
 {% block public_content %}
 <div class="auth-container">
-    <h1 class="auth-title">Create Account</h1>
-    <p class="auth-subtitle">Start verifying numbers in seconds</p>
+    <div class="auth-tabs">
+        <div class="auth-tab" onclick="window.location.href='/auth/login'">Login</div>
+        <div class="auth-tab active" onclick="window.location.href='/auth/register'">Sign Up</div>
+    </div>
 
     <div id="error-message" class="error-msg"></div>
 
     <form id="register-form" onsubmit="handleRegister(event)">
         <div class="form-group">
             <label class="form-label">Email Address</label>
-            <input type="email" class="form-input" id="email" required placeholder="name@example.com">
+            <input type="email" class="form-input" id="email" required placeholder="name@example.com" autocomplete="email">
         </div>
 
         <div class="form-group">
             <label class="form-label">Password</label>
             <input type="password" class="form-input" id="password" required placeholder="Create a strong password"
-                oninput="checkStrength(this.value)">
+                oninput="checkStrength(this.value)" autocomplete="new-password">
             <div class="strength-meter" id="strength-meter">
                 <div class="strength-segment"></div>
                 <div class="strength-segment"></div>
@@ -171,10 +183,6 @@
 
         <button type="submit" class="btn-auth" id="register-btn">Create Account</button>
     </form>
-
-    <div class="auth-footer">
-        Already have an account? <a href="/auth/login">Log In</a>
-    </div>
 </div>
 
 <script>
@@ -230,7 +238,6 @@
             });
 
             if (res.ok) {
-                // Success, redirect to login
                 alert("Account created successfully! Please log in.");
                 window.location.href = '/auth/login';
             } else {

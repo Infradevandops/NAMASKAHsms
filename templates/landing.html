@@ -13,7 +13,7 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   
   <!-- Tailwind Config -->
   <script>
@@ -35,8 +35,8 @@
     /* Base styles - Always load even if Tailwind fails */
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: #fff; 
+      background: #FDFBF7;
+      color: #37352F; 
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       line-height: 1.6;
     }
@@ -75,7 +75,7 @@
 <body>
 
   <!-- Navigation -->
-  <nav x-data="{ open: false }" class="fixed top-0 w-full backdrop-blur-xl bg-[#1a1a2e]/80 border-b border-white/10 z-50">
+  <nav x-data="{ open: false }" class="fixed top-0 w-full backdrop-blur-xl bg-white/95 border-b border-black/5 z-50">
     <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
       <a href="/" class="flex items-center gap-2">
         <i class="ph ph-device-mobile text-2xl text-cyan-400"></i>
