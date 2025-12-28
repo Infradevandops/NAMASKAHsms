@@ -30,6 +30,7 @@
                 </p>
             </div>
             <div class="header-actions">
+                {% include "components/notification.html" %}
                 {% include "components/balance.html" %}
                 {% block header_actions %}{% endblock %}
             </div>
@@ -41,5 +42,7 @@
 {% endblock %}
 
 {% block scripts %}
+<!-- Temporarily disabled: causing errors
 <script src="/static/js/real-time-dashboard.js" defer></script>
+-->
 {% endblock %}

@@ -8,6 +8,8 @@ from .system import (
     SupportTicket,
 )
 from .transaction import PaymentLog, Transaction
+from .balance_transaction import BalanceTransaction
+from .notification import Notification
 from .user import (
     NotificationPreferences,
     NotificationSettings,
@@ -48,7 +50,8 @@ __all__ = [
     "Referral",
     "Subscription",
     "NotificationPreferences",
-    "UserPreference",
+    "Notification",
+    "BalanceTransaction",
     # Verification models
     "Verification",
     "NumberRental",

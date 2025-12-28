@@ -2,10 +2,10 @@
 from sqlalchemy import Column, String, Text, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
-from app.models.base import Base
+from app.models.base import BaseModel
 
 
-class Notification(Base):
+class Notification(BaseModel):
     """User notification model."""
     
     __tablename__ = "notifications"

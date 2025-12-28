@@ -55,39 +55,83 @@
 {{ super() }}
 <script>
 async function loadWalletData() {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+    
     try {
-        const balanceRes = await fetch('/api/user/balance');
-        if (balanceRes.ok) {
-            const data = await balanceRes.json();
-            document.getElementById('wallet-balance').textContent = `$${(data.credits || 0).toFixed(2)}`;
+        // Check if user is admin
+        const userRes = await fetch('/api/user/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        let isAdmin = false;
+        if (userRes.ok) {
+            const userData = await userRes.json();
+            isAdmin = userData.is_admin;
         }
         
-        const txRes = await fetch('/api/wallet/transactions?limit=50');
+        // Load balance (TextVerified for admin, account balance for users)
+        if (isAdmin) {
+            const tvRes = await fetch('/api/textverified/balance', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (tvRes.ok) {
+                const tvData = await tvRes.json();
+                const balance = tvData.balance || 0;
+                document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+                document.querySelector('#wallet-balance').parentElement.querySelector('div').textContent = 'TextVerified API Balance';
+            } else {
+                document.getElementById('wallet-balance').textContent = '$0.00';
+            }
+        } else {
+            const balanceRes = await fetch('/api/billing/balance', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (balanceRes.ok) {
+                const data = await balanceRes.json();
+                const balance = data.balance || data.credits || 0;
+                document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+            } else {
+                document.getElementById('wallet-balance').textContent = '$0.00';
+            }
+        }
+        
+        // Load transactions
+        const txRes = await fetch('/api/billing/history?limit=50', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
         if (txRes.ok) {
             const data = await txRes.json();
             const tbody = document.getElementById('transactions-body');
+            const transactions = data.transactions || data.payments || [];
             
-            if (data.transactions && data.transactions.length > 0) {
+            if (transactions.length > 0) {
                 let monthlySpent = 0;
                 let totalSpent = 0;
                 const now = new Date();
                 const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
                 
-                tbody.innerHTML = data.transactions.map(tx => {
+                tbody.innerHTML = transactions.map(tx => {
                     const txDate = new Date(tx.created_at);
-                    const amount = Math.abs(tx.amount);
+                    const amount = Math.abs(tx.amount || 0);
                     
-                    if (tx.type === 'debit' || tx.amount < 0) {
+                    if (tx.type === 'debit' || (tx.amount && tx.amount < 0)) {
                         totalSpent += amount;
                         if (txDate >= monthStart) monthlySpent += amount;
                     }
                     
                     return `
                         <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                            <td style="padding: 12px;">${tx.description || tx.type}</td>
-                            <td style="padding: 12px; color: ${tx.amount >= 0 ? '#10b981' : '#ef4444'};">${tx.amount >= 0 ? '+' : '-'}$${amount.toFixed(2)}</td>
+                            <td style="padding: 12px;">${escapeHtml(tx.description || tx.type || 'Transaction')}</td>
+                            <td style="padding: 12px; color: ${(tx.amount || 0) >= 0 ? '#10b981' : '#ef4444'};">${(tx.amount || 0) >= 0 ? '+' : '-'}$${amount.toFixed(2)}</td>
                             <td style="padding: 12px;">${txDate.toLocaleDateString()}</td>
-                            <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${tx.status === 'completed' ? '#d5f4e6' : '#fef3c7'}; color: ${tx.status === 'completed' ? '#166534' : '#92400e'};">${tx.status || 'completed'}</span></td>
+                            <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${tx.status === 'completed' || tx.status === 'success' ? '#d5f4e6' : '#fef3c7'}; color: ${tx.status === 'completed' || tx.status === 'success' ? '#166534' : '#92400e'};">${escapeHtml(tx.status || 'completed')}</span></td>
                         </tr>
                     `;
                 }).join('');
@@ -96,27 +140,52 @@ async function loadWalletData() {
                 document.getElementById('total-spent').textContent = `$${totalSpent.toFixed(2)}`;
             } else {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions yet</td></tr>';
+                document.getElementById('monthly-spent').textContent = '$0.00';
+                document.getElementById('total-spent').textContent = '$0.00';
             }
+        } else {
+            document.getElementById('transactions-body').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions yet</td></tr>';
+            document.getElementById('monthly-spent').textContent = '$0.00';
+            document.getElementById('total-spent').textContent = '$0.00';
         }
     } catch (error) {
         console.error('Failed to load wallet data:', error);
+        document.getElementById('wallet-balance').textContent = '$0.00';
+        document.getElementById('monthly-spent').textContent = '$0.00';
+        document.getElementById('total-spent').textContent = '$0.00';
+        document.getElementById('transactions-body').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load transactions</td></tr>';
     }
 }
 
 async function addCredits(amount) {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+    
     try {
         const res = await fetch('/api/billing/initialize-payment', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
             body: JSON.stringify({ amount_usd: amount })
         });
         
         if (res.ok) {
             const data = await res.json();
-            window.open(data.authorization_url, '_blank');
-            alert(`Payment initialized for $${amount}. Complete payment in the new window.`);
+            if (data.authorization_url) {
+                window.open(data.authorization_url, '_blank');
+                alert(`Payment initialized for $${amount}. Complete payment in the new window.`);
+            } else {
+                alert('Payment initialized successfully');
+                setTimeout(loadWalletData, 2000);
+            }
         } else {
-            alert('Payment initialization failed');
+            const error = await res.json();
+            alert('Payment initialization failed: ' + (error.detail || 'Unknown error'));
         }
     } catch (error) {
         alert('Error: ' + error.message);
@@ -127,12 +196,26 @@ function addCustomCredits() {
     const amount = parseFloat(document.getElementById('custom-amount').value);
     if (amount && amount > 0) {
         addCredits(amount);
+        document.getElementById('custom-amount').value = '';
     } else {
         alert('Please enter a valid amount');
     }
 }
 
-document.addEventListener('DOMContentLoaded', loadWalletData);
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load on page ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadWalletData);
+} else {
+    loadWalletData();
+}
+
+// Auto-refresh every 30 seconds
 setInterval(loadWalletData, 30000);
 </script>
 {% endblock %}

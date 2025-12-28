@@ -311,17 +311,28 @@ class TextVerifiedService:
             
             logger.debug("Fetching services list from TextVerified API")
             
-            # Get services from TextVerified API with correct enum values
+            # Get services from TextVerified API with correct enums
             services_data = self.client.services.list(
-                number_type="sms",
-                reservation_type="verification"
+                number_type=textverified.NumberType.MOBILE,
+                reservation_type=textverified.ReservationType.VERIFICATION
             )
             
             formatted_services = []
+            seen = set()
             for service in services_data:
+                # Extract service_name from Service object
+                service_name = service.service_name if hasattr(service, 'service_name') else str(service)
+                
+                # Skip duplicates
+                if service_name in seen:
+                    continue
+                seen.add(service_name)
+                
+                display_name = service_name.replace('_', ' ').title()
+                
                 formatted_services.append({
-                    "id": str(service.id),
-                    "name": service.name,
+                    "id": service_name,
+                    "name": display_name,
                     "cost": float(getattr(service, 'cost', 0.50))
                 })
             

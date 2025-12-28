@@ -15,7 +15,7 @@
     </div>
     <div class="card">
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Total Spent</div>
-        <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0</div>
+        <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0.00</div>
     </div>
     <div class="card">
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Success Rate</div>
@@ -26,11 +26,10 @@
 <div class="card">
     <h3 style="font-size: 18px; margin-bottom: 16px;">Recent Activity</h3>
     <div id="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted); display: none;">
-        <div style="font-size: 48px; margin-bottom: 12px;">📭</div>
-        <div>No recent activity</div>
+        <div style="font-size: 24px; margin-bottom: 12px;">No recent activity</div>
         <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;">Start Verification</button>
     </div>
-    <table id="activity-table" style="width: 100%; border-collapse: collapse;">
+    <table id="activity-table" style="width: 100%; border-collapse: collapse; display: none;">
         <thead>
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
                 <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
@@ -39,9 +38,7 @@
                 <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
             </tr>
         </thead>
-        <tbody id="activity-body">
-            <tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td></tr>
-        </tbody>
+        <tbody id="activity-body"></tbody>
     </table>
 </div>
 {% endblock %}
@@ -50,8 +47,14 @@
 {{ super() }}
 <script>
 async function loadAnalytics() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    
     try {
-        const res = await fetch('/api/analytics/summary');
+        const res = await fetch('/api/analytics/summary', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
         if (res.ok) {
             const data = await res.json();
             document.getElementById('total-sms').textContent = data.total_verifications || 0;
@@ -59,47 +62,85 @@ async function loadAnalytics() {
             document.getElementById('total-spent').textContent = `$${(data.revenue || 0).toFixed(2)}`;
             const rate = data.success_rate ? (data.success_rate * 100).toFixed(1) : 0;
             document.getElementById('success-rate').textContent = `${rate}%`;
+        } else {
+            // Set defaults on error
+            document.getElementById('total-sms').textContent = '0';
+            document.getElementById('successful-sms').textContent = '0';
+            document.getElementById('total-spent').textContent = '$0.00';
+            document.getElementById('success-rate').textContent = '0%';
         }
     } catch (error) {
         console.error('Analytics load failed:', error);
+        // Set defaults on error
+        document.getElementById('total-sms').textContent = '0';
+        document.getElementById('successful-sms').textContent = '0';
+        document.getElementById('total-spent').textContent = '$0.00';
+        document.getElementById('success-rate').textContent = '0%';
     }
 }
 
 async function loadActivity() {
+    const token = localStorage.getItem('access_token');
+    if (!token) return;
+    
+    const tbody = document.getElementById('activity-body');
+    const table = document.getElementById('activity-table');
+    const emptyState = document.getElementById('empty-state');
+    
     try {
-        const res = await fetch('/api/dashboard/activity/recent');
-        const tbody = document.getElementById('activity-body');
-        const emptyState = document.getElementById('empty-state');
+        const res = await fetch('/api/dashboard/activity/recent', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         
         if (res.ok) {
             const data = await res.json();
             if (data.activities && data.activities.length > 0) {
                 tbody.innerHTML = data.activities.map(a => `
                     <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                        <td style="padding: 12px;">${a.service_name || 'N/A'}</td>
-                        <td style="padding: 12px;">${a.phone_number || 'N/A'}</td>
+                        <td style="padding: 12px;">${escapeHtml(a.service_name || 'N/A')}</td>
+                        <td style="padding: 12px;">${escapeHtml(a.phone_number || 'N/A')}</td>
                         <td style="padding: 12px;">${new Date(a.created_at).toLocaleString()}</td>
-                        <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${a.status === 'completed' ? '#d5f4e6' : '#fef3c7'}; color: ${a.status === 'completed' ? '#166534' : '#92400e'};">${a.status}</span></td>
+                        <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${a.status === 'completed' ? '#d5f4e6' : '#fef3c7'}; color: ${a.status === 'completed' ? '#166534' : '#92400e'};">${escapeHtml(a.status)}</span></td>
                     </tr>
                 `).join('');
+                table.style.display = 'table';
                 emptyState.style.display = 'none';
             } else {
-                tbody.innerHTML = '';
+                table.style.display = 'none';
                 emptyState.style.display = 'block';
             }
+        } else {
+            table.style.display = 'none';
+            emptyState.style.display = 'block';
         }
     } catch (error) {
-        document.getElementById('activity-body').innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load activity</td></tr>';
+        console.error('Activity load failed:', error);
+        table.style.display = 'none';
+        emptyState.style.display = 'block';
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadAnalytics();
-    loadActivity();
-    setInterval(() => {
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Load on page ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
         loadAnalytics();
         loadActivity();
-    }, 30000);
-});
+    });
+} else {
+    loadAnalytics();
+    loadActivity();
+}
+
+// Auto-refresh every 30 seconds
+setInterval(() => {
+    loadAnalytics();
+    loadActivity();
+}, 30000);
 </script>
 {% endblock %}

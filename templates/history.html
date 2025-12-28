@@ -52,8 +52,16 @@
 let allHistory = [];
 
 async function loadHistory() {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+        window.location.href = '/auth/login';
+        return;
+    }
+    
     try {
-        const res = await fetch('/api/wallet/transactions?limit=100');
+        const res = await fetch('/api/billing/transactions?limit=100', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
         const tbody = document.getElementById('history-body');
         const emptyState = document.getElementById('empty-state');
         
@@ -61,20 +69,19 @@ async function loadHistory() {
             const data = await res.json();
             allHistory = data.transactions || [];
             
-            const verifications = allHistory.filter(tx => 
-                tx.type === 'SMS Verification' || 
-                tx.description?.includes('Verification')
-            );
-            
-            if (verifications.length > 0) {
-                renderHistory(verifications);
+            if (allHistory.length > 0) {
+                renderHistory(allHistory);
                 emptyState.style.display = 'none';
             } else {
                 tbody.innerHTML = '';
                 emptyState.style.display = 'block';
             }
+        } else {
+            tbody.innerHTML = '';
+            emptyState.style.display = 'block';
         }
     } catch (error) {
+        console.error('Failed to load history:', error);
         document.getElementById('history-body').innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history</td></tr>';
     }
 }
@@ -109,10 +116,7 @@ function applyFilters() {
     const status = document.getElementById('filter-status').value;
     const date = document.getElementById('filter-date').value;
     
-    let filtered = allHistory.filter(tx => 
-        tx.type === 'SMS Verification' || 
-        tx.description?.includes('Verification')
-    );
+    let filtered = [...allHistory];
     
     if (status) {
         filtered = filtered.filter(tx => tx.status === status);
@@ -139,18 +143,16 @@ function viewDetails(id) {
 function exportHistory() {
     const csv = [
         ['Service', 'Country', 'Status', 'Cost', 'Date'],
-        ...allHistory
-            .filter(tx => tx.type === 'SMS Verification' || tx.description?.includes('Verification'))
-            .map(tx => {
-                const parts = (tx.description || '').split(' - ');
-                return [
-                    parts[0] || 'Unknown',
-                    parts[1] || 'USA',
-                    tx.status || 'completed',
-                    Math.abs(tx.amount).toFixed(2),
-                    new Date(tx.created_at).toLocaleDateString()
-                ];
-            })
+        ...allHistory.map(tx => {
+            const parts = (tx.description || '').split(' - ');
+            return [
+                parts[0] || 'Unknown',
+                parts[1] || 'USA',
+                tx.status || 'completed',
+                Math.abs(tx.amount).toFixed(2),
+                new Date(tx.created_at).toLocaleDateString()
+            ];
+        })
     ].map(row => row.join(',')).join('\n');
     
     const blob = new Blob([csv], { type: 'text/csv' });

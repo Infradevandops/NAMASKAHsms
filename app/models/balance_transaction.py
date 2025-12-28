@@ -1,10 +1,10 @@
 """Balance transaction model for tracking balance changes."""
 from sqlalchemy import Column, String, Numeric, Text, ForeignKey
 from sqlalchemy.orm import relationship
-from app.models.base import Base
+from app.models.base import BaseModel
 
 
-class BalanceTransaction(Base):
+class BalanceTransaction(BaseModel):
     """Balance transaction model."""
     
     __tablename__ = "balance_transactions"

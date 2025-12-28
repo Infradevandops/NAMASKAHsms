@@ -26,6 +26,10 @@ from app.core.config import get_settings
 # Import routers
 from app.api.core.auth import router as auth_router
 from app.api.core.gdpr import router as gdpr_router
+from app.api.core.notification_endpoints import router as notification_router
+from app.api.core.dashboard_activity import router as dashboard_activity_router
+from app.api.core.textverified_balance import router as textverified_balance_router
+from app.api.core.user_profile import router as user_profile_router
 from app.api.admin.dashboard import router as dashboard_router
 from app.api.admin.verification_analytics import router as verification_analytics_router
 from app.api.admin.verification_history import router as verification_history_router
@@ -134,6 +138,10 @@ def create_app() -> FastAPI:
     # Core API
     fastapi_app.include_router(auth_router, prefix="/api")
     fastapi_app.include_router(gdpr_router, prefix="/api")
+    fastapi_app.include_router(notification_router)
+    fastapi_app.include_router(dashboard_activity_router)
+    fastapi_app.include_router(textverified_balance_router)
+    fastapi_app.include_router(user_profile_router)
     fastapi_app.include_router(countries_router, prefix="/api")
     fastapi_app.include_router(services_router)
     fastapi_app.include_router(system_router)
@@ -175,8 +183,8 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(preferences_router)
     
     # Verification
-    fastapi_app.include_router(verify_router, prefix="/api")
-    fastapi_app.include_router(textverified_router, prefix="/api")
+    fastapi_app.include_router(verify_router)
+    fastapi_app.include_router(textverified_router)
     fastapi_app.include_router(pricing_router)
     fastapi_app.include_router(carrier_router)
     fastapi_app.include_router(purchase_router)
