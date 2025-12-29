@@ -19,6 +19,7 @@ def ensure_database_schema():
             columns_to_add = [
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD'",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_id VARCHAR(50)",
             ]
             
             for sql in columns_to_add:
