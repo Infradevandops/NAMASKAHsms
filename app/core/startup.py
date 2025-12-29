@@ -15,11 +15,21 @@ def ensure_database_schema():
     """Ensure database has all required columns."""
     try:
         with engine.connect() as conn:
-            # Add missing columns if they don't exist
+            # Add ALL missing columns from User model
             columns_to_add = [
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD'",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_id VARCHAR(50)",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_id VARCHAR(50) DEFAULT 'payg'",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMP",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS suspension_reason VARCHAR(500)",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS banned_at TIMESTAMP",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS ban_reason VARCHAR(500)",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_reason VARCHAR(500)",
             ]
             
             for sql in columns_to_add:
