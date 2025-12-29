@@ -56,10 +56,10 @@ class Settings(BaseSettings):
 
     # JWT Settings
     # JWT Settings
-    # Default JWT expiration set to 8 hours (more secure than 30 days).
+    # Default JWT expiration set to 24 hours for better UX in production.
     # Keep both minute and hour representations for backward compatibility.
-    jwt_expire_minutes: int = 480  # 8 hours
-    jwt_expiry_hours: int = 8  # 8 hours
+    jwt_expire_minutes: int = 1440  # 24 hours
+    jwt_expiry_hours: int = 24  # 24 hours
 
     # HTTP Client timeouts (seconds)
     http_timeout_seconds: float = 30.0

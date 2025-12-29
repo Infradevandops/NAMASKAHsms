@@ -469,3 +469,102 @@ def logout(user_id: str = Depends(get_current_user_id), request: Request = None,
     except Exception:
         pass
     return SuccessResponse(message="Logged out successfully")
+
+
+@router.post("/refresh", response_model=TokenResponse)
+async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
+    """Refresh access token using refresh token."""
+    try:
+        # Try to get refresh token from multiple sources
+        refresh_token = None
+        
+        # 1. Check request body
+        try:
+            body = await request.json()
+            refresh_token = body.get('refresh_token')
+        except:
+            pass
+        
+        # 2. Check cookies
+        if not refresh_token:
+            refresh_token = request.cookies.get('refresh_token')
+        
+        # 3. Check Authorization header
+        if not refresh_token:
+            auth_header = request.headers.get('Authorization', '')
+            if auth_header.startswith('Bearer '):
+                refresh_token = auth_header[7:]
+        
+        if not refresh_token:
+            raise HTTPException(status_code=401, detail="Refresh token missing")
+        
+        # Verify and decode refresh token
+        from app.core.token_manager import verify_refresh_token
+        payload = verify_refresh_token(refresh_token)
+        
+        if not payload:
+            raise HTTPException(status_code=401, detail="Invalid refresh token")
+        
+        user_id = payload.get('sub')
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token payload")
+        
+        # Get user from database
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Verify stored refresh token matches
+        if user.refresh_token != refresh_token:
+            raise HTTPException(status_code=401, detail="Token mismatch")
+        
+        # Check if refresh token is expired
+        from datetime import datetime, timezone
+        if user.refresh_token_expires and user.refresh_token_expires < datetime.now(timezone.utc):
+            raise HTTPException(status_code=401, detail="Refresh token expired")
+        
+        # Create new tokens
+        tokens = create_tokens(user.id, user.email)
+        
+        # Update stored refresh token
+        from app.core.token_manager import get_refresh_token_expiry
+        user.refresh_token = tokens["refresh_token"]
+        user.refresh_token_expires = get_refresh_token_expiry()
+        db.commit()
+        
+        response = JSONResponse(
+            content={
+                "access_token": tokens["access_token"],
+                "refresh_token": tokens["refresh_token"],
+                "token_type": tokens["token_type"],
+                "expires_in": tokens["expires_in"]
+            }
+        )
+        
+        # Set cookies
+        response.set_cookie(
+            "access_token",
+            tokens["access_token"],
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=86400
+        )
+        response.set_cookie(
+            "refresh_token",
+            tokens["refresh_token"],
+            httponly=True,
+            secure=True,
+            samesite="strict",
+            max_age=2592000
+        )
+        
+        return response
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        from app.core.logging import get_logger
+        logger = get_logger(__name__)
+        logger.error(f"Token refresh error: {e}")
+        raise HTTPException(status_code=401, detail="Token refresh failed")

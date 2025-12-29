@@ -920,5 +920,54 @@ function setupCreditHandlers() {
   });
 }
 
+/**
+ * Setup Rental Handlers (placeholder for future implementation)
+ */
+function setupRentalHandlers() {
+  // Placeholder for rental-specific event handlers
+  console.log('Rental handlers initialized');
+}
+
+/**
+ * Load Recent Activity
+ */
+async function loadRecentActivity() {
+  const activityListEl = document.getElementById('recent-activity-list');
+  if (!activityListEl) return;
+
+  try {
+    const response = await fetch('/api/dashboard/activity/recent', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+        'Cache-Control': 'no-cache'
+      }
+    });
+
+    if (response.status === 401) {
+      // Silent fail on 401 - auth-check.js will handle redirect
+      return;
+    }
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    const activities = data.activities || data || [];
+
+    if (activities.length === 0) {
+      activityListEl.innerHTML = '<div class="empty-state" style="padding: 40px 20px; text-align: center; color: #6b7280;">No recent activity</div>';
+    } else {
+      activityListEl.innerHTML = activities.slice(0, 5).map(a => `
+        <div class="activity-item" style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+          <div style="font-weight: 500;">${escapeHtml(a.description || 'Activity')}</div>
+          <div style="font-size: 13px; color: #6b7280;">${formatDate(a.created_at)}</div>
+        </div>
+      `).join('');
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      logError('loadRecentActivity', error);
+    }
+  }
+}
+
 // Export for testing
-export { init, loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers };
+export { init, loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers, setupRentalHandlers, loadRecentActivity };

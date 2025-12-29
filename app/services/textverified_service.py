@@ -26,6 +26,12 @@ class TextVerifiedService:
         self._balance_cache_time = None
         self._cache_ttl = 300  # 5 minutes
         
+        # Circuit breaker for connection failures
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_threshold = 5
+        self._circuit_breaker_reset_time = None
+        self._circuit_breaker_timeout = 300  # 5 minutes
+        
         # Log initialization attempt
         logger.info("TextVerified service initialization attempt")
         
@@ -102,6 +108,38 @@ class TextVerifiedService:
         self._balance_cache = balance
         self._balance_cache_time = time.time()
         logger.debug(f"Balance cached: {balance}")
+
+    def _check_circuit_breaker(self) -> bool:
+        """Check if circuit breaker is open.
+        
+        Returns:
+            True if circuit is closed (requests allowed), False if open
+        """
+        if self._circuit_breaker_reset_time:
+            if time.time() > self._circuit_breaker_reset_time:
+                # Reset circuit breaker
+                logger.info("Circuit breaker reset - allowing requests")
+                self._circuit_breaker_failures = 0
+                self._circuit_breaker_reset_time = None
+                return True
+            else:
+                logger.warning("Circuit breaker is OPEN - blocking requests to prevent cascading failures")
+                return False
+        return True
+
+    def _record_failure(self):
+        """Record a failure and potentially open circuit breaker."""
+        self._circuit_breaker_failures += 1
+        if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
+            self._circuit_breaker_reset_time = time.time() + self._circuit_breaker_timeout
+            logger.error(f"Circuit breaker OPENED after {self._circuit_breaker_failures} failures. Will retry in {self._circuit_breaker_timeout}s")
+
+    def _record_success(self):
+        """Record a successful request."""
+        if self._circuit_breaker_failures > 0:
+            logger.info("Request successful - resetting failure counter")
+        self._circuit_breaker_failures = 0
+        self._circuit_breaker_reset_time = None
 
     async def get_health_status(self) -> Dict[str, Any]:
         """Get TextVerified service health status with balance.
@@ -205,12 +243,28 @@ class TextVerifiedService:
                 return await func()
             except Exception as e:
                 last_exception = e
+                error_msg = str(e)
+                
+                # Check for SSL/connection errors
+                is_connection_error = any([
+                    'SSL' in error_msg,
+                    'Connection' in error_msg,
+                    'RemoteDisconnected' in error_msg,
+                    'EOF' in error_msg
+                ])
+                
                 if attempt < max_retries:
-                    logger.warning(f"Attempt {attempt + 1} failed, retrying in {delay}s: {str(e)}")
+                    if is_connection_error:
+                        logger.warning(f"Connection error on attempt {attempt + 1}, retrying in {delay}s: {error_msg}")
+                    else:
+                        logger.warning(f"Attempt {attempt + 1} failed, retrying in {delay}s: {error_msg}")
                     await asyncio.sleep(delay)
                     delay *= 2  # Exponential backoff
                 else:
-                    logger.error(f"All {max_retries + 1} attempts failed")
+                    if is_connection_error:
+                        logger.error(f"All {max_retries + 1} attempts failed due to connection issues. Provider may be experiencing downtime.")
+                    else:
+                        logger.error(f"All {max_retries + 1} attempts failed")
         
         raise last_exception
 
@@ -247,6 +301,15 @@ class TextVerifiedService:
         
         Validates: Requirements 4.1, 4.3, 4.5
         """
+        # Check circuit breaker
+        if not self._check_circuit_breaker():
+            return {
+                "sms_code": None,
+                "sms_text": None,
+                "status": "error",
+                "error": "Service temporarily unavailable - please try again later"
+            }
+        
         async def _check():
             if not self.enabled:
                 raise Exception("TextVerified not configured")
@@ -271,9 +334,11 @@ class TextVerifiedService:
             logger.debug(f"Checking SMS for activation {activation_id}")
             result = await self._retry_with_backoff(_check)
             logger.debug(f"SMS check result: {result['status']}")
+            self._record_success()
             return result
         except Exception as e:
             logger.error(f"TextVerified check error: {str(e)}")
+            self._record_failure()
             return {
                 "sms_code": None,
                 "sms_text": None,

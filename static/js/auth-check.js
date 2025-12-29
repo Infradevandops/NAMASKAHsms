@@ -32,14 +32,15 @@
             console.log('Token expired, attempting refresh...');
             const refreshed = await refreshToken();
             if (!refreshed) {
+                localStorage.clear();
                 window.location.href = '/auth/login';
             }
             return refreshed;
         }
 
-        // Token valid - verify with server
+        // Token valid - verify with server (use lightweight endpoint)
         try {
-            const response = await fetch('/api/user/balance', {
+            const response = await fetch('/api/user/me', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -88,16 +89,22 @@
                 const response = await fetch('/api/auth/refresh', {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${refreshToken}`,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        refresh_token: refreshToken
+                    }),
+                    credentials: 'include'
                 });
 
                 if (response.ok) {
                     const data = await response.json();
                     localStorage.setItem('access_token', data.access_token);
-                    localStorage.setItem('refresh_token', data.refresh_token);
+                    if (data.refresh_token) {
+                        localStorage.setItem('refresh_token', data.refresh_token);
+                    }
                     localStorage.setItem('token_expires_at', Date.now() + (data.expires_in * 1000));
+                    console.log('Token refreshed successfully');
                     return true;
                 }
             } catch (error) {
