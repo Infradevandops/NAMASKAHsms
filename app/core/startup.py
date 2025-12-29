@@ -1,13 +1,36 @@
 """Startup initialization for the application."""
 import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+from sqlalchemy import text
 
-from app.core.database import SessionLocal
+from app.core.database import SessionLocal, engine
 from app.core.logging import get_logger
 from app.models.user import User
 from app.utils.security import hash_password
 
 logger = get_logger("startup")
+
+
+def ensure_database_schema():
+    """Ensure database has all required columns."""
+    try:
+        with engine.connect() as conn:
+            # Add missing columns if they don't exist
+            columns_to_add = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD'",
+            ]
+            
+            for sql in columns_to_add:
+                try:
+                    conn.execute(text(sql))
+                    conn.commit()
+                except Exception as e:
+                    logger.debug(f"Column may already exist: {e}")
+            
+            logger.info("Database schema verified")
+    except Exception as e:
+        logger.warning(f"Schema check failed: {e}")
 
 
 def ensure_admin_user():
@@ -66,6 +89,7 @@ def run_startup_initialization():
     logger.info("Running startup initialization")
 
     try:
+        ensure_database_schema()
         ensure_admin_user()
         logger.info("Startup initialization completed")
     except SQLAlchemyError as e:
