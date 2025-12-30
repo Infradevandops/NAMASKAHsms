@@ -220,3 +220,7 @@ docs/ACCEPTANCE_*.md
 .server.pid
 logs/
 *.log
+
+# Cleanup scripts
+cleanup_project.sh
+CLEANUP_SUMMARY.md
