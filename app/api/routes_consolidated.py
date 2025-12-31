@@ -20,10 +20,12 @@ router = APIRouter()
 # PUBLIC PAGES
 # ============================================================================
 
-@router.get("/welcome", response_class=HTMLResponse)
-async def welcome_page(request: Request):
-    """Language & currency selector."""
-    return templates.TemplateResponse("welcome.html", {"request": request})
+# DISABLED: Welcome page - will be re-enabled with full i18n implementation
+# See docs/I18N_IMPLEMENTATION.md for roadmap
+# @router.get("/welcome", response_class=HTMLResponse)
+# async def welcome_page(request: Request):
+#     """Language & currency selector."""
+#     return templates.TemplateResponse("welcome.html", {"request": request})
 
 @router.get("/landing", response_class=HTMLResponse)
 async def landing_page(request: Request, db: Session = Depends(get_db)):
@@ -213,7 +215,7 @@ async def home(request: Request, user_id: Optional[str] = Depends(get_optional_u
     """Home - redirect to appropriate page."""
     if user_id:
         return RedirectResponse(url="/dashboard", status_code=302)
-    return RedirectResponse(url="/welcome", status_code=302)
+    return RedirectResponse(url="/landing", status_code=302)
 
 @router.get("/app", response_class=HTMLResponse)
 async def app_redirect(request: Request):
