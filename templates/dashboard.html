@@ -1,41 +1,57 @@
 {% extends "dashboard_base.html" %}
 
-{% block page_title %}Dashboard{% endblock %}
-{% block page_subtitle %}Overview of your SMS verification activity{% endblock %}
+{% block page_title %}<span data-i18n="dashboard.title">Dashboard</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="dashboard.subtitle">Overview of your SMS verification activity</span>{% endblock %}
 
 {% block content %}
+<!-- Tier Information Card -->
+<div class="card" id="tier-card" style="margin-bottom: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">Current Plan</div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;" id="tier-name">Loading...</div>
+            <div id="tier-features" style="font-size: 14px; color: var(--text-muted);"></div>
+        </div>
+        <button id="upgrade-btn" class="btn" style="display: none;" onclick="window.location.href='/pricing'">
+            <span data-i18n="dashboard.upgrade">Upgrade</span> →
+        </button>
+    </div>
+</div>
+
 <div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 40px;">
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Total SMS</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_sms">Total SMS</div>
         <div style="font-size: 32px; font-weight: 700;" id="total-sms">0</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Successful</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.successful">Successful</div>
         <div style="font-size: 32px; font-weight: 700; color: #10b981;" id="successful-sms">0</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Total Spent</div>
-        <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0.00</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_spent">Total Spent</div>
+        <div style="font-size: 32px; font-weight: 700;" id="total-spent" data-currency data-amount="0" data-from="USD">$0.00</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Success Rate</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.success_rate">Success Rate</div>
         <div style="font-size: 32px; font-weight: 700;" id="success-rate">0%</div>
     </div>
 </div>
 
 <div class="card">
-    <h3 style="font-size: 18px; margin-bottom: 16px;">Recent Activity</h3>
+    <h3 style="font-size: 18px; margin-bottom: 16px;" data-i18n="dashboard.recent_activity">Recent Activity</h3>
     <div id="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted); display: none;">
-        <div style="font-size: 24px; margin-bottom: 12px;">No recent activity</div>
-        <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;">Start Verification</button>
+        <div style="font-size: 24px; margin-bottom: 12px;" data-i18n="dashboard.no_activity">No recent activity</div>
+        <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;">
+            <span data-i18n="dashboard.start_verification">Start Verification</span>
+        </button>
     </div>
     <table id="activity-table" style="width: 100%; border-collapse: collapse; display: none;">
         <thead>
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Number</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Time</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.service">Service</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.number">Number</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.time">Time</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.status">Status</th>
             </tr>
         </thead>
         <tbody id="activity-body"></tbody>
@@ -46,6 +62,28 @@
 {% block scripts %}
 {{ super() }}
 <script>
+async function loadTierInfo() {
+    try {
+        const res = await fetch('/api/tiers/current', {
+            credentials: 'include'
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            document.getElementById('tier-name').textContent = data.current_tier.toUpperCase();
+            document.getElementById('tier-features').textContent = `$${data.price_monthly}/mo • ${data.quota_usd} quota`;
+            if (data.current_tier !== 'custom') {
+                document.getElementById('upgrade-btn').style.display = 'block';
+            }
+        } else {
+            document.getElementById('tier-name').textContent = 'Freemium';
+        }
+    } catch (error) {
+        console.error('Tier load failed:', error);
+        document.getElementById('tier-name').textContent = 'Freemium';
+    }
+}
+
 async function loadAnalytics() {
     const token = localStorage.getItem('access_token');
     if (!token) return;
@@ -59,7 +97,16 @@ async function loadAnalytics() {
             const data = await res.json();
             document.getElementById('total-sms').textContent = data.total_verifications || 0;
             document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
-            document.getElementById('total-spent').textContent = `$${(data.revenue || 0).toFixed(2)}`;
+            
+            // Use currency formatter
+            const spentEl = document.getElementById('total-spent');
+            spentEl.dataset.amount = data.revenue || 0;
+            if (typeof currency !== 'undefined') {
+                spentEl.textContent = currency.format(data.revenue || 0);
+            } else {
+                spentEl.textContent = `$${(data.revenue || 0).toFixed(2)}`;
+            }
+            
             const rate = data.success_rate ? (data.success_rate * 100).toFixed(1) : 0;
             document.getElementById('success-rate').textContent = `${rate}%`;
         } else {
@@ -129,10 +176,12 @@ function escapeHtml(text) {
 // Load on page ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+        loadTierInfo();
         loadAnalytics();
         loadActivity();
     });
 } else {
+    loadTierInfo();
     loadAnalytics();
     loadActivity();
 }

@@ -1,0 +1,72 @@
+{
+    "common": {
+        "welcome": "Welcome",
+        "dashboard": "Dashboard",
+        "settings": "Settings",
+        "wallet": "Wallet",
+        "profile": "Profile",
+        "logout": "Logout",
+        "loading": "Loading...",
+        "error": "Error",
+        "success": "Success",
+        "type": "Type",
+        "amount": "Amount",
+        "date": "Date",
+        "status": "Status"
+    },
+    "dashboard": {
+        "title": "Dashboard",
+        "subtitle": "Overview of your SMS verification activity",
+        "total_sms": "Total SMS",
+        "successful": "Successful",
+        "total_spent": "Total Spent",
+        "success_rate": "Success Rate",
+        "recent_activity": "Recent Activity",
+        "no_activity": "No recent activity",
+        "start_verification": "Start Verification",
+        "service": "Service",
+        "number": "Number",
+        "time": "Time",
+        "your_plan": "Your Plan",
+        "upgrade": "Upgrade",
+        "features": "Features"
+    },
+    "tiers": {
+        "freemium": "Freemium",
+        "payg": "Pay-As-You-Go",
+        "pro": "Pro",
+        "custom": "Custom",
+        "current_plan": "Current Plan",
+        "upgrade_to": "Upgrade to",
+        "features": {
+            "random_numbers": "Random numbers only",
+            "no_api": "No API access",
+            "no_filters": "No location filters",
+            "location_filters": "Location filters",
+            "isp_filters": "ISP filters",
+            "api_access": "API access",
+            "all_filters": "All filters included",
+            "affiliate": "Affiliate program",
+            "priority_support": "Priority support",
+            "unlimited_api": "Unlimited API"
+        }
+    },
+    "wallet": {
+        "title": "Wallet",
+        "subtitle": "Manage your credits and billing",
+        "current_balance": "Current Balance",
+        "this_month": "This Month",
+        "total_spent": "Total Spent",
+        "add_credits": "Add Credits",
+        "transaction_history": "Transaction History",
+        "pay_with_crypto": "Pay with Crypto",
+        "pay_with_card": "Pay with Card"
+    },
+    "verify": {
+        "title": "SMS Verification",
+        "subtitle": "Get a number for verification",
+        "select_service": "Select Service",
+        "select_country": "Select Country",
+        "buy_number": "Buy Number"
+    }
+}

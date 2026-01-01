@@ -52,7 +52,7 @@ async def get_current_tier(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user_tier = getattr(user, 'tier_id', 'payg') or 'payg'
+    user_tier = getattr(user, 'tier_id', 'freemium') or 'freemium'
 
     calculator = PricingCalculator(db)
     pricing_summary = calculator.get_pricing_summary(user_id, user_tier)
@@ -86,10 +86,10 @@ async def upgrade_tier(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    current_tier = getattr(user, 'tier_id', 'payg') or 'payg'
+    current_tier = getattr(user, 'tier_id', 'freemium') or 'freemium'
 
     # Validate upgrade path
-    tier_hierarchy = {"payg": 0, "starter": 1, "pro": 2, "custom": 3}
+    tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
     if tier_hierarchy.get(target_tier, -1) <= tier_hierarchy.get(current_tier, 0):
         raise HTTPException(
             status_code=400,
@@ -119,16 +119,16 @@ async def downgrade_tier(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Downgrade to Pay-As-You-Go tier."""
+    """Downgrade to Freemium tier."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    user.tier_id = "payg"
+    user.tier_id = "freemium"
     db.commit()
 
     return {
         "success": True,
-        "message": "Downgraded to Pay-As-You-Go tier",
-        "new_tier": "payg"
+        "message": "Downgraded to Freemium tier",
+        "new_tier": "freemium"
     }

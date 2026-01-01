@@ -23,7 +23,7 @@ class TierManager:
             return "freemium"  # Default to freemium for non-existent users
         
         # Check if paid tier has expired
-        if user.subscription_tier in ["starter", "turbo"]:
+        if user.subscription_tier in ["pro", "custom"]:
             if user.tier_expires_at and user.tier_expires_at < datetime.now(timezone.utc):
                 logger.warning(f"User {user_id} tier expired, downgrading to freemium")
                 user.subscription_tier = "freemium"
@@ -97,7 +97,7 @@ class TierManager:
         if not user:
             return False
         
-        if new_tier not in ["freemium", "starter", "turbo"]:
+        if new_tier not in ["freemium", "payg", "pro", "custom"]:
             logger.error(f"Invalid tier: {new_tier}")
             return False
         
@@ -106,7 +106,7 @@ class TierManager:
         user.tier_upgraded_at = datetime.now(timezone.utc)
         
         # Set expiration for paid tiers (monthly)
-        if new_tier in ["starter", "turbo"]:
+        if new_tier in ["pro", "custom"]:
             from datetime import timedelta
             user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
         else:

@@ -39,7 +39,7 @@ async function loadBalance() {
             
             // If admin, show TextVerified API balance
             if (userData.is_admin) {
-                const tvRes = await fetch('/api/textverified/balance', {
+                const tvRes = await fetch('/api/verification/textverified/balance', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
@@ -49,6 +49,9 @@ async function loadBalance() {
                     display.textContent = `$${parseFloat(balance).toFixed(2)}`;
                     display.title = 'TextVerified API Balance';
                     return;
+                } else {
+                    // Fallback to database balance if TextVerified fails
+                    console.warn('TextVerified API not available, using database balance');
                 }
             }
         }

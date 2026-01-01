@@ -2,25 +2,73 @@
 
 {% block head_extra %}
 <style>
-.layout { display: flex; min-height: 100vh; }
-.main-content { margin-left: var(--sidebar-width); flex: 1; padding: 40px; transition: margin-left 0.3s; }
-.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-.header h1 { font-size: 32px; font-weight: 700; }
-.header-actions { display: flex; gap: 16px; align-items: center; }
-.card { background: var(--bg-card); border-radius: var(--radius-card); padding: 24px; box-shadow: var(--shadow-soft); margin-bottom: 24px; }
-.btn { background: #2C2C2C; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); }
+    .layout {
+        display: flex;
+        min-height: 100vh;
+    }
 
-@media (max-width: 768px) {
-    .main-content { margin-left: 0; padding: 20px; }
-}
+    .main-content {
+        margin-left: var(--sidebar-width);
+        flex: 1;
+        padding: 40px;
+        transition: margin-left 0.3s;
+    }
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+
+    .header h1 {
+        font-size: 32px;
+        font-weight: 700;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .card {
+        background: var(--bg-card);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 24px;
+    }
+
+    .btn {
+        background: #2C2C2C;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 768px) {
+        .main-content {
+            margin-left: 0;
+            padding: 20px;
+        }
+    }
 </style>
 {% endblock %}
 
 {% block body %}
 <div class="layout">
     {% include "components/sidebar.html" %}
-    
+
     <main class="main-content">
         <header class="header">
             <div>
@@ -35,13 +83,15 @@
                 {% block header_actions %}{% endblock %}
             </div>
         </header>
-        
+
         {% block content %}{% endblock %}
     </main>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/i18n.js"></script>
+<script src="/static/js/currency.js"></script>
 <!-- Temporarily disabled: causing errors
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->

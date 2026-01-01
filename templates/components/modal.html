@@ -22,15 +22,15 @@
 }
 
 .modal {
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
+    background: #3B82F6;
+    border-radius: 12px;
     padding: 32px;
     width: 100%;
     max-width: 480px;
     transform: translateY(20px);
     transition: transform 0.3s ease;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
+    border: none;
 }
 
 .modal-overlay.active .modal {
@@ -47,13 +47,13 @@
 .modal-title {
     font-size: 20px;
     font-weight: 700;
-    color: var(--text-primary);
+    color: white;
 }
 
 .modal-close {
     background: none;
     border: none;
-    color: var(--text-muted);
+    color: rgba(255, 255, 255, 0.8);
     font-size: 24px;
     cursor: pointer;
     padding: 0;
@@ -61,12 +61,12 @@
 }
 
 .modal-close:hover {
-    color: var(--text-primary);
+    color: white;
 }
 
 .modal-body {
     margin-bottom: 32px;
-    color: var(--text-secondary);
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.6;
 }
 
@@ -77,20 +77,45 @@
 }
 
 .btn-secondary {
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-    border-color: var(--text-primary);
-    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.3);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.btn-primary {
+    background: white;
+    color: #667eea;
+    padding: 12px 24px;
+    border-radius: 8px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-1px);
 }
 
 /* Modal Variants */
 .modal-danger .btn-primary {
     background: #FF4757;
     color: white;
+}
+
+.modal-danger .btn-primary:hover {
+    background: #ee3344;
 }
 </style>
 

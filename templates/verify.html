@@ -1,60 +1,83 @@
 {% extends "dashboard_base.html" %}
 
-{% block page_title %}SMS Verification{% endblock %}
-{% block page_subtitle %}Get instant SMS codes for any service{% endblock %}
+{% block page_title %}<span data-i18n="verify.title">SMS Verification</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="verify.subtitle">Get instant SMS codes for any service</span>{% endblock %}
 
 {% block content %}
 <div style="max-width: 550px; margin: 0 auto;">
     <div class="card" style="padding: 20px;">
-        <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;">Request SMS Code</h2>
-        
+        <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;" data-i18n="verify.title">Request SMS Code
+        </h2>
+
         <div style="margin-bottom: 12px; position: relative;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Service</label>
-            <input type="text" id="service-search" placeholder="Search services (e.g., Telegram, WhatsApp)..." 
-                   autocomplete="off"
-                   style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
-                   onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
-                   onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-            <div id="service-dropdown" 
-                 style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;"></div>
+            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
+                data-i18n="verify.select_service">Service</label>
+            <input type="text" id="service-search" placeholder="Search services (e.g., Telegram, WhatsApp)..."
+                autocomplete="off"
+                style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
+                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+            <div id="service-dropdown"
+                style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;">
+            </div>
         </div>
-        
+
         <div style="margin-bottom: 12px;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Country</label>
-            <input type="text" value="🇺🇸 United States" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9fafb; cursor: not-allowed; font-size: 14px;">
+            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
+                data-i18n="verify.select_country">Country</label>
+            <input type="text" value="🇺🇸 United States" readonly
+                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9fafb; cursor: not-allowed; font-size: 14px;">
         </div>
-        
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-radius: 10px;">
+
+        <div
+            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-radius: 10px;">
             <div style="text-align: center;">
                 <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="service-cost">$0.00</div>
-                <div style="font-size: 10px; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Cost</div>
+                <div
+                    style="font-size: 10px; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                    Cost</div>
             </div>
             <div style="text-align: center;">
                 <div style="font-size: 20px; font-weight: 700; color: #10b981;">~30s</div>
-                <div style="font-size: 10px; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Delivery</div>
+                <div
+                    style="font-size: 10px; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                    Delivery</div>
             </div>
             <div style="text-align: center;">
                 <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">95%</div>
-                <div style="font-size: 10px; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">Success</div>
+                <div
+                    style="font-size: 10px; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                    Success</div>
             </div>
         </div>
-        
-        <button class="btn" id="purchase-btn" onclick="purchaseVerification()" disabled style="width: 100%; background: var(--primary); font-size: 14px; padding: 12px;">Continue</button>
+
+        <button class="btn" id="purchase-btn" onclick="purchaseVerification()" disabled
+            style="width: 100%; background: var(--primary); font-size: 14px; padding: 12px;"
+            data-i18n="verify.buy_number">Continue</button>
     </div>
-    
+
     <div class="card" id="reception-card" style="display: none; padding: 20px; margin-top: 16px;">
         <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;">SMS Reception</h2>
-        
-        <div id="phone-display" style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 10px; margin-bottom: 16px; color: white; text-align: center; letter-spacing: 1px;"></div>
-        
-        <div style="background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
-            <div id="status-text" style="font-size: 12px; color: #1e40af; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">Waiting for SMS</div>
-            <div id="code-display" style="font-size: 36px; font-weight: 700; color: #2563eb; letter-spacing: 4px; text-align: center; font-family: 'Courier New', monospace;">------</div>
+
+        <div id="phone-display"
+            style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 10px; margin-bottom: 16px; color: white; text-align: center; letter-spacing: 1px;">
         </div>
-        
+
+        <div
+            style="background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
+            <div id="status-text"
+                style="font-size: 12px; color: #1e40af; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                Waiting for SMS</div>
+            <div id="code-display"
+                style="font-size: 36px; font-weight: 700; color: #2563eb; letter-spacing: 4px; text-align: center; font-family: 'Courier New', monospace;">
+                ------</div>
+        </div>
+
         <div style="display: flex; gap: 10px;">
-            <button class="btn" id="copy-btn" onclick="copyCode()" style="flex: 1; display: none; background: #10b981; font-size: 14px; padding: 12px;">Copy Code</button>
-            <button class="btn" id="cancel-btn" onclick="cancelVerification()" style="flex: 1; background: #ef4444; font-size: 14px; padding: 12px;">Cancel</button>
+            <button class="btn" id="copy-btn" onclick="copyCode()"
+                style="flex: 1; display: none; background: #10b981; font-size: 14px; padding: 12px;">Copy Code</button>
+            <button class="btn" id="cancel-btn" onclick="cancelVerification()"
+                style="flex: 1; background: #ef4444; font-size: 14px; padding: 12px;">Cancel</button>
         </div>
     </div>
 </div>
@@ -64,68 +87,68 @@
 {{ super() }}
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-let selectedService = null;
-let currentVerification = null;
-let pollingInterval = null;
-let allServices = [];
-let servicesLoaded = false;
+    let selectedService = null;
+    let currentVerification = null;
+    let pollingInterval = null;
+    let allServices = [];
+    let servicesLoaded = false;
 
-async function loadServices() {
-    console.log('Loading services...');
-    try {
-        const res = await axios.get('/api/verification/textverified/services');
-        if (res.data && res.data.services) {
-            allServices = res.data.services;
+    async function loadServices() {
+        console.log('Loading services...');
+        try {
+            const res = await axios.get('/api/verification/textverified/services');
+            if (res.data && res.data.services) {
+                allServices = res.data.services;
+                servicesLoaded = true;
+                console.log(`✅ Loaded ${allServices.length} services from API`);
+            }
+        } catch (error) {
+            console.error('❌ Failed to load services from API:', error);
+            // Fallback services
+            allServices = [
+                { id: 'telegram', name: 'Telegram', cost: 0.50 },
+                { id: 'whatsapp', name: 'WhatsApp', cost: 0.75 },
+                { id: 'google', name: 'Google', cost: 0.50 },
+                { id: 'facebook', name: 'Facebook', cost: 0.60 },
+                { id: 'instagram', name: 'Instagram', cost: 0.65 },
+                { id: 'twitter', name: 'Twitter', cost: 0.55 },
+                { id: 'discord', name: 'Discord', cost: 0.45 },
+                { id: 'tiktok', name: 'TikTok', cost: 0.70 }
+            ];
             servicesLoaded = true;
-            console.log(`✅ Loaded ${allServices.length} services from API`);
+            console.log(`⚠️ Using ${allServices.length} fallback services`);
         }
-    } catch (error) {
-        console.error('❌ Failed to load services from API:', error);
-        // Fallback services
-        allServices = [
-            {id: 'telegram', name: 'Telegram', cost: 0.50},
-            {id: 'whatsapp', name: 'WhatsApp', cost: 0.75},
-            {id: 'google', name: 'Google', cost: 0.50},
-            {id: 'facebook', name: 'Facebook', cost: 0.60},
-            {id: 'instagram', name: 'Instagram', cost: 0.65},
-            {id: 'twitter', name: 'Twitter', cost: 0.55},
-            {id: 'discord', name: 'Discord', cost: 0.45},
-            {id: 'tiktok', name: 'TikTok', cost: 0.70}
-        ];
-        servicesLoaded = true;
-        console.log(`⚠️ Using ${allServices.length} fallback services`);
     }
-}
 
-function setupSearchListener() {
-    const searchInput = document.getElementById('service-search');
-    const dropdown = document.getElementById('service-dropdown');
-    
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        
-        if (!servicesLoaded) {
-            dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">Loading services...</div>';
-            dropdown.style.display = 'block';
-            return;
-        }
-        
-        if (!query || query.length < 1) {
-            dropdown.style.display = 'none';
-            return;
-        }
-        
-        const filtered = allServices.filter(s => s.name.toLowerCase().includes(query));
-        
-        if (filtered.length === 0) {
-            dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">No services found</div>';
-            dropdown.style.display = 'block';
-            return;
-        }
-        
-        dropdown.innerHTML = filtered.slice(0, 10).map(s => {
-            const safeName = s.name.replace(/'/g, "\\'");
-            return `
+    function setupSearchListener() {
+        const searchInput = document.getElementById('service-search');
+        const dropdown = document.getElementById('service-dropdown');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase().trim();
+
+            if (!servicesLoaded) {
+                dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">Loading services...</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            if (!query || query.length < 1) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            const filtered = allServices.filter(s => s.name.toLowerCase().includes(query));
+
+            if (filtered.length === 0) {
+                dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">No services found</div>';
+                dropdown.style.display = 'block';
+                return;
+            }
+
+            dropdown.innerHTML = filtered.slice(0, 10).map(s => {
+                const safeName = s.name.replace(/'/g, "\\'");
+                return `
             <div onclick="selectService('${s.id}', '${safeName}', ${s.cost})" 
                  style="padding: 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; transition: background 0.15s;"
                  onmouseover="this.style.background='#f9fafb'"
@@ -134,154 +157,154 @@ function setupSearchListener() {
                 <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">$${s.cost.toFixed(2)} per verification</div>
             </div>
             `;
-        }).join('');
-        dropdown.style.display = 'block';
-        
-        console.log(`Found ${filtered.length} services for "${query}"`);
-    });
-    
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (e.target !== searchInput && !dropdown.contains(e.target)) {
-            dropdown.style.display = 'none';
-        }
-    });
-}
+            }).join('');
+            dropdown.style.display = 'block';
 
-function selectService(id, name, cost) {
-    selectedService = id;
-    document.getElementById('service-search').value = name;
-    document.getElementById('service-cost').textContent = `$${cost.toFixed(2)}`;
-    document.getElementById('service-dropdown').style.display = 'none';
-    document.getElementById('purchase-btn').disabled = false;
-    document.getElementById('purchase-btn').textContent = 'Get SMS Code';
-    console.log(`Selected: ${name} ($${cost})`);
-}
-
-async function purchaseVerification() {
-    if (!selectedService) return;
-    
-    const btn = document.getElementById('purchase-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
-    
-    try {
-        const res = await axios.post('/api/verify/create', {
-            service_name: selectedService,
-            country: 'US',
-            capability: 'sms'
+            console.log(`Found ${filtered.length} services for "${query}"`);
         });
-        
-        if (res.data && res.data.phone_number) {
-            currentVerification = res.data;
-            document.getElementById('phone-display').textContent = res.data.phone_number;
-            document.getElementById('reception-card').style.display = 'block';
-            startPolling(res.data.id);
-            if (window.refreshBalance) window.refreshBalance();
-        }
-    } catch (error) {
-        alert(error.response?.data?.detail || 'Purchase failed');
-        btn.disabled = false;
-        btn.textContent = 'Get SMS Code';
-    }
-}
 
-async function cancelVerification() {
-    if (!currentVerification) return;
-    
-    const btn = document.getElementById('cancel-btn');
-    btn.disabled = true;
-    btn.textContent = 'Cancelling...';
-    
-    try {
-        await axios.delete(`/api/verify/${currentVerification.id}`);
-    } catch (error) {
-        console.error('Cancel failed:', error);
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target !== searchInput && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
     }
-    
-    resetForm();
-}
 
-function startPolling(id) {
-    let count = 0;
-    document.getElementById('status-text').innerHTML = '<div class="spinner-sm" style="margin: 0 auto 8px; border-color: #bfdbfe; border-top-color: #2563eb;"></div>Waiting for SMS';
-    
-    pollingInterval = setInterval(async () => {
-        count++;
+    function selectService(id, name, cost) {
+        selectedService = id;
+        document.getElementById('service-search').value = name;
+        document.getElementById('service-cost').textContent = `$${cost.toFixed(2)}`;
+        document.getElementById('service-dropdown').style.display = 'none';
+        document.getElementById('purchase-btn').disabled = false;
+        document.getElementById('purchase-btn').textContent = 'Get SMS Code';
+        console.log(`Selected: ${name} ($${cost})`);
+    }
+
+    async function purchaseVerification() {
+        if (!selectedService) return;
+
+        const btn = document.getElementById('purchase-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
+
         try {
-            const res = await axios.get(`/api/verify/${id}/status`);
-            if (res.data.sms_code) {
-                document.getElementById('code-display').textContent = res.data.sms_code;
-                document.getElementById('status-text').textContent = 'SMS Received';
-                document.getElementById('status-text').parentElement.style.background = '#d1fae5';
-                document.getElementById('status-text').parentElement.style.borderColor = '#a7f3d0';
-                document.getElementById('status-text').style.color = '#065f46';
-                document.getElementById('code-display').style.color = '#059669';
-                document.getElementById('copy-btn').style.display = 'block';
-                clearInterval(pollingInterval);
-            } else if (count >= 60) {
-                document.getElementById('status-text').textContent = 'Timeout - No SMS received';
-                document.getElementById('status-text').parentElement.style.background = '#fee2e2';
-                document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
-                document.getElementById('status-text').style.color = '#991b1b';
-                clearInterval(pollingInterval);
+            const res = await axios.post('/api/verify/create', {
+                service_name: selectedService,
+                country: 'US',
+                capability: 'sms'
+            });
+
+            if (res.data && res.data.phone_number) {
+                currentVerification = res.data;
+                document.getElementById('phone-display').textContent = res.data.phone_number;
+                document.getElementById('reception-card').style.display = 'block';
+                startPolling(res.data.id);
+                if (window.refreshBalance) window.refreshBalance();
             }
         } catch (error) {
-            if (count >= 60) clearInterval(pollingInterval);
+            alert(error.response?.data?.detail || 'Purchase failed');
+            btn.disabled = false;
+            btn.textContent = 'Get SMS Code';
         }
-    }, 5000);
-}
+    }
 
-function copyCode() {
-    const code = document.getElementById('code-display').textContent;
-    navigator.clipboard.writeText(code).then(() => {
-        const btn = document.getElementById('copy-btn');
-        btn.textContent = 'Copied!';
-        btn.style.background = '#059669';
-        setTimeout(() => {
-            btn.textContent = 'Copy Code';
-            btn.style.background = '#10b981';
-        }, 2000);
-    });
-}
+    async function cancelVerification() {
+        if (!currentVerification) return;
 
-async function resetForm() {
-    if (currentVerification) {
+        const btn = document.getElementById('cancel-btn');
+        btn.disabled = true;
+        btn.textContent = 'Cancelling...';
+
         try {
             await axios.delete(`/api/verify/${currentVerification.id}`);
-        } catch (error) {}
-    }
-    
-    selectedService = null;
-    currentVerification = null;
-    if (pollingInterval) clearInterval(pollingInterval);
-    
-    document.getElementById('service-search').value = '';
-    document.getElementById('service-cost').textContent = '$0.00';
-    document.getElementById('reception-card').style.display = 'none';
-    document.getElementById('code-display').textContent = '------';
-    document.getElementById('copy-btn').style.display = 'none';
-    document.getElementById('cancel-btn').disabled = false;
-    document.getElementById('cancel-btn').textContent = 'Cancel';
-    document.getElementById('purchase-btn').disabled = true;
-    document.getElementById('purchase-btn').textContent = 'Continue';
-    
-    // Reset status styling
-    const statusContainer = document.getElementById('status-text').parentElement;
-    statusContainer.style.background = '#f0f9ff';
-    statusContainer.style.borderColor = '#bfdbfe';
-    document.getElementById('status-text').style.color = '#1e40af';
-    document.getElementById('code-display').style.color = '#2563eb';
-    
-    if (window.refreshBalance) window.refreshBalance();
-}
+        } catch (error) {
+            console.error('Cancel failed:', error);
+        }
 
-// Initialize on page load
-(async function init() {
-    console.log('Initializing SMS Verification page...');
-    await loadServices();
-    setupSearchListener();
-    console.log('✅ Page ready');
-})();
+        resetForm();
+    }
+
+    function startPolling(id) {
+        let count = 0;
+        document.getElementById('status-text').innerHTML = '<div class="spinner-sm" style="margin: 0 auto 8px; border-color: #bfdbfe; border-top-color: #2563eb;"></div>Waiting for SMS';
+
+        pollingInterval = setInterval(async () => {
+            count++;
+            try {
+                const res = await axios.get(`/api/verify/${id}/status`);
+                if (res.data.sms_code) {
+                    document.getElementById('code-display').textContent = res.data.sms_code;
+                    document.getElementById('status-text').textContent = 'SMS Received';
+                    document.getElementById('status-text').parentElement.style.background = '#d1fae5';
+                    document.getElementById('status-text').parentElement.style.borderColor = '#a7f3d0';
+                    document.getElementById('status-text').style.color = '#065f46';
+                    document.getElementById('code-display').style.color = '#059669';
+                    document.getElementById('copy-btn').style.display = 'block';
+                    clearInterval(pollingInterval);
+                } else if (count >= 60) {
+                    document.getElementById('status-text').textContent = 'Timeout - No SMS received';
+                    document.getElementById('status-text').parentElement.style.background = '#fee2e2';
+                    document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
+                    document.getElementById('status-text').style.color = '#991b1b';
+                    clearInterval(pollingInterval);
+                }
+            } catch (error) {
+                if (count >= 60) clearInterval(pollingInterval);
+            }
+        }, 5000);
+    }
+
+    function copyCode() {
+        const code = document.getElementById('code-display').textContent;
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.getElementById('copy-btn');
+            btn.textContent = 'Copied!';
+            btn.style.background = '#059669';
+            setTimeout(() => {
+                btn.textContent = 'Copy Code';
+                btn.style.background = '#10b981';
+            }, 2000);
+        });
+    }
+
+    async function resetForm() {
+        if (currentVerification) {
+            try {
+                await axios.delete(`/api/verify/${currentVerification.id}`);
+            } catch (error) { }
+        }
+
+        selectedService = null;
+        currentVerification = null;
+        if (pollingInterval) clearInterval(pollingInterval);
+
+        document.getElementById('service-search').value = '';
+        document.getElementById('service-cost').textContent = '$0.00';
+        document.getElementById('reception-card').style.display = 'none';
+        document.getElementById('code-display').textContent = '------';
+        document.getElementById('copy-btn').style.display = 'none';
+        document.getElementById('cancel-btn').disabled = false;
+        document.getElementById('cancel-btn').textContent = 'Cancel';
+        document.getElementById('purchase-btn').disabled = true;
+        document.getElementById('purchase-btn').textContent = 'Continue';
+
+        // Reset status styling
+        const statusContainer = document.getElementById('status-text').parentElement;
+        statusContainer.style.background = '#f0f9ff';
+        statusContainer.style.borderColor = '#bfdbfe';
+        document.getElementById('status-text').style.color = '#1e40af';
+        document.getElementById('code-display').style.color = '#2563eb';
+
+        if (window.refreshBalance) window.refreshBalance();
+    }
+
+    // Initialize on page load
+    (async function init() {
+        console.log('Initializing SMS Verification page...');
+        await loadServices();
+        setupSearchListener();
+        console.log('✅ Page ready');
+    })();
 </script>
 {% endblock %}

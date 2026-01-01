@@ -1,8 +1,8 @@
 # Namaskah SMS Verification Platform
 
-**Version**: 3.0.0 - Tiered SaaS Platform 🚀  
-**Status**: Production Ready with Versioning  
-**Last Updated**: 2025-12-07
+**Version**: 4.0.0 - Freemium SaaS Platform 🚀  
+**Status**: Production Ready with Freemium Model  
+**Last Updated**: 2025-12-25
 
 ---
 
@@ -10,22 +10,21 @@
 
 Namaskah offers **4 tiers** designed for different use cases:
 
-| Feature | Pay-As-You-Go (Trial) | Starter | Pro | Custom |
-|---------|----------------------|---------|-----|--------|
-| **Price** | $0/mo | $8.99/mo | $25/mo | $35/mo |
-| **Included Quota** | None | $10 (~4 SMS) | $30 (~12 SMS) | $50 (~20 SMS) |
-| **Per SMS** | $2.50 | Included, then +$0.50 | Included, then +$0.30 | Included, then +$0.20 |
-| **API Access** | ❌ | ✅ 5 keys | ✅ 10 keys | ✅ Unlimited |
-| **Area Code Selection** | ❌ | ✅ | ✅ | ✅ |
-| **ISP/Carrier Filter** | ❌ | ❌ | ✅ | ✅ |
-| **Countries** | All 50+ | All 50+ | All 50+ | All 50+ |
-| **Support** | Community | Email | Priority | Dedicated |
+| Feature | Freemium | Pay-As-You-Go | Pro | Custom |
+|---------|----------|---------------|-----|--------|
+| **Price** | $0/mo | $0/mo | $25/mo | $35/mo |
+| **SMS Rate** | $2.22/SMS (9 per $20) | $2.50/SMS | $15 quota + $0.30 overage | $25 quota + $0.20 overage |
+| **API Access** | ❌ | ❌ | ✅ 10 keys | ✅ Unlimited |
+| **Location Filters** | ❌ Random only | ✅ +$0.25/SMS | ✅ Included | ✅ Included |
+| **ISP/Carrier Filter** | ❌ | ✅ +$0.50/SMS | ✅ Included | ✅ Included |
+| **Affiliate Program** | ❌ | ❌ | ✅ Standard | ✅ Enhanced |
+| **Support** | Community | Community | Priority | Dedicated |
 
-**Subscription Benefits**: 
-- ✅ **Included quota** resets monthly
-- ✅ **Lower overage rates** - Fixed increase ($0.20-$0.50) vs $2.50 per SMS
-- ✅ **API access** for automation
-- ✅ **No interruption** when quota exhausted
+**Freemium Benefits**: 
+- ✅ **11% discount** - $2.22/SMS vs $2.50/SMS
+- ✅ **No monthly fees** - Pay only for what you use
+- ✅ **Instant start** - All new users begin here
+- ✅ **Easy upgrade** - Unlock filters and API anytime
 
 ---
 
@@ -56,10 +55,10 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 ## ✨ Key Features
 
 ### 🔐 Multi-Tier Access
-- **Pay-As-You-Go (Trial)**: Test unlimited at $2.50/SMS, no commitment
-- **Starter**: $8.99/mo with quota, then +$0.50/SMS overage
-- **Pro**: $25/mo with larger quota, then +$0.30/SMS overage
-- **Custom**: $35/mo with premium quota, then +$0.20/SMS overage
+- **Freemium**: Start free with 9 SMS per $20 deposit ($2.22/SMS)
+- **Pay-As-You-Go**: Add location/ISP filtering (+$0.25-$0.75/SMS)
+- **Pro**: $25/mo with API access and all filters included
+- **Custom**: $35/mo with unlimited API keys and enhanced affiliate program
 
 ### 📱 SMS Verification
 - Instant SMS verification codes

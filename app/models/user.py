@@ -51,7 +51,7 @@ class User(BaseModel):
     is_affiliate = Column(Boolean, default=False, nullable=False)
 
     # Admin management fields
-    tier_id = Column(String(50), default="payg", nullable=True)
+    tier_id = Column(String(50), default="freemium", nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
     is_suspended = Column(Boolean, default=False, nullable=False)
     suspended_at = Column(DateTime, nullable=True)

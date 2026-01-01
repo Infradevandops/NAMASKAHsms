@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "مرحبا",
+    "dashboard": "لوحة التحكم",
+    "settings": "الإعدادات",
+    "wallet": "المحفظة",
+    "profile": "الملف الشخصي",
+    "logout": "تسجيل الخروج",
+    "loading": "جار التحميل...",
+    "error": "خطأ",
+    "success": "نجاح",
+    "type": "النوع",
+    "amount": "المبلغ",
+    "date": "التاريخ",
+    "status": "الحالة"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "subtitle": "نظرة عامة على نشاط التحقق من الرسائل القصيرة",
+    "total_sms": "إجمالي الرسائل القصيرة",
+    "successful": "ناجح",
+    "total_spent": "إجمالي الإنفاق",
+    "success_rate": "معدل النجاح",
+    "recent_activity": "النشاط الأخير",
+    "no_activity": "لا يوجد نشاط حديث",
+    "start_verification": "بدء التحقق",
+    "service": "الخدمة",
+    "number": "الرقم",
+    "time": "الوقت",
+    "your_plan": "خطتك",
+    "upgrade": "ترقية",
+    "features": "الميزات"
+  },
+  "tiers": {
+    "freemium": "فريميوم",
+    "payg": "الدفع حسب الاستخدام",
+    "pro": "احترافي",
+    "custom": "مخصص",
+    "current_plan": "الخطة الحالية",
+    "upgrade_to": "الترقية إلى",
+    "features": {
+      "random_numbers": "أرقام عشوائية فقط",
+      "no_api": "لا يوجد وصول إلى واجهة برمجة التطبيقات",
+      "no_filters": "لا توجد مرشحات الموقع",
+      "location_filters": "مرشحات الموقع",
+      "isp_filters": "مرشحات مزود خدمة الإنترنت",
+      "api_access": "الوصول إلى واجهة برمجة التطبيقات",
+      "all_filters": "جميع المرشحات مضمنة",
+      "affiliate": "برنامج الشراكة",
+      "priority_support": "دعم ذو أولوية",
+      "unlimited_api": "واجهة برمجة تطبيقات غير محدودة"
+    }
+  },
+  "wallet": {
+    "title": "المحفظة",
+    "subtitle": "إدارة أرصدتك والفواتير",
+    "current_balance": "الرصيد الحالي",
+    "this_month": "هذا الشهر",
+    "total_spent": "إجمالي الإنفاق",
+    "add_credits": "إضافة أرصدة",
+    "transaction_history": "سجل المعاملات",
+    "pay_with_crypto": "الدفع بالعملات المشفرة",
+    "pay_with_card": "الدفع بالبطاقة"
+  },
+  "verify": {
+    "title": "التحقق من الرسائل القصيرة",
+    "subtitle": "احصل على رقم للتحقق",
+    "select_service": "اختر الخدمة",
+    "select_country": "اختر البلد",
+    "buy_number": "شراء رقم"
+  }
+}

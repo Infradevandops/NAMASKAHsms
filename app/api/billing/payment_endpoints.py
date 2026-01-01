@@ -13,6 +13,7 @@ from app.services.email_service import email_service
 from app.services.notification_service import NotificationService
 from app.models.user import User
 from app.models.transaction import Transaction, PaymentLog
+from app.schemas.payment import CryptoWalletResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/billing", tags=["Billing"])
@@ -611,3 +612,18 @@ async def get_balance(
             status_code=500,
             detail="Failed to retrieve balance"
         )
+
+
+@router.get("/crypto-addresses", response_model=CryptoWalletResponse)
+def get_crypto_addresses():
+    """Get configured crypto wallet addresses."""
+    from app.core.config import settings
+    # Create a simple response without pulling from app.schemas if imports are messy,
+    # but we are trying to use the schema we just added.
+    # We need to import the schema first.
+    return CryptoWalletResponse(
+        btc_address=settings.crypto_btc_address,
+        eth_address=settings.crypto_eth_address,
+        sol_address=settings.crypto_sol_address,
+        ltc_address=settings.crypto_ltc_address
+    )

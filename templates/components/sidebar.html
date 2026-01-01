@@ -5,21 +5,21 @@
     </div>
     <nav class="sidebar-nav">
         <a href="/dashboard" class="nav-item" data-page="dashboard">
-            <span>Dashboard</span>
+            <span data-i18n="common.dashboard">Dashboard</span>
         </a>
         <a href="/verify" class="nav-item" data-page="verify">
-            <span>Get SMS Code</span>
+            <span data-i18n="verify.title">Get SMS Code</span>
         </a>
         <a href="/wallet" class="nav-item" data-page="wallet">
-            <span>Wallet</span>
+            <span data-i18n="common.wallet">Wallet</span>
         </a>
         <a href="/history" class="nav-item" data-page="history">
-            <span>History</span>
+            <span data-i18n="wallet.transaction_history">History</span>
         </a>
         <a href="/settings" class="nav-item" data-page="settings">
-            <span>Settings</span>
+            <span data-i18n="common.settings">Settings</span>
         </a>
-        
+
         {% if user and user.is_admin %}
         <div class="nav-divider"></div>
         <div class="nav-section-title">ADMIN</div>
@@ -29,127 +29,163 @@
         {% endif %}
     </nav>
     <div class="sidebar-footer">
+        <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher"
+            style="width: 100%; margin-bottom: 8px; padding: 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; background: transparent; font-size: 14px; color: var(--text-main);">
+            <option value="en">🇺🇸 English</option>
+            <option value="es">🇪🇸 Español</option>
+            <option value="fr">🇫🇷 Français</option>
+            <option value="de">🇩🇪 Deutsch</option>
+            <option value="pt">🇵🇹 Português</option>
+            <option value="zh">🇨🇳 中文</option>
+            <option value="ja">🇯🇵 日本語</option>
+            <option value="ar">🇸🇦 العربية</option>
+            <option value="hi">🇮🇳 हिन्दी</option>
+        </select>
         <a href="#" class="nav-item" onclick="logout()">
-            <span>Logout</span>
+            <span data-i18n="common.logout">Logout</span>
         </a>
     </div>
 </aside>
 
 <style>
-.sidebar { 
-    width: var(--sidebar-width); 
-    background: var(--bg-sidebar); 
-    position: fixed; 
-    height: 100vh; 
-    display: flex; 
-    flex-direction: column; 
-    border-right: 1px solid rgba(0,0,0,0.05); 
-    z-index: 1000; 
-    transition: transform 0.3s; 
-}
-.sidebar-header { 
-    padding: 20px 24px; 
-    border-bottom: 1px solid rgba(0,0,0,0.05); 
-    display: flex; 
-    align-items: center; 
-    justify-content: space-between; 
-}
-.sidebar-header h2 { 
-    font-size: 20px; 
-    font-weight: 700; 
-}
-.sidebar-toggle { 
-    background: none; 
-    border: none; 
-    font-size: 20px; 
-    cursor: pointer; 
-    display: none; 
-}
-.sidebar-nav { 
-    flex: 1; 
-    padding: 12px; 
-    overflow-y: auto; 
-}
-.nav-item { 
-    display: flex; 
-    align-items: center; 
-    gap: 12px; 
-    padding: 12px 16px; 
-    border-radius: 8px; 
-    text-decoration: none; 
-    color: var(--text-main); 
-    font-weight: 500; 
-    font-size: 15px; 
-    transition: all 0.2s; 
-    opacity: 0.7; 
-}
-.nav-item:hover { 
-    background: rgba(55, 53, 47, 0.08); 
-    opacity: 1; 
-}
-.nav-item.active { 
-    background: white; 
-    color: var(--primary); 
-    box-shadow: var(--shadow-soft); 
-    opacity: 1; 
-}
-.nav-divider { 
-    height: 1px; 
-    background: rgba(0,0,0,0.05); 
-    margin: 12px 0; 
-}
-.nav-section-title { 
-    padding: 12px 16px; 
-    font-size: 11px; 
-    font-weight: 700; 
-    color: var(--text-muted); 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px;
-}
-.admin-item { 
-    background: #fee2e2; 
-    color: #991b1b; 
-}
-.sidebar-footer { 
-    padding: 12px; 
-    border-top: 1px solid rgba(0,0,0,0.05); 
-}
+    .sidebar {
+        width: var(--sidebar-width);
+        background: var(--bg-sidebar);
+        position: fixed;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid rgba(0, 0, 0, 0.05);
+        z-index: 1000;
+        transition: transform 0.3s;
+    }
 
-@media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .sidebar.active { transform: translateX(0); }
-    .sidebar-toggle { display: block; }
-}
+    .sidebar-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .sidebar-header h2 {
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .sidebar-toggle {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        display: none;
+    }
+
+    .sidebar-nav {
+        flex: 1;
+        padding: 12px;
+        overflow-y: auto;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: var(--text-main);
+        font-weight: 500;
+        font-size: 15px;
+        transition: all 0.2s;
+        opacity: 0.7;
+    }
+
+    .nav-item:hover {
+        background: rgba(55, 53, 47, 0.08);
+        opacity: 1;
+    }
+
+    .nav-item.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: var(--shadow-soft);
+        opacity: 1;
+    }
+
+    .nav-divider {
+        height: 1px;
+        background: rgba(0, 0, 0, 0.05);
+        margin: 12px 0;
+    }
+
+    .nav-section-title {
+        padding: 12px 16px;
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .admin-item {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .sidebar-footer {
+        padding: 12px;
+        border-top: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    @media (max-width: 768px) {
+        .sidebar {
+            transform: translateX(-100%);
+        }
+
+        .sidebar.active {
+            transform: translateX(0);
+        }
+
+        .sidebar-toggle {
+            display: block;
+        }
+    }
 </style>
 
 <script>
-function toggleSidebar() {
-    document.getElementById('app-sidebar').classList.toggle('active');
-}
+    function toggleSidebar() {
+        document.getElementById('app-sidebar').classList.toggle('active');
+    }
 
-function logout() {
-    if (!confirm('Are you sure you want to logout?')) return;
-    
-    const token = localStorage.getItem('access_token');
-    
-    fetch('/api/auth/logout', { 
-        method: 'POST',
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    })
-    .then(() => {
-        localStorage.removeItem('access_token');
-        window.location.href = '/';
-    })
-    .catch(() => {
-        localStorage.removeItem('access_token');
-        window.location.href = '/';
-    });
-}
+    function logout() {
+        if (!confirm('Are you sure you want to logout?')) return;
 
-document.addEventListener('DOMContentLoaded', () => {
-    const path = window.location.pathname.split('/')[1] || 'dashboard';
-    document.querySelectorAll('.nav-item').forEach(item => {
-        if (item.dataset.page === path) item.classList.add('active');
+        const token = localStorage.getItem('access_token');
+
+        fetch('/api/auth/logout', {
+            method: 'POST',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        })
+            .then(() => {
+                localStorage.removeItem('access_token');
+                window.location.href = '/';
+            })
+            .catch(() => {
+                localStorage.removeItem('access_token');
+                window.location.href = '/';
+            });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const path = window.location.pathname.split('/')[1] || 'dashboard';
+        document.querySelectorAll('.nav-item').forEach(item => {
+            if (item.dataset.page === path) item.classList.add('active');
+        });
+
+        // Set language switcher value
+        const currentLang = localStorage.getItem('language') || 'en';
+        const langSwitcher = document.getElementById('lang-switcher');
+        if (langSwitcher) langSwitcher.value = currentLang;
     });
-});
 </script>

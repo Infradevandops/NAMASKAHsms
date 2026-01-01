@@ -61,8 +61,9 @@ class TierManager {
     getTierDisplayName() {
         const names = {
             'freemium': 'Free',
-            'starter': 'Starter',
-            'turbo': 'Turbo'
+            'payg': 'PAYG',
+            'pro': 'Pro',
+            'custom': 'Custom'
         };
         return names[this.currentTier] || 'Free';
     }
@@ -75,7 +76,7 @@ class TierManager {
     }
 
     showUpgradeModal(details = {}) {
-        const requiredTier = details.required_tier || 'starter';
+        const requiredTier = details.required_tier || 'payg';
         const feature = details.feature || 'this feature';
         const message = details.message || `${feature} requires ${requiredTier} tier`;
 
@@ -130,19 +131,26 @@ class TierManager {
 
     getFeatureComparison(targetTier) {
         const features = {
-            'starter': [
-                { name: 'API Access', current: false, target: true },
-                { name: 'Area Code Selection', current: false, target: true },
-                { name: 'API Keys', current: '0', target: '5' }
+            'payg': [
+                { name: 'Location Filters', current: false, target: true },
+                { name: 'ISP Filters', current: false, target: true },
+                { name: 'Custom Balance', current: false, target: true }
             ],
-            'turbo': [
+            'pro': [
                 { name: 'API Access', current: this.currentTier !== 'freemium', target: true },
-                { name: 'ISP Filtering', current: false, target: true },
-                { name: 'API Keys', current: this.currentTier === 'starter' ? '5' : '0', target: 'Unlimited' }
+                { name: 'All Filters Included', current: false, target: true },
+                { name: 'API Keys', current: this.currentTier === 'payg' ? '0' : '0', target: '10' },
+                { name: 'Affiliate Program', current: false, target: true }
+            ],
+            'custom': [
+                { name: 'API Access', current: this.currentTier === 'pro', target: true },
+                { name: 'Unlimited API Keys', current: false, target: true },
+                { name: 'Enhanced Affiliate', current: false, target: true },
+                { name: 'Dedicated Support', current: false, target: true }
             ]
         };
 
-        const featureList = features[targetTier] || features.starter;
+        const featureList = features[targetTier] || features.payg;
         return featureList.map(f => `
       <div class="tier-row">
         <span class="tier-label">${f.name}</span>
@@ -193,9 +201,10 @@ class TierManager {
 
     checkFeatureAccess(feature) {
         const featureMap = {
-            'api_keys': ['starter', 'turbo'],
-            'area_codes': ['starter', 'turbo'],
-            'isp_filter': ['turbo']
+            'api_keys': ['pro', 'custom'],
+            'location_filters': ['payg', 'pro', 'custom'],
+            'isp_filter': ['payg', 'pro', 'custom'],
+            'affiliate_program': ['pro', 'custom']
         };
 
         const allowedTiers = featureMap[feature] || [];
@@ -226,8 +235,9 @@ class TierManager {
     getFeatureName(feature) {
         const names = {
             'api_keys': 'API Keys',
-            'area_codes': 'Area Code Selection',
-            'isp_filter': 'ISP/Carrier Filtering'
+            'location_filters': 'Location Filters',
+            'isp_filter': 'ISP/Carrier Filtering',
+            'affiliate_program': 'Affiliate Program'
         };
         return names[feature] || feature;
     }

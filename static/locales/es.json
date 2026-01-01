@@ -1,0 +1,72 @@
+{
+    "common": {
+        "welcome": "Bienvenido",
+        "dashboard": "Panel de Control",
+        "settings": "Configuración",
+        "wallet": "Billetera",
+        "profile": "Perfil",
+        "logout": "Cerrar Sesión",
+        "loading": "Cargando...",
+        "error": "Error",
+        "success": "Éxito",
+        "type": "Tipo",
+        "amount": "Cantidad",
+        "date": "Fecha",
+        "status": "Estado"
+    },
+    "dashboard": {
+        "title": "Panel de Control",
+        "subtitle": "Resumen de tu actividad de verificación SMS",
+        "total_sms": "SMS Total",
+        "successful": "Exitoso",
+        "total_spent": "Total Gastado",
+        "success_rate": "Tasa de Éxito",
+        "recent_activity": "Actividad Reciente",
+        "no_activity": "Sin actividad reciente",
+        "start_verification": "Iniciar Verificación",
+        "service": "Servicio",
+        "number": "Número",
+        "time": "Hora",
+        "your_plan": "Tu Plan",
+        "upgrade": "Actualizar",
+        "features": "Características"
+    },
+    "tiers": {
+        "freemium": "Freemium",
+        "payg": "Pago por Uso",
+        "pro": "Pro",
+        "custom": "Personalizado",
+        "current_plan": "Plan Actual",
+        "upgrade_to": "Actualizar a",
+        "features": {
+            "random_numbers": "Números aleatorios solamente",
+            "no_api": "Sin acceso API",
+            "no_filters": "Sin filtros de ubicación",
+            "location_filters": "Filtros de ubicación",
+            "isp_filters": "Filtros ISP",
+            "api_access": "Acceso API",
+            "all_filters": "Todos los filtros incluidos",
+            "affiliate": "Programa de afiliados",
+            "priority_support": "Soporte prioritario",
+            "unlimited_api": "API ilimitada"
+        }
+    },
+    "wallet": {
+        "title": "Billetera",
+        "subtitle": "Administra tus créditos y facturación",
+        "current_balance": "Saldo Actual",
+        "this_month": "Este Mes",
+        "total_spent": "Total Gastado",
+        "add_credits": "Agregar Créditos",
+        "transaction_history": "Historial de Transacciones",
+        "pay_with_crypto": "Pagar con Cripto",
+        "pay_with_card": "Pagar con Tarjeta"
+    },
+    "verify": {
+        "title": "Verificación SMS",
+        "subtitle": "Obtén un número para verificación",
+        "select_service": "Seleccionar Servicio",
+        "select_country": "Seleccionar País",
+        "buy_number": "Comprar Número"
+    }
+}

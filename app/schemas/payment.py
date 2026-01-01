@@ -238,6 +238,24 @@ class WalletBalanceResponse(BaseModel):
     }
 
 
+class CryptoWalletResponse(BaseModel):
+    """Schema for crypto wallet configuration."""
+
+    btc_address: Optional[str] = Field(None, description="Bitcoin address")
+    eth_address: Optional[str] = Field(None, description="Ethereum address")
+    sol_address: Optional[str] = Field(None, description="Solana address")
+    ltc_address: Optional[str] = Field(None, description="Litecoin address")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "btc_address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
+                "eth_address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+            }
+        }
+    }
+
+
 class SubscriptionPlan(BaseModel):
     """Schema for subscription plan."""
 

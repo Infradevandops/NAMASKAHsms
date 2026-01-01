@@ -8,8 +8,9 @@ from app.models.base import BaseModel
 class TierEnum(str, PyEnum):
     """Subscription tier levels."""
     FREEMIUM = "freemium"
-    STARTER = "starter"
-    TURBO = "turbo"
+    PAYG = "payg"
+    PRO = "pro"
+    CUSTOM = "custom"
 
 
 class SubscriptionTier(BaseModel):

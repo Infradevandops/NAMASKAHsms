@@ -42,6 +42,12 @@ class Settings(BaseSettings):
     # GetSMS API
     getsms_api_key: Optional[str] = None
 
+    # Crypto Wallet Configuration
+    crypto_btc_address: Optional[str] = "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh"
+    crypto_eth_address: Optional[str] = "0x742d35Cc6634C0532925a3b844Bc454e4438f44e"
+    crypto_sol_address: Optional[str] = "HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH"
+    crypto_ltc_address: Optional[str] = "ltc1qrg5u5x4j8e4w9y2kgdygjrsqtzq2n0yrf249l7"
+
     # WhatsApp Business API
     whatsapp_access_token: Optional[str] = None
     whatsapp_phone_number_id: Optional[str] = None

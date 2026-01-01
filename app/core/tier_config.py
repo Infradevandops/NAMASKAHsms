@@ -24,7 +24,7 @@ class TierConfig:
 
         row = result.fetchone()
         if not row:
-            return cls._get_fallback_config("payg")
+            return cls._get_fallback_config("freemium")
 
         return {
             "name": row[1],
@@ -93,12 +93,12 @@ class TierConfig:
     def _get_fallback_config(cls, tier: str) -> Dict[str, Any]:
         """Fallback configuration when database is unavailable."""
         fallback_tiers = {
-            "payg": {
-                "name": "Pay-As-You-Go",
-                "tier": "payg",
+            "freemium": {
+                "name": "Freemium",
+                "tier": "freemium",
                 "price_monthly": 0,
                 "quota_usd": 0,
-                "overage_rate": 0.0,
+                "overage_rate": 2.22,
                 "payment_required": False,
                 "has_api_access": False,
                 "has_area_code_selection": False,
@@ -107,25 +107,25 @@ class TierConfig:
                 "support_level": "community",
                 "features": {"webhooks": False, "priority_routing": False, "custom_branding": False}
             },
-            "starter": {
-                "name": "Starter",
-                "tier": "starter",
-                "price_monthly": 899,
-                "quota_usd": 10,
-                "overage_rate": 0.50,
-                "payment_required": True,
-                "has_api_access": True,
+            "payg": {
+                "name": "Pay-As-You-Go",
+                "tier": "payg",
+                "price_monthly": 0,
+                "quota_usd": 0,
+                "overage_rate": 2.50,
+                "payment_required": False,
+                "has_api_access": False,
                 "has_area_code_selection": True,
-                "has_isp_filtering": False,
-                "api_key_limit": 5,
-                "support_level": "email",
-                "features": {"webhooks": True, "priority_routing": False, "custom_branding": False}
+                "has_isp_filtering": True,
+                "api_key_limit": 0,
+                "support_level": "community",
+                "features": {"webhooks": False, "priority_routing": False, "custom_branding": False}
             },
             "pro": {
                 "name": "Pro",
                 "tier": "pro",
                 "price_monthly": 2500,
-                "quota_usd": 30,
+                "quota_usd": 15,
                 "overage_rate": 0.30,
                 "payment_required": True,
                 "has_api_access": True,
@@ -139,7 +139,7 @@ class TierConfig:
                 "name": "Custom",
                 "tier": "custom",
                 "price_monthly": 3500,
-                "quota_usd": 50,
+                "quota_usd": 25,
                 "overage_rate": 0.20,
                 "payment_required": True,
                 "has_api_access": True,
@@ -150,9 +150,9 @@ class TierConfig:
                 "features": {"webhooks": True, "priority_routing": True, "custom_branding": True}
             }
         }
-        return fallback_tiers.get(tier.lower(), fallback_tiers["payg"])
+        return fallback_tiers.get(tier.lower(), fallback_tiers["freemium"])
 
     @classmethod
     def _get_fallback_tiers(cls) -> list:
         """Fallback tier list when database is unavailable."""
-        return [cls._get_fallback_config(tier) for tier in ["payg", "starter", "pro", "custom"]]
+        return [cls._get_fallback_config(tier) for tier in ["freemium", "payg", "pro", "custom"]]
