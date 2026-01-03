@@ -198,13 +198,14 @@ curl http://localhost:8000/api/system/health
 
 ---
 
-## 📚 Enterprise Documentation
+## 📚 Documentation
 
-- [Enterprise Roadmap](docs/ENTERPRISE_ROADMAP.md) - Strategic phases for scaling.
-- [Implementation Guide](docs/NEXT_PHASES_IMPLEMENTATION.md) - Immediate next steps for developers.
-- [API Documentation](docs/TIER_API_DOCUMENTATION.md)
-- [Tier Deployment Guide](docs/TIER_DEPLOYMENT_GUIDE.md)
-- **[Security](./docs/SECURITY_AND_COMPLIANCE.md)** - Security details
+- [API Guide](docs/API_GUIDE.md) - Complete API reference
+- [Tier Management API](docs/TIER_MANAGEMENT_API.md) - Tier system API
+- [Tier CLI Reference](docs/TIER_CLI_REFERENCE.md) - Command-line tools
+- [Security & Compliance](docs/SECURITY_AND_COMPLIANCE.md) - Security details
+- [Server Management](docs/SERVER_MANAGEMENT.md) - Server operations
+- [Voice vs SMS Verification](docs/VOICE_VS_SMS_VERIFICATION.md) - Verification methods
 
 ---
 
@@ -276,8 +277,6 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 - Team management
 - SSO integration
 - White-label options
-
-[**Full Roadmap →**](./docs/ROADMAP.md)
 
 ---
 
