@@ -17,6 +17,9 @@ def ensure_database_schema():
         with engine.connect() as conn:
             # Add ALL missing columns from User model
             columns_to_add = [
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_sms_balance FLOAT DEFAULT 0.0",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_quota_used FLOAT DEFAULT 0.0",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_quota_reset_date TIMESTAMP",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_id VARCHAR(50) DEFAULT 'payg'",

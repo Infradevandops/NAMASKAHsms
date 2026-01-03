@@ -238,7 +238,6 @@ docs/ROADMAP.md
 docs/MIGRATION_GUIDE.md
 docs/I18N_IMPLEMENTATION.md
 docs/TIER_SYSTEM_EXECUTION_GUIDE.md
-docs/BILLING_HISTORY.md
 
 # Server management
 .server.pid
