@@ -6,9 +6,10 @@
 
 ---
 
-## 🎯 Choose Your Plan
+## Choose Your Plan
 
 Namaskah offers **4 tiers** designed for different use cases:
+
 
 | Feature | Freemium | Pay-As-You-Go | Pro | Custom |
 |---------|----------|---------------|-----|--------|
@@ -20,6 +21,8 @@ Namaskah offers **4 tiers** designed for different use cases:
 | **Affiliate Program** | ❌ | ❌ | ✅ Standard | ✅ Enhanced |
 | **Support** | Community | Community | Priority | Dedicated |
 
+
+
 **Freemium Benefits**: 
 - ✅ **11% discount** - $2.22/SMS vs $2.50/SMS
 - ✅ **No monthly fees** - Pay only for what you use
@@ -28,7 +31,9 @@ Namaskah offers **4 tiers** designed for different use cases:
 
 ---
 
-## 🚀 Quick Start
+
+
+## Quick Start
 
 ```bash
 # Clone and setup
@@ -50,35 +55,37 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 
 **Open**: `http://localhost:8000`
 
+
+
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🔐 Multi-Tier Access
+### Multi-Tier Access
 - **Freemium**: Start free with 9 SMS per $20 deposit ($2.22/SMS)
 - **Pay-As-You-Go**: Add location/ISP filtering (+$0.25-$0.75/SMS)
 - **Pro**: $25/mo with API access and all filters included
 - **Custom**: $35/mo with unlimited API keys and enhanced affiliate program
 
-### 📱 SMS Verification
+###  SMS Verification
 - Instant SMS verification codes
 - 50+ countries supported
 - Multiple services (Telegram, WhatsApp, etc.)
 - Real-time status tracking
 
-### 🔑 API Key Management
+###  API Key Management
 - Generate secure API keys
 - Usage tracking and analytics
 - Tier-based rate limiting
 - Easy key rotation
 
-### 💳 Flexible Billing
+### Flexible Billing
 - Credit-based system
 - Bonus credits on purchases
 - Multiple payment methods
 - Transparent pricing
 
-### 🛡️ Enterprise Security
+### Enterprise Security
 - OWASP Top 10 compliant
 - JWT authentication
 - CSRF protection
@@ -115,14 +122,14 @@ uvicorn main:app --host 127.0.0.1 --port 8000
 - `GET /api/billing/balance` - Get balance
 - `GET /api/billing/history` - Payment history
 
-### Tiers 🆕
+### Tiers 
 - `GET /api/tiers` - List available tiers
 - `GET /api/user/tier` - Get current tier
 - `POST /api/user/tier/upgrade` - Upgrade tier
 
 ---
 
-## 📊 Configuration
+## Configuration
 
 ```bash
 # .env file required
@@ -138,7 +145,7 @@ PAYPAL_CLIENT_ID=your-paypal-id
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
 
 ```
 app/
@@ -165,7 +172,7 @@ scripts/              # Utility scripts
 
 ---
 
-## 🗄️ Database Setup
+##  Database Setup
 
 ```bash
 # Create tables
@@ -180,7 +187,7 @@ python3 scripts/migrate_users_to_tiers.py
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ```bash
 # Run all tests
@@ -198,7 +205,7 @@ curl http://localhost:8000/api/system/health
 
 ---
 
-## 📚 Documentation
+## Documentation
 
 - [API Guide](docs/API_GUIDE.md) - Complete API reference
 - [Tier Management API](docs/TIER_MANAGEMENT_API.md) - Tier system API
@@ -209,7 +216,7 @@ curl http://localhost:8000/api/system/health
 
 ---
 
-## 🔒 Security Features
+## Security Features
 
 - ✅ OWASP Top 10 compliant
 - ✅ Input sanitization (XSS prevention)
@@ -222,7 +229,7 @@ curl http://localhost:8000/api/system/health
 
 ---
 
-## 🚢 Deployment
+## Deployment
 
 ### Docker
 ```bash
@@ -258,13 +265,13 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 
 ---
 
-## 📈 Roadmap
+## Roadmap
 
 ### Q1 2026
-- ✅ Tier system launch
-- ✅ API key management
-- 🔄 SDK libraries (Python, JS, Go)
-- 🔄 Webhook builder
+- Tier system launch
+- API key management
+- SDK libraries (Python, JS, Go)
+- Webhook builder
 
 ### Q2 2026
 - Geographic targeting
@@ -280,7 +287,7 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 
 ---
 
-## 🛠️ Built With
+## Built With
 
 - **FastAPI** - Modern Python web framework
 - **SQLAlchemy** - Python SQL toolkit
@@ -293,13 +300,13 @@ gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
 
 ---
 
-## 📝 License
+## License
 
 MIT License - See [LICENSE](./LICENSE) file
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - TextVerified for SMS services
 - FastAPI community
@@ -307,5 +314,5 @@ MIT License - See [LICENSE](./LICENSE) file
 
 ---
 
-**Ready to verify? Sign up for free at [namaskah.com](https://namaskah.com)** 🚀
+**Ready to verify? Sign up for free at [namaskah.com](https://namaskah.com)** 
 
