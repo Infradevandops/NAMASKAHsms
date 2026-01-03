@@ -43,7 +43,7 @@ def list_users(db: Session, tier: str = None, limit: int = 20):
     query = db.query(User)
     
     if tier:
-        query = query.filter(User.tier_id == tier)
+        query = query.filter(User.subscription_tier == tier)
     
     users = query.order_by(User.created_at.desc()).limit(limit).all()
     
@@ -53,7 +53,7 @@ def list_users(db: Session, tier: str = None, limit: int = 20):
     print("-" * 100)
     
     for user in users:
-        tier_name = getattr(user, 'tier_id', 'payg') or 'payg'
+        tier_name = user.subscription_tier or 'freemium'
         expires = user.tier_expires_at.strftime('%Y-%m-%d') if user.tier_expires_at else 'N/A'
         created = user.created_at.strftime('%Y-%m-%d') if user.created_at else 'N/A'
         
@@ -67,15 +67,15 @@ def set_user_tier(db: Session, user_id: str, tier: str, days: int = 30):
         print(f"❌ User {user_id} not found")
         return False
     
-    valid_tiers = ["payg", "starter", "pro", "custom"]
+    valid_tiers = ["freemium", "payg", "pro", "custom"]
     if tier not in valid_tiers:
         print(f"❌ Invalid tier: {tier}. Must be one of: {', '.join(valid_tiers)}")
         return False
     
-    old_tier = getattr(user, 'tier_id', 'payg') or 'payg'
-    user.tier_id = tier
+    old_tier = user.subscription_tier or 'freemium'
+    user.subscription_tier = tier
     
-    if tier != "payg":
+    if tier != "freemium":
         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
     else:
         user.tier_expires_at = None
@@ -91,7 +91,7 @@ def set_user_tier(db: Session, user_id: str, tier: str, days: int = 30):
 
 def bulk_set_tier(db: Session, user_ids: list, tier: str, days: int = 30):
     """Set tier for multiple users."""
-    valid_tiers = ["payg", "starter", "pro", "custom"]
+    valid_tiers = ["freemium", "payg", "pro", "custom"]
     if tier not in valid_tiers:
         print(f"❌ Invalid tier: {tier}")
         return False
@@ -103,8 +103,8 @@ def bulk_set_tier(db: Session, user_ids: list, tier: str, days: int = 30):
     
     updated = 0
     for user in users:
-        user.tier_id = tier
-        if tier != "payg":
+        user.subscription_tier = tier
+        if tier != "freemium":
             user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
         else:
             user.tier_expires_at = None
@@ -123,7 +123,7 @@ def get_user_info(db: Session, user_id: str):
         print(f"❌ User {user_id} not found")
         return False
     
-    tier = getattr(user, 'tier_id', 'payg') or 'payg'
+    tier = user.subscription_tier or 'freemium'
     tier_config = TierConfig.get_tier_config(tier, db)
     
     print(f"\n📋 User Information:")
@@ -160,9 +160,9 @@ def extend_tier(db: Session, user_id: str, days: int = 30):
         print(f"❌ User {user_id} not found")
         return False
     
-    tier = getattr(user, 'tier_id', 'payg') or 'payg'
-    if tier == "payg":
-        print(f"❌ Cannot extend Pay-As-You-Go tier")
+    tier = user.subscription_tier or 'freemium'
+    if tier == "freemium":
+        print(f"❌ Cannot extend Freemium tier")
         return False
     
     old_expiry = user.tier_expires_at
@@ -198,7 +198,7 @@ def get_expiring_tiers(db: Session, days: int = 7):
     print("-" * 100)
     
     for user in users:
-        tier_name = getattr(user, 'tier_id', 'payg') or 'payg'
+        tier_name = user.subscription_tier or 'freemium'
         expires = user.tier_expires_at.strftime('%Y-%m-%d')
         days_left = (user.tier_expires_at - now).days
         
@@ -248,13 +248,13 @@ Examples:
     # Set tier
     set_tier_parser = subparsers.add_parser('set-tier', help='Set user tier')
     set_tier_parser.add_argument('user_id', help='User ID')
-    set_tier_parser.add_argument('tier', choices=['payg', 'starter', 'pro', 'custom'], help='Tier name')
+    set_tier_parser.add_argument('tier', choices=['freemium', 'payg', 'pro', 'custom'], help='Tier name')
     set_tier_parser.add_argument('--days', type=int, default=30, help='Duration in days')
     
     # Bulk set tier
     bulk_parser = subparsers.add_parser('bulk-set-tier', help='Set tier for multiple users')
     bulk_parser.add_argument('user_ids', nargs='+', help='User IDs')
-    bulk_parser.add_argument('tier', choices=['payg', 'starter', 'pro', 'custom'], help='Tier name')
+    bulk_parser.add_argument('tier', choices=['freemium', 'payg', 'pro', 'custom'], help='Tier name')
     bulk_parser.add_argument('--days', type=int, default=30, help='Duration in days')
     
     # Extend tier

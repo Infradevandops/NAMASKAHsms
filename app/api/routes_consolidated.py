@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_optional_user_id
+from app.core.dependencies import get_current_user_id, get_optional_user_id, require_tier
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -15,6 +15,10 @@ TEMPLATES_DIR = Path("templates").resolve()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 router = APIRouter()
+
+# Tier dependencies for page routes
+require_payg = require_tier("payg")
+require_pro = require_tier("pro")
 
 # ============================================================================
 # PUBLIC PAGES
@@ -75,6 +79,11 @@ async def register_page(request: Request):
 async def register_page_alt(request: Request):
     """Register page (alt route)."""
     return templates.TemplateResponse("register.html", {"request": request})
+
+@router.get("/pricing", response_class=HTMLResponse)
+async def pricing_page(request: Request):
+    """Pricing page - public, no authentication required."""
+    return templates.TemplateResponse("pricing.html", {"request": request})
 
 # ============================================================================
 # AUTHENTICATED PAGES
@@ -161,6 +170,15 @@ async def admin_pricing_templates(request: Request, user_id: str = Depends(get_c
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
+
+@router.get("/admin/logs", response_class=HTMLResponse)
+async def admin_logging_dashboard(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Admin logging dashboard."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse("admin/logging_dashboard.html", {"request": request, "user": user})
 
 # ============================================================================
 # INFO PAGES
@@ -278,8 +296,8 @@ async def test_login_page(request: Request):
     return templates.TemplateResponse("test_login.html", {"request": request})
 
 @router.get("/voice-verify", response_class=HTMLResponse)
-async def voice_verify_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Voice verification page."""
+async def voice_verify_page(request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)):
+    """Voice verification page. Requires payg tier or higher."""
     from app.models.user import User
     user = db.query(User).filter(User.id == user_id).first()
     return templates.TemplateResponse("voice_verify.html", {"request": request, "user": user})
@@ -295,3 +313,28 @@ async def voice_status_page(request: Request, verification_id: str, user_id: str
 async def verification_modal(request: Request):
     """Verification modal."""
     return templates.TemplateResponse("verification_modal.html", {"request": request})
+
+# ============================================================================
+# TIER-GATED PAGES
+# ============================================================================
+
+@router.get("/api-docs", response_class=HTMLResponse)
+async def api_docs_page(request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)):
+    """API documentation page. Requires payg tier or higher."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("api_docs.html", {"request": request, "user": user})
+
+@router.get("/affiliate", response_class=HTMLResponse)
+async def affiliate_page(request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)):
+    """Affiliate program page. Requires payg tier or higher."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("affiliate_program.html", {"request": request, "user": user})
+
+@router.get("/bulk-purchase", response_class=HTMLResponse)
+async def bulk_purchase_page(request: Request, user_id: str = Depends(require_pro), db: Session = Depends(get_db)):
+    """Bulk purchase page. Requires pro tier or higher."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("bulk_purchase.html", {"request": request, "user": user})

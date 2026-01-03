@@ -26,6 +26,11 @@ class User(BaseModel):
     tier_upgraded_at = Column(DateTime)  # When user last upgraded
     tier_expires_at = Column(DateTime)  # For subscription expiration
     
+    # Pricing enforcement fields
+    bonus_sms_balance = Column(Float, default=0.0, nullable=False)  # Freemium bonus SMS
+    monthly_quota_used = Column(Float, default=0.0, nullable=False)  # Current month usage
+    monthly_quota_reset_date = Column(DateTime, nullable=True)  # Last reset date
+    
     referral_code = Column(String, unique=True, index=True)
     referred_by = Column(String)
     referral_earnings = Column(Float, default=0.0, nullable=False)

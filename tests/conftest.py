@@ -52,6 +52,78 @@ def db():
     # Create session
     session = TestingSessionLocal()
     
+    # Populate subscription tiers
+    from app.models.subscription_tier import SubscriptionTier
+    
+    tiers_data = [
+        {
+            "id": "tier_freemium",
+            "tier": "freemium",
+            "name": "Freemium",
+            "description": "Free tier with basic features",
+            "price_monthly": 0,
+            "payment_required": False,
+            "quota_usd": 0.0,
+            "overage_rate": 0.0,
+            "has_api_access": False,
+            "has_area_code_selection": False,
+            "has_isp_filtering": False,
+            "api_key_limit": 0,
+            "support_level": "community"
+        },
+        {
+            "id": "tier_payg",
+            "tier": "payg",
+            "name": "Pay-As-You-Go",
+            "description": "Pay as you go tier",
+            "price_monthly": 0,
+            "payment_required": True,
+            "quota_usd": 100.0,
+            "overage_rate": 0.05,
+            "has_api_access": True,
+            "has_area_code_selection": True,
+            "has_isp_filtering": False,
+            "api_key_limit": 5,
+            "support_level": "email"
+        },
+        {
+            "id": "tier_pro",
+            "tier": "pro",
+            "name": "Pro",
+            "description": "Professional tier",
+            "price_monthly": 9900,
+            "payment_required": True,
+            "quota_usd": 500.0,
+            "overage_rate": 0.03,
+            "has_api_access": True,
+            "has_area_code_selection": True,
+            "has_isp_filtering": True,
+            "api_key_limit": 20,
+            "support_level": "priority"
+        },
+        {
+            "id": "tier_custom",
+            "tier": "custom",
+            "name": "Custom",
+            "description": "Custom enterprise tier",
+            "price_monthly": 0,
+            "payment_required": True,
+            "quota_usd": 10000.0,
+            "overage_rate": 0.01,
+            "has_api_access": True,
+            "has_area_code_selection": True,
+            "has_isp_filtering": True,
+            "api_key_limit": -1,
+            "support_level": "priority"
+        }
+    ]
+    
+    for tier_data in tiers_data:
+        tier = SubscriptionTier(**tier_data)
+        session.add(tier)
+    
+    session.commit()
+    
     try:
         yield session
     finally:

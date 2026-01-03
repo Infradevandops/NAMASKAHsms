@@ -55,7 +55,7 @@ async def get_tier_stats(
         stats = []
         
         for tier in tiers:
-            count = db.query(User).filter(User.tier_id == tier).count()
+            count = db.query(User).filter(User.subscription_tier == tier).count()
             percentage = (count / total_users * 100) if total_users > 0 else 0
             stats.append({
                 "tier": tier,
@@ -82,10 +82,10 @@ async def list_users_by_tier(
         query = db.query(User)
         
         if tier:
-            valid_tiers = ["payg", "starter", "pro", "custom"]
+            valid_tiers = ["freemium", "payg", "pro", "custom"]
             if tier not in valid_tiers:
                 raise HTTPException(status_code=400, detail=f"Invalid tier: {tier}")
-            query = query.filter(User.tier_id == tier)
+            query = query.filter(User.subscription_tier == tier)
         
         total = query.count()
         users = query.order_by(User.created_at.desc()).limit(limit).offset(offset).all()
@@ -98,7 +98,7 @@ async def list_users_by_tier(
                 {
                     "id": u.id,
                     "email": u.email,
-                    "tier": getattr(u, 'tier_id', 'payg') or 'payg',
+                    "tier": u.subscription_tier or 'freemium',
                     "tier_expires_at": u.tier_expires_at,
                     "credits": float(u.credits or 0),
                     "created_at": u.created_at.isoformat() if u.created_at else None
@@ -126,17 +126,17 @@ async def set_user_tier(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        valid_tiers = ["payg", "starter", "pro", "custom"]
+        valid_tiers = ["freemium", "payg", "pro", "custom"]
         if request.tier not in valid_tiers:
             raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
         
         if request.duration_days < 1 or request.duration_days > 365:
             raise HTTPException(status_code=400, detail="Duration must be between 1 and 365 days")
         
-        old_tier = getattr(user, 'tier_id', 'payg') or 'payg'
-        user.tier_id = request.tier
+        old_tier = user.subscription_tier or 'freemium'
+        user.subscription_tier = request.tier
         
-        if request.tier != "payg":
+        if request.tier != "freemium":
             user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
         else:
             user.tier_expires_at = None
@@ -167,7 +167,7 @@ async def bulk_update_tier(
 ):
     """Update tier for multiple users at once."""
     try:
-        valid_tiers = ["payg", "starter", "pro", "custom"]
+        valid_tiers = ["freemium", "payg", "pro", "custom"]
         if request.tier not in valid_tiers:
             raise HTTPException(status_code=400, detail=f"Invalid tier: {request.tier}")
         
@@ -180,8 +180,8 @@ async def bulk_update_tier(
         
         updated_count = 0
         for user in users:
-            user.tier_id = request.tier
-            if request.tier != "payg":
+            user.subscription_tier = request.tier
+            if request.tier != "freemium":
                 user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
             else:
                 user.tier_expires_at = None
@@ -216,7 +216,7 @@ async def get_user_tier(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        tier = getattr(user, 'tier_id', 'payg') or 'payg'
+        tier = user.subscription_tier or 'freemium'
         tier_config = TierConfig.get_tier_config(tier, db)
         
         return {
@@ -249,24 +249,24 @@ async def reset_user_tier(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db)
 ):
-    """Reset user to Pay-As-You-Go tier."""
+    """Reset user to Freemium tier."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        old_tier = getattr(user, 'tier_id', 'payg') or 'payg'
-        user.tier_id = "payg"
+        old_tier = user.subscription_tier or 'freemium'
+        user.subscription_tier = "freemium"
         user.tier_expires_at = None
         
         db.commit()
-        logger.info(f"Admin {admin_id} reset user {user_id} from {old_tier} to payg")
+        logger.info(f"Admin {admin_id} reset user {user_id} from {old_tier} to freemium")
         
         return {
             "success": True,
-            "message": f"User tier reset from {old_tier} to Pay-As-You-Go",
+            "message": f"User tier reset from {old_tier} to Freemium",
             "user_id": user_id,
-            "new_tier": "payg"
+            "new_tier": "freemium"
         }
     except HTTPException:
         raise
@@ -300,7 +300,7 @@ async def get_expiring_tiers(
                 {
                     "id": u.id,
                     "email": u.email,
-                    "tier": getattr(u, 'tier_id', 'payg') or 'payg',
+                    "tier": u.subscription_tier or 'freemium',
                     "expires_at": u.tier_expires_at.isoformat() if u.tier_expires_at else None,
                     "days_until_expiry": (u.tier_expires_at - now).days if u.tier_expires_at else None
                 }
@@ -325,9 +325,9 @@ async def extend_tier_expiry(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         
-        tier = getattr(user, 'tier_id', 'payg') or 'payg'
-        if tier == "payg":
-            raise HTTPException(status_code=400, detail="Cannot extend Pay-As-You-Go tier")
+        tier = user.subscription_tier or 'freemium'
+        if tier == "freemium":
+            raise HTTPException(status_code=400, detail="Cannot extend Freemium tier")
         
         old_expiry = user.tier_expires_at
         if user.tier_expires_at:

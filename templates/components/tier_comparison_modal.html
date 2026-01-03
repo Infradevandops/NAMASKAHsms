@@ -1,0 +1,536 @@
+<!-- Enhanced Tier Comparison Modal -->
+<style>
+.tier-compare-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+.tier-compare-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.tier-compare-modal {
+    background: var(--bg-card, #252540);
+    border-radius: 16px;
+    width: 100%;
+    max-width: 1000px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+}
+
+.tier-compare-overlay.active .tier-compare-modal {
+    transform: translateY(0) scale(1);
+}
+
+.tier-compare-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border-color, #333);
+    position: sticky;
+    top: 0;
+    background: var(--bg-card, #252540);
+    z-index: 10;
+}
+
+.tier-compare-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+}
+
+.tier-compare-close {
+    background: none;
+    border: none;
+    color: var(--text-muted, #888);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.tier-compare-close:hover {
+    color: var(--text-primary, white);
+}
+
+.tier-compare-body {
+    padding: 32px;
+}
+
+/* Tier Cards Grid */
+.tier-compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.tier-compare-card {
+    background: var(--bg-body, #1a1a2e);
+    border-radius: 12px;
+    padding: 24px;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tier-compare-card:hover {
+    transform: translateY(-4px);
+}
+
+.tier-compare-card.current {
+    border-color: var(--primary, #667eea);
+}
+
+.tier-compare-card.current::before {
+    content: 'Current Plan';
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary, #667eea);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 12px;
+    text-transform: uppercase;
+}
+
+.tier-compare-card-freemium { border-color: var(--tier-freemium, #10B981); }
+.tier-compare-card-payg { border-color: var(--tier-payg, #3B82F6); }
+.tier-compare-card-pro { border-color: var(--tier-pro, #F59E0B); }
+.tier-compare-card-custom { border-color: var(--tier-custom, #8B5CF6); }
+
+.tier-compare-card-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+    margin-bottom: 8px;
+}
+
+.tier-compare-card-price {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+    margin-bottom: 4px;
+}
+
+.tier-compare-card-price span {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted, #888);
+}
+
+.tier-compare-card-desc {
+    font-size: 13px;
+    color: var(--text-muted, #888);
+    margin-bottom: 20px;
+    min-height: 40px;
+}
+
+.tier-compare-card-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+}
+
+.tier-compare-card-btn-freemium {
+    background: var(--tier-freemium, #10B981);
+    color: white;
+}
+
+.tier-compare-card-btn-payg {
+    background: var(--tier-payg, #3B82F6);
+    color: white;
+}
+
+.tier-compare-card-btn-pro {
+    background: var(--tier-pro, #F59E0B);
+    color: white;
+}
+
+.tier-compare-card-btn-custom {
+    background: var(--tier-custom, #8B5CF6);
+    color: white;
+}
+
+.tier-compare-card-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.tier-compare-card-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Feature Comparison Table */
+.tier-compare-table-container {
+    overflow-x: auto;
+}
+
+.tier-compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.tier-compare-table th,
+.tier-compare-table td {
+    padding: 16px;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color, #333);
+}
+
+.tier-compare-table th {
+    background: var(--bg-body, #1a1a2e);
+    font-weight: 600;
+    color: var(--text-primary, white);
+    position: sticky;
+    top: 0;
+}
+
+.tier-compare-table th:first-child,
+.tier-compare-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+}
+
+.tier-compare-table td:first-child {
+    color: var(--text-secondary, #ccc);
+}
+
+.tier-compare-table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.tier-compare-check {
+    color: var(--tier-freemium, #10B981);
+    font-size: 18px;
+}
+
+.tier-compare-cross {
+    color: var(--text-muted, #666);
+    font-size: 18px;
+}
+
+.tier-compare-value {
+    color: var(--text-primary, white);
+    font-weight: 500;
+}
+
+/* Section Headers */
+.tier-compare-section {
+    margin-bottom: 32px;
+}
+
+.tier-compare-section-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary, white);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Footer */
+.tier-compare-footer {
+    padding: 24px 32px;
+    border-top: 1px solid var(--border-color, #333);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.tier-compare-footer-text {
+    font-size: 14px;
+    color: var(--text-muted, #888);
+}
+
+.tier-compare-footer-text a {
+    color: var(--primary, #667eea);
+    text-decoration: none;
+}
+
+.tier-compare-footer-text a:hover {
+    text-decoration: underline;
+}
+
+.tier-compare-footer-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tier-compare-footer-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color, #333);
+    color: var(--text-secondary, #ccc);
+}
+
+.tier-compare-footer-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tier-compare-footer-btn-primary {
+    background: var(--primary, #667eea);
+    border: none;
+    color: white;
+}
+
+.tier-compare-footer-btn-primary:hover {
+    background: var(--primary-dark, #5a6fd6);
+}
+</style>
+
+<div id="tier-compare-modal" 
+     class="tier-compare-overlay" 
+     role="dialog" 
+     aria-modal="true" 
+     aria-labelledby="tier-compare-title">
+    <div class="tier-compare-modal">
+        <div class="tier-compare-header">
+            <h2 class="tier-compare-title" id="tier-compare-title">Compare Plans</h2>
+            <button class="tier-compare-close" onclick="closeTierCompareModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="tier-compare-body">
+            <!-- Tier Cards -->
+            <div class="tier-compare-section">
+                <div class="tier-compare-grid" id="tier-compare-cards">
+                    <!-- Cards loaded dynamically -->
+                </div>
+            </div>
+            
+            <!-- Feature Comparison Table -->
+            <div class="tier-compare-section">
+                <h3 class="tier-compare-section-title">📋 Feature Comparison</h3>
+                <div class="tier-compare-table-container">
+                    <table class="tier-compare-table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Freemium</th>
+                                <th>Pay-As-You-Go</th>
+                                <th>Pro</th>
+                                <th>Custom</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SMS Verification</td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Web Dashboard</td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>API Access</td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Voice Verification</td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Area Code Selection</td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>ISP Filtering</td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Bulk Purchase Discounts</td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-cross">✗</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                                <td><span class="tier-compare-check">✓</span></td>
+                            </tr>
+                            <tr>
+                                <td>Monthly Quota</td>
+                                <td><span class="tier-compare-value">$0</span></td>
+                                <td><span class="tier-compare-value">$100</span></td>
+                                <td><span class="tier-compare-value">$500</span></td>
+                                <td><span class="tier-compare-value">Custom</span></td>
+                            </tr>
+                            <tr>
+                                <td>API Keys</td>
+                                <td><span class="tier-compare-value">0</span></td>
+                                <td><span class="tier-compare-value">5</span></td>
+                                <td><span class="tier-compare-value">20</span></td>
+                                <td><span class="tier-compare-value">Unlimited</span></td>
+                            </tr>
+                            <tr>
+                                <td>Support Level</td>
+                                <td><span class="tier-compare-value">Community</span></td>
+                                <td><span class="tier-compare-value">Email</span></td>
+                                <td><span class="tier-compare-value">Priority</span></td>
+                                <td><span class="tier-compare-value">Dedicated</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="tier-compare-footer">
+            <div class="tier-compare-footer-text">
+                Need help choosing? <a href="/support">Contact our sales team</a>
+            </div>
+            <div style="display: flex; gap: 12px;">
+                <button class="tier-compare-footer-btn tier-compare-footer-btn-secondary" onclick="closeTierCompareModal()">Close</button>
+                <button class="tier-compare-footer-btn tier-compare-footer-btn-primary" onclick="window.location.href='/pricing'">View Full Pricing</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let tierCompareCurrentTier = 'freemium';
+
+async function showTierCompareModal(currentTier) {
+    tierCompareCurrentTier = currentTier || 'freemium';
+    const modal = document.getElementById('tier-compare-modal');
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Load tier cards
+    await loadTierCompareCards();
+    
+    // Add keyboard listener
+    document.addEventListener('keydown', handleTierCompareKeydown);
+}
+
+function closeTierCompareModal() {
+    const modal = document.getElementById('tier-compare-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleTierCompareKeydown);
+}
+
+async function loadTierCompareCards() {
+    const container = document.getElementById('tier-compare-cards');
+    
+    const tiers = [
+        {
+            code: 'freemium',
+            name: 'Freemium',
+            price: 'Free',
+            period: '',
+            description: 'Perfect for trying out our service',
+            btnClass: 'tier-compare-card-btn-freemium'
+        },
+        {
+            code: 'payg',
+            name: 'Pay-As-You-Go',
+            price: '$0',
+            period: '+ usage',
+            description: 'Pay only for what you use with API access',
+            btnClass: 'tier-compare-card-btn-payg'
+        },
+        {
+            code: 'pro',
+            name: 'Pro',
+            price: '$99',
+            period: '/month',
+            description: 'Advanced features for growing businesses',
+            btnClass: 'tier-compare-card-btn-pro'
+        },
+        {
+            code: 'custom',
+            name: 'Custom',
+            price: 'Contact',
+            period: '',
+            description: 'Enterprise solutions with dedicated support',
+            btnClass: 'tier-compare-card-btn-custom'
+        }
+    ];
+    
+    container.innerHTML = tiers.map(tier => {
+        const isCurrent = tier.code === tierCompareCurrentTier;
+        const cardClass = `tier-compare-card tier-compare-card-${tier.code}${isCurrent ? ' current' : ''}`;
+        const btnText = isCurrent ? 'Current Plan' : (tier.code === 'custom' ? 'Contact Sales' : 'Select Plan');
+        const btnDisabled = isCurrent ? 'disabled' : '';
+        
+        return `
+            <div class="${cardClass}">
+                <div class="tier-compare-card-name">${tier.name}</div>
+                <div class="tier-compare-card-price">${tier.price}<span>${tier.period}</span></div>
+                <div class="tier-compare-card-desc">${tier.description}</div>
+                <button class="tier-compare-card-btn ${tier.btnClass}" ${btnDisabled} onclick="selectTierPlan('${tier.code}')">
+                    ${btnText}
+                </button>
+            </div>
+        `;
+    }).join('');
+}
+
+function selectTierPlan(tierCode) {
+    if (tierCode === 'custom') {
+        window.location.href = '/support?subject=Enterprise%20Plan';
+    } else {
+        window.location.href = `/pricing?plan=${tierCode}`;
+    }
+}
+
+function handleTierCompareKeydown(e) {
+    if (e.key === 'Escape') {
+        closeTierCompareModal();
+    }
+}
+
+// Export for global use
+window.showTierCompareModal = showTierCompareModal;
+window.closeTierCompareModal = closeTierCompareModal;
+</script>

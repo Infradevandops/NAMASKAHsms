@@ -78,7 +78,7 @@ async def request_verification(
         from app.services.pricing_calculator import PricingCalculator
         
         calculator = PricingCalculator(db)
-        user_tier = getattr(user, 'tier_id', 'payg') or 'payg'
+        user_tier = user.subscription_tier or 'freemium'
         
         # Get pricing for this SMS
         pricing_info = calculator.calculate_sms_cost(user_id, user_tier)

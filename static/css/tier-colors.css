@@ -1,0 +1,343 @@
+/**
+ * Tier System Color Standards
+ * 
+ * Standardized colors for tier badges and UI elements
+ * 
+ * Tier Colors:
+ * - Freemium: Green (#10B981)
+ * - PayG: Blue (#3B82F6)
+ * - Pro: Orange (#F59E0B)
+ * - Custom: Purple (#8B5CF6)
+ */
+
+:root {
+    /* Tier Colors */
+    --tier-freemium: #10B981;
+    --tier-freemium-light: rgba(16, 185, 129, 0.1);
+    --tier-freemium-dark: #059669;
+    
+    --tier-payg: #3B82F6;
+    --tier-payg-light: rgba(59, 130, 246, 0.1);
+    --tier-payg-dark: #2563EB;
+    
+    --tier-pro: #F59E0B;
+    --tier-pro-light: rgba(245, 158, 11, 0.1);
+    --tier-pro-dark: #D97706;
+    
+    --tier-custom: #8B5CF6;
+    --tier-custom-light: rgba(139, 92, 246, 0.1);
+    --tier-custom-dark: #7C3AED;
+}
+
+/* Tier Badge Base Styles */
+.tier-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Tier Badge Variants */
+.tier-badge-freemium,
+.tier-badge[data-tier="freemium"] {
+    background: var(--tier-freemium-light);
+    color: var(--tier-freemium);
+    border: 1px solid var(--tier-freemium);
+}
+
+.tier-badge-payg,
+.tier-badge[data-tier="payg"] {
+    background: var(--tier-payg-light);
+    color: var(--tier-payg);
+    border: 1px solid var(--tier-payg);
+}
+
+.tier-badge-pro,
+.tier-badge[data-tier="pro"] {
+    background: var(--tier-pro-light);
+    color: var(--tier-pro);
+    border: 1px solid var(--tier-pro);
+}
+
+.tier-badge-custom,
+.tier-badge[data-tier="custom"] {
+    background: var(--tier-custom-light);
+    color: var(--tier-custom);
+    border: 1px solid var(--tier-custom);
+}
+
+/* Solid Badge Variants */
+.tier-badge-solid.tier-badge-freemium,
+.tier-badge-solid[data-tier="freemium"] {
+    background: var(--tier-freemium);
+    color: white;
+    border: none;
+}
+
+.tier-badge-solid.tier-badge-payg,
+.tier-badge-solid[data-tier="payg"] {
+    background: var(--tier-payg);
+    color: white;
+    border: none;
+}
+
+.tier-badge-solid.tier-badge-pro,
+.tier-badge-solid[data-tier="pro"] {
+    background: var(--tier-pro);
+    color: white;
+    border: none;
+}
+
+.tier-badge-solid.tier-badge-custom,
+.tier-badge-solid[data-tier="custom"] {
+    background: var(--tier-custom);
+    color: white;
+    border: none;
+}
+
+/* Tier Card Styles */
+.tier-card {
+    border-radius: 12px;
+    padding: 24px;
+    background: var(--bg-card, #252540);
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.tier-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.tier-card-freemium,
+.tier-card[data-tier="freemium"] {
+    border-color: var(--tier-freemium);
+}
+
+.tier-card-freemium:hover,
+.tier-card[data-tier="freemium"]:hover {
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.2);
+}
+
+.tier-card-payg,
+.tier-card[data-tier="payg"] {
+    border-color: var(--tier-payg);
+}
+
+.tier-card-payg:hover,
+.tier-card[data-tier="payg"]:hover {
+    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+}
+
+.tier-card-pro,
+.tier-card[data-tier="pro"] {
+    border-color: var(--tier-pro);
+}
+
+.tier-card-pro:hover,
+.tier-card[data-tier="pro"]:hover {
+    box-shadow: 0 8px 24px rgba(245, 158, 11, 0.2);
+}
+
+.tier-card-custom,
+.tier-card[data-tier="custom"] {
+    border-color: var(--tier-custom);
+}
+
+.tier-card-custom:hover,
+.tier-card[data-tier="custom"]:hover {
+    box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
+}
+
+/* Tier Card Header */
+.tier-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.tier-card-name {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+}
+
+.tier-card-price {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+}
+
+.tier-card-price-period {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-muted, #888);
+}
+
+/* Tier Feature List */
+.tier-features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 24px 0;
+}
+
+.tier-feature {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 0;
+    font-size: 14px;
+    color: var(--text-secondary, #ccc);
+}
+
+.tier-feature-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.tier-feature-available .tier-feature-icon {
+    color: var(--tier-freemium);
+}
+
+.tier-feature-unavailable {
+    color: var(--text-muted, #666);
+}
+
+.tier-feature-unavailable .tier-feature-icon {
+    color: var(--text-muted, #666);
+}
+
+/* Tier Button Styles */
+.tier-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    width: 100%;
+}
+
+.tier-btn-freemium {
+    background: var(--tier-freemium);
+    color: white;
+}
+
+.tier-btn-freemium:hover {
+    background: var(--tier-freemium-dark);
+}
+
+.tier-btn-payg {
+    background: var(--tier-payg);
+    color: white;
+}
+
+.tier-btn-payg:hover {
+    background: var(--tier-payg-dark);
+}
+
+.tier-btn-pro {
+    background: var(--tier-pro);
+    color: white;
+}
+
+.tier-btn-pro:hover {
+    background: var(--tier-pro-dark);
+}
+
+.tier-btn-custom {
+    background: var(--tier-custom);
+    color: white;
+}
+
+.tier-btn-custom:hover {
+    background: var(--tier-custom-dark);
+}
+
+/* Current Tier Indicator */
+.tier-current {
+    position: relative;
+}
+
+.tier-current::after {
+    content: 'Current Plan';
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--primary, #667eea);
+    color: white;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+
+/* Tier Progress Bar */
+.tier-progress {
+    height: 8px;
+    background: var(--bg-body, #1a1a2e);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.tier-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.tier-progress-freemium .tier-progress-fill {
+    background: var(--tier-freemium);
+}
+
+.tier-progress-payg .tier-progress-fill {
+    background: var(--tier-payg);
+}
+
+.tier-progress-pro .tier-progress-fill {
+    background: var(--tier-pro);
+}
+
+.tier-progress-custom .tier-progress-fill {
+    background: var(--tier-custom);
+}
+
+/* Warning states for quota */
+.tier-progress-warning .tier-progress-fill {
+    background: #F59E0B;
+}
+
+.tier-progress-danger .tier-progress-fill {
+    background: #EF4444;
+}
+
+/* Tier Icon Colors */
+.tier-icon-freemium { color: var(--tier-freemium); }
+.tier-icon-payg { color: var(--tier-payg); }
+.tier-icon-pro { color: var(--tier-pro); }
+.tier-icon-custom { color: var(--tier-custom); }
+
+/* Tier Text Colors */
+.tier-text-freemium { color: var(--tier-freemium); }
+.tier-text-payg { color: var(--tier-payg); }
+.tier-text-pro { color: var(--tier-pro); }
+.tier-text-custom { color: var(--tier-custom); }
+
+/* Tier Background Colors */
+.tier-bg-freemium { background-color: var(--tier-freemium-light); }
+.tier-bg-payg { background-color: var(--tier-payg-light); }
+.tier-bg-pro { background-color: var(--tier-pro-light); }
+.tier-bg-custom { background-color: var(--tier-custom-light); }

@@ -75,6 +75,7 @@ coverage.xml
 # Pytest
 .pytest_cache/
 .mypy_cache/
+.hypothesis/
 
 # Backup files
 *.bak
@@ -107,6 +108,11 @@ unicorn.log
 
 # Documentation build
 docs/_build/
+
+# Relative docs - Deprecated/Consolidated
+/docs/PRICING_FINAL_STRUCTURE.md
+/docs/TIER_API_DOCUMENTATION.md
+/docs/TIER_MANAGEMENT_GUIDE.md
 
 # Relative paths - Build artifacts
 /htmlcov/
@@ -200,7 +206,7 @@ screenshots/
 images/test/
 
 # Temporary fix/migration scripts
-# Task and planning documents
+# Task and planning documents (root directory)
 *TASKS*.md
 *TASK*.md
 *TODO*.md
@@ -211,10 +217,28 @@ images/test/
 *EXPLANATION*.md
 *APPROACH*.md
 *FIX*.md
+*ASSESSMENT*.md
+*AUDIT*.md
+*COMPLETE*.md
+*CREDENTIALS*.md
+*TESTING*.md
+MASTER_*.md
+FINAL_*.md
+WEEK_*.md
+TIER_SYSTEM_*.md
+FRONTEND_*.md
+SERVER_*.md
+
+# Task and planning documents (docs directory)
 docs/TEMPLATE_*.md
 docs/USER_FLOWS*.md
 docs/NOTIFICATION_*.md
 docs/ACCEPTANCE_*.md
+docs/ROADMAP.md
+docs/MIGRATION_GUIDE.md
+docs/I18N_IMPLEMENTATION.md
+docs/TIER_SYSTEM_EXECUTION_GUIDE.md
+docs/BILLING_HISTORY.md
 
 # Server management
 .server.pid
@@ -224,3 +248,5 @@ logs/
 # Cleanup scripts
 cleanup_project.sh
 CLEANUP_SUMMARY.md
+fix_*.py
+migrate_*.py

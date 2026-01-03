@@ -3,6 +3,7 @@ Enhanced Analytics API with Real-time Calculations
 Fixes all calculation issues and provides live data
 """
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, and_
@@ -15,6 +16,8 @@ from app.models.user import User
 from app.models.verification import Verification
 from app.models.transaction import Transaction
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 @router.get("/summary")
@@ -25,6 +28,7 @@ async def get_analytics_summary(
     """
     Get real-time analytics summary with correct calculations
     """
+    logger.info(f"Analytics summary requested by user_id: {current_user.id}, tier: {current_user.subscription_tier or 'freemium'}")
     try:
         # Get all user verifications
         verifications = db.query(Verification).filter(
@@ -80,6 +84,8 @@ async def get_analytics_summary(
             )
         ).scalar() or 0)
         
+        logger.info(f"Analytics summary calculated for user {current_user.id}: total={total_verifications}, successful={successful_verifications}, rate={success_rate:.2%}")
+        
         return {
             "total_verifications": total_verifications,
             "successful_verifications": successful_verifications,
@@ -96,6 +102,7 @@ async def get_analytics_summary(
         }
         
     except Exception as e:
+        logger.error(f"Analytics calculation failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Analytics calculation failed: {str(e)}")
 
 @router.get("/real-time-stats")
@@ -106,6 +113,7 @@ async def get_real_time_stats(
     """
     Get real-time statistics for dashboard updates
     """
+    logger.debug(f"Real-time stats requested by user_id: {current_user.id}")
     try:
         # Get current balance
         current_balance = current_user.credits or 0
@@ -134,6 +142,8 @@ async def get_real_time_stats(
         
         last_status = last_verification.status if last_verification else None
         
+        logger.debug(f"Real-time stats for user {current_user.id}: balance={current_balance}, pending={pending_count}, today={today_verifications}")
+        
         return {
             "balance": current_balance,
             "pending_verifications": pending_count,
@@ -143,6 +153,7 @@ async def get_real_time_stats(
         }
         
     except Exception as e:
+        logger.error(f"Real-time stats failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Real-time stats failed: {str(e)}")
 
 @router.get("/status-updates")
@@ -153,6 +164,7 @@ async def get_status_updates(
     """
     Get status updates for all pending verifications
     """
+    logger.debug(f"Status updates requested by user_id: {current_user.id}")
     try:
         pending_verifications = db.query(Verification).filter(
             and_(
@@ -172,6 +184,8 @@ async def get_status_updates(
                 "updated_at": verification.updated_at.isoformat() if verification.updated_at else None
             })
         
+        logger.debug(f"Status updates for user {current_user.id}: {len(updates)} pending verifications")
+        
         return {
             "updates": updates,
             "count": len(updates),
@@ -179,4 +193,5 @@ async def get_status_updates(
         }
         
     except Exception as e:
+        logger.error(f"Status updates failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Status updates failed: {str(e)}")

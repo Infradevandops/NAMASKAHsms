@@ -5,6 +5,8 @@
 
 {% block head_extra %}
 {{ super() }}
+<link rel="stylesheet" href="/static/css/loading-animations.css">
+<link rel="stylesheet" href="/static/css/tier-colors.css">
 <style>
     .settings-container {
         display: flex;
@@ -183,7 +185,8 @@
         <button class="settings-nav-item active" onclick="switchTab('account')">Account</button>
         <button class="settings-nav-item" onclick="switchTab('security')">Security</button>
         <button class="settings-nav-item" onclick="switchTab('notifications')">Notifications</button>
-        <button class="settings-nav-item" onclick="switchTab('api-keys')">API Keys</button>
+        <button class="settings-nav-item" onclick="switchTab('billing')">Billing</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys')" style="display: none;">API Keys</button>
     </nav>
 
     <div class="settings-content">
@@ -244,7 +247,7 @@
         </div>
 
         <!-- API Keys Tab -->
-        <div id="api-keys-tab" class="settings-tab">
+        <div id="api-keys-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h2>API Keys</h2>
@@ -252,7 +255,33 @@
                 </div>
                 <div id="api-keys-list">
                     <!-- Keys injected via JS -->
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">Loading keys...</div>
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span class="loading-spinner"></span> Loading keys...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div id="billing-tab" class="settings-tab">
+            <div class="card">
+                <h2>Billing & Subscription</h2>
+                <div id="billing-current-tier" style="margin-bottom: 24px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm);">
+                        <div>
+                            <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span class="loading-spinner"></span> Loading...</div>
+                            <div style="color: var(--text-muted); font-size: 14px;" id="billing-tier-features">Loading tier features...</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.location.href='/pricing'" id="billing-upgrade-btn">Upgrade</button>
+                    </div>
+                </div>
+                
+                <h3 style="margin-bottom: 16px;">Available Plans</h3>
+                <div id="billing-plans" style="display: grid; gap: 16px;">
+                    <!-- Plans loaded via JS -->
+                </div>
+                
+                <h3 style="margin-top: 32px; margin-bottom: 16px;">Billing History</h3>
+                <div id="billing-history">
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">No billing history available.</div>
                 </div>
             </div>
         </div>
@@ -260,70 +289,268 @@
 </div>
 
 {% include "components/modal.html" %}
+{% include "components/api_key_modal.html" %}
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/frontend-logger.js"></script>
+<script src="/static/js/api-retry.js"></script>
+<script src="/static/js/skeleton-loader.js"></script>
+<script src="/static/js/error-messages.js"></script>
 <script>
-    async function loadUserData() {
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Tier hierarchy for access checks
+    const TIER_HIERARCHY = {
+        'freemium': 0,
+        'payg': 1,
+        'pro': 2,
+        'custom': 3
+    };
+
+    const TIER_DISPLAY_NAMES = {
+        'freemium': 'Freemium',
+        'payg': 'Pay-As-You-Go',
+        'pro': 'Pro',
+        'custom': 'Custom'
+    };
+
+    let currentUserTier = 'freemium';
+
+    function hasTierAccess(userTier, requiredTier) {
+        const userLevel = TIER_HIERARCHY[userTier] || 0;
+        const requiredLevel = TIER_HIERARCHY[requiredTier] || 0;
+        return userLevel >= requiredLevel;
+    }
+
+    async function loadUserTierForSettings() {
+        FrontendLogger.info('[Settings] Loading user tier...');
         try {
             const token = localStorage.getItem('access_token');
-            if (!token) return;
+            if (!token) {
+                FrontendLogger.warn('[Settings] No access token found');
+                return;
+            }
 
-            // Load basic profile
-            const userRes = await fetch('/api/auth/me', {
+            FrontendLogger.logApiCall('GET', '/api/tiers/current');
+            const response = await ApiRetry.fetchWithRetry('/api/tiers/current', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (userRes.ok) {
-                const user = await userRes.json();
-                document.getElementById('account-email').value = user.email;
-                document.getElementById('account-id').value = user.id;
-                document.getElementById('account-created').value = new Date(user.created_at).toLocaleDateString();
+            FrontendLogger.logApiResponse('GET', '/api/tiers/current', response.status);
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUserTier = data.current_tier || 'freemium';
+                
+                FrontendLogger.info('[Settings] User tier loaded', { tier: currentUserTier });
+                
+                // Update billing tab
+                document.getElementById('billing-tier-name').textContent = TIER_DISPLAY_NAMES[currentUserTier] || currentUserTier;
+                document.getElementById('billing-tier-features').textContent = `Current plan: ${TIER_DISPLAY_NAMES[currentUserTier]}`;
+                
+                // Hide upgrade button for custom tier
+                if (currentUserTier === 'custom') {
+                    document.getElementById('billing-upgrade-btn').style.display = 'none';
+                }
+            }
+        } catch (error) {
+            FrontendLogger.error('[Settings] Failed to load user tier', { error: error.message, stack: error.stack });
+            console.error('[Settings] Failed to load user tier:', error);
+        }
+
+        updateSettingsTabVisibility(currentUserTier);
+    }
+
+    function updateSettingsTabVisibility(userTier) {
+        const tierGatedTabs = document.querySelectorAll('.tier-gated-tab');
+        
+        tierGatedTabs.forEach(tab => {
+            const requiredTier = tab.dataset.minTier || 'payg';
+            const hasAccess = hasTierAccess(userTier, requiredTier);
+            tab.style.display = hasAccess ? 'block' : 'none';
+        });
+
+        console.log('[Settings] Updated tab visibility for tier:', userTier);
+    }
+
+    async function loadUserData() {
+        FrontendLogger.info('[Settings] Loading user data...');
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                FrontendLogger.warn('[Settings] No access token found');
+                console.warn('[Settings] No access token found');
+                showAccountError('Please log in to view settings');
+                return;
+            }
+
+            // Load basic profile
+            try {
+                FrontendLogger.logApiCall('GET', '/api/auth/me');
+                const userRes = await ApiRetry.fetchWithRetry('/api/auth/me', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                FrontendLogger.logApiResponse('GET', '/api/auth/me', userRes.status);
+                
+                if (userRes.ok) {
+                    const user = await userRes.json();
+                    FrontendLogger.info('[Settings] User profile loaded', { email: user.email });
+                    document.getElementById('account-email').value = user.email || '';
+                    document.getElementById('account-id').value = user.id || '';
+                    document.getElementById('account-created').value = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown';
+                } else {
+                    FrontendLogger.warn('[Settings] Failed to load user profile', { status: userRes.status });
+                    console.warn('[Settings] Failed to load user profile:', userRes.status);
+                    showAccountError('Unable to load profile');
+                }
+            } catch (e) {
+                FrontendLogger.error('[Settings] Error loading profile', { error: e.message, stack: e.stack });
+                console.error('[Settings] Error loading profile:', e);
+                showAccountError('Error loading profile');
             }
 
             // Load Settings
-            const settingsRes = await fetch('/api/user/settings', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (settingsRes.ok) {
-                const settings = await settingsRes.json();
-                document.getElementById('notify-email').checked = settings.email_notifications;
-                document.getElementById('notify-sms').checked = settings.sms_alerts;
+            try {
+                FrontendLogger.logApiCall('GET', '/api/user/settings');
+                const settingsRes = await ApiRetry.fetchWithRetry('/api/user/settings', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                FrontendLogger.logApiResponse('GET', '/api/user/settings', settingsRes.status);
+                
+                if (settingsRes.ok) {
+                    const settings = await settingsRes.json();
+                    FrontendLogger.info('[Settings] User settings loaded');
+                    document.getElementById('notify-email').checked = settings.email_notifications || false;
+                    document.getElementById('notify-sms').checked = settings.sms_alerts || false;
+                }
+            } catch (e) {
+                FrontendLogger.error('[Settings] Error loading settings', { error: e.message, stack: e.stack });
+                console.error('[Settings] Error loading settings:', e);
             }
 
-            // Load API Keys
-            loadApiKeys();
+            // Load user tier for tab visibility
+            await loadUserTierForSettings();
+
+            // Load API Keys (only if user has access)
+            if (hasTierAccess(currentUserTier, 'payg')) {
+                loadApiKeys();
+            }
+
+            // Load billing plans
+            loadBillingPlans();
 
         } catch (e) {
-            console.error("Failed to load user data:", e);
+            FrontendLogger.error('[Settings] Failed to load user data', { error: e.message, stack: e.stack });
+            console.error("[Settings] Failed to load user data:", e);
+            showAccountError('Failed to load settings');
+        }
+    }
+
+    function showAccountError(message) {
+        document.getElementById('account-email').value = 'Error';
+        document.getElementById('account-id').value = message;
+        document.getElementById('account-created').value = '';
+    }
+
+    async function loadBillingPlans() {
+        FrontendLogger.info('[Settings] Loading billing plans...');
+        const container = document.getElementById('billing-plans');
+        try {
+            const token = localStorage.getItem('access_token');
+            FrontendLogger.logApiCall('GET', '/api/tiers/');
+            const res = await ApiRetry.fetchWithRetry('/api/tiers/', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            FrontendLogger.logApiResponse('GET', '/api/tiers/', res.status);
+
+            if (res.ok) {
+                const data = await res.json();
+                const tiers = data.tiers || data;
+                
+                FrontendLogger.info('[Settings] Billing plans loaded', { count: Array.isArray(tiers) ? tiers.length : 0 });
+                
+                if (!Array.isArray(tiers)) {
+                    container.innerHTML = '<div style="color: var(--text-muted); padding: 16px;">No plans available</div>';
+                    return;
+                }
+                
+                container.innerHTML = tiers.map(tier => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${tier.tier === currentUserTier || tier.tier_code === currentUserTier ? 'border: 2px solid var(--primary);' : ''}">
+                        <div>
+                            <div style="font-weight: 600;">${tier.name || tier.display_name || tier.tier_code}</div>
+                            <div style="color: var(--text-muted); font-size: 14px;">${tier.price_display || (tier.price_monthly === 0 ? 'Free' : '$' + tier.price_monthly + '/month')}</div>
+                        </div>
+                        ${(tier.tier === currentUserTier || tier.tier_code === currentUserTier) ? 
+                            '<span style="color: var(--primary); font-weight: 500;">Current Plan</span>' : 
+                            `<button class="btn btn-secondary" onclick="window.location.href='/pricing'" style="padding: 8px 16px;">View Details</button>`
+                        }
+                    </div>
+                `).join('');
+            } else {
+                container.innerHTML = '<div style="color: red; padding: 16px;">Failed to load plans</div>';
+            }
+        } catch (e) {
+            FrontendLogger.error('[Settings] Failed to load billing plans', { error: e.message, stack: e.stack });
+            console.error('[Settings] Failed to load billing plans:', e);
+            ErrorMessages.showError(container, e, {
+                retryCallback: loadBillingPlans,
+                compact: true
+            });
         }
     }
 
     async function loadApiKeys() {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/auth/api-keys', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-
+        FrontendLogger.info('[Settings] Loading API keys...');
         const container = document.getElementById('api-keys-list');
-        if (res.ok) {
-            const keys = await res.json();
-            if (keys.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No API keys found. Generate one to get started.</div>';
-                return;
-            }
+        try {
+            const token = localStorage.getItem('access_token');
+            FrontendLogger.logApiCall('GET', '/api/auth/api-keys');
+            const res = await ApiRetry.fetchWithRetry('/api/auth/api-keys', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            FrontendLogger.logApiResponse('GET', '/api/auth/api-keys', res.status);
 
-            container.innerHTML = keys.map(key => `
-            <div class="api-key-item">
-                <div>
-                    <div style="font-weight: 500">${key.name}</div>
-                    <div style="font-size: 12px; color: var(--text-muted)">Created: ${new Date(key.created_at).toLocaleDateString()}</div>
+            if (res.ok) {
+                const keys = await res.json();
+                FrontendLogger.info('[Settings] API keys loaded', { count: keys ? keys.length : 0 });
+                
+                if (!keys || keys.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No API keys found. Generate one to get started.</div>';
+                    return;
+                }
+
+                container.innerHTML = keys.map(key => `
+                <div class="api-key-item">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">${escapeHtml(key.name || 'API Key')}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); display: flex; gap: 16px;">
+                            <span>Created: ${key.created_at ? new Date(key.created_at).toLocaleDateString() : 'Unknown'}</span>
+                            ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : '<span>Never used</span>'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <span class="api-key-value">${escapeHtml(key.key_preview || '****')}</span>
+                        <button class="btn btn-secondary" onclick="deleteApiKey('${key.id}')" style="padding: 6px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ff4757; border: none;">Delete</button>
+                    </div>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <span class="api-key-value">${key.key_preview}</span>
-                    <button class="btn btn-secondary" onclick="deleteApiKey('${key.id}')" style="padding: 6px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ff4757; border: none;">Delete</button>
-                </div>
-            </div>
-        `).join('');
+            `).join('');
+            } else {
+                FrontendLogger.warn('[Settings] Failed to load API keys', { status: res.status });
+                container.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Failed to load API keys</div>';
+            }
+        } catch (e) {
+            FrontendLogger.error('[Settings] Failed to load API keys', { error: e.message, stack: e.stack });
+            console.error('[Settings] Failed to load API keys:', e);
+            ErrorMessages.showError(container, e, {
+                retryCallback: loadApiKeys,
+                compact: true
+            });
         }
     }
 
@@ -375,39 +602,8 @@
     }
 
     function generateApiKey() {
-        openModal({
-            title: "Generate API Key",
-            body: "Enter a name for your new API key (e.g., 'Development', 'Production').",
-            confirmText: "Generate",
-            onConfirm: async () => {
-                // We need an input for the name. For simplicity in this reusable modal, we might need a custom approach
-                // Since our modal template is simple text, let's just use a prompt for now or fetch default name
-                // To properly use the modal with input, we'd need to extend it. 
-                // For now, let's use a default name or simple prompt logic inside the confirm wrapper is tricky.
-                // Let's modify the flow:
-
-                // Actually, prompts are ugly. Let's create a key with a default name "New Key" + Date
-                const defaultName = "API Key " + new Date().toLocaleDateString();
-                const token = localStorage.getItem('access_token');
-
-                const res = await fetch('/api/auth/api-keys', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ name: defaultName })
-                });
-
-                if (!res.ok) throw new Error("Failed to generate key");
-                const newKey = await res.json();
-
-                // Show the Full Key ONCE
-                alert(`API Key Generated!\n\nSAVE THIS NOW, IT WON'T BE SHOWN AGAIN:\n\n${newKey.key}`);
-
-                loadApiKeys();
-            }
-        });
+        // Use the new API key modal
+        showApiKeyGenerateModal();
     }
 
     function deleteApiKey(keyId) {

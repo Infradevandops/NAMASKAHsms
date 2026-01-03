@@ -115,7 +115,13 @@ class AuthService(BaseService[User]):
         """Create API key for user."""
         raw_key = f"nsk_{generate_api_key()}"
         hashed_key = hash_password(raw_key)
-        api_key = APIKey(user_id=user_id, key=hashed_key, name=name)
+        key_preview = f"...{raw_key[-6:]}"  # Last 6 chars for display
+        api_key = APIKey(
+            user_id=user_id, 
+            key_hash=hashed_key, 
+            key_preview=key_preview,
+            name=name
+        )
         self.db.add(api_key)
         self.db.commit()
         self.db.refresh(api_key)
@@ -132,7 +138,7 @@ class AuthService(BaseService[User]):
         )
 
         for api_key in api_keys:
-            if verify_password(key, api_key.key):
+            if verify_password(key, api_key.key_hash):
                 return self.get_by_id(api_key.user_id)
 
         return None

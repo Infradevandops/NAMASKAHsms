@@ -4,17 +4,51 @@
 {% block page_subtitle %}<span data-i18n="dashboard.subtitle">Overview of your SMS verification activity</span>{% endblock %}
 
 {% block content %}
+<link rel="stylesheet" href="/static/css/loading-animations.css">
+<link rel="stylesheet" href="/static/css/tier-colors.css">
 <!-- Tier Information Card -->
 <div class="card" id="tier-card" style="margin-bottom: 24px;">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <div>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
+        <div style="flex: 1; min-width: 200px;">
             <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">Current Plan</div>
-            <div style="font-size: 24px; font-weight: 700; margin-bottom: 12px;" id="tier-name">Loading...</div>
-            <div id="tier-features" style="font-size: 14px; color: var(--text-muted);"></div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name"><span class="loading-spinner"></span> Loading...</div>
+            <div id="tier-price" style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;"></div>
+            <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);"></div>
         </div>
-        <button id="upgrade-btn" class="btn" style="display: none;" onclick="window.location.href='/pricing'">
-            <span data-i18n="dashboard.upgrade">Upgrade</span> →
-        </button>
+        <div style="display: flex; gap: 12px; align-items: flex-start;">
+            <button id="compare-plans-btn" class="btn btn-secondary" style="display: none;" onclick="showComparePlansModal()">Compare Plans</button>
+            <button id="upgrade-btn" class="btn btn-primary" style="display: none;" onclick="window.location.href='/pricing'">Upgrade</button>
+        </div>
+    </div>
+</div>
+
+<!-- Quota Usage (for subscribed users) -->
+<div class="card" id="quota-card" style="margin-bottom: 24px; display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div style="font-size: 14px; font-weight: 600;">Monthly Quota Usage</div>
+        <div id="quota-text" style="font-size: 14px; color: var(--text-muted);">$0.00 / $0.00</div>
+    </div>
+    <div style="background: var(--bg-body); border-radius: 8px; height: 8px; overflow: hidden;">
+        <div id="quota-fill" style="background: var(--primary); height: 100%; width: 0%; transition: width 0.3s;"></div>
+    </div>
+</div>
+
+<!-- API Usage Statistics (for subscribed users) -->
+<div class="card" id="api-stats-card" style="margin-bottom: 24px; display: none;">
+    <div style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">API Usage This Month</div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px;">
+        <div>
+            <div style="font-size: 12px; color: var(--text-muted);">API Calls</div>
+            <div style="font-size: 20px; font-weight: 700;" id="api-calls-count">0</div>
+        </div>
+        <div>
+            <div style="font-size: 12px; color: var(--text-muted);">SMS Sent</div>
+            <div style="font-size: 20px; font-weight: 700;" id="api-sms-count">0</div>
+        </div>
+        <div>
+            <div style="font-size: 12px; color: var(--text-muted);">API Keys</div>
+            <div style="font-size: 20px; font-weight: 700;" id="api-keys-count">0</div>
+        </div>
     </div>
 </div>
 
@@ -45,6 +79,13 @@
             <span data-i18n="dashboard.start_verification">Start Verification</span>
         </button>
     </div>
+    <div id="activity-loading" style="text-align: center; padding: 20px; color: var(--text-muted);">
+        <div class="skeleton-activity-table">
+            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+        </div>
+    </div>
     <table id="activity-table" style="width: 100%; border-collapse: collapse; display: none;">
         <thead>
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
@@ -57,139 +98,273 @@
         <tbody id="activity-body"></tbody>
     </table>
 </div>
+
+<!-- Compare Plans Modal -->
+{% include "components/tier_comparison_modal.html" %}
+
+{% include "components/tier_locked_modal.html" %}
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+<script src="/static/js/frontend-logger.js"></script>
+<script src="/static/js/tier-error-handler.js"></script>
+<script src="/static/js/response-validator.js"></script>
+<script src="/static/js/skeleton-loader.js"></script>
+<script src="/static/js/api-retry.js"></script>
+<script src="/static/js/error-messages.js"></script>
 <script>
+var TIER_DISPLAY_NAMES = {
+    'freemium': 'Freemium',
+    'payg': 'Pay-As-You-Go',
+    'pro': 'Pro',
+    'custom': 'Custom'
+};
+
+var TIER_FEATURES_MAP = {
+    'freemium': [
+        { text: 'Basic SMS verification', available: true },
+        { text: 'Web dashboard access', available: true },
+        { text: 'API access', available: false },
+        { text: 'Voice verification', available: false }
+    ],
+    'payg': [
+        { text: 'SMS verification', available: true },
+        { text: 'API access', available: true },
+        { text: 'Voice verification', available: true },
+        { text: 'Area code selection', available: true }
+    ],
+    'pro': [
+        { text: 'All Pay-As-You-Go features', available: true },
+        { text: 'Bulk purchase discounts', available: true },
+        { text: 'ISP filtering', available: true },
+        { text: 'Priority support', available: true }
+    ],
+    'custom': [
+        { text: 'All Pro features', available: true },
+        { text: 'Custom branding', available: true },
+        { text: 'Dedicated support', available: true },
+        { text: 'Volume discounts', available: true }
+    ]
+};
+
+var currentTierData = null;
+
 async function loadTierInfo() {
+    FrontendLogger.info('Loading tier information...');
     try {
-        const res = await fetch('/api/tiers/current', {
-            credentials: 'include'
-        });
+        FrontendLogger.logApiCall('GET', '/api/tiers/current');
+        var res = await ApiRetry.fetchWithRetry('/api/tiers/current', { credentials: 'include' });
+        FrontendLogger.logApiResponse('GET', '/api/tiers/current', res.status);
         
-        if (res.ok) {
-            const data = await res.json();
-            document.getElementById('tier-name').textContent = data.current_tier.toUpperCase();
-            document.getElementById('tier-features').textContent = `$${data.price_monthly}/mo • ${data.quota_usd} quota`;
-            if (data.current_tier !== 'custom') {
-                document.getElementById('upgrade-btn').style.display = 'block';
-            }
-        } else {
-            document.getElementById('tier-name').textContent = 'Freemium';
+        if (!res.ok) {
+            throw new Error('HTTP ' + res.status + ': ' + res.statusText);
+        }
+        var data = await res.json();
+        
+        // Validate response
+        var validation = validateCurrentTierResponse(data);
+        if (!validation.valid) {
+            FrontendLogger.warn('Tier response validation failed', { error: validation.error });
+            console.error('[Dashboard] Tier response validation failed:', validation.error);
+            showValidationError('Tier information is incomplete. ' + validation.error);
+            // Continue with partial data
+        }
+        
+        currentTierData = data;
+        var tierCode = data.current_tier || 'freemium';
+        var tierName = TIER_DISPLAY_NAMES[tierCode] || 'Unknown';
+        
+        FrontendLogger.logTierLoad(true, data);
+        
+        document.getElementById('tier-name').textContent = tierName;
+        
+        var priceEl = document.getElementById('tier-price');
+        if (data.price_monthly !== undefined) {
+            priceEl.textContent = data.price_monthly === 0 ? 'Free' : '$' + data.price_monthly + '/month';
+        }
+        
+        var features = TIER_FEATURES_MAP[tierCode] || [{ text: 'Basic features included', available: true }];
+        var featuresHtml = '';
+        for (var i = 0; i < features.length; i++) {
+            var f = features[i];
+            var icon = f.available ? '✓' : '✗';
+            var style = f.available ? '' : 'color: var(--text-muted);';
+            featuresHtml += '<div style="margin-bottom: 4px; ' + style + '">' + icon + ' ' + f.text + '</div>';
+        }
+        if (data.quota_usd > 0) {
+            featuresHtml += '<div style="margin-bottom: 4px;">✓ $' + data.quota_usd + ' monthly quota</div>';
+        }
+        document.getElementById('tier-features-list').innerHTML = featuresHtml;
+        
+        if (tierCode === 'freemium' || tierCode === 'payg') {
+            document.getElementById('upgrade-btn').style.display = 'block';
+            document.getElementById('compare-plans-btn').style.display = 'block';
+        } else if (tierCode === 'pro') {
+            document.getElementById('compare-plans-btn').style.display = 'block';
+        }
+        
+        if (tierCode !== 'freemium' && data.quota_usd > 0) {
+            document.getElementById('quota-card').style.display = 'block';
+            updateQuotaMeter(data);
+        }
+        
+        if (tierCode !== 'freemium') {
+            document.getElementById('api-stats-card').style.display = 'block';
+            updateApiStats(data);
         }
     } catch (error) {
+        FrontendLogger.logTierLoad(false, null, error);
         console.error('Tier load failed:', error);
-        document.getElementById('tier-name').textContent = 'Freemium';
+        document.getElementById('tier-name').textContent = 'Error';
+        var featuresEl = document.getElementById('tier-features-list');
+        ErrorMessages.showError(featuresEl, error, {
+            retryCallback: loadTierInfo,
+            compact: true
+        });
+        document.getElementById('upgrade-btn').style.display = 'block';
     }
 }
 
-async function loadAnalytics() {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
+function updateQuotaMeter(data) {
+    var quotaUsed = data.quota_used_usd || 0;
+    var quotaLimit = data.quota_usd || 0;
+    var percentage = quotaLimit > 0 ? Math.min((quotaUsed / quotaLimit) * 100, 100) : 0;
     
+    document.getElementById('quota-fill').style.width = percentage + '%';
+    document.getElementById('quota-text').textContent = '$' + quotaUsed.toFixed(2) + ' / $' + quotaLimit.toFixed(2);
+    
+    if (percentage > 80) document.getElementById('quota-fill').style.background = '#f59e0b';
+    if (percentage >= 100) document.getElementById('quota-fill').style.background = '#ef4444';
+}
+
+function updateApiStats(data) {
+    document.getElementById('api-sms-count').textContent = data.sms_count || 0;
+    document.getElementById('api-calls-count').textContent = data.sms_count || 0;
+    var apiKeyLimit = (data.features && data.features.api_key_limit) ? data.features.api_key_limit : 0;
+    document.getElementById('api-keys-count').textContent = apiKeyLimit;
+}
+
+function showComparePlansModal() {
+    // Use the new enhanced tier comparison modal
+    var currentTier = currentTierData ? currentTierData.current_tier : 'freemium';
+    showTierCompareModal(currentTier);
+}
+
+function closeComparePlansModal() {
+    closeTierCompareModal();
+}
+
+async function loadAnalytics() {
+    FrontendLogger.info('Loading analytics...');
     try {
-        const res = await fetch('/api/analytics/summary', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        FrontendLogger.logApiCall('GET', '/api/analytics/summary');
+        var res = await ApiRetry.fetchWithRetry('/api/analytics/summary', { credentials: 'include' });
+        FrontendLogger.logApiResponse('GET', '/api/analytics/summary', res.status);
         
-        if (res.ok) {
-            const data = await res.json();
-            document.getElementById('total-sms').textContent = data.total_verifications || 0;
-            document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
-            
-            // Use currency formatter
-            const spentEl = document.getElementById('total-spent');
-            spentEl.dataset.amount = data.revenue || 0;
-            if (typeof currency !== 'undefined') {
-                spentEl.textContent = currency.format(data.revenue || 0);
-            } else {
-                spentEl.textContent = `$${(data.revenue || 0).toFixed(2)}`;
-            }
-            
-            const rate = data.success_rate ? (data.success_rate * 100).toFixed(1) : 0;
-            document.getElementById('success-rate').textContent = `${rate}%`;
-        } else {
-            // Set defaults on error
-            document.getElementById('total-sms').textContent = '0';
-            document.getElementById('successful-sms').textContent = '0';
-            document.getElementById('total-spent').textContent = '$0.00';
-            document.getElementById('success-rate').textContent = '0%';
+        if (!res.ok) {
+            FrontendLogger.warn('Analytics endpoint returned non-OK status', { status: res.status });
+            console.warn('Analytics endpoint returned:', res.status);
+            return;
         }
+        var data = await res.json();
+        FrontendLogger.logAnalyticsLoad(true, data);
+        
+        document.getElementById('total-sms').textContent = data.total_verifications || 0;
+        document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
+        var spent = data.revenue || 0;
+        document.getElementById('total-spent').textContent = '$' + spent.toFixed(2);
+        document.getElementById('total-spent').setAttribute('data-amount', spent);
+        var rate = data.success_rate || 0;
+        document.getElementById('success-rate').textContent = rate.toFixed(1) + '%';
     } catch (error) {
+        FrontendLogger.logAnalyticsLoad(false, null, error);
         console.error('Analytics load failed:', error);
-        // Set defaults on error
-        document.getElementById('total-sms').textContent = '0';
-        document.getElementById('successful-sms').textContent = '0';
-        document.getElementById('total-spent').textContent = '$0.00';
-        document.getElementById('success-rate').textContent = '0%';
     }
 }
 
 async function loadActivity() {
-    const token = localStorage.getItem('access_token');
-    if (!token) return;
-    
-    const tbody = document.getElementById('activity-body');
-    const table = document.getElementById('activity-table');
-    const emptyState = document.getElementById('empty-state');
+    FrontendLogger.info('Loading recent activity...');
+    var loadingEl = document.getElementById('activity-loading');
+    var tableEl = document.getElementById('activity-table');
+    var emptyEl = document.getElementById('empty-state');
+    var bodyEl = document.getElementById('activity-body');
     
     try {
-        const res = await fetch('/api/dashboard/activity/recent', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        FrontendLogger.logApiCall('GET', '/api/dashboard/activity/recent');
+        var res = await ApiRetry.fetchWithRetry('/api/dashboard/activity/recent', { credentials: 'include' });
+        FrontendLogger.logApiResponse('GET', '/api/dashboard/activity/recent', res.status);
         
-        if (res.ok) {
-            const data = await res.json();
-            if (data.activities && data.activities.length > 0) {
-                tbody.innerHTML = data.activities.map(a => `
-                    <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                        <td style="padding: 12px;">${escapeHtml(a.service_name || 'N/A')}</td>
-                        <td style="padding: 12px;">${escapeHtml(a.phone_number || 'N/A')}</td>
-                        <td style="padding: 12px;">${new Date(a.created_at).toLocaleString()}</td>
-                        <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${a.status === 'completed' ? '#d5f4e6' : '#fef3c7'}; color: ${a.status === 'completed' ? '#166534' : '#92400e'};">${escapeHtml(a.status)}</span></td>
-                    </tr>
-                `).join('');
-                table.style.display = 'table';
-                emptyState.style.display = 'none';
-            } else {
-                table.style.display = 'none';
-                emptyState.style.display = 'block';
-            }
-        } else {
-            table.style.display = 'none';
-            emptyState.style.display = 'block';
+        loadingEl.style.display = 'none';
+        
+        if (!res.ok) {
+            FrontendLogger.warn('Activity endpoint returned non-OK status', { status: res.status });
+            console.warn('Activity endpoint returned:', res.status);
+            emptyEl.style.display = 'block';
+            return;
         }
+        
+        var activities = await res.json();
+        if (!activities || activities.length === 0) {
+            FrontendLogger.info('No recent activities found');
+            emptyEl.style.display = 'block';
+            return;
+        }
+        
+        FrontendLogger.logActivityLoad(true, activities.length);
+        
+        var html = '';
+        for (var i = 0; i < activities.length; i++) {
+            var a = activities[i];
+            var statusColor = a.status === 'completed' ? '#10b981' : (a.status === 'failed' ? '#ef4444' : '#f59e0b');
+            html += '<tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">';
+            html += '<td style="padding: 12px;">' + escapeHtml(a.service_name || 'Unknown') + '</td>';
+            html += '<td style="padding: 12px;">' + escapeHtml(a.phone_number || '-') + '</td>';
+            html += '<td style="padding: 12px;">' + escapeHtml(formatTime(a.created_at)) + '</td>';
+            html += '<td style="padding: 12px; color: ' + statusColor + ';">' + escapeHtml(a.status || 'pending') + '</td>';
+            html += '</tr>';
+        }
+        bodyEl.innerHTML = html;
+        tableEl.style.display = 'table';
     } catch (error) {
+        FrontendLogger.logActivityLoad(false, 0, error);
         console.error('Activity load failed:', error);
-        table.style.display = 'none';
-        emptyState.style.display = 'block';
+        loadingEl.style.display = 'none';
+        var activityCard = document.querySelector('.card:has(#activity-table)') || loadingEl.parentElement;
+        ErrorMessages.showError(activityCard.querySelector('#activity-loading') || activityCard, error, {
+            retryCallback: loadActivity,
+            compact: true
+        });
+        emptyEl.style.display = 'none';
     }
 }
 
 function escapeHtml(text) {
-    const div = document.createElement('div');
+    if (!text) return '';
+    var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
-// Load on page ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        loadTierInfo();
-        loadAnalytics();
-        loadActivity();
-    });
-} else {
+function formatTime(isoString) {
+    if (!isoString) return '-';
+    try {
+        var date = new Date(isoString);
+        return date.toLocaleString();
+    } catch (e) {
+        return isoString;
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
     loadTierInfo();
     loadAnalytics();
     loadActivity();
-}
-
-// Auto-refresh every 30 seconds
-setInterval(() => {
-    loadAnalytics();
-    loadActivity();
-}, 30000);
+    
+    setInterval(function() {
+        loadTierInfo();
+        loadAnalytics();
+    }, 60000);
+});
 </script>
 {% endblock %}

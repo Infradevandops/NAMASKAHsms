@@ -49,7 +49,7 @@ async def search_users(
                 {
                     "id": u.id,
                     "email": u.email,
-                    "tier": getattr(u, 'tier_id', 'payg') or 'payg',
+                    "tier": u.subscription_tier or 'freemium',
                     "is_suspended": getattr(u, 'is_suspended', False),
                     "is_banned": getattr(u, 'is_banned', False),
                     "credits": float(u.credits or 0),
@@ -86,7 +86,7 @@ async def get_user_activity(
         return {
             "user_id": user_id,
             "email": user.email,
-            "tier": getattr(user, 'tier_id', 'payg') or 'payg',
+            "tier": user.subscription_tier or 'freemium',
             "created_at": user.created_at.isoformat() if user.created_at else None,
             "last_login": user.last_login.isoformat() if hasattr(user, 'last_login') and user.last_login else None,
             "total_verifications": len(verifications),

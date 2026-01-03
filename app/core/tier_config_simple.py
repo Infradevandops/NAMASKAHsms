@@ -1,0 +1,48 @@
+"""Simple tier configuration dictionary."""
+
+TIER_CONFIG = {
+    "freemium": {
+        "name": "Freemium",
+        "price_monthly": 0,
+        "quota_usd": 0,
+        "base_sms_cost": 2.50,
+        "overage_rate": 2.22,
+        "api_key_limit": 0,
+        "has_api_access": False,
+        "has_area_code_selection": False,
+        "has_isp_filtering": False,
+    },
+    "payg": {
+        "name": "Pay-As-You-Go",
+        "price_monthly": 0,
+        "quota_usd": 0,
+        "base_sms_cost": 2.50,
+        "overage_rate": 2.50,
+        "api_key_limit": 0,
+        "has_api_access": False,
+        "has_area_code_selection": True,
+        "has_isp_filtering": True,
+    },
+    "pro": {
+        "name": "Pro",
+        "price_monthly": 2500,
+        "quota_usd": 15,
+        "base_sms_cost": 2.50,
+        "overage_rate": 0.30,
+        "api_key_limit": 10,
+        "has_api_access": True,
+        "has_area_code_selection": True,
+        "has_isp_filtering": True,
+    },
+    "custom": {
+        "name": "Custom",
+        "price_monthly": 3500,
+        "quota_usd": 25,
+        "base_sms_cost": 2.50,
+        "overage_rate": 0.20,
+        "api_key_limit": -1,
+        "has_api_access": True,
+        "has_area_code_selection": True,
+        "has_isp_filtering": True,
+    },
+}

@@ -1,60 +1,79 @@
-"""API Key management service."""
-import secrets
-import hashlib
-from datetime import datetime, timedelta
-from typing import Optional, List
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from app.models.api_key import APIKey
+"""API key service with tier enforcement."""
+from sqlalchemy.orm import Session
 from app.models.user import User
+from app.models.api_key import APIKey
+from app.core.tier_config_simple import TIER_CONFIG
+import uuid
 
 
 class APIKeyService:
-    def __init__(self, db: AsyncSession):
-        self.db = db
+    """Manage API keys with tier-based limits."""
 
-    async def create_api_key(self, user_id: str,
-                             name: str, expires_days: int = 365) -> dict:
-        """Create new API key."""
-        # Generate key
-        key = f"nsk_{secrets.token_urlsafe(32)}"
-        prefix = key[:8]
-        key_hash = hashlib.sha256(key.encode()).hexdigest()
+    @staticmethod
+    def can_create_key(db: Session, user_id: str) -> bool:
+        """Check if user can create API key based on tier."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+        
+        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        limit = tier.get('api_key_limit', 0)
+        
+        if limit == 0:
+            return False
+        
+        if limit == -1:
+            return True
+        
+        current_count = db.query(APIKey).filter(
+            APIKey.user_id == user_id,
+            APIKey.is_active == True
+        ).count()
+        
+        return current_count < limit
 
-        # Create record
-        api_key = APIKey(
+    @staticmethod
+    def get_remaining_keys(db: Session, user_id: str) -> int:
+        """Get remaining API key slots for user."""
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return 0
+        
+        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        limit = tier.get('api_key_limit', 0)
+        
+        if limit == 0:
+            return 0
+        
+        if limit == -1:
+            return 999
+        
+        current_count = db.query(APIKey).filter(
+            APIKey.user_id == user_id,
+            APIKey.is_active == True
+        ).count()
+        
+        return max(0, limit - current_count)
+
+    @staticmethod
+    def create_key(db: Session, user_id: str, name: str = None) -> dict:
+        """Create new API key if allowed."""
+        if not APIKeyService.can_create_key(db, user_id):
+            raise ValueError("API key limit reached for your tier")
+        
+        key = APIKey(
+            id=str(uuid.uuid4()),
             user_id=user_id,
-            name=name,
-            key_hash=key_hash,
-            prefix=prefix,
-            expires_at=datetime.utcnow() + timedelta(days=expires_days)
+            key=str(uuid.uuid4()),
+            name=name or f"Key {len(db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
+            is_active=True
         )
-
-        self.db.add(api_key)
-        await self.db.commit()
-
-        return {"key": key, "prefix": prefix, "expires_at": api_key.expires_at}
-
-    async def verify_api_key(self, key: str) -> User:
-        """Verify API key and return user."""
-        key_hash = hashlib.sha256(key.encode()).hexdigest()
-
-        query = select(APIKey).where(
-            APIKey.key_hash == key_hash,
-            APIKey.is_active,
-            APIKey.expires_at > datetime.utcnow()
-        )
-        result = await self.db.execute(query)
-        api_key = result.scalar_one_or_none()
-
-        if not api_key:
-            return None
-
-        # Update last used
-        api_key.last_used = datetime.utcnow()
-        await self.db.commit()
-
-        # Get user
-        user_query = select(User).where(User.id == api_key.user_id)
-        user_result = await self.db.execute(user_query)
-        return user_result.scalar_one_or_none()
+        db.add(key)
+        db.commit()
+        
+        return {
+            'id': key.id,
+            'key': key.key,
+            'name': key.name,
+            'created_at': key.created_at
+        }

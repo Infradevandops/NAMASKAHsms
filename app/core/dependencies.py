@@ -1,13 +1,17 @@
 """FastAPI dependency injection utilities."""
+import logging
 import jwt
-from typing import Optional
+from typing import Optional, Callable
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from .config import settings
 from .database import get_db
+from .tier_helpers import get_user_tier, has_tier_access, get_tier_display_name
 from app.models.user import User
+
+logger = logging.getLogger(__name__)
 
 security = HTTPBearer(auto_error=False)
 
@@ -105,3 +109,47 @@ def get_optional_user_id(
         return payload.get("user_id")
     except jwt.InvalidTokenError:
         return None
+
+
+def require_tier(required_tier: str) -> Callable:
+    """Factory function to create tier requirement dependencies.
+    
+    Creates a FastAPI dependency that validates the current user's tier
+    against the required tier level.
+    
+    Args:
+        required_tier: The minimum tier required (freemium, payg, pro, custom)
+        
+    Returns:
+        A dependency function that validates tier and returns user_id
+        
+    Raises:
+        HTTPException: 402 Payment Required if user's tier is insufficient
+    """
+    def tier_dependency(
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db)
+    ) -> str:
+        """Validate user tier and return user_id if authorized."""
+        user_tier = get_user_tier(user_id, db)
+        
+        if not has_tier_access(user_tier, required_tier):
+            logger.warning(
+                f"Tier access denied - user_id: {user_id}, "
+                f"user_tier: {user_tier}, required_tier: {required_tier}, "
+                f"reason: insufficient_tier"
+            )
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail={
+                    "message": f"This feature requires {get_tier_display_name(required_tier)} tier or higher",
+                    "current_tier": user_tier,
+                    "required_tier": required_tier,
+                    "upgrade_url": "/pricing"
+                }
+            )
+        
+        logger.debug(f"Tier access granted - user_id: {user_id}, user_tier: {user_tier}, required_tier: {required_tier}")
+        return user_id
+    
+    return tier_dependency

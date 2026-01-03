@@ -1,0 +1,252 @@
+/**
+ * Loading Animations & Skeleton Loaders
+ * 
+ * Provides smooth loading states for data sections
+ */
+
+/* Spinner Animation */
+.loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50%;
+    border-top-color: var(--primary, #3B82F6);
+    animation: spin 1s ease-in-out infinite;
+}
+
+.loading-spinner.large {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Skeleton Loader Base */
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--bg-body, #1a1a2e) 25%,
+        var(--bg-card, #252540) 50%,
+        var(--bg-body, #1a1a2e) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s ease-in-out infinite;
+    border-radius: 4px;
+}
+
+@keyframes skeleton-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Skeleton Text Lines */
+.skeleton-text {
+    height: 14px;
+    margin-bottom: 8px;
+}
+
+.skeleton-text.short {
+    width: 60%;
+}
+
+.skeleton-text.medium {
+    width: 80%;
+}
+
+.skeleton-text.long {
+    width: 100%;
+}
+
+/* Skeleton Title */
+.skeleton-title {
+    height: 24px;
+    width: 40%;
+    margin-bottom: 12px;
+}
+
+/* Skeleton Card */
+.skeleton-card {
+    padding: 16px;
+    background: var(--bg-card, #252540);
+    border-radius: var(--radius-card, 12px);
+    margin-bottom: 16px;
+}
+
+/* Skeleton Stat */
+.skeleton-stat {
+    height: 32px;
+    width: 80px;
+}
+
+/* Skeleton Row */
+.skeleton-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 12px;
+    background: var(--bg-body, #1a1a2e);
+    border-radius: 8px;
+}
+
+.skeleton-row .skeleton-cell {
+    height: 16px;
+    flex: 1;
+}
+
+/* Skeleton Avatar */
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Fade In Animation */
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Slide In Animation */
+.slide-in {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Pulse Animation for Loading States */
+.pulse {
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Loading Container */
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--text-muted, #888);
+}
+
+.loading-container .loading-spinner {
+    margin-bottom: 16px;
+}
+
+.loading-container .loading-text {
+    font-size: 14px;
+}
+
+/* Tier Card Skeleton */
+.skeleton-tier-card {
+    padding: 20px;
+}
+
+.skeleton-tier-card .skeleton-tier-name {
+    height: 28px;
+    width: 120px;
+    margin-bottom: 8px;
+}
+
+.skeleton-tier-card .skeleton-tier-price {
+    height: 16px;
+    width: 80px;
+    margin-bottom: 16px;
+}
+
+.skeleton-tier-card .skeleton-tier-features {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Activity Table Skeleton */
+.skeleton-activity-table {
+    width: 100%;
+}
+
+.skeleton-activity-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 100px;
+    gap: 16px;
+    padding: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.skeleton-activity-row .skeleton-cell {
+    height: 16px;
+}
+
+/* Stats Grid Skeleton */
+.skeleton-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+}
+
+.skeleton-stat-card {
+    padding: 20px;
+    background: var(--bg-card, #252540);
+    border-radius: var(--radius-card, 12px);
+}
+
+.skeleton-stat-card .skeleton-stat-label {
+    height: 12px;
+    width: 60%;
+    margin-bottom: 12px;
+}
+
+.skeleton-stat-card .skeleton-stat-value {
+    height: 32px;
+    width: 50%;
+}
+
+/* Transition Helpers */
+.transition-opacity {
+    transition: opacity 0.3s ease;
+}
+
+.transition-all {
+    transition: all 0.3s ease;
+}
+
+/* Hide/Show with Animation */
+.hidden-animated {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.visible-animated {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}

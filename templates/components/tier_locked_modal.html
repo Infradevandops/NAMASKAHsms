@@ -1,0 +1,338 @@
+<!-- Tier-Locked Modal Component with Accessibility -->
+<style>
+.tier-locked-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tier-locked-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.tier-locked-modal {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 420px;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    position: relative;
+}
+
+.tier-locked-overlay.active .tier-locked-modal {
+    transform: translateY(0) scale(1);
+}
+
+.tier-locked-icon {
+    width: 64px;
+    height: 64px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+}
+
+.tier-locked-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+}
+
+.tier-locked-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 12px;
+}
+
+.tier-locked-message {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 15px;
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.tier-locked-required {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 24px;
+}
+
+.tier-locked-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tier-locked-upgrade-btn {
+    background: white;
+    color: #667eea;
+    padding: 14px 28px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tier-locked-upgrade-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tier-locked-upgrade-btn:focus {
+    outline: 3px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+.tier-locked-close-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tier-locked-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.tier-locked-close-btn:focus {
+    outline: 3px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+}
+
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Tier badge colors - using standardized tier colors */
+.tier-badge-payg { background: var(--tier-payg, #3B82F6); }
+.tier-badge-pro { background: var(--tier-pro, #F59E0B); }
+.tier-badge-custom { background: var(--tier-custom, #8B5CF6); }
+
+/* Focus trap indicator */
+.tier-locked-modal:focus {
+    outline: none;
+}
+</style>
+
+<div id="tier-locked-modal" 
+     class="tier-locked-overlay" 
+     role="dialog" 
+     aria-modal="true" 
+     aria-labelledby="tier-locked-title" 
+     aria-describedby="tier-locked-message">
+    <div class="tier-locked-modal" tabindex="-1">
+        <div class="tier-locked-icon" aria-hidden="true">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+        </div>
+        <h3 class="tier-locked-title" id="tier-locked-title">Feature Locked</h3>
+        <p class="tier-locked-message" id="tier-locked-message">
+            This feature requires a higher subscription tier.
+        </p>
+        <span class="tier-locked-required" id="tier-locked-required" aria-live="polite">
+            Requires: Pay-As-You-Go
+        </span>
+        <div class="tier-locked-actions" role="group" aria-label="Modal actions">
+            <button class="tier-locked-upgrade-btn" 
+                    id="tier-locked-upgrade-btn"
+                    onclick="window.location.href='/pricing'"
+                    aria-label="Upgrade your subscription plan">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+                Upgrade Now
+            </button>
+            <button class="tier-locked-close-btn" 
+                    id="tier-locked-close-btn"
+                    onclick="closeTierLockedModal()"
+                    aria-label="Close this dialog">
+                Maybe Later
+            </button>
+        </div>
+        <!-- Hidden live region for screen reader announcements -->
+        <div id="tier-locked-announcement" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+    </div>
+</div>
+
+<script>
+// Tier display name mapping
+const TIER_DISPLAY_NAMES = {
+    'freemium': 'Freemium',
+    'payg': 'Pay-As-You-Go',
+    'pro': 'Pro',
+    'custom': 'Custom'
+};
+
+// Store the element that had focus before modal opened
+let previouslyFocusedElement = null;
+
+// Focusable elements selector
+const FOCUSABLE_ELEMENTS = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Show the tier-locked modal
+ * @param {Object} options - Modal options
+ * @param {string} options.message - Custom message to display
+ * @param {string} options.requiredTier - Required tier code (freemium, payg, pro, custom)
+ * @param {string} options.currentTier - User's current tier code
+ * @param {string} options.upgradeUrl - Custom upgrade URL (default: /pricing)
+ */
+function showTierLockedModal(options = {}) {
+    const modal = document.getElementById('tier-locked-modal');
+    const modalContent = modal.querySelector('.tier-locked-modal');
+    const messageEl = document.getElementById('tier-locked-message');
+    const requiredEl = document.getElementById('tier-locked-required');
+    const upgradeBtn = document.getElementById('tier-locked-upgrade-btn');
+    const announcement = document.getElementById('tier-locked-announcement');
+    
+    // Store currently focused element
+    previouslyFocusedElement = document.activeElement;
+    
+    // Set message
+    if (options.message) {
+        messageEl.textContent = options.message;
+    } else {
+        messageEl.textContent = 'This feature requires a higher subscription tier.';
+    }
+    
+    // Set required tier
+    const requiredTier = options.requiredTier || 'payg';
+    const tierName = TIER_DISPLAY_NAMES[requiredTier] || requiredTier;
+    requiredEl.textContent = `Requires: ${tierName}`;
+    
+    // Set tier badge color
+    requiredEl.className = 'tier-locked-required';
+    if (requiredTier === 'payg') requiredEl.classList.add('tier-badge-payg');
+    else if (requiredTier === 'pro') requiredEl.classList.add('tier-badge-pro');
+    else if (requiredTier === 'custom') requiredEl.classList.add('tier-badge-custom');
+    
+    // Set upgrade URL
+    const upgradeUrl = options.upgradeUrl || '/pricing';
+    upgradeBtn.onclick = () => window.location.href = upgradeUrl;
+    
+    // Show modal
+    modal.classList.add('active');
+    
+    // Announce to screen readers
+    announcement.textContent = `Feature locked dialog opened. ${messageEl.textContent} ${requiredEl.textContent}`;
+    
+    // Focus the modal content for screen readers
+    setTimeout(() => {
+        upgradeBtn.focus();
+    }, 100);
+    
+    // Close on overlay click
+    modal.onclick = (e) => {
+        if (e.target === modal) closeTierLockedModal();
+    };
+    
+    // Add keyboard event listeners
+    document.addEventListener('keydown', handleModalKeydown);
+    
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden';
+}
+
+function closeTierLockedModal() {
+    const modal = document.getElementById('tier-locked-modal');
+    const announcement = document.getElementById('tier-locked-announcement');
+    
+    modal.classList.remove('active');
+    
+    // Announce to screen readers
+    announcement.textContent = 'Dialog closed';
+    
+    // Remove keyboard event listeners
+    document.removeEventListener('keydown', handleModalKeydown);
+    
+    // Restore body scroll
+    document.body.style.overflow = '';
+    
+    // Return focus to previously focused element
+    if (previouslyFocusedElement && previouslyFocusedElement.focus) {
+        previouslyFocusedElement.focus();
+    }
+}
+
+function handleModalKeydown(e) {
+    const modal = document.getElementById('tier-locked-modal');
+    
+    // Close on Escape
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeTierLockedModal();
+        return;
+    }
+    
+    // Trap focus within modal
+    if (e.key === 'Tab') {
+        const focusableElements = modal.querySelectorAll(FOCUSABLE_ELEMENTS);
+        const firstElement = focusableElements[0];
+        const lastElement = focusableElements[focusableElements.length - 1];
+        
+        if (e.shiftKey) {
+            // Shift + Tab
+            if (document.activeElement === firstElement) {
+                e.preventDefault();
+                lastElement.focus();
+            }
+        } else {
+            // Tab
+            if (document.activeElement === lastElement) {
+                e.preventDefault();
+                firstElement.focus();
+            }
+        }
+    }
+}
+
+// Export for global use
+window.showTierLockedModal = showTierLockedModal;
+window.closeTierLockedModal = closeTierLockedModal;
+</script>

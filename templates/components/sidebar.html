@@ -20,6 +20,26 @@
             <span data-i18n="common.settings">Settings</span>
         </a>
 
+        <!-- Tier-gated navigation items -->
+        <div class="nav-divider tier-gated-section" style="display: none;"></div>
+        <div class="nav-section-title tier-gated-section" style="display: none;">PREMIUM</div>
+        
+        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys" style="display: none;">
+            <span>🔑 API Keys</span>
+        </a>
+        <a href="/affiliate" class="nav-item tier-gated" data-min-tier="payg" data-page="affiliate" style="display: none;">
+            <span>🤝 Affiliate Program</span>
+        </a>
+        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs" style="display: none;">
+            <span>📚 API Docs</span>
+        </a>
+        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify" style="display: none;">
+            <span>📞 Voice Verify</span>
+        </a>
+        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase" style="display: none;">
+            <span>📦 Bulk Purchase</span>
+        </a>
+
         {% if user and user.is_admin %}
         <div class="nav-divider"></div>
         <div class="nav-section-title">ADMIN</div>
@@ -138,6 +158,19 @@
         border-top: 1px solid rgba(0, 0, 0, 0.05);
     }
 
+    /* Tier-gated item styling */
+    .nav-item.tier-gated {
+        position: relative;
+    }
+
+    .nav-item.tier-gated.locked::after {
+        content: '🔒';
+        position: absolute;
+        right: 12px;
+        font-size: 12px;
+        opacity: 0.5;
+    }
+
     @media (max-width: 768px) {
         .sidebar {
             transform: translateX(-100%);
@@ -154,6 +187,85 @@
 </style>
 
 <script>
+    // Tier hierarchy for access checks
+    const TIER_HIERARCHY = {
+        'freemium': 0,
+        'payg': 1,
+        'pro': 2,
+        'custom': 3
+    };
+
+    // Current user tier (will be loaded from API)
+    let currentUserTier = 'freemium';
+
+    /**
+     * Check if user tier has access to required tier
+     */
+    function hasTierAccess(userTier, requiredTier) {
+        const userLevel = TIER_HIERARCHY[userTier] || 0;
+        const requiredLevel = TIER_HIERARCHY[requiredTier] || 0;
+        return userLevel >= requiredLevel;
+    }
+
+    /**
+     * Load user tier from API and update sidebar visibility
+     */
+    async function loadUserTierForSidebar() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                updateSidebarVisibility('freemium');
+                return;
+            }
+
+            const response = await fetch('/api/tiers/current', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                currentUserTier = data.current_tier || 'freemium';
+            } else {
+                currentUserTier = 'freemium';
+            }
+        } catch (error) {
+            console.error('[Sidebar] Failed to load user tier:', error);
+            currentUserTier = 'freemium';
+        }
+
+        updateSidebarVisibility(currentUserTier);
+    }
+
+    /**
+     * Update sidebar visibility based on user tier
+     */
+    function updateSidebarVisibility(userTier) {
+        const tierGatedItems = document.querySelectorAll('.nav-item.tier-gated');
+        const tierGatedSections = document.querySelectorAll('.tier-gated-section');
+        let hasVisibleItems = false;
+
+        tierGatedItems.forEach(item => {
+            const requiredTier = item.dataset.minTier || 'payg';
+            const hasAccess = hasTierAccess(userTier, requiredTier);
+
+            if (hasAccess) {
+                item.style.display = 'flex';
+                item.classList.remove('locked');
+                hasVisibleItems = true;
+            } else {
+                item.style.display = 'none';
+                item.classList.add('locked');
+            }
+        });
+
+        // Show/hide section divider and title
+        tierGatedSections.forEach(section => {
+            section.style.display = hasVisibleItems ? 'block' : 'none';
+        });
+
+        console.log('[Sidebar] Updated visibility for tier:', userTier);
+    }
+
     function toggleSidebar() {
         document.getElementById('app-sidebar').classList.toggle('active');
     }
@@ -178,6 +290,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        // Set active nav item
         const path = window.location.pathname.split('/')[1] || 'dashboard';
         document.querySelectorAll('.nav-item').forEach(item => {
             if (item.dataset.page === path) item.classList.add('active');
@@ -187,5 +300,8 @@
         const currentLang = localStorage.getItem('language') || 'en';
         const langSwitcher = document.getElementById('lang-switcher');
         if (langSwitcher) langSwitcher.value = currentLang;
+
+        // Load user tier and update sidebar
+        loadUserTierForSidebar();
     });
 </script>

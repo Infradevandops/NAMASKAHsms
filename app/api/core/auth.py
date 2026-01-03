@@ -30,7 +30,7 @@ from app.core.config import get_settings
 from app.utils.security import create_access_token, hash_password, verify_password
 from app.models.user import User
 from app.models.api_key import APIKey
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_user_id, require_tier
 from app.core.exceptions import AuthenticationError, ValidationError
 from app.core.token_manager import create_tokens
 
@@ -393,15 +393,19 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     return SuccessResponse(message="Email verified successfully. You can now use all features.")
 
 
+# Tier dependency for payg+ access to API keys
+require_payg_for_api_keys = require_tier("payg")
+
+
 @router.post(
     "/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED
 )
 def create_api_key(
     api_key_data: APIKeyCreate,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_payg_for_api_keys),
     db: Session = Depends(get_db),
 ):
-    """Create new API key for programmatic access."""
+    """Create new API key for programmatic access. Requires PayG tier or higher."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.email_verified:
         raise HTTPException(status_code=403, detail="Email verification required")
@@ -419,9 +423,9 @@ def create_api_key(
 
 @router.get("/api-keys", response_model=list[APIKeyListResponse])
 def list_api_keys(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    user_id: str = Depends(require_payg_for_api_keys), db: Session = Depends(get_db)
 ):
-    """List user's API keys."""
+    """List user's API keys. Requires PayG tier or higher."""
 
     api_keys = db.query(APIKey).filter(APIKey.user_id == user_id).all()
 
@@ -429,7 +433,7 @@ def list_api_keys(
         APIKeyListResponse(
             id=key.id,
             name=key.name,
-            key_preview=f"{key.key[:12]}...{key.key[-6:]}",
+            key_preview=key.key_preview,
             is_active=key.is_active,
             created_at=key.created_at,
             last_used=key.last_used,
@@ -441,10 +445,10 @@ def list_api_keys(
 @router.delete("/api-keys/{key_id}", response_model=SuccessResponse)
 def delete_api_key(
     key_id: str,
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(require_payg_for_api_keys),
     db: Session = Depends(get_db),
 ):
-    """Delete API key."""
+    """Delete API key. Requires PayG tier or higher."""
 
     api_key = (
         db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()

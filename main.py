@@ -45,6 +45,7 @@ from app.api.verification.pricing import router as pricing_router
 from app.api.verification.carrier_endpoints import router as carrier_router
 from app.api.verification.consolidated_verification import router as verify_router
 from app.api.verification.purchase_endpoints import router as purchase_router
+from app.api.verification.bulk_purchase_endpoints import router as bulk_purchase_router
 from app.api.billing.payment_endpoints import router as payment_router
 from app.api.billing.credit_endpoints import router as credit_router
 from app.api.billing.payment_history_endpoints import router as payment_history_router
@@ -55,6 +56,7 @@ from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.user_settings import router as user_settings_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
 from app.api.core.preferences import router as preferences_router
+from app.api.core.affiliate_endpoints import router as affiliate_router
 from app.api.routes_consolidated import router as routes_router
 from app.api.preview_router import router as preview_router
 
@@ -161,11 +163,13 @@ def create_app() -> FastAPI:
     from app.api.admin.actions import router as actions_router
     from app.api.admin.pricing_control import router as pricing_control_router
     from app.api.admin.verification_actions import router as verification_actions_router
+    from app.api.admin.logging_dashboard import router as logging_dashboard_router
     fastapi_app.include_router(stats_router)
     fastapi_app.include_router(tier_management_router, prefix="/api")
     fastapi_app.include_router(actions_router)
     fastapi_app.include_router(pricing_control_router)
     fastapi_app.include_router(verification_actions_router)
+    fastapi_app.include_router(logging_dashboard_router)
     
     # Real-time endpoints
     from app.api.core.analytics_enhanced import router as analytics_enhanced_router
@@ -181,6 +185,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(user_settings_router, prefix="/api")
     fastapi_app.include_router(user_settings_endpoints_router)
     fastapi_app.include_router(preferences_router)
+    fastapi_app.include_router(affiliate_router)
     
     # Verification
     fastapi_app.include_router(verify_router)
@@ -188,6 +193,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(pricing_router)
     fastapi_app.include_router(carrier_router)
     fastapi_app.include_router(purchase_router)
+    fastapi_app.include_router(bulk_purchase_router)
     
     # Billing
     fastapi_app.include_router(payment_router)
