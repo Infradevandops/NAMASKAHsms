@@ -11,6 +11,80 @@ from app.utils.security import hash_password
 logger = get_logger("startup")
 
 
+def ensure_subscription_tiers_table():
+    """Ensure subscription_tiers table exists with all tier definitions."""
+    try:
+        with engine.connect() as conn:
+            # Create subscription_tiers table
+            logger.info("Checking subscription_tiers table...")
+            conn.execute(text("""
+                CREATE TABLE IF NOT EXISTS subscription_tiers (
+                    id TEXT PRIMARY KEY,
+                    tier TEXT UNIQUE NOT NULL,
+                    name TEXT NOT NULL,
+                    price_monthly INTEGER NOT NULL,
+                    quota_usd DECIMAL(10, 2) NOT NULL,
+                    overage_rate DECIMAL(10, 2) NOT NULL,
+                    has_api_access BOOLEAN DEFAULT FALSE,
+                    has_area_code_selection BOOLEAN DEFAULT FALSE,
+                    has_isp_filtering BOOLEAN DEFAULT FALSE,
+                    api_key_limit INTEGER DEFAULT 0,
+                    support_level TEXT DEFAULT 'community',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """))
+            conn.commit()
+            
+            # Insert/update tier definitions
+            tiers = [
+                ('tier_freemium', 'freemium', 'Freemium', 0, 0, 2.22, False, False, False, 0, 'community'),
+                ('tier_payg', 'payg', 'Pay-As-You-Go', 0, 0, 2.50, True, True, False, 5, 'community'),
+                ('tier_pro', 'pro', 'Pro', 2500, 30.00, 2.20, True, True, True, 10, 'priority'),
+                ('tier_custom', 'custom', 'Custom', 3500, 50.00, 2.10, True, True, True, -1, 'dedicated')
+            ]
+            
+            for tier_data in tiers:
+                conn.execute(text("""
+                    INSERT INTO subscription_tiers 
+                    (id, tier, name, price_monthly, quota_usd, overage_rate, 
+                     has_api_access, has_area_code_selection, has_isp_filtering, 
+                     api_key_limit, support_level)
+                    VALUES 
+                    (:id, :tier, :name, :price_monthly, :quota_usd, :overage_rate,
+                     :has_api_access, :has_area_code_selection, :has_isp_filtering,
+                     :api_key_limit, :support_level)
+                    ON CONFLICT (tier) DO UPDATE SET
+                        name = EXCLUDED.name,
+                        price_monthly = EXCLUDED.price_monthly,
+                        quota_usd = EXCLUDED.quota_usd,
+                        overage_rate = EXCLUDED.overage_rate,
+                        has_api_access = EXCLUDED.has_api_access,
+                        has_area_code_selection = EXCLUDED.has_area_code_selection,
+                        has_isp_filtering = EXCLUDED.has_isp_filtering,
+                        api_key_limit = EXCLUDED.api_key_limit,
+                        support_level = EXCLUDED.support_level,
+                        updated_at = CURRENT_TIMESTAMP;
+                """), {
+                    'id': tier_data[0],
+                    'tier': tier_data[1],
+                    'name': tier_data[2],
+                    'price_monthly': tier_data[3],
+                    'quota_usd': tier_data[4],
+                    'overage_rate': tier_data[5],
+                    'has_api_access': tier_data[6],
+                    'has_area_code_selection': tier_data[7],
+                    'has_isp_filtering': tier_data[8],
+                    'api_key_limit': tier_data[9],
+                    'support_level': tier_data[10]
+                })
+            
+            conn.commit()
+            logger.info("Subscription tiers table initialized successfully")
+    except Exception as e:
+        logger.warning(f"Subscription tiers initialization failed: {e}")
+
+
 def ensure_database_schema():
     """Ensure database has all required columns."""
     try:
@@ -103,6 +177,7 @@ def run_startup_initialization():
     logger.info("Running startup initialization")
 
     try:
+        ensure_subscription_tiers_table()  # Create tiers table first
         ensure_database_schema()
         ensure_admin_user()
         logger.info("Startup initialization completed")
