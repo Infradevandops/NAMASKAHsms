@@ -65,7 +65,7 @@ def ensure_admin_user():
             existing_admin.password_hash = hash_password(admin_password)
             existing_admin.is_admin = True
             existing_admin.email_verified = True
-            existing_admin.subscription_tier = 'turbo'
+            existing_admin.subscription_tier = 'custom'  # Changed from 'turbo' to 'custom' (highest tier)
             existing_admin.credits = 10000.0
             existing_admin.free_verifications = 1000.0
             db.commit()
@@ -80,7 +80,7 @@ def ensure_admin_user():
             is_admin=True,
             email_verified=True,
             free_verifications=1000.0,
-            subscription_tier='turbo'
+            subscription_tier='custom'  # Changed from 'turbo' to 'custom' (highest tier)
         )
 
         db.add(admin_user)
