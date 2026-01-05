@@ -122,7 +122,7 @@ async def get_current_tier(
             quota_used_usd = user.monthly_quota_used or 0.0
         
         # Calculate quota remaining and within_quota status
-        quota_limit = tier_config.get("quota_usd", 0) or 0
+        quota_limit = float(tier_config.get("quota_usd", 0) or 0)  # Convert Decimal to float
         quota_remaining_usd = max(0, quota_limit - quota_used_usd)
         within_quota = quota_used_usd <= quota_limit if quota_limit > 0 else True
         
