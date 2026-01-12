@@ -84,7 +84,7 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
             + "<p>This link expires in 24 hours.</p>",
         )
 
-        user_dict = UserResponse.from_orm(new_user).dict()
+        user_dict = UserResponse.model_validate(new_user).model_dump()
         user_dict["created_at"] = user_dict["created_at"].isoformat() if hasattr(user_dict["created_at"], "isoformat") else str(user_dict["created_at"])
 
         response = JSONResponse(
@@ -309,7 +309,7 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            user=UserResponse.from_orm(user),
+            user=UserResponse.model_validate(user),
         )
 
     except ValueError:
@@ -336,7 +336,7 @@ def get_current_user(
     if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    response = UserResponse.from_orm(current_user)
+    response = UserResponse.model_validate(current_user)
     response.credits = current_user.credits
     response.free_verifications = current_user.free_verifications
     return response

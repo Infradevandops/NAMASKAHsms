@@ -1,6 +1,6 @@
 """Tier response schemas for validation."""
 from typing import Dict, List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 
 class TierFeatures(BaseModel):
@@ -22,7 +22,8 @@ class TierInfo(BaseModel):
     overage_rate: float = Field(..., ge=0, description="Overage rate per dollar")
     features: TierFeatures = Field(..., description="Tier features")
 
-    @validator('tier')
+    @field_validator('tier')
+    @classmethod
     def validate_tier(cls, v):
         """Validate tier is one of the allowed values."""
         allowed_tiers = {'freemium', 'payg', 'pro', 'custom'}
@@ -35,7 +36,8 @@ class TiersListResponse(BaseModel):
     """Response schema for /api/tiers/ endpoint."""
     tiers: List[TierInfo] = Field(..., description="List of available tiers")
 
-    @validator('tiers')
+    @field_validator('tiers')
+    @classmethod
     def validate_tiers_count(cls, v):
         """Validate that we have exactly 4 tiers."""
         if len(v) != 4:
@@ -56,7 +58,8 @@ class CurrentTierResponse(BaseModel):
     overage_rate: float = Field(..., ge=0, description="Overage rate per dollar")
     features: TierFeatures = Field(..., description="Tier features")
 
-    @validator('current_tier')
+    @field_validator('current_tier')
+    @classmethod
     def validate_tier(cls, v):
         """Validate tier is one of the allowed values."""
         allowed_tiers = {'freemium', 'payg', 'pro', 'custom'}
@@ -89,7 +92,8 @@ class DashboardActivity(BaseModel):
     status: str = Field(..., description="Activity status")
     created_at: Optional[str] = Field(None, description="Creation timestamp")
 
-    @validator('status')
+    @field_validator('status')
+    @classmethod
     def validate_status(cls, v):
         """Validate status is one of the allowed values."""
         allowed_statuses = {'pending', 'completed', 'failed', 'expired', 'processing'}

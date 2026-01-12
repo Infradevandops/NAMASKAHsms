@@ -168,3 +168,18 @@ def admin_client(client, admin_token):
         "Authorization": f"Bearer {admin_token}",
     }
     return client
+
+def create_test_token(user_id: str, email: str, is_admin: bool = False, expires_minutes: int = 15) -> str:
+    """
+    Helper function to create test JWT tokens.
+    Used by test files that need to generate custom tokens.
+    """
+    expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
+    to_encode = {
+        "sub": str(user_id),
+        "user_id": str(user_id),
+        "email": email,
+        "is_admin": is_admin,
+        "exp": expire
+    }
+    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)

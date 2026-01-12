@@ -243,11 +243,7 @@
 </div>
 
 <script>
-    // Test credentials
-    const TEST_EMAIL = 'admin@namaskah.app';
-    const TEST_PASSWORD = 'Namaskah@Admin2024';
-
-    // Auto-fill test credentials on page load
+    // Auto-fill saved credentials on page load
     window.addEventListener('DOMContentLoaded', () => {
         const savedEmail = localStorage.getItem('saved_email');
         const savedPassword = localStorage.getItem('saved_password');
@@ -257,10 +253,6 @@
             document.getElementById('email').value = savedEmail;
             document.getElementById('password').value = savedPassword;
             document.getElementById('remember').checked = true;
-        } else {
-            // Default test credentials
-            document.getElementById('email').value = TEST_EMAIL;
-            document.getElementById('password').value = TEST_PASSWORD;
         }
     });
 
