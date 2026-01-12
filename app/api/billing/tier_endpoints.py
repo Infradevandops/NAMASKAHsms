@@ -14,7 +14,7 @@ from app.models.user_quota import MonthlyQuotaUsage
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/tiers", tags=["Tiers"])
+router = APIRouter(prefix="/api/tiers", tags=["Tiers"])
 
 
 @router.get("/")
