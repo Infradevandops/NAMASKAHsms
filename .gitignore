@@ -188,7 +188,6 @@ docs/USER_FLOWS.md
 docs/QUICK_START_*.md
 fix_*.py
 migrate_*.py
-test_*.py
 scripts/temp_*.py
 
 # Backup files
