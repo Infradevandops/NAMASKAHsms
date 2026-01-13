@@ -131,6 +131,27 @@ async def history_page(request: Request, user_id: str = Depends(get_current_user
     user = db.query(User).filter(User.id == user_id).first()
     return templates.TemplateResponse("history.html", {"request": request, "tab": "history", "user": user})
 
+@router.get("/analytics", response_class=HTMLResponse)
+async def analytics_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Analytics dashboard page."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("analytics.html", {"request": request, "user": user})
+
+@router.get("/notifications", response_class=HTMLResponse)
+async def notifications_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Notifications center page."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("notifications.html", {"request": request, "user": user})
+
+@router.get("/privacy-settings", response_class=HTMLResponse)
+async def privacy_settings_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """GDPR/Privacy settings page (authenticated)."""
+    from app.models.user import User
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("gdpr_settings.html", {"request": request, "user": user})
+
 # ============================================================================
 # ADMIN PAGES
 # ============================================================================
@@ -220,9 +241,13 @@ async def cookies_page(request: Request):
     return templates.TemplateResponse("info.html", {"request": request, "page_type": "cookies", "page_title": "Cookie Policy"})
 
 @router.get("/status", response_class=HTMLResponse)
-async def status_page(request: Request):
-    """Service status page."""
-    return templates.TemplateResponse("info.html", {"request": request, "page_type": "status", "page_title": "Service Status"})
+async def status_page(request: Request, user_id: Optional[str] = Depends(get_optional_user_id), db: Session = Depends(get_db)):
+    """Service status page with provider health."""
+    from app.models.user import User
+    user = None
+    if user_id:
+        user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("status.html", {"request": request, "user": user})
 
 # ============================================================================
 # REDIRECTS & LEGACY ROUTES
@@ -270,10 +295,8 @@ async def sms_inbox_redirect(request: Request):
     """SMS inbox redirect."""
     return RedirectResponse(url="/verify", status_code=302)
 
-@router.get("/notifications", response_class=HTMLResponse)
-async def notifications_redirect(request: Request):
-    """Notifications redirect."""
-    return RedirectResponse(url="/dashboard", status_code=302)
+# Note: /notifications route is now a real page, not a redirect
+# See notifications_page() above
 
 @router.get("/verification", response_class=HTMLResponse)
 async def verification_redirect(request: Request):

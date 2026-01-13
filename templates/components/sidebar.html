@@ -1,55 +1,65 @@
-<aside class="sidebar" id="app-sidebar">
+<aside class="sidebar" id="app-sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-header">
         <h2>Namaskah</h2>
-        <button class="sidebar-toggle" onclick="toggleSidebar()">☰</button>
+        <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebar-nav">
+            <span aria-hidden="true">☰</span>
+        </button>
     </div>
-    <nav class="sidebar-nav">
-        <a href="/dashboard" class="nav-item" data-page="dashboard">
-            <span data-i18n="common.dashboard">Dashboard</span>
+    <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
+        <a href="/dashboard" class="nav-item" data-page="dashboard" aria-current="false">
+            <span aria-hidden="true">📊</span> <span data-i18n="common.dashboard">Dashboard</span>
         </a>
         <a href="/verify" class="nav-item" data-page="verify">
-            <span data-i18n="verify.title">Get SMS Code</span>
+            <span aria-hidden="true">📱</span> <span data-i18n="verify.title">SMS Verification</span>
         </a>
         <a href="/wallet" class="nav-item" data-page="wallet">
-            <span data-i18n="common.wallet">Wallet</span>
+            <span aria-hidden="true">💰</span> <span data-i18n="common.wallet">Wallet</span>
         </a>
         <a href="/history" class="nav-item" data-page="history">
-            <span data-i18n="wallet.transaction_history">History</span>
+            <span aria-hidden="true">📜</span> <span data-i18n="wallet.transaction_history">History</span>
+        </a>
+        <a href="/analytics" class="nav-item" data-page="analytics">
+            <span aria-hidden="true">📈</span> <span data-i18n="analytics.title">Analytics</span>
+        </a>
+        <a href="/notifications" class="nav-item" data-page="notifications">
+            <span aria-hidden="true">🔔</span> <span data-i18n="notifications.title">Notifications</span>
+            <span id="sidebar-notif-badge" class="notif-badge" style="display: none;">0</span>
         </a>
         <a href="/settings" class="nav-item" data-page="settings">
-            <span data-i18n="common.settings">Settings</span>
+            <span aria-hidden="true">⚙️</span> <span data-i18n="common.settings">Settings</span>
         </a>
 
         <!-- Tier-gated navigation items -->
-        <div class="nav-divider tier-gated-section" style="display: none;"></div>
-        <div class="nav-section-title tier-gated-section" style="display: none;">PREMIUM</div>
+        <div class="nav-divider tier-gated-section" style="display: none;" role="separator"></div>
+        <div class="nav-section-title tier-gated-section" style="display: none;" role="heading" aria-level="2">PREMIUM</div>
         
-        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys" style="display: none;">
-            <span>🔑 API Keys</span>
+        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys" style="display: none;" aria-label="API Keys - Premium feature">
+            <span aria-hidden="true">🔑</span> <span>API Keys</span>
         </a>
-        <a href="/affiliate" class="nav-item tier-gated" data-min-tier="payg" data-page="affiliate" style="display: none;">
-            <span>🤝 Affiliate Program</span>
+        <a href="/affiliate" class="nav-item tier-gated" data-min-tier="payg" data-page="affiliate" style="display: none;" aria-label="Affiliate Program - Premium feature">
+            <span aria-hidden="true">🤝</span> <span>Affiliate Program</span>
         </a>
-        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs" style="display: none;">
-            <span>📚 API Docs</span>
+        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs" style="display: none;" aria-label="API Documentation - Premium feature">
+            <span aria-hidden="true">📚</span> <span>API Docs</span>
         </a>
-        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify" style="display: none;">
-            <span>📞 Voice Verify</span>
+        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify" style="display: none;" aria-label="Voice Verification - Premium feature">
+            <span aria-hidden="true">📞</span> <span>Voice Verify</span>
         </a>
-        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase" style="display: none;">
-            <span>📦 Bulk Purchase</span>
+        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase" style="display: none;" aria-label="Bulk Purchase - Pro feature">
+            <span aria-hidden="true">📦</span> <span>Bulk Purchase</span>
         </a>
 
         {% if user and user.is_admin %}
-        <div class="nav-divider"></div>
-        <div class="nav-section-title">ADMIN</div>
-        <a href="/admin" class="nav-item admin-item" data-page="admin">
+        <div class="nav-divider" role="separator"></div>
+        <div class="nav-section-title" role="heading" aria-level="2">ADMIN</div>
+        <a href="/admin" class="nav-item admin-item" data-page="admin" aria-label="Admin Dashboard">
             <span>Admin Dashboard</span>
         </a>
         {% endif %}
     </nav>
     <div class="sidebar-footer">
-        <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher"
+        <label for="lang-switcher" class="sr-only">Select language</label>
+        <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher" aria-label="Select language"
             style="width: 100%; margin-bottom: 8px; padding: 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; background: transparent; font-size: 14px; color: var(--text-main);">
             <option value="en">🇺🇸 English</option>
             <option value="es">🇪🇸 Español</option>
@@ -61,8 +71,11 @@
             <option value="ar">🇸🇦 العربية</option>
             <option value="hi">🇮🇳 हिन्दी</option>
         </select>
-        <a href="#" class="nav-item" onclick="logout()">
-            <span data-i18n="common.logout">Logout</span>
+        <a href="/privacy-settings" class="nav-item" data-page="privacy-settings" aria-label="Privacy and data settings">
+            <span aria-hidden="true">🔒</span> <span data-i18n="privacy.title">Privacy</span>
+        </a>
+        <a href="#" class="nav-item" onclick="logout(); return false;" role="button" aria-label="Log out of your account">
+            <span aria-hidden="true">🚪</span> <span data-i18n="common.logout">Logout</span>
         </a>
     </div>
 </aside>
@@ -91,6 +104,8 @@
     .sidebar-header h2 {
         font-size: 20px;
         font-weight: 700;
+        color: var(--text-main, #1a1a1a);
+        opacity: 1;
     }
 
     .sidebar-toggle {
@@ -105,6 +120,7 @@
         flex: 1;
         padding: 12px;
         overflow-y: auto;
+        max-height: calc(100vh - 180px);
     }
 
     .nav-item {
@@ -118,12 +134,11 @@
         font-weight: 500;
         font-size: 15px;
         transition: all 0.2s;
-        opacity: 0.7;
+        opacity: 1;
     }
 
     .nav-item:hover {
         background: rgba(55, 53, 47, 0.08);
-        opacity: 1;
     }
 
     .nav-item.active {
@@ -131,6 +146,16 @@
         color: var(--primary);
         box-shadow: var(--shadow-soft);
         opacity: 1;
+    }
+
+    .notif-badge {
+        background: #ef4444;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 10px;
+        margin-left: auto;
     }
 
     .nav-divider {
@@ -169,6 +194,30 @@
         right: 12px;
         font-size: 12px;
         opacity: 0.5;
+    }
+
+    /* Screen reader only - for accessibility */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    /* Focus styles for keyboard navigation */
+    .nav-item:focus-visible {
+        outline: 2px solid var(--primary, #667eea);
+        outline-offset: 2px;
+    }
+
+    .sidebar-toggle:focus-visible {
+        outline: 2px solid var(--primary, #667eea);
+        outline-offset: 2px;
     }
 
     @media (max-width: 768px) {
@@ -267,7 +316,14 @@
     }
 
     function toggleSidebar() {
-        document.getElementById('app-sidebar').classList.toggle('active');
+        const sidebar = document.getElementById('app-sidebar');
+        const toggleBtn = document.querySelector('.sidebar-toggle');
+        const isExpanded = sidebar.classList.toggle('active');
+        
+        // Update aria-expanded for accessibility
+        if (toggleBtn) {
+            toggleBtn.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+        }
     }
 
     function logout() {
@@ -290,10 +346,13 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Set active nav item
+        // Set active nav item with aria-current for accessibility
         const path = window.location.pathname.split('/')[1] || 'dashboard';
         document.querySelectorAll('.nav-item').forEach(item => {
-            if (item.dataset.page === path) item.classList.add('active');
+            if (item.dataset.page === path) {
+                item.classList.add('active');
+                item.setAttribute('aria-current', 'page');
+            }
         });
 
         // Set language switcher value
@@ -303,5 +362,42 @@
 
         // Load user tier and update sidebar
         loadUserTierForSidebar();
+        
+        // Load notification badge count
+        loadNotificationBadge();
     });
+    
+    /**
+     * Load unread notification count for sidebar badge
+     */
+    async function loadNotificationBadge() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            const response = await fetch('/api/notifications', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const unreadCount = data.unread_count || 0;
+                const badge = document.getElementById('sidebar-notif-badge');
+                
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('[Sidebar] Failed to load notification count:', error);
+        }
+    }
+    
+    // Refresh notification badge periodically
+    setInterval(loadNotificationBadge, 60000);
 </script>

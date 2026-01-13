@@ -13,7 +13,13 @@ if not database_url:
     sys.exit(1)
 
 print(f"🔧 Connecting to database...")
-engine = create_engine(database_url)
+
+# Add SSL parameters for Render PostgreSQL
+connect_args = {}
+if "render.com" in database_url or "postgres" in database_url:
+    connect_args = {"sslmode": "require"}
+
+engine = create_engine(database_url, connect_args=connect_args)
 
 # SQL statements to add missing columns
 sql_statements = [

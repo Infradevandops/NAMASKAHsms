@@ -187,6 +187,8 @@
         <button class="settings-nav-item" onclick="switchTab('notifications')">Notifications</button>
         <button class="settings-nav-item" onclick="switchTab('billing')">Billing</button>
         <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys')" style="display: none;">API Keys</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('forwarding')" style="display: none;">SMS Forwarding</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist')" style="display: none;">Blacklist</button>
     </nav>
 
     <div class="settings-content">
@@ -260,6 +262,76 @@
             </div>
         </div>
 
+        <!-- SMS Forwarding Tab -->
+        <div id="forwarding-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <h2>SMS Forwarding</h2>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">
+                    Forward incoming SMS messages to your email or webhook endpoint in real-time.
+                </p>
+                
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Email Forwarding</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Receive SMS messages via email</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-email-enabled" onchange="toggleForwardingOption('email')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div id="email-forwarding-config" style="display: none; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="forward-email-address" placeholder="your@email.com">
+                    </div>
+                </div>
+                
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Webhook Forwarding</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">POST SMS data to your endpoint</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-webhook-enabled" onchange="toggleForwardingOption('webhook')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div id="webhook-forwarding-config" style="display: none; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Webhook URL</label>
+                        <input type="url" class="form-input" id="forward-webhook-url" placeholder="https://your-server.com/webhook">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Webhook Secret (optional)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="forward-webhook-secret" placeholder="Leave empty to auto-generate" style="flex: 1;">
+                            <button class="btn btn-secondary" onclick="generateWebhookSecret()" style="padding: 8px 16px;">Generate</button>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Used to verify webhook authenticity via HMAC signature</p>
+                    </div>
+                </div>
+                
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Forward All Messages</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Forward all SMS or only verification codes</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-all" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-primary" onclick="saveForwardingConfig()">Save Configuration</button>
+                    <button class="btn btn-secondary" onclick="testForwarding()">Test Forwarding</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Billing Tab -->
         <div id="billing-tab" class="settings-tab">
             <div class="card">
@@ -279,11 +351,121 @@
                     <!-- Plans loaded via JS -->
                 </div>
                 
-                <h3 style="margin-top: 32px; margin-bottom: 16px;">Billing History</h3>
-                <div id="billing-history">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;">No billing history available.</div>
+                <h3 style="margin-top: 32px; margin-bottom: 16px;">Payment History</h3>
+                <div id="payment-history">
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span class="loading-spinner"></span> Loading payment history...</div>
+                </div>
+                
+                <h3 style="margin-top: 32px; margin-bottom: 16px;">Refund Requests</h3>
+                <div id="refund-section">
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+                        You can request a refund for payments made within the last 14 days. Refunds are processed within 5-7 business days.
+                    </p>
+                    <div id="refund-history">
+                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Blacklist Management Tab -->
+        <div id="blacklist-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="margin: 0;">Blacklist Management</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin: 4px 0 0 0;">Block specific phone numbers from receiving verifications</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddBlacklistModal()">Add Number</button>
+                </div>
+                
+                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <input type="text" id="blacklist-search" class="form-input" placeholder="Search numbers..." style="flex: 1;" oninput="filterBlacklist()">
+                    <button class="btn btn-secondary" onclick="showBulkImportModal()">Bulk Import</button>
+                </div>
+                
+                <div id="blacklist-list">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                        <span class="loading-spinner"></span> Loading blacklist...
+                    </div>
+                </div>
+                
+                <div id="blacklist-pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Refund Request Modal -->
+<div id="refund-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Request Refund</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            Payment: <strong id="refund-payment-ref"></strong><br>
+            Amount: <strong id="refund-payment-amount"></strong>
+        </p>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Reason for refund:</label>
+            <select id="refund-reason" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-body);">
+                <option value="">Select a reason...</option>
+                <option value="service_not_working">Service not working as expected</option>
+                <option value="accidental_purchase">Accidental purchase</option>
+                <option value="duplicate_charge">Duplicate charge</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Additional details (optional):</label>
+            <textarea id="refund-details" rows="3" style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-body); resize: vertical;" placeholder="Please provide any additional details..."></textarea>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideRefundModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="submitRefundRequest()" id="submit-refund-btn" style="flex: 1;">Submit Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Blacklist Number Modal -->
+<div id="blacklist-add-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Add to Blacklist</h3>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Phone Number:</label>
+            <input type="tel" id="blacklist-phone" class="form-input" placeholder="+1234567890" style="width: 100%;">
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Include country code (e.g., +1 for US)</p>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Reason (optional):</label>
+            <input type="text" id="blacklist-reason" class="form-input" placeholder="e.g., Spam number" style="width: 100%;">
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideBlacklistModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="addToBlacklist()" id="add-blacklist-btn" style="flex: 1;">Add to Blacklist</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div id="blacklist-bulk-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Bulk Import Numbers</h3>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+            Upload a CSV file with phone numbers to blacklist. The file should have one number per line or a column named "phone".
+        </p>
+        <div style="margin-bottom: 16px;">
+            <input type="file" id="blacklist-csv-file" accept=".csv,.txt" style="display: none;" onchange="handleBulkFileSelect(event)">
+            <div id="bulk-drop-zone" style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer;" onclick="document.getElementById('blacklist-csv-file').click()">
+                <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+                <div style="color: var(--text-muted);">Click to select or drag & drop CSV file</div>
+            </div>
+        </div>
+        <div id="bulk-preview" style="display: none; margin-bottom: 16px;">
+            <div style="font-weight: 500; margin-bottom: 8px;">Preview (<span id="bulk-count">0</span> numbers):</div>
+            <div id="bulk-preview-list" style="max-height: 150px; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px;"></div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideBulkImportModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="submitBulkImport()" id="bulk-import-btn" style="flex: 1;" disabled>Import Numbers</button>
         </div>
     </div>
 </div>
@@ -630,9 +812,597 @@
 
         event.target.classList.add('active');
         document.getElementById(tabId + '-tab').classList.add('active');
+        
+        // Load tab-specific data
+        if (tabId === 'billing') {
+            loadPaymentHistory();
+            loadRefundHistory();
+        }
+    }
+
+    // Payment History
+    async function loadPaymentHistory() {
+        const container = document.getElementById('payment-history');
+        const token = localStorage.getItem('access_token');
+        
+        try {
+            const response = await ApiRetry.fetchWithRetry('/api/billing/history', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const payments = data.payments || data || [];
+                
+                if (!Array.isArray(payments) || payments.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No payment history yet</div>';
+                    return;
+                }
+                
+                let html = '<table style="width: 100%; border-collapse: collapse;">';
+                html += '<thead><tr style="border-bottom: 1px solid var(--border-color);">';
+                html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Date</th>';
+                html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reference</th>';
+                html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Amount</th>';
+                html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Status</th>';
+                html += '<th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>';
+                html += '</tr></thead><tbody>';
+                
+                for (const payment of payments.slice(0, 10)) {
+                    const statusColor = payment.status === 'completed' ? '#10b981' : payment.status === 'pending' ? '#f59e0b' : '#ef4444';
+                    const canRefund = payment.status === 'completed' && isWithinRefundWindow(payment.created_at);
+                    
+                    html += `<tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px; font-size: 14px;">${formatDate(payment.created_at)}</td>
+                        <td style="padding: 12px; font-size: 14px; font-family: monospace;">${escapeHtml(payment.reference || '-')}</td>
+                        <td style="padding: 12px; font-size: 14px; font-weight: 600;">$${(payment.amount_usd || payment.amount || 0).toFixed(2)}</td>
+                        <td style="padding: 12px;"><span style="color: ${statusColor}; font-size: 13px;">${escapeHtml(payment.status || 'unknown')}</span></td>
+                        <td style="padding: 12px; text-align: right;">
+                            ${canRefund ? `<button class="btn btn-secondary" onclick="showRefundModal('${payment.id || payment.reference}', '${payment.reference}', ${payment.amount_usd || payment.amount || 0})" style="padding: 4px 12px; font-size: 12px;">Request Refund</button>` : ''}
+                        </td>
+                    </tr>`;
+                }
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Unable to load payment history</div>';
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to load payment history:', error);
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Failed to load payment history</div>';
+        }
+    }
+    
+    // Check if payment is within refund window (14 days)
+    function isWithinRefundWindow(dateStr) {
+        if (!dateStr) return false;
+        const paymentDate = new Date(dateStr);
+        const now = new Date();
+        const diffDays = (now - paymentDate) / (1000 * 60 * 60 * 24);
+        return diffDays <= 14;
+    }
+    
+    // Refund History
+    async function loadRefundHistory() {
+        const container = document.getElementById('refund-history');
+        const token = localStorage.getItem('access_token');
+        
+        try {
+            const response = await ApiRetry.fetchWithRetry('/api/billing/refunds', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const refunds = data.refunds || data || [];
+                
+                if (!Array.isArray(refunds) || refunds.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div>';
+                    return;
+                }
+                
+                let html = '';
+                for (const refund of refunds) {
+                    const statusColor = refund.status === 'approved' ? '#10b981' : refund.status === 'pending' ? '#f59e0b' : '#ef4444';
+                    html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-body); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 500;">${escapeHtml(refund.reference || 'Refund')}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${formatDate(refund.initiated_at || refund.created_at)}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600;">$${(refund.amount || 0).toFixed(2)}</div>
+                                <div style="font-size: 12px; color: ${statusColor};">${escapeHtml(refund.status || 'pending')}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to load refund history:', error);
+        }
+    }
+    
+    // Refund Modal
+    let currentRefundPaymentId = null;
+    
+    function showRefundModal(paymentId, reference, amount) {
+        currentRefundPaymentId = paymentId;
+        document.getElementById('refund-payment-ref').textContent = reference;
+        document.getElementById('refund-payment-amount').textContent = `$${amount.toFixed(2)}`;
+        document.getElementById('refund-reason').value = '';
+        document.getElementById('refund-details').value = '';
+        document.getElementById('refund-modal').style.display = 'flex';
+    }
+    
+    function hideRefundModal() {
+        document.getElementById('refund-modal').style.display = 'none';
+        currentRefundPaymentId = null;
+    }
+    
+    async function submitRefundRequest() {
+        const reason = document.getElementById('refund-reason').value;
+        if (!reason) {
+            alert('Please select a reason for the refund');
+            return;
+        }
+        
+        const details = document.getElementById('refund-details').value;
+        const token = localStorage.getItem('access_token');
+        const btn = document.getElementById('submit-refund-btn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Submitting...';
+        
+        try {
+            const response = await fetch('/api/billing/refund', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    payment_id: currentRefundPaymentId,
+                    reason: reason + (details ? ': ' + details : '')
+                })
+            });
+            
+            if (response.ok) {
+                hideRefundModal();
+                alert('Refund request submitted successfully. We will process it within 5-7 business days.');
+                loadPaymentHistory();
+                loadRefundHistory();
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to submit refund request');
+            }
+        } catch (error) {
+            console.error('[Settings] Refund request failed:', error);
+            alert('Failed to submit refund request. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Submit Request';
+        }
+    }
+    
+    function formatDate(dateStr) {
+        if (!dateStr) return '-';
+        return new Date(dateStr).toLocaleDateString();
     }
 
     // Init
     document.addEventListener('DOMContentLoaded', loadUserData);
+    
+    // Close refund modal on outside click
+    document.getElementById('refund-modal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideRefundModal();
+    });
+    
+    // SMS Forwarding Functions
+    function toggleForwardingOption(type) {
+        const configEl = document.getElementById(`${type}-forwarding-config`);
+        const enabledEl = document.getElementById(`forward-${type}-enabled`);
+        configEl.style.display = enabledEl.checked ? 'block' : 'none';
+    }
+    
+    function generateWebhookSecret() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        let secret = '';
+        for (let i = 0; i < 32; i++) {
+            secret += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        document.getElementById('forward-webhook-secret').value = secret;
+    }
+    
+    async function loadForwardingConfig() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        try {
+            const response = await fetch('/forwarding', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.configured && data.config) {
+                    document.getElementById('forward-email-enabled').checked = data.config.email_enabled || false;
+                    document.getElementById('forward-email-address').value = data.config.email_address || '';
+                    document.getElementById('forward-webhook-enabled').checked = data.config.webhook_enabled || false;
+                    document.getElementById('forward-webhook-url').value = data.config.webhook_url || '';
+                    document.getElementById('forward-all').checked = data.config.forward_all !== false;
+                    
+                    toggleForwardingOption('email');
+                    toggleForwardingOption('webhook');
+                }
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to load forwarding config:', error);
+        }
+    }
+    
+    async function saveForwardingConfig() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        const config = {
+            email_enabled: document.getElementById('forward-email-enabled').checked,
+            email_address: document.getElementById('forward-email-address').value,
+            webhook_enabled: document.getElementById('forward-webhook-enabled').checked,
+            webhook_url: document.getElementById('forward-webhook-url').value,
+            webhook_secret: document.getElementById('forward-webhook-secret').value,
+            forward_all: document.getElementById('forward-all').checked
+        };
+        
+        // Validation
+        if (config.email_enabled && !config.email_address) {
+            alert('Please enter an email address');
+            return;
+        }
+        if (config.webhook_enabled && !config.webhook_url) {
+            alert('Please enter a webhook URL');
+            return;
+        }
+        
+        try {
+            const params = new URLSearchParams(config);
+            const response = await fetch(`/forwarding/configure?${params}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                alert('Forwarding configuration saved successfully');
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to save configuration');
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to save forwarding config:', error);
+            alert('Failed to save configuration');
+        }
+    }
+    
+    async function testForwarding() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        try {
+            const response = await fetch('/forwarding/test', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                let message = 'Test results:\n';
+                for (const result of data.results || []) {
+                    message += `\n${result.type}: ${result.success ? '✓' : '✗'} ${result.message}`;
+                }
+                alert(message);
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Forwarding test failed');
+            }
+        } catch (error) {
+            console.error('[Settings] Forwarding test failed:', error);
+            alert('Forwarding test failed');
+        }
+    }
+    
+    // Load forwarding config when tab is switched
+    const originalSwitchTab = switchTab;
+    switchTab = function(tabId) {
+        originalSwitchTab(tabId);
+        if (tabId === 'forwarding') {
+            loadForwardingConfig();
+        }
+        if (tabId === 'blacklist') {
+            loadBlacklist();
+        }
+    };
+    
+    // ==================== Blacklist Management ====================
+    let blacklistData = [];
+    let blacklistPage = 1;
+    const blacklistLimit = 20;
+    let bulkImportNumbers = [];
+    
+    async function loadBlacklist() {
+        const container = document.getElementById('blacklist-list');
+        const token = localStorage.getItem('access_token');
+        
+        try {
+            const response = await fetch(`/blacklist?page=${blacklistPage}&limit=${blacklistLimit}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                blacklistData = data.numbers || data || [];
+                const total = data.total || blacklistData.length;
+                
+                if (blacklistData.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align: center; padding: 60px; color: var(--text-muted);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
+                            <div style="font-size: 16px; margin-bottom: 8px;">No blacklisted numbers</div>
+                            <div style="font-size: 14px;">Add numbers to prevent them from receiving verifications</div>
+                        </div>
+                    `;
+                    document.getElementById('blacklist-pagination').innerHTML = '';
+                    return;
+                }
+                
+                container.innerHTML = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Phone Number</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reason</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Added</th>
+                                <th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${blacklistData.map(item => `
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px; font-family: monospace;">${escapeHtml(item.phone_number || item.number)}</td>
+                                    <td style="padding: 12px; color: var(--text-muted);">${escapeHtml(item.reason || '-')}</td>
+                                    <td style="padding: 12px; font-size: 13px;">${formatDate(item.created_at)}</td>
+                                    <td style="padding: 12px; text-align: right;">
+                                        <button class="btn btn-secondary" onclick="removeFromBlacklist('${item.id}')" style="padding: 4px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ef4444; border: none;">Remove</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+                
+                renderBlacklistPagination(total);
+            } else {
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Failed to load blacklist</div>';
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to load blacklist:', error);
+            container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Error loading blacklist</div>';
+        }
+    }
+    
+    function renderBlacklistPagination(total) {
+        const totalPages = Math.ceil(total / blacklistLimit);
+        const container = document.getElementById('blacklist-pagination');
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        html += `<button onclick="changeBlacklistPage(${blacklistPage - 1})" class="btn" style="padding: 6px 12px;" ${blacklistPage === 1 ? 'disabled' : ''}>←</button>`;
+        
+        for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+            const isActive = i === blacklistPage;
+            html += `<button onclick="changeBlacklistPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary); color: white;' : ''}">${i}</button>`;
+        }
+        
+        html += `<button onclick="changeBlacklistPage(${blacklistPage + 1})" class="btn" style="padding: 6px 12px;" ${blacklistPage === totalPages ? 'disabled' : ''}>→</button>`;
+        
+        container.innerHTML = html;
+    }
+    
+    function changeBlacklistPage(page) {
+        if (page < 1) return;
+        blacklistPage = page;
+        loadBlacklist();
+    }
+    
+    function filterBlacklist() {
+        const search = document.getElementById('blacklist-search').value.toLowerCase();
+        const rows = document.querySelectorAll('#blacklist-list tbody tr');
+        
+        rows.forEach(row => {
+            const phone = row.cells[0]?.textContent.toLowerCase() || '';
+            const reason = row.cells[1]?.textContent.toLowerCase() || '';
+            row.style.display = (phone.includes(search) || reason.includes(search)) ? '' : 'none';
+        });
+    }
+    
+    function showAddBlacklistModal() {
+        document.getElementById('blacklist-phone').value = '';
+        document.getElementById('blacklist-reason').value = '';
+        document.getElementById('blacklist-add-modal').style.display = 'flex';
+    }
+    
+    function hideBlacklistModal() {
+        document.getElementById('blacklist-add-modal').style.display = 'none';
+    }
+    
+    async function addToBlacklist() {
+        const phone = document.getElementById('blacklist-phone').value.trim();
+        const reason = document.getElementById('blacklist-reason').value.trim();
+        
+        if (!phone) {
+            alert('Please enter a phone number');
+            return;
+        }
+        
+        // Basic phone validation
+        if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/[\s-]/g, ''))) {
+            alert('Please enter a valid phone number');
+            return;
+        }
+        
+        const token = localStorage.getItem('access_token');
+        const btn = document.getElementById('add-blacklist-btn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Adding...';
+        
+        try {
+            const response = await fetch('/blacklist', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    phone_number: phone,
+                    reason: reason || null
+                })
+            });
+            
+            if (response.ok) {
+                hideBlacklistModal();
+                loadBlacklist();
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to add number to blacklist');
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to add to blacklist:', error);
+            alert('Failed to add number to blacklist');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Add to Blacklist';
+        }
+    }
+    
+    async function removeFromBlacklist(id) {
+        if (!confirm('Are you sure you want to remove this number from the blacklist?')) return;
+        
+        const token = localStorage.getItem('access_token');
+        
+        try {
+            const response = await fetch(`/blacklist/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                loadBlacklist();
+            } else {
+                const error = await response.json();
+                alert(error.detail || 'Failed to remove number');
+            }
+        } catch (error) {
+            console.error('[Settings] Failed to remove from blacklist:', error);
+            alert('Failed to remove number');
+        }
+    }
+    
+    function showBulkImportModal() {
+        bulkImportNumbers = [];
+        document.getElementById('blacklist-csv-file').value = '';
+        document.getElementById('bulk-preview').style.display = 'none';
+        document.getElementById('bulk-import-btn').disabled = true;
+        document.getElementById('blacklist-bulk-modal').style.display = 'flex';
+    }
+    
+    function hideBulkImportModal() {
+        document.getElementById('blacklist-bulk-modal').style.display = 'none';
+    }
+    
+    function handleBulkFileSelect(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const content = e.target.result;
+            const lines = content.split(/[\r\n]+/).filter(line => line.trim());
+            
+            // Check if CSV has header
+            const firstLine = lines[0].toLowerCase();
+            const hasHeader = firstLine.includes('phone') || firstLine.includes('number');
+            
+            bulkImportNumbers = [];
+            const startIndex = hasHeader ? 1 : 0;
+            
+            for (let i = startIndex; i < lines.length; i++) {
+                const line = lines[i].trim();
+                // Extract phone number (first column or whole line)
+                const phone = line.split(',')[0].replace(/["\s]/g, '');
+                if (phone && /^\+?[0-9]{10,15}$/.test(phone)) {
+                    bulkImportNumbers.push(phone);
+                }
+            }
+            
+            // Show preview
+            document.getElementById('bulk-count').textContent = bulkImportNumbers.length;
+            document.getElementById('bulk-preview-list').textContent = bulkImportNumbers.slice(0, 10).join('\n') + (bulkImportNumbers.length > 10 ? '\n...' : '');
+            document.getElementById('bulk-preview').style.display = 'block';
+            document.getElementById('bulk-import-btn').disabled = bulkImportNumbers.length === 0;
+        };
+        reader.readAsText(file);
+    }
+    
+    async function submitBulkImport() {
+        if (bulkImportNumbers.length === 0) return;
+        
+        const token = localStorage.getItem('access_token');
+        const btn = document.getElementById('bulk-import-btn');
+        
+        btn.disabled = true;
+        btn.textContent = 'Importing...';
+        
+        let successCount = 0;
+        let failCount = 0;
+        
+        for (const phone of bulkImportNumbers) {
+            try {
+                const response = await fetch('/blacklist', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ phone_number: phone, reason: 'Bulk import' })
+                });
+                
+                if (response.ok) {
+                    successCount++;
+                } else {
+                    failCount++;
+                }
+            } catch {
+                failCount++;
+            }
+        }
+        
+        hideBulkImportModal();
+        alert(`Import complete: ${successCount} added, ${failCount} failed`);
+        loadBlacklist();
+    }
+    
+    // Close modals on outside click
+    document.getElementById('blacklist-add-modal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideBlacklistModal();
+    });
+    document.getElementById('blacklist-bulk-modal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideBulkImportModal();
+    });
 </script>
 {% endblock %}

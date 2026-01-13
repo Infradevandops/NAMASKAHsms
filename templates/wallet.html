@@ -85,6 +85,43 @@
     </div>
 </div>
 
+<!-- Credit History Section -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 18px; margin: 0;" data-i18n="wallet.credit_history">Credit History</h2>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="credit-type-filter" onchange="loadCreditHistory()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="all">All Types</option>
+                <option value="purchase">Purchases</option>
+                <option value="usage">Usage</option>
+                <option value="refund">Refunds</option>
+                <option value="bonus">Bonuses</option>
+            </select>
+            <button onclick="exportCreditHistory()" class="btn" style="padding: 8px 12px; font-size: 14px;">
+                <span aria-hidden="true">📥</span> Export CSV
+            </button>
+        </div>
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Type</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Description</th>
+                <th style="text-align: right; padding: 12px; font-size: 14px; color: var(--text-muted);">Amount</th>
+                <th style="text-align: right; padding: 12px; font-size: 14px; color: var(--text-muted);">Balance</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
+            </tr>
+        </thead>
+        <tbody id="credit-history-body">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="credit-history-pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"></div>
+</div>
+
+<!-- Transaction History Section -->
 <div class="card">
     <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="wallet.transaction_history">Transaction History</h2>
     <table style="width: 100%; border-collapse: collapse;">
@@ -356,10 +393,145 @@
         return div.innerHTML;
     }
 
+    // Credit History State
+    let creditHistoryPage = 1;
+    const creditHistoryLimit = 20;
+    let creditHistoryData = [];
+
+    async function loadCreditHistory() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const typeFilter = document.getElementById('credit-type-filter').value;
+        const tbody = document.getElementById('credit-history-body');
+        
+        try {
+            let url = `/api/user/credits/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
+            if (typeFilter !== 'all') {
+                url += `&type=${typeFilter}`;
+            }
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                creditHistoryData = data.transactions || data.history || [];
+                const total = data.total || creditHistoryData.length;
+
+                if (creditHistoryData.length > 0) {
+                    tbody.innerHTML = creditHistoryData.map(tx => {
+                        const typeIcon = {
+                            'purchase': '💳',
+                            'usage': '📱',
+                            'refund': '↩️',
+                            'bonus': '🎁'
+                        }[tx.type] || '💰';
+                        
+                        const amountColor = tx.amount >= 0 ? '#10b981' : '#ef4444';
+                        const amountPrefix = tx.amount >= 0 ? '+' : '';
+                        
+                        return `
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                        <span>${typeIcon}</span>
+                                        <span style="text-transform: capitalize;">${escapeHtml(tx.type || 'transaction')}</span>
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; color: var(--text-muted);">${escapeHtml(tx.description || '-')}</td>
+                                <td style="padding: 12px; text-align: right; color: ${amountColor}; font-weight: 600;">
+                                    ${amountPrefix}$${Math.abs(tx.amount || 0).toFixed(2)}
+                                </td>
+                                <td style="padding: 12px; text-align: right; font-weight: 500;">
+                                    $${(tx.balance_after || 0).toFixed(2)}
+                                </td>
+                                <td style="padding: 12px;">${new Date(tx.created_at).toLocaleDateString()}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Render pagination
+                    renderCreditPagination(total);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No credit history found</td></tr>';
+                    document.getElementById('credit-history-pagination').innerHTML = '';
+                }
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Failed to load credit history</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load credit history:', error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Error loading credit history</td></tr>';
+        }
+    }
+
+    function renderCreditPagination(total) {
+        const totalPages = Math.ceil(total / creditHistoryLimit);
+        const container = document.getElementById('credit-history-pagination');
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        
+        // Previous button
+        html += `<button onclick="changeCreditPage(${creditHistoryPage - 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === 1 ? 'disabled' : ''}>←</button>`;
+        
+        // Page numbers
+        for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+            const isActive = i === creditHistoryPage;
+            html += `<button onclick="changeCreditPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary); color: white;' : ''}">${i}</button>`;
+        }
+        
+        // Next button
+        html += `<button onclick="changeCreditPage(${creditHistoryPage + 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === totalPages ? 'disabled' : ''}>→</button>`;
+        
+        container.innerHTML = html;
+    }
+
+    function changeCreditPage(page) {
+        if (page < 1) return;
+        creditHistoryPage = page;
+        loadCreditHistory();
+    }
+
+    function exportCreditHistory() {
+        if (creditHistoryData.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        const headers = ['Type', 'Description', 'Amount', 'Balance After', 'Date'];
+        const rows = creditHistoryData.map(tx => [
+            tx.type || 'transaction',
+            tx.description || '',
+            tx.amount || 0,
+            tx.balance_after || 0,
+            new Date(tx.created_at).toISOString()
+        ]);
+
+        const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `credit-history-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadWalletData);
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWalletData();
+            loadCreditHistory();
+        });
     } else {
         loadWalletData();
+        loadCreditHistory();
     }
 
     setInterval(loadWalletData, 30000);

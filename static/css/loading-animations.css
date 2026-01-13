@@ -250,3 +250,56 @@
     visibility: visible;
     transition: opacity 0.3s ease, visibility 0.3s ease;
 }
+
+
+/* ============================================
+   TIER CARD STATE STYLES
+   ============================================ */
+
+/* Tier card state transitions */
+#tier-card {
+    transition: all 0.3s ease;
+}
+
+#tier-card.tier-card-loading {
+    opacity: 0.8;
+}
+
+#tier-card.tier-card-error {
+    border-left: 4px solid var(--tier-pro, #F59E0B);
+}
+
+#tier-card.tier-card-loaded {
+    animation: fadeIn 0.3s ease;
+}
+
+/* CTA Container responsive styles */
+.tier-cta-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+@media (max-width: 640px) {
+    .tier-cta-container {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .tier-cta-container .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* Error state icon animations */
+#tier-card.tier-card-error #tier-name {
+    color: var(--tier-pro, #F59E0B);
+}
+
+/* Retry button hover effect */
+#tier-card .btn-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
