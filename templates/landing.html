@@ -29,12 +29,18 @@
         extend: {
           colors: {
             brand: {
-              400: '#4A90E2',
-              500: '#3B82F6',
+              400: '#FF6B9D',
+              500: '#FE3C72',
+              600: '#E0245E',
             },
-            cyan: {
-              400: '#4A90E2',
-              500: '#3B82F6',
+            success: {
+              500: '#01DF8A',
+            },
+            tier: {
+              freemium: '#01DF8A',
+              payg: '#FF7854',
+              pro: '#FE3C72',
+              custom: '#8B5CF6',
             }
           }
         }
@@ -105,7 +111,7 @@
         <span class="px-4 py-2 text-sm text-brand-400">${{ user.credits|round(2) }}</span>
         {% else %}
         <a href="/auth/login" class="px-4 py-2 text-sm text-zinc-600 hover:text-[#37352F] transition" data-i18n="login">Login</a>
-        <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-400 transition" data-i18n="startVerifying">Start Verifying →</a>
+        <a href="/auth/register" class="px-6 py-2 bg-brand-500 rounded-lg text-sm font-semibold hover:bg-brand-600 transition text-white" data-i18n="startVerifying">Start Verifying →</a>
         {% endif %}
         
         <!-- Language/Currency Selector -->
@@ -230,11 +236,11 @@
       
       <div class="flex flex-col sm:flex-row gap-4 justify-center mb-16">
         {% if user %}
-        <a href="/dashboard" class="px-8 py-4 bg-cyan-500 rounded-xl text-lg font-semibold hover:bg-cyan-400 transition" data-i18n="dashboard">
+        <a href="/dashboard" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white" data-i18n="dashboard">
           Go to Dashboard →
         </a>
         {% else %}
-        <a href="/auth/register" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-400 transition" data-i18n="startVerifying">
+        <a href="/auth/register" class="px-8 py-4 bg-brand-500 rounded-xl text-lg font-semibold hover:bg-brand-600 transition text-white" data-i18n="startVerifying">
           Start Verifying →
         </a>
         <a href="/docs" class="px-8 py-4 border border-white/20 rounded-xl text-lg hover:bg-white/5 transition" data-i18n="viewDocs">
@@ -381,7 +387,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- Freemium Tier -->
       <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-[#37352F] text-xs font-bold px-3 py-1 rounded-full">FREE</span>
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-freemium text-white text-xs font-bold px-3 py-1 rounded-full">FREE</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Freemium</h3>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           Free
@@ -405,7 +411,7 @@
         </ul>
         <a 
           href="/auth/register?tier=freemium"
-          class="block w-full bg-green-500 hover:bg-green-400 py-3 rounded-xl font-semibold text-center transition"
+          class="block w-full bg-tier-freemium hover:bg-success-500 py-3 rounded-xl font-semibold text-center transition text-white"
         >
           Start Free
         </a>
@@ -468,7 +474,7 @@
         </ul>
         <a 
           href="/auth/register?tier=pro"
-          class="block w-full bg-brand-500 hover:bg-brand-400 py-3 rounded-xl font-semibold text-center transition"
+          class="block w-full bg-brand-500 hover:bg-brand-600 py-3 rounded-xl font-semibold text-center transition text-white"
         >
           Get Started
         </a>
@@ -476,7 +482,7 @@
       
       <!-- Custom Tier -->
       <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-500 text-[#37352F] text-xs font-bold px-3 py-1 rounded-full">ENTERPRISE</span>
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-3 py-1 rounded-full">ENTERPRISE</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Custom</h3>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           $35<span class="text-lg text-zinc-500">/mo</span>
@@ -500,7 +506,7 @@
         </ul>
         <a 
           href="/auth/register?tier=custom"
-          class="block w-full bg-purple-500 hover:bg-purple-400 py-3 rounded-xl font-semibold text-center transition"
+          class="block w-full bg-tier-custom hover:opacity-90 py-3 rounded-xl font-semibold text-center transition text-white"
         >
           Get Started
         </a>
@@ -552,9 +558,9 @@
       <div>
         <h4 class="font-bold text-[#37352F] text-sm mb-6 uppercase tracking-widest">Legal</h4>
         <ul class="space-y-4 text-sm text-zinc-500">
-          <li><a href="/terms" class="hover:text-cyan-400 transition">Terms</a></li>
-          <li><a href="/privacy" class="hover:text-cyan-400 transition">Privacy</a></li>
-          <li><a href="/cookies" class="hover:text-cyan-400 transition">Cookies</a></li>
+          <li><a href="/terms" class="hover:text-brand-400 transition">Terms</a></li>
+          <li><a href="/privacy" class="hover:text-brand-400 transition">Privacy</a></li>
+          <li><a href="/cookies" class="hover:text-brand-400 transition">Cookies</a></li>
         </ul>
       </div>
     </div>
