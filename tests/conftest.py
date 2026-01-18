@@ -1,34 +1,50 @@
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import patch
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from datetime import datetime, timedelta, timezone
 import jwt
-import time
+import os
 
-from app.core.database import Base, get_db
-from main import app
-from app.models.subscription_tier import SubscriptionTier
-from app.models.user import User
-from app.core.config import get_settings
+os.environ["TESTING"] = "1"
 
-# Use in-memory SQLite database for testing
+# 1. Setup in-memory database engine FIRST
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
-
-engine = create_engine(
+mock_engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-settings = get_settings()
+# 2. Patch global engine references BEFORE importing app
+# These patches will apply to any module imported AFTER this point
+patch("app.core.database.engine", new=mock_engine).start()
+patch("app.core.lifespan.engine", new=mock_engine).start()
+patch("app.core.startup.engine", new=mock_engine).start()
+
+# 3. Patch startup functions to prevent DB initialization logic that might fail
+# or try to use Postgres-specific SQL on SQLite
+patch("app.core.lifespan.run_startup_initialization").start()
+patch("app.core.startup.run_startup_initialization").start()
+
+# 4. Now safe to import app
+from app.core.database import Base, get_db
+from main import app
+from app.models.subscription_tier import SubscriptionTier
+from app.models.user import User
+from app.core.config import settings
+
+# 5. Define Session
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=mock_engine)
+
 
 @pytest.fixture(scope="function")
 def db_session():
     """Create a new database session for a test."""
-    Base.metadata.create_all(bind=engine)
+    # Create tables in the in-memory DB
+    Base.metadata.create_all(bind=mock_engine)
     session = TestingSessionLocal()
     
     # Seed Data: Subscription Tiers
@@ -38,7 +54,12 @@ def db_session():
         yield session
     finally:
         session.close()
-        Base.metadata.drop_all(bind=engine)
+        # Drop tables to ensure clean state for next test
+        Base.metadata.drop_all(bind=mock_engine)
+
+@pytest.fixture(scope="function")
+def db(db_session):
+    return db_session
 
 @pytest.fixture(scope="function")
 def client(db_session):
@@ -50,9 +71,17 @@ def client(db_session):
             pass
 
     app.dependency_overrides[get_db] = override_get_db
-    with TestClient(app) as test_client:
-        yield test_client
-    app.dependency_overrides.clear()
+    # TestClient trigger startup events, but our patches should protect us
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        with TestClient(app) as test_client:
+            yield test_client
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise e
+    finally:
+        app.dependency_overrides.clear()
 
 def seed_tiers(session):
     """Seed the database with default subscription tiers."""
@@ -86,10 +115,19 @@ def seed_tiers(session):
             has_api_access=False,
             api_key_limit=0,
             rate_limit_per_minute=5
+        ),
+        SubscriptionTier(
+            tier="custom",
+            name="Custom",
+            description="Enterprise plan",
+            price_monthly=5000,
+            payment_required=True,
+            has_api_access=True,
+            api_key_limit=100,
+            rate_limit_per_minute=600
         )
     ]
     for tier in tiers:
-        # Check if exists to avoid duplication if we move scope to module/session later
         existing = session.query(SubscriptionTier).filter_by(tier=tier.tier).first()
         if not existing:
             session.add(tier)
@@ -170,10 +208,7 @@ def admin_client(client, admin_token):
     return client
 
 def create_test_token(user_id: str, email: str, is_admin: bool = False, expires_minutes: int = 15) -> str:
-    """
-    Helper function to create test JWT tokens.
-    Used by test files that need to generate custom tokens.
-    """
+    """Helper function to create test JWT tokens."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
     to_encode = {
         "sub": str(user_id),
@@ -183,42 +218,3 @@ def create_test_token(user_id: str, email: str, is_admin: bool = False, expires_
         "exp": expire
     }
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-
-@pytest.fixture
-def freemium_user(db_session):
-    user = User(email="free@test.com", subscription_tier="freemium", password_hash="test", is_admin=False, free_verifications=1.0)
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
-    return user
-
-@pytest.fixture
-def payg_user(db_session):
-    user = User(email="payg@test.com", subscription_tier="payg", password_hash="test", is_admin=False, free_verifications=1.0)
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
-    return user
-
-@pytest.fixture
-def pro_user(db_session):
-    user = User(email="pro@test.com", subscription_tier="pro", password_hash="test", is_admin=False, free_verifications=1.0)
-    db_session.add(user)
-    db_session.commit()
-    db_session.refresh(user)
-    return user
-
-@pytest.fixture
-def auth_header():
-    def _auth_header(user):
-        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
-        to_encode = {
-            "sub": str(user.id),
-            "user_id": str(user.id),
-            "email": user.email,
-            "is_admin": user.is_admin,
-            "exp": expire
-        }
-        token = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
-        return {"Authorization": f"Bearer {token}"}
-    return _auth_header

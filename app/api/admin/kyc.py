@@ -1,7 +1,7 @@
 """KYC (Know Your Customer) API endpoints."""
 
 from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_user_id, get_admin_user_id
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
@@ -12,8 +12,15 @@ from app.schemas.kyc import (
     KYCProfileResponse,
     KYCDocumentResponse,
     KYCVerificationDecision,
+    KYCProfileResponse,
+    KYCDocumentResponse,
+    KYCVerificationDecision,
     KYCStatsResponse,
 )
+from app.services.kyc_service import get_kyc_service
+from app.services.document_service import get_document_service
+from app.models.kyc import KYCProfile, KYCDocument, KYCAuditLog
+from sqlalchemy import func
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])

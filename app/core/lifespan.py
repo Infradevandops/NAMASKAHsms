@@ -45,7 +45,10 @@ async def lifespan(app: FastAPI):
     # Create admin user if needed
     try:
         startup_logger.info("Checking admin user...")
-        run_startup_initialization()
+        import os
+        if os.getenv("TESTING") != "1":
+            run_startup_initialization()
+
         startup_logger.info("Admin user verified")
     except Exception as e:
         startup_logger.error(f"Admin user initialization error: {e}")

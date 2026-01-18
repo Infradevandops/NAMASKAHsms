@@ -5,6 +5,7 @@ from typing import Callable, Dict, Any, Optional
 
 from fastapi import Request, Response, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -311,11 +312,11 @@ async def unified_exception_handler(request: Request, exc: NamaskahException) ->
 
     return JSONResponse(
         status_code=exc.status_code,
-        content={
+        content=jsonable_encoder({
             "error": exc.error_code,
             "message": exc.message,
             "details": exc.details,
-        },
+        }),
     )
 
 
@@ -325,11 +326,11 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
 
     return JSONResponse(
         status_code=exc.status_code,
-        content={
+        content=jsonable_encoder({
             "error": "HTTP_ERROR",
             "message": exc.detail,
             "details": {"status_code": exc.status_code},
-        },
+        }),
     )
 
 
@@ -341,11 +342,11 @@ async def validation_exception_handler(
 
     return JSONResponse(
         status_code=422,
-        content={
+        content=jsonable_encoder({
             "error": "VALIDATION_ERROR",
             "message": "Request validation failed",
             "details": {"errors": exc.errors()},
-        },
+        }),
     )
 
 
@@ -370,11 +371,11 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     return JSONResponse(
         status_code=500,
-        content={
+        content=jsonable_encoder({
             "error": "INTERNAL_ERROR",
             "message": "An unexpected error occurred",
             "details": error_details,
-        },
+        }),
     )
 
 

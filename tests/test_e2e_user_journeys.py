@@ -4,9 +4,11 @@ Tests complete user flows through the tier system:
 - Freemium user accessing gated features
 - Tier upgrades and downgrades
 - Error handling scenarios
+- KYC verification flow
+- Reseller bulk purchase flow
 """
 import pytest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -72,7 +74,7 @@ class TestFreemiumUserJourney:
         
         # Can access tier info
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -98,7 +100,7 @@ class TestFreemiumUserJourney:
         
         # Can see all tiers
         response = client.get(
-            "/api/tiers/",
+            "/api/v1/tiers/",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -179,7 +181,7 @@ class TestTierUpgradeJourney:
         
         # Can access tier info
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -216,14 +218,14 @@ class TestTierDowngradeJourney:
         
         # Downgrade to freemium
         response = client.post(
-            "/api/tiers/downgrade",
+            "/api/v1/tiers/downgrade",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
         
         # Verify tier changed
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -256,7 +258,7 @@ class TestTierDowngradeJourney:
         
         # Downgrade
         response = client.post(
-            "/api/tiers/downgrade",
+            "/api/v1/tiers/downgrade",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -274,13 +276,13 @@ class TestErrorScenarios:
     
     def test_unauthenticated_request_returns_401(self, client: TestClient):
         """Unauthenticated requests return 401."""
-        response = client.get("/api/tiers/current")
+        response = client.get("/api/v1/tiers/current")
         assert response.status_code == 401
     
     def test_invalid_token_returns_401(self, client: TestClient):
         """Invalid token returns 401."""
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": "Bearer invalid_token"}
         )
         assert response.status_code == 401
@@ -300,7 +302,7 @@ class TestErrorScenarios:
         expired_token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
         
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {expired_token}"}
         )
         assert response.status_code == 401
@@ -310,7 +312,7 @@ class TestErrorScenarios:
         token = create_test_token("nonexistent_user_id", "nonexistent@test.com")
         
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {token}"}
         )
         # Should return 404 or handle gracefully
@@ -339,7 +341,7 @@ class TestCustomTierJourney:
         
         # Can access tier info
         response = client.get(
-            "/api/tiers/current",
+            "/api/v1/tiers/current",
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
@@ -359,3 +361,167 @@ class TestCustomTierJourney:
             headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
+
+
+class TestKYCJourney:
+    """Test KYC verification flow."""
+    
+    def test_complete_kyc_flow(self, client: TestClient, db: Session):
+        """Standard user submits KYC profile, admin verifies it, limits increase."""
+        # 1. Create User
+        user = User(
+            id="kyc_user_e2e",
+            email="kyc@e2e.test",
+            password_hash=hash_password("password123"),
+            email_verified=True,
+            is_admin=False,
+            subscription_tier="pro",
+            credits=20.0,
+            created_at=datetime.now(timezone.utc)
+        )
+        admin = User(
+            id="admin_user_e2e",
+            email="admin@e2e.test",
+            password_hash=hash_password("password123"),
+            email_verified=True,
+            is_admin=True,
+            subscription_tier="custom",
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(user)
+        db.add(admin)
+        db.commit()
+        
+        user_token = create_test_token(user.id, user.email)
+        admin_token = create_test_token(admin.id, admin.email, is_admin=True)
+        
+        # 2. Check initial limits (unverified)
+        response = client.get(
+            "/api/v1/kyc/limits",
+            headers={"Authorization": f"Bearer {user_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["verification_level"] == "unverified"
+        assert data["daily_limit"] == 10.0
+        
+        # 3. Create KYC Profile
+        profile_data = {
+            "full_name": "John Doe",
+            "phone_number": "+1234567890",
+            "date_of_birth": "1990-01-01",
+            "nationality": "US",
+            "address_line1": "123 Main St",
+            "city": "New York",
+            "state": "NY",
+            "postal_code": "10001",
+            "country": "US"
+        }
+        response = client.post(
+            "/api/v1/kyc/profile",
+            json=profile_data,
+            headers={"Authorization": f"Bearer {user_token}"}
+        )
+        assert response.status_code == 201
+        profile_id = response.json()["id"]
+        
+        # 4. Upload Documents (Mock)
+        # We'll skip actual file upload logic if complex mock needed,
+        # but the submit endpoint checks for docs. 
+        # For this E2E, we might need to simulate the DB state or mock the upload.
+        # Let's try to mock the DB state directly for documents to proceed to submission.
+        from app.models.kyc import KYCDocument
+        doc1 = KYCDocument(
+            kyc_profile_id=profile_id,
+            document_type="id_card",
+            file_path="/tmp/mock_id.jpg",
+            verification_status="verified"
+        )
+        doc2 = KYCDocument(
+            kyc_profile_id=profile_id,
+            document_type="selfie",
+            file_path="/tmp/mock_selfie.jpg",
+            verification_status="verified"
+        )
+        db.add(doc1)
+        db.add(doc2)
+        db.commit()
+        
+        # 5. Submit for Review
+        response = client.post(
+            "/api/v1/kyc/submit",
+            headers={"Authorization": f"Bearer {user_token}"}
+        )
+        assert response.status_code == 200
+        assert response.json()["status"] == "pending"
+        
+        # 6. Admin Verifies
+        verify_data = {
+            "decision": "approved",
+            "verification_level": "enhanced",
+            "notes": "Looks good"
+        }
+        response = client.post(
+            f"/api/v1/kyc/admin/verify/{profile_id}",
+            json=verify_data,
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+        assert response.status_code == 200
+        assert response.json()["new_status"] == "verified"
+        
+        # 7. Check Limits Updated
+        response = client.get(
+            "/api/v1/kyc/limits",
+            headers={"Authorization": f"Bearer {user_token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["verification_level"] == "enhanced"
+        assert data["daily_limit"] >= 1000.0
+
+
+class TestResellerJourney:
+    """Test Reseller/Bulk Purchase flow."""
+    
+    def test_bulk_purchase_flow(self, client: TestClient, db: Session):
+        """Pro user can make bulk purchases."""
+        # 1. Create Pro User with credits
+        user = User(
+            id="reseller_user_e2e",
+            email="reseller@e2e.test",
+            password_hash=hash_password("password123"),
+            email_verified=True,
+            is_admin=False,
+            subscription_tier="pro",
+            credits=500.0,  # Sufficient credits
+            created_at=datetime.now(timezone.utc)
+        )
+        db.add(user)
+        db.commit()
+        
+        token = create_test_token(user.id, user.email)
+        
+        # 2. Make Bulk Purchase Request
+        purchase_data = {
+            "service": "whatsapp",
+            "country": "us",
+            "quantity": 10  # Minimum 5
+        }
+        response = client.post(
+            "/api/v1/bulk-purchase/",
+            json=purchase_data,
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "pending"
+        bulk_id = data["bulk_id"]
+        
+        # 3. Check Status
+        response = client.get(
+            f"/api/v1/bulk-purchase/{bulk_id}",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 200
+        assert response.json()["bulk_id"] == bulk_id
+

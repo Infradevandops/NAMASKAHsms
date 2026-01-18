@@ -33,6 +33,7 @@ from app.api.admin.actions import router as admin_actions_router
 from app.api.admin.pricing_control import router as admin_pricing_control_router
 from app.api.admin.verification_actions import router as admin_verification_actions_router
 from app.api.admin.logging_dashboard import router as admin_logging_dashboard_router
+from app.api.admin.kyc import router as kyc_router
 
 # Billing
 from app.api.billing.router import router as billing_router
@@ -82,6 +83,7 @@ v1_router.include_router(admin_actions_router)
 v1_router.include_router(admin_pricing_control_router)
 v1_router.include_router(admin_verification_actions_router)
 v1_router.include_router(admin_logging_dashboard_router)
+v1_router.include_router(kyc_router)
 
 # Include Billing
 # Assuming billing_router is an aggregator, we might face similar issues.

@@ -2,6 +2,7 @@
 
 import html
 import re
+import os
 from typing import Any, Dict, List, Union
 
 
@@ -69,3 +70,27 @@ def validate_and_sanitize_response(response_data: Dict) -> Dict:
             sanitized[key] = value
 
     return sanitized
+
+
+def sanitize_filename(filename: str) -> str:
+    """Sanitize filename to prevent directory traversal and invalid characters."""
+    if not isinstance(filename, str):
+        return "unnamed_file"
+
+    # Remove directory separators
+    filename = os.path.basename(filename)
+    
+    # Remove invalid characters (keep alphanumeric, dots, dashes, underscores)
+    filename = re.sub(r'[^a-zA-Z0-9._-]', '', filename)
+    
+    # Limit length
+    if len(filename) > 255:
+        base, ext = os.path.splitext(filename)
+        filename = base[:255-len(ext)] + ext
+        
+    # Prevent empty filename
+    if not filename:
+        filename = "unnamed_file"
+        
+    return filename
+

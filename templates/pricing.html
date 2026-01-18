@@ -21,6 +21,7 @@
             <div class="tier-card" data-tier="freemium">
                 <div class="tier-badge tier-badge-free">Free</div>
                 <h2 class="tier-name">Freemium</h2>
+                <p class="tier-subtitle">Best for testing</p>
                 <div class="tier-price">
                     <span class="price-amount">$0</span>
                     <span class="price-period">/month</span>
@@ -47,6 +48,7 @@
             <div class="tier-card" data-tier="payg">
                 <div class="tier-badge tier-badge-flexible">Flexible</div>
                 <h2 class="tier-name">Pay-As-You-Go</h2>
+                <p class="tier-subtitle">Best for occasional users</p>
                 <div class="tier-price">
                     <span class="price-amount">$2.50</span>
                     <span class="price-period">/SMS</span>
@@ -71,7 +73,9 @@
             <!-- Pro Tier -->
             <div class="tier-card tier-card-popular" data-tier="pro">
                 <div class="tier-badge tier-badge-popular">Most Popular</div>
+                <div class="tier-savings-badge">Save 88%</div>
                 <h2 class="tier-name">Pro</h2>
+                <p class="tier-subtitle">Best for businesses</p>
                 <div class="tier-price">
                     <span class="price-amount">$25</span>
                     <span class="price-period">/month</span>
@@ -79,7 +83,7 @@
                 <p class="tier-description">For businesses and developers</p>
 
                 <ul class="tier-features">
-                    <li><i class="ph ph-check"></i> $15 quota included</li>
+                    <li><i class="ph ph-check"></i> $15 quota included (~50 SMS)</li>
                     <li><i class="ph ph-check"></i> All filters included</li>
                     <li><i class="ph ph-check"></i> <strong>10 API keys</strong></li>
                     <li><i class="ph ph-check"></i> <strong>Affiliate program</strong></li>
@@ -96,6 +100,7 @@
             <div class="tier-card" data-tier="custom">
                 <div class="tier-badge tier-badge-premium">Enterprise</div>
                 <h2 class="tier-name">Custom</h2>
+                <p class="tier-subtitle">Best for enterprises</p>
                 <div class="tier-price">
                     <span class="price-amount">$35</span>
                     <span class="price-period">/month</span>
@@ -103,7 +108,7 @@
                 <p class="tier-description">For enterprises and high-volume users</p>
 
                 <ul class="tier-features">
-                    <li><i class="ph ph-check"></i> $25 quota included</li>
+                    <li><i class="ph ph-check"></i> $25 quota included (~125 SMS)</li>
                     <li><i class="ph ph-check"></i> <strong>Unlimited API keys</strong></li>
                     <li><i class="ph ph-check"></i> <strong>Enhanced affiliate program</strong></li>
                     <li><i class="ph ph-check"></i> All premium features</li>
@@ -296,6 +301,25 @@
             background: #f59e0b;
         }
 
+        .tier-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin: -10px 0 15px 0;
+            font-weight: 500;
+        }
+
+        .tier-savings-badge {
+            position: absolute;
+            top: -15px;
+            left: 30px;
+            background: #10b981;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
         .tier-name {
             font-size: 24px;
             margin: 20px 0;
@@ -369,8 +393,12 @@
         }
 
         .btn-payg {
-            background: #FF7854;
+            background: #6B7280;
             color: white;
+        }
+
+        .btn-payg:hover {
+            background: #4B5563;
         }
 
         .btn-pro {
