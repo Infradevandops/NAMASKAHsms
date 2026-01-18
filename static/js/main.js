@@ -33,7 +33,7 @@ import { initScrollTimeline } from './modules/scroll-timeline.js'
 
 // Core modules - loaded immediately
 import { initAuth } from './modules/auth.js'
-import { initDashboard } from './dashboard.js'
+import { init as initDashboard } from './dashboard.js'
 
 // Loading indicator
 function showLoadingIndicator() {

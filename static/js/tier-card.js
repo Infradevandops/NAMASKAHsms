@@ -8,17 +8,17 @@
  * - Maintainability
  */
 
-import { 
-    TIMEOUTS, 
-    STATES, 
+import {
+    TIMEOUTS,
+    STATES,
     ENDPOINTS,
-    TIER_DISPLAY_NAMES, 
-    TIER_BADGE_CLASSES, 
+    TIER_DISPLAY_NAMES,
+    TIER_BADGE_CLASSES,
     TIER_FEATURES,
     TIER_CTA_CONFIG,
     STORAGE_KEYS
 } from './constants.js';
-import { hasAuthToken, getAuthHeaders } from './auth-helpers.js';
+import { hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
 
 /**
  * TierCard class - manages the tier card widget
@@ -27,7 +27,7 @@ export class TierCard {
     constructor(containerId, options = {}) {
         this.containerId = containerId;
         this.container = document.getElementById(containerId);
-        
+
         if (!this.container) {
             console.error(`TierCard: Container #${containerId} not found`);
             return;
@@ -95,7 +95,7 @@ export class TierCard {
         if (this.refreshIntervalId) {
             clearInterval(this.refreshIntervalId);
         }
-        
+
         this.refreshIntervalId = setInterval(() => {
             if (hasAuthToken()) {
                 this.load();
@@ -356,19 +356,19 @@ export class TierCard {
 
         // Render price
         if (data.price_monthly !== undefined) {
-            this.elements.tierPrice.textContent = data.price_monthly === 0 
-                ? 'Free' 
+            this.elements.tierPrice.textContent = data.price_monthly === 0
+                ? 'Free'
                 : `$${data.price_monthly}/month`;
         }
 
         // Render features
         const features = TIER_FEATURES[tierCode] || [{ text: 'Basic features included', available: true }];
         let featuresHtml = '';
-        
+
         for (const feature of features) {
             const icon = feature.available ? '✓' : '✗';
-            const style = feature.available 
-                ? 'color: var(--tier-freemium);' 
+            const style = feature.available
+                ? 'color: var(--tier-freemium);'
                 : 'color: var(--text-muted);';
             featuresHtml += `<div style="margin-bottom: 4px; ${style}">${icon} ${feature.text}</div>`;
         }
@@ -430,7 +430,7 @@ export class TierCard {
 
         if (tierCode !== 'freemium' && data.quota_usd > 0 && quotaCard) {
             quotaCard.style.display = 'block';
-            
+
             const quotaUsed = data.quota_used_usd || 0;
             const quotaLimit = data.quota_usd || 0;
             const percentage = quotaLimit > 0 ? Math.min((quotaUsed / quotaLimit) * 100, 100) : 0;
@@ -440,9 +440,9 @@ export class TierCard {
 
             if (quotaFill) {
                 quotaFill.style.width = `${percentage}%`;
-                quotaFill.style.background = percentage >= 100 ? '#ef4444' 
-                    : percentage > 80 ? '#f59e0b' 
-                    : 'var(--primary)';
+                quotaFill.style.background = percentage >= 100 ? '#ef4444'
+                    : percentage > 80 ? '#f59e0b'
+                        : 'var(--primary)';
             }
 
             if (quotaText) {
@@ -452,7 +452,7 @@ export class TierCard {
 
         if (tierCode !== 'freemium' && apiStatsCard) {
             apiStatsCard.style.display = 'block';
-            
+
             const smsCount = document.getElementById('api-sms-count');
             const apiCalls = document.getElementById('api-calls-count');
             const apiKeys = document.getElementById('api-keys-count');
@@ -540,7 +540,7 @@ export class TierCard {
     destroy() {
         this._clearTimers();
         this.stopAutoRefresh();
-        
+
         if (this.abortController) {
             this.abortController.abort();
         }
@@ -551,10 +551,10 @@ export class TierCard {
 export function initTierCard(containerId = 'tier-card', options = {}) {
     const tierCard = new TierCard(containerId, options);
     tierCard.init();
-    
+
     // Expose globally for onclick handlers
     window.tierCard = tierCard;
-    
+
     return tierCard;
 }
 

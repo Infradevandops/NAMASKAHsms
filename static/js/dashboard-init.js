@@ -10,7 +10,7 @@
  */
 
 import { TIMEOUTS, ENDPOINTS, STORAGE_KEYS } from './constants.js';
-import { hasAuthToken, getAuthHeaders } from './auth-helpers.js';
+import { hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
 import { initTierCard } from './tier-card.js';
 
 // ============================================
@@ -130,7 +130,7 @@ class ActivityWidget {
         for (const activity of activities) {
             const statusColor = activity.status === 'completed' ? '#10b981'
                 : activity.status === 'failed' ? '#ef4444'
-                : '#f59e0b';
+                    : '#f59e0b';
 
             html += `
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">

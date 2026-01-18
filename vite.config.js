@@ -27,7 +27,7 @@ export default defineConfig({
         'dashboard-init': resolve(__dirname, 'static/js/dashboard-init.js'),
         'dashboard-loader': resolve(__dirname, 'static/js/dashboard-loader.js'),
         'frontend-logger': resolve(__dirname, 'static/js/frontend-logger.js'),
-        'auth-store': resolve(__dirname, 'static/js/store/auth-store.js'),
+        'auth-store': resolve(__dirname, 'static/js/store/auth-store.ts'),
       },
       output: {
         entryFileNames: 'js/[name].[hash].js',
@@ -47,7 +47,7 @@ export default defineConfig({
         // Shared chunks for common dependencies
         manualChunks: {
           'vendor-constants': ['./static/js/constants.js'],
-          'vendor-auth': ['./static/js/auth-helpers.js'],
+          'vendor-auth': ['./static/js/auth-helpers.ts'],
         }
       }
     },

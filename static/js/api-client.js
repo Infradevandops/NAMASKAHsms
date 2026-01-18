@@ -8,7 +8,7 @@
  */
 
 import { TIMEOUTS, HTTP_STATUS, STORAGE_KEYS } from './constants.js';
-import { getAuthHeaders, hasAuthToken, clearAuth } from './auth-helpers.js';
+import { getAuthHeaders, hasAuthToken, clearAuth } from './auth-helpers.ts';
 
 /**
  * Custom API Error class
@@ -143,8 +143,8 @@ class ApiClient {
                 }
 
                 // Don't retry client errors (except 408, 429)
-                if (response.status >= 400 && response.status < 500 && 
-                    response.status !== HTTP_STATUS.TIMEOUT && 
+                if (response.status >= 400 && response.status < 500 &&
+                    response.status !== HTTP_STATUS.TIMEOUT &&
                     response.status !== HTTP_STATUS.TOO_MANY_REQUESTS) {
                     const errorData = await response.json().catch(() => ({}));
                     throw new ApiError(
@@ -155,8 +155,8 @@ class ApiClient {
                 }
 
                 // Retry on server errors
-                if (response.status >= 500 || 
-                    response.status === HTTP_STATUS.TIMEOUT || 
+                if (response.status >= 500 ||
+                    response.status === HTTP_STATUS.TIMEOUT ||
                     response.status === HTTP_STATUS.TOO_MANY_REQUESTS) {
                     lastError = new ApiError(`HTTP ${response.status}`, response.status);
                     if (attempt < maxRetries) continue;

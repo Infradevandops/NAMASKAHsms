@@ -970,4 +970,4 @@ async function loadRecentActivity() {
 }
 
 // Export for testing
-export { init, loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers, setupRentalHandlers, loadRecentActivity };
+export { loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers, setupRentalHandlers, loadRecentActivity };

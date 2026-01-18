@@ -6,7 +6,7 @@
  */
 
 import { ENDPOINTS, STORAGE_KEYS, TIERS, TIER_DISPLAY_NAMES } from './constants.js';
-import { getAuthToken, hasAuthToken, getAuthHeaders } from './auth-helpers.js';
+import { getAuthToken, hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
 
 /**
  * Feature access map - which tiers can access which features
@@ -44,7 +44,7 @@ export class TierManager {
         this.currentTier = null;
         this.tierConfig = null;
         this.autoInit = options.autoInit !== false;
-        
+
         if (this.autoInit) {
             this.init();
         }
@@ -176,7 +176,7 @@ export class TierManager {
             if (e.target === modal) {
                 this.closeUpgradeModal();
             }
-            
+
             const action = e.target.dataset.action;
             if (action === 'close') {
                 this.closeUpgradeModal();
@@ -267,7 +267,7 @@ export class TierManager {
 
     lockFeature(element, feature, requiredTier) {
         if (!element) return;
-        
+
         element.classList.add('feature-locked');
         element.setAttribute('aria-disabled', 'true');
 
@@ -295,10 +295,10 @@ export class TierManager {
 
     unlockFeature(element) {
         if (!element) return;
-        
+
         element.classList.remove('feature-locked');
         element.removeAttribute('aria-disabled');
-        
+
         const overlay = element.querySelector('.feature-lock-overlay');
         if (overlay) overlay.remove();
     }
@@ -336,12 +336,12 @@ export class TierManager {
 // Factory function
 export function initTierManager(options = {}) {
     const manager = new TierManager(options);
-    
+
     // Expose globally for legacy scripts
     if (typeof window !== 'undefined') {
         window.tierManager = manager;
     }
-    
+
     return manager;
 }
 
