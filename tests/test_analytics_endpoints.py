@@ -11,14 +11,15 @@ from app.models.user import User
 from app.models.verification import Verification
 from app.models.transaction import Transaction
 from app.utils.security import hash_password
+from tests.conftest import create_test_token
 
 
 class TestAnalyticsSummaryEndpoint:
     """Tests for GET /api/analytics/summary endpoint."""
 
-    def test_analytics_summary_returns_correct_fields(self, client, regular_user, user_token):
+    def test_analytics_summary_returns_correct_fields(self, client, regular_user):
         """Test that /api/analytics/summary returns all required fields."""
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/analytics/summary",
             headers={"Authorization": f"Bearer {token}"}
@@ -42,9 +43,9 @@ class TestAnalyticsSummaryEndpoint:
         
         assert all(field in data for field in required_fields)
 
-    def test_analytics_summary_with_no_verifications(self, client, regular_user, user_token):
+    def test_analytics_summary_with_no_verifications(self, client, regular_user):
         """Test analytics summary when user has no verifications."""
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/analytics/summary",
             headers={"Authorization": f"Bearer {token}"}
@@ -57,7 +58,7 @@ class TestAnalyticsSummaryEndpoint:
         assert data["success_rate"] == 0
         assert data["total_spent"] == 0
 
-    def test_analytics_summary_calculates_success_rate(self, client, regular_user, user_token, db):
+    def test_analytics_summary_calculates_success_rate(self, client, regular_user, db):
         """Test that success rate is calculated correctly."""
         # Create verifications with different statuses
         for i in range(10):
@@ -76,7 +77,7 @@ class TestAnalyticsSummaryEndpoint:
             db.add(verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/analytics/summary",
             headers={"Authorization": f"Bearer {token}"}
@@ -90,7 +91,7 @@ class TestAnalyticsSummaryEndpoint:
         # Success rate is returned as decimal (0.7) not percentage (70.0)
         assert data["success_rate"] == 0.7
 
-    def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, user_token, db):
+    def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, db):
         """Test that monthly verifications are counted correctly."""
         # Create verifications in current month
         current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
@@ -124,7 +125,7 @@ class TestAnalyticsSummaryEndpoint:
         db.add(old_verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/analytics/summary",
             headers={"Authorization": f"Bearer {token}"}
@@ -139,7 +140,7 @@ class TestAnalyticsSummaryEndpoint:
         response = client.get("/api/analytics/summary")
         assert response.status_code == 401
 
-    def test_analytics_summary_with_different_user_tiers(self, client, db, user_token):
+    def test_analytics_summary_with_different_user_tiers(self, client, db):
         """Test analytics summary with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
         
@@ -159,7 +160,7 @@ class TestAnalyticsSummaryEndpoint:
         db.commit()
         
         for tier in tiers_to_test:
-            token = user_token(f"analytics_{tier}", f"analytics_{tier}@test.com")
+            token = create_test_token(f"analytics_{tier}", f"analytics_{tier}@test.com")
             response = client.get(
                 "/api/analytics/summary",
                 headers={"Authorization": f"Bearer {token}"}
@@ -172,9 +173,9 @@ class TestAnalyticsSummaryEndpoint:
 class TestDashboardActivityEndpoint:
     """Tests for GET /api/dashboard/activity/recent endpoint."""
 
-    def test_activity_recent_returns_array(self, client, regular_user, user_token):
+    def test_activity_recent_returns_array(self, client, regular_user):
         """Test that /api/dashboard/activity/recent returns an array."""
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -184,7 +185,7 @@ class TestDashboardActivityEndpoint:
         data = response.json()
         assert isinstance(data, list)
 
-    def test_activity_recent_returns_activities(self, client, regular_user, user_token, db):
+    def test_activity_recent_returns_activities(self, client, regular_user, db):
         """Test that activity endpoint returns recent activities."""
         # Create some verifications
         for i in range(5):
@@ -202,7 +203,7 @@ class TestDashboardActivityEndpoint:
             db.add(verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -212,7 +213,7 @@ class TestDashboardActivityEndpoint:
         data = response.json()
         assert len(data) == 5
 
-    def test_activity_recent_includes_required_fields(self, client, regular_user, user_token, db):
+    def test_activity_recent_includes_required_fields(self, client, regular_user, db):
         """Test that each activity includes required fields."""
         verification = Verification(
             id="activity_test",
@@ -228,7 +229,7 @@ class TestDashboardActivityEndpoint:
         db.add(verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -242,7 +243,7 @@ class TestDashboardActivityEndpoint:
         required_fields = {"id", "service_name", "phone_number", "status", "created_at"}
         assert all(field in activity for field in required_fields)
 
-    def test_activity_recent_limits_to_ten(self, client, regular_user, user_token, db):
+    def test_activity_recent_limits_to_ten(self, client, regular_user, db):
         """Test that activity endpoint limits results to 10."""
         # Create 15 verifications
         for i in range(15):
@@ -260,7 +261,7 @@ class TestDashboardActivityEndpoint:
             db.add(verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -270,7 +271,7 @@ class TestDashboardActivityEndpoint:
         data = response.json()
         assert len(data) == 10
 
-    def test_activity_recent_orders_by_created_at(self, client, regular_user, user_token, db):
+    def test_activity_recent_orders_by_created_at(self, client, regular_user, db):
         """Test that activities are ordered by created_at descending."""
         # Create verifications with specific timestamps
         base_time = datetime.now(timezone.utc)
@@ -289,7 +290,7 @@ class TestDashboardActivityEndpoint:
             db.add(verification)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -302,7 +303,7 @@ class TestDashboardActivityEndpoint:
         assert data[1]["id"] == "order_test_1"
         assert data[2]["id"] == "order_test_2"
 
-    def test_activity_recent_only_returns_user_activities(self, client, regular_user, user_token, db):
+    def test_activity_recent_only_returns_user_activities(self, client, regular_user, db):
         """Test that activity endpoint only returns current user's activities."""
         # Create verification for regular user
         verification1 = Verification(
@@ -347,7 +348,7 @@ class TestDashboardActivityEndpoint:
         db.add(verification2)
         db.commit()
         
-        token = user_token(regular_user.id, regular_user.email)
+        token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
             headers={"Authorization": f"Bearer {token}"}
@@ -364,7 +365,7 @@ class TestDashboardActivityEndpoint:
         response = client.get("/api/dashboard/activity/recent")
         assert response.status_code == 401
 
-    def test_activity_recent_with_different_user_tiers(self, client, db, user_token):
+    def test_activity_recent_with_different_user_tiers(self, client, db):
         """Test activity endpoint with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
         
@@ -384,7 +385,7 @@ class TestDashboardActivityEndpoint:
         db.commit()
         
         for tier in tiers_to_test:
-            token = user_token(f"activity_{tier}", f"activity_{tier}@test.com")
+            token = create_test_token(f"activity_{tier}", f"activity_{tier}@test.com")
             response = client.get(
                 "/api/dashboard/activity/recent",
                 headers={"Authorization": f"Bearer {token}"}

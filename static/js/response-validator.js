@@ -3,7 +3,7 @@
  * Validates API responses and logs errors for debugging
  */
 
-class ResponseValidationError extends Error {
+export class ResponseValidationError extends Error {
     constructor(message, missingFields = []) {
         super(message);
         this.name = 'ResponseValidationError';
@@ -17,11 +17,11 @@ class ResponseValidationError extends Error {
  * @param {Array<string>} requiredFields - List of required field names
  * @returns {{valid: boolean, missing: Array<string>}}
  */
-function checkRequiredFields(data, requiredFields) {
+export function checkRequiredFields(data, requiredFields) {
     if (!data || typeof data !== 'object') {
         return { valid: false, missing: requiredFields };
     }
-    
+
     const missing = requiredFields.filter(field => !(field in data));
     return {
         valid: missing.length === 0,
@@ -34,28 +34,28 @@ function checkRequiredFields(data, requiredFields) {
  * @param {Object} data - The response data
  * @returns {{valid: boolean, error: string|null}}
  */
-function validateTiersListResponse(data) {
+export function validateTiersListResponse(data) {
     const requiredFields = ['tiers'];
     const check = checkRequiredFields(data, requiredFields);
-    
+
     if (!check.valid) {
         const error = `Missing required fields: ${check.missing.join(', ')}`;
         console.error('[Response Validation] /api/tiers/ -', error);
         return { valid: false, error };
     }
-    
+
     if (!Array.isArray(data.tiers)) {
         const error = 'tiers must be an array';
         console.error('[Response Validation] /api/tiers/ -', error);
         return { valid: false, error };
     }
-    
+
     if (data.tiers.length !== 4) {
         const error = `Expected 4 tiers, got ${data.tiers.length}`;
         console.warn('[Response Validation] /api/tiers/ -', error);
         // Don't fail validation, just warn
     }
-    
+
     // Validate each tier has required fields
     const tierFields = ['tier', 'name', 'price_monthly', 'price_display', 'quota_usd', 'overage_rate', 'features'];
     for (let i = 0; i < data.tiers.length; i++) {
@@ -66,7 +66,7 @@ function validateTiersListResponse(data) {
             return { valid: false, error };
         }
     }
-    
+
     return { valid: true, error: null };
 }
 
@@ -75,7 +75,7 @@ function validateTiersListResponse(data) {
  * @param {Object} data - The response data
  * @returns {{valid: boolean, error: string|null}}
  */
-function validateCurrentTierResponse(data) {
+export function validateCurrentTierResponse(data) {
     const requiredFields = [
         'current_tier',
         'tier_name',
@@ -88,15 +88,15 @@ function validateCurrentTierResponse(data) {
         'overage_rate',
         'features'
     ];
-    
+
     const check = checkRequiredFields(data, requiredFields);
-    
+
     if (!check.valid) {
         const error = `Missing required fields: ${check.missing.join(', ')}`;
         console.error('[Response Validation] /api/tiers/current -', error);
         return { valid: false, error };
     }
-    
+
     return { valid: true, error: null };
 }
 
@@ -105,22 +105,22 @@ function validateCurrentTierResponse(data) {
  * @param {Object} data - The response data
  * @returns {{valid: boolean, error: string|null}}
  */
-function validateAnalyticsSummaryResponse(data) {
+export function validateAnalyticsSummaryResponse(data) {
     const requiredFields = [
         'total_verifications',
         'successful_verifications',
         'success_rate',
         'total_spent'
     ];
-    
+
     const check = checkRequiredFields(data, requiredFields);
-    
+
     if (!check.valid) {
         const error = `Missing required fields: ${check.missing.join(', ')}`;
         console.error('[Response Validation] /api/analytics/summary -', error);
         return { valid: false, error };
     }
-    
+
     return { valid: true, error: null };
 }
 
@@ -129,15 +129,15 @@ function validateAnalyticsSummaryResponse(data) {
  * @param {Array} data - The response data (array of activities)
  * @returns {{valid: boolean, error: string|null}}
  */
-function validateDashboardActivityResponse(data) {
+export function validateDashboardActivityResponse(data) {
     if (!Array.isArray(data)) {
         const error = 'Response must be an array';
         console.error('[Response Validation] /api/dashboard/activity/recent -', error);
         return { valid: false, error };
     }
-    
+
     const activityFields = ['id', 'service_name', 'phone_number', 'status'];
-    
+
     for (let i = 0; i < data.length; i++) {
         const check = checkRequiredFields(data[i], activityFields);
         if (!check.valid) {
@@ -146,7 +146,7 @@ function validateDashboardActivityResponse(data) {
             return { valid: false, error };
         }
     }
-    
+
     return { valid: true, error: null };
 }
 
@@ -156,7 +156,7 @@ function validateDashboardActivityResponse(data) {
  * @param {*} data - The response data
  * @returns {{valid: boolean, error: string|null}}
  */
-function validateResponse(endpoint, data) {
+export function validateResponse(endpoint, data) {
     try {
         if (endpoint.includes('/api/tiers/current')) {
             return validateCurrentTierResponse(data);
@@ -167,7 +167,7 @@ function validateResponse(endpoint, data) {
         } else if (endpoint.includes('/api/dashboard/activity/recent')) {
             return validateDashboardActivityResponse(data);
         }
-        
+
         // Unknown endpoint, skip validation
         return { valid: true, error: null };
     } catch (error) {
@@ -180,9 +180,9 @@ function validateResponse(endpoint, data) {
  * Show validation error to user
  * @param {string} message - Error message to display
  */
-function showValidationError(message) {
+export function showValidationError(message) {
     console.error('[Response Validation Error]', message);
-    
+
     // Create error notification
     const errorDiv = document.createElement('div');
     errorDiv.className = 'validation-error-notification';
@@ -198,7 +198,7 @@ function showValidationError(message) {
         z-index: 10000;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     `;
-    
+
     errorDiv.innerHTML = `
         <div style="display: flex; align-items: start; gap: 12px;">
             <div style="color: #c00; font-size: 20px;">⚠️</div>
@@ -210,9 +210,9 @@ function showValidationError(message) {
             <button onclick="this.parentElement.parentElement.remove()" style="background: none; border: none; font-size: 20px; cursor: pointer; color: #999;">&times;</button>
         </div>
     `;
-    
+
     document.body.appendChild(errorDiv);
-    
+
     // Auto-remove after 10 seconds
     setTimeout(() => {
         if (errorDiv.parentElement) {

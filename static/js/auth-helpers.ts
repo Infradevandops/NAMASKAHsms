@@ -4,12 +4,17 @@
  */
 
 import { STORAGE_KEYS, TIMEOUTS } from './constants.js';
+import { authStore } from './store/auth-store.js';
 
 /**
  * Get the current access token
  * @returns {string|null}
  */
-export function getAuthToken() {
+export function getAuthToken(): string | null {
+    // Prefer store, fallback to localStorage if store empty (initial load)
+    const state = authStore.getState();
+    if (state.accessToken) return state.accessToken;
+
     return localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
 }
 
@@ -17,16 +22,16 @@ export function getAuthToken() {
  * Check if user has a valid auth token
  * @returns {boolean}
  */
-export function hasAuthToken() {
+export function hasAuthToken(): boolean {
     const token = getAuthToken();
-    return token && token.length > 0;
+    return !!(token && token.length > 0);
 }
 
 /**
  * Get authorization headers for API requests
  * @returns {Object}
  */
-export function getAuthHeaders() {
+export function getAuthHeaders(): { Authorization?: string } {
     const token = getAuthToken();
     return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
@@ -37,13 +42,12 @@ export function getAuthHeaders() {
  * @param {string} [refreshToken]
  * @param {number} [expiresIn] - Seconds until expiry
  */
-export function setAuthTokens(accessToken, refreshToken, expiresIn) {
-    localStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-    
-    if (refreshToken) {
-        localStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
-    }
-    
+export function setAuthTokens(accessToken: string, refreshToken?: string, expiresIn?: number): void {
+    const state = authStore.getState();
+    // Update Store (which persists to localStorage via persist middleware)
+    state.setTokens(accessToken, refreshToken);
+
+    // Legacy support for expiration key not managed by store yet
     if (expiresIn) {
         const expiresAt = Date.now() + (expiresIn * 1000);
         localStorage.setItem(STORAGE_KEYS.TOKEN_EXPIRES, expiresAt.toString());
@@ -53,9 +57,11 @@ export function setAuthTokens(accessToken, refreshToken, expiresIn) {
 /**
  * Clear all auth data from storage
  */
-export function clearAuth() {
-    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+export function clearAuth(): void {
+    const state = authStore.getState();
+    state.logout();
+
+    // Explicitly clean up legacy keys just in case
     localStorage.removeItem(STORAGE_KEYS.TOKEN_EXPIRES);
 }
 
@@ -63,7 +69,7 @@ export function clearAuth() {
  * Check if the current token is expired
  * @returns {boolean}
  */
-export function isTokenExpired() {
+export function isTokenExpired(): boolean {
     const expiresAt = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRES);
     if (!expiresAt) return false; // No expiry set, assume valid
     return Date.now() > parseInt(expiresAt, 10);
@@ -73,13 +79,13 @@ export function isTokenExpired() {
  * Check if token needs refresh (within buffer period)
  * @returns {boolean}
  */
-export function shouldRefreshToken() {
+export function shouldRefreshToken(): boolean {
     const expiresAt = localStorage.getItem(STORAGE_KEYS.TOKEN_EXPIRES);
     if (!expiresAt) return false;
-    
+
     const expiryTime = parseInt(expiresAt, 10);
     const bufferTime = Date.now() + TIMEOUTS.TOKEN_REFRESH_BUFFER;
-    
+
     return bufferTime > expiryTime;
 }
 
@@ -87,17 +93,18 @@ export function shouldRefreshToken() {
  * Get refresh token
  * @returns {string|null}
  */
-export function getRefreshToken() {
-    return localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+export function getRefreshToken(): string | null {
+    const state = authStore.getState();
+    return state.refreshToken || localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
 }
 
 /**
  * Redirect to login page
  * @param {string} [returnUrl] - URL to return to after login
  */
-export function redirectToLogin(returnUrl) {
+export function redirectToLogin(returnUrl?: string): void {
     clearAuth();
-    const loginUrl = returnUrl 
+    const loginUrl = returnUrl
         ? `/auth/login?return=${encodeURIComponent(returnUrl)}`
         : '/auth/login';
     window.location.href = loginUrl;
@@ -107,18 +114,18 @@ export function redirectToLogin(returnUrl) {
  * Check if current page requires authentication
  * @returns {boolean}
  */
-export function isProtectedPage() {
+export function isProtectedPage(): boolean {
     const publicPaths = ['/', '/landing', '/auth/', '/login', '/register', '/pricing', '/about', '/contact'];
     const currentPath = window.location.pathname;
-    
-    return !publicPaths.some(path => 
+
+    return !publicPaths.some(path =>
         currentPath === path || currentPath.startsWith(path)
     );
 }
 
 // For non-module scripts (IIFE compatibility)
 if (typeof window !== 'undefined') {
-    window.AuthHelpers = {
+    (window as any).AuthHelpers = {
         getAuthToken,
         hasAuthToken,
         getAuthHeaders,

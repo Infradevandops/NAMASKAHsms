@@ -30,6 +30,7 @@ from app.api.verification.router import router as verification_router
 from app.api.routes_consolidated import router as routes_router
 from app.api.preview_router import router as preview_router
 from app.api.v1.router import v1_router
+from app.api.health import router as health_router
 
 security = HTTPBearer(auto_error=False)
 TEMPLATES_DIR = Path("templates").resolve()
@@ -108,10 +109,13 @@ def create_app() -> FastAPI:
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
 
     # ============== ROUTERS ==============
+    # Health checks (must be first for monitoring)
+    fastapi_app.include_router(health_router)
+    
     # Modular Routers (Legacy - Deprecated)
     fastapi_app.include_router(core_router, deprecated=True)
     fastapi_app.include_router(admin_router, deprecated=True)
-    fastapi_app.include_router(billing_router, deprecated=True)
+    fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(verification_router, deprecated=True)
     
     # Version 1 API

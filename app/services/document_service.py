@@ -3,17 +3,22 @@
 import os
 import hashlib
 import mimetypes
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, TYPE_CHECKING
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
+import json
+
+if TYPE_CHECKING:
+    from PIL import Image
 
 try:
-    from PIL import Image
+    from PIL import Image as PILImage
+    PIL_AVAILABLE = True
 except ImportError:
-    Image = None
-import json
+    PILImage = None
+    PIL_AVAILABLE = False
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -168,8 +173,8 @@ class DocumentService:
         try:
             extracted_data = {}
 
-            if Image:
-                with Image.open(file_path) as img:
+            if PIL_AVAILABLE and PILImage:
+                with PILImage.open(file_path) as img:
                     # Basic image info
                     extracted_data["image_info"] = {
                         "format": img.format,
@@ -206,7 +211,7 @@ class DocumentService:
             logger.error("Image processing failed: %s", str(e))
             return {"error": str(e)}
 
-    def _assess_image_quality(self, img: Image.Image) -> Dict[str, Any]:
+    def _assess_image_quality(self, img: "Image.Image") -> Dict[str, Any]:
         """Assess image quality for document verification."""
         try:
             # Basic quality metrics
@@ -259,7 +264,7 @@ class DocumentService:
             logger.error("Quality assessment failed: %s", str(e))
             return {"quality_score": 0.5, "error": str(e)}
 
-    async def _analyze_id_document(self, img: Image.Image) -> Dict[str, Any]:
+    async def _analyze_id_document(self, img: "Image.Image") -> Dict[str, Any]:
         """Analyze ID document for authenticity markers."""
         try:
             # Simplified document analysis
@@ -279,7 +284,7 @@ class DocumentService:
             logger.error("Document analysis failed: %s", str(e))
             return {"error": str(e)}
 
-    async def _analyze_selfie(self, img: Image.Image) -> Dict[str, Any]:
+    async def _analyze_selfie(self, img: "Image.Image") -> Dict[str, Any]:
         """Analyze selfie for face detection and liveness."""
         try:
             # Simplified face analysis

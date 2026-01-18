@@ -19,16 +19,25 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+PIPFILE.lock
 
 # Database
 *.db
 *.sqlite
 *.sqlite3
 token.json
+namaskah.db
+namaskah_dev.db
+e2e.db
+e2e_final.db
+test.db
 
 # Logs
 *.log
 server.log
+server_final.log
+app.log
+logs/
 
 # Environment
 .env
@@ -36,7 +45,9 @@ server.log
 .env.production
 .env.staging
 .env.test
-.venv
+.env.development
+.env.docker
+.venv/
 env/
 venv/
 
@@ -44,6 +55,7 @@ venv/
 .secrets
 secrets.json
 config.json
+.secrets.baseline
 
 # IDE
 .vscode/
@@ -52,6 +64,7 @@ config.json
 *.swo
 *.sublime-project
 *.sublime-workspace
+.kiro/
 
 # OS
 .DS_Store
@@ -65,17 +78,20 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+package-lock.json
 
-# Coverage
+# Coverage & Testing
 htmlcov/
 .coverage
 coverage.xml
 *.cover
-
-# Pytest
 .pytest_cache/
 .mypy_cache/
 .hypothesis/
+test-results/
+playwright-report/
+.cache/
+.cache_ggshield
 
 # Backup files
 *.bak
@@ -83,25 +99,20 @@ coverage.xml
 *.tmp
 *.temp
 *~
+*.save
+*.py.bak
+templates/*.backup
+backups/
 
 # Build artifacts
 .eggs/
+*.egg-info/
 
-# Cache
-.cache/
-
-# Server logs
-unicorn.log
-
-# Database backups
-*.sql
-*.sql.gz
-
-# Certificates & Tokens
+# Certificates & Keys
 *.pem
 *.key
 *.crt
-.secrets.baseline
+certs/
 
 # Docker
 .dockerignore
@@ -109,52 +120,34 @@ unicorn.log
 # Documentation build
 docs/_build/
 
-# Relative docs - Deprecated/Consolidated
-/docs/PRICING_FINAL_STRUCTURE.md
-/docs/TIER_API_DOCUMENTATION.md
-/docs/TIER_MANAGEMENT_GUIDE.md
+# Monitoring
+monitoring/
 
-# Relative paths - Build artifacts
-/htmlcov/
-/.coverage
-/.coveragerc
-/.cache_ggshield
-/test.db
-/namaskah_dev.db
+# Temporary files
+*.tmp
+*.temp
+LOGIN_TEST.html
+.render-deploy
+.server.pid
 
-# Relative paths - Logs
-/server.log
-
-# Relative paths - IDE
-/.vscode/
-/.idea/
-
-# Relative paths - Environment
-/.env
-/.env.local
-/.env.production
-/.env.development
-/.env.docker
-/.env.test
-
-# Relative paths - Certificates
-/certs/
-
-# Relative paths - Monitoring
-/monitoring/
-
-# Relative paths - Temporary files
-/LOGIN_TEST.html
-/.render-deploy
-
-# Kiro IDE specs and settings
-.kiro/
-
-# Task/Progress documentation (internal only)
+# Task/Planning Documents (Root)
+*TASK*.md
+*TASKS*.md
+*TODO*.md
 *IMPLEMENTATION*.md
-*DASHBOARD*.md
-*DEPLOYMENT*.md
+*MIGRATION*.md
+*SKELETON*.md
+*VERIFICATION*.md
+*EXPLANATION*.md
+*APPROACH*.md
+*FIX*.md
 *FIXES*.md
+*ASSESSMENT*.md
+*AUDIT*.md
+*COMPLETE*.md
+*COMPLETION*.md
+*CREDENTIALS*.md
+*TESTING*.md
 *TROUBLESHOOTING*.md
 *STABILIZATION*.md
 *REORGANIZATION*.md
@@ -162,73 +155,40 @@ docs/_build/
 *ROADMAP*.md
 *STATUS*.md
 *CHECKLIST*.md
-*CREDENTIALS*.md
 *QUICK*.md
 *ANALYSIS*.md
-*ASSESSMENT*.md
 *POLISHING*.md
 *ENHANCEMENT*.md
 *BREAKING*.md
 *FLOW*.md
-*TASKS*.md
-*MIGRATION*.md
-*SKELETON*.md
-QUICK_START.md
-FINAL_*.md
-COMPLETE_*.md
-CRITICAL_*.md
-RENTAL_SYSTEM_IMPLEMENTATION.md
-TEXTVERIFIED_IMPLEMENTATION.md
-TASKS.md
-TEST_GUIDE.md
-README_QUICK.md
-SMS_INTERFACES_COMPARISON.txt
-docs/TEMPLATE_*.md
-docs/USER_FLOWS.md
-docs/QUICK_START_*.md
-fix_*.py
-migrate_*.py
-scripts/temp_*.py
-
-# Backup files
-*.backup
-*.bak
-*~
-templates/*.backup
-
-# Screenshots and media (testing only)
-*.png
-*.jpg
-*.jpeg
-*.gif
-screenshots/
-images/test/
-
-# Temporary fix/migration scripts
-# Task and planning documents (root directory)
-*TASKS*.md
-*TASK*.md
-*TODO*.md
-*MIGRATION*.md
-*SKELETON*.md
-*IMPLEMENTATION*.md
-*VERIFICATION*.md
-*EXPLANATION*.md
-*APPROACH*.md
-*FIX*.md
-*ASSESSMENT*.md
-*AUDIT*.md
-*COMPLETE*.md
-*CREDENTIALS*.md
-*TESTING*.md
+*DASHBOARD*.md
+*DEPLOYMENT*.md
+*GUIDE*.md
+*PLAN*.md
+*REPORT*.md
+*REFERENCE*.md
 MASTER_*.md
 FINAL_*.md
 WEEK_*.md
 TIER_SYSTEM_*.md
 FRONTEND_*.md
 SERVER_*.md
+CI_*.md
+QUICK_START*.md
+STARTUP_GUIDE.md
+PHASE_*.md
+COLOR_*.md
+LANDING_*.md
+TINDER_*.md
+THEME_*.md
+DEEP_*.md
+EXECUTIVE_*.md
+FUNCTIONALITY_*.md
+INDEX_*.md
+DEBUG_*.md
+ENTERPRISE_*.md
 
-# Task and planning documents (docs directory)
+# Task/Planning Documents (docs/)
 docs/TEMPLATE_*.md
 docs/USER_FLOWS*.md
 docs/NOTIFICATION_*.md
@@ -237,14 +197,35 @@ docs/ROADMAP.md
 docs/MIGRATION_GUIDE.md
 docs/I18N_IMPLEMENTATION.md
 docs/TIER_SYSTEM_EXECUTION_GUIDE.md
+docs/PRICING_FINAL_STRUCTURE.md
+docs/TIER_API_DOCUMENTATION.md
+docs/TIER_MANAGEMENT_GUIDE.md
 
-# Server management
-.server.pid
-logs/
-*.log
-
-# Cleanup scripts
-cleanup_project.sh
-CLEANUP_SUMMARY.md
+# Cleanup & Migration Scripts
+cleanup_*.sh
+cleanup_*.py
 fix_*.py
 migrate_*.py
+scripts/temp_*.py
+scripts/fix_*.py
+scripts/migrate_*.py
+scripts/cleanup_*.py
+verify-*.sh
+
+# Test Output
+test_output.txt
+test_settings_api.py
+
+# Screenshots (testing only)
+screenshots/
+images/test/
+Screenshot*.png
+
+# Nginx configs (local only)
+nginx.conf/
+
+# Python Client (separate repo)
+PythonClient/
+
+# Postman collections (versioned separately)
+postman/

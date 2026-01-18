@@ -2,9 +2,11 @@
 
 import os
 import secrets
+import logging
 from pathlib import Path
 from typing import Dict, Optional
 
+logger = logging.getLogger(__name__)
 
 class SecretsManager:
     """Secure secrets management with validation."""
@@ -12,6 +14,7 @@ class SecretsManager:
     # Environment - specific required secrets
     REQUIRED_SECRETS = {
         "development": ["SECRET_KEY", "JWT_SECRET_KEY"],
+        "test": ["SECRET_KEY", "JWT_SECRET_KEY"],
         "staging": [
             "SECRET_KEY",
             "JWT_SECRET_KEY",
@@ -69,18 +72,20 @@ class SecretsManager:
         required_secrets = SecretsManager.REQUIRED_SECRETS.get(environment, [])
         missing = []
 
+        logger.info(f"Checking secrets for environment: {environment}")
         for key in required_secrets:
             value = os.getenv(key)
+            logger.info(f"Checking {key}: {'FOUND' if value else 'MISSING'}")
             if not value:
                 # Auto - generate certain keys if missing
                 if key in ["SECRET_KEY", "JWT_SECRET_KEY"]:
                     generated_key = SecretsManager.generate_secret_key()
                     os.environ[key] = generated_key
-                    print(f"⚠️ Generated {key} for {environment} environment")
+                    logger.warning(f"Generated {key} for {environment} environment")
                 else:
                     missing.append(key)
             elif SecretsManager.is_weak_secret(value):
-                print(f"⚠️ Warning: {key} appears to be a weak or default value")
+                logger.warning(f"{key} appears to be a weak or default value")
 
         if missing:
             raise ValueError(f"Missing required secrets for {environment}: {missing}")

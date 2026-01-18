@@ -1,4 +1,4 @@
-class CurrencyFormatter {
+export class CurrencyFormatter {
     constructor() {
         this.currency = localStorage.getItem('currency') || 'USD';
         this.rates = {};
@@ -42,7 +42,7 @@ class CurrencyFormatter {
 
     format(amount, fromCurrency = 'USD') {
         const converted = this.convert(amount, fromCurrency);
-        const locale = i18n?.locale || 'en';
+        const locale = (typeof i18n !== 'undefined' ? i18n?.locale : null) || 'en';
         return new Intl.NumberFormat(locale, {
             style: 'currency',
             currency: this.currency,
@@ -99,3 +99,4 @@ class CurrencyFormatter {
 }
 
 const currency = new CurrencyFormatter();
+export default currency;

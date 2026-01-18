@@ -49,8 +49,10 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         # Create notification
+        # Create notification
+        # Note: Model does not support 'data' field currently
         notification = Notification(
-            user_id=user_id, type=notification_type, title=title, message=message, data=data or {}
+            user_id=user_id, type=notification_type, title=title, message=message
         )
 
         self.db.add(notification)
@@ -89,7 +91,7 @@ class NotificationService:
 
         # Filter unread if requested
         if unread_only:
-            query = query.filter(Notification.read == False)
+            query = query.filter(Notification.is_read == False)
 
         # Get total count
         total = query.count()
@@ -115,10 +117,8 @@ class NotificationService:
                     "type": n.type,
                     "title": n.title,
                     "message": n.message,
-                    "data": n.data,
-                    "read": n.read,
+                    "is_read": n.is_read,
                     "created_at": n.created_at.isoformat() if n.created_at else None,
-                    "read_at": n.read_at.isoformat() if n.read_at else None,
                 }
                 for n in notifications
             ],
@@ -165,8 +165,8 @@ class NotificationService:
         """
         notification = self.get_notification(notification_id, user_id)
 
-        notification.read = True
-        notification.read_at = datetime.now(timezone.utc)
+        notification.is_read = True
+        # notification.read_at = datetime.now(timezone.utc) # Model missing read_at
 
         self.db.commit()
 
@@ -194,8 +194,8 @@ class NotificationService:
         # Update all unread notifications
         count = (
             self.db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.read == False)
-            .update({Notification.read: True, Notification.read_at: datetime.now(timezone.utc)})
+            .filter(Notification.user_id == user_id, Notification.is_read == False)
+            .update({Notification.is_read: True})
         )
 
         self.db.commit()
@@ -271,7 +271,7 @@ class NotificationService:
 
         count = (
             self.db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.read == False)
+            .filter(Notification.user_id == user_id, Notification.is_read == False)
             .count()
         )
 
@@ -292,7 +292,11 @@ class NotificationService:
 
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
-        count = self.db.query(Notification).filter(Notification.created_at < cutoff_date).delete()
+        count = (
+            self.db.query(Notification)
+            .filter(Notification.created_at < cutoff_date)
+            .delete(synchronize_session=False)
+        )
 
         self.db.commit()
 

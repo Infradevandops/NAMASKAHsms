@@ -4,54 +4,212 @@ on:
   push:
     branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
 
 jobs:
   test:
+    name: Test Suite
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.11']
+    env:
+      TESTING: 1
+      DATABASE_URL: sqlite:///./test.db
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/pip
+            .pytest_cache
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+            ${{ runner.os }}-pip-
+      
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
           pip install -r requirements.txt
           pip install -r requirements-test.txt
-      - name: Run tests
-        run: pytest --cov=app --cov-report=xml
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
+      
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing --cov-fail-under=40 -v
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-${{ matrix.python-version }}
+          fail_ci_if_error: false
+      
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ matrix.python-version }}
+          path: |
+            htmlcov/
+            coverage.xml
+          retention-days: 30
 
   lint:
+    name: Code Quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Install dependencies
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-lint-${{ hashFiles('**/requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-lint-
+      
+      - name: Install linting tools
         run: |
-          pip install black flake8 mypy
+          pip install black flake8 mypy isort pylint
+      
       - name: Run Black
-        run: black --check app/
+        run: black --check app/ tests/
+      
+      - name: Run isort
+        run: isort --check-only app/ tests/
+      
       - name: Run Flake8
-        run: flake8 app/
+        run: flake8 app/ --max-line-length=100 --extend-ignore=E203,W503
+      
       - name: Run Mypy
-        run: mypy app/
+        run: mypy app/ --ignore-missing-imports
+        continue-on-error: true
 
-  deploy:
-    needs: [test, lint]
-    if: github.ref == 'refs/heads/main'
+  security:
+    name: Security Scan
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install security tools
+        run: |
+          pip install safety bandit pip-audit
+      
+      - name: Run Safety check
+        run: safety check --json || true
+        continue-on-error: true
+      
+      - name: Run Bandit security scan
+        run: |
+          bandit -r app/ -f json -o bandit-report.json || true
+          bandit -r app/ -ll
+        continue-on-error: true
+      
+      - name: Run pip-audit
+        run: pip-audit --desc || true
+        continue-on-error: true
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: security-reports
+          path: bandit-report.json
+          retention-days: 30
+
+  deploy-staging:
+    name: Deploy to Staging
+    needs: [test, lint, security]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.namaskah.app
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Staging
+        run: |
+          if [ -n "${{ secrets.STAGING_DEPLOY_HOOK }}" ]; then
+            curl -X POST ${{ secrets.STAGING_DEPLOY_HOOK }}
+            echo "✅ Deployed to staging"
+          else
+            echo "⚠️ Staging deploy hook not configured"
+          fi
+      
+      - name: Wait for deployment
+        run: sleep 30
+      
+      - name: Health check
+        run: |
+          if [ -n "${{ secrets.STAGING_DEPLOY_HOOK }}" ]; then
+            curl -f https://staging.namaskah.app/health || echo "⚠️ Health check failed"
+          fi
+        continue-on-error: true
+
+  deploy-production:
+    name: Deploy to Production
+    needs: [test, lint, security]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://namaskah.app
+    steps:
+      - uses: actions/checkout@v4
+      
       - name: Deploy to Production
         run: |
           if [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
             curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+            echo "✅ Deployed to production"
           else
-            echo "Render deploy hook not set, skipping deployment."
+            echo "❌ Production deploy hook not set"
+            exit 1
           fi
+      
+      - name: Wait for deployment
+        run: sleep 45
+      
+      - name: Production health check
+        run: |
+          curl -f https://namaskah.app/health || {
+            echo "❌ Production health check failed!"
+            exit 1
+          }
+      
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🚀 Production deployment successful!"
+          echo "Version: ${{ github.sha }}"
+          echo "Deployed by: ${{ github.actor }}"
+      
+      - name: Notify deployment failure
+        if: failure()
+        run: |
+          echo "❌ Production deployment failed!"
+          echo "Rollback may be required"

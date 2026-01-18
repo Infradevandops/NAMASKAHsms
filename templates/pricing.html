@@ -222,7 +222,7 @@
 
         body {
             font-family: -apple-system, system-ui, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #FDFBF7;
             min-height: 100vh;
             padding: 40px 20px;
         }
@@ -234,7 +234,7 @@
 
         .pricing-header {
             text-align: center;
-            color: white;
+            color: #37352F;
             margin-bottom: 50px;
         }
 
@@ -257,32 +257,52 @@
 
         .tier-card {
             background: white;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 40px 30px;
             position: relative;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            border: 2px solid #e5e7eb;
         }
 
         .tier-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(254, 60, 114, 0.15);
+            border-color: #FE3C72;
         }
 
         .tier-card-popular {
-            border: 3px solid #667eea;
+            border: 3px solid #FE3C72;
+            background: #37352F;
             transform: scale(1.05);
+        }
+
+        .tier-card-popular .tier-name,
+        .tier-card-popular .price-amount,
+        .tier-card-popular .tier-features li {
+            color: white;
+        }
+
+        .tier-card-popular .tier-subtitle,
+        .tier-card-popular .tier-description {
+            color: #d1d5db;
+        }
+
+        .tier-card-popular .ph-check {
+            color: #01DF8A;
         }
 
         .tier-badge {
             position: absolute;
-            top: -15px;
-            right: 30px;
+            top: -12px;
+            right: 20px;
             padding: 8px 20px;
             border-radius: 20px;
             font-size: 14px;
             font-weight: 600;
             color: white;
+            z-index: 10;
         }
 
         .tier-badge-flexible {
@@ -290,15 +310,16 @@
         }
 
         .tier-badge-free {
-            background: #10b981;
+            background: #01DF8A;
         }
 
         .tier-badge-popular {
-            background: #667eea;
+            background: white;
+            color: #37352F;
         }
 
         .tier-badge-premium {
-            background: #f59e0b;
+            background: #8B5CF6;
         }
 
         .tier-subtitle {
@@ -310,14 +331,15 @@
 
         .tier-savings-badge {
             position: absolute;
-            top: -15px;
-            left: 30px;
-            background: #10b981;
+            top: -12px;
+            left: 20px;
+            background: #01DF8A;
             color: white;
-            padding: 6px 16px;
+            padding: 6px 14px;
             border-radius: 20px;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
+            z-index: 10;
         }
 
         .tier-name {
@@ -333,7 +355,7 @@
         .price-amount {
             font-size: 48px;
             font-weight: 700;
-            color: #667eea;
+            color: #FE3C72;
         }
 
         .price-period {
@@ -369,7 +391,7 @@
         }
 
         .ph-check {
-            color: #10b981;
+            color: #01DF8A;
         }
 
         .ph-x {
@@ -388,27 +410,39 @@
         }
 
         .btn-freemium {
-            background: #10b981;
+            background: #37352F;
             color: white;
         }
 
+        .btn-freemium:hover {
+            background: #2a2824;
+        }
+
         .btn-payg {
-            background: #6B7280;
+            background: #37352F;
             color: white;
         }
 
         .btn-payg:hover {
-            background: #4B5563;
+            background: #2a2824;
         }
 
         .btn-pro {
-            background: #667eea;
-            color: white;
+            background: white;
+            color: #37352F;
+        }
+
+        .btn-pro:hover {
+            background: #f9fafb;
         }
 
         .btn-custom {
-            background: #8b5cf6;
+            background: #37352F;
             color: white;
+        }
+
+        .btn-custom:hover {
+            background: #2a2824;
         }
 
         .btn-cta:hover {
@@ -449,7 +483,7 @@
         }
 
         .text-success {
-            color: #10b981;
+            color: #01DF8A;
         }
 
         .text-danger {

@@ -33,6 +33,7 @@ def ensure_subscription_tiers_table():
                     has_isp_filtering BOOLEAN DEFAULT FALSE,
                     api_key_limit INTEGER DEFAULT 0,
                     support_level TEXT DEFAULT 'community',
+                    payment_required BOOLEAN DEFAULT FALSE,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );

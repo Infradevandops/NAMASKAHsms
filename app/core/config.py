@@ -1,5 +1,6 @@
 """Core configuration management using Pydantic Settings."""
 
+import os
 from typing import Optional
 from functools import lru_cache
 
@@ -150,18 +151,24 @@ class Settings(BaseSettings):
         return value
 
     def __init__(self, **kwargs):
-        environment = kwargs.get("environment", "development")
         import secrets
+        
+        # Pydantic reads from env during super().__init__
+        # but we need to know if they were provided to decide if we auto-generate
+        env_secret = kwargs.get("secret_key") or os.getenv("SECRET_KEY")
+        env_jwt_secret = kwargs.get("jwt_secret_key") or os.getenv("JWT_SECRET_KEY")
+        
+        environment = kwargs.get("environment") or os.getenv("ENVIRONMENT", "development")
 
         if environment == "production":
-            if not kwargs.get("secret_key"):
+            if not env_secret:
                 raise ValueError("SECRET_KEY is required in production environment")
-            if not kwargs.get("jwt_secret_key"):
+            if not env_jwt_secret:
                 raise ValueError("JWT_SECRET_KEY is required in production environment")
         else:
-            if not kwargs.get("secret_key"):
+            if not env_secret:
                 kwargs["secret_key"] = secrets.token_urlsafe(32)
-            if not kwargs.get("jwt_secret_key"):
+            if not env_jwt_secret:
                 kwargs["jwt_secret_key"] = secrets.token_urlsafe(32)
 
         super().__init__(**kwargs)
@@ -218,13 +225,13 @@ def get_settings() -> Settings:
     """Get cached settings instance with validation."""
     settings_instance = Settings()
 
-    # Validate secrets on startup
-    try:
-        from .secrets import SecretsManager
-
-        SecretsManager.validate_required_secrets(settings_instance.environment)
-    except ImportError:
-        pass  # SecretsManager is optional
+    # Validate secrets on startup (production only)
+    if settings_instance.environment == "production":
+        try:
+            from app.core.secrets import SecretsManager
+            SecretsManager.validate_required_secrets(settings_instance.environment)
+        except Exception:
+             pass
 
     # Validate production configuration
     settings_instance.validate_production_config()

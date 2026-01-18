@@ -1,0 +1,421 @@
+/usr/local/lib/python3.11/site-packages/web3/__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+============================= test session starts ==============================
+platform darwin -- Python 3.11.14, pytest-7.4.3, pluggy-1.6.0 -- /usr/local/opt/python@3.11/bin/python3.11
+cachedir: .pytest_cache
+hypothesis profile 'default' -> database=DirectoryBasedExampleDatabase(PosixPath('/Users/machine/Desktop/Namaskah. app/.hypothesis/examples'))
+rootdir: /Users/machine/Desktop/Namaskah. app
+configfile: pytest.ini
+plugins: hypothesis-6.92.1, cov-4.1.0, asyncio-0.21.1, web3-6.11.3, anyio-3.7.1, langsmith-0.4.49
+asyncio: mode=Mode.AUTO
+collecting ... collected 1 item
+
+tests/unit/test_notification_service.py::test_cleanup_old_notifications FAILED [100%]
+
+=================================== FAILURES ===================================
+________________________ test_cleanup_old_notifications ________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x113db6450>
+test_user = <app.models.user.User object at 0x113dafc90>
+db_session = <sqlalchemy.orm.session.Session object at 0x113daf990>
+
+    def test_cleanup_old_notifications(notification_service, test_user, db_session):
+        """Test cleaning up old notifications."""
+        old_date = datetime.now(timezone.utc) - timedelta(days=40)
+        note = Notification(
+            user_id=test_user.id,
+            type="old",
+            title="Old",
+            message="Msg",
+            created_at=old_date,
+            is_read=True
+        )
+        db_session.add(note)
+        db_session.commit()
+    
+        count = notification_service.cleanup_old_notifications(days=30)
+        assert count >= 1 # Could be more from other runs?
+        # Actually DB is usually fresh per session in memory, but fixture scope is function.
+        # It should be at least 1.
+    
+        # Verify it's gone
+>       left = db_session.query(Notification).filter(Notification.id == note.id).first()
+
+tests/unit/test_notification_service.py:101: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/attributes.py:566: in __get__
+    return self.impl.get(state, dict_)  # type: ignore[no-any-return]
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/attributes.py:1086: in get
+    value = self._fire_loader_callables(state, key, passive)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/attributes.py:1116: in _fire_loader_callables
+    return state._load_expired(state, passive)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:798: in _load_expired
+    self.manager.expired_attribute_loader(self, toload, passive)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+mapper = <Mapper at 0x110b7f290; Notification>
+state = <sqlalchemy.orm.state.InstanceState object at 0x113e0c5f0>
+attribute_names = {'created_at', 'icon', 'id', 'is_read', 'link', 'message', ...}
+passive = symbol('PASSIVE_OFF')
+
+    def load_scalar_attributes(mapper, state, attribute_names, passive):
+        """initiate a column-based attribute refresh operation."""
+    
+        # assert mapper is _state_mapper(state)
+        session = state.session
+        if not session:
+            raise orm_exc.DetachedInstanceError(
+                "Instance %s is not bound to a Session; "
+                "attribute refresh operation cannot proceed" % (state_str(state))
+            )
+    
+        no_autoflush = bool(passive & attributes.NO_AUTOFLUSH)
+    
+        # in the case of inheritance, particularly concrete and abstract
+        # concrete inheritance, the class manager might have some keys
+        # of attributes on the superclass that we didn't actually map.
+        # These could be mapped as "concrete, don't load" or could be completely
+        # excluded from the mapping and we know nothing about them.  Filter them
+        # here to prevent them from coming through.
+        if attribute_names:
+            attribute_names = attribute_names.intersection(mapper.attrs.keys())
+    
+        if mapper.inherits and not mapper.concrete:
+            # load based on committed attributes in the object, formed into
+            # a truncated SELECT that only includes relevant tables.  does not
+            # currently use state.key
+            statement = mapper._optimized_get_statement(state, attribute_names)
+            if statement is not None:
+                # undefer() isn't needed here because statement has the
+                # columns needed already, this implicitly undefers that column
+                stmt = FromStatement(mapper, statement)
+    
+                return load_on_ident(
+                    session,
+                    stmt,
+                    None,
+                    only_load_props=attribute_names,
+                    refresh_state=state,
+                    no_autoflush=no_autoflush,
+                )
+    
+        # normal load, use state.key as the identity to SELECT
+        has_key = bool(state.key)
+    
+        if has_key:
+            identity_key = state.key
+        else:
+            # this codepath is rare - only valid when inside a flush, and the
+            # object is becoming persistent but hasn't yet been assigned
+            # an identity_key.
+            # check here to ensure we have the attrs we need.
+            pk_attrs = [
+                mapper._columntoproperty[col].key for col in mapper.primary_key
+            ]
+            if state.expired_attributes.intersection(pk_attrs):
+                raise sa_exc.InvalidRequestError(
+                    "Instance %s cannot be refreshed - it's not "
+                    " persistent and does not "
+                    "contain a full primary key." % state_str(state)
+                )
+            identity_key = mapper._identity_key_from_state(state)
+    
+        if (
+            _none_set.issubset(identity_key) and not mapper.allow_partial_pks
+        ) or _none_set.issuperset(identity_key):
+            util.warn_limited(
+                "Instance %s to be refreshed doesn't "
+                "contain a full primary key - can't be refreshed "
+                "(and shouldn't be expired, either).",
+                state_str(state),
+            )
+            return
+    
+        result = load_on_ident(
+            session,
+            select(mapper).set_label_style(LABEL_STYLE_TABLENAME_PLUS_COL),
+            identity_key,
+            refresh_state=state,
+            only_load_props=attribute_names,
+            no_autoflush=no_autoflush,
+        )
+    
+        # if instance is pending, a refresh operation
+        # may not complete (even if PK attributes are assigned)
+        if has_key and result is None:
+>           raise orm_exc.ObjectDeletedError(state)
+E           sqlalchemy.orm.exc.ObjectDeletedError: Instance '<Notification at 0x113ef8150>' has been deleted, or its row is otherwise not present.
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/loading.py:1661: ObjectDeletedError
+----------------------------- Captured stdout call -----------------------------
+2026-01-18 18:25:06,916 - app.services.notification_service - INFO - Deleted 1 notifications older than 30 days
+------------------------------ Captured log call -------------------------------
+INFO     app.services.notification_service:notification_service.py:299 Deleted 1 notifications older than 30 days
+=============================== warnings summary ===============================
+app/schemas/kyc.py:23
+  /Users/machine/Desktop/Namaskah. app/app/schemas/kyc.py:23: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("date_of_birth")
+
+app/schemas/kyc.py:33
+  /Users/machine/Desktop/Namaskah. app/app/schemas/kyc.py:33: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("phone_number")
+
+../../../../usr/local/lib/python3.11/site-packages/_pytest/config/__init__.py:1373
+  /usr/local/lib/python3.11/site-packages/_pytest/config/__init__.py:1373: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+--------- coverage: platform darwin, python 3.11.14-final-0 ----------
+Name                                                Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------
+app/__init__.py                                         0      0   100%
+app/api/__init__.py                                     0      0   100%
+app/api/admin/__init__.py                               2      0   100%
+app/api/admin/actions.py                               45     25    44%   17-24, 32-39, 47-55, 66-68, 92-94, 104-106
+app/api/admin/admin.py                                213    213     0%   3-597
+app/api/admin/admin_router.py                          89     56    37%   22-25, 31-34, 38-41, 50-51, 71-77, 85-91, 99-106, 114-118, 139-158, 172-179
+app/api/admin/alerts.py                                24     24     0%   3-40
+app/api/admin/analytics.py                             22      9    59%   16-21, 29-30, 38-39
+app/api/admin/analytics_monitoring.py                  30     30     0%   3-60
+app/api/admin/audit_compliance.py                     105     82    22%   21-24, 38-73, 84-136, 144-239, 250-278, 286
+app/api/admin/compliance.py                            11     11     0%   3-20
+app/api/admin/dashboard.py                             51     30    41%   30-72, 82-110, 118-137
+app/api/admin/dependencies.py                          10      4    60%   12-15
+app/api/admin/disaster_recovery.py                     20     20     0%   3-41
+app/api/admin/export.py                                58     40    31%   24-67, 82-110, 125-153
+app/api/admin/infrastructure.py                        25     25     0%   3-52
+app/api/admin/kyc.py                                  111     74    33%   36-53, 59-64, 74-85, 96-129, 135-142, 150-165, 171-174, 191-195, 206-220, 232-245, 260-267, 286-289
+app/api/admin/logging_dashboard.py                     65     38    42%   28-39, 46-58, 63-73, 83-86, 96-99, 109-112, 122-149, 164-170
+app/api/admin/monitoring.py                            29     29     0%   3-63
+app/api/admin/pricing_control.py                       97     58    40%   38-72, 85-128, 137-158, 167-184, 191-197, 225-232, 251-420
+app/api/admin/router.py                                28      0   100%
+app/api/admin/stats.py                                 39     26    33%   19-77, 97-115
+app/api/admin/support.py                              154    154     0%   3-433
+app/api/admin/tier_management.py                      177    137    23%   38-41, 47-63, 75-107, 118-159, 169-206, 214-245, 253-276, 286-319, 330-360
+app/api/admin/user_management.py                      124    101    19%   19-22, 34-69, 80-123, 134-166, 174-195, 206-236, 244-265
+app/api/admin/verification_actions.py                  48     34    29%   18-39, 51-57, 91-111
+app/api/admin/verification_analytics.py                67     46    31%   21-24, 37-71, 79-117, 140-178, 194-221
+app/api/admin/verification_history.py                  98     76    22%   22-25, 39-84, 92-120, 130-172, 184-236
+app/api/billing/credit_endpoints.py                   141    110    22%   47-64, 92-110, 130-143, 168-191, 215-241, 269-299, 321-342
+app/api/billing/payment_endpoints.py                  238    205    14%   33-38, 62-146, 172-251, 264-458, 482-533, 551-571, 577-582
+app/api/billing/payment_history_endpoints.py           96     74    23%   40-57, 78-91, 118-139, 163-195, 223-238, 261-274
+app/api/billing/pricing_endpoints.py                   23     11    52%   21-38, 46-57, 63-71
+app/api/billing/refund_endpoints.py                    66     46    30%   43-67, 88-101, 126-139, 162-182
+app/api/billing/router.py                              14      0   100%
+app/api/billing/tier_endpoints.py                     122    101    17%   24-57, 67-172, 182-236, 244-265
+app/api/core/__init__.py                                0      0   100%
+app/api/core/affiliate_endpoints.py                    37     18    51%   29-34, 42-58, 66-78, 94-97
+app/api/core/analytics_enhanced.py                     64     45    30%   31-132, 142-191, 201-241
+app/api/core/api_key_endpoints.py                      55     33    40%   25-32, 52-68, 83-95, 103-111, 126-131
+app/api/core/auth.py                                  284    234    18%   55-143, 149-150, 167-168, 175-307, 315-366, 372-380, 386-401, 407-414, 420-429, 443-448, 462-464, 485-493, 503-511, 517-614
+app/api/core/auth_enhanced.py                          48     48     0%   3-106
+app/api/core/balance_sync.py                           94     68    28%   26-27, 33-71, 77-82, 88-98, 108-109, 119-157, 167-179, 187-210
+app/api/core/blacklist.py                              69     69     0%   3-201
+app/api/core/countries.py                              62     47    24%   15, 24-79, 84, 140-185, 191-204, 210-236
+app/api/core/dashboard_activity.py                     26     14    46%   23-60
+app/api/core/forwarding.py                            153    153     0%   3-401
+app/api/core/gdpr.py                                   27     17    37%   18-58, 66-77
+app/api/core/notification_endpoints.py                 33     17    48%   20-28, 39-51, 57-63, 71-83
+app/api/core/notifications.py                          45     45     0%   3-130
+app/api/core/preferences.py                            33     21    36%   20-25, 40-71
+app/api/core/provider_health.py                        30     30     0%   3-42
+app/api/core/router.py                                 36      0   100%
+app/api/core/services.py                               23     14    39%   17-34, 41-57
+app/api/core/setup.py                                  28     28     0%   3-60
+app/api/core/system.py                                 44      8    82%   34, 38, 44, 55, 61, 67, 78, 88
+app/api/core/textverified_balance.py                   15      6    60%   19-27
+app/api/core/user_profile.py                           10      2    80%   17-19
+app/api/core/user_settings.py                          84     57    32%   35-53, 65-84, 96-116, 125-130, 142-163, 173-183
+app/api/core/user_settings_endpoints.py                52     35    33%   29-47, 57-89
+app/api/core/waitlist.py                               38     38     0%   1-57
+app/api/core/wallet.py                                143    109    24%   43-57, 67-88, 98-125, 131-156, 168-183, 193-249, 259-320
+app/api/health.py                                      13      3    77%   12, 23, 29
+app/api/notifications/__init__.py                       0      0   100%
+app/api/notifications/notification_endpoints.py        99     99     0%   3-241
+app/api/preview_router.py                              27      7    74%   18, 24, 29, 34, 40, 45, 50
+app/api/routes_consolidated.py                        218    113    48%   39-72, 78, 84, 90, 96, 109-112, 120-123, 131-134, 142-145, 153-156, 166-169, 179-182, 190-193, 201-204, 217-222, 230-235, 245-250, 260-265, 275-280, 293, 301, 309, 317, 325, 333, 341, 353-358, 369-371, 377, 383, 389, 395, 401, 407, 413, 423, 429, 435, 441, 449-452, 463-466, 474, 487-490, 498-501, 509-512
+app/api/v1/router.py                                   80      0   100%
+app/api/verification/__init__.py                        5      0   100%
+app/api/verification/bulk_purchase_endpoints.py        61     27    56%   54-107, 123-126, 140-143, 151-154
+app/api/verification/carrier_endpoints.py              43     28    35%   26-53, 61-93
+app/api/verification/consolidated_verification.py     156    108    31%   52, 58-76, 88-155, 161-183, 192-201, 209-255, 265-296
+app/api/verification/pricing.py                        35     24    31%   25-80
+app/api/verification/purchase_endpoints.py            108     89    18%   42-241
+app/api/verification/router.py                         16      0   100%
+app/api/verification/status_polling.py                 76     53    30%   26-27, 33-95, 101-133, 147-159, 169-172, 184-198
+app/api/verification/textverified_endpoints.py         62     45    27%   34-72, 98-106, 119-120, 138-184
+app/core/__init__.py                                    5      0   100%
+app/core/api_versioning.py                             26     26     0%   3-50
+app/core/async_processing.py                           94     94     0%   3-192
+app/core/auth_security.py                              76     40    47%   56-71, 76-85, 95-107, 112-138, 151-166
+app/core/auto_scaling.py                               14     14     0%   3-32
+app/core/config.py                                    130     27    79%   127, 135, 139-141, 150, 164-167, 185-207, 230-234
+app/core/config_secrets.py                             85     85     0%   3-205
+app/core/constants.py                                  25     25     0%   4-58
+app/core/csrf_protection.py                            12     12     0%   3-23
+app/core/custom_exceptions.py                          14      0   100%
+app/core/database.py                                   19      8    58%   13, 32-36, 43-44, 49
+app/core/database_indexes.py                           32     32     0%   3-62
+app/core/database_optimization.py                      32     32     0%   3-102
+app/core/dependencies.py                               62     41    34%   24-31, 42-55, 60-65, 73-76, 84-87, 94-104, 127-135
+app/core/email_verification.py                         13     13     0%   3-28
+app/core/encryption.py                                 31     31     0%   3-49
+app/core/exceptions.py                                 14      0   100%
+app/core/feature_flags.py                              66     66     0%   3-148
+app/core/health_checks.py                              19     19     0%   3-38
+app/core/health_monitor.py                             50     50     0%   3-98
+app/core/lifespan.py                                   95     85    11%   17-137
+app/core/load_balancer.py                              17     17     0%   3-27
+app/core/logging.py                                    16      2    88%   19-21
+app/core/logging_config.py                             17     17     0%   3-42
+app/core/metrics.py                                   165    165     0%   6-366
+app/core/migration.py                                 114    114     0%   3-206
+app/core/monitoring.py                                115    115     0%   3-263
+app/core/openapi.py                                    12     12     0%   3-55
+app/core/performance_monitor.py                        39     39     0%   3-63
+app/core/query_optimization.py                         33     33     0%   3-57
+app/core/rbac.py                                       35     35     0%   3-68
+app/core/region_manager.py                             38     38     0%   3-86
+app/core/secrets.py                                    87     87     0%   3-182
+app/core/secrets_audit.py                              35     35     0%   3-143
+app/core/secrets_manager.py                           134    134     0%   3-227
+app/core/security_config.py                            60     60     0%   3-193
+app/core/security_hardening.py                        104    104     0%   6-259
+app/core/session_manager.py                            30     30     0%   3-66
+app/core/startup.py                                    80     68    15%   17-150, 155-185, 190-238, 243-258
+app/core/tier_config.py                                34     20    41%   14-37, 65-110, 115-116, 121-215, 220
+app/core/tier_config_simple.py                          1      0   100%
+app/core/tier_helpers.py                               28     12    57%   42-45, 58-60, 72, 84, 88-92, 104
+app/core/token_manager.py                              18     10    44%   12-18, 28, 33-36, 41
+app/core/unified_cache.py                             159    118    26%   23-31, 35-36, 40-41, 45-46, 50-52, 75-89, 93-95, 99-112, 116-129, 133-139, 144-159, 163-170, 174-192, 196, 201-223, 228-238, 249, 254-255, 260-261, 266-267, 272-273, 278-279
+app/core/unified_error_handling.py                    200    138    31%   32-36, 43, 48, 55, 65-67, 74, 81, 86-94, 101, 108, 115, 124, 134-135, 139-169, 173-181, 187-225, 235, 306-313, 325-327, 341-343, 355-372, 388-405, 411-423, 429-443, 449-484, 492-496, 501-510, 530
+app/core/unified_rate_limiting.py                     182    133    27%   31-34, 38-49, 53-55, 111, 116-124, 129-137, 142-162, 169-184, 188-189, 194-209, 215-280, 295-303, 307-327, 331, 338-339, 344-382
+app/middleware/__init__.py                              4      0   100%
+app/middleware/csp.py                                   8      8     0%   3-23
+app/middleware/csrf_middleware.py                      28     18    36%   18-51, 55-71
+app/middleware/exception_handler.py                   111    111     0%   3-312
+app/middleware/logging.py                             169    138    18%   28-32, 42-64, 69-126, 132-150, 163-171, 176-201, 208-209, 218-282, 286, 290, 302-303, 316-327, 331-365, 370-386, 391-399
+app/middleware/monitoring.py                           22     22     0%   3-66
+app/middleware/prometheus.py                           14     14     0%   3-29
+app/middleware/rate_limiting.py                       130    108    17%   23-34, 49-112, 118-127, 132-141, 149-153, 165-176, 180-204, 208, 223-228, 232-278, 283-302
+app/middleware/security.py                            110     87    21%   16-17, 24-52, 57-111, 118-119, 124-149, 156-157, 162-185, 199-218, 222-256, 264-291
+app/middleware/tier_validation.py                      55     55     0%   3-109
+app/middleware/whitelabel.py                           16     16     0%   3-32
+app/middleware/xss_protection.py                       20     14    30%   13-40
+app/models/__init__.py                                 15      0   100%
+app/models/affiliate.py                                28      0   100%
+app/models/api_key.py                                  16      0   100%
+app/models/audit_log.py                                11      0   100%
+app/models/balance_transaction.py                      13      1    92%   24
+app/models/base.py                                     18      2    89%   30, 34
+app/models/blacklist.py                                18     18     0%   3-45
+app/models/commission.py                               37      0   100%
+app/models/enterprise.py                               22      0   100%
+app/models/forwarding.py                               13     13     0%   3-29
+app/models/kyc.py                                     106      0   100%
+app/models/notification.py                             16      1    94%   27
+app/models/payment.py                                  15     15     0%   3-23
+app/models/preferences.py                              12     12     0%   3-26
+app/models/pricing.py                                  68     68     0%   3-102
+app/models/pricing_template.py                         54      0   100%
+app/models/refund.py                                   17      0   100%
+app/models/reseller.py                                 58      0   100%
+app/models/sms_forwarding.py                           16     16     0%   3-28
+app/models/sms_message.py                              15     15     0%   3-22
+app/models/subscription_tier.py                        29      0   100%
+app/models/system.py                                   45      0   100%
+app/models/transaction.py                              21      0   100%
+app/models/user.py                                     86      0   100%
+app/models/user_preference.py                          13      0   100%
+app/models/user_quota.py                               14      0   100%
+app/models/verification.py                             51      0   100%
+app/models/waitlist.py                                  8      8     0%   3-13
+app/models/whitelabel.py                               19      0   100%
+app/models/whitelabel_enhanced.py                      43      0   100%
+app/schemas/__init__.py                                15      0   100%
+app/schemas/analytics.py                               49      0   100%
+app/schemas/auth.py                                   105     20    81%   31-33, 38-40, 45-49, 71-73, 221-223, 228-230
+app/schemas/kyc.py                                    135     11    92%   25-31, 35-40
+app/schemas/payment.py                                119     19    84%   17-21, 33-37, 42-44, 186-188, 293-295
+app/schemas/responses.py                               30      0   100%
+app/schemas/system.py                                  22      0   100%
+app/schemas/tier.py                                    76     76     0%   3-113
+app/schemas/tier_response.py                            8      0   100%
+app/schemas/tier_validators.py                         98     98     0%   7-220
+app/schemas/validators.py                             279    231    17%   13-19, 24-34, 41-48, 53-63, 68-76, 81-100, 105-112, 117-127, 132-154, 163-165, 170-172, 177-179, 184-186, 191-193, 198-215, 220-227, 234-236, 254-275, 280-305, 310-325, 330-339, 344-353, 360-371, 376-384, 389-395, 400-422, 427-434, 439-447, 452-469, 474-487, 493-510, 515-532, 537-550
+app/schemas/verification.py                            86      3    97%   19-37, 43
+app/schemas/verification_status.py                     40     40     0%   3-88
+app/schemas/waitlist.py                                15     15     0%   3-22
+app/services/__init__.py                               36     23    36%   12-13, 17-21, 25-29, 33-37, 42-43, 51, 56-58, 63-65, 70-72
+app/services/adaptive_polling.py                       51     51     0%   3-97
+app/services/affiliate_service.py                      30     20    33%   23-44, 48, 91-95, 114-128
+app/services/alerting_service.py                       46     46     0%   3-92
+app/services/analytics_service.py                      26     15    42%   11, 16-49, 65-81, 88-104
+app/services/api_key_service.py                        40     28    30%   16-33, 38-55, 60-73
+app/services/audit_service.py                          19     19     0%   3-48
+app/services/auth_service.py                          152    152     0%   3-260
+app/services/auto_topup_service.py                     38     38     0%   3-79
+app/services/base.py                                   40     27    32%   16-17, 21-25, 29, 33, 37-48, 52-58, 62, 67
+app/services/business_intelligence.py                  37     37     0%   3-82
+app/services/cdn_service.py                            14     14     0%   3-49
+app/services/commission_engine.py                      70     70     0%   3-184
+app/services/compliance_service.py                     19     19     0%   3-93
+app/services/credit_service.py                        113     94    17%   23, 37-42, 66-94, 127-169, 194-218, 245-276, 301-348, 372-398
+app/services/currency_service.py                       20     20     0%   4-58
+app/services/disaster_recovery.py                      25     25     0%   3-108
+app/services/document_service.py                      192    160    17%   19-21, 37-54, 72-132, 137-165, 169, 173-212, 216-265, 269-285, 289-305, 309-340, 344-365, 369-398, 403
+app/services/email_service.py                         104     75    28%   30, 44-62, 76-94, 108-126, 139-158, 167-174, 185-191, 245-250, 306-312
+app/services/enterprise_service.py                     30     30     0%   3-72
+app/services/error_handling.py                         69     69     0%   3-138
+app/services/event_service.py                          27     27     0%   3-49
+app/services/fraud_detection_service.py                23     23     0%   3-48
+app/services/kyc_service.py                           189    165    13%   22-23, 47-83, 89-126, 130-174, 185-230, 234-271, 275-307, 311-376, 380-399, 413-430, 434-439, 444
+app/services/mfa_service.py                            22     22     0%   3-36
+app/services/monitoring_service.py                     59     59     0%   3-169
+app/services/notification_service.py                   82     55    33%   47-65, 85-109, 140-151, 166-175, 190-205, 220-227, 242-253, 268-280, 307-310
+app/services/payment_service.py                       159    138    13%   24-25, 44-111, 127-184, 196-209, 220-269, 285-296, 313-337, 367-394, 422-467
+app/services/paystack_service.py                       96     72    25%   28, 48-90, 101-134, 146-156, 167-187, 195-221, 229
+app/services/pricing_calculator.py                     53     53     0%   3-128
+app/services/pricing_template_service.py              118    118     0%   3-349
+app/services/quota_service.py                          55     55     0%   3-142
+app/services/refund_service.py                        105     87    17%   23-24, 44-97, 112-177, 191-198, 223-245, 276-293, 305-336
+app/services/reseller_service.py                       95     95     0%   3-329
+app/services/smart_routing.py                          30     30     0%   3-77
+app/services/sms_gateway.py                            18     18     0%   3-37
+app/services/sms_polling_service.py                   123     99    20%   27-32, 36-39, 43-158, 162-191, 195-199, 203
+app/services/telegram_service.py                       19     19     0%   3-37
+app/services/textverified_service.py                  277    223    19%   5-6, 51-58, 69-70, 73-74, 83-85, 95-100, 110-112, 120-132, 136-139, 145-148, 158-180, 196-218, 233-275, 283-303, 311-344, 351-356, 366-407, 417-422, 439-461, 468-478, 485-491, 498, 511-535, 542-551, 559-563, 575-588
+app/services/tier_manager.py                           68     52    24%   18, 22-39, 43-55, 59-62, 75-99, 103-125, 129, 134
+app/services/transaction_service.py                    31     31     0%   3-85
+app/services/translation_service.py                    25     25     0%   3-41
+app/services/verification_pricing_service.py           27     27     0%   3-45
+app/services/voice_polling_service.py                  79     57    28%   20-24, 34-43, 47-48, 52-71, 75-136
+app/services/webhook_notification_service.py           70     70     0%   3-147
+app/services/webhook_service.py                        38     22    42%   22-25, 29, 33-59, 63
+app/services/whatsapp_service.py                       20     20     0%   3-50
+app/services/whitelabel_enhanced.py                    69     69     0%   3-244
+app/services/whitelabel_service.py                     20     20     0%   3-61
+app/utils/__init__.py                                   0      0   100%
+app/utils/data_masking.py                             109    109     0%   3-224
+app/utils/email.py                                     60     60     0%   3-177
+app/utils/exception_handling.py                       101    101     0%   3-217
+app/utils/function_refactor.py                         60     60     0%   3-102
+app/utils/log_sanitization.py                          45     45     0%   3-93
+app/utils/path_security.py                             39     33    15%   23-36, 49-70, 84-97
+app/utils/performance.py                               18     18     0%   3-33
+app/utils/pricing_display.py                           13     13     0%   4-36
+app/utils/response_validator.py                        30     30     0%   3-79
+app/utils/sanitization.py                              51     42    18%   11-22, 27-34, 39-53, 58-72, 77-95
+app/utils/security.py                                  50     34    32%   16-18, 23-28, 33-42, 47-51, 56-57, 62, 67-72, 77-80, 85-95
+app/utils/sql_safety.py                                61     61     0%   3-119
+app/utils/timezone_utils.py                            52     52     0%   3-104
+---------------------------------------------------------------------------------
+TOTAL                                               14159  10591    25%
+Coverage HTML written to dir htmlcov
+
+FAIL Required test coverage of 40% not reached. Total coverage: 25.20%
+=========================== short test summary info ============================
+FAILED tests/unit/test_notification_service.py::test_cleanup_old_notifications
+======================== 1 failed, 3 warnings in 8.27s =========================

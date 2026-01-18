@@ -115,7 +115,7 @@ export const api = {
       console.error('Failed to purchase verification:', error);
       throw error;
     }
-  }
+  },
   /**
    * Initialize payment
    * @async

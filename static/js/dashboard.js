@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', init);
  * Initialize dashboard
  * @returns {void}
  */
-function init() {
+export function init() {
   setupEventListeners();
   setupOfflineDetection();
   hideModals();

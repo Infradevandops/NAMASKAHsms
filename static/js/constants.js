@@ -14,53 +14,54 @@ export const TIMEOUTS = {
 };
 
 // API Endpoints
+// API Endpoints
 export const ENDPOINTS = {
     TIERS: {
-        CURRENT: '/tiers/current',
-        LIST: '/tiers',
-        UPGRADE: '/tiers/upgrade'
+        CURRENT: '/api/tiers/current',
+        LIST: '/api/tiers',
+        UPGRADE: '/api/tiers/upgrade'
     },
     USER: {
-        PROFILE: '/user/profile',
-        BALANCE: '/user/balance',
-        ME: '/user/me',
-        SETTINGS: '/user/settings',
-        CREDITS_HISTORY: '/user/credits/history',
-        CREDITS_SUMMARY: '/user/credits/summary'
+        PROFILE: '/api/user/profile',
+        BALANCE: '/api/user/balance',
+        ME: '/api/user/me',
+        SETTINGS: '/api/user/settings',
+        CREDITS_HISTORY: '/api/user/credits/history',
+        CREDITS_SUMMARY: '/api/user/credits/summary'
     },
     AUTH: {
-        LOGIN: '/auth/login',
-        LOGOUT: '/auth/logout',
-        REFRESH: '/auth/refresh'
+        LOGIN: '/api/auth/login',
+        LOGOUT: '/api/auth/logout',
+        REFRESH: '/api/auth/refresh'
     },
     ANALYTICS: {
-        SUMMARY: '/analytics/summary'
+        SUMMARY: '/api/analytics/summary'
     },
     DASHBOARD: {
-        ACTIVITY: '/dashboard/activity/recent'
+        ACTIVITY: '/api/dashboard/activity/recent'
     },
     BILLING: {
-        HISTORY: '/billing/history',
-        REFUND: '/billing/refund',
-        REFUNDS: '/billing/refunds',
-        TRANSACTIONS: '/billing/transactions'
+        HISTORY: '/api/billing/history',
+        REFUND: '/api/billing/refund',
+        REFUNDS: '/api/billing/refunds',
+        TRANSACTIONS: '/api/billing/transactions'
     },
     NOTIFICATIONS: {
-        LIST: '/notifications',
-        MARK_READ: '/notifications/{id}/read',
-        MARK_ALL_READ: '/notifications/mark-all-read'
+        LIST: '/api/notifications',
+        MARK_READ: '/api/notifications/{id}/read',
+        MARK_ALL_READ: '/api/notifications/mark-all-read'
     },
     GDPR: {
-        EXPORT: '/gdpr/export',
-        DELETE: '/gdpr/account'
+        EXPORT: '/api/gdpr/export',
+        DELETE: '/api/gdpr/account'
     },
     FORWARDING: {
-        CONFIG: '/forwarding',
-        CONFIGURE: '/forwarding/configure',
-        TEST: '/forwarding/test'
+        CONFIG: '/api/forwarding',
+        CONFIGURE: '/api/forwarding/configure',
+        TEST: '/api/forwarding/test'
     },
     PROVIDERS: {
-        HEALTH: '/providers/health'
+        HEALTH: '/api/providers/health'
     }
 };
 

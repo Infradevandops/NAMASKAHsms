@@ -10,6 +10,10 @@ import os
 
 os.environ["TESTING"] = "1"
 
+# Mock background services to prevent startup
+patch("app.services.sms_polling_service.sms_polling_service.start_background_service").start()
+patch("app.services.voice_polling_service.voice_polling_service.start_background_service").start()
+
 # 1. Setup in-memory database engine FIRST
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 mock_engine = create_engine(

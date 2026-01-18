@@ -47,9 +47,11 @@ def get_current_user_id(
         )
         user_id = payload.get("user_id")
         if not user_id:
+            logger.warning("Token missing user_id")
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return user_id
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        logger.warning(f"Token decode failed: {str(e)}")
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 

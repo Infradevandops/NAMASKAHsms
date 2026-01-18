@@ -3,33 +3,104 @@
  * Runs on every page load to verify user is authenticated
  */
 
-(function() {
-    'use strict';
+// TASK 2.4: Token Refresh with Race Condition Prevention
+let refreshPromise = null;
 
-    // Check authentication on page load
-    async function checkAuthentication() {
-        const token = localStorage.getItem('access_token');
-        const expiresAt = localStorage.getItem('token_expires_at');
-        const now = Date.now();
+export async function refreshToken() {
+    // If refresh is already in progress, return the existing promise
+    if (refreshPromise) {
+        return refreshPromise;
+    }
 
-        // No token - redirect to login
-        if (!token) {
-            // Only redirect if not already on auth pages
-            const currentPath = window.location.pathname;
-            if (!currentPath.includes('/auth/') && 
-                !currentPath.includes('/login') && 
-                !currentPath.includes('/register') &&
-                currentPath !== '/' &&
-                !currentPath.includes('/landing')) {
-                console.log('No token found, redirecting to login');
-                window.location.href = '/auth/login';
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    if (!refreshToken) {
+        return false;
+    }
+
+    // Create the refresh promise
+    refreshPromise = (async () => {
+        try {
+            const response = await fetch('/api/auth/refresh', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    refresh_token: refreshToken
+                }),
+                credentials: 'include'
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                localStorage.setItem('access_token', data.access_token);
+                if (data.refresh_token) {
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                }
+                localStorage.setItem('token_expires_at', Date.now() + (data.expires_in * 1000));
+                console.log('Token refreshed successfully');
+                return true;
             }
-            return false;
+        } catch (error) {
+            console.error('Token refresh error:', error);
         }
 
-        // Token expired - try to refresh
-        if (expiresAt && now > expiresAt) {
-            console.log('Token expired, attempting refresh...');
+        return false;
+    })();
+
+    try {
+        return await refreshPromise;
+    } finally {
+        // Clear the promise after it completes
+        refreshPromise = null;
+    }
+}
+
+// Check authentication on page load
+export async function checkAuthentication() {
+    const token = localStorage.getItem('access_token');
+    const expiresAt = localStorage.getItem('token_expires_at');
+    const now = Date.now();
+
+    // No token - redirect to login
+    if (!token) {
+        // Only redirect if not already on auth pages
+        const currentPath = window.location.pathname;
+        if (!currentPath.includes('/auth/') &&
+            !currentPath.includes('/login') &&
+            !currentPath.includes('/register') &&
+            currentPath !== '/' &&
+            !currentPath.includes('/landing')) {
+            console.log('No token found, redirecting to login');
+            window.location.href = '/auth/login';
+        }
+        return false;
+    }
+
+    // Token expired - try to refresh
+    if (expiresAt && now > expiresAt) {
+        console.log('Token expired, attempting refresh...');
+        const refreshed = await refreshToken();
+        if (!refreshed) {
+            localStorage.clear();
+            window.location.href = '/auth/login';
+        }
+        return refreshed;
+    }
+
+    // Token valid - verify with server (use lightweight endpoint)
+    try {
+        const response = await fetch('/api/user/me', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache'
+            }
+        });
+
+        if (response.status === 401) {
+            // Token invalid - try refresh
             const refreshed = await refreshToken();
             if (!refreshed) {
                 localStorage.clear();
@@ -38,98 +109,23 @@
             return refreshed;
         }
 
-        // Token valid - verify with server (use lightweight endpoint)
-        try {
-            const response = await fetch('/api/user/me', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Cache-Control': 'no-cache'
-                }
-            });
-
-            if (response.status === 401) {
-                // Token invalid - try refresh
-                const refreshed = await refreshToken();
-                if (!refreshed) {
-                    localStorage.clear();
-                    window.location.href = '/auth/login';
-                }
-                return refreshed;
-            }
-
-            if (response.ok) {
-                return true;
-            }
-        } catch (error) {
-            console.error('Auth check error:', error);
+        if (response.ok) {
+            return true;
         }
-
-        return false;
+    } catch (error) {
+        console.error('Auth check error:', error);
     }
 
-    // TASK 2.4: Token Refresh with Race Condition Prevention
-    let refreshPromise = null;
+    return false;
+}
 
-    async function refreshToken() {
-        // If refresh is already in progress, return the existing promise
-        if (refreshPromise) {
-            return refreshPromise;
-        }
-
-        const refreshToken = localStorage.getItem('refresh_token');
-        
-        if (!refreshToken) {
-            return false;
-        }
-
-        // Create the refresh promise
-        refreshPromise = (async () => {
-            try {
-                const response = await fetch('/api/auth/refresh', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        refresh_token: refreshToken
-                    }),
-                    credentials: 'include'
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    localStorage.setItem('access_token', data.access_token);
-                    if (data.refresh_token) {
-                        localStorage.setItem('refresh_token', data.refresh_token);
-                    }
-                    localStorage.setItem('token_expires_at', Date.now() + (data.expires_in * 1000));
-                    console.log('Token refreshed successfully');
-                    return true;
-                }
-            } catch (error) {
-                console.error('Token refresh error:', error);
-            }
-
-            return false;
-        })();
-
-        try {
-            return await refreshPromise;
-        } finally {
-            // Clear the promise after it completes
-            refreshPromise = null;
-        }
-    }
-
-    // Run check when DOM is ready
+// Run check when DOM is ready
+if (typeof window !== 'undefined') {
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', checkAuthentication);
     } else {
         checkAuthentication();
     }
-
-    // Export for use in other modules
     window.checkAuthentication = checkAuthentication;
     window.refreshToken = refreshToken;
-})();
+}

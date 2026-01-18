@@ -1,0 +1,349 @@
+/usr/local/lib/python3.11/site-packages/web3/__init__.py:2: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+============================= test session starts ==============================
+platform darwin -- Python 3.11.14, pytest-7.4.3, pluggy-1.6.0 -- /usr/local/opt/python@3.11/bin/python3.11
+cachedir: .pytest_cache
+hypothesis profile 'default' -> database=DirectoryBasedExampleDatabase(PosixPath('/Users/machine/Desktop/Namaskah. app/.hypothesis/examples'))
+rootdir: /Users/machine/Desktop/Namaskah. app
+configfile: pytest.ini
+plugins: hypothesis-6.92.1, cov-4.1.0, asyncio-0.21.1, web3-6.11.3, anyio-3.7.1, langsmith-0.4.49
+asyncio: mode=Mode.AUTO
+collecting ... collected 7 items
+
+tests/unit/test_notification_service.py::test_create_notification FAILED [ 14%]
+tests/unit/test_notification_service.py::test_get_notifications FAILED   [ 28%]
+tests/unit/test_notification_service.py::test_mark_as_read FAILED        [ 42%]
+tests/unit/test_notification_service.py::test_mark_all_as_read FAILED    [ 57%]
+tests/unit/test_notification_service.py::test_delete_notification FAILED [ 71%]
+tests/unit/test_notification_service.py::test_cleanup_old_notifications FAILED [ 85%]
+tests/unit/test_notification_service.py::test_send_email_stub PASSED     [100%]
+
+=================================== FAILURES ===================================
+___________________________ test_create_notification ___________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b5d9ed0>
+test_user = <app.models.user.User object at 0x10af77950>
+
+    def test_create_notification(notification_service, test_user):
+        """Test creating a notification."""
+>       note = notification_service.create_notification(
+            user_id=test_user.id,
+            notification_type="info",
+            title="Welcome",
+            message="Hello World",
+            data={"foo": "bar"}
+        )
+
+tests/unit/test_notification_service.py:27: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/notification_service.py:52: in create_notification
+    notification = Notification(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b701dd0>
+kwargs = {'data': {'foo': 'bar'}, 'id': '93e9f081-4ee2-406f-ba06-fdaf5f98217e', 'message': 'Hello World', 'title': 'Welcome', ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'data'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'data' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+____________________________ test_get_notifications ____________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b6a4850>
+test_user = <app.models.user.User object at 0x10b6a4610>
+
+    def test_get_notifications(notification_service, test_user):
+        """Test retrieving notifications with pagination."""
+        # Create 3 notifications
+        for i in range(3):
+>           notification_service.create_notification(
+                test_user.id, "info", f"Title {i}", "Msg"
+            )
+
+tests/unit/test_notification_service.py:44: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/notification_service.py:52: in create_notification
+    notification = Notification(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b6a6c50>
+kwargs = {'data': {}, 'id': 'ff80eff3-064c-4fd4-a052-f7b832ed0a88', 'message': 'Msg', 'title': 'Title 0', ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'data'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'data' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+______________________________ test_mark_as_read _______________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b8cdcd0>
+test_user = <app.models.user.User object at 0x10b8cea50>
+
+    def test_mark_as_read(notification_service, test_user):
+        """Test marking a single notification as read."""
+>       note = notification_service.create_notification(test_user.id, "alert", "Read Me", "Body")
+
+tests/unit/test_notification_service.py:56: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/notification_service.py:52: in create_notification
+    notification = Notification(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b8cd6d0>
+kwargs = {'data': {}, 'id': '538637c0-2cd8-4d29-b81a-77d87bcee190', 'message': 'Body', 'title': 'Read Me', ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'data'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'data' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+____________________________ test_mark_all_as_read _____________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b6f7890>
+test_user = <app.models.user.User object at 0x10b6a6c50>
+
+    def test_mark_all_as_read(notification_service, test_user):
+        """Test marking all notifications as read."""
+>       notification_service.create_notification(test_user.id, "1", "1", "1")
+
+tests/unit/test_notification_service.py:65: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/notification_service.py:52: in create_notification
+    notification = Notification(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b313990>
+kwargs = {'data': {}, 'id': '0b077819-d0f5-4c36-8e55-f35fab2f487d', 'message': '1', 'title': '1', ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'data'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'data' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+___________________________ test_delete_notification ___________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b775b90>
+test_user = <app.models.user.User object at 0x10b777590>
+
+    def test_delete_notification(notification_service, test_user):
+        """Test deleting a notification."""
+>       note = notification_service.create_notification(test_user.id, "del", "Del", "Del")
+
+tests/unit/test_notification_service.py:75: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+app/services/notification_service.py:52: in create_notification
+    notification = Notification(
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b775f10>
+kwargs = {'data': {}, 'id': '42715293-5f07-4264-8716-9a7149805498', 'message': 'Del', 'title': 'Del', ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'data'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'data' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+________________________ test_cleanup_old_notifications ________________________
+
+notification_service = <app.services.notification_service.NotificationService object at 0x10b703d50>
+test_user = <app.models.user.User object at 0x10b701fd0>
+db_session = <sqlalchemy.orm.session.Session object at 0x10b6ddbd0>
+
+    def test_cleanup_old_notifications(notification_service, test_user, db_session):
+        """Test cleaning up old notifications."""
+        old_date = datetime.now(timezone.utc) - timedelta(days=40)
+>       note = Notification(
+            user_id=test_user.id,
+            type="old",
+            title="Old",
+            message="Msg",
+            created_at=old_date,
+            read=True
+        )
+
+tests/unit/test_notification_service.py:84: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+<string>:4: in __init__
+    ???
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:566: in _initialize_instance
+    with util.safe_reraise():
+/usr/local/lib/python3.11/site-packages/sqlalchemy/util/langhelpers.py:146: in __exit__
+    raise exc_value.with_traceback(exc_tb)
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/state.py:564: in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+app/models/base.py:26: in __init__
+    super().__init__(**kwargs)
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = <app.models.notification.Notification object at 0x10b7ea650>
+kwargs = {'created_at': datetime.datetime(2025, 12, 9, 17, 20, 50, 764031, tzinfo=datetime.timezone.utc), 'id': 'dfd9c62b-9d66-4466-9eb2-85427589dc5d', 'message': 'Msg', 'read': True, ...}
+cls_ = <class 'app.models.notification.Notification'>, k = 'read'
+
+    def _declarative_constructor(self: Any, **kwargs: Any) -> None:
+        """A simple constructor that allows initialization from kwargs.
+    
+        Sets attributes on the constructed instance using the names and
+        values in ``kwargs``.
+    
+        Only keys that are present as
+        attributes of the instance's class are allowed. These could be,
+        for example, any mapped columns or relationships.
+        """
+        cls_ = type(self)
+        for k in kwargs:
+            if not hasattr(cls_, k):
+>               raise TypeError(
+                    "%r is an invalid keyword argument for %s" % (k, cls_.__name__)
+                )
+E               TypeError: 'read' is an invalid keyword argument for Notification
+
+/usr/local/lib/python3.11/site-packages/sqlalchemy/orm/decl_base.py:2142: TypeError
+=============================== warnings summary ===============================
+app/schemas/kyc.py:23
+  /Users/machine/Desktop/Namaskah. app/app/schemas/kyc.py:23: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("date_of_birth")
+
+app/schemas/kyc.py:33
+  /Users/machine/Desktop/Namaskah. app/app/schemas/kyc.py:33: PydanticDeprecatedSince20: Pydantic V1 style `@validator` validators are deprecated. You should migrate to Pydantic V2 style `@field_validator` validators, see the migration guide for more details. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    @validator("phone_number")
+
+../../../../usr/local/lib/python3.11/site-packages/_pytest/config/__init__.py:1373
+  /usr/local/lib/python3.11/site-packages/_pytest/config/__init__.py:1373: PytestConfigWarning: Unknown config option: env
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/test_notification_service.py::test_create_notification - Ty...
+FAILED tests/unit/test_notification_service.py::test_get_notifications - Type...
+FAILED tests/unit/test_notification_service.py::test_mark_as_read - TypeError...
+FAILED tests/unit/test_notification_service.py::test_mark_all_as_read - TypeE...
+FAILED tests/unit/test_notification_service.py::test_delete_notification - Ty...
+FAILED tests/unit/test_notification_service.py::test_cleanup_old_notifications
+=================== 6 failed, 1 passed, 3 warnings in 2.39s ====================

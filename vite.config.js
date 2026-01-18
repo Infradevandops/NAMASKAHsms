@@ -14,19 +14,20 @@ export default defineConfig({
         // Main entry points
         main: resolve(__dirname, 'static/js/main.js'),
         dashboard: resolve(__dirname, 'static/js/dashboard.js'),
-        
+
         // Core modules
         constants: resolve(__dirname, 'static/js/constants.js'),
-        'auth-helpers': resolve(__dirname, 'static/js/auth-helpers.js'),
+        'auth-helpers': resolve(__dirname, 'static/js/auth-helpers.ts'),
         'api-client': resolve(__dirname, 'static/js/api-client.js'),
         'api-retry': resolve(__dirname, 'static/js/api-retry.js'),
-        
+
         // Components
         'tier-card': resolve(__dirname, 'static/js/tier-card.js'),
         'tier-manager': resolve(__dirname, 'static/js/tier-manager.js'),
         'dashboard-init': resolve(__dirname, 'static/js/dashboard-init.js'),
         'dashboard-loader': resolve(__dirname, 'static/js/dashboard-loader.js'),
         'frontend-logger': resolve(__dirname, 'static/js/frontend-logger.js'),
+        'auth-store': resolve(__dirname, 'static/js/store/auth-store.js'),
       },
       output: {
         entryFileNames: 'js/[name].[hash].js',
@@ -67,6 +68,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, 'static/js'),
+      '@store': resolve(__dirname, 'static/js/store'),
       '@css': resolve(__dirname, 'static/css')
     }
   }

@@ -56,30 +56,31 @@ export async function fetchWithRetry(url, options = {}, retryConfig = {}) {
             }
 
             const response = await fetch(url, options);
-            
+
             // Don't retry on client errors (4xx) except for specific cases
-            if (response.status >= 400 && response.status < 500 && 
-                response.status !== HTTP_STATUS.TIMEOUT && 
+            if (response.status >= 400 && response.status < 500 &&
+                response.status !== HTTP_STATUS.TIMEOUT &&
                 response.status !== HTTP_STATUS.TOO_MANY_REQUESTS) {
                 return response;
             }
 
             // Retry on server errors (5xx) or timeout/rate limit
-            if (response.status >= 500 || 
-                response.status === HTTP_STATUS.TIMEOUT || 
+            if (response.status >= 500 ||
+                response.status === HTTP_STATUS.TIMEOUT ||
                 response.status === HTTP_STATUS.TOO_MANY_REQUESTS) {
+                lastError = new Error(`HTTP ${response.status}`);
                 if (attempt < config.maxRetries) {
                     _log('warn', `Request failed with ${response.status}, will retry`, { url, attempt });
-                    lastError = new Error(`HTTP ${response.status}`);
                     continue;
                 }
+                throw lastError; // Final attempt failed
             }
 
             return response;
         } catch (error) {
             lastError = error;
             _log('warn', `Request failed: ${error.message}, attempt ${attempt + 1}/${config.maxRetries + 1}`, { url });
-            
+
             if (attempt >= config.maxRetries) {
                 throw error;
             }
@@ -99,38 +100,38 @@ export function createRetryButton(retryCallback, message = 'Failed to load data'
     const container = document.createElement('div');
     container.className = 'retry-container';
     container.style.cssText = 'text-align: center; padding: 20px; color: var(--text-muted);';
-    
+
     const errorIcon = document.createElement('div');
     errorIcon.innerHTML = '⚠️';
     errorIcon.style.cssText = 'font-size: 32px; margin-bottom: 12px;';
     errorIcon.setAttribute('aria-hidden', 'true');
-    
+
     const errorMsg = document.createElement('div');
     errorMsg.textContent = message;
     errorMsg.style.cssText = 'margin-bottom: 16px; color: var(--text-secondary);';
     errorMsg.setAttribute('role', 'alert');
-    
+
     const retryBtn = document.createElement('button');
     retryBtn.className = 'btn btn-secondary';
     retryBtn.innerHTML = '🔄 Retry';
     retryBtn.style.cssText = 'padding: 8px 16px; cursor: pointer;';
     retryBtn.setAttribute('aria-label', 'Retry loading data');
-    retryBtn.onclick = function() {
+    retryBtn.onclick = function () {
         retryBtn.disabled = true;
         retryBtn.innerHTML = '<span class="loading-spinner"></span> Retrying...';
         retryBtn.setAttribute('aria-busy', 'true');
-        
+
         Promise.resolve(retryCallback()).finally(() => {
             retryBtn.disabled = false;
             retryBtn.innerHTML = '🔄 Retry';
             retryBtn.setAttribute('aria-busy', 'false');
         });
     };
-    
+
     container.appendChild(errorIcon);
     container.appendChild(errorMsg);
     container.appendChild(retryBtn);
-    
+
     return container;
 }
 
@@ -143,7 +144,7 @@ export function createRetryButton(retryCallback, message = 'Failed to load data'
 export function showRetryUI(container, retryCallback, message) {
     const el = typeof container === 'string' ? document.querySelector(container) : container;
     if (!el) return;
-    
+
     el.innerHTML = '';
     el.appendChild(createRetryButton(retryCallback, message));
 }
@@ -166,29 +167,29 @@ export async function apiCall(options) {
     const doFetch = async () => {
         try {
             const response = await fetchWithRetry(url, fetchOptions, retryConfig);
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
-            
+
             const data = await response.json();
-            
+
             if (onSuccess) {
                 onSuccess(data, response);
             }
-            
+
             return data;
         } catch (error) {
             _log('error', `API call failed after retries: ${url}`, { error: error.message });
-            
+
             if (container) {
                 showRetryUI(container, doFetch, errorMessage);
             }
-            
+
             if (onError) {
                 onError(error);
             }
-            
+
             throw error;
         }
     };

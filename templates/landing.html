@@ -386,217 +386,409 @@
     
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
       <!-- Freemium Tier -->
-      <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-freemium text-white text-xs font-bold px-3 py-1 rounded-full">FREE</span>
-        <h3 class="text-2xl font-bold text-[#37352F] mt-4">Freemium</h3>
-        <p class="text-sm text-zinc-500 mb-2">Best for testing</p>
-        <div class="text-4xl font-bold text-[#37352F] my-6">
-          Free
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-freemium text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">FREE PLAN</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Freemium</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">Namaskah provides the tools you need to quickly verify SMS at scale.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$0</span>
+            <span class="text-zinc-500 text-base ml-1">/ month</span>
+          </div>
         </div>
-        <ul class="space-y-3 mb-8">
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> 9 SMS per $20 deposit
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">9 SMS per $20 deposit</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> $2.22/SMS effective rate
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$2.22/SMS effective rate</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Random numbers only
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Random numbers only</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-500">
-            <i class="ph ph-x"></i> No API access
-          </li>
-          <li class="flex items-center gap-2 text-zinc-500">
-            <i class="ph ph-x"></i> No location filters
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Basic support</span>
           </li>
         </ul>
         <a 
           href="/auth/register?tier=freemium"
-          class="block w-full bg-tier-freemium hover:bg-success-500 py-3 rounded-xl font-semibold text-center transition text-white"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
-          Start Free
+          Get it now
         </a>
       </div>
       
       <!-- Pay-As-You-Go Tier -->
-      <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-payg text-white text-xs font-bold px-3 py-1 rounded-full">FLEXIBLE</span>
-        <h3 class="text-2xl font-bold text-[#37352F] mt-4">Pay-As-You-Go</h3>
-        <p class="text-sm text-zinc-500 mb-2">Best for occasional users</p>
-        <div class="text-4xl font-bold text-[#37352F] my-6">
-          $2.50<span class="text-lg text-zinc-500">/SMS</span>
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-payg text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">FLEXIBLE</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Pay-As-You-Go</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">Perfect for occasional users who need advanced filtering options.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$2.50</span>
+            <span class="text-zinc-500 text-base ml-1">/ SMS</span>
+          </div>
         </div>
-        <ul class="space-y-3 mb-8">
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Custom balance funding
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Custom balance funding</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> State/City filters (+$0.25)
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">State/City filters (+$0.25)</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> ISP filters (+$0.50)
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">ISP filters (+$0.50)</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-500">
-            <i class="ph ph-x"></i> No API access
-          </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> No monthly commitment
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">No monthly commitment</span>
           </li>
         </ul>
         <a 
           href="/auth/register?tier=payg"
-          class="block w-full bg-zinc-600 hover:bg-zinc-500 py-3 rounded-xl font-semibold text-center transition text-white"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
-          Get Started
+          Get it now
         </a>
       </div>
       
       <!-- Pro Tier -->
-      <div class="p-8 rounded-3xl glass border-2 border-brand-500 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 right-8 bg-success-500 text-white text-xs font-bold px-3 py-1 rounded-full">Save 88%</span>
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
-        <h3 class="text-2xl font-bold text-[#37352F] mt-4">Pro</h3>
-        <p class="text-sm text-zinc-500 mb-2">Best for businesses</p>
-        <div class="text-4xl font-bold text-[#37352F] my-6">
-          $25<span class="text-lg text-zinc-500">/mo</span>
+      <div class="p-8 rounded-3xl bg-[#37352F] border-2 border-[#37352F] hover:shadow-2xl transition-all relative">
+        <span class="absolute -top-3 right-6 bg-white text-[#37352F] text-xs font-bold px-4 py-1.5 rounded-full shadow-md">Best Seller</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-white mb-2">PRO PLAN</h3>
+          <p class="text-sm text-zinc-300 mb-4 min-h-[40px]">For businesses and developers who need API access and priority support.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-white">$25</span>
+            <span class="text-zinc-300 text-base ml-1">/ month</span>
+          </div>
         </div>
-        <ul class="space-y-3 mb-8">
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> $15 quota included (~50 SMS)
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$15 quota (~50 SMS)</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> All filters included
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">All filters included</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> 10 API keys
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">10 API keys</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Affiliate program
-          </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Priority support
+          <li class="flex items-start gap-3 text-white">
+            <i class="ph-fill ph-check-circle text-white text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Priority support</span>
           </li>
         </ul>
         <a 
           href="/auth/register?tier=pro"
-          class="block w-full bg-brand-500 hover:bg-brand-600 py-3 rounded-xl font-semibold text-center transition text-white"
+          class="block w-full bg-white hover:bg-zinc-100 py-3.5 rounded-xl font-semibold text-center transition text-[#37352F]"
         >
-          Get Started
+          Get it now
         </a>
       </div>
       
       <!-- Custom Tier -->
-      <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-3 py-1 rounded-full">ENTERPRISE</span>
-        <h3 class="text-2xl font-bold text-[#37352F] mt-4">Custom</h3>
-        <p class="text-sm text-zinc-500 mb-2">Best for enterprises</p>
-        <div class="text-4xl font-bold text-[#37352F] my-6">
-          $35<span class="text-lg text-zinc-500">/mo</span>
+      <div class="p-8 rounded-3xl bg-white/95 backdrop-blur-sm border-2 border-zinc-200 hover:border-zinc-300 hover:shadow-xl transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-4 py-1.5 rounded-full shadow-md">ENTERPRISE</span>
+        <div class="mt-2">
+          <h3 class="text-2xl font-bold text-[#37352F] mb-2">Custom</h3>
+          <p class="text-sm text-zinc-500 mb-4 min-h-[40px]">For enterprises and high-volume users with unlimited API access.</p>
+          <div class="mb-6">
+            <span class="text-5xl font-bold text-[#37352F]">$35</span>
+            <span class="text-zinc-500 text-base ml-1">/ month</span>
+          </div>
         </div>
-        <ul class="space-y-3 mb-8">
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> $25 quota included (~125 SMS)
+        <ul class="space-y-3 mb-8 min-h-[200px]">
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">$25 quota (~125 SMS)</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Unlimited API keys
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Unlimited API keys</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Enhanced affiliate
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Enhanced affiliate</span>
           </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Dedicated support
-          </li>
-          <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> Priority features
+          <li class="flex items-start gap-3 text-zinc-700">
+            <i class="ph-fill ph-check-circle text-[#37352F] text-xl mt-0.5 flex-shrink-0"></i>
+            <span class="text-sm">Dedicated support</span>
           </li>
         </ul>
         <a 
           href="/auth/register?tier=custom"
-          class="block w-full bg-tier-custom hover:opacity-90 py-3 rounded-xl font-semibold text-center transition text-white"
+          class="block w-full bg-[#37352F] hover:bg-[#2a2824] py-3.5 rounded-xl font-semibold text-center transition text-white"
         >
-          Get Started
+          Get it now
         </a>
       </div>
     </div>
   </section>
 
   <!-- Footer -->
-  <footer class="mt-20 border-t border-white/5 bg-[#1a1a2e]/50 backdrop-blur-xl pt-24 pb-12 px-6">
-    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-5 gap-12 mb-20">
-      
-      <div class="col-span-2">
-        <div class="flex items-center gap-2 font-bold text-xl mb-6">
-          <i class="ph ph-device-mobile text-2xl text-brand-400"></i>
-          <span>Namaskah</span>
-        </div>
-        <p class="text-zinc-500 text-sm max-w-xs mb-8 leading-relaxed">
-          Premium SMS verification platform. Trusted by {{ user_count|default(10000) }}+ developers worldwide.
-        </p>
-        <div class="flex gap-4">
-          <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition">
-            <i class="ph ph-twitter-logo"></i>
-          </a>
-          <a href="#" class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white hover:text-black transition">
-            <i class="ph ph-github-logo"></i>
-          </a>
-        </div>
-      </div>
-      
-      <div>
-        <h4 class="font-bold text-[#37352F] text-sm mb-6 uppercase tracking-widest">Platform</h4>
-        <ul class="space-y-4 text-sm text-zinc-500">
-          <li><a href="/verify" class="hover:text-brand-400 transition">Verifications</a></li>
-          <li><a href="/pricing" class="hover:text-brand-400 transition">Pricing</a></li>
-          <li><a href="/api" class="hover:text-brand-400 transition">API</a></li>
-        </ul>
-      </div>
-      
-      <div>
-        <h4 class="font-bold text-[#37352F] text-sm mb-6 uppercase tracking-widest">Resources</h4>
-        <ul class="space-y-4 text-sm text-zinc-500">
-          <li><a href="/docs" class="hover:text-brand-400 transition">API Docs</a></li>
-          <li><a href="/status" class="hover:text-brand-400 transition">Status</a></li>
-          <li><a href="/support" class="hover:text-brand-400 transition">Support</a></li>
-          <li><a href="/faq" class="hover:text-brand-400 transition">FAQ</a></li>
-        </ul>
-      </div>
-      
-      <div>
-        <h4 class="font-bold text-[#37352F] text-sm mb-6 uppercase tracking-widest">Legal</h4>
-        <ul class="space-y-4 text-sm text-zinc-500">
-          <li><a href="/terms" class="hover:text-brand-400 transition">Terms</a></li>
-          <li><a href="/privacy" class="hover:text-brand-400 transition">Privacy</a></li>
-          <li><a href="/cookies" class="hover:text-brand-400 transition">Cookies</a></li>
-        </ul>
-      </div>
-    </div>
+  <footer class="relative mt-32 overflow-hidden">
+    <!-- Gradient Background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-[#1a1a2e] via-[#16213e] to-[#0f1419]"></div>
+    <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4wMiI+PHBhdGggZD0iTTM2IDM0djItaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bTAtNHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bS0yIDB2Mmgydi0yaC0yem0tMiAwdjJoMnYtMmgtMnptLTIgMHYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6bTAgMnYyaDJ2LTJoLTJ6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30"></div>
     
-    <div class="max-w-7xl mx-auto pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
-      <p class="text-zinc-600 text-xs">© 2025 Namaskah. All rights reserved.</p>
-      
-      <!-- Footer Language/Currency Selector -->
-      <div x-data="{ lang: localStorage.getItem('language') || 'en', curr: localStorage.getItem('currency') || 'USD' }" class="flex gap-4 items-center">
-        <select x-model="lang" @change="localStorage.setItem('language', lang); location.reload()" class="bg-zinc-800 border border-white/10 rounded px-2 py-1 text-xs">
-          <option value="en">🇺🇸 English</option>
-          <option value="es">🇪🇸 Español</option>
-          <option value="fr">🇫🇷 Français</option>
-          <option value="de">🇩🇪 Deutsch</option>
-          <option value="pt">🇵🇹 Português</option>
-        </select>
-        <select x-model="curr" @change="localStorage.setItem('currency', curr); location.reload()" class="bg-zinc-800 border border-white/10 rounded px-2 py-1 text-xs">
-          <option value="USD">🇺🇸 USD</option>
-          <option value="EUR">🇪🇺 EUR</option>
-          <option value="GBP">🇬🇧 GBP</option>
-          <option value="NGN">🇳🇬 NGN</option>
-          <option value="INR">🇮🇳 INR</option>
-        </select>
-      </div>
-      
-      <div class="flex gap-6 opacity-30 hover:opacity-100 transition">
-        <span class="text-[10px] font-black">BITCOIN</span>
-        <span class="text-[10px] font-black">ETHEREUM</span>
-        <span class="text-[10px] font-black">LITECOIN</span>
-        <span class="text-[10px] font-black">VISA</span>
+    <div class="relative z-10">
+      <!-- Main Footer Content -->
+      <div class="max-w-7xl mx-auto px-6 pt-20 pb-12">
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-12 mb-16">
+          
+          <!-- Brand Column -->
+          <div class="md:col-span-4">
+            <div class="flex items-center gap-3 mb-6">
+              <div class="w-12 h-12 bg-gradient-to-br from-brand-400 to-brand-600 rounded-2xl flex items-center justify-center shadow-lg shadow-brand-500/20">
+                <i class="ph-fill ph-device-mobile text-white text-2xl"></i>
+              </div>
+              <span class="font-bold text-2xl text-white">Namaskah</span>
+            </div>
+            <p class="text-zinc-400 text-sm leading-relaxed mb-8 max-w-sm">
+              Premium SMS verification platform. Trusted by <span class="text-brand-400 font-semibold">{{ user_count|default(10000) }}+</span> developers worldwide.
+            </p>
+            <div class="flex gap-3">
+              <a href="https://twitter.com/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-twitter-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://github.com/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-github-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://discord.gg/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-discord-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+              <a href="https://linkedin.com/company/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+                <i class="ph-fill ph-linkedin-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
+              </a>
+            </div>
+          </div>
+          
+          <!-- Platform Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Platform</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/verify" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Verifications</span>
+                </a>
+              </li>
+              <li>
+                <a href="/pricing" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Pricing</span>
+                </a>
+              </li>
+              <li>
+                <a href="/api" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">API</span>
+                </a>
+              </li>
+              <li>
+                <a href="/affiliate" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Affiliate Program</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Resources Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Resources</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/docs" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">API Docs</span>
+                </a>
+              </li>
+              <li>
+                <a href="/status" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Status</span>
+                </a>
+              </li>
+              <li>
+                <a href="/support" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Support</span>
+                </a>
+              </li>
+              <li>
+                <a href="/faq" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">FAQ</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Company Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Company</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/about" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">About Us</span>
+                </a>
+              </li>
+              <li>
+                <a href="/blog" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Blog</span>
+                </a>
+              </li>
+              <li>
+                <a href="/careers" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Careers</span>
+                </a>
+              </li>
+              <li>
+                <a href="/contact" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Contact</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+          
+          <!-- Legal Links -->
+          <div class="md:col-span-2">
+            <h4 class="font-bold text-white text-sm mb-6 uppercase tracking-wider">Legal</h4>
+            <ul class="space-y-3.5">
+              <li>
+                <a href="/terms" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Terms</span>
+                </a>
+              </li>
+              <li>
+                <a href="/privacy" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Privacy</span>
+                </a>
+              </li>
+              <li>
+                <a href="/cookies" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">Cookies</span>
+                </a>
+              </li>
+              <li>
+                <a href="/gdpr" class="group flex items-center gap-2 text-zinc-400 hover:text-white transition-colors">
+                  <i class="ph ph-arrow-right text-brand-400 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                  <span class="text-sm">GDPR</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
+        
+        <!-- Divider -->
+        <div class="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-8"></div>
+        
+        <!-- Bottom Bar -->
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <!-- Copyright -->
+          <p class="text-zinc-500 text-sm flex items-center gap-2">
+            <span>© 2025 Namaskah.</span>
+            <span class="hidden md:inline">•</span>
+            <span>All rights reserved.</span>
+          </p>
+          
+          <!-- Language/Currency Selector -->
+          <div x-data="{ 
+            lang: localStorage.getItem('language') || 'en', 
+            curr: localStorage.getItem('currency') || 'USD',
+            langOpen: false,
+            currOpen: false
+          }" class="flex gap-3 items-center">
+            <!-- Language Dropdown -->
+            <div class="relative">
+              <button @click="langOpen = !langOpen; currOpen = false" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm">
+                <i class="ph ph-translate text-brand-400"></i>
+                <span class="text-zinc-300 font-medium" x-text="lang.toUpperCase()"></span>
+                <i class="ph ph-caret-down text-zinc-500 text-xs" :class="langOpen ? 'rotate-180' : ''"></i>
+              </button>
+              <div x-show="langOpen" @click.away="langOpen = false" x-transition class="absolute bottom-full mb-2 right-0 w-48 bg-zinc-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+                <button @click="lang = 'en'; localStorage.setItem('language', 'en'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇺🇸</span> English
+                </button>
+                <button @click="lang = 'es'; localStorage.setItem('language', 'es'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇪🇸</span> Español
+                </button>
+                <button @click="lang = 'fr'; localStorage.setItem('language', 'fr'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇫🇷</span> Français
+                </button>
+                <button @click="lang = 'de'; localStorage.setItem('language', 'de'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇩🇪</span> Deutsch
+                </button>
+                <button @click="lang = 'pt'; localStorage.setItem('language', 'pt'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇵🇹</span> Português
+                </button>
+              </div>
+            </div>
+            
+            <!-- Currency Dropdown -->
+            <div class="relative">
+              <button @click="currOpen = !currOpen; langOpen = false" class="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all text-sm">
+                <i class="ph ph-currency-circle-dollar text-brand-400"></i>
+                <span class="text-zinc-300 font-medium" x-text="curr"></span>
+                <i class="ph ph-caret-down text-zinc-500 text-xs" :class="currOpen ? 'rotate-180' : ''"></i>
+              </button>
+              <div x-show="currOpen" @click.away="currOpen = false" x-transition class="absolute bottom-full mb-2 right-0 w-48 bg-zinc-900/95 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl overflow-hidden">
+                <button @click="curr = 'USD'; localStorage.setItem('currency', 'USD'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇺🇸</span> USD
+                </button>
+                <button @click="curr = 'EUR'; localStorage.setItem('currency', 'EUR'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇪🇺</span> EUR
+                </button>
+                <button @click="curr = 'GBP'; localStorage.setItem('currency', 'GBP'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇬🇧</span> GBP
+                </button>
+                <button @click="curr = 'NGN'; localStorage.setItem('currency', 'NGN'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇳🇬</span> NGN
+                </button>
+                <button @click="curr = 'INR'; localStorage.setItem('currency', 'INR'); location.reload()" class="w-full text-left px-4 py-2.5 text-sm text-zinc-300 hover:bg-white/5 transition flex items-center gap-3">
+                  <span>🇮🇳</span> INR
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Payment Methods -->
+          <div class="flex items-center gap-4">
+            <span class="text-zinc-600 text-xs uppercase tracking-wider font-semibold">We Accept</span>
+            <div class="flex gap-3 items-center">
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-currency-btc text-orange-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">BTC</span>
+              </div>
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-currency-eth text-purple-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">ETH</span>
+              </div>
+              <div class="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg flex items-center gap-1.5 hover:bg-white/10 transition">
+                <i class="ph-fill ph-credit-card text-blue-400 text-sm"></i>
+                <span class="text-zinc-400 text-xs font-bold">CARD</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </footer>

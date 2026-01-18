@@ -1,7 +1,8 @@
 {% extends "dashboard_base.html" %}
 
 {% block page_title %}<span data-i18n="dashboard.title">Dashboard</span>{% endblock %}
-{% block page_subtitle %}<span data-i18n="dashboard.subtitle">Overview of your SMS verification activity</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="dashboard.subtitle">Overview of your SMS verification activity</span>{%
+endblock %}
 
 {% block content %}
 <!-- Design System CSS (consolidated) -->
@@ -14,18 +15,26 @@
 <div class="card" id="tier-card" aria-live="polite" aria-busy="true" style="margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div style="flex: 1; min-width: 200px;">
-            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">Current Plan</div>
-            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name"><span class="loading-spinner"></span> Loading...</div>
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">
+                Current Plan</div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name"><span
+                    class="loading-spinner"></span> Loading...</div>
             <div id="tier-price" style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;"></div>
             <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);"></div>
         </div>
         <div class="tier-cta-container" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;">
-            <button id="add-credits-btn" class="btn btn-primary" style="display: none;" aria-label="Add credits to your wallet">Add Credits</button>
-            <button id="usage-btn" class="btn btn-primary" style="display: none;" aria-label="View your usage statistics">View Usage</button>
-            <button id="compare-plans-btn" class="btn btn-secondary" style="display: none;" aria-label="Compare subscription plans">Compare Plans</button>
-            <button id="upgrade-btn" class="btn btn-primary" style="display: none;" aria-label="Upgrade your subscription plan">Upgrade</button>
-            <button id="manage-btn" class="btn btn-secondary" style="display: none;" aria-label="Manage your billing settings">Manage Billing</button>
-            <button id="contact-btn" class="btn btn-secondary" style="display: none;" aria-label="Contact customer support">Contact Support</button>
+            <button id="add-credits-btn" class="btn btn-primary" style="display: none;"
+                aria-label="Add credits to your wallet">Add Credits</button>
+            <button id="usage-btn" class="btn btn-primary" style="display: none;"
+                aria-label="View your usage statistics">View Usage</button>
+            <button id="compare-plans-btn" class="btn btn-secondary" style="display: none;"
+                aria-label="Compare subscription plans">Compare Plans</button>
+            <button id="upgrade-btn" class="btn btn-primary" style="display: none;"
+                aria-label="Upgrade your subscription plan">Upgrade</button>
+            <button id="manage-btn" class="btn btn-secondary" style="display: none;"
+                aria-label="Manage your billing settings">Manage Billing</button>
+            <button id="contact-btn" class="btn btn-secondary" style="display: none;"
+                aria-label="Contact customer support">Contact Support</button>
         </div>
     </div>
 </div>
@@ -36,7 +45,8 @@
         <div style="font-size: 14px; font-weight: 600;">Monthly Quota Usage</div>
         <div id="quota-text" style="font-size: 14px; color: var(--text-muted);">$0.00 / $0.00</div>
     </div>
-    <div style="background: var(--bg-body); border-radius: 8px; height: 8px; overflow: hidden;" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div style="background: var(--bg-body); border-radius: 8px; height: 8px; overflow: hidden;" role="progressbar"
+        aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
         <div id="quota-fill" style="background: var(--primary); height: 100%; width: 0%; transition: width 0.3s;"></div>
     </div>
 </div>
@@ -60,21 +70,27 @@
     </div>
 </div>
 
-<div class="stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 40px;">
+<div class="stats-grid"
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 40px;">
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_sms">Total SMS</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_sms">
+            Total SMS</div>
         <div style="font-size: 32px; font-weight: 700;" id="total-sms">0</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.successful">Successful</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.successful">
+            Successful</div>
         <div style="font-size: 32px; font-weight: 700; color: #10b981;" id="successful-sms">0</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_spent">Total Spent</div>
-        <div style="font-size: 32px; font-weight: 700;" id="total-spent" data-currency data-amount="0" data-from="USD">$0.00</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_spent">
+            Total Spent</div>
+        <div style="font-size: 32px; font-weight: 700;" id="total-spent" data-currency data-amount="0" data-from="USD">
+            $0.00</div>
     </div>
     <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.success_rate">Success Rate</div>
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.success_rate">
+            Success Rate</div>
         <div style="font-size: 32px; font-weight: 700;" id="success-rate">0%</div>
     </div>
 </div>
@@ -83,24 +99,46 @@
     <h3 style="font-size: 18px; margin-bottom: 16px;" data-i18n="dashboard.recent_activity">Recent Activity</h3>
     <div id="empty-state" style="text-align: center; padding: 40px; color: var(--text-muted); display: none;">
         <div style="font-size: 24px; margin-bottom: 12px;" data-i18n="dashboard.no_activity">No recent activity</div>
-        <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;" aria-label="Start a new verification">
+        <button class="btn" onclick="window.location.href='/verify'" style="margin-top: 16px;"
+            aria-label="Start a new verification">
             <span data-i18n="dashboard.start_verification">Start Verification</span>
         </button>
     </div>
-    <div id="activity-loading" style="text-align: center; padding: 20px; color: var(--text-muted);" aria-label="Loading activity">
+    <div id="activity-loading" style="text-align: center; padding: 20px; color: var(--text-muted);"
+        aria-label="Loading activity">
         <div class="skeleton-activity-table">
-            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
-            <div class="skeleton-activity-row"><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div><div class="skeleton skeleton-cell"></div></div>
+            <div class="skeleton-activity-row">
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+            </div>
+            <div class="skeleton-activity-row">
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+            </div>
+            <div class="skeleton-activity-row">
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+                <div class="skeleton skeleton-cell"></div>
+            </div>
         </div>
     </div>
-    <table id="activity-table" style="width: 100%; border-collapse: collapse; display: none;" aria-label="Recent verification activity">
+    <table id="activity-table" style="width: 100%; border-collapse: collapse; display: none;"
+        aria-label="Recent verification activity">
         <thead>
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.service" scope="col">Service</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.number" scope="col">Number</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="dashboard.time" scope="col">Time</th>
-                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.status" scope="col">Status</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                    data-i18n="dashboard.service" scope="col">Service</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                    data-i18n="dashboard.number" scope="col">Number</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                    data-i18n="dashboard.time" scope="col">Time</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);"
+                    data-i18n="common.status" scope="col">Status</th>
             </tr>
         </thead>
         <tbody id="activity-body"></tbody>
@@ -115,96 +153,96 @@
 {{ super() }}
 <!-- Core utilities (non-module for backward compatibility) -->
 <script src="/static/js/frontend-logger.js?v=20260112"></script>
-<script src="/static/js/response-validator.js?v=20260112"></script>
+<script type="module" src="/static/js/response-validator.js?v=20260112"></script>
 
 <!-- New modular architecture -->
 <script type="module">
-/**
- * Dashboard Initialization
- * Uses new modular architecture from static/js/
- */
-import { TIMEOUTS, ENDPOINTS, STORAGE_KEYS, TIER_DISPLAY_NAMES, TIER_BADGE_CLASSES, TIER_FEATURES, TIER_CTA_CONFIG } from '/static/js/constants.js';
-import { hasAuthToken, getAuthHeaders } from '/static/js/auth-helpers.js';
-import { initTierCard } from '/static/js/tier-card.js';
+    /**
+     * Dashboard Initialization
+     * Uses new modular architecture from static/js/
+     */
+    import { TIMEOUTS, ENDPOINTS, STORAGE_KEYS, TIER_DISPLAY_NAMES, TIER_BADGE_CLASSES, TIER_FEATURES, TIER_CTA_CONFIG } from '/static/js/constants.js';
+    import { hasAuthToken, getAuthHeaders } from '/static/js/auth-helpers.js';
+    import { initTierCard } from '/static/js/tier-card.js';
 
-// ============================================
-// ANALYTICS WIDGET
-// ============================================
-async function loadAnalytics() {
-    if (!hasAuthToken()) return;
+    // ============================================
+    // ANALYTICS WIDGET
+    // ============================================
+    async function loadAnalytics() {
+        if (!hasAuthToken()) return;
 
-    try {
-        const response = await fetch(ENDPOINTS.ANALYTICS.SUMMARY, {
-            credentials: 'include',
-            headers: getAuthHeaders()
-        });
+        try {
+            const response = await fetch(ENDPOINTS.ANALYTICS.SUMMARY, {
+                credentials: 'include',
+                headers: getAuthHeaders()
+            });
 
-        if (!response.ok) return;
+            if (!response.ok) return;
 
-        const data = await response.json();
-        
-        document.getElementById('total-sms').textContent = data.total_verifications || 0;
-        document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
-        
-        const spent = data.revenue || data.total_spent || 0;
-        document.getElementById('total-spent').textContent = `$${spent.toFixed(2)}`;
-        document.getElementById('total-spent').setAttribute('data-amount', spent);
-        
-        const rate = data.success_rate || 0;
-        document.getElementById('success-rate').textContent = `${rate.toFixed(1)}%`;
+            const data = await response.json();
 
-        if (window.FrontendLogger) {
-            window.FrontendLogger.logAnalyticsLoad(true, data);
-        }
-    } catch (error) {
-        if (window.FrontendLogger) {
-            window.FrontendLogger.logAnalyticsLoad(false, null, error);
+            document.getElementById('total-sms').textContent = data.total_verifications || 0;
+            document.getElementById('successful-sms').textContent = data.successful_verifications || 0;
+
+            const spent = data.revenue || data.total_spent || 0;
+            document.getElementById('total-spent').textContent = `$${spent.toFixed(2)}`;
+            document.getElementById('total-spent').setAttribute('data-amount', spent);
+
+            const rate = data.success_rate || 0;
+            document.getElementById('success-rate').textContent = `${rate.toFixed(1)}%`;
+
+            if (window.FrontendLogger) {
+                window.FrontendLogger.logAnalyticsLoad(true, data);
+            }
+        } catch (error) {
+            if (window.FrontendLogger) {
+                window.FrontendLogger.logAnalyticsLoad(false, null, error);
+            }
         }
     }
-}
 
-// ============================================
-// ACTIVITY WIDGET
-// ============================================
-async function loadActivity() {
-    const loadingEl = document.getElementById('activity-loading');
-    const tableEl = document.getElementById('activity-table');
-    const emptyEl = document.getElementById('empty-state');
-    const bodyEl = document.getElementById('activity-body');
+    // ============================================
+    // ACTIVITY WIDGET
+    // ============================================
+    async function loadActivity() {
+        const loadingEl = document.getElementById('activity-loading');
+        const tableEl = document.getElementById('activity-table');
+        const emptyEl = document.getElementById('empty-state');
+        const bodyEl = document.getElementById('activity-body');
 
-    if (!hasAuthToken()) {
-        loadingEl.style.display = 'none';
-        emptyEl.style.display = 'block';
-        return;
-    }
-
-    try {
-        const response = await fetch(ENDPOINTS.DASHBOARD.ACTIVITY, {
-            credentials: 'include',
-            headers: getAuthHeaders()
-        });
-
-        loadingEl.style.display = 'none';
-
-        if (!response.ok) {
+        if (!hasAuthToken()) {
+            loadingEl.style.display = 'none';
             emptyEl.style.display = 'block';
             return;
         }
 
-        const activities = await response.json();
+        try {
+            const response = await fetch(ENDPOINTS.DASHBOARD.ACTIVITY, {
+                credentials: 'include',
+                headers: getAuthHeaders()
+            });
 
-        if (!activities || activities.length === 0) {
-            emptyEl.style.display = 'block';
-            return;
-        }
+            loadingEl.style.display = 'none';
 
-        let html = '';
-        for (const activity of activities) {
-            const statusColor = activity.status === 'completed' ? '#10b981'
-                : activity.status === 'failed' ? '#ef4444'
-                : '#f59e0b';
+            if (!response.ok) {
+                emptyEl.style.display = 'block';
+                return;
+            }
 
-            html += `
+            const activities = await response.json();
+
+            if (!activities || activities.length === 0) {
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            let html = '';
+            for (const activity of activities) {
+                const statusColor = activity.status === 'completed' ? '#10b981'
+                    : activity.status === 'failed' ? '#ef4444'
+                        : '#f59e0b';
+
+                html += `
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
                     <td style="padding: 12px;">${escapeHtml(activity.service_name || 'Unknown')}</td>
                     <td style="padding: 12px;">${escapeHtml(activity.phone_number || '-')}</td>
@@ -212,84 +250,84 @@ async function loadActivity() {
                     <td style="padding: 12px; color: ${statusColor};">${escapeHtml(activity.status || 'pending')}</td>
                 </tr>
             `;
-        }
+            }
 
-        bodyEl.innerHTML = html;
-        tableEl.style.display = 'table';
+            bodyEl.innerHTML = html;
+            tableEl.style.display = 'table';
 
-        if (window.FrontendLogger) {
-            window.FrontendLogger.logActivityLoad(true, activities.length);
-        }
-    } catch (error) {
-        loadingEl.style.display = 'none';
-        emptyEl.style.display = 'block';
-        if (window.FrontendLogger) {
-            window.FrontendLogger.logActivityLoad(false, 0, error);
+            if (window.FrontendLogger) {
+                window.FrontendLogger.logActivityLoad(true, activities.length);
+            }
+        } catch (error) {
+            loadingEl.style.display = 'none';
+            emptyEl.style.display = 'block';
+            if (window.FrontendLogger) {
+                window.FrontendLogger.logActivityLoad(false, 0, error);
+            }
         }
     }
-}
 
-// ============================================
-// UTILITY FUNCTIONS
-// ============================================
-function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-function formatTime(isoString) {
-    if (!isoString) return '-';
-    try {
-        return new Date(isoString).toLocaleString();
-    } catch (e) {
-        return isoString;
+    // ============================================
+    // UTILITY FUNCTIONS
+    // ============================================
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
-}
 
-// ============================================
-// MODAL HANDLERS (exposed globally)
-// ============================================
-window.showComparePlansModal = function() {
-    const currentTier = window.tierCard?.currentData?.current_tier || 'freemium';
-    if (typeof window.showTierCompareModal === 'function') {
-        window.showTierCompareModal(currentTier);
-    }
-};
-
-window.closeComparePlansModal = function() {
-    if (typeof window.closeTierCompareModal === 'function') {
-        window.closeTierCompareModal();
-    }
-};
-
-// ============================================
-// INITIALIZATION
-// ============================================
-function initDashboard() {
-    // Initialize Tier Card (new modular component)
-    const tierCard = initTierCard('tier-card');
-    window.tierCard = tierCard;
-
-    // Load other widgets
-    loadAnalytics();
-    loadActivity();
-
-    // Set up periodic refresh
-    setInterval(() => {
-        if (hasAuthToken()) {
-            tierCard.load();
-            loadAnalytics();
+    function formatTime(isoString) {
+        if (!isoString) return '-';
+        try {
+            return new Date(isoString).toLocaleString();
+        } catch (e) {
+            return isoString;
         }
-    }, TIMEOUTS.REFRESH_INTERVAL);
-}
+    }
 
-// Start initialization
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDashboard);
-} else {
-    initDashboard();
-}
+    // ============================================
+    // MODAL HANDLERS (exposed globally)
+    // ============================================
+    window.showComparePlansModal = function () {
+        const currentTier = window.tierCard?.currentData?.current_tier || 'freemium';
+        if (typeof window.showTierCompareModal === 'function') {
+            window.showTierCompareModal(currentTier);
+        }
+    };
+
+    window.closeComparePlansModal = function () {
+        if (typeof window.closeTierCompareModal === 'function') {
+            window.closeTierCompareModal();
+        }
+    };
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    function initDashboard() {
+        // Initialize Tier Card (new modular component)
+        const tierCard = initTierCard('tier-card');
+        window.tierCard = tierCard;
+
+        // Load other widgets
+        loadAnalytics();
+        loadActivity();
+
+        // Set up periodic refresh
+        setInterval(() => {
+            if (hasAuthToken()) {
+                tierCard.load();
+                loadAnalytics();
+            }
+        }, TIMEOUTS.REFRESH_INTERVAL);
+    }
+
+    // Start initialization
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    } else {
+        initDashboard();
+    }
 </script>
 {% endblock %}

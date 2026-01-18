@@ -5,25 +5,25 @@
 
 // Intercept fetch to add auth token and handle 401 - Task 1.2 Fix
 const originalFetch = window.fetch
-window.fetch = async function(...args) {
+window.fetch = async function (...args) {
   // Ensure token is valid before making request
   const { ensureValidToken } = await import('./modules/auth.js')
   await ensureValidToken()
-  
+
   const token = localStorage.getItem('access_token')
   if (token && args[1]) {
     args[1].headers = args[1].headers || {}
     args[1].headers['Authorization'] = `Bearer ${token}`
   }
-  
+
   const response = await originalFetch.apply(this, args)
-  
+
   // Handle 401 responses
   if (response.status === 401) {
     localStorage.clear()
     window.location.href = '/auth/login'
   }
-  
+
   return response
 }
 
@@ -33,7 +33,7 @@ import { initScrollTimeline } from './modules/scroll-timeline.js'
 
 // Core modules - loaded immediately
 import { initAuth } from './modules/auth.js'
-import { initDashboard } from './modules/dashboard.js'
+import { initDashboard } from './dashboard.js'
 
 // Loading indicator
 function showLoadingIndicator() {
@@ -64,8 +64,8 @@ async function initializeApp() {
     addAnimationStyles()
 
     // Initialize scroll timeline if on landing page
-    const isLandingPage = document.body.classList.contains('landing-page') || 
-                          document.querySelectorAll('[data-timeline-section]').length > 0
+    const isLandingPage = document.body.classList.contains('landing-page') ||
+      document.querySelectorAll('[data-timeline-section]').length > 0
     if (isLandingPage) {
       initScrollTimeline()
     }
