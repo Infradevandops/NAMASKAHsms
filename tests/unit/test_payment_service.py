@@ -121,3 +121,68 @@ class TestPaymentService:
         db_session.refresh(log)
         assert log.status == "failed"
         assert log.webhook_received is True
+
+    def test_get_payment_history(self, payment_service, regular_user, db_session):
+        log = PaymentLog(
+            user_id=regular_user.id,
+            email=regular_user.email,
+            reference="ref_hist",
+            amount_usd=15.0,
+            status="success"
+        )
+        db_session.add(log)
+        db_session.commit()
+        
+        history = payment_service.get_payment_history(regular_user.id)
+        assert len(history["payments"]) >= 1
+        assert history["payments"][0]["reference"] == "ref_hist"
+
+    def test_get_payment_summary(self, payment_service, regular_user, db_session):
+        # Add a success log
+        db_session.add(PaymentLog(
+            user_id=regular_user.id,
+            email=regular_user.email,
+            reference="ref_sum_1",
+            amount_usd=10.0,
+            status="success"
+        ))
+        db_session.commit()
+        
+        summary = payment_service.get_payment_summary(regular_user.id)
+        assert summary["total_payments"] >= 1
+        assert summary["total_paid"] >= 10.0
+
+    @patch("app.services.payment_service.paystack_service")
+    async def test_refund_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
+        # 1. Setup a successful payment
+        regular_user.credits = 10.0
+        log = PaymentLog(
+            user_id=regular_user.id,
+            email=regular_user.email,
+            reference="ref_refund",
+            amount_usd=10.0,
+            namaskah_amount=10.0,
+            status="success",
+            credited=True
+        )
+        db_session.add(log)
+        db_session.commit()
+        
+        # 2. Mock Paystack refund
+        mock_paystack.refund_transaction = AsyncMock(return_value={
+            "status": True,
+            "data": {"status": "processed"}
+        })
+        
+        # 3. Request refund
+        result = payment_service.refund_payment(log.reference, regular_user.id)
+        assert result["status"] == "refunded"
+        
+        # 4. Check DB
+        db_session.refresh(log)
+        assert log.status == "refunded"
+
+    def test_process_webhook_invalid_event(self, payment_service):
+        # Should not raise error, just return status
+        result = payment_service.process_webhook("unknown.event", {})
+        assert result["status"] == "ignored"

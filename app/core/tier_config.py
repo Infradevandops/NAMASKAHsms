@@ -21,7 +21,8 @@ class TierConfig:
             SELECT tier, name, price_monthly, quota_usd, overage_rate,
                    has_api_access, has_area_code_selection, has_isp_filtering,
                    api_key_limit, support_level, daily_verification_limit,
-                   monthly_verification_limit
+                   monthly_verification_limit, country_limit, sms_retention_days,
+                   rate_limit_per_minute, rate_limit_per_hour
             FROM subscription_tiers
             WHERE tier = :tier
         """
@@ -48,6 +49,9 @@ class TierConfig:
             "daily_verification_limit": row[10],
             "monthly_verification_limit": row[11],
             "country_limit": row[12],
+            "sms_retention_days": row[13],
+            "rate_limit_per_minute": row[14],
+            "rate_limit_per_hour": row[15],
             "features": {
                 "webhooks": bool(row[5]),  # API access enables webhooks
                 "priority_routing": tier in ["pro", "custom"],
@@ -67,7 +71,8 @@ class TierConfig:
             SELECT tier, name, price_monthly, quota_usd, overage_rate,
                    has_api_access, has_area_code_selection, has_isp_filtering,
                    api_key_limit, support_level, daily_verification_limit,
-                   monthly_verification_limit
+                   monthly_verification_limit, country_limit, sms_retention_days,
+                   rate_limit_per_minute, rate_limit_per_hour
             FROM subscription_tiers
             ORDER BY price_monthly
         """
@@ -91,6 +96,9 @@ class TierConfig:
                 "daily_verification_limit": row[10],
                 "monthly_verification_limit": row[11],
                 "country_limit": row[12],
+                "sms_retention_days": row[13],
+                "rate_limit_per_minute": row[14],
+                "rate_limit_per_hour": row[15],
                 "features": {
                     "webhooks": bool(row[5]),
                     "priority_routing": row[0] in ["pro", "custom"],
@@ -127,6 +135,9 @@ class TierConfig:
                 "daily_verification_limit": 100,
                 "monthly_verification_limit": 3000,
                 "country_limit": 5,
+                "sms_retention_days": 1,
+                "rate_limit_per_minute": 10,
+                "rate_limit_per_hour": 100,
                 "features": {
                     "webhooks": False,
                     "priority_routing": False,
@@ -149,6 +160,9 @@ class TierConfig:
                 "daily_verification_limit": 500,
                 "monthly_verification_limit": 15000,
                 "country_limit": -1,
+                "sms_retention_days": 3,
+                "rate_limit_per_minute": 30,
+                "rate_limit_per_hour": 500,
                 "features": {
                     "webhooks": False,
                     "priority_routing": False,
@@ -171,6 +185,9 @@ class TierConfig:
                 "daily_verification_limit": 2000,
                 "monthly_verification_limit": 60000,
                 "country_limit": -1,
+                "sms_retention_days": 7,
+                "rate_limit_per_minute": 100,
+                "rate_limit_per_hour": 2000,
                 "features": {"webhooks": True, "priority_routing": True, "custom_branding": False},
             },
             "custom": {
@@ -189,6 +206,9 @@ class TierConfig:
                 "daily_verification_limit": 10000,
                 "monthly_verification_limit": 300000,
                 "country_limit": -1,
+                "sms_retention_days": 30,
+                "rate_limit_per_minute": 500,
+                "rate_limit_per_hour": 10000,
                 "features": {"webhooks": True, "priority_routing": True, "custom_branding": True},
             },
         }

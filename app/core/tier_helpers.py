@@ -137,3 +137,18 @@ def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None)
             timestamp=datetime.utcnow()
         ).model_dump()
     )
+
+
+
+def log_tier_check(user_id: str, endpoint: str, tier: str, allowed: bool):
+    """Log tier access check for monitoring."""
+    logger.info(
+        "tier_check",
+        extra={
+            "user_id": user_id,
+            "endpoint": endpoint,
+            "tier": tier,
+            "allowed": allowed,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+    )

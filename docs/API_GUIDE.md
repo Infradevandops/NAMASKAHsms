@@ -203,3 +203,17 @@ For issues or questions, contact support@namaskah.app
 ### Requires: pro+
 - POST /api/verify/bulk
 - GET /api/analytics/advanced
+
+
+## Tier Requirements
+
+All endpoints return 402 if tier insufficient:
+```json
+{
+  "message": "This feature requires Pro tier or higher",
+  "current_tier": "freemium",
+  "required_tier": "pro",
+  "upgrade_url": "/billing/upgrade",
+  "timestamp": "2025-01-02T10:00:00Z"
+}
+```

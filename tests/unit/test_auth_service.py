@@ -109,6 +109,66 @@ class TestAuthService:
         assert user is not None
         assert user.id == regular_user.id
 
-    def test_reset_password_invalid_token(self, auth_service):
-        success = auth_service.reset_password("invalid_token", "newpass")
+    async def test_reset_password_invalid_token(self, auth_service):
+        success = auth_service.reset_password("invalid_token", "newpassword123")
         assert success is False
+
+    def test_authenticate_oauth_user_no_password(self, auth_service, db_session):
+        # Create a user without a password hash (OAuth user)
+        user = User(email="oauth@example.com", google_id="google123")
+        db_session.add(user)
+        db_session.commit()
+        
+        # Should return None instead of raising error
+        auth_result = auth_service.authenticate_user("oauth@example.com", "any_password")
+        assert auth_result is None
+
+    def test_update_password_success(self, auth_service, regular_user, db_session):
+        success = auth_service.update_password(regular_user.id, "brand_new_password")
+        assert success is True
+        
+        # Verify it can authenticate with new password
+        db_session.refresh(regular_user)
+        assert auth_service.authenticate_user(regular_user.email, "brand_new_password") is not None
+
+    def test_verify_admin_access(self, auth_service, regular_user, admin_user):
+        assert auth_service.verify_admin_access(admin_user.id) is True
+        assert auth_service.verify_admin_access(regular_user.id) is False
+
+    def test_google_oauth_linking(self, auth_service, regular_user, db_session):
+        # Test linking to existing email
+        user = auth_service.create_or_get_google_user(
+            google_id="google_new",
+            email=regular_user.email,
+            avatar_url="https://avatar.com/1"
+        )
+        assert user.id == regular_user.id
+        assert user.google_id == "google_new"
+        assert user.email_verified is True
+        
+        # Test creating new
+        new_user = auth_service.create_or_get_google_user(
+            google_id="google_brand_new",
+            email="brand_new@gmail.com"
+        )
+        assert new_user.email == "brand_new@gmail.com"
+        assert new_user.provider == "google"
+
+    def test_verify_email_success(self, auth_service, db_session):
+        user = User(email="verify@example.com", verification_token="token_123")
+        db_session.add(user)
+        db_session.commit()
+        
+        success = auth_service.verify_email("token_123")
+        assert success is True
+        
+        db_session.refresh(user)
+        assert user.email_verified is True
+        assert user.verification_token is None
+
+    def test_get_user_api_keys(self, auth_service, regular_user):
+        auth_service.create_api_key(regular_user.id, "Key 1")
+        auth_service.create_api_key(regular_user.id, "Key 2")
+        
+        keys = auth_service.get_user_api_keys(regular_user.id)
+        assert len(keys) == 2
