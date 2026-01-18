@@ -17,7 +17,7 @@ TIER_CONFIG = {
         "price_monthly": 0,
         "quota_usd": 0,
         "base_sms_cost": 2.50,
-        "overage_rate": 2.50,
+        "overage_rate": 0,
         "api_key_limit": 0,
         "has_api_access": False,
         "has_area_code_selection": True,

@@ -389,6 +389,7 @@
       <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
         <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-freemium text-white text-xs font-bold px-3 py-1 rounded-full">FREE</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Freemium</h3>
+        <p class="text-sm text-zinc-500 mb-2">Best for testing</p>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           Free
         </div>
@@ -419,7 +420,9 @@
       
       <!-- Pay-As-You-Go Tier -->
       <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-payg text-white text-xs font-bold px-3 py-1 rounded-full">FLEXIBLE</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Pay-As-You-Go</h3>
+        <p class="text-sm text-zinc-500 mb-2">Best for occasional users</p>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           $2.50<span class="text-lg text-zinc-500">/SMS</span>
         </div>
@@ -442,7 +445,7 @@
         </ul>
         <a 
           href="/auth/register?tier=payg"
-          class="block w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-semibold text-center transition"
+          class="block w-full bg-zinc-600 hover:bg-zinc-500 py-3 rounded-xl font-semibold text-center transition text-white"
         >
           Get Started
         </a>
@@ -450,14 +453,16 @@
       
       <!-- Pro Tier -->
       <div class="p-8 rounded-3xl glass border-2 border-brand-500 hover:scale-105 transition-all relative">
-        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-[#37352F] text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
+        <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-xs font-bold px-3 py-1 rounded-full">POPULAR</span>
+        <span class="absolute -top-3 left-8 bg-success-500 text-white text-xs font-bold px-3 py-1 rounded-full">Save 88%</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Pro</h3>
+        <p class="text-sm text-zinc-500 mb-2">Best for businesses</p>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           $25<span class="text-lg text-zinc-500">/mo</span>
         </div>
         <ul class="space-y-3 mb-8">
           <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> $15 quota included
+            <i class="ph ph-check text-brand-400"></i> $15 quota included (~50 SMS)
           </li>
           <li class="flex items-center gap-2 text-zinc-600">
             <i class="ph ph-check text-brand-400"></i> All filters included
@@ -484,12 +489,13 @@
       <div class="p-8 rounded-3xl glass border border-white/10 hover:scale-105 transition-all relative">
         <span class="absolute -top-3 left-1/2 -translate-x-1/2 bg-tier-custom text-white text-xs font-bold px-3 py-1 rounded-full">ENTERPRISE</span>
         <h3 class="text-2xl font-bold text-[#37352F] mt-4">Custom</h3>
+        <p class="text-sm text-zinc-500 mb-2">Best for enterprises</p>
         <div class="text-4xl font-bold text-[#37352F] my-6">
           $35<span class="text-lg text-zinc-500">/mo</span>
         </div>
         <ul class="space-y-3 mb-8">
           <li class="flex items-center gap-2 text-zinc-600">
-            <i class="ph ph-check text-brand-400"></i> $25 quota included
+            <i class="ph ph-check text-brand-400"></i> $25 quota included (~125 SMS)
           </li>
           <li class="flex items-center gap-2 text-zinc-600">
             <i class="ph ph-check text-brand-400"></i> Unlimited API keys
