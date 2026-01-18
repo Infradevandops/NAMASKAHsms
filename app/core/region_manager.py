@@ -1,4 +1,5 @@
 """Multi - region deployment and load balancing."""
+
 import asyncio
 from typing import Dict
 from dataclasses import dataclass
@@ -21,8 +22,7 @@ class RegionManager:
             "us - east": Region("US East", "https://us - east.namaskah.app", active=True),
             "us - west": Region("US West", "https://us - west.namaskah.app", active=True),
             "eu - west": Region("EU West", "https://eu - west.namaskah.app", active=True),
-            "asia - pacific": Region("Asia Pacific",
-                                     "https://ap.namaskah.app", active=True)
+            "asia - pacific": Region("Asia Pacific", "https://ap.namaskah.app", active=True),
         }
         self.primary_region = "us - east"
 
@@ -38,7 +38,7 @@ class RegionManager:
                 "FR": "eu - west",
                 "JP": "asia - pacific",
                 "AU": "asia - pacific",
-                "SG": "asia - pacific"
+                "SG": "asia - pacific",
             }
 
             preferred = location_mapping.get(user_location, self.primary_region)
@@ -76,7 +76,7 @@ class RegionManager:
                 "endpoint": region.endpoint,
                 "active": region.active,
                 "latency": region.latency,
-                "capacity": region.capacity
+                "capacity": region.capacity,
             }
             for region_id, region in self.regions.items()
         }

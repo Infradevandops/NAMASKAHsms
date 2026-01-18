@@ -1,17 +1,19 @@
 """KYC (Know Your Customer) database models."""
+
 from sqlalchemy import Column, String, Boolean, Float, DateTime, Date, JSON, Text
 from app.models.base import BaseModel
 
 
 class KYCProfile(BaseModel):
     """KYC profile for user identity verification."""
+
     __tablename__ = "kyc_profiles"
 
     user_id = Column(String, unique=True, nullable=False, index=True)
-    status = Column(String, default="unverified",
-                    nullable=False, index=True)  # unverified/pending/verified/rejected
-    verification_level = Column(String,
-                                default="basic", nullable=False)  # basic/enhanced/premium
+    status = Column(
+        String, default="unverified", nullable=False, index=True
+    )  # unverified/pending/verified/rejected
+    verification_level = Column(String, default="basic", nullable=False)  # basic/enhanced/premium
 
     # Personal Information
     full_name = Column(String)
@@ -46,6 +48,7 @@ class KYCProfile(BaseModel):
 
 class KYCDocument(BaseModel):
     """KYC document storage and verification."""
+
     __tablename__ = "kyc_documents"
 
     kyc_profile_id = Column(String, nullable=False, index=True)
@@ -61,8 +64,9 @@ class KYCDocument(BaseModel):
     mime_type = Column(String)
 
     # Verification Status
-    verification_status = Column(String,
-                                 default="pending", nullable=False)  # pending/verified/rejected
+    verification_status = Column(
+        String, default="pending", nullable=False
+    )  # pending/verified/rejected
     verification_method = Column(String)  # manual/automated/hybrid
     confidence_score = Column(Float, default=0.0)
 
@@ -78,6 +82,7 @@ class KYCDocument(BaseModel):
 
 class KYCVerificationLimit(BaseModel):
     """Transaction limits based on KYC verification level."""
+
     __tablename__ = "kyc_verification_limits"
 
     verification_level = Column(String, unique=True, nullable=False)
@@ -97,6 +102,7 @@ class KYCVerificationLimit(BaseModel):
 
 class KYCAuditLog(BaseModel):
     """Audit trail for all KYC - related actions."""
+
     __tablename__ = "kyc_audit_logs"
 
     user_id = Column(String, nullable=False, index=True)
@@ -124,6 +130,7 @@ class KYCAuditLog(BaseModel):
 
 class AMLScreening(BaseModel):
     """Anti - Money Laundering screening results."""
+
     __tablename__ = "aml_screenings"
 
     kyc_profile_id = Column(String, nullable=False, index=True)
@@ -148,6 +155,7 @@ class AMLScreening(BaseModel):
 
 class KYCSettings(BaseModel):
     """Global KYC configuration settings."""
+
     __tablename__ = "kyc_settings"
 
     setting_key = Column(String, unique=True, nullable=False)
@@ -161,6 +169,7 @@ class KYCSettings(BaseModel):
 
 class BiometricVerification(BaseModel):
     """Biometric verification records."""
+
     __tablename__ = "biometric_verifications"
 
     kyc_profile_id = Column(String, nullable=False, index=True)

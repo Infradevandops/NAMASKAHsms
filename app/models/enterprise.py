@@ -1,4 +1,5 @@
 """Enterprise SLA and account management models."""
+
 from sqlalchemy import Column, String, Integer, Float, Boolean, JSON, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
@@ -14,11 +15,10 @@ class EnterpriseTier(BaseModel):
     priority_support = Column(Boolean, default=False)
     dedicated_manager = Column(Boolean, default=False)
     custom_rates = Column(JSON, default=lambda: {})
-    features = Column(JSON, default=lambda: {
-        "api_rate_limit": 1000,
-        "webhook_retries": 3,
-        "analytics_retention": 90
-    })
+    features = Column(
+        JSON,
+        default=lambda: {"api_rate_limit": 1000, "webhook_retries": 3, "analytics_retention": 90},
+    )
 
 
 class EnterpriseAccount(BaseModel):

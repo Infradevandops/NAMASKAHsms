@@ -1,4 +1,5 @@
 """Business intelligence and analytics service."""
+
 from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
 from typing import Dict, Any
@@ -15,19 +16,19 @@ class BusinessIntelligenceService:
         start_date = datetime.utcnow() - timedelta(days=days)
 
         query = select(
-            func.sum(Rental.cost).label('total_revenue'),
-            func.count(Rental.id).label('total_transactions'),
-            func.avg(Rental.cost).label('avg_transaction_value')
+            func.sum(Rental.cost).label("total_revenue"),
+            func.count(Rental.id).label("total_transactions"),
+            func.avg(Rental.cost).label("avg_transaction_value"),
         ).where(Rental.created_at >= start_date)
 
         result = await self.db.execute(query)
         metrics = result.first()
 
         return {
-            'total_revenue': float(metrics.total_revenue or 0),
-            'total_transactions': metrics.total_transactions or 0,
-            'avg_transaction_value': float(metrics.avg_transaction_value or 0),
-            'period_days': days
+            "total_revenue": float(metrics.total_revenue or 0),
+            "total_transactions": metrics.total_transactions or 0,
+            "avg_transaction_value": float(metrics.avg_transaction_value or 0),
+            "period_days": days,
         }
 
     @async_cache(ttl=1800)
@@ -43,19 +44,16 @@ class BusinessIntelligenceService:
         # High - value users (>$10 spent)
         high_value_query = select(func.count(func.distinct(Rental.user_id))).where(
             Rental.user_id.in_(
-                select(Rental.user_id).group_by(Rental.user_id).having(
-                    func.sum(Rental.cost) > 10
-                )
+                select(Rental.user_id).group_by(Rental.user_id).having(func.sum(Rental.cost) > 10)
             )
         )
         high_value_result = await self.db.execute(high_value_query)
         high_value_users = high_value_result.scalar()
 
         return {
-            'active_users_30d': active_users or 0,
-            'high_value_users': high_value_users or 0,
-            'user_retention_rate': round((active_users / max(high_value_users,
-                                                             1)) * 100, 2)
+            "active_users_30d": active_users or 0,
+            "high_value_users": high_value_users or 0,
+            "user_retention_rate": round((active_users / max(high_value_users, 1)) * 100, 2),
         }
 
     @async_cache(ttl=7200)
@@ -72,10 +70,7 @@ class BusinessIntelligenceService:
         current_revenue = current_result.scalar() or 0
 
         previous_revenue_query = select(func.sum(Rental.cost)).where(
-            and_(
-                Rental.created_at >= previous_week,
-                Rental.created_at < current_week
-            )
+            and_(Rental.created_at >= previous_week, Rental.created_at < current_week)
         )
         previous_result = await self.db.execute(previous_revenue_query)
         previous_revenue = previous_result.scalar() or 0
@@ -85,8 +80,8 @@ class BusinessIntelligenceService:
             growth_rate = ((current_revenue - previous_revenue) / previous_revenue) * 100
 
         return {
-            'weekly_growth_rate': round(growth_rate, 2),
-            'current_week_revenue': float(current_revenue),
-            'previous_week_revenue': float(previous_revenue),
-            'projected_monthly_revenue': float(current_revenue * 4.33)
+            "weekly_growth_rate": round(growth_rate, 2),
+            "current_week_revenue": float(current_revenue),
+            "previous_week_revenue": float(previous_revenue),
+            "projected_monthly_revenue": float(current_revenue * 4.33),
         }

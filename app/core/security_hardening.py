@@ -88,9 +88,7 @@ class SecurityHardening:
 
         # Remove old requests
         self.rate_limits[identifier] = [
-            req_time
-            for req_time in self.rate_limits[identifier]
-            if req_time > window_start
+            req_time for req_time in self.rate_limits[identifier] if req_time > window_start
         ]
 
         # Check limit
@@ -179,9 +177,7 @@ class SecurityHardening:
 security_hardening = SecurityHardening()
 
 
-def secure_response(
-    data: Any, headers: Optional[Dict[str, str]] = None
-) -> JSONResponse:
+def secure_response(data: Any, headers: Optional[Dict[str, str]] = None) -> JSONResponse:
     """Create secure JSON response with security headers"""
     response_headers = security_hardening.get_security_headers()
 
@@ -232,6 +228,7 @@ def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str
         "capability": capability,
         "country": country,
     }
+
 
 # Middleware for automatic security hardening
 

@@ -1,4 +1,5 @@
 """Telegram Bot integration service."""
+
 import httpx
 from typing import Dict
 from app.core.config import settings
@@ -18,7 +19,7 @@ class TelegramService:
         payload = {
             "chat_id": chat_id,
             "text": f"🔐 Your verification code: {code}",
-            "parse_mode": "HTML"
+            "parse_mode": "HTML",
         }
 
         async with httpx.AsyncClient() as client:

@@ -1,4 +1,5 @@
 """Disaster recovery and backup management service."""
+
 from typing import Dict
 from datetime import datetime
 
@@ -10,10 +11,10 @@ class DisasterRecoveryService:
         self.backup_locations = {
             "primary": "s3://namaskah - backups-us - east",
             "secondary": "s3://namaskah - backups-eu - west",
-            "tertiary": "gcs://namaskah - backups-asia"
+            "tertiary": "gcs://namaskah - backups-asia",
         }
         self.rto = 300  # Recovery Time Objective: 5 minutes
-        self.rpo = 60   # Recovery Point Objective: 1 minute
+        self.rpo = 60  # Recovery Point Objective: 1 minute
 
     async def create_backup(self, backup_type: str = "full") -> Dict:
         """Create system backup."""
@@ -27,11 +28,11 @@ class DisasterRecoveryService:
                 "database": await self._backup_database(),
                 "redis": await self._backup_redis(),
                 "static_files": await self._backup_static_files(),
-                "configuration": await self._backup_configuration()
+                "configuration": await self._backup_configuration(),
             },
             "locations": list(self.backup_locations.values()),
             "size_mb": 1250.5,  # Simulated
-            "status": "completed"
+            "status": "completed",
         }
 
         return backup_manifest
@@ -43,20 +44,16 @@ class DisasterRecoveryService:
             "backup_id": backup_id,
             "started_at": datetime.utcnow().isoformat(),
             "steps": [
-                {"step": "validate_backup",
-                 "status": "completed", "duration_seconds": 15},
-                {"step": "restore_database",
-                 "status": "completed", "duration_seconds": 120},
-                {"step": "restore_redis",
-                 "status": "completed", "duration_seconds": 30},
-                {"step": "validate_services",
-                 "status": "completed", "duration_seconds": 45},
-                {"step": "health_check", "status": "completed", "duration_seconds": 10}
+                {"step": "validate_backup", "status": "completed", "duration_seconds": 15},
+                {"step": "restore_database", "status": "completed", "duration_seconds": 120},
+                {"step": "restore_redis", "status": "completed", "duration_seconds": 30},
+                {"step": "validate_services", "status": "completed", "duration_seconds": 45},
+                {"step": "health_check", "status": "completed", "duration_seconds": 10},
             ],
             "total_duration_seconds": 220,
             "rto_met": True,  # 220s < 300s RTO
             "rpo_met": True,
-            "status": "success"
+            "status": "success",
         }
 
         return recovery_test
@@ -76,8 +73,8 @@ class DisasterRecoveryService:
                 "automated_backups": True,
                 "cross_region_replication": True,
                 "recovery_testing": True,
-                "documentation": True
-            }
+                "documentation": True,
+            },
         }
 
     async def _backup_database(self) -> Dict:
@@ -87,31 +84,23 @@ class DisasterRecoveryService:
             "size_mb": 850.2,
             "compression": "gzip",
             "encryption": "AES - 256",
-            "point_in_time": True
+            "point_in_time": True,
         }
 
     async def _backup_redis(self) -> Dict:
         """Backup Redis data."""
-        return {
-            "type": "redis_rdb",
-            "size_mb": 125.8,
-            "compression": "lz4"
-        }
+        return {"type": "redis_rdb", "size_mb": 125.8, "compression": "lz4"}
 
     async def _backup_static_files(self) -> Dict:
         """Backup static files and uploads."""
-        return {
-            "type": "file_sync",
-            "size_mb": 245.3,
-            "files_count": 1250
-        }
+        return {"type": "file_sync", "size_mb": 245.3, "files_count": 1250}
 
     async def _backup_configuration(self) -> Dict:
         """Backup system configuration."""
         return {
             "type": "config_export",
             "size_mb": 29.2,
-            "includes": ["env_vars", "secrets", "certificates"]
+            "includes": ["env_vars", "secrets", "certificates"],
         }
 
 

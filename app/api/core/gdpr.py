@@ -1,4 +1,5 @@
 """GDPR compliance endpoints for data export and account deletion."""
+
 from app.core.dependencies import get_current_user_id
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -11,14 +12,12 @@ router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 
 @router.get("/export")
 async def export_user_data(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Export all user data in JSON format (GDPR right to data portability)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
 
     verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
     audit_logs = db.query(AuditLog).filter(AuditLog.user_id == user_id).all()
@@ -61,14 +60,12 @@ async def export_user_data(
 
 @router.delete("/account")
 async def delete_account(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Delete user account and all associated data (GDPR right to be forgotten)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-
 
     db.query(Verification).filter(Verification.user_id == user_id).delete()
     db.query(AuditLog).filter(AuditLog.user_id == user_id).delete()

@@ -27,19 +27,19 @@
    ============================================ */
 :root {
     /* Colors - Primary */
-    --color-primary: #667eea;
-    --color-primary-dark: #5568d3;
-    --color-primary-light: #f0f4ff;
-    --color-primary-50: rgba(102, 126, 234, 0.1);
+    --color-primary: #FE3C72;
+    --color-primary-dark: #E0245E;
+    --color-primary-light: #FFF0F3;
+    --color-primary-50: rgba(254, 60, 114, 0.1);
     
     /* Colors - Secondary */
-    --color-secondary: #764ba2;
-    --color-secondary-dark: #5a3a7e;
+    --color-secondary: #FF7854;
+    --color-secondary-dark: #E85D3A;
     
     /* Colors - Semantic */
-    --color-success: #10b981;
-    --color-success-dark: #059669;
-    --color-success-light: #d1fae5;
+    --color-success: #01DF8A;
+    --color-success-dark: #00C278;
+    --color-success-light: #CCFBEF;
     
     --color-warning: #f59e0b;
     --color-warning-dark: #d97706;
@@ -49,22 +49,22 @@
     --color-error-dark: #dc2626;
     --color-error-light: #fee2e2;
     
-    --color-info: #3b82f6;
-    --color-info-dark: #2563eb;
-    --color-info-light: #dbeafe;
+    --color-info: #0ea5e9;
+    --color-info-dark: #0284c7;
+    --color-info-light: #e0f2fe;
     
     /* Colors - Tiers */
-    --tier-freemium: #10B981;
-    --tier-freemium-light: rgba(16, 185, 129, 0.1);
-    --tier-freemium-dark: #059669;
+    --tier-freemium: #01DF8A;
+    --tier-freemium-light: rgba(1, 223, 138, 0.1);
+    --tier-freemium-dark: #00C278;
     
-    --tier-payg: #3B82F6;
-    --tier-payg-light: rgba(59, 130, 246, 0.1);
-    --tier-payg-dark: #2563EB;
+    --tier-payg: #FF7854;
+    --tier-payg-light: rgba(255, 120, 84, 0.1);
+    --tier-payg-dark: #E85D3A;
     
-    --tier-pro: #F59E0B;
-    --tier-pro-light: rgba(245, 158, 11, 0.1);
-    --tier-pro-dark: #D97706;
+    --tier-pro: #FE3C72;
+    --tier-pro-light: rgba(254, 60, 114, 0.1);
+    --tier-pro-dark: #E0245E;
     
     --tier-custom: #8B5CF6;
     --tier-custom-light: rgba(139, 92, 246, 0.1);
@@ -85,11 +85,11 @@
     /* Colors - Surfaces */
     --bg-body: #f9fafb;
     --bg-card: #ffffff;
-    --bg-sidebar: #1a1a2e;
-    --text-primary: #111827;
-    --text-secondary: #4b5563;
-    --text-muted: #6b7280;
-    --border-color: #e5e7eb;
+    --bg-sidebar: #FFFFFF;
+    --text-primary: #21262D;
+    --text-secondary: #656E77;
+    --text-muted: #9CA3AF;
+    --border-color: #F0F0F0;
     
     /* Spacing */
     --space-1: 4px;
@@ -237,14 +237,15 @@ a:hover {
 
 /* Button Variants */
 .btn-primary {
-    background: var(--color-primary);
+    background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--color-primary-dark);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background: linear-gradient(135deg, #E0245E 0%, #FE3C72 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(254, 60, 114, 0.4);
 }
 
 .btn-secondary {
@@ -254,17 +255,22 @@ a:hover {
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--color-primary-50);
+    background: #FFF5F7;
+    border-color: #E0245E;
+    color: #E0245E;
     transform: translateY(-1px);
 }
 
 .btn-success {
-    background: var(--color-success);
+    background: linear-gradient(135deg, #01DF8A 0%, #00C278 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(1, 223, 138, 0.3);
 }
 
 .btn-success:hover:not(:disabled) {
-    background: var(--color-success-dark);
+    background: linear-gradient(135deg, #00C278 0%, #01DF8A 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(1, 223, 138, 0.4);
 }
 
 .btn-warning {
@@ -453,36 +459,37 @@ a:hover {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 12px;
+    padding: 6px 16px;
     border-radius: var(--radius-full);
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .tier-badge-freemium {
-    background: var(--tier-freemium-light);
-    color: var(--tier-freemium);
-    border: 1px solid var(--tier-freemium);
+    background: linear-gradient(135deg, #01DF8A 0%, #00C278 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(1, 223, 138, 0.3);
 }
 
 .tier-badge-payg {
-    background: var(--tier-payg-light);
-    color: var(--tier-payg);
-    border: 1px solid var(--tier-payg);
+    background: linear-gradient(135deg, #FF7854 0%, #E85D3A 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(255, 120, 84, 0.3);
 }
 
 .tier-badge-pro {
-    background: var(--tier-pro-light);
-    color: var(--tier-pro);
-    border: 1px solid var(--tier-pro);
+    background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(254, 60, 114, 0.3);
 }
 
 .tier-badge-custom {
-    background: var(--tier-custom-light);
-    color: var(--tier-custom);
-    border: 1px solid var(--tier-custom);
+    background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%);
+    color: white;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3);
 }
 
 /* ============================================

@@ -1,4 +1,5 @@
 """Countries API - Get supported countries for SMS verification"""
+
 from fastapi import APIRouter, HTTPException
 from app.core.logging import get_logger
 from app.core.unified_cache import cache
@@ -13,34 +14,67 @@ async def get_all_countries():
     """Get all countries - USA only (TextVerified supports USA only)"""
     return {
         "success": True,
-        "countries": [
-            {"code": "usa", "name": "United States", "prefix": "1"}
-        ],
-        "total": 1
+        "countries": [{"code": "usa", "name": "United States", "prefix": "1"}],
+        "total": 1,
     }
 
 
 def get_flag_emoji(country_code: str) -> str:
     """Convert country code to flag emoji"""
     flag_map = {
-        "russia": "🇷🇺", "india": "🇮🇳", "indonesia": "🇮🇩",
-        "philippines": "🇵🇭", "vietnam": "🇻🇳", "china": "🇨🇳",
-        "usa": "🇺🇸", "england": "🇬🇧", "canada": "🇨🇦",
-        "germany": "🇩🇪", "france": "🇫🇷", "poland": "🇵🇱",
-        "ukraine": "🇺🇦", "kazakhstan": "🇰🇿", "romania": "🇷🇴",
-        "brazil": "🇧🇷", "mexico": "🇲🇽", "argentina": "🇦🇷",
-        "thailand": "🇹🇭", "malaysia": "🇲🇾", "singapore": "🇸🇬",
-        "hongkong": "🇭🇰", "japan": "🇯🇵", "southkorea": "🇰🇷",
-        "australia": "🇦🇺", "turkey": "🇹🇷", "egypt": "🇪🇬",
-        "nigeria": "🇳🇬", "southafrica": "🇿🇦", "spain": "🇪🇸",
-        "italy": "🇮🇹", "netherlands": "🇳🇱", "belgium": "🇧🇪",
-        "sweden": "🇸🇪", "norway": "🇳🇴", "denmark": "🇩🇰",
-        "finland": "🇫🇮", "portugal": "🇵🇹", "greece": "🇬🇷",
-        "czech": "🇨🇿", "austria": "🇦🇹", "switzerland": "🇨🇭",
-        "israel": "🇮🇱", "uae": "🇦🇪", "saudi": "🇸🇦",
-        "pakistan": "🇵🇰", "bangladesh": "🇧🇩", "srilanka": "🇱🇰",
-        "myanmar": "🇲🇲", "cambodia": "🇰🇭", "laos": "🇱🇦",
-        "nepal": "🇳🇵", "taiwan": "🇹🇼"
+        "russia": "🇷🇺",
+        "india": "🇮🇳",
+        "indonesia": "🇮🇩",
+        "philippines": "🇵🇭",
+        "vietnam": "🇻🇳",
+        "china": "🇨🇳",
+        "usa": "🇺🇸",
+        "england": "🇬🇧",
+        "canada": "🇨🇦",
+        "germany": "🇩🇪",
+        "france": "🇫🇷",
+        "poland": "🇵🇱",
+        "ukraine": "🇺🇦",
+        "kazakhstan": "🇰🇿",
+        "romania": "🇷🇴",
+        "brazil": "🇧🇷",
+        "mexico": "🇲🇽",
+        "argentina": "🇦🇷",
+        "thailand": "🇹🇭",
+        "malaysia": "🇲🇾",
+        "singapore": "🇸🇬",
+        "hongkong": "🇭🇰",
+        "japan": "🇯🇵",
+        "southkorea": "🇰🇷",
+        "australia": "🇦🇺",
+        "turkey": "🇹🇷",
+        "egypt": "🇪🇬",
+        "nigeria": "🇳🇬",
+        "southafrica": "🇿🇦",
+        "spain": "🇪🇸",
+        "italy": "🇮🇹",
+        "netherlands": "🇳🇱",
+        "belgium": "🇧🇪",
+        "sweden": "🇸🇪",
+        "norway": "🇳🇴",
+        "denmark": "🇩🇰",
+        "finland": "🇫🇮",
+        "portugal": "🇵🇹",
+        "greece": "🇬🇷",
+        "czech": "🇨🇿",
+        "austria": "🇦🇹",
+        "switzerland": "🇨🇭",
+        "israel": "🇮🇱",
+        "uae": "🇦🇪",
+        "saudi": "🇸🇦",
+        "pakistan": "🇵🇰",
+        "bangladesh": "🇧🇩",
+        "srilanka": "🇱🇰",
+        "myanmar": "🇲🇲",
+        "cambodia": "🇰🇭",
+        "laos": "🇱🇦",
+        "nepal": "🇳🇵",
+        "taiwan": "🇹🇼",
     }
     return flag_map.get(country_code.lower(), "🌍")
 
@@ -96,7 +130,7 @@ def get_fallback_countries():
             {"code": "saudi_arabia", "name": "Saudi Arabia", "prefix": "966", "flag": "🇸🇦"},
         ],
         "total": 37,
-        "note": "Fallback list - API unavailable"
+        "note": "Fallback list - API unavailable",
     }
 
 
@@ -111,6 +145,7 @@ async def get_usa_area_codes():
             return cached_result
 
         from app.services.textverified_service import TextVerifiedService
+
         integration = TextVerifiedService()
         raw_codes = await integration.get_area_codes_list()
 
@@ -120,23 +155,25 @@ async def get_usa_area_codes():
             # Extract code and name (handle different possible fields)
             area_code = code_data.get("code") or code_data.get("area_code")
             name = code_data.get("name") or code_data.get("region") or code_data.get("state")
-            
+
             # Skip if code or name is missing/null
             if not area_code or not name:
                 continue
-                
-            area_codes.append({
-                "code": str(area_code),
-                "name": str(name),
-                "country": "US",
-                "available": code_data.get("available", True)
-            })
+
+            area_codes.append(
+                {
+                    "code": str(area_code),
+                    "name": str(name),
+                    "country": "US",
+                    "available": code_data.get("available", True),
+                }
+            )
 
         result = {
             "success": True,
             "country": "United States",
             "area_codes": area_codes,
-            "total": len(area_codes)
+            "total": len(area_codes),
         }
 
         # Cache for 5 minutes (300 seconds) for fresh availability
@@ -158,14 +195,10 @@ async def get_usa_carriers():
             {"id": "tmobile", "name": "T-Mobile"},
             {"id": "sprint", "name": "Sprint"},
             {"id": "us_cellular", "name": "US Cellular"},
-            {"id": "any", "name": "Any Carrier"}
+            {"id": "any", "name": "Any Carrier"},
         ]
 
-        return {
-            "success": True,
-            "carriers": carriers,
-            "total": len(carriers)
-        }
+        return {"success": True, "carriers": carriers, "total": len(carriers)}
     except Exception as e:
         logger.error(f"Failed to get carriers: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to load carriers")
@@ -184,6 +217,7 @@ async def get_country_services(country: str):
 
     try:
         from app.services.textverified_service import TextVerifiedService
+
         integration = TextVerifiedService()
         services = await integration.get_services_list(force_refresh=True)
 
@@ -191,7 +225,7 @@ async def get_country_services(country: str):
             "success": True,
             "country": "United States",
             "services": services,
-            "total": len(services)
+            "total": len(services),
         }
 
         await cache.set(cache_key_str, result, ttl=3600)

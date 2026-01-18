@@ -1,4 +1,5 @@
 """Authentication service for user management and JWT operations."""
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
@@ -28,9 +29,7 @@ class AuthService(BaseService[User]):
     def __init__(self, db: Session):
         super().__init__(User, db)
 
-    def register_user(
-        self, email: str, password: str, referral_code: Optional[str] = None
-    ) -> User:
+    def register_user(self, email: str, password: str, referral_code: Optional[str] = None) -> User:
         """Register a new user account."""
         # Check if user exists
         existing = self.db.query(User).filter(User.email == email).first()
@@ -46,9 +45,7 @@ class AuthService(BaseService[User]):
 
         # Handle referral
         if referral_code:
-            referrer = (
-                self.db.query(User).filter(User.referral_code == referral_code).first()
-            )
+            referrer = self.db.query(User).filter(User.referral_code == referral_code).first()
             if referrer:
                 user_data["referred_by"] = referrer.id
                 user_data["free_verifications"] = 2.0  # Bonus for being referred
@@ -84,6 +81,7 @@ class AuthService(BaseService[User]):
             # Log authentication error but don't expose details
             print(f"[AUTH] Exception: {e}")
             import traceback
+
             traceback.print_exc()
             return None
 
@@ -116,12 +114,7 @@ class AuthService(BaseService[User]):
         raw_key = f"nsk_{generate_api_key()}"
         hashed_key = hash_password(raw_key)
         key_preview = f"...{raw_key[-6:]}"  # Last 6 chars for display
-        api_key = APIKey(
-            user_id=user_id, 
-            key_hash=hashed_key, 
-            key_preview=key_preview,
-            name=name
-        )
+        api_key = APIKey(user_id=user_id, key_hash=hashed_key, key_preview=key_preview, name=name)
         self.db.add(api_key)
         self.db.commit()
         self.db.refresh(api_key)
@@ -131,11 +124,7 @@ class AuthService(BaseService[User]):
 
     def verify_api_key(self, key: str) -> Optional[User]:
         """Verify API key and return associated user."""
-        api_keys = (
-            self.db.query(APIKey)
-            .filter(APIKey.is_active.is_(True))
-            .all()
-        )
+        api_keys = self.db.query(APIKey).filter(APIKey.is_active.is_(True)).all()
 
         for api_key in api_keys:
             if verify_password(key, api_key.key_hash):
@@ -146,9 +135,7 @@ class AuthService(BaseService[User]):
     def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
         """Deactivate API key for user."""
         api_key = (
-            self.db.query(APIKey)
-            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
-            .first()
+            self.db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
         )
 
         if not api_key:
@@ -238,7 +225,12 @@ class AuthService(BaseService[User]):
             return False
 
         # Check if token is expired
-        if datetime.now(timezone.utc) > user.reset_token_expires:
+        now = datetime.now(timezone.utc)
+        expires = user.reset_token_expires
+        if expires.tzinfo is None:
+            expires = expires.replace(tzinfo=timezone.utc)
+            
+        if now > expires:
             return False
 
         # Update password and clear reset token

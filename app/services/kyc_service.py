@@ -1,11 +1,16 @@
 """KYC service for identity verification and compliance."""
-from typing import Dict, Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, date
+from typing import Dict, Optional, List
+
+from sqlalchemy import func, and_
 from sqlalchemy.orm import Session
 
-from app.models.kyc import (
-    KYCProfile, KYCDocument, KYCAuditLog, AMLScreening
-)
+from app.core.logging import get_logger
+from app.core.exceptions import ValidationError
+from app.models.kyc import KYCProfile, KYCDocument, KYCAuditLog, AMLScreening
+from app.models.user import User
+from app.models.verification import Verification
+from app.schemas.kyc import KYCProfileCreate
 
 logger = get_logger(__name__)
 
@@ -16,18 +21,28 @@ class KYCService:
     def __init__(self, db: Session):
         self.db = db
         self.kyc_limits = {
-            "unverified": {"daily": 10.0, "monthly": 50.0,
-                           "annual": 200.0, "services": ["basic"]},
-            "basic": {"daily": 100.0, "monthly": 500.0,
-                      "annual": 2000.0, "services": ["basic", "premium"]},
-            "enhanced": {"daily": 1000.0, "monthly": 5000.0, "annual": 20000.0,
-                         "services": ["basic", "premium", "enterprise"]},
-            "premium": {"daily": 10000.0, "monthly": 50000.0,
-                        "annual": 200000.0, "services": ["all"]}
+            "unverified": {"daily": 10.0, "monthly": 50.0, "annual": 200.0, "services": ["basic"]},
+            "basic": {
+                "daily": 100.0,
+                "monthly": 500.0,
+                "annual": 2000.0,
+                "services": ["basic", "premium"],
+            },
+            "enhanced": {
+                "daily": 1000.0,
+                "monthly": 5000.0,
+                "annual": 20000.0,
+                "services": ["basic", "premium", "enterprise"],
+            },
+            "premium": {
+                "daily": 10000.0,
+                "monthly": 50000.0,
+                "annual": 200000.0,
+                "services": ["all"],
+            },
         }
 
-    async def create_profile(self,
-                             user_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
+    async def create_profile(self, user_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
         """Create new KYC profile."""
         try:
             # Validate user exists
@@ -48,7 +63,7 @@ class KYCService:
                 state=profile_data.state,
                 postal_code=profile_data.postal_code,
                 country=profile_data.country,
-                status="unverified"
+                status="unverified",
             )
 
             self.db.add(kyc_profile)
@@ -57,9 +72,7 @@ class KYCService:
 
             # Log action
             await self._log_action(
-                user_id=user_id,
-                action="profile_created",
-                new_status="unverified"
+                user_id=user_id, action="profile_created", new_status="unverified"
             )
 
             return kyc_profile
@@ -69,8 +82,9 @@ class KYCService:
             logger.error("KYC profile creation failed: %s", str(e))
             raise
 
-    async def update_profile(self,
-                             kyc_profile_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
+    async def update_profile(
+        self, kyc_profile_id: str, profile_data: KYCProfileCreate
+    ) -> KYCProfile:
         """Update existing KYC profile."""
         try:
             kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
@@ -101,7 +115,7 @@ class KYCService:
                 user_id=kyc_profile.user_id,
                 action="profile_updated",
                 old_status=old_status,
-                new_status=kyc_profile.status
+                new_status=kyc_profile.status,
             )
 
             return kyc_profile
@@ -120,9 +134,11 @@ class KYCService:
 
             # Check if required documents are uploaded
             required_docs = ["id_card", "selfie"]  # Minimum required
-            uploaded_docs = self.db.query(KYCDocument).filter(
-                KYCDocument.kyc_profile_id == kyc_profile_id
-            ).all()
+            uploaded_docs = (
+                self.db.query(KYCDocument)
+                .filter(KYCDocument.kyc_profile_id == kyc_profile_id)
+                .all()
+            )
 
             uploaded_types = [doc.document_type for doc in uploaded_docs]
             missing_docs = [doc for doc in required_docs if doc not in uploaded_types]
@@ -144,7 +160,7 @@ class KYCService:
                 user_id=kyc_profile.user_id,
                 action="submitted_for_review",
                 old_status=old_status,
-                new_status="pending"
+                new_status="pending",
             )
 
             # Trigger AML screening
@@ -163,7 +179,7 @@ class KYCService:
         admin_id: str,
         decision: str,
         verification_level: str = "basic",
-        notes: Optional[str] = None
+        notes: Optional[str] = None,
     ) -> KYCProfile:
         """Admin verification decision."""
         try:
@@ -198,12 +214,13 @@ class KYCService:
                 old_level=old_level,
                 new_level=kyc_profile.verification_level,
                 admin_id=admin_id,
-                reason=notes
+                reason=notes,
             )
 
             # Send notification to user
-            await self._send_verification_notification(kyc_profile.user_id,
-                                                       decision, verification_level)
+            await self._send_verification_notification(
+                kyc_profile.user_id, decision, verification_level
+            )
 
             return kyc_profile
 
@@ -226,15 +243,16 @@ class KYCService:
                     risk_score += 0.1
 
             # Country - based risk
-            high_risk_countries = ["AF", "IR",
-                                   "KP", "SY"]  # Example high - risk countries
+            high_risk_countries = ["AF", "IR", "KP", "SY"]  # Example high - risk countries
             if kyc_profile.country in high_risk_countries:
                 risk_score += 0.5
 
             # Document verification status
-            documents = self.db.query(KYCDocument).filter(
-                KYCDocument.kyc_profile_id == kyc_profile.id
-            ).all()
+            documents = (
+                self.db.query(KYCDocument)
+                .filter(KYCDocument.kyc_profile_id == kyc_profile.id)
+                .all()
+            )
 
             verified_docs = sum(1 for doc in documents if doc.verification_status == "verified")
             total_docs = len(documents)
@@ -265,7 +283,7 @@ class KYCService:
                 screening_type="sanctions",
                 status="pending",
                 search_terms=[kyc_profile.full_name, kyc_profile.date_of_birth.isoformat()],
-                screening_provider="internal"
+                screening_provider="internal",
             )
 
             # Perform basic screening (simplified for demo)
@@ -305,26 +323,40 @@ class KYCService:
             month_start = today.replace(day=1)
             year_start = today.replace(month=1, day=1)
 
-            daily_usage = self.db.query(func.sum(Verification.cost)).filter(
-                and_(
-                    Verification.user_id == user_id,
-                    func.date(Verification.created_at) == today
+            daily_usage = (
+                self.db.query(func.sum(Verification.cost))
+                .filter(
+                    and_(
+                        Verification.user_id == user_id, func.date(Verification.created_at) == today
+                    )
                 )
-            ).scalar() or 0.0
+                .scalar()
+                or 0.0
+            )
 
-            monthly_usage = self.db.query(func.sum(Verification.cost)).filter(
-                and_(
-                    Verification.user_id == user_id,
-                    func.date(Verification.created_at) >= month_start
+            monthly_usage = (
+                self.db.query(func.sum(Verification.cost))
+                .filter(
+                    and_(
+                        Verification.user_id == user_id,
+                        func.date(Verification.created_at) >= month_start,
+                    )
                 )
-            ).scalar() or 0.0
+                .scalar()
+                or 0.0
+            )
 
-            annual_usage = self.db.query(func.sum(Verification.cost)).filter(
-                and_(
-                    Verification.user_id == user_id,
-                    func.date(Verification.created_at) >= year_start
+            annual_usage = (
+                self.db.query(func.sum(Verification.cost))
+                .filter(
+                    and_(
+                        Verification.user_id == user_id,
+                        func.date(Verification.created_at) >= year_start,
+                    )
                 )
-            ).scalar() or 0.0
+                .scalar()
+                or 0.0
+            )
 
             return {
                 "level": level,
@@ -335,8 +367,8 @@ class KYCService:
                 "current_usage": {
                     "daily": float(daily_usage),
                     "monthly": float(monthly_usage),
-                    "annual": float(annual_usage)
-                }
+                    "annual": float(annual_usage),
+                },
             }
 
         except Exception as e:
@@ -375,7 +407,7 @@ class KYCService:
         old_level: Optional[str] = None,
         new_level: Optional[str] = None,
         admin_id: Optional[str] = None,
-        reason: Optional[str] = None
+        reason: Optional[str] = None,
     ):
         """Log KYC action to audit trail."""
         try:
@@ -388,7 +420,7 @@ class KYCService:
                 new_level=new_level,
                 admin_id=admin_id,
                 reason=reason,
-                system_action=admin_id is None
+                system_action=admin_id is None,
             )
 
             self.db.add(audit_log)
@@ -397,13 +429,11 @@ class KYCService:
         except Exception as e:
             logger.error("Failed to log KYC action: %s", str(e))
 
-    async def _send_verification_notification(self, user_id: str,
-                                              decision: str, level: str):
+    async def _send_verification_notification(self, user_id: str, decision: str, level: str):
         """Send verification result notification to user."""
         try:
             # This would integrate with your notification service
-            logger.info("Sending KYC notification to user %s: %s (%s)", user_id,
-                        decision, level)
+            logger.info("Sending KYC notification to user %s: %s (%s)", user_id, decision, level)
 
         except Exception as e:
             logger.error("Failed to send KYC notification: %s", str(e))

@@ -1,4 +1,5 @@
 """Paystack payment service for handling payments and webhooks."""
+
 import httpx
 from typing import Dict, Optional, Any
 from datetime import datetime, timezone
@@ -34,13 +35,13 @@ class PaystackService:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """Initialize a payment transaction.
-        
+
         Args:
             email: Customer email
             amount_kobo: Amount in kobo (1 naira = 100 kobo)
             reference: Unique reference for the transaction
             metadata: Additional metadata to store with transaction
-            
+
         Returns:
             Dictionary with authorization_url and access_code
         """
@@ -90,10 +91,10 @@ class PaystackService:
 
     async def verify_payment(self, reference: str) -> Dict[str, Any]:
         """Verify a payment transaction.
-        
+
         Args:
             reference: Transaction reference to verify
-            
+
         Returns:
             Dictionary with payment details
         """
@@ -134,11 +135,11 @@ class PaystackService:
 
     def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
         """Verify webhook signature from Paystack.
-        
+
         Args:
             payload: Raw request body
             signature: X-Paystack-Signature header value
-            
+
         Returns:
             True if signature is valid, False otherwise
         """
@@ -156,10 +157,10 @@ class PaystackService:
 
     async def get_transaction(self, transaction_id: int) -> Dict[str, Any]:
         """Get transaction details by ID.
-        
+
         Args:
             transaction_id: Paystack transaction ID
-            
+
         Returns:
             Dictionary with transaction details
         """
@@ -187,7 +188,7 @@ class PaystackService:
 
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance.
-        
+
         Returns:
             Dictionary with balance information
         """
@@ -221,7 +222,7 @@ class PaystackService:
 
     def _get_headers(self) -> Dict[str, str]:
         """Get request headers for Paystack API.
-        
+
         Returns:
             Dictionary with authorization headers
         """

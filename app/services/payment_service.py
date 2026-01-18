@@ -1,4 +1,5 @@
 """Payment service for managing payments and credits."""
+
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List
 
@@ -23,50 +24,47 @@ class PaymentService:
         self.db = db
         self.credit_service = CreditService(db)
 
-    def initiate_payment(
-        self,
-        user_id: str,
-        amount_usd: float,
-        description: str = "Credit purchase"
+    async def initiate_payment(
+        self, user_id: str, amount_usd: float, description: str = "Credit purchase"
     ) -> Dict[str, Any]:
         """Initiate a payment transaction.
-        
+
         Args:
             user_id: User ID
             amount_usd: Amount in USD
             description: Payment description
-            
+
         Returns:
             Dictionary with payment details and authorization URL
-            
+
         Raises:
             ValueError: If amount invalid or user not found
         """
         # Validate amount
         if amount_usd <= 0:
             raise ValueError("Amount must be positive")
-        
+
         # Get user
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
-        
+
         # Check Paystack is configured
         if not paystack_service.enabled:
             raise ValueError("Payment service not available")
-        
+
         # Convert USD to NGN (1 USD = 1500 NGN)
         amount_ngn = amount_usd * 1500
         amount_kobo = int(amount_ngn * 100)
-        
+
         # Generate reference
         reference = f"namaskah_{user_id}_{int(datetime.now(timezone.utc).timestamp())}"
-        
+
         logger.info(f"Initiating payment for user {user_id}: ${amount_usd}")
-        
+
         try:
             # Initialize payment with Paystack
-            result = paystack_service.initialize_payment(
+            result = await paystack_service.initialize_payment(
                 email=user.email,
                 amount_kobo=amount_kobo,
                 reference=reference,
@@ -75,9 +73,9 @@ class PaymentService:
                     "amount_usd": amount_usd,
                     "amount_ngn": amount_ngn,
                     "description": description,
-                }
+                },
             )
-            
+
             # Create payment log
             payment_log = PaymentLog(
                 user_id=user_id,
@@ -87,17 +85,17 @@ class PaymentService:
                 amount_usd=amount_usd,
                 namaskah_amount=amount_usd,  # 1:1 conversion
                 status="pending",
-                payment_method="paystack"
+                payment_method="paystack",
             )
-            
+
             self.db.add(payment_log)
             self.db.commit()
-            
+
             logger.info(
                 f"Payment initiated: Reference={reference}, "
                 f"Amount=${amount_usd}, URL={result['authorization_url']}"
             )
-            
+
             return {
                 "reference": reference,
                 "authorization_url": result["authorization_url"],
@@ -105,45 +103,46 @@ class PaymentService:
                 "amount_usd": amount_usd,
                 "amount_ngn": amount_ngn,
                 "status": "pending",
-                "created_at": datetime.now(timezone.utc).isoformat()
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
-        
+
         except Exception as e:
             logger.error(f"Failed to initiate payment: {str(e)}")
             raise ValueError(f"Payment initialization failed: {str(e)}")
 
     async def verify_payment(self, reference: str, user_id: str) -> Dict[str, Any]:
         """Verify a payment transaction.
-        
+
         Args:
             reference: Payment reference
             user_id: User ID
-            
+
         Returns:
             Dictionary with payment verification details
-            
+
         Raises:
             ValueError: If payment not found or verification fails
         """
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(
-            PaymentLog.reference == reference,
-            PaymentLog.user_id == user_id
-        ).first()
-        
+        payment_log = (
+            self.db.query(PaymentLog)
+            .filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id)
+            .first()
+        )
+
         if not payment_log:
             raise ValueError(f"Payment not found: {reference}")
-        
+
         logger.info(f"Verifying payment: {reference}")
-        
+
         try:
             # Verify with Paystack
             result = await paystack_service.verify_payment(reference)
-            
+
             # Update payment log
             payment_log.status = result["status"]
             payment_log.webhook_received = True
-            
+
             # If payment successful, add credits
             if result["status"] == "success" and not payment_log.credited:
                 user = self.db.query(User).filter(User.id == user_id).first()
@@ -151,25 +150,25 @@ class PaymentService:
                     # Add credits
                     credits_to_add = payment_log.namaskah_amount
                     user.credits = (user.credits or 0.0) + credits_to_add
-                    
+
                     # Create transaction record
                     transaction = Transaction(
                         user_id=user_id,
                         amount=credits_to_add,
                         type="credit",
-                        description=f"Payment via Paystack (Ref: {reference})"
+                        description=f"Payment via Paystack (Ref: {reference})",
                     )
-                    
+
                     self.db.add(transaction)
                     payment_log.credited = True
-                    
+
                     logger.info(
                         f"Credits added: User={user_id}, Amount={credits_to_add}, "
                         f"New Balance={user.credits}"
                     )
-            
+
             self.db.commit()
-            
+
             return {
                 "reference": reference,
                 "status": result["status"],
@@ -177,25 +176,25 @@ class PaymentService:
                 "amount_ngn": payment_log.amount_ngn,
                 "credited": payment_log.credited,
                 "paid_at": result.get("paid_at"),
-                "verified_at": datetime.now(timezone.utc).isoformat()
+                "verified_at": datetime.now(timezone.utc).isoformat(),
             }
-        
+
         except Exception as e:
             logger.error(f"Failed to verify payment: {str(e)}")
             raise ValueError(f"Payment verification failed: {str(e)}")
 
     def process_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Process Paystack webhook event.
-        
+
         Args:
             event: Event type (charge.success, charge.failed, etc)
             payload: Event payload
-            
+
         Returns:
             Dictionary with processing result
         """
         logger.info(f"Processing webhook: Event={event}")
-        
+
         try:
             if event == "charge.success":
                 return self._handle_charge_success(payload)
@@ -204,120 +203,109 @@ class PaymentService:
             else:
                 logger.warning(f"Unknown event: {event}")
                 return {"status": "ignored", "message": f"Unknown event: {event}"}
-        
+
         except Exception as e:
             logger.error(f"Webhook processing error: {str(e)}")
             return {"status": "error", "message": str(e)}
 
     def _handle_charge_success(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle charge.success webhook event.
-        
+
         Args:
             payload: Event payload
-            
+
         Returns:
             Dictionary with processing result
         """
         reference = payload.get("reference")
         amount = payload.get("amount")
-        
+
         logger.info(f"Charge success: Reference={reference}, Amount={amount}")
-        
+
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(
-            PaymentLog.reference == reference
-        ).first()
-        
+        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+
         if not payment_log:
             logger.warning(f"Payment log not found: {reference}")
             return {"status": "ignored", "message": "Payment not found"}
-        
+
         # Check if already credited
         if payment_log.credited:
             logger.warning(f"Payment already credited: {reference}")
             return {"status": "ignored", "message": "Payment already credited"}
-        
+
         # Get user
         user = self.db.query(User).filter(User.id == payment_log.user_id).first()
         if not user:
             logger.error(f"User not found: {payment_log.user_id}")
             return {"status": "error", "message": "User not found"}
-        
+
         # Add credits
         credits_to_add = payment_log.namaskah_amount
         user.credits = (user.credits or 0.0) + credits_to_add
-        
+
         # Create transaction record
         transaction = Transaction(
             user_id=payment_log.user_id,
             amount=credits_to_add,
             type="credit",
-            description=f"Payment via Paystack (Ref: {reference})"
+            description=f"Payment via Paystack (Ref: {reference})",
         )
-        
+
         self.db.add(transaction)
-        
+
         # Update payment log
         payment_log.status = "success"
         payment_log.credited = True
         payment_log.webhook_received = True
-        
+
         self.db.commit()
-        
+
         logger.info(
             f"Credits added via webhook: User={payment_log.user_id}, "
             f"Amount={credits_to_add}, New Balance={user.credits}"
         )
-        
+
         return {
             "status": "success",
             "message": "Credits added successfully",
             "user_id": payment_log.user_id,
-            "amount": credits_to_add
+            "amount": credits_to_add,
         }
 
     def _handle_charge_failed(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle charge.failed webhook event.
-        
+
         Args:
             payload: Event payload
-            
+
         Returns:
             Dictionary with processing result
         """
         reference = payload.get("reference")
         logger.warning(f"Charge failed: Reference={reference}")
-        
+
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(
-            PaymentLog.reference == reference
-        ).first()
-        
+        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+
         if payment_log:
             payment_log.status = "failed"
             payment_log.webhook_received = True
             self.db.commit()
-        
-        return {
-            "status": "success",
-            "message": "Payment failure recorded"
-        }
+
+        return {"status": "success", "message": "Payment failure recorded"}
 
     def get_payment_history(
-        self,
-        user_id: str,
-        status: Optional[str] = None,
-        skip: int = 0,
-        limit: int = 20
+        self, user_id: str, status: Optional[str] = None, skip: int = 0, limit: int = 20
     ) -> Dict[str, Any]:
         """Get payment history for user.
-        
+
         Args:
             user_id: User ID
             status: Filter by status (pending, success, failed)
             skip: Number of records to skip
             limit: Number of records to return
-            
+
         Returns:
             Dictionary with payment history
         """
@@ -325,31 +313,27 @@ class PaymentService:
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
-        
+
         # Build query
         query = self.db.query(PaymentLog).filter(PaymentLog.user_id == user_id)
-        
+
         # Apply status filter
         if status:
             query = query.filter(PaymentLog.status == status)
-        
+
         # Get total count
         total = query.count()
-        
+
         # Apply pagination and sorting
         payments = (
-            query
-            .order_by(desc(PaymentLog.created_at))
-            .offset(skip)
-            .limit(min(limit, 100))
-            .all()
+            query.order_by(desc(PaymentLog.created_at)).offset(skip).limit(min(limit, 100)).all()
         )
-        
+
         logger.info(
             f"Retrieved {len(payments)} payments for user {user_id} "
             f"(total: {total}, skip: {skip}, limit: {limit})"
         )
-        
+
         return {
             "user_id": user_id,
             "total": total,
@@ -364,18 +348,18 @@ class PaymentService:
                     "credited": p.credited,
                     "payment_method": p.payment_method,
                     "created_at": p.created_at.isoformat() if p.created_at else None,
-                    "webhook_received": p.webhook_received
+                    "webhook_received": p.webhook_received,
                 }
                 for p in payments
-            ]
+            ],
         }
 
     def get_payment_summary(self, user_id: str) -> Dict[str, Any]:
         """Get payment summary for user.
-        
+
         Args:
             user_id: User ID
-            
+
         Returns:
             Dictionary with payment summary
         """
@@ -383,19 +367,17 @@ class PaymentService:
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
-        
+
         # Get all payments
-        payments = self.db.query(PaymentLog).filter(
-            PaymentLog.user_id == user_id
-        ).all()
-        
+        payments = self.db.query(PaymentLog).filter(PaymentLog.user_id == user_id).all()
+
         # Calculate totals
         total_paid = 0.0
         total_credited = 0.0
         successful_payments = 0
         failed_payments = 0
         pending_payments = 0
-        
+
         for p in payments:
             if p.status == "success":
                 total_paid += p.amount_usd
@@ -406,9 +388,9 @@ class PaymentService:
                 failed_payments += 1
             elif p.status == "pending":
                 pending_payments += 1
-        
+
         logger.info(f"Generated payment summary for user {user_id}")
-        
+
         return {
             "user_id": user_id,
             "current_balance": float(user.credits or 0.0),
@@ -417,78 +399,76 @@ class PaymentService:
             "successful_payments": successful_payments,
             "failed_payments": failed_payments,
             "pending_payments": pending_payments,
-            "total_payments": len(payments)
+            "total_payments": len(payments),
         }
 
     def refund_payment(
-        self,
-        reference: str,
-        user_id: str,
-        reason: str = "User requested refund"
+        self, reference: str, user_id: str, reason: str = "User requested refund"
     ) -> Dict[str, Any]:
         """Refund a payment (admin only).
-        
+
         Args:
             reference: Payment reference
             user_id: User ID
             reason: Refund reason
-            
+
         Returns:
             Dictionary with refund details
-            
+
         Raises:
             ValueError: If payment not found or cannot be refunded
         """
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(
-            PaymentLog.reference == reference,
-            PaymentLog.user_id == user_id
-        ).first()
-        
+        payment_log = (
+            self.db.query(PaymentLog)
+            .filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id)
+            .first()
+        )
+
         if not payment_log:
             raise ValueError(f"Payment not found: {reference}")
-        
+
         if payment_log.status != "success":
             raise ValueError(f"Cannot refund payment with status: {payment_log.status}")
-        
+
         # Get user
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
-        
+
         # Deduct credits
         credits_to_deduct = payment_log.namaskah_amount
         if (user.credits or 0.0) < credits_to_deduct:
             raise ValueError("Insufficient credits to refund")
-        
+
         user.credits = (user.credits or 0.0) - credits_to_deduct
-        
+
         # Create refund transaction
         transaction = Transaction(
             user_id=user_id,
             amount=-credits_to_deduct,
             type="refund",
-            description=f"Refund for payment {reference}: {reason}"
+            description=f"Refund for payment {reference}: {reason}",
         )
-        
+
         self.db.add(transaction)
-        
+
         # Update payment log
         payment_log.status = "refunded"
         payment_log.credited = False
-        
+
         self.db.commit()
-        
+
         logger.warning(
             f"Payment refunded: Reference={reference}, User={user_id}, "
             f"Amount={credits_to_deduct}, Reason={reason}"
         )
-        
+
         return {
             "reference": reference,
             "status": "refunded",
             "amount_refunded": credits_to_deduct,
             "new_balance": float(user.credits),
             "reason": reason,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }

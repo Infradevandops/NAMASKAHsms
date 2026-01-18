@@ -1,4 +1,5 @@
 """Alerting and notification service."""
+
 from typing import Dict, List
 from datetime import datetime
 
@@ -7,16 +8,11 @@ class AlertingService:
     """Advanced alerting and notification system."""
 
     def __init__(self):
-        self.alert_channels = {
-            "email": True,
-            "slack": True,
-            "webhook": True,
-            "sms": False
-        }
+        self.alert_channels = {"email": True, "slack": True, "webhook": True, "sms": False}
         self.alert_rules = {
             "critical": {"cooldown": 300, "escalation": True},
             "warning": {"cooldown": 900, "escalation": False},
-            "info": {"cooldown": 1800, "escalation": False}
+            "info": {"cooldown": 1800, "escalation": False},
         }
 
     async def send_alert(self, alert: Dict) -> bool:
@@ -80,7 +76,7 @@ class AlertingService:
                     "severity": group_alerts[0]["severity"],
                     "message": f"Multiple {group_alerts[0]['type']} alerts ({len(group_alerts)} total)",
                     "timestamp": datetime.utcnow().isoformat(),
-                    "details": [alert["message"] for alert in group_alerts]
+                    "details": [alert["message"] for alert in group_alerts],
                 }
                 await self.send_alert(summary_alert)
                 sent_count += 1

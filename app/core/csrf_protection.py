@@ -1,4 +1,5 @@
 """CSRF protection utilities."""
+
 import secrets
 from fastapi import Request, HTTPException, status
 from sqlalchemy.orm import Session
@@ -13,10 +14,7 @@ async def verify_csrf_token(request: Request, db: Session) -> str:
     """Verify CSRF token from request."""
     token = request.headers.get("X-CSRF-Token")
     if not token:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="CSRF token missing"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing")
     return token
 
 

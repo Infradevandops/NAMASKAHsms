@@ -1,4 +1,5 @@
 """Number blacklist model."""
+
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, String, DateTime, Boolean
 
@@ -30,10 +31,16 @@ class NumberBlacklist(BaseModel):
         return datetime.now(timezone.utc) > self.expires_at
 
     @classmethod
-    def create_blacklist_entry(cls, user_id: str, phone_number: str, service_name: str,
-                               country: str = None,
-                               reason: str = "failed_verification",
-                               is_manual: bool = False, days: int = 30):
+    def create_blacklist_entry(
+        cls,
+        user_id: str,
+        phone_number: str,
+        service_name: str,
+        country: str = None,
+        reason: str = "failed_verification",
+        is_manual: bool = False,
+        days: int = 30,
+    ):
         """Create a new blacklist entry."""
         return cls(
             user_id=user_id,
@@ -42,5 +49,5 @@ class NumberBlacklist(BaseModel):
             country=country,
             reason=reason,
             is_manual=is_manual,
-            expires_at=datetime.now(timezone.utc) + timedelta(days=days)
+            expires_at=datetime.now(timezone.utc) + timedelta(days=days),
         )

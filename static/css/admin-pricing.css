@@ -78,12 +78,12 @@
 }
 
 .btn-view {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #FFF0F3;
+    color: #E0245E;
 }
 
 .btn-view:hover {
-    background: #bfdbfe;
+    background: #FFE5EC;
 }
 
 /* Chart placeholder styles */
@@ -210,4 +210,4 @@
 
 .toast-success { background: #10b981; }
 .toast-error { background: #ef4444; }
-.toast-info { background: #3b82f6; }
+.toast-info { background: #0ea5e9; }

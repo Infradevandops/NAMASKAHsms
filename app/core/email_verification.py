@@ -1,12 +1,12 @@
 """Email verification enforcement."""
+
 from fastapi import HTTPException, status, Depends
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 
 
 def require_verified_email(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Dependency to require verified email."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -16,7 +16,7 @@ def require_verified_email(
     if not user.email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Email verification required. Check your inbox for verification link."
+            detail="Email verification required. Check your inbox for verification link.",
         )
 
     return user_id

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    build: 
+    build:
       context: .
       target: production
     ports:
@@ -24,28 +24,25 @@ services:
           memory: 256M
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/system/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8000/system/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15
+    ports:
+      - "5433:5432"
     environment:
-      POSTGRES_DB: namaskah
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_DB: namaskah_dev
+      POSTGRES_USER: namaskah
+      POSTGRES_PASSWORD: dev_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    deploy:
-      resources:
-        limits:
-          cpus: '0.5'
-          memory: 256M
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -62,7 +59,7 @@ services:
           memory: 128M
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 10s
       timeout: 3s
       retries: 3

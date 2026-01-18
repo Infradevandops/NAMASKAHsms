@@ -1,4 +1,5 @@
 """CSRF protection middleware."""
+
 from fastapi import Request, HTTPException, status
 from starlette.responses import Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -27,7 +28,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
                 httponly=False,
                 secure=True,
                 samesite="strict",
-                max_age=3600
+                max_age=3600,
             )
             response.headers["X-CSRF-Token"] = csrf_token
             return response
@@ -39,14 +40,12 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
             if not token_from_header or not token_from_cookie:
                 raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="CSRF token missing"
+                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing"
                 )
 
             if token_from_header != token_from_cookie:
                 raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail="CSRF token invalid"
+                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid"
                 )
 
         return await call_next(request)

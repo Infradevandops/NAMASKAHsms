@@ -1,4 +1,5 @@
 """Session management for tracking active user sessions."""
+
 from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, String, DateTime, Boolean
 from app.models.base import Base
@@ -7,6 +8,7 @@ import uuid
 
 class UserSession(Base):
     """Track active user sessions."""
+
     __tablename__ = "user_sessions"
 
     id = Column(String, primary_key=True)
@@ -19,7 +21,9 @@ class UserSession(Base):
     is_active = Column(Boolean, default=True)
 
 
-def create_session(db, user_id: str, ip_address: str, user_agent: str, refresh_token: str, expires_days: int = 30):
+def create_session(
+    db, user_id: str, ip_address: str, user_agent: str, refresh_token: str, expires_days: int = 30
+):
     """Create new user session."""
     session = UserSession(
         id=str(uuid.uuid4()),
@@ -27,7 +31,7 @@ def create_session(db, user_id: str, ip_address: str, user_agent: str, refresh_t
         refresh_token=refresh_token,
         ip_address=ip_address,
         user_agent=user_agent,
-        expires_at=datetime.now(timezone.utc) + timedelta(days=expires_days)
+        expires_at=datetime.now(timezone.utc) + timedelta(days=expires_days),
     )
     db.add(session)
     db.commit()
@@ -36,11 +40,15 @@ def create_session(db, user_id: str, ip_address: str, user_agent: str, refresh_t
 
 def get_session(db, refresh_token: str):
     """Get active session by refresh token."""
-    session = db.query(UserSession).filter(
-        UserSession.refresh_token == refresh_token,
-        UserSession.is_active,
-        UserSession.expires_at > datetime.utcnow()
-    ).first()
+    session = (
+        db.query(UserSession)
+        .filter(
+            UserSession.refresh_token == refresh_token,
+            UserSession.is_active,
+            UserSession.expires_at > datetime.utcnow(),
+        )
+        .first()
+    )
     return session
 
 

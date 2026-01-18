@@ -12,7 +12,7 @@ from decimal import Decimal
 
 # revision identifiers
 revision = 'quota_pricing_v3_1'
-down_revision = 'previous_revision_id'  # Update with actual previous revision
+down_revision = 'add_user_preferences'
 branch_labels = None
 depends_on = None
 

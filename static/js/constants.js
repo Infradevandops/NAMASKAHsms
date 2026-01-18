@@ -16,39 +16,39 @@ export const TIMEOUTS = {
 // API Endpoints
 export const ENDPOINTS = {
     TIERS: {
-        CURRENT: '/api/tiers/current',
-        LIST: '/api/tiers',
-        UPGRADE: '/api/tiers/upgrade'
+        CURRENT: '/tiers/current',
+        LIST: '/tiers',
+        UPGRADE: '/tiers/upgrade'
     },
     USER: {
-        PROFILE: '/api/user/profile',
-        BALANCE: '/api/user/balance',
-        ME: '/api/user/me',
-        SETTINGS: '/api/user/settings',
-        CREDITS_HISTORY: '/api/user/credits/history',
-        CREDITS_SUMMARY: '/api/user/credits/summary'
+        PROFILE: '/user/profile',
+        BALANCE: '/user/balance',
+        ME: '/user/me',
+        SETTINGS: '/user/settings',
+        CREDITS_HISTORY: '/user/credits/history',
+        CREDITS_SUMMARY: '/user/credits/summary'
     },
     AUTH: {
         LOGIN: '/auth/login',
-        LOGOUT: '/api/auth/logout',
-        REFRESH: '/api/auth/refresh'
+        LOGOUT: '/auth/logout',
+        REFRESH: '/auth/refresh'
     },
     ANALYTICS: {
-        SUMMARY: '/api/analytics/summary'
+        SUMMARY: '/analytics/summary'
     },
     DASHBOARD: {
-        ACTIVITY: '/api/dashboard/activity/recent'
+        ACTIVITY: '/dashboard/activity/recent'
     },
     BILLING: {
-        HISTORY: '/api/billing/history',
-        REFUND: '/api/billing/refund',
-        REFUNDS: '/api/billing/refunds',
-        TRANSACTIONS: '/api/billing/transactions'
+        HISTORY: '/billing/history',
+        REFUND: '/billing/refund',
+        REFUNDS: '/billing/refunds',
+        TRANSACTIONS: '/billing/transactions'
     },
     NOTIFICATIONS: {
-        LIST: '/api/notifications',
-        MARK_READ: '/api/notifications/{id}/read',
-        MARK_ALL_READ: '/api/notifications/mark-all-read'
+        LIST: '/notifications',
+        MARK_READ: '/notifications/{id}/read',
+        MARK_ALL_READ: '/notifications/mark-all-read'
     },
     GDPR: {
         EXPORT: '/gdpr/export',
@@ -60,7 +60,7 @@ export const ENDPOINTS = {
         TEST: '/forwarding/test'
     },
     PROVIDERS: {
-        HEALTH: '/api/providers/health'
+        HEALTH: '/providers/health'
     }
 };
 

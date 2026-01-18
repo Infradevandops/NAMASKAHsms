@@ -1,4 +1,5 @@
 """Performance monitoring utilities - WITH ERROR HANDLING."""
+
 from prometheus_client import Histogram, Counter
 import time
 from app.core.logging import get_logger
@@ -6,28 +7,16 @@ from app.core.logging import get_logger
 logger = get_logger(__name__)
 
 request_duration = Histogram(
-    'request_duration_seconds',
-    'Request duration in seconds',
-    ['method', 'endpoint']
+    "request_duration_seconds", "Request duration in seconds", ["method", "endpoint"]
 )
 
 db_query_duration = Histogram(
-    'db_query_duration_seconds',
-    'Database query duration in seconds',
-    ['query_type']
+    "db_query_duration_seconds", "Database query duration in seconds", ["query_type"]
 )
 
-cache_hits = Counter(
-    'cache_hits_total',
-    'Total cache hits',
-    ['cache_type']
-)
+cache_hits = Counter("cache_hits_total", "Total cache hits", ["cache_type"])
 
-cache_misses = Counter(
-    'cache_misses_total',
-    'Total cache misses',
-    ['cache_type']
-)
+cache_misses = Counter("cache_misses_total", "Total cache misses", ["cache_type"])
 
 
 class PerformanceMonitor:
@@ -36,6 +25,7 @@ class PerformanceMonitor:
     @staticmethod
     def track_request(method: str, endpoint: str):
         """Decorator to track request duration."""
+
         def decorator(func):
             async def wrapper(*args, **kwargs):
                 start = time.time()
@@ -51,7 +41,9 @@ class PerformanceMonitor:
                         request_duration.labels(method=method, endpoint=endpoint).observe(duration)
                     except Exception as e:
                         logger.error(f"Error recording metrics: {e}")
+
             return wrapper
+
         return decorator
 
     @staticmethod

@@ -34,13 +34,14 @@
     }
 
     .settings-nav-item:hover {
-        color: var(--text-primary);
-        background: rgba(255, 255, 255, 0.05);
+        color: #FE3C72 !important;
+        background: #FFF5F7 !important;
     }
 
     .settings-nav-item.active {
-        background: var(--primary);
-        color: white;
+        background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3) !important;
     }
 
     .settings-content {
@@ -182,13 +183,13 @@
 {% block content %}
 <div class="settings-container">
     <nav class="settings-nav">
-        <button class="settings-nav-item active" onclick="switchTab('account')">Account</button>
-        <button class="settings-nav-item" onclick="switchTab('security')">Security</button>
-        <button class="settings-nav-item" onclick="switchTab('notifications')">Notifications</button>
-        <button class="settings-nav-item" onclick="switchTab('billing')">Billing</button>
-        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys')" style="display: none;">API Keys</button>
-        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('forwarding')" style="display: none;">SMS Forwarding</button>
-        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist')" style="display: none;">Blacklist</button>
+        <button class="settings-nav-item active" onclick="switchTab('account', event)">Account</button>
+        <button class="settings-nav-item" onclick="switchTab('security', event)">Security</button>
+        <button class="settings-nav-item" onclick="switchTab('notifications', event)">Notifications</button>
+        <button class="settings-nav-item" onclick="switchTab('billing', event)">Billing</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys', event)" style="display: none;">API Keys</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('forwarding', event)" style="display: none;">SMS Forwarding</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist', event)" style="display: none;">Blacklist</button>
     </nav>
 
     <div class="settings-content">
@@ -476,10 +477,13 @@
 
 {% block scripts %}
 <script src="/static/js/frontend-logger.js"></script>
-<script src="/static/js/api-retry.js"></script>
+<script type="module" src="/static/js/api-retry.js"></script>
 <script src="/static/js/skeleton-loader.js"></script>
 <script src="/static/js/error-messages.js"></script>
 <script>
+(function() {
+    'use strict';
+    
     // Escape HTML to prevent XSS
     function escapeHtml(text) {
         if (!text) return '';
@@ -488,7 +492,7 @@
         return div.innerHTML;
     }
 
-    // Tier hierarchy for access checks
+    // Tier hierarchy for access checks (local to settings page)
     const TIER_HIERARCHY = {
         'freemium': 0,
         'payg': 1,
@@ -503,7 +507,7 @@
         'custom': 'Custom'
     };
 
-    let currentUserTier = 'freemium';
+    let settingsUserTier = 'freemium';
 
     function hasTierAccess(userTier, requiredTier) {
         const userLevel = TIER_HIERARCHY[userTier] || 0;
@@ -528,16 +532,16 @@
 
             if (response.ok) {
                 const data = await response.json();
-                currentUserTier = data.current_tier || 'freemium';
+                settingsUserTier = data.current_tier || 'freemium';
                 
-                FrontendLogger.info('[Settings] User tier loaded', { tier: currentUserTier });
+                FrontendLogger.info('[Settings] User tier loaded', { tier: settingsUserTier });
                 
                 // Update billing tab
-                document.getElementById('billing-tier-name').textContent = TIER_DISPLAY_NAMES[currentUserTier] || currentUserTier;
-                document.getElementById('billing-tier-features').textContent = `Current plan: ${TIER_DISPLAY_NAMES[currentUserTier]}`;
+                document.getElementById('billing-tier-name').textContent = TIER_DISPLAY_NAMES[settingsUserTier] || settingsUserTier;
+                document.getElementById('billing-tier-features').textContent = `Current plan: ${TIER_DISPLAY_NAMES[settingsUserTier]}`;
                 
                 // Hide upgrade button for custom tier
-                if (currentUserTier === 'custom') {
+                if (settingsUserTier === 'custom') {
                     document.getElementById('billing-upgrade-btn').style.display = 'none';
                 }
             }
@@ -546,7 +550,7 @@
             console.error('[Settings] Failed to load user tier:', error);
         }
 
-        updateSettingsTabVisibility(currentUserTier);
+        updateSettingsTabVisibility(settingsUserTier);
     }
 
     function updateSettingsTabVisibility(userTier) {
@@ -563,38 +567,76 @@
 
     async function loadUserData() {
         FrontendLogger.info('[Settings] Loading user data...');
+        
+        // Show loading state immediately
+        const emailInput = document.getElementById('account-email');
+        const idInput = document.getElementById('account-id');
+        const createdInput = document.getElementById('account-created');
+        
+        if (emailInput) emailInput.value = 'Loading...';
+        if (idInput) idInput.value = 'Loading...';
+        if (createdInput) createdInput.value = 'Loading...';
+        
         try {
             const token = localStorage.getItem('access_token');
             if (!token) {
                 FrontendLogger.warn('[Settings] No access token found');
                 console.warn('[Settings] No access token found');
-                showAccountError('Please log in to view settings');
+                if (emailInput) emailInput.value = 'Not logged in';
+                if (idInput) idInput.value = 'Please log in';
+                if (createdInput) createdInput.value = '';
+                setTimeout(() => window.location.href = '/auth/login', 2000);
                 return;
             }
 
             // Load basic profile
             try {
                 FrontendLogger.logApiCall('GET', '/api/auth/me');
+                console.log('[Settings] Fetching user data from /api/auth/me...');
+                
                 const userRes = await ApiRetry.fetchWithRetry('/api/auth/me', {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 });
+                
                 FrontendLogger.logApiResponse('GET', '/api/auth/me', userRes.status);
+                console.log('[Settings] API response status:', userRes.status);
                 
                 if (userRes.ok) {
                     const user = await userRes.json();
                     FrontendLogger.info('[Settings] User profile loaded', { email: user.email });
-                    document.getElementById('account-email').value = user.email || '';
-                    document.getElementById('account-id').value = user.id || '';
-                    document.getElementById('account-created').value = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown';
+                    console.log('[Settings] User data loaded successfully:', user);
+                    
+                    if (emailInput) emailInput.value = user.email || 'No email';
+                    if (idInput) idInput.value = user.id || 'No ID';
+                    if (createdInput) {
+                        createdInput.value = user.created_at 
+                            ? new Date(user.created_at).toLocaleDateString() 
+                            : 'Unknown';
+                    }
                 } else {
                     FrontendLogger.warn('[Settings] Failed to load user profile', { status: userRes.status });
-                    console.warn('[Settings] Failed to load user profile:', userRes.status);
-                    showAccountError('Unable to load profile');
+                    console.error('[Settings] API error:', userRes.status, userRes.statusText);
+                    
+                    if (emailInput) emailInput.value = 'Error loading';
+                    if (idInput) idInput.value = `API Error: ${userRes.status}`;
+                    if (createdInput) createdInput.value = '';
+                    
+                    // Show user-friendly error
+                    alert('Failed to load account information. Please refresh the page or try logging in again.');
                 }
             } catch (e) {
                 FrontendLogger.error('[Settings] Error loading profile', { error: e.message, stack: e.stack });
-                console.error('[Settings] Error loading profile:', e);
-                showAccountError('Error loading profile');
+                console.error('[Settings] Exception loading profile:', e);
+                
+                if (emailInput) emailInput.value = 'Error';
+                if (idInput) idInput.value = e.message || 'Network error';
+                if (createdInput) createdInput.value = '';
+                
+                // Show user-friendly error
+                alert('Network error loading account information. Please check your connection and try again.');
             }
 
             // Load Settings
@@ -620,7 +662,7 @@
             await loadUserTierForSettings();
 
             // Load API Keys (only if user has access)
-            if (hasTierAccess(currentUserTier, 'payg')) {
+            if (hasTierAccess(settingsUserTier, 'payg')) {
                 loadApiKeys();
             }
 
@@ -663,12 +705,12 @@
                 }
                 
                 container.innerHTML = tiers.map(tier => `
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${tier.tier === currentUserTier || tier.tier_code === currentUserTier ? 'border: 2px solid var(--primary);' : ''}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${tier.tier === settingsUserTier || tier.tier_code === settingsUserTier ? 'border: 2px solid var(--primary);' : ''}">
                         <div>
                             <div style="font-weight: 600;">${tier.name || tier.display_name || tier.tier_code}</div>
                             <div style="color: var(--text-muted); font-size: 14px;">${tier.price_display || (tier.price_monthly === 0 ? 'Free' : '$' + tier.price_monthly + '/month')}</div>
                         </div>
-                        ${(tier.tier === currentUserTier || tier.tier_code === currentUserTier) ? 
+                        ${(tier.tier === settingsUserTier || tier.tier_code === settingsUserTier) ? 
                             '<span style="color: var(--primary); font-weight: 500;">Current Plan</span>' : 
                             `<button class="btn btn-secondary" onclick="window.location.href='/pricing'" style="padding: 8px 16px;">View Details</button>`
                         }
@@ -806,17 +848,36 @@
         });
     }
 
-    function switchTab(tabId) {
+    function switchTab(tabId, event) {
+        console.log('[Settings] Switching to tab:', tabId);
+        
+        // Remove active class from all nav items and tabs
         document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
 
-        event.target.classList.add('active');
-        document.getElementById(tabId + '-tab').classList.add('active');
+        // Add active class to clicked button
+        const clickedButton = event?.target || document.querySelector(`[onclick*="switchTab('${tabId}')"]`);
+        if (clickedButton) {
+            clickedButton.classList.add('active');
+        }
+        
+        // Show the selected tab
+        const tabElement = document.getElementById(tabId + '-tab');
+        if (tabElement) {
+            tabElement.classList.add('active');
+            console.log('[Settings] Tab switched successfully:', tabId);
+        } else {
+            console.error('[Settings] Tab not found:', tabId + '-tab');
+        }
         
         // Load tab-specific data
         if (tabId === 'billing') {
             loadPaymentHistory();
             loadRefundHistory();
+        } else if (tabId === 'api-keys') {
+            loadApiKeys();
+        } else if (tabId === 'blacklist') {
+            loadBlacklist();
         }
     }
 
@@ -1404,5 +1465,11 @@
     document.getElementById('blacklist-bulk-modal')?.addEventListener('click', function(e) {
         if (e.target === this) hideBulkImportModal();
     });
+    
+    // Make switchTab globally accessible
+    window.switchTab = switchTab;
+    window.loadUserData = loadUserData;
+    
+})(); // End of IIFE
 </script>
 {% endblock %}

@@ -1,4 +1,5 @@
 """Database migration utilities."""
+
 from app.utils.timezone_utils import utc_now, parse_date_string, get_timestamp_filename
 import logging
 import os
@@ -59,9 +60,7 @@ class MigrationManager:
                 return False
 
             # Sanitize message to prevent injection
-            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[
-                :100
-            ]
+            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[:100]
 
             result = subprocess.run(
                 [alembic_path, "revision", "--autogenerate", "-m", safe_message],

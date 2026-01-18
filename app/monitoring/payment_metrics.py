@@ -1,4 +1,5 @@
 """Payment system metrics and monitoring."""
+
 from datetime import datetime, timezone
 from typing import Dict, Any
 from collections import defaultdict
@@ -46,33 +47,27 @@ class PaymentMetrics:
         total_payments = sum(self.payment_total.values())
         successful_payments = self.payment_total.get("success", 0)
         failed_payments = self.payment_total.get("failed", 0)
-        
-        success_rate = (
-            (successful_payments / total_payments * 100)
-            if total_payments > 0
-            else 0
-        )
-        
+
+        success_rate = (successful_payments / total_payments * 100) if total_payments > 0 else 0
+
         avg_amount = (
-            sum(self.payment_amounts) / len(self.payment_amounts)
-            if self.payment_amounts
-            else 0
+            sum(self.payment_amounts) / len(self.payment_amounts) if self.payment_amounts else 0
         )
-        
+
         avg_webhook_latency = (
             sum(self.webhook_latencies) / len(self.webhook_latencies)
             if self.webhook_latencies
             else 0
         )
-        
+
         avg_response_time = (
             sum(r["time_ms"] for r in self.response_times) / len(self.response_times)
             if self.response_times
             else 0
         )
-        
+
         uptime = (datetime.now(timezone.utc) - self.start_time).total_seconds()
-        
+
         return {
             "total_payments": total_payments,
             "successful_payments": successful_payments,
@@ -84,49 +79,45 @@ class PaymentMetrics:
             "total_errors": sum(self.error_count.values()),
             "error_breakdown": dict(self.error_count),
             "uptime_seconds": uptime,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
     def check_health(self) -> Dict[str, Any]:
         """Check system health."""
         total_payments = sum(self.payment_total.values())
         successful_payments = self.payment_total.get("success", 0)
-        
-        success_rate = (
-            (successful_payments / total_payments * 100)
-            if total_payments > 0
-            else 100
-        )
-        
+
+        success_rate = (successful_payments / total_payments * 100) if total_payments > 0 else 100
+
         avg_webhook_latency = (
             sum(self.webhook_latencies) / len(self.webhook_latencies)
             if self.webhook_latencies
             else 0
         )
-        
+
         # Health checks
         health_status = "healthy"
         alerts = []
-        
+
         if success_rate < 95:
             health_status = "degraded"
             alerts.append(f"Success rate below 95%: {success_rate:.2f}%")
-        
+
         if avg_webhook_latency > 5000:  # 5 seconds
             health_status = "degraded"
             alerts.append(f"Webhook latency high: {avg_webhook_latency:.2f}ms")
-        
+
         if sum(self.error_count.values()) > 10:
             health_status = "degraded"
             alerts.append(f"High error count: {sum(self.error_count.values())}")
-        
+
         return {
             "status": health_status,
             "success_rate": f"{success_rate:.2f}%",
             "webhook_latency_ms": f"{avg_webhook_latency:.2f}",
             "total_errors": sum(self.error_count.values()),
             "alerts": alerts,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
 

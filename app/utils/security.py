@@ -1,4 +1,5 @@
 """Security utilities for password hashing, JWT tokens, and API keys."""
+
 import secrets
 import string
 import bcrypt
@@ -12,24 +13,22 @@ from app.core.config import settings
 
 def hash_password(password: str) -> str:
     """Hash a password using bcrypt (max 72 bytes)."""
-    password_bytes = password.encode('utf-8')[:72]
+    password_bytes = password.encode("utf-8")[:72]
     salt = bcrypt.gensalt()
-    return bcrypt.hashpw(password_bytes, salt).decode('utf-8')
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash."""
     try:
-        password_bytes = plain_password.encode('utf-8')[:72]
-        hash_bytes = hashed_password.encode('utf-8')
+        password_bytes = plain_password.encode("utf-8")[:72]
+        hash_bytes = hashed_password.encode("utf-8")
         return bcrypt.checkpw(password_bytes, hash_bytes)
     except Exception:
         return False
 
 
-def create_access_token(
-    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
-) -> str:
+def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
 
@@ -46,9 +45,7 @@ def create_access_token(
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
     """Verify and decode a JWT token."""
     try:
-        payload = jwt.decode(
-            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
-        )
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
         return payload
     except jwt.InvalidTokenError:
         return None
@@ -80,11 +77,7 @@ def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
     if len(data) <= visible_chars * 2:
         return "*" * len(data)
 
-    return (
-        data[:visible_chars]
-        + "*" * (len(data) - visible_chars * 2)
-        + data[-visible_chars:]
-    )
+    return data[:visible_chars] + "*" * (len(data) - visible_chars * 2) + data[-visible_chars:]
 
 
 def validate_password_strength(password: str) -> Dict[str, Any]:

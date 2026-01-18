@@ -1,10 +1,12 @@
 """Standardized response schemas for all API endpoints."""
+
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 
 
 class ErrorResponse(BaseModel):
     """Standardized error response."""
+
     success: bool = False
     error: str = Field(..., description="Error message")
     detail: Optional[str] = Field(None, description="Detailed error information")
@@ -13,6 +15,7 @@ class ErrorResponse(BaseModel):
 
 class SuccessResponse(BaseModel):
     """Standardized success response."""
+
     success: bool = True
     message: str = Field(..., description="Success message")
     data: Optional[Dict[str, Any]] = Field(None, description="Response data")
@@ -20,6 +23,7 @@ class SuccessResponse(BaseModel):
 
 class PaginatedResponse(BaseModel):
     """Standardized paginated response."""
+
     success: bool = True
     data: List[Any] = Field(..., description="List of items")
     total: int = Field(..., description="Total count")
@@ -32,6 +36,7 @@ class PaginatedResponse(BaseModel):
 
 class ListResponse(BaseModel):
     """Standardized list response."""
+
     success: bool = True
     data: List[Any] = Field(..., description="List of items")
     total: int = Field(..., description="Total count")
@@ -39,11 +44,13 @@ class ListResponse(BaseModel):
 
 class DataResponse(BaseModel):
     """Standardized data response."""
+
     success: bool = True
     data: Dict[str, Any] = Field(..., description="Response data")
 
 
 class MessageResponse(BaseModel):
     """Standardized message response."""
+
     success: bool = True
     message: str = Field(..., description="Response message")

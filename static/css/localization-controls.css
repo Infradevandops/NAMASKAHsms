@@ -30,7 +30,7 @@
 }
 
 .selector-label:hover {
-    background-color: var(--primary-light, #dbeafe);
+    background-color: var(--primary-light, #FFF0F3);
 }
 
 .selector-icon {
@@ -51,14 +51,14 @@
 }
 
 .selector-input:hover {
-    border-color: var(--primary, #2563eb);
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+    border-color: var(--primary, #FE3C72);
+    box-shadow: 0 0 0 2px rgba(254, 60, 114, 0.1);
 }
 
 .selector-input:focus {
     outline: none;
-    border-color: var(--primary, #2563eb);
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--primary, #FE3C72);
+    box-shadow: 0 0 0 3px rgba(254, 60, 114, 0.1);
 }
 
 .selector-input option {
@@ -113,7 +113,7 @@
     }
 
     .selector-input:hover {
-        border-color: var(--primary, #3b82f6);
+        border-color: var(--primary, #FE3C72);
     }
 
     .selector-input option {

@@ -39,7 +39,7 @@ export class ApiError extends Error {
  */
 class ApiClient {
     constructor(options = {}) {
-        this.baseUrl = options.baseUrl || '';
+        this.baseUrl = options.baseUrl || '/api/v1';
         this.defaultTimeout = options.timeout || TIMEOUTS.API_REQUEST;
         this.maxRetries = options.maxRetries || 3;
         this.retryDelay = options.retryDelay || 1000;

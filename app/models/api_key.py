@@ -1,4 +1,5 @@
 """API Key model for programmatic access."""
+
 from sqlalchemy import Column, String, DateTime, Boolean, ForeignKey, Integer
 from datetime import datetime
 from app.models.base import Base

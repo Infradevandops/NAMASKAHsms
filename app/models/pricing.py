@@ -1,4 +1,5 @@
 """Pricing tier and subscription models."""
+
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String, JSON
 from sqlalchemy.orm import relationship
 
@@ -10,7 +11,9 @@ class PricingTier(BaseModel):
 
     __tablename__ = "pricing_tiers"
 
-    name = Column(String, unique=True, nullable=False, index=True)  # BASIC, STANDARD, PREMIUM, ENTERPRISE
+    name = Column(
+        String, unique=True, nullable=False, index=True
+    )  # BASIC, STANDARD, PREMIUM, ENTERPRISE
     display_name = Column(String, nullable=False)  # "Basic", "Standard", etc
     description = Column(String)
     monthly_price = Column(Float, default=0.0, nullable=False)
@@ -53,12 +56,16 @@ class ServiceAddOn(BaseModel):
 
     __tablename__ = "service_addons"
 
-    name = Column(String, unique=True, nullable=False, index=True)  # priority_numbers, expedited_delivery, etc
+    name = Column(
+        String, unique=True, nullable=False, index=True
+    )  # priority_numbers, expedited_delivery, etc
     display_name = Column(String, nullable=False)
     description = Column(String)
     base_cost = Column(Float, default=0.0, nullable=False)  # per verification or per month
     cost_type = Column(String, nullable=False)  # per_verification, per_month, per_number
-    tier_availability = Column(JSON, default=[])  # Which tiers can access: ["STANDARD", "PREMIUM", "ENTERPRISE"]
+    tier_availability = Column(
+        JSON, default=[]
+    )  # Which tiers can access: ["STANDARD", "PREMIUM", "ENTERPRISE"]
     is_active = Column(Boolean, default=True, nullable=False)
     display_order = Column(Integer, default=0)
 

@@ -1,10 +1,12 @@
 """Tier response schemas for validation."""
+
 from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
 class TierFeatures(BaseModel):
     """Tier features schema."""
+
     api_access: bool
     area_code_selection: bool
     isp_filtering: bool
@@ -14,6 +16,7 @@ class TierFeatures(BaseModel):
 
 class TierInfo(BaseModel):
     """Single tier information schema."""
+
     tier: str = Field(..., description="Tier identifier (freemium, payg, pro, custom)")
     name: str = Field(..., description="Display name of the tier")
     price_monthly: float = Field(..., ge=0, description="Monthly price in dollars")
@@ -22,11 +25,11 @@ class TierInfo(BaseModel):
     overage_rate: float = Field(..., ge=0, description="Overage rate per dollar")
     features: TierFeatures = Field(..., description="Tier features")
 
-    @field_validator('tier')
+    @field_validator("tier")
     @classmethod
     def validate_tier(cls, v):
         """Validate tier is one of the allowed values."""
-        allowed_tiers = {'freemium', 'payg', 'pro', 'custom'}
+        allowed_tiers = {"freemium", "payg", "pro", "custom"}
         if v not in allowed_tiers:
             raise ValueError(f"Tier must be one of {allowed_tiers}")
         return v
@@ -34,9 +37,10 @@ class TierInfo(BaseModel):
 
 class TiersListResponse(BaseModel):
     """Response schema for /api/tiers/ endpoint."""
+
     tiers: List[TierInfo] = Field(..., description="List of available tiers")
 
-    @field_validator('tiers')
+    @field_validator("tiers")
     @classmethod
     def validate_tiers_count(cls, v):
         """Validate that we have exactly 4 tiers."""
@@ -47,6 +51,7 @@ class TiersListResponse(BaseModel):
 
 class CurrentTierResponse(BaseModel):
     """Response schema for /api/tiers/current endpoint."""
+
     current_tier: str = Field(..., description="User's current tier")
     tier_name: str = Field(..., description="Display name of current tier")
     price_monthly: float = Field(..., ge=0, description="Monthly price in dollars")
@@ -58,11 +63,11 @@ class CurrentTierResponse(BaseModel):
     overage_rate: float = Field(..., ge=0, description="Overage rate per dollar")
     features: TierFeatures = Field(..., description="Tier features")
 
-    @field_validator('current_tier')
+    @field_validator("current_tier")
     @classmethod
     def validate_tier(cls, v):
         """Validate tier is one of the allowed values."""
-        allowed_tiers = {'freemium', 'payg', 'pro', 'custom'}
+        allowed_tiers = {"freemium", "payg", "pro", "custom"}
         if v not in allowed_tiers:
             raise ValueError(f"Tier must be one of {allowed_tiers}")
         return v
@@ -70,6 +75,7 @@ class CurrentTierResponse(BaseModel):
 
 class AnalyticsSummaryResponse(BaseModel):
     """Response schema for /api/analytics/summary endpoint."""
+
     total_verifications: int = Field(..., ge=0, description="Total verifications")
     successful_verifications: int = Field(..., ge=0, description="Successful verifications")
     failed_verifications: int = Field(..., ge=0, description="Failed verifications")
@@ -86,17 +92,18 @@ class AnalyticsSummaryResponse(BaseModel):
 
 class DashboardActivity(BaseModel):
     """Single dashboard activity item schema."""
+
     id: str = Field(..., description="Activity ID")
     service_name: str = Field(..., description="Service name")
     phone_number: str = Field(..., description="Phone number")
     status: str = Field(..., description="Activity status")
     created_at: Optional[str] = Field(None, description="Creation timestamp")
 
-    @field_validator('status')
+    @field_validator("status")
     @classmethod
     def validate_status(cls, v):
         """Validate status is one of the allowed values."""
-        allowed_statuses = {'pending', 'completed', 'failed', 'expired', 'processing'}
+        allowed_statuses = {"pending", "completed", "failed", "expired", "processing"}
         if v not in allowed_statuses:
             raise ValueError(f"Status must be one of {allowed_statuses}")
         return v

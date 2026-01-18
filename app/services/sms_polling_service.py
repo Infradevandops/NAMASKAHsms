@@ -1,4 +1,5 @@
 """SMS polling service for real-time verification updates."""
+
 import asyncio
 import re
 from datetime import datetime, timezone
@@ -26,9 +27,7 @@ class SMSPollingService:
         if verification_id in self.polling_tasks:
             return
 
-        task = asyncio.create_task(
-            self._poll_verification(verification_id, phone_number)
-        )
+        task = asyncio.create_task(self._poll_verification(verification_id, phone_number))
         self.polling_tasks[verification_id] = task
         logger.info(f"Started polling for verification {verification_id}")
 
@@ -49,9 +48,9 @@ class SMSPollingService:
             db = None
             try:
                 db = SessionLocal()
-                verification = db.query(Verification).filter(
-                    Verification.id == verification_id
-                ).first()
+                verification = (
+                    db.query(Verification).filter(Verification.id == verification_id).first()
+                )
 
                 if not verification or verification.status != "pending":
                     logger.info(f"Verification {verification_id} no longer pending, stopping poll")
@@ -59,13 +58,17 @@ class SMSPollingService:
 
                 # Use activation_id (TextVerified's ID) not our internal verification_id
                 if not verification.activation_id:
-                    logger.warning(f"No activation_id for verification {verification_id}, stopping poll")
+                    logger.warning(
+                        f"No activation_id for verification {verification_id}, stopping poll"
+                    )
                     break
-                
+
                 try:
                     sms_data = await self.textverified.check_sms(verification.activation_id)
                 except Exception as e:
-                    logger.warning(f"TextVerified check failed for {verification.activation_id}: {str(e)}")
+                    logger.warning(
+                        f"TextVerified check failed for {verification.activation_id}: {str(e)}"
+                    )
                     await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                     attempt += 1
                     continue
@@ -73,15 +76,27 @@ class SMSPollingService:
                 if sms_data and sms_data.get("messages"):
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
-                    latest_sms = sms_data["messages"][-1] if isinstance(sms_data["messages"], list) else sms_data["messages"]
-                    if hasattr(verification, 'sms_text'):
-                        verification.sms_text = latest_sms if isinstance(latest_sms, str) else latest_sms.get("text", "")
-                    if hasattr(verification, 'sms_code'):
-                        text = latest_sms if isinstance(latest_sms, str) else latest_sms.get("text", "")
-                        matches = re.findall(r'\b(\d{4,8})\b', text)
+                    latest_sms = (
+                        sms_data["messages"][-1]
+                        if isinstance(sms_data["messages"], list)
+                        else sms_data["messages"]
+                    )
+                    if hasattr(verification, "sms_text"):
+                        verification.sms_text = (
+                            latest_sms
+                            if isinstance(latest_sms, str)
+                            else latest_sms.get("text", "")
+                        )
+                    if hasattr(verification, "sms_code"):
+                        text = (
+                            latest_sms
+                            if isinstance(latest_sms, str)
+                            else latest_sms.get("text", "")
+                        )
+                        matches = re.findall(r"\b(\d{4,8})\b", text)
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
-                    
+
                     # Notification: SMS Code Received
                     try:
                         notif_service = NotificationService(db)
@@ -89,18 +104,18 @@ class SMSPollingService:
                             user_id=verification.user_id,
                             notification_type="verification_complete",
                             title="SMS Code Received",
-                            message=f"Code {verification.sms_code} received for {verification.service_name}"
+                            message=f"Code {verification.sms_code} received for {verification.service_name}",
                         )
                     except Exception:
                         pass
-                    
+
                     logger.info(f"SMS received for verification {verification_id}")
                     break
 
                 elif sms_data and sms_data.get("status") == "TIMEOUT":
                     verification.status = "timeout"
                     db.commit()
-                    
+
                     # Notification: Verification Failed
                     try:
                         notif_service = NotificationService(db)
@@ -108,11 +123,11 @@ class SMSPollingService:
                             user_id=verification.user_id,
                             notification_type="verification_failed",
                             title="Verification Timeout",
-                            message=f"No SMS received for {verification.service_name}"
+                            message=f"No SMS received for {verification.service_name}",
                         )
                     except Exception:
                         pass
-                    
+
                     logger.info(f"Verification {verification_id} timed out")
                     break
 
@@ -151,10 +166,13 @@ class SMSPollingService:
             db = None
             try:
                 db = SessionLocal()
-                pending_verifications = db.query(Verification).filter(
-                    Verification.status == "pending",
-                    Verification.provider == "textverified"
-                ).all()
+                pending_verifications = (
+                    db.query(Verification)
+                    .filter(
+                        Verification.status == "pending", Verification.provider == "textverified"
+                    )
+                    .all()
+                )
 
                 for verification in pending_verifications:
                     if verification.id not in self.polling_tasks:

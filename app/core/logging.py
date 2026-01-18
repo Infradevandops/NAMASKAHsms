@@ -1,4 +1,5 @@
 """Logging configuration for Namaskah application."""
+
 import logging
 import os
 import sys
@@ -8,7 +9,7 @@ from pathlib import Path
 def setup_logging():
     """Setup logging configuration."""
     handlers = [logging.StreamHandler(sys.stdout)]
-    
+
     # Only create file handler in development (not on Render/production)
     if os.environ.get("RENDER") is None:
         try:
@@ -18,11 +19,11 @@ def setup_logging():
         except (PermissionError, OSError):
             # Can't create logs directory, use stdout only
             pass
-    
+
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=handlers
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=handlers,
     )
 
 

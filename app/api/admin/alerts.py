@@ -1,4 +1,5 @@
 """Alert webhook handler for AlertManager."""
+
 from fastapi import APIRouter, Request
 from app.core.logging import get_logger
 
@@ -28,13 +29,10 @@ async def handle_alert_webhook(request: Request):
                     f"Alert: {alert_name}",
                     severity=severity,
                     summary=summary,
-                    description=description
+                    description=description,
                 )
             else:
-                logger.info(
-                    f"Alert resolved: {alert_name}",
-                    summary=summary
-                )
+                logger.info(f"Alert resolved: {alert_name}", summary=summary)
 
         return {"status": "ok"}
     except Exception as e:

@@ -1,4 +1,5 @@
 """Disaster recovery API endpoints."""
+
 from app.models.user import User
 from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends, BackgroundTasks
@@ -17,7 +18,7 @@ async def get_dr_status():
 async def create_backup(
     background_tasks: BackgroundTasks,
     backup_type: str = "incremental",
-    admin_user: User = Depends(get_current_admin_user)
+    admin_user: User = Depends(get_current_admin_user),
 ):
     """Create system backup (admin only)."""
     background_tasks.add_task(disaster_recovery.create_backup, backup_type)
@@ -26,8 +27,7 @@ async def create_backup(
 
 @router.post("/test - recovery")
 async def test_recovery_procedure(
-    backup_id: str,
-    admin_user: User = Depends(get_current_admin_user)
+    backup_id: str, admin_user: User = Depends(get_current_admin_user)
 ):
     """Test disaster recovery procedure (admin only)."""
     result = await disaster_recovery.test_recovery(backup_id)
@@ -43,5 +43,5 @@ async def get_compliance_status():
         "requirements_met": status["compliance"],
         "rto_compliance": True,
         "rpo_compliance": True,
-        "backup_compliance": True
+        "backup_compliance": True,
     }

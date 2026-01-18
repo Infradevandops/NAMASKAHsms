@@ -29,6 +29,7 @@ from app.api.billing.router import router as billing_router
 from app.api.verification.router import router as verification_router
 from app.api.routes_consolidated import router as routes_router
 from app.api.preview_router import router as preview_router
+from app.api.v1.router import v1_router
 
 security = HTTPBearer(auto_error=False)
 TEMPLATES_DIR = Path("templates").resolve()
@@ -107,11 +108,14 @@ def create_app() -> FastAPI:
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
 
     # ============== ROUTERS ==============
-    # Modular Routers
-    fastapi_app.include_router(core_router)
-    fastapi_app.include_router(admin_router)
-    fastapi_app.include_router(billing_router)
-    fastapi_app.include_router(verification_router)
+    # Modular Routers (Legacy - Deprecated)
+    fastapi_app.include_router(core_router, deprecated=True)
+    fastapi_app.include_router(admin_router, deprecated=True)
+    fastapi_app.include_router(billing_router, deprecated=True)
+    fastapi_app.include_router(verification_router, deprecated=True)
+    
+    # Version 1 API
+    fastapi_app.include_router(v1_router)
     
     # Consolidated routes (HTML pages)
     fastapi_app.include_router(routes_router)
@@ -139,4 +143,5 @@ app = create_app()
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
+    # Using port 9527 to avoid conflicts with common ports (8000, 8001, 8080, 3000, 5000)
+    uvicorn.run("main:app", host="0.0.0.0", port=9527, reload=True)

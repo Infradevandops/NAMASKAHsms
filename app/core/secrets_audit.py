@@ -1,4 +1,5 @@
 """Audit logging for secrets access and management."""
+
 import logging
 import json
 from datetime import datetime
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 class AuditAction(str, Enum):
     """Audit action types."""
+
     GET = "get"
     SET = "set"
     DELETE = "delete"
@@ -33,7 +35,7 @@ class SecretsAudit:
         ip_address: Optional[str] = None,
         status: str = "success",
         error: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
     ):
         """Log secrets operation for audit trail."""
         audit_entry = {
@@ -44,7 +46,7 @@ class SecretsAudit:
             "ip_address": ip_address or "unknown",
             "status": status,
             "error": error,
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         self.audit_logger.info(json.dumps(audit_entry))
@@ -54,7 +56,7 @@ class SecretsAudit:
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
-        cached: bool = False
+        cached: bool = False,
     ):
         """Log secret retrieval."""
         self.log_action(
@@ -62,7 +64,7 @@ class SecretsAudit:
             secret_name=secret_name,
             user_id=user_id,
             ip_address=ip_address,
-            metadata={"cached": cached}
+            metadata={"cached": cached},
         )
 
     def log_set(
@@ -70,7 +72,7 @@ class SecretsAudit:
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
-        created: bool = False
+        created: bool = False,
     ):
         """Log secret creation or update."""
         self.log_action(
@@ -78,7 +80,7 @@ class SecretsAudit:
             secret_name=secret_name,
             user_id=user_id,
             ip_address=ip_address,
-            metadata={"created": created}
+            metadata={"created": created},
         )
 
     def log_delete(
@@ -86,7 +88,7 @@ class SecretsAudit:
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
-        recovery_window_days: int = 7
+        recovery_window_days: int = 7,
     ):
         """Log secret deletion."""
         self.log_action(
@@ -94,21 +96,18 @@ class SecretsAudit:
             secret_name=secret_name,
             user_id=user_id,
             ip_address=ip_address,
-            metadata={"recovery_window_days": recovery_window_days}
+            metadata={"recovery_window_days": recovery_window_days},
         )
 
     def log_rotate(
-        self,
-        secret_name: str,
-        user_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None
     ):
         """Log secret rotation."""
         self.log_action(
             action=AuditAction.ROTATE,
             secret_name=secret_name,
             user_id=user_id,
-            ip_address=ip_address
+            ip_address=ip_address,
         )
 
     def log_error(
@@ -117,7 +116,7 @@ class SecretsAudit:
         secret_name: str,
         error: str,
         user_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ):
         """Log failed secrets operation."""
         self.log_action(
@@ -126,7 +125,7 @@ class SecretsAudit:
             user_id=user_id,
             ip_address=ip_address,
             status="error",
-            error=error
+            error=error,
         )
 
 

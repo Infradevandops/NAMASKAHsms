@@ -1,4 +1,5 @@
 """Multi - factor authentication service."""
+
 import pyotp
 import qrcode
 from io import BytesIO
@@ -15,8 +16,7 @@ class MFAService:
     def generate_qr_code(user_email: str, secret: str) -> str:
         """Generate QR code for MFA setup."""
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-            name=user_email,
-            issuer_name="Namaskah SMS"
+            name=user_email, issuer_name="Namaskah SMS"
         )
 
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
@@ -25,7 +25,7 @@ class MFAService:
 
         img = qr.make_image(fill_color="black", back_color="white")
         buffer = BytesIO()
-        img.save(buffer, format='PNG')
+        img.save(buffer, format="PNG")
 
         return base64.b64encode(buffer.getvalue()).decode()
 

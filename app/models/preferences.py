@@ -1,4 +1,5 @@
 """User preferences model."""
+
 from sqlalchemy import Column, String, JSON
 
 from app.models.base import BaseModel

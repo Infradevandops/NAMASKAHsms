@@ -1,4 +1,5 @@
 """Email service for sending payment notifications."""
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -30,17 +31,13 @@ class EmailService:
         else:
             logger.warning("Email service not configured")
 
-    async def send_payment_receipt(
-        self,
-        user_email: str,
-        payment_details: Dict[str, Any]
-    ) -> bool:
+    async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
         """Send payment receipt email.
-        
+
         Args:
             user_email: Recipient email address
             payment_details: Payment details dictionary
-            
+
         Returns:
             True if email sent successfully, False otherwise
         """
@@ -50,35 +47,29 @@ class EmailService:
 
         try:
             subject = "Payment Receipt - Namaskah SMS"
-            
+
             # Create HTML email body
             html_body = self._create_receipt_html(payment_details)
-            
+
             # Send email
-            await self._send_email(
-                to_email=user_email,
-                subject=subject,
-                html_body=html_body
-            )
-            
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+
             logger.info(f"Payment receipt sent to {user_email}")
             return True
-        
+
         except Exception as e:
             logger.error(f"Failed to send payment receipt: {str(e)}")
             return False
 
     async def send_payment_failed_alert(
-        self,
-        user_email: str,
-        payment_details: Dict[str, Any]
+        self, user_email: str, payment_details: Dict[str, Any]
     ) -> bool:
         """Send payment failed alert email.
-        
+
         Args:
             user_email: Recipient email address
             payment_details: Payment details dictionary
-            
+
         Returns:
             True if email sent successfully, False otherwise
         """
@@ -88,35 +79,29 @@ class EmailService:
 
         try:
             subject = "Payment Failed - Namaskah SMS"
-            
+
             # Create HTML email body
             html_body = self._create_failed_alert_html(payment_details)
-            
+
             # Send email
-            await self._send_email(
-                to_email=user_email,
-                subject=subject,
-                html_body=html_body
-            )
-            
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+
             logger.info(f"Payment failed alert sent to {user_email}")
             return True
-        
+
         except Exception as e:
             logger.error(f"Failed to send payment failed alert: {str(e)}")
             return False
 
     async def send_refund_notification(
-        self,
-        user_email: str,
-        refund_details: Dict[str, Any]
+        self, user_email: str, refund_details: Dict[str, Any]
     ) -> bool:
         """Send refund notification email.
-        
+
         Args:
             user_email: Recipient email address
             refund_details: Refund details dictionary
-            
+
         Returns:
             True if email sent successfully, False otherwise
         """
@@ -126,37 +111,28 @@ class EmailService:
 
         try:
             subject = "Refund Processed - Namaskah SMS"
-            
+
             # Create HTML email body
             html_body = self._create_refund_html(refund_details)
-            
+
             # Send email
-            await self._send_email(
-                to_email=user_email,
-                subject=subject,
-                html_body=html_body
-            )
-            
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+
             logger.info(f"Refund notification sent to {user_email}")
             return True
-        
+
         except Exception as e:
             logger.error(f"Failed to send refund notification: {str(e)}")
             return False
 
-    async def _send_email(
-        self,
-        to_email: str,
-        subject: str,
-        html_body: str
-    ) -> bool:
+    async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         """Send email via SMTP.
-        
+
         Args:
             to_email: Recipient email address
             subject: Email subject
             html_body: HTML email body
-            
+
         Returns:
             True if email sent successfully, False otherwise
         """
@@ -166,29 +142,24 @@ class EmailService:
             message["Subject"] = subject
             message["From"] = self.from_email
             message["To"] = to_email
-            
+
             # Attach HTML body
             html_part = MIMEText(html_body, "html")
             message.attach(html_part)
-            
+
             # Send email asynchronously
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None,
-                self._send_smtp,
-                to_email,
-                message.as_string()
-            )
-            
+            await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
+
             return True
-        
+
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
 
     def _send_smtp(self, to_email: str, message: str) -> None:
         """Send email via SMTP (blocking operation).
-        
+
         Args:
             to_email: Recipient email address
             message: Email message
@@ -204,10 +175,10 @@ class EmailService:
 
     def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
         """Create HTML for payment receipt email.
-        
+
         Args:
             payment_details: Payment details dictionary
-            
+
         Returns:
             HTML email body
         """
@@ -264,10 +235,10 @@ class EmailService:
 
     def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
         """Create HTML for payment failed alert email.
-        
+
         Args:
             payment_details: Payment details dictionary
-            
+
         Returns:
             HTML email body
         """
@@ -325,10 +296,10 @@ class EmailService:
 
     def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
         """Create HTML for refund notification email.
-        
+
         Args:
             refund_details: Refund details dictionary
-            
+
         Returns:
             HTML email body
         """

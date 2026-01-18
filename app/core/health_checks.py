@@ -1,4 +1,5 @@
 """Health check utilities for system monitoring."""
+
 from typing import Any, Dict
 
 from sqlalchemy import text

@@ -1,4 +1,5 @@
 """Affiliate program models."""
+
 from sqlalchemy import Column, String, Float, Boolean, JSON, Text, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel

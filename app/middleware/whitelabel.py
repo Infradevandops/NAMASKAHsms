@@ -1,4 +1,5 @@
 """White - label middleware for dynamic branding."""
+
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.services.whitelabel_service import whitelabel_service
@@ -24,8 +25,7 @@ class WhiteLabelMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add custom headers if white - labeled
-        if hasattr(request.state, 'whitelabel_config') and \
-                request.state.whitelabel_config:
+        if hasattr(request.state, "whitelabel_config") and request.state.whitelabel_config:
             response.headers["X - Whitelabel"] = "true"
             response.headers["X - Brand"] = request.state.whitelabel_config.get("company_name", "")
 

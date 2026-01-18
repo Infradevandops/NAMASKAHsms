@@ -29,15 +29,15 @@
 }
 
 .pricing-card:hover {
-    border-color: var(--primary, #2563eb);
-    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.15);
+    border-color: var(--primary, #FE3C72);
+    box-shadow: 0 8px 24px rgba(254, 60, 114, 0.15);
     transform: translateY(-4px);
 }
 
 .pricing-card-pro,
 .pricing-card-custom {
-    border-color: var(--primary, #2563eb);
-    background: linear-gradient(135deg, var(--primary-light, #dbeafe) 0%, var(--bg-card, #ffffff) 100%);
+    border-color: var(--primary, #FE3C72);
+    background: linear-gradient(135deg, var(--primary-light, #FFF0F3) 0%, var(--bg-card, #ffffff) 100%);
 }
 
 .pricing-header {
@@ -63,7 +63,7 @@
 .price-value {
     font-size: 32px;
     font-weight: 700;
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
 }
 
 .price-period {
@@ -111,7 +111,7 @@
 }
 
 .feature-icon {
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
     font-weight: bold;
     flex-shrink: 0;
     margin-top: 2px;
@@ -123,7 +123,7 @@
 
 .pricing-button {
     padding: 12px 24px;
-    background: var(--primary, #2563eb);
+    background: var(--primary, #FE3C72);
     color: white;
     border: none;
     border-radius: 8px;
@@ -135,7 +135,7 @@
 }
 
 .pricing-button:hover {
-    background: var(--primary-dark, #1d4ed8);
+    background: var(--primary-dark, #E0245E);
     transform: scale(1.02);
 }
 
@@ -183,14 +183,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-top: 2px solid var(--primary, #2563eb);
+    border-top: 2px solid var(--primary, #FE3C72);
     margin-top: 8px;
     font-size: 16px;
     font-weight: 700;
 }
 
 .breakdown-total .breakdown-value.total {
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
     font-size: 18px;
 }
 
@@ -248,7 +248,7 @@
 
     .pricing-card-pro,
     .pricing-card-custom {
-        background: linear-gradient(135deg, rgba(37, 99, 235, 0.1) 0%, var(--bg-card, #1f2937) 100%);
+        background: linear-gradient(135deg, rgba(254, 60, 114, 0.1) 0%, var(--bg-card, #1f2937) 100%);
     }
 
     .pricing-quota {

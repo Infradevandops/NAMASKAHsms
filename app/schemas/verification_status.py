@@ -1,4 +1,5 @@
 """Verification status response schemas for enterprise-grade API."""
+
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any
 from datetime import datetime
@@ -7,6 +8,7 @@ from enum import Enum
 
 class VerificationStatus(str, Enum):
     """Verification status enumeration."""
+
     PENDING = "pending"
     PROCESSING = "processing"
     COMPLETED = "completed"
@@ -17,35 +19,35 @@ class VerificationStatus(str, Enum):
 
 class VerificationStatusResponse(BaseModel):
     """Enterprise-grade verification status response."""
-    
+
     # Core fields
     verification_id: str = Field(..., description="Unique verification ID")
     status: VerificationStatus = Field(..., description="Current verification status")
     phone_number: str = Field(..., description="Phone number for verification")
-    
+
     # SMS details
     sms_code: Optional[str] = Field(None, description="SMS verification code (if received)")
     sms_text: Optional[str] = Field(None, description="Full SMS message text")
     sms_received_at: Optional[datetime] = Field(None, description="Timestamp when SMS was received")
-    
+
     # Service details
     service: str = Field(..., description="Service name")
     country: str = Field(..., description="Country code")
     cost: float = Field(..., description="Cost in USD")
-    
+
     # Timestamps
     created_at: datetime = Field(..., description="Verification creation timestamp")
     completed_at: Optional[datetime] = Field(None, description="Verification completion timestamp")
     expires_at: Optional[datetime] = Field(None, description="Verification expiration timestamp")
-    
+
     # Metadata
     activation_id: Optional[str] = Field(None, description="Provider activation ID")
     provider: str = Field("textverified", description="SMS provider name")
-    
+
     # Additional info
     retry_count: int = Field(0, description="Number of retry attempts")
     error_message: Optional[str] = Field(None, description="Error message if failed")
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -64,7 +66,7 @@ class VerificationStatusResponse(BaseModel):
                 "activation_id": "tv_12345",
                 "provider": "textverified",
                 "retry_count": 0,
-                "error_message": None
+                "error_message": None,
             }
         }
     }
@@ -72,7 +74,7 @@ class VerificationStatusResponse(BaseModel):
 
 class VerificationRequestResponse(BaseModel):
     """Response after creating verification request."""
-    
+
     success: bool = Field(..., description="Whether request was successful")
     verification_id: str = Field(..., description="Unique verification ID")
     phone_number: str = Field(..., description="Phone number for verification")
@@ -82,7 +84,7 @@ class VerificationRequestResponse(BaseModel):
     status: str = Field(..., description="Initial status")
     activation_id: str = Field(..., description="Provider activation ID")
     message: Optional[str] = Field(None, description="Additional message")
-    
+
     model_config = {
         "json_schema_extra": {
             "example": {
@@ -94,7 +96,7 @@ class VerificationRequestResponse(BaseModel):
                 "cost": 2.00,
                 "status": "pending",
                 "activation_id": "tv_12345",
-                "message": "Verification created successfully. SMS will arrive within 30 seconds."
+                "message": "Verification created successfully. SMS will arrive within 30 seconds.",
             }
         }
     }

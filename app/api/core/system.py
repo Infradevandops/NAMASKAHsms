@@ -1,4 +1,5 @@
 """System API router for health checks and service status."""
+
 from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import APIRouter, Depends, Request
@@ -14,11 +15,13 @@ from app.core.config import settings
 router = APIRouter(prefix="/system", tags=["System"])
 root_router = APIRouter()
 
+
 class ServiceStatus(BaseModel):
     service_name: str
     status: str
     success_rate: float
     last_checked: datetime
+
 
 class ServiceStatusSummary(BaseModel):
     overall_status: str
@@ -26,11 +29,14 @@ class ServiceStatusSummary(BaseModel):
     stats: dict
     last_updated: datetime
 
+
 def check_system_health(db):
     return {"database": "connected"}
 
+
 def check_database_health(db):
     return {"status": "healthy"}
+
 
 @router.get("/health")
 async def health_check(db: Session = Depends(get_db)):
@@ -42,15 +48,18 @@ async def health_check(db: Session = Depends(get_db)):
         "environment": settings.environment,
     }
 
+
 @router.get("/health/readiness")
 async def readiness_check(db: Session = Depends(get_db)):
     """Kubernetes readiness probe."""
     return JSONResponse(status_code=200, content={"ready": True})
 
+
 @router.get("/health/liveness")
 async def liveness_check():
     """Kubernetes liveness probe."""
     return JSONResponse(status_code=200, content={"alive": True})
+
 
 @router.get("/status", response_model=ServiceStatusSummary)
 def get_service_status(db: Session = Depends(get_db)):
@@ -62,6 +71,7 @@ def get_service_status(db: Session = Depends(get_db)):
         last_updated=datetime.now(timezone.utc),
     )
 
+
 @router.get("/info")
 def get_system_info():
     """Get system information."""
@@ -71,6 +81,7 @@ def get_system_info():
         "environment": settings.environment,
     }
 
+
 @router.get("/config")
 def get_public_config():
     """Get public configuration."""
@@ -79,5 +90,3 @@ def get_public_config():
         "payment_methods": ["paystack"],
         "currencies": ["NGN"],
     }
-
-

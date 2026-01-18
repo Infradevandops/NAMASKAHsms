@@ -1,4 +1,5 @@
 """Support API router for customer support and help desk functionality."""
+
 from app.core.logging import get_logger
 from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
@@ -221,10 +222,9 @@ async def get_faq():
                 "category": "Technical",
                 "question": "Which services are supported?",
                 "answer": (
-                    "We support 1,800+ services including Telegram, WhatsApp, and more."
-                    Google, Facebook, and more."
-                    "Instagram, Discord, Twitter, and \
-    many more. Service availability may vary by country."
+                    "We support 1,800+ services including Telegram, WhatsApp, "
+                    "Google, Facebook, Instagram, Discord, Twitter, and "
+                    "many more. Service availability may vary by country."
                 ),
                 "helpful_count": 41,
             },
@@ -335,6 +335,7 @@ async def get_support_status():
         logger.error("Failed to get support status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support status")
 
+
 # Admin endpoints for support management
 
 
@@ -408,9 +409,7 @@ async def get_support_stats(
     """Get support statistics (admin only)."""
     try:
         total_tickets = db.query(SupportTicket).count()
-        open_tickets = (
-            db.query(SupportTicket).filter(SupportTicket.status == "open").count()
-        )
+        open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
         resolved_tickets = (
             db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
         )
@@ -425,9 +424,7 @@ async def get_support_stats(
             "closed_tickets": total_tickets - open_tickets - resolved_tickets,
             "avg_response_time": avg_response_time,
             "resolution_rate": (
-                round((resolved_tickets / total_tickets * 100), 1)
-                if total_tickets > 0
-                else 0
+                round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0
             ),
         }
 

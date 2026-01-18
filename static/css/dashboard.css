@@ -15,10 +15,10 @@
 }
 
 :root {
-    --primary: #667eea;
-    --primary-dark: #5568d3;
-    --primary-light: #f0f4ff;
-    --success: #10b981;
+    --primary: #FE3C72;
+    --primary-dark: #E0245E;
+    --primary-light: #FFF0F3;
+    --success: #01DF8A;
     --warning: #f59e0b;
     --error: #ef4444;
     --gray-50: #f9fafb;
@@ -31,7 +31,13 @@
     --gray-700: #374151;
     --gray-800: #1f2937;
     --gray-900: #111827;
-    --sidebar-bg: #1a1a2e;
+    --sidebar-bg: #FFFFFF;
+    --sidebar-text: #21262D;
+    --sidebar-text-muted: #656E77;
+    --sidebar-hover: #FFF5F7;
+    --sidebar-active: #FE3C72;
+    --sidebar-active-bg: #FFF0F3;
+    --sidebar-border: #F0F0F0;
     --sidebar-width: 250px;
     --sidebar-collapsed: 70px;
     --header-height: 64px;
@@ -60,13 +66,15 @@ body {
 .sidebar {
     width: var(--sidebar-width);
     background: var(--sidebar-bg);
-    color: white;
+    color: var(--sidebar-text);
     display: flex;
     flex-direction: column;
     position: fixed;
     height: 100vh;
     z-index: 100;
     transition: width var(--transition);
+    border-right: 1px solid var(--sidebar-border);
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04);
 }
 
 .sidebar.collapsed {
@@ -79,18 +87,19 @@ body {
 }
 
 .sidebar-header {
-    padding: 16px 20px;
+    padding: 20px 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid var(--sidebar-border);
     min-height: 64px;
     gap: 12px;
 }
 
 .sidebar-header h2 {
-    font-size: 18px;
+    font-size: 20px;
     font-weight: 700;
+    color: var(--primary);
     white-space: nowrap;
     flex: 1;
 }
@@ -141,13 +150,14 @@ body {
     display: flex;
     align-items: center;
     padding: 12px 20px;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--sidebar-text-muted);
     text-decoration: none;
     gap: 12px;
     font-size: 14px;
     font-weight: 500;
     transition: all var(--transition);
-    border-left: 3px solid transparent;
+    border-radius: 12px;
+    margin: 4px 12px;
 }
 
 .sidebar.collapsed .nav-item {
@@ -157,14 +167,14 @@ body {
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
+    background: var(--sidebar-hover);
+    color: var(--primary);
 }
 
 .nav-item.active {
-    background: rgba(102, 126, 234, 0.2);
-    color: white;
-    border-left-color: var(--primary);
+    background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%);
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3);
 }
 
 .nav-item i {
@@ -255,13 +265,14 @@ body {
 }
 
 .balance-display {
-    background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, #FF6B9D 100%);
     color: white;
     padding: 8px 16px;
     border-radius: var(--radius);
     font-size: 14px;
     font-weight: 600;
     white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(254, 60, 114, 0.3);
 }
 
 /* User Menu */
@@ -468,12 +479,13 @@ body {
 
 /* ==================== Wallet ==================== */
 .wallet-balance-box {
-    background: linear-gradient(135deg, var(--primary) 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--primary) 0%, #FF6B9D 100%);
     color: white;
     padding: 32px;
     border-radius: var(--radius-lg);
     text-align: center;
     margin-bottom: 20px;
+    box-shadow: 0 8px 24px rgba(254, 60, 114, 0.3);
 }
 
 .wallet-balance-box .balance-label {
@@ -541,8 +553,8 @@ body {
 }
 
 .status-active {
-    background: #dbeafe;
-    color: #1e40af;
+    background: #FFF0F3;
+    color: #E0245E;
 }
 
 .transaction-amount {
@@ -625,12 +637,15 @@ body {
 }
 
 .btn-primary {
-    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, #FF6B9D 100%);
     color: white;
+    box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--primary-dark);
+    background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(254, 60, 114, 0.4);
 }
 
 .btn-secondary {
@@ -641,6 +656,8 @@ body {
 
 .btn-secondary:hover:not(:disabled) {
     background: var(--primary-light);
+    border-color: var(--primary-dark);
+    color: var(--primary-dark);
 }
 
 .btn-sm {

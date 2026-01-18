@@ -1,4 +1,5 @@
 """Comprehensive error handling and retry logic."""
+
 import asyncio
 import httpx
 from typing import Callable, Any, Optional, TypeVar
@@ -27,7 +28,7 @@ class RetryConfig:
 
     def get_delay(self, attempt: int) -> float:
         """Calculate delay with exponential backoff."""
-        delay = self.initial_delay * (self.exponential_base ** attempt)
+        delay = self.initial_delay * (self.exponential_base**attempt)
         return min(delay, self.max_delay)
 
 

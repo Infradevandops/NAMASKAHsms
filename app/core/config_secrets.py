@@ -1,4 +1,5 @@
 """Configuration loader with AWS Secrets Manager integration."""
+
 from typing import Optional, Dict, Any
 from app.core.config import Settings
 import logging
@@ -20,7 +21,7 @@ class ConfigWithSecrets:
         secret_name: str,
         key: Optional[str] = None,
         user_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ) -> Optional[Any]:
         """Get secret from AWS Secrets Manager with audit logging."""
         if not self.use_secrets_manager or not self.secrets_manager:
@@ -36,7 +37,7 @@ class ConfigWithSecrets:
                     secret_name=secret_name,
                     error="Secret not found",
                     user_id=user_id,
-                    ip_address=ip_address
+                    ip_address=ip_address,
                 )
                 return None
 
@@ -47,11 +48,7 @@ class ConfigWithSecrets:
                 result = secret_value
 
             # Log successful retrieval
-            self.audit.log_get(
-                secret_name=secret_name,
-                user_id=user_id,
-                ip_address=ip_address
-            )
+            self.audit.log_get(secret_name=secret_name, user_id=user_id, ip_address=ip_address)
 
             return result
 
@@ -61,7 +58,7 @@ class ConfigWithSecrets:
                 secret_name=secret_name,
                 error=str(e),
                 user_id=user_id,
-                ip_address=ip_address
+                ip_address=ip_address,
             )
             logger.error(f"Failed to get secret {secret_name}: {e}")
             return None
@@ -74,7 +71,7 @@ class ConfigWithSecrets:
             "textverified": ["api_key", "email"],
             "fivesim": ["api_key", "email"],
             "sms_activate": ["api_key"],
-            "getsms": ["api_key"]
+            "getsms": ["api_key"],
         }
 
         for provider_name, keys in provider_configs.items():
@@ -92,7 +89,7 @@ class ConfigWithSecrets:
 
         payment_providers = {
             "paystack": ["public_key", "secret_key"],
-            "stripe": ["public_key", "secret_key"]
+            "stripe": ["public_key", "secret_key"],
         }
 
         for provider_name, keys in payment_providers.items():
@@ -110,7 +107,7 @@ class ConfigWithSecrets:
 
         oauth_providers = {
             "google": ["client_id", "client_secret"],
-            "github": ["client_id", "client_secret"]
+            "github": ["client_id", "client_secret"],
         }
 
         for provider_name, keys in oauth_providers.items():
@@ -127,7 +124,7 @@ class ConfigWithSecrets:
         secret_name: str,
         secret_value: Dict[str, Any],
         user_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ) -> bool:
         """Update secret in AWS Secrets Manager."""
         if not self.use_secrets_manager or not self.secrets_manager:
@@ -138,18 +135,14 @@ class ConfigWithSecrets:
             success = self.secrets_manager.set_secret(secret_name, secret_value)
 
             if success:
-                self.audit.log_set(
-                    secret_name=secret_name,
-                    user_id=user_id,
-                    ip_address=ip_address
-                )
+                self.audit.log_set(secret_name=secret_name, user_id=user_id, ip_address=ip_address)
             else:
                 self.audit.log_error(
                     action="set",
                     secret_name=secret_name,
                     error="Failed to update secret",
                     user_id=user_id,
-                    ip_address=ip_address
+                    ip_address=ip_address,
                 )
 
             return success
@@ -160,7 +153,7 @@ class ConfigWithSecrets:
                 secret_name=secret_name,
                 error=str(e),
                 user_id=user_id,
-                ip_address=ip_address
+                ip_address=ip_address,
             )
             logger.error(f"Failed to update secret {secret_name}: {e}")
             return False
@@ -170,7 +163,7 @@ class ConfigWithSecrets:
         secret_name: str,
         new_secret_value: Dict[str, Any],
         user_id: Optional[str] = None,
-        ip_address: Optional[str] = None
+        ip_address: Optional[str] = None,
     ) -> bool:
         """Rotate secret."""
         if not self.use_secrets_manager or not self.secrets_manager:
@@ -182,9 +175,7 @@ class ConfigWithSecrets:
 
             if success:
                 self.audit.log_rotate(
-                    secret_name=secret_name,
-                    user_id=user_id,
-                    ip_address=ip_address
+                    secret_name=secret_name, user_id=user_id, ip_address=ip_address
                 )
             else:
                 self.audit.log_error(
@@ -192,7 +183,7 @@ class ConfigWithSecrets:
                     secret_name=secret_name,
                     error="Failed to rotate secret",
                     user_id=user_id,
-                    ip_address=ip_address
+                    ip_address=ip_address,
                 )
 
             return success
@@ -203,7 +194,7 @@ class ConfigWithSecrets:
                 secret_name=secret_name,
                 error=str(e),
                 user_id=user_id,
-                ip_address=ip_address
+                ip_address=ip_address,
             )
             logger.error(f"Failed to rotate secret {secret_name}: {e}")
             return False

@@ -1,4 +1,5 @@
 """CDN and static asset management service."""
+
 from typing import Dict
 
 
@@ -9,7 +10,7 @@ class CDNService:
         self.cdn_endpoints = {
             "cloudflare": "https://cdn.namaskah.app",
             "aws_cloudfront": "https://d1234567890.cloudfront.net",
-            "fastly": "https://namaskah.global.ssl.fastly.net"
+            "fastly": "https://namaskah.global.ssl.fastly.net",
         }
         self.primary_cdn = "cloudflare"
 
@@ -23,7 +24,7 @@ class CDNService:
                 "us - east": "us",
                 "us - west": "us",
                 "eu - west": "eu",
-                "asia - pacific": "ap"
+                "asia - pacific": "ap",
             }.get(region, "global")
 
             return f"{base_url}/{region_prefix}/{asset_path}"
@@ -35,13 +36,12 @@ class CDNService:
         return {
             "primary_endpoint": self.cdn_endpoints[self.primary_cdn],
             "fallback_endpoints": [
-                url for key, url in self.cdn_endpoints.items()
-                if key != self.primary_cdn
+                url for key, url in self.cdn_endpoints.items() if key != self.primary_cdn
             ],
             "cache_headers": {
                 "Cache - Control": "public, max - age = 31536000",
-                "CDN - Cache-Control": "max - age = 31536000"
-            }
+                "CDN - Cache-Control": "max - age = 31536000",
+            },
         }
 
 

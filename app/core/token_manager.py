@@ -1,4 +1,5 @@
 """Token management with refresh tokens and HttpOnly cookies - Task 1.2."""
+
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 import secrets
@@ -18,7 +19,7 @@ def create_tokens(user_id: str, email: str) -> Dict[str, str]:
         "access_token": access_token,
         "refresh_token": refresh_token,
         "token_type": "bearer",
-        "expires_in": 86400  # 24 hours in seconds
+        "expires_in": 86400,  # 24 hours in seconds
     }
 
 

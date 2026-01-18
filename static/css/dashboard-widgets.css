@@ -44,7 +44,7 @@
 
 .widget-action {
     padding: 10px 16px;
-    background: var(--primary, #2563eb);
+    background: var(--primary, #FE3C72);
     color: white;
     border: none;
     border-radius: 8px;
@@ -56,7 +56,7 @@
 }
 
 .widget-action:hover {
-    background: var(--primary-dark, #1d4ed8);
+    background: var(--primary-dark, #E0245E);
     transform: translateX(2px);
 }
 
@@ -65,7 +65,7 @@
 .widget-balance .balance-amount {
     font-size: 32px;
     font-weight: 700;
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
 }
 
 .balance-meta {
@@ -97,7 +97,7 @@
 
 .quota-progress {
     height: 100%;
-    background: linear-gradient(90deg, #10b981, #3b82f6);
+    background: linear-gradient(90deg, #01DF8A, #FE3C72);
     border-radius: 4px;
     transition: width 0.3s ease;
 }
@@ -139,8 +139,8 @@
 .tier-badge {
     display: inline-block;
     padding: 8px 16px;
-    background: var(--primary-light, #dbeafe);
-    color: var(--primary, #2563eb);
+    background: var(--primary-light, #FFF0F3);
+    color: var(--primary, #FE3C72);
     border-radius: 20px;
     font-size: 13px;
     font-weight: 600;
@@ -149,13 +149,13 @@
 }
 
 .tier-badge.tier-pro {
-    background: linear-gradient(135deg, #dbeafe, #fef3c7);
-    color: #1d4ed8;
+    background: linear-gradient(135deg, #FFF0F3, #fef3c7);
+    color: #E0245E;
 }
 
 .tier-badge.tier-custom {
-    background: linear-gradient(135deg, #dbeafe, #fce7f3);
-    color: #1d4ed8;
+    background: linear-gradient(135deg, #FFF0F3, #fce7f3);
+    color: #E0245E;
 }
 
 .tier-features {
@@ -179,7 +179,7 @@
 
 .tier-features li:before {
     content: '✓';
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
     font-weight: bold;
 }
 
@@ -194,7 +194,7 @@
 .bonus-value {
     font-size: 32px;
     font-weight: 700;
-    color: var(--primary, #2563eb);
+    color: var(--primary, #FE3C72);
 }
 
 .bonus-unit {
@@ -292,8 +292,8 @@
     }
 
     .tier-badge {
-        background: rgba(37, 99, 235, 0.2);
-        color: #60a5fa;
+        background: rgba(254, 60, 114, 0.2);
+        color: #FF6B9D;
     }
 }
 

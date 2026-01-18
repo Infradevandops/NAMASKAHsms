@@ -6,7 +6,7 @@
 
 :root {
     --trust-navy: #0A1628;
-    --trust-blue: #1E40AF;
+    --trust-primary: #FE3C72;
     --trust-gray: #64748B;
     --trust-light: #F8FAFC;
     --trust-white: #FFFFFF;
@@ -81,9 +81,9 @@ body {
 }
 
 .btn-export {
-    background: var(--trust-blue);
+    background: var(--trust-primary);
     color: var(--trust-white);
-    border-color: var(--trust-blue);
+    border-color: var(--trust-primary);
 }
 
 .btn-rollback {
@@ -362,7 +362,7 @@ input:checked + .slider:before {
 
 .search-input:focus {
     outline: none;
-    border-color: var(--trust-blue);
+    border-color: var(--trust-primary);
 }
 
 /* Footer */
@@ -420,7 +420,7 @@ input:checked + .slider:before {
 }
 
 .toast-info {
-    border-left: 3px solid var(--trust-blue);
+    border-left: 3px solid var(--trust-primary);
 }
 
 .loading, .error, .empty {

@@ -1,4 +1,5 @@
 """OpenAPI/Swagger documentation configuration."""
+
 from fastapi.openapi.utils import get_openapi
 
 
@@ -20,50 +21,29 @@ def get_openapi_schema(app: FastAPI) -> dict:
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "JWT Bearer token for authentication"
+            "description": "JWT Bearer token for authentication",
         },
         "apiKey": {
             "type": "apiKey",
             "in": "header",
             "name": "X - API-Key",
-            "description": "API Key for service - to-service authentication"
-        }
+            "description": "API Key for service - to-service authentication",
+        },
     }
 
     # Add tags
     openapi_schema["tags"] = [
-        {
-            "name": "Verification",
-            "description": "SMS verification operations"
-        },
-        {
-            "name": "Rentals",
-            "description": "Phone number rental operations"
-        },
-        {
-            "name": "Wallet",
-            "description": "User wallet and balance operations"
-        },
-        {
-            "name": "Analytics",
-            "description": "Analytics and reporting"
-        },
-        {
-            "name": "Admin",
-            "description": "Administrative operations"
-        }
+        {"name": "Verification", "description": "SMS verification operations"},
+        {"name": "Rentals", "description": "Phone number rental operations"},
+        {"name": "Wallet", "description": "User wallet and balance operations"},
+        {"name": "Analytics", "description": "Analytics and reporting"},
+        {"name": "Admin", "description": "Administrative operations"},
     ]
 
     # Add servers
     openapi_schema["servers"] = [
-        {
-            "url": "http://localhost:8000",
-            "description": "Development server"
-        },
-        {
-            "url": "https://api.namaskah.app",
-            "description": "Production server"
-        }
+        {"url": "http://localhost:8000", "description": "Development server"},
+        {"url": "https://api.namaskah.app", "description": "Production server"},
     ]
 
     app.openapi_schema = openapi_schema

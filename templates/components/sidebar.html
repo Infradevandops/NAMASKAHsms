@@ -6,26 +6,26 @@
         </button>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
-        <a href="/dashboard" class="nav-item" data-page="dashboard" aria-current="false">
+        <a href="/dashboard" class="nav-item" data-page="dashboard" data-tooltip="Dashboard" aria-current="false">
             <span aria-hidden="true">📊</span> <span data-i18n="common.dashboard">Dashboard</span>
         </a>
-        <a href="/verify" class="nav-item" data-page="verify">
+        <a href="/verify" class="nav-item" data-page="verify" data-tooltip="SMS Verification">
             <span aria-hidden="true">📱</span> <span data-i18n="verify.title">SMS Verification</span>
         </a>
-        <a href="/wallet" class="nav-item" data-page="wallet">
+        <a href="/wallet" class="nav-item" data-page="wallet" data-tooltip="Wallet">
             <span aria-hidden="true">💰</span> <span data-i18n="common.wallet">Wallet</span>
         </a>
-        <a href="/history" class="nav-item" data-page="history">
+        <a href="/history" class="nav-item" data-page="history" data-tooltip="History">
             <span aria-hidden="true">📜</span> <span data-i18n="wallet.transaction_history">History</span>
         </a>
-        <a href="/analytics" class="nav-item" data-page="analytics">
+        <a href="/analytics" class="nav-item" data-page="analytics" data-tooltip="Analytics">
             <span aria-hidden="true">📈</span> <span data-i18n="analytics.title">Analytics</span>
         </a>
-        <a href="/notifications" class="nav-item" data-page="notifications">
+        <a href="/notifications" class="nav-item" data-page="notifications" data-tooltip="Notifications">
             <span aria-hidden="true">🔔</span> <span data-i18n="notifications.title">Notifications</span>
             <span id="sidebar-notif-badge" class="notif-badge" style="display: none;">0</span>
         </a>
-        <a href="/settings" class="nav-item" data-page="settings">
+        <a href="/settings" class="nav-item" data-page="settings" data-tooltip="Settings">
             <span aria-hidden="true">⚙️</span> <span data-i18n="common.settings">Settings</span>
         </a>
 
@@ -33,19 +33,19 @@
         <div class="nav-divider tier-gated-section" style="display: none;" role="separator"></div>
         <div class="nav-section-title tier-gated-section" style="display: none;" role="heading" aria-level="2">PREMIUM</div>
         
-        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys" style="display: none;" aria-label="API Keys - Premium feature">
+        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys" data-tooltip="API Keys (Premium)" style="display: none;" aria-label="API Keys - Premium feature">
             <span aria-hidden="true">🔑</span> <span>API Keys</span>
         </a>
-        <a href="/affiliate" class="nav-item tier-gated" data-min-tier="payg" data-page="affiliate" style="display: none;" aria-label="Affiliate Program - Premium feature">
+        <a href="/affiliate" class="nav-item tier-gated" data-min-tier="payg" data-page="affiliate" data-tooltip="Affiliate Program (Premium)" style="display: none;" aria-label="Affiliate Program - Premium feature">
             <span aria-hidden="true">🤝</span> <span>Affiliate Program</span>
         </a>
-        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs" style="display: none;" aria-label="API Documentation - Premium feature">
+        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs" data-tooltip="API Documentation (Premium)" style="display: none;" aria-label="API Documentation - Premium feature">
             <span aria-hidden="true">📚</span> <span>API Docs</span>
         </a>
-        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify" style="display: none;" aria-label="Voice Verification - Premium feature">
+        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify" data-tooltip="Voice Verification (Premium)" style="display: none;" aria-label="Voice Verification - Premium feature">
             <span aria-hidden="true">📞</span> <span>Voice Verify</span>
         </a>
-        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase" style="display: none;" aria-label="Bulk Purchase - Pro feature">
+        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase" data-tooltip="Bulk Purchase (Pro)" style="display: none;" aria-label="Bulk Purchase - Pro feature">
             <span aria-hidden="true">📦</span> <span>Bulk Purchase</span>
         </a>
 
@@ -71,41 +71,127 @@
             <option value="ar">🇸🇦 العربية</option>
             <option value="hi">🇮🇳 हिन्दी</option>
         </select>
-        <a href="/privacy-settings" class="nav-item" data-page="privacy-settings" aria-label="Privacy and data settings">
+        <a href="/privacy-settings" class="nav-item" data-page="privacy-settings" data-tooltip="Privacy Settings" aria-label="Privacy and data settings">
             <span aria-hidden="true">🔒</span> <span data-i18n="privacy.title">Privacy</span>
         </a>
-        <a href="#" class="nav-item" onclick="logout(); return false;" role="button" aria-label="Log out of your account">
+        <a href="#" class="nav-item" data-tooltip="Logout" onclick="logout(); return false;" role="button" aria-label="Log out of your account">
             <span aria-hidden="true">🚪</span> <span data-i18n="common.logout">Logout</span>
         </a>
     </div>
 </aside>
 
 <style>
+    /* Improved icon visibility */
+    .nav-item span[aria-hidden="true"] {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        background: #F9FAFB !important;
+        border-radius: 10px;
+        font-size: 20px;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .nav-item:hover span[aria-hidden="true"] {
+        background: #FFE5EC !important;
+        transform: scale(1.05);
+    }
+
+    .nav-item.active span[aria-hidden="true"] {
+        background: rgba(255, 255, 255, 0.2) !important;
+        filter: brightness(0) invert(1) !important;
+    }
+
+    /* Collapsed sidebar improvements */
+    .sidebar.collapsed .nav-item {
+        padding: 16px 0;
+        justify-content: center;
+    }
+
+    .sidebar.collapsed .nav-item span[aria-hidden="true"] {
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+
+    /* Active indicator for collapsed state */
+    .sidebar.collapsed .nav-item.active::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 40px;
+        background: var(--primary);
+        border-radius: 0 4px 4px 0;
+    }
+
+    /* Tooltip styles for collapsed sidebar */
+    .nav-item {
+        position: relative;
+    }
+
+    .sidebar.collapsed .nav-item:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 12px;
+        padding: 8px 12px;
+        background: var(--gray-900, #1f2937);
+        color: white;
+        border-radius: 6px;
+        font-size: 13px;
+        white-space: nowrap;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        pointer-events: none;
+    }
+
+    .sidebar.collapsed .nav-item:hover::before {
+        content: '';
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        margin-left: 6px;
+        border: 6px solid transparent;
+        border-right-color: var(--gray-900, #1f2937);
+        pointer-events: none;
+    }
+
     .sidebar {
         width: var(--sidebar-width);
-        background: var(--bg-sidebar);
+        background: #FFFFFF !important;
+        color: #21262D !important;
         position: fixed;
         height: 100vh;
         display: flex;
         flex-direction: column;
-        border-right: 1px solid rgba(0, 0, 0, 0.05);
+        border-right: 1px solid #F0F0F0 !important;
+        box-shadow: 2px 0 8px rgba(0, 0, 0, 0.04) !important;
         z-index: 1000;
         transition: transform 0.3s;
     }
 
     .sidebar-header {
         padding: 20px 24px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid #F0F0F0 !important;
         display: flex;
         align-items: center;
         justify-content: space-between;
     }
 
     .sidebar-header h2 {
-        font-size: 20px;
-        font-weight: 700;
-        color: var(--text-main, #1a1a1a);
-        opacity: 1;
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        color: #FE3C72 !important;
+        opacity: 1 !important;
     }
 
     .sidebar-toggle {
@@ -128,24 +214,26 @@
         align-items: center;
         gap: 12px;
         padding: 12px 16px;
-        border-radius: 8px;
+        border-radius: 12px;
         text-decoration: none;
-        color: var(--text-main);
+        color: #656E77 !important;
         font-weight: 500;
         font-size: 15px;
         transition: all 0.2s;
+        margin: 4px 12px;
         opacity: 1;
     }
 
     .nav-item:hover {
-        background: rgba(55, 53, 47, 0.08);
+        background: #FFF5F7 !important;
+        color: #FE3C72 !important;
     }
 
     .nav-item.active {
-        background: white;
-        color: var(--primary);
-        box-shadow: var(--shadow-soft);
-        opacity: 1;
+        background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3) !important;
+        opacity: 1 !important;
     }
 
     .notif-badge {
@@ -160,27 +248,27 @@
 
     .nav-divider {
         height: 1px;
-        background: rgba(0, 0, 0, 0.05);
-        margin: 12px 0;
+        background: #F0F0F0;
+        margin: 12px 16px;
     }
 
     .nav-section-title {
         padding: 12px 16px;
         font-size: 11px;
         font-weight: 700;
-        color: var(--text-muted);
+        color: #9CA3AF;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
     .admin-item {
-        background: #fee2e2;
-        color: #991b1b;
+        background: #FFF0F3;
+        color: #FE3C72;
     }
 
     .sidebar-footer {
         padding: 12px;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
+        border-top: 1px solid #F0F0F0;
     }
 
     /* Tier-gated item styling */
@@ -211,12 +299,12 @@
 
     /* Focus styles for keyboard navigation */
     .nav-item:focus-visible {
-        outline: 2px solid var(--primary, #667eea);
+        outline: 2px solid #FE3C72;
         outline-offset: 2px;
     }
 
     .sidebar-toggle:focus-visible {
-        outline: 2px solid var(--primary, #667eea);
+        outline: 2px solid #FE3C72;
         outline-offset: 2px;
     }
 

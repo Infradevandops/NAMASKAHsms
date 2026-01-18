@@ -9,7 +9,7 @@ from app.api.verification.status_polling import router as status_polling_router
 
 router = APIRouter()
 
-router.include_router(verify_router)
+router.include_router(verify_router, prefix="")
 router.include_router(textverified_router)
 router.include_router(pricing_router)
 router.include_router(carrier_router)

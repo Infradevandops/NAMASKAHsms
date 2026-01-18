@@ -1,4 +1,5 @@
 """Verification - related database models."""
+
 from sqlalchemy import Boolean, Column, DateTime, Float, String
 
 from app.models.base import BaseModel

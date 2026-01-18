@@ -1,4 +1,5 @@
 """SOC 2 compliance and security audit service."""
+
 from typing import Dict
 from datetime import datetime
 
@@ -16,7 +17,7 @@ class ComplianceService:
             "CC6": "Logical and Physical Access",
             "CC7": "System Operations",
             "CC8": "Change Management",
-            "CC9": "Risk Mitigation"
+            "CC9": "Risk Mitigation",
         }
 
     async def assess_compliance(self) -> Dict:
@@ -36,31 +37,22 @@ class ComplianceService:
             "status": "compliant" if compliance_score >= 95 else "non_compliant",
             "controls": controls_status,
             "assessment_date": datetime.utcnow().isoformat(),
-            "next_audit": "2024 - 06-01T00:00:00Z"
+            "next_audit": "2024 - 06-01T00:00:00Z",
         }
 
     async def _assess_control(self, control_id: str) -> Dict:
         """Assess individual SOC 2 control."""
         # Simulated control assessments
         control_assessments = {
-            "CC1": {"compliant": True,
-                    "evidence": ["Security policies", "Training records"]},
-            "CC2": {"compliant": True,
-                    "evidence": ["Documentation", "Communication logs"]},
-            "CC3": {"compliant": True,
-                    "evidence": ["Risk assessments", "Threat modeling"]},
-            "CC4": {"compliant": True,
-                    "evidence": ["Monitoring dashboards", "Alert logs"]},
-            "CC5": {"compliant": True,
-                    "evidence": ["Access controls", "Segregation of duties"]},
-            "CC6": {"compliant": True,
-                    "evidence": ["MFA implementation", "Access reviews"]},
-            "CC7": {"compliant": True,
-                    "evidence": ["Backup procedures", "Incident response"]},
-            "CC8": {"compliant": True,
-                    "evidence": ["Change management", "Version control"]},
-            "CC9": {"compliant": True,
-                    "evidence": ["Vulnerability scans", "Patch management"]}
+            "CC1": {"compliant": True, "evidence": ["Security policies", "Training records"]},
+            "CC2": {"compliant": True, "evidence": ["Documentation", "Communication logs"]},
+            "CC3": {"compliant": True, "evidence": ["Risk assessments", "Threat modeling"]},
+            "CC4": {"compliant": True, "evidence": ["Monitoring dashboards", "Alert logs"]},
+            "CC5": {"compliant": True, "evidence": ["Access controls", "Segregation of duties"]},
+            "CC6": {"compliant": True, "evidence": ["MFA implementation", "Access reviews"]},
+            "CC7": {"compliant": True, "evidence": ["Backup procedures", "Incident response"]},
+            "CC8": {"compliant": True, "evidence": ["Change management", "Version control"]},
+            "CC9": {"compliant": True, "evidence": ["Vulnerability scans", "Patch management"]},
         }
 
         return control_assessments.get(control_id, {"compliant": False, "evidence": []})
@@ -77,19 +69,23 @@ class ComplianceService:
             "compliance_score": compliance_status["compliance_score"],
             "controls_summary": {
                 "total_controls": len(self.soc2_controls),
-                "compliant_controls": sum(1 for c in compliance_status["controls"].values() if c["compliant"]),
-                "non_compliant_controls": sum(1 for c in compliance_status["controls"].values() if not c["compliant"])
+                "compliant_controls": sum(
+                    1 for c in compliance_status["controls"].values() if c["compliant"]
+                ),
+                "non_compliant_controls": sum(
+                    1 for c in compliance_status["controls"].values() if not c["compliant"]
+                ),
             },
             "recommendations": [
                 "Continue regular security training",
                 "Maintain documentation updates",
-                "Schedule quarterly reviews"
+                "Schedule quarterly reviews",
             ],
             "next_steps": [
                 "Prepare for external audit",
                 "Update security policies",
-                "Conduct penetration testing"
-            ]
+                "Conduct penetration testing",
+            ],
         }
 
 

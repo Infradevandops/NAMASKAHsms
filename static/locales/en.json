@@ -68,5 +68,17 @@
         "select_service": "Select Service",
         "select_country": "Select Country",
         "buy_number": "Buy Number"
+    },
+    "analytics": {
+        "title": "Analytics",
+        "subtitle": "Track your verification performance and spending"
+    },
+    "notifications": {
+        "title": "Notifications",
+        "subtitle": "Manage your notifications and alerts"
+    },
+    "privacy": {
+        "title": "Privacy",
+        "subtitle": "Manage your privacy settings"
     }
 }

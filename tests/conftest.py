@@ -101,7 +101,7 @@ def regular_user(db_session):
     user = User(
         email="user@example.com",
         password_hash="hashedpassword",
-        tier_id="freemium",
+        subscription_tier="freemium",
         email_verified=True,
         is_admin=False
     )
@@ -116,7 +116,7 @@ def admin_user(db_session):
     user = User(
         email="admin@example.com",
         password_hash="hashedpassword",
-        tier_id="pro",
+        subscription_tier="pro",
         email_verified=True,
         is_admin=True
     )
@@ -183,3 +183,42 @@ def create_test_token(user_id: str, email: str, is_admin: bool = False, expires_
         "exp": expire
     }
     return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+@pytest.fixture
+def freemium_user(db_session):
+    user = User(email="free@test.com", subscription_tier="freemium", password_hash="test", is_admin=False, free_verifications=1.0)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def payg_user(db_session):
+    user = User(email="payg@test.com", subscription_tier="payg", password_hash="test", is_admin=False, free_verifications=1.0)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def pro_user(db_session):
+    user = User(email="pro@test.com", subscription_tier="pro", password_hash="test", is_admin=False, free_verifications=1.0)
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+    return user
+
+@pytest.fixture
+def auth_header():
+    def _auth_header(user):
+        expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+        to_encode = {
+            "sub": str(user.id),
+            "user_id": str(user.id),
+            "email": user.email,
+            "is_admin": user.is_admin,
+            "exp": expire
+        }
+        token = jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+        return {"Authorization": f"Bearer {token}"}
+    return _auth_header

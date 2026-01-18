@@ -1,4 +1,5 @@
 """AWS Secrets Manager integration for secure secrets management."""
+
 import json
 import logging
 from typing import Dict, Any, Optional
@@ -27,8 +28,7 @@ class SecretsManager:
         self.client = boto3.client("secretsmanager", region_name=self.region_name)
         logger.info(f"AWS Secrets Manager client initialized for region {self.region_name}")
 
-    def get_secret(self, secret_name: str,
-                   force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    def get_secret(self, secret_name: str, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         """Get secret from AWS Secrets Manager with caching."""
         if not self.client:
             logger.error("Secrets Manager client not initialized")
@@ -46,8 +46,9 @@ class SecretsManager:
 
             # Parse secret value
             if "SecretString" in response:
-                secret_value = safe_json_parse(response["SecretString"],
-                                               {}, f"secret_{secret_name}")
+                secret_value = safe_json_parse(
+                    response["SecretString"], {}, f"secret_{secret_name}"
+                )
             else:
                 secret_value = response["SecretBinary"]
 
@@ -55,15 +56,15 @@ class SecretsManager:
             self.cache[secret_name] = {
                 "value": secret_value,
                 "expires_at": datetime.utcnow() + self.cache_ttl,
-                "version": response.get("VersionId")
+                "version": response.get("VersionId"),
             }
 
             logger.info(f"Retrieved secret: {secret_name}")
             return secret_value
 
         except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
-            if error_code == 'ResourceNotFoundException':
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            if error_code == "ResourceNotFoundException":
                 logger.warning(f"Secret not found: {secret_name}")
             else:
                 logger.error(f"Failed to retrieve secret {secret_name}: {error_code} - {e}")
@@ -83,10 +84,7 @@ class SecretsManager:
 
             # Try to update existing secret
             try:
-                self.client.update_secret(
-                    SecretId=secret_name,
-                    SecretString=secret_string
-                )
+                self.client.update_secret(SecretId=secret_name, SecretString=secret_string)
                 logger.info(f"Updated secret: {secret_name}")
             except ClientError as e:
                 if e.response["Error"]["Code"] == "ResourceNotFoundException":
@@ -96,8 +94,8 @@ class SecretsManager:
                         SecretString=secret_string,
                         Tags=[
                             {"Key": "Application", "Value": "Namaskah"},
-                            {"Key": "ManagedBy", "Value": "SecretsManager"}
-                        ]
+                            {"Key": "ManagedBy", "Value": "SecretsManager"},
+                        ],
                     )
                     logger.info(f"Created secret: {secret_name}")
                 else:
@@ -110,7 +108,7 @@ class SecretsManager:
             return True
 
         except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
             logger.error(f"Failed to set secret {secret_name}: {error_code} - {e}")
             return False
         except BotoCoreError as e:
@@ -125,10 +123,11 @@ class SecretsManager:
 
         try:
             self.client.delete_secret(
-                SecretId=secret_name,
-                RecoveryWindowInDays=recovery_window_days
+                SecretId=secret_name, RecoveryWindowInDays=recovery_window_days
             )
-            logger.info(f"Scheduled deletion of secret: {secret_name} (recovery window: {recovery_window_days} days)")
+            logger.info(
+                f"Scheduled deletion of secret: {secret_name} (recovery window: {recovery_window_days} days)"
+            )
 
             # Invalidate cache
             if secret_name in self.cache:
@@ -137,7 +136,7 @@ class SecretsManager:
             return True
 
         except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
             logger.error(f"Failed to delete secret {secret_name}: {error_code} - {e}")
             return False
         except BotoCoreError as e:
@@ -156,7 +155,7 @@ class SecretsManager:
             self.client.put_secret_value(
                 SecretId=secret_name,
                 SecretString=secret_string,
-                ClientRequestToken=None  # Let AWS generate token
+                ClientRequestToken=None,  # Let AWS generate token
             )
 
             logger.info(f"Rotated secret: {secret_name}")
@@ -168,7 +167,7 @@ class SecretsManager:
             return True
 
         except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
             logger.error(f"Failed to rotate secret {secret_name}: {error_code} - {e}")
             return False
         except BotoCoreError as e:
@@ -188,7 +187,7 @@ class SecretsManager:
             return secrets
 
         except ClientError as e:
-            error_code = e.response.get('Error', {}).get('Code', 'Unknown')
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
             logger.error(f"Failed to list secrets: {error_code} - {e}")
             return None
         except BotoCoreError as e:
@@ -210,7 +209,7 @@ class SecretsManager:
         return {
             "cached_secrets": len(self.cache),
             "cache_ttl_minutes": self.cache_ttl.total_seconds() / 60,
-            "secrets": list(self.cache.keys())
+            "secrets": list(self.cache.keys()),
         }
 
 

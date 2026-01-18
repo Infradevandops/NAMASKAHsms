@@ -1,4 +1,5 @@
 """Unified caching system with Redis and in - memory fallback."""
+
 import json
 import time
 import functools
@@ -47,6 +48,7 @@ class InMemoryCache:
     async def keys(self, pattern: str = "*"):
         """Get keys matching pattern."""
         import fnmatch
+
         return [key for key in self._cache.keys() if fnmatch.fnmatch(key, pattern)]
 
 
@@ -60,12 +62,12 @@ class UnifiedCacheManager:
 
         # Default TTL values for different data types
         self.ttl_defaults = {
-            "countries": 86400,     # 24h
-            "services": 3600,       # 1h
-            "verification": 300,    # 5m
-            "user": 1800,          # 30m
-            "provider": 600,       # 10m
-            "default": 3600        # 1h
+            "countries": 86400,  # 24h
+            "services": 3600,  # 1h
+            "verification": 300,  # 5m
+            "user": 1800,  # 30m
+            "provider": 600,  # 10m
+            "default": 3600,  # 1h
         }
 
     async def connect(self):
@@ -74,12 +76,9 @@ class UnifiedCacheManager:
             return
 
         try:
-            redis_url = getattr(settings, 'redis_url', None) or "redis://localhost:6379"
+            redis_url = getattr(settings, "redis_url", None) or "redis://localhost:6379"
             self.redis_client = aioredis.from_url(
-                redis_url,
-                decode_responses=True,
-                max_connections=20,
-                retry_on_timeout=True
+                redis_url, decode_responses=True, max_connections=20, retry_on_timeout=True
             )
             await self.redis_client.ping()
             self._connected = True
@@ -174,17 +173,19 @@ class UnifiedCacheManager:
         """Get cache statistics."""
         stats = {
             "redis_connected": self.redis_client is not None,
-            "memory_keys": len(self.memory_cache._cache)
+            "memory_keys": len(self.memory_cache._cache),
         }
 
         if self.redis_client:
             try:
                 info = await self.redis_client.info()
-                stats.update({
-                    "redis_used_memory": info.get("used_memory_human"),
-                    "redis_connected_clients": info.get("connected_clients"),
-                    "redis_total_commands": info.get("total_commands_processed"),
-                })
+                stats.update(
+                    {
+                        "redis_used_memory": info.get("used_memory_human"),
+                        "redis_connected_clients": info.get("connected_clients"),
+                        "redis_total_commands": info.get("total_commands_processed"),
+                    }
+                )
             except Exception as e:
                 logger.warning(f"Redis stats error: {e}")
 
@@ -196,6 +197,7 @@ class UnifiedCacheManager:
 
     def cached(self, ttl: Optional[int] = None, key_prefix: str = ""):
         """Decorator for caching function results."""
+
         def decorator(func: Callable):
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
@@ -217,10 +219,12 @@ class UnifiedCacheManager:
                 return result
 
             return wrapper
+
         return decorator
 
     def invalidate_on_change(self, pattern: str):
         """Decorator to invalidate cache after function execution."""
+
         def decorator(func: Callable):
             @functools.wraps(func)
             async def wrapper(*args, **kwargs):
@@ -230,6 +234,7 @@ class UnifiedCacheManager:
                 return result
 
             return wrapper
+
         return decorator
 
 
@@ -262,15 +267,13 @@ async def invalidate_user_cache(user_id: str):
     await cache.invalidate_pattern(f"verification:{user_id}*")
 
 
-async def cache_verification(verification_id: str,
-                             data: Any, ttl: Optional[int] = None):
+async def cache_verification(verification_id: str, data: Any, ttl: Optional[int] = None):
     """Cache verification data."""
     key = cache.cache_key("verification", verification_id)
     await cache.set(key, data, ttl or cache.ttl_defaults["verification"])
 
 
-async def cache_provider_data(provider: str, data_type: str,
-                              data: Any, ttl: Optional[int] = None):
+async def cache_provider_data(provider: str, data_type: str, data: Any, ttl: Optional[int] = None):
     """Cache provider - specific data."""
     key = cache.cache_key("provider", provider, data_type)
     await cache.set(key, data, ttl or cache.ttl_defaults["provider"])

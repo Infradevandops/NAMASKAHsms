@@ -1,4 +1,5 @@
 """Timezone utilities for consistent datetime handling across the application."""
+
 from datetime import datetime, timezone, timedelta
 
 from typing import Optional, Union
@@ -88,7 +89,7 @@ def ensure_timezone_aware(dt: datetime) -> datetime:
 
 def get_timestamp_filename() -> str:
     """Get timestamp string for filenames."""
-    return utc_now().strftime('%Y%m%d_%H%M%S')
+    return utc_now().strftime("%Y%m%d_%H%M%S")
 
 
 def get_iso_timestamp() -> str:

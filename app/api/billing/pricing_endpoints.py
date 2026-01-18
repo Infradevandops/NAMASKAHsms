@@ -1,4 +1,5 @@
 """Pricing estimation endpoints - Non-conflicting with tier system."""
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
@@ -6,7 +7,7 @@ from app.core.database import get_db
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/pricing", tags=["Pricing"])
+router = APIRouter(prefix="/pricing", tags=["Pricing"])
 
 
 @router.get("/estimate")
@@ -14,7 +15,7 @@ async def estimate_verification_cost(
     service: str = Query(..., description="Service name (telegram, whatsapp, etc)"),
     country: str = Query("US", description="Country code"),
     quantity: int = Query(1, ge=1, le=1000, description="Number of verifications"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Estimate cost for verification(s) using new pricing system."""
     try:
@@ -29,14 +30,13 @@ async def estimate_verification_cost(
             "cost_per_sms": base_cost,
             "total_cost": total_cost,
             "currency": "USD",
-            "note": "Actual cost may vary based on your subscription tier"
+            "note": "Actual cost may vary based on your subscription tier",
         }
 
     except Exception as e:
         logger.error(f"Failed to estimate cost: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to estimate cost"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to estimate cost"
         )
 
 
@@ -51,13 +51,10 @@ async def get_available_services():
         "instagram": "Instagram",
         "twitter": "Twitter",
         "discord": "Discord",
-        "tiktok": "TikTok"
+        "tiktok": "TikTok",
     }
 
-    return {
-        "services": services,
-        "total": len(services)
-    }
+    return {"services": services, "total": len(services)}
 
 
 @router.get("/countries")
@@ -68,10 +65,7 @@ async def get_available_countries():
         "CA": "Canada",
         "GB": "United Kingdom",
         "DE": "Germany",
-        "FR": "France"
+        "FR": "France",
     }
 
-    return {
-        "countries": countries,
-        "total": len(countries)
-    }
+    return {"countries": countries, "total": len(countries)}

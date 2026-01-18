@@ -1,4 +1,5 @@
 """Health monitoring for external services."""
+
 import asyncio
 import time
 from dataclasses import dataclass
@@ -45,9 +46,7 @@ class HealthMonitor:
         """Get overall system health status."""
         checks = await self.check_all_services()
 
-        healthy_count = sum(
-            1 for check in checks.values() if check.status == ServiceStatus.HEALTHY
-        )
+        healthy_count = sum(1 for check in checks.values() if check.status == ServiceStatus.HEALTHY)
         total_count = len(checks)
 
         if healthy_count == total_count:
@@ -72,9 +71,7 @@ class HealthMonitor:
             "summary": {
                 "healthy": healthy_count,
                 "total": total_count,
-                "uptime_percentage": (healthy_count / total_count) * 100
-                if total_count > 0
-                else 0,
+                "uptime_percentage": (healthy_count / total_count) * 100 if total_count > 0 else 0,
             },
         }
 

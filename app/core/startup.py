@@ -1,4 +1,5 @@
 """Startup initialization for the application."""
+
 import os
 from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from sqlalchemy import text
@@ -17,7 +18,9 @@ def ensure_subscription_tiers_table():
         with engine.connect() as conn:
             # Create subscription_tiers table
             logger.info("Checking subscription_tiers table...")
-            conn.execute(text("""
+            conn.execute(
+                text(
+                    """
                 CREATE TABLE IF NOT EXISTS subscription_tiers (
                     id TEXT PRIMARY KEY,
                     tier TEXT UNIQUE NOT NULL,
@@ -33,30 +36,87 @@ def ensure_subscription_tiers_table():
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
-            """))
+            """
+                )
+            )
             conn.commit()
-            
+
             # Insert/update tier definitions
             tiers = [
-                ('tier_freemium', 'freemium', 'Freemium', 0, 0, 2.22, False, False, False, 0, 'community'),
-                ('tier_payg', 'payg', 'Pay-As-You-Go', 0, 0, 2.50, True, True, False, 5, 'community'),
-                ('tier_pro', 'pro', 'Pro', 2500, 30.00, 2.20, True, True, True, 10, 'priority'),
-                ('tier_custom', 'custom', 'Custom', 3500, 50.00, 2.10, True, True, True, -1, 'dedicated')
+                (
+                    "tier_freemium",
+                    "freemium",
+                    "Freemium",
+                    0,
+                    False,
+                    0,
+                    2.22,
+                    False,
+                    False,
+                    False,
+                    0,
+                    "community",
+                ),
+                (
+                    "tier_payg",
+                    "payg",
+                    "Pay-As-You-Go",
+                    0,
+                    False,
+                    0,
+                    2.50,
+                    True,
+                    True,
+                    False,
+                    5,
+                    "community",
+                ),
+                (
+                    "tier_pro",
+                    "pro",
+                    "Pro",
+                    2500,
+                    True,
+                    30.00,
+                    2.20,
+                    True,
+                    True,
+                    True,
+                    10,
+                    "priority",
+                ),
+                (
+                    "tier_custom",
+                    "custom",
+                    "Custom",
+                    3500,
+                    True,
+                    50.00,
+                    2.10,
+                    True,
+                    True,
+                    True,
+                    -1,
+                    "dedicated",
+                ),
             ]
-            
+
             for tier_data in tiers:
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     INSERT INTO subscription_tiers 
-                    (id, tier, name, price_monthly, quota_usd, overage_rate, 
+                    (id, tier, name, price_monthly, payment_required, quota_usd, overage_rate, 
                      has_api_access, has_area_code_selection, has_isp_filtering, 
                      api_key_limit, support_level)
                     VALUES 
-                    (:id, :tier, :name, :price_monthly, :quota_usd, :overage_rate,
+                    (:id, :tier, :name, :price_monthly, :payment_required, :quota_usd, :overage_rate,
                      :has_api_access, :has_area_code_selection, :has_isp_filtering,
                      :api_key_limit, :support_level)
                     ON CONFLICT (tier) DO UPDATE SET
                         name = EXCLUDED.name,
                         price_monthly = EXCLUDED.price_monthly,
+                        payment_required = EXCLUDED.payment_required,
                         quota_usd = EXCLUDED.quota_usd,
                         overage_rate = EXCLUDED.overage_rate,
                         has_api_access = EXCLUDED.has_api_access,
@@ -65,20 +125,24 @@ def ensure_subscription_tiers_table():
                         api_key_limit = EXCLUDED.api_key_limit,
                         support_level = EXCLUDED.support_level,
                         updated_at = CURRENT_TIMESTAMP;
-                """), {
-                    'id': tier_data[0],
-                    'tier': tier_data[1],
-                    'name': tier_data[2],
-                    'price_monthly': tier_data[3],
-                    'quota_usd': tier_data[4],
-                    'overage_rate': tier_data[5],
-                    'has_api_access': tier_data[6],
-                    'has_area_code_selection': tier_data[7],
-                    'has_isp_filtering': tier_data[8],
-                    'api_key_limit': tier_data[9],
-                    'support_level': tier_data[10]
-                })
-            
+                """
+                    ),
+                    {
+                        "id": tier_data[0],
+                        "tier": tier_data[1],
+                        "name": tier_data[2],
+                        "price_monthly": tier_data[3],
+                        "payment_required": tier_data[4],
+                        "quota_usd": tier_data[5],
+                        "overage_rate": tier_data[6],
+                        "has_api_access": tier_data[7],
+                        "has_area_code_selection": tier_data[8],
+                        "has_isp_filtering": tier_data[9],
+                        "api_key_limit": tier_data[10],
+                        "support_level": tier_data[11],
+                    },
+                )
+
             conn.commit()
             logger.info("Subscription tiers table initialized successfully")
     except Exception as e:
@@ -96,7 +160,6 @@ def ensure_database_schema():
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS monthly_quota_reset_date TIMESTAMP",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS language VARCHAR(10) DEFAULT 'en'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS currency VARCHAR(10) DEFAULT 'USD'",
-                "ALTER TABLE users ADD COLUMN IF NOT EXISTS tier_id VARCHAR(50) DEFAULT 'payg'",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_suspended BOOLEAN DEFAULT FALSE",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMP",
@@ -108,14 +171,14 @@ def ensure_database_schema():
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_reason VARCHAR(500)",
             ]
-            
+
             for sql in columns_to_add:
                 try:
                     conn.execute(text(sql))
                     conn.commit()
                 except Exception as e:
                     logger.debug(f"Column may already exist: {e}")
-            
+
             logger.info("Database schema verified")
     except Exception as e:
         logger.warning(f"Schema check failed: {e}")
@@ -127,7 +190,7 @@ def ensure_admin_user():
     try:
         admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
         admin_password = os.getenv("ADMIN_PASSWORD")
-        
+
         if not admin_password:
             logger.warning("ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
             return
@@ -139,7 +202,9 @@ def ensure_admin_user():
             existing_admin.password_hash = hash_password(admin_password)
             existing_admin.is_admin = True
             existing_admin.email_verified = True
-            existing_admin.subscription_tier = 'custom'  # Changed from 'turbo' to 'custom' (highest tier)
+            existing_admin.subscription_tier = (
+                "custom"  # Changed from 'turbo' to 'custom' (highest tier)
+            )
             existing_admin.credits = 10000.0
             existing_admin.free_verifications = 1000.0
             db.commit()
@@ -154,7 +219,7 @@ def ensure_admin_user():
             is_admin=True,
             email_verified=True,
             free_verifications=1000.0,
-            subscription_tier='custom'  # Changed from 'turbo' to 'custom' (highest tier)
+            subscription_tier="custom",  # Changed from 'turbo' to 'custom' (highest tier)
         )
 
         db.add(admin_user)

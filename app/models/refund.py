@@ -1,4 +1,5 @@
 """Refund model for payment refunds."""
+
 from sqlalchemy import Column, String, Float, DateTime, ForeignKey
 from datetime import datetime, timezone
 
@@ -20,5 +21,11 @@ class Refund(BaseModel):
     initiated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     processed_at = Column(DateTime)
     error_message = Column(String)
-    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True)
-    updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at = Column(
+        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False, index=True
+    )
+    updated_at = Column(
+        DateTime,
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+    )

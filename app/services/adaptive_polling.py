@@ -1,4 +1,5 @@
 """Adaptive polling service that optimizes intervals based on metrics."""
+
 from datetime import datetime, timedelta, timezone
 from sqlalchemy.orm import Session
 from app.core.config import settings
@@ -15,8 +16,7 @@ class AdaptivePollingService:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
 
         query = db.query(Verification).filter(
-            Verification.created_at >= cutoff,
-            Verification.status == "completed"
+            Verification.created_at >= cutoff, Verification.status == "completed"
         )
 
         if service:
@@ -29,8 +29,7 @@ class AdaptivePollingService:
 
         # Calculate average time to receive SMS
         polling_times = [
-            (v.completed_at - v.created_at).total_seconds()
-            for v in verifications if v.completed_at
+            (v.completed_at - v.created_at).total_seconds() for v in verifications if v.completed_at
         ]
 
         if not polling_times:
@@ -49,9 +48,7 @@ class AdaptivePollingService:
         """Check if polling interval should be increased (low success rate)."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        query = db.query(Verification).filter(
-            Verification.created_at >= cutoff
-        )
+        query = db.query(Verification).filter(Verification.created_at >= cutoff)
 
         if service:
             query = query.filter(Verification.service_name == service)
@@ -71,9 +68,7 @@ class AdaptivePollingService:
         """Check if polling interval should be decreased (high success rate)."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=1)
 
-        query = db.query(Verification).filter(
-            Verification.created_at >= cutoff
-        )
+        query = db.query(Verification).filter(Verification.created_at >= cutoff)
 
         if service:
             query = query.filter(Verification.service_name == service)

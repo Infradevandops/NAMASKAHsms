@@ -1,4 +1,5 @@
 """Services package with dependency injection support."""
+
 from sqlalchemy.orm import Session
 
 from .base import BaseService
@@ -15,6 +16,7 @@ class ServiceFactory:
         """Get or create AuthService instance."""
         if "auth" not in self._services:
             from .auth_service import AuthService
+
             self._services["auth"] = AuthService(self.db)
         return self._services["auth"]
 
@@ -22,6 +24,7 @@ class ServiceFactory:
         """Get or create PaymentService instance."""
         if "payment" not in self._services:
             from .payment_service import PaymentService
+
             self._services["payment"] = PaymentService(self.db)
         return self._services["payment"]
 
@@ -29,6 +32,7 @@ class ServiceFactory:
         """Get or create NotificationService instance."""
         if "notification" not in self._services:
             from .notification_service import NotificationService
+
             self._services["notification"] = NotificationService(self.db)
         return self._services["notification"]
 
@@ -37,6 +41,7 @@ class ServiceFactory:
 
         if "payment" in self._services:
             await self._services["payment"].close()
+
 
 # Dependency injection helpers
 
@@ -49,18 +54,21 @@ def get_service_factory(db: Session) -> ServiceFactory:
 def get_auth_service(db: Session):
     """Get AuthService instance."""
     from .auth_service import AuthService
+
     return AuthService(db)
 
 
 def get_payment_service(db: Session):
     """Get PaymentService instance."""
     from .payment_service import PaymentService
+
     return PaymentService(db)
 
 
 def get_notification_service(db: Session):
     """Get NotificationService instance."""
     from .notification_service import NotificationService
+
     return NotificationService(db)
 
 

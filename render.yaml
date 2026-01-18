@@ -1,18 +1,35 @@
 services:
+  # Backend and Frontend (Vite SSR or Static as per project)
   - type: web
-    name: namaskah-sms
+    name: namaskah-api-staging
     env: python
-    buildCommand: pip install -r requirements.txt && echo "Build complete $(date)"
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT --workers 2
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app -k uvicorn.workers.UvicornWorker
     envVars:
-      - key: ENVIRONMENT
-        value: production
-      - key: SKIP_MIGRATIONS
-        value: true
       - key: DATABASE_URL
-        sync: false
-      - key: SECRET_KEY
-        generateValue: true
-      - key: JWT_SECRET_KEY  
-        generateValue: true
-    healthCheckPath: /api/system/health
+        fromDatabase:
+          name: namaskah-db-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: namaskah-redis-staging
+          type: redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: staging
+      - key: API_V1_PREFIX
+        value: /api/v1
+
+  # PostgreSQL Database
+  - type: db
+    name: namaskah-db-staging
+    plan: free
+    region: ohio
+
+  # Redis Cache
+  - type: redis
+    name: namaskah-redis-staging
+    plan: free
+    region: ohio
+    maxmemoryPolicy: allkeys-lru

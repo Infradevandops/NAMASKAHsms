@@ -1,4 +1,5 @@
 """SMS forwarding configuration model."""
+
 from sqlalchemy import Column, String, Boolean, JSON
 
 from app.models.base import BaseModel

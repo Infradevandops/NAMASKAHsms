@@ -1,4 +1,5 @@
 """Notification model for user notifications."""
+
 from sqlalchemy import Column, String, Text, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
@@ -7,9 +8,9 @@ from app.models.base import BaseModel
 
 class Notification(BaseModel):
     """User notification model."""
-    
+
     __tablename__ = "notifications"
-    
+
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     type = Column(String(50), nullable=False)  # sms_received, credit_added, etc
     title = Column(String(255), nullable=False)
@@ -17,10 +18,10 @@ class Notification(BaseModel):
     link = Column(String(255))
     icon = Column(String(50))
     is_read = Column(Boolean, default=False, index=True)
-    
+
     # Relationship
     user = relationship("User", back_populates="notifications")
-    
+
     def to_dict(self):
         """Convert to dictionary."""
         return {
@@ -31,5 +32,5 @@ class Notification(BaseModel):
             "link": self.link,
             "icon": self.icon,
             "is_read": self.is_read,
-            "created_at": self.created_at.isoformat() if self.created_at else None
+            "created_at": self.created_at.isoformat() if self.created_at else None,
         }

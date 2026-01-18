@@ -1,4 +1,5 @@
 """Unified rate limiting system consolidating all rate limiting implementations."""
+
 import time
 from collections import defaultdict, deque
 from typing import Dict, Optional, Tuple, Any
@@ -17,6 +18,7 @@ logger = get_logger(__name__)
 @dataclass
 class RateLimitConfig:
     """Rate limit configuration."""
+
     requests: int
     window: int  # seconds
     burst_multiplier: float = 1.5
@@ -37,10 +39,7 @@ class TokenBucket:
         elapsed = now - self.last_refill
 
         # Refill tokens
-        self.tokens = min(
-            self.capacity,
-            self.tokens + elapsed * self.refill_rate
-        )
+        self.tokens = min(self.capacity, self.tokens + elapsed * self.refill_rate)
         self.last_refill = now
 
         # Check if token available
@@ -77,8 +76,8 @@ class UnifiedRateLimiter:
 
         # Default limits
         self.default_config = RateLimitConfig(
-            requests=getattr(self.settings, 'rate_limit_requests', 100),
-            window=getattr(self.settings, 'rate_limit_window', 3600)
+            requests=getattr(self.settings, "rate_limit_requests", 100),
+            window=getattr(self.settings, "rate_limit_window", 3600),
         )
 
         # Endpoint - specific limits
@@ -93,8 +92,18 @@ class UnifiedRateLimiter:
 
         # Public paths excluded from rate limiting
         self.public_paths = [
-            "/", "/app", "/services", "/pricing", "/about", "/contact",
-            "/admin", "/docs", "/redoc", "/openapi.json", "/system/health", "/static"
+            "/",
+            "/app",
+            "/services",
+            "/pricing",
+            "/about",
+            "/contact",
+            "/admin",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/system/health",
+            "/static",
         ]
 
     def should_skip_rate_limiting(self, path: str) -> bool:
@@ -127,14 +136,12 @@ class UnifiedRateLimiter:
 
         return request.client.host if request.client else "unknown"
 
-    def check_token_bucket_limit(self, user_id: Optional[str],
-                                 ip: str) -> Tuple[bool, int]:
+    def check_token_bucket_limit(self, user_id: Optional[str], ip: str) -> Tuple[bool, int]:
         """Check rate limit using token bucket algorithm."""
         # Check IP limit
         if ip not in self.ip_buckets:
             self.ip_buckets[ip] = TokenBucket(
-                capacity=10,  # 10 requests burst
-                refill_rate=1.0  # 1 request per second
+                capacity=10, refill_rate=1.0  # 10 requests burst  # 1 request per second
             )
 
         ip_bucket = self.ip_buckets[ip]
@@ -145,8 +152,7 @@ class UnifiedRateLimiter:
         if user_id:
             if user_id not in self.user_buckets:
                 self.user_buckets[user_id] = TokenBucket(
-                    capacity=20,  # 20 requests burst
-                    refill_rate=2.0  # 2 requests per second
+                    capacity=20, refill_rate=2.0  # 20 requests burst  # 2 requests per second
                 )
 
             user_bucket = self.user_buckets[user_id]
@@ -156,11 +162,7 @@ class UnifiedRateLimiter:
         return True, 0
 
     def check_sliding_window_limit(
-        self,
-        user_id: Optional[str],
-        ip: str,
-        config: RateLimitConfig,
-        current_time: float
+        self, user_id: Optional[str], ip: str, config: RateLimitConfig, current_time: float
     ) -> Tuple[bool, int]:
         """Check rate limit using sliding window algorithm."""
         # Check IP limit
@@ -181,8 +183,7 @@ class UnifiedRateLimiter:
 
         return True, 0
 
-    def _clean_old_requests(self, request_times: deque,
-                            window: int, current_time: float):
+    def _clean_old_requests(self, request_times: deque, window: int, current_time: float):
         """Remove old requests outside the window."""
         while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
@@ -208,9 +209,7 @@ class UnifiedRateLimiter:
         return load
 
     def check_rate_limit(
-        self,
-        request: Request,
-        user_id: Optional[str] = None
+        self, request: Request, user_id: Optional[str] = None
     ) -> Tuple[bool, int, Dict[str, Any]]:
         """Check all rate limits and return result."""
         current_time = time.time()
@@ -227,22 +226,23 @@ class UnifiedRateLimiter:
         # Check token bucket (for burst protection)
         bucket_allowed, bucket_retry = self.check_token_bucket_limit(user_id, ip)
         if not bucket_allowed:
-            return False, bucket_retry, {
-                "limit_type": "burst",
-                "retry_after": bucket_retry
-            }
+            return False, bucket_retry, {"limit_type": "burst", "retry_after": bucket_retry}
 
         # Check sliding window (for precise limiting)
         window_allowed, window_retry = self.check_sliding_window_limit(
             user_id, ip, config, current_time
         )
         if not window_allowed:
-            return False, window_retry, {
-                "limit_type": "window",
-                "retry_after": window_retry,
-                "limit": config.requests,
-                "window": config.window
-            }
+            return (
+                False,
+                window_retry,
+                {
+                    "limit_type": "window",
+                    "retry_after": window_retry,
+                    "limit": config.requests,
+                    "window": config.window,
+                },
+            )
 
         # Check adaptive limiting based on system load
         system_load = self.calculate_system_load(current_time)
@@ -252,11 +252,15 @@ class UnifiedRateLimiter:
             current_requests = len(self.ip_requests[ip])
 
             if current_requests >= adjusted_limit:
-                return False, 60, {  # 1 minute retry
-                    "limit_type": "adaptive",
-                    "system_load": system_load,
-                    "adjusted_limit": adjusted_limit
-                }
+                return (
+                    False,
+                    60,
+                    {  # 1 minute retry
+                        "limit_type": "adaptive",
+                        "system_load": system_load,
+                        "adjusted_limit": adjusted_limit,
+                    },
+                )
 
         # Record the request
         self.ip_requests[ip].append(current_time)
@@ -273,19 +277,19 @@ class UnifiedRateLimiter:
         # Calculate remaining requests
         remaining = self._get_remaining_requests(user_id, ip, config, current_time)
 
-        return True, 0, {
-            "limit": config.requests,
-            "remaining": remaining,
-            "reset": int(current_time + config.window),
-            "system_load": system_load
-        }
+        return (
+            True,
+            0,
+            {
+                "limit": config.requests,
+                "remaining": remaining,
+                "reset": int(current_time + config.window),
+                "system_load": system_load,
+            },
+        )
 
     def _get_remaining_requests(
-        self,
-        user_id: Optional[str],
-        ip: str,
-        config: RateLimitConfig,
-        current_time: float
+        self, user_id: Optional[str], ip: str, config: RateLimitConfig, current_time: float
     ) -> int:
         """Get remaining requests for client."""
         if user_id:
@@ -302,7 +306,7 @@ class UnifiedRateLimiter:
         """Clean up old entries to prevent memory leaks."""
         max_window = max(
             self.default_config.window,
-            max((config.window for config in self.endpoint_limits.values()), default=0)
+            max((config.window for config in self.endpoint_limits.values()), default=0),
         )
         cutoff_time = current_time - max_window
 
@@ -353,9 +357,9 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
                     "error": "Rate limit exceeded",
                     "message": f"Too many requests. Limit type: {metadata.get('limit_type', 'unknown')}",
                     "retry_after": retry_after,
-                    **metadata
+                    **metadata,
                 },
-                headers={"Retry - After": str(retry_after)}
+                headers={"Retry - After": str(retry_after)},
             )
 
         # Process request

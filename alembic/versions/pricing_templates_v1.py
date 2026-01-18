@@ -10,7 +10,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 revision = 'pricing_templates_v1'
-down_revision = None
+down_revision = 'quota_pricing_v3_1'
 branch_labels = None
 depends_on = None
 

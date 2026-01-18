@@ -1,4 +1,5 @@
 """Performance optimization utilities."""
+
 import asyncio
 from functools import wraps
 from app.core.caching import cache
@@ -6,6 +7,7 @@ from app.core.caching import cache
 
 def async_cache(ttl: int = 300):
     """Async function caching decorator."""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -20,7 +22,9 @@ def async_cache(ttl: int = 300):
             result = await func(*args, **kwargs)
             await cache.set(cache_key, result, ttl)
             return result
+
         return wrapper
+
     return decorator
 
 

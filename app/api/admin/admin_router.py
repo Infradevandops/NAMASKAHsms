@@ -1,4 +1,5 @@
 """Admin endpoints with RBAC."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -12,8 +13,10 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class SuccessResponse(BaseModel):
     message: str
+
 
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
@@ -21,25 +24,28 @@ async def require_admin(user_id: str = Depends(get_current_user_id), db: Session
         raise HTTPException(status_code=403, detail="Admin access required")
     return user_id
 
-async def require_moderator_or_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+
+async def require_moderator_or_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or (not user.is_admin and not user.is_moderator):
         raise HTTPException(status_code=403, detail="Moderator or admin access required")
     return user_id
 
+
 def get_user_role(db, user_id):
     class Role:
         value = "user"
+
     return Role()
+
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/users")
-async def list_users(
-    user_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
-):
+async def list_users(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """List all users (admin only)."""
     users = db.query(User).all()
     return {
@@ -50,18 +56,16 @@ async def list_users(
                 "email": u.email,
                 "role": get_user_role(db, u.id).value,
                 "credits": u.credits,
-                "created_at": u.created_at
+                "created_at": u.created_at,
             }
             for u in users
-        ]
+        ],
     }
 
 
 @router.post("/users/{user_id}/promote-moderator")
 async def promote_to_moderator(
-    user_id: str,
-    admin_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
+    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
 ):
     """Promote user to moderator (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -75,9 +79,7 @@ async def promote_to_moderator(
 
 @router.post("/users/{user_id}/promote-admin")
 async def promote_to_admin(
-    user_id: str,
-    admin_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
+    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
 ):
     """Promote user to admin (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -91,9 +93,7 @@ async def promote_to_admin(
 
 @router.post("/users/{user_id}/demote")
 async def demote_user(
-    user_id: str,
-    admin_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
+    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
 ):
     """Demote user to regular user (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
@@ -108,8 +108,7 @@ async def demote_user(
 
 @router.get("/stats")
 async def get_stats(
-    user_id: str = Depends(require_moderator_or_admin),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(require_moderator_or_admin), db: Session = Depends(get_db)
 ):
     """Get system statistics (moderator or admin)."""
     total_users = db.query(User).count()
@@ -120,7 +119,7 @@ async def get_stats(
         "total_users": total_users,
         "admin_users": admin_users,
         "moderator_users": moderator_users,
-        "regular_users": total_users - admin_users - moderator_users
+        "regular_users": total_users - admin_users - moderator_users,
     }
 
 
@@ -134,51 +133,49 @@ async def set_user_tier(
     user_id: str,
     request: SetUserTierRequest,
     admin_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Set user tier directly (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    valid_tiers = ["payg", "starter", "pro", "custom"]
+
+    valid_tiers = ["freemium", "payg", "pro", "custom"]
     if request.tier not in valid_tiers:
         raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
-    
-    old_tier = getattr(user, 'tier_id', 'payg') or 'payg'
-    user.tier_id = request.tier
-    
+
+    old_tier = user.subscription_tier or "payg"
+    user.subscription_tier = request.tier
+
     if request.tier != "payg":
         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
     else:
         user.tier_expires_at = None
-    
+
     db.commit()
     logger.info(f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}")
-    
+
     return {
         "success": True,
         "message": f"User tier updated from {old_tier} to {request.tier}",
         "user_id": user_id,
         "new_tier": request.tier,
-        "expires_at": user.tier_expires_at
+        "expires_at": user.tier_expires_at,
     }
 
 
 @router.get("/users/{user_id}/tier")
 async def get_user_tier(
-    user_id: str,
-    admin_id: str = Depends(require_admin),
-    db: Session = Depends(get_db)
+    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
 ):
     """Get user's current tier info (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    
-    tier = getattr(user, 'tier_id', 'payg') or 'payg'
+
+    tier = user.subscription_tier or "payg"
     tier_config = TierConfig.get_tier_config(tier, db)
-    
+
     return {
         "user_id": user_id,
         "email": user.email,
@@ -191,6 +188,6 @@ async def get_user_tier(
             "api_key_limit": tier_config["api_key_limit"],
             "has_api_access": tier_config["has_api_access"],
             "has_area_code_selection": tier_config["has_area_code_selection"],
-            "has_isp_filtering": tier_config["has_isp_filtering"]
-        }
+            "has_isp_filtering": tier_config["has_isp_filtering"],
+        },
     }

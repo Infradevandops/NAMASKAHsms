@@ -1,4 +1,5 @@
 """Security configuration and utilities."""
+
 import secrets
 from typing import Any
 
@@ -73,9 +74,7 @@ class SecurityConfig:
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_lower = key.lower()
-        return any(
-            pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS
-        )
+        return any(pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS)
 
     @staticmethod
     def sanitize_data(data: Any) -> Any:

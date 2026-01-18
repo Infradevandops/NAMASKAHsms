@@ -1,4 +1,5 @@
 """Advanced commission calculation engine."""
+
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from app.models.commission import CommissionTier, RevenueShare
@@ -16,7 +17,7 @@ class CommissionEngine:
         partner_id: int,
         transaction_amount: float,
         transaction_id: str,
-        service_type: str = "sms"
+        service_type: str = "sms",
     ) -> Dict:
         """Calculate commission for a transaction."""
 
@@ -34,8 +35,7 @@ class CommissionEngine:
         base_commission = transaction_amount * tier["base_rate"]
 
         # Calculate performance bonus
-        bonus_commission = await self._calculate_bonus(partner_id,
-                                                       tier, transaction_amount)
+        bonus_commission = await self._calculate_bonus(partner_id, tier, transaction_amount)
 
         total_commission = base_commission + bonus_commission
 
@@ -44,10 +44,11 @@ class CommissionEngine:
             partner_id=partner_id,
             transaction_id=transaction_id,
             revenue_amount=transaction_amount,
-            commission_rate=tier["base_rate"] + (bonus_commission / transaction_amount if transaction_amount > 0 else 0),
+            commission_rate=tier["base_rate"]
+            + (bonus_commission / transaction_amount if transaction_amount > 0 else 0),
             commission_amount=total_commission,
             tier_name=tier["name"],
-            status="pending"
+            status="pending",
         )
 
         self.db.add(revenue_share)
@@ -58,7 +59,7 @@ class CommissionEngine:
             "base_commission": base_commission,
             "bonus_commission": bonus_commission,
             "commission_rate": revenue_share.commission_rate,
-            "tier": tier["name"]
+            "tier": tier["name"],
         }
 
     async def _get_partner_tier(self, partner_id: int) -> Optional[Dict]:
@@ -70,30 +71,28 @@ class CommissionEngine:
         total_referrals = await self._get_partner_referrals(partner_id)
 
         # Find appropriate tier
-        tiers = self.db.query(CommissionTier).filter(
-            CommissionTier.is_active
-        ).order_by(CommissionTier.min_volume.desc()).all()
+        tiers = (
+            self.db.query(CommissionTier)
+            .filter(CommissionTier.is_active)
+            .order_by(CommissionTier.min_volume.desc())
+            .all()
+        )
 
         for tier in tiers:
-            if (total_volume >= tier.min_volume
-                    and total_referrals >= tier.min_referrals):
+            if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
                 return {
                     "name": tier.name,
                     "base_rate": tier.base_rate,
                     "bonus_rate": tier.bonus_rate,
-                    "benefits": tier.benefits
+                    "benefits": tier.benefits,
                 }
 
         # Default tier
-        return {
-            "name": "starter",
-            "base_rate": 0.05,
-            "bonus_rate": 0.0,
-            "benefits": {}
-        }
+        return {"name": "starter", "base_rate": 0.05, "bonus_rate": 0.0, "benefits": {}}
 
-    async def _calculate_bonus(self, partner_id: int,
-                               tier: Dict, transaction_amount: float) -> float:
+    async def _calculate_bonus(
+        self, partner_id: int, tier: Dict, transaction_amount: float
+    ) -> float:
         """Calculate performance - based bonus."""
         if tier.get("bonus_rate", 0) == 0:
             return 0.0
@@ -102,9 +101,9 @@ class CommissionEngine:
         monthly_volume = await self._get_monthly_volume(partner_id)
 
         bonus_thresholds = {
-            1000: 0.02,   # 2% bonus for 1K+ monthly volume
-            5000: 0.05,   # 5% bonus for 5K+ monthly volume
-            25000: 0.10   # 10% bonus for 25K+ monthly volume
+            1000: 0.02,  # 2% bonus for 1K+ monthly volume
+            5000: 0.05,  # 5% bonus for 5K+ monthly volume
+            25000: 0.10,  # 10% bonus for 25K+ monthly volume
         }
 
         bonus_rate = 0.0
@@ -117,12 +116,11 @@ class CommissionEngine:
 
     async def _get_partner_volume(self, partner_id: int) -> float:
         """Get partner's total transaction volume."""
-        result = self.db.query(
-            self.db.func.sum(RevenueShare.revenue_amount)
-        ).filter(
-            RevenueShare.partner_id == partner_id,
-            RevenueShare.status == "completed"
-        ).scalar()
+        result = (
+            self.db.query(self.db.func.sum(RevenueShare.revenue_amount))
+            .filter(RevenueShare.partner_id == partner_id, RevenueShare.status == "completed")
+            .scalar()
+        )
 
         return result or 0.0
 
@@ -132,33 +130,30 @@ class CommissionEngine:
         if not partner or not partner.referral_code:
             return 0
 
-        result = self.db.query(User).filter(
-            User.referred_by == partner.referral_code
-        ).count()
+        result = self.db.query(User).filter(User.referred_by == partner.referral_code).count()
 
         return result
 
     async def _get_monthly_volume(self, partner_id: int) -> float:
         """Get partner's current month volume."""
-        start_of_month = utc_now().replace(day=1, hour=0,
-                                           minute=0, second=0, microsecond=0)
+        start_of_month = utc_now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-        result = self.db.query(
-            self.db.func.sum(RevenueShare.revenue_amount)
-        ).filter(
-            RevenueShare.partner_id == partner_id,
-            RevenueShare.created_at >= start_of_month,
-            RevenueShare.status == "completed"
-        ).scalar()
+        result = (
+            self.db.query(self.db.func.sum(RevenueShare.revenue_amount))
+            .filter(
+                RevenueShare.partner_id == partner_id,
+                RevenueShare.created_at >= start_of_month,
+                RevenueShare.status == "completed",
+            )
+            .scalar()
+        )
 
         return result or 0.0
 
     async def process_payouts(self) -> Dict:
         """Process pending commission payouts."""
         # Get all pending revenue shares
-        pending_shares = self.db.query(RevenueShare).filter(
-            RevenueShare.status == "pending"
-        ).all()
+        pending_shares = self.db.query(RevenueShare).filter(RevenueShare.status == "pending").all()
 
         processed_count = 0
         total_amount = 0.0
@@ -177,10 +172,7 @@ class CommissionEngine:
 
         self.db.commit()
 
-        return {
-            "processed_count": processed_count,
-            "total_amount": total_amount
-        }
+        return {"processed_count": processed_count, "total_amount": total_amount}
 
 
 # Global service instance

@@ -1,4 +1,5 @@
 """Path security utilities to prevent path traversal attacks."""
+
 import os
 from pathlib import Path
 from typing import Union
@@ -49,14 +50,14 @@ def sanitize_filename(filename: str) -> str:
         raise ValueError("Filename cannot be empty")
 
     # Remove path separators and dangerous characters
-    dangerous_chars = ['/', '\\', '..', '~', '|', ':', '*', '?', '"', '<', '>', '\0']
+    dangerous_chars = ["/", "\\", "..", "~", "|", ":", "*", "?", '"', "<", ">", "\0"]
     sanitized = filename
 
     for char in dangerous_chars:
-        sanitized = sanitized.replace(char, '_')
+        sanitized = sanitized.replace(char, "_")
 
     # Remove leading/trailing whitespace and dots
-    sanitized = sanitized.strip('. ')
+    sanitized = sanitized.strip(". ")
 
     # Limit length
     if len(sanitized) > 255:

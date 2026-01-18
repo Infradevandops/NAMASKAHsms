@@ -1,4 +1,5 @@
 """Database optimization utilities for task 12.1."""
+
 from sqlalchemy import Index, text
 
 from app.models.transaction import Transaction
@@ -78,8 +79,8 @@ class QueryOptimizer:
         return (
             db.query(
                 Verification.status,
-                func.count(Verification.id).label('count'),
-                func.sum(Verification.cost).label('total_cost')
+                func.count(Verification.id).label("count"),
+                func.sum(Verification.cost).label("total_cost"),
             )
             .filter(Verification.user_id == user_id)
             .group_by(Verification.status)

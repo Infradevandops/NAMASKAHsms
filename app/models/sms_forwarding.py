@@ -1,4 +1,5 @@
 """SMS forwarding preferences model."""
+
 from sqlalchemy import Column, String, Boolean, DateTime, ForeignKey
 from datetime import datetime
 from app.models.base import Base

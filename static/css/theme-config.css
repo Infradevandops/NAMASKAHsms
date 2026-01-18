@@ -4,43 +4,43 @@
 
 :root {
   /* ============================================================================
-     COLOR PALETTE - Primary
+     COLOR PALETTE - Primary (Tinder-Inspired Red)
      ============================================================================ */
-  --color-primary: #2563eb;
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  --color-primary: #FE3C72;
+  --color-primary-50: #FFF5F7;
+  --color-primary-100: #FFE5EC;
+  --color-primary-200: #FFCCD9;
+  --color-primary-300: #FF99B3;
+  --color-primary-400: #FF6B9D;
+  --color-primary-500: #FE3C72;
+  --color-primary-600: #E0245E;
+  --color-primary-700: #C41E52;
+  --color-primary-800: #A01845;
+  --color-primary-900: #7D1238;
 
   /* ============================================================================
-     COLOR PALETTE - Secondary
+     COLOR PALETTE - Secondary (Warm Orange Accent)
      ============================================================================ */
-  --color-secondary: #7c3aed;
-  --color-secondary-50: #f5f3ff;
-  --color-secondary-100: #ede9fe;
-  --color-secondary-200: #ddd6fe;
-  --color-secondary-300: #c4b5fd;
-  --color-secondary-400: #a78bfa;
-  --color-secondary-500: #8b5cf6;
-  --color-secondary-600: #7c3aed;
-  --color-secondary-700: #6d28d9;
-  --color-secondary-800: #5b21b6;
-  --color-secondary-900: #3f0f5c;
+  --color-secondary: #FF7854;
+  --color-secondary-50: #FFF7F5;
+  --color-secondary-100: #FFEDE8;
+  --color-secondary-200: #FFD4C8;
+  --color-secondary-300: #FFB199;
+  --color-secondary-400: #FFA07A;
+  --color-secondary-500: #FF7854;
+  --color-secondary-600: #E85D3A;
+  --color-secondary-700: #CC4A2A;
+  --color-secondary-800: #A83B22;
+  --color-secondary-900: #7D2C19;
 
   /* ============================================================================
      COLOR PALETTE - Status
      ============================================================================ */
-  --color-success: #10b981;
-  --color-success-light: #6ee7b7;
-  --color-success-dark: #059669;
-  --color-success-50: #ecfdf5;
-  --color-success-100: #d1fae5;
+  --color-success: #01DF8A;
+  --color-success-light: #7FFFD4;
+  --color-success-dark: #00C278;
+  --color-success-50: #F0FDF9;
+  --color-success-100: #CCFBEF;
 
   --color-warning: #f59e0b;
   --color-warning-light: #fbbf24;
@@ -81,11 +81,20 @@
   --color-surface: #f9fafb;
   --color-surface-secondary: #f3f4f6;
   --color-surface-tertiary: #e5e7eb;
-  --color-border: #e5e7eb;
+  --color-border: #F0F0F0;
   --color-border-light: #f3f4f6;
-  --color-text: #111827;
-  --color-text-secondary: #6b7280;
+  --color-text: #21262D;
+  --color-text-secondary: #656E77;
   --color-text-tertiary: #9ca3af;
+  
+  /* Sidebar Specific */
+  --sidebar-bg: #FFFFFF;
+  --sidebar-text: #21262D;
+  --sidebar-text-muted: #656E77;
+  --sidebar-hover: #FFF5F7;
+  --sidebar-active: #FE3C72;
+  --sidebar-active-bg: #FFF0F3;
+  --sidebar-border: #F0F0F0;
 
   /* ============================================================================
      TYPOGRAPHY
@@ -166,9 +175,9 @@
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 
-  --shadow-glow-primary: 0 0 20px rgba(37, 99, 235, 0.5);
-  --shadow-glow-secondary: 0 0 20px rgba(124, 58, 237, 0.5);
-  --shadow-glow-success: 0 0 20px rgba(16, 185, 129, 0.5);
+  --shadow-glow-primary: 0 0 20px rgba(254, 60, 114, 0.5);
+  --shadow-glow-secondary: 0 0 20px rgba(255, 120, 84, 0.5);
+  --shadow-glow-success: 0 0 20px rgba(1, 223, 138, 0.5);
   --shadow-glow-error: 0 0 20px rgba(239, 68, 68, 0.5);
 
   /* ============================================================================

@@ -1,8 +1,10 @@
 """Smart SMS routing with AI - based provider selection."""
+
 from typing import Dict
 from datetime import datetime, timedelta
 from app.core.database import get_db
-from sqlalchemy import func
+from app.models.verification import Verification
+from sqlalchemy import func, case
 
 
 class SmartRouter:
@@ -10,11 +12,7 @@ class SmartRouter:
 
     def __init__(self):
         self.provider_stats = {}
-        self.routing_rules = {
-            "cost_weight": 0.3,
-            "success_weight": 0.5,
-            "speed_weight": 0.2
-        }
+        self.routing_rules = {"cost_weight": 0.3, "success_weight": 0.5, "speed_weight": 0.2}
 
     async def select_provider(self, service: str, country: str = "0") -> str:
         """Select optimal provider based on AI analysis."""
@@ -28,24 +26,28 @@ class SmartRouter:
         # Return provider with highest score
         return max(scores, key=scores.get)
 
-    async def _get_provider_stats(self, provider: str,
-                                  service: str, country: str) -> Dict:
+    async def _get_provider_stats(self, provider: str, service: str, country: str) -> Dict:
         """Get provider performance statistics."""
         db = next(get_db())
 
         # Get stats from last 7 days
         week_ago = datetime.utcnow() - timedelta(days=7)
 
-        stats = db.query(
-            func.count(Verification.id).label('total'),
-            func.avg(Verification.cost).label('avg_cost'),
-            func.sum(func.case([(Verification.status == 'completed',
-                                 1)], else_=0)).label('success_count')
-        ).filter(
-            Verification.provider == provider,
-            Verification.service_name == service,
-            Verification.created_at >= week_ago
-        ).first()
+        stats = (
+            db.query(
+                func.count(Verification.id).label("total"),
+                func.avg(Verification.cost).label("avg_cost"),
+                func.sum(case((Verification.status == "completed", 1), else_=0)).label(
+                    "success_count"
+                ),
+            )
+            .filter(
+                Verification.provider == provider,
+                Verification.service_name == service,
+                Verification.created_at >= week_ago,
+            )
+            .first()
+        )
 
         total = stats.total or 0
         success_rate = (stats.success_count or 0) / max(total, 1)
@@ -55,7 +57,7 @@ class SmartRouter:
             "success_rate": success_rate,
             "avg_cost": avg_cost,
             "total_requests": total,
-            "reliability": min(success_rate + (total / 100), 1.0)
+            "reliability": min(success_rate + (total / 100), 1.0),
         }
 
     def _calculate_score(self, stats: Dict) -> float:

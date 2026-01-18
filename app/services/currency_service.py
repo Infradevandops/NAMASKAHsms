@@ -5,29 +5,29 @@ class CurrencyService:
     """Handle currency conversion and formatting."""
 
     RATES = {
-        'USD': 1.0,
-        'EUR': 0.92,
-        'GBP': 0.79,
-        'NGN': 411.0,
-        'INR': 83.0,
-        'CNY': 7.08,
-        'JPY': 149.0,
-        'BRL': 4.97,
-        'CAD': 1.36,
-        'AUD': 1.53
+        "USD": 1.0,
+        "EUR": 0.92,
+        "GBP": 0.79,
+        "NGN": 411.0,
+        "INR": 83.0,
+        "CNY": 7.08,
+        "JPY": 149.0,
+        "BRL": 4.97,
+        "CAD": 1.36,
+        "AUD": 1.53,
     }
 
     SYMBOLS = {
-        'USD': '$',
-        'EUR': '€',
-        'GBP': '£',
-        'NGN': '₦',
-        'INR': '₹',
-        'CNY': '¥',
-        'JPY': '¥',
-        'BRL': 'R$',
-        'CAD': 'C$',
-        'AUD': 'A$'
+        "USD": "$",
+        "EUR": "€",
+        "GBP": "£",
+        "NGN": "₦",
+        "INR": "₹",
+        "CNY": "¥",
+        "JPY": "¥",
+        "BRL": "R$",
+        "CAD": "C$",
+        "AUD": "A$",
     }
 
     @staticmethod
@@ -35,10 +35,10 @@ class CurrencyService:
         """Convert amount between currencies."""
         if from_currency == to_currency:
             return amount
-        
+
         from_rate = CurrencyService.RATES.get(from_currency, 1.0)
         to_rate = CurrencyService.RATES.get(to_currency, 1.0)
-        
+
         return (amount / from_rate) * to_rate
 
     @staticmethod

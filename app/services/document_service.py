@@ -1,4 +1,5 @@
 """Document service for KYC file handling and processing."""
+
 import os
 import hashlib
 import mimetypes
@@ -7,13 +8,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
+
 try:
     from PIL import Image
 except ImportError:
     Image = None
 import json
 
+from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.models.kyc import KYCDocument, KYCProfile
+from app.utils.path_security import validate_safe_path
+from app.utils.sanitization import sanitize_filename
 
 logger = get_logger(__name__)
 settings = get_settings()
@@ -29,8 +35,11 @@ class DocumentService:
 
         # Allowed file types
         self.allowed_types = {
-            "image/jpeg", "image/jpg", "image/png", "image/webp",
-            "application/pdf"
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp",
+            "application/pdf",
         }
 
         # Max file size (10MB)
@@ -38,23 +47,21 @@ class DocumentService:
 
         # Document type requirements
         self.document_requirements = {
-            "passport": {"types": ["image/jpeg", "image/png",
-                                   "application/pd"], "max_size": 5 * 1024 * 1024},
-            "license": {"types": ["image/jpeg",
-                                  "image/png"], "max_size": 5 * 1024 * 1024},
-            "id_card": {"types": ["image/jpeg",
-                                  "image/png"], "max_size": 5 * 1024 * 1024},
-            "utility_bill": {"types": ["image/jpeg", "image/png",
-                                       "application/pd"], "max_size": 5 * 1024 * 1024},
-            "selfie": {"types": ["image/jpeg",
-                                 "image/png"], "max_size": 3 * 1024 * 1024}
+            "passport": {
+                "types": ["image/jpeg", "image/png", "application/pd"],
+                "max_size": 5 * 1024 * 1024,
+            },
+            "license": {"types": ["image/jpeg", "image/png"], "max_size": 5 * 1024 * 1024},
+            "id_card": {"types": ["image/jpeg", "image/png"], "max_size": 5 * 1024 * 1024},
+            "utility_bill": {
+                "types": ["image/jpeg", "image/png", "application/pd"],
+                "max_size": 5 * 1024 * 1024,
+            },
+            "selfie": {"types": ["image/jpeg", "image/png"], "max_size": 3 * 1024 * 1024},
         }
 
     async def upload_document(
-        self,
-        file: UploadFile,
-        document_type: str,
-        kyc_profile_id: str
+        self, file: UploadFile, document_type: str, kyc_profile_id: str
     ) -> KYCDocument:
         """Upload and process KYC document."""
         try:
@@ -98,7 +105,7 @@ class DocumentService:
                 verification_status="pending",
                 verification_method="automated",
                 extracted_data=extracted_data,
-                is_encrypted=False  # Would implement encryption in production
+                is_encrypted=False,  # Would implement encryption in production
             )
 
             self.db.add(document)
@@ -111,11 +118,11 @@ class DocumentService:
             return document
 
         except HTTPException:
-        pass
+            pass
         except Exception as e:
             logger.error("Document upload failed: %s", str(e))
             # Clean up file if it was created
-            if 'file_path' in locals() and file_path.exists():
+            if "file_path" in locals() and file_path.exists():
                 file_path.unlink()
             raise HTTPException(status_code=500, detail="Document upload failed")
 
@@ -131,7 +138,7 @@ class DocumentService:
         if file.content_type not in requirements["types"]:
             raise HTTPException(
                 status_code=400,
-                detail=f"Invalid file type for {document_type}. Allowed: {requirements['types']}"
+                detail=f"Invalid file type for {document_type}. Allowed: {requirements['types']}",
             )
 
         # Check file size
@@ -142,7 +149,7 @@ class DocumentService:
         if file_size > requirements["max_size"]:
             raise HTTPException(
                 status_code=400,
-                detail=f"File too large. Max size: {requirements['max_size'] / 1024 / 1024:.1f}MB"
+                detail=f"File too large. Max size: {requirements['max_size'] / 1024 / 1024:.1f}MB",
             )
 
         if file_size == 0:
@@ -156,8 +163,7 @@ class DocumentService:
         """Generate SHA - 256 hash of file content."""
         return hashlib.sha256(content).hexdigest()
 
-    async def _process_image(self, file_path: Path,
-                             document_type: str) -> Dict[str, Any]:
+    async def _process_image(self, file_path: Path, document_type: str) -> Dict[str, Any]:
         """Process image and extract metadata."""
         try:
             extracted_data = {}
@@ -166,21 +172,21 @@ class DocumentService:
                 with Image.open(file_path) as img:
                     # Basic image info
                     extracted_data["image_info"] = {
-                    "format": img.format,
-                    "mode": img.mode,
-                    "size": img.size,
-                    "has_transparency": img.mode in ("RGBA", "LA")
-                    or "transparency" in img.info
-                }
+                        "format": img.format,
+                        "mode": img.mode,
+                        "size": img.size,
+                        "has_transparency": img.mode in ("RGBA", "LA")
+                        or "transparency" in img.info,
+                    }
 
                 # EXIF data (if available)
-                if hasattr(img, '_getexif') and img._getexif():
+                if hasattr(img, "_getexif") and img._getexif():
                     exif_data = img._getexif()
                     extracted_data["exif"] = {
                         "make": exif_data.get(271),
                         "model": exif_data.get(272),
                         "datetime": exif_data.get(306),
-                        "gps_info": exif_data.get(34853) is not None
+                        "gps_info": exif_data.get(34853) is not None,
                     }
 
                     # Image quality assessment
@@ -208,11 +214,12 @@ class DocumentService:
             total_pixels = width * height
 
             # Convert to grayscale for analysis
-            gray_img = img.convert('L')
+            gray_img = img.convert("L")
 
             # Calculate basic statistics
             try:
                 import numpy as np
+
                 img_array = np.array(gray_img)
             except ImportError:
                 return {"quality_score": 0.5, "error": "NumPy not available"}
@@ -242,11 +249,10 @@ class DocumentService:
 
             return {
                 "quality_score": max(0.0, quality_score),
-                "resolution": {"width": width,
-                               "height": height, "total_pixels": total_pixels},
+                "resolution": {"width": width, "height": height, "total_pixels": total_pixels},
                 "brightness": float(mean_brightness),
                 "contrast": float(contrast),
-                "issues": issues
+                "issues": issues,
             }
 
         except Exception as e:
@@ -261,7 +267,7 @@ class DocumentService:
                 "document_detected": True,
                 "text_regions": [],
                 "security_features": [],
-                "authenticity_score": 0.8  # Placeholder
+                "authenticity_score": 0.8,  # Placeholder
             }
 
             # In production, this would use OCR and ML models
@@ -281,7 +287,7 @@ class DocumentService:
                 "faces_detected": 1,
                 "face_quality": 0.85,
                 "liveness_score": 0.9,
-                "face_bounds": [100, 100, 300, 300]  # Placeholder coordinates
+                "face_bounds": [100, 100, 300, 300],  # Placeholder coordinates
             }
 
             # In production, this would use face detection libraries
@@ -331,10 +337,12 @@ class DocumentService:
     def get_document_url(self, document_id: str, user_id: str) -> Optional[str]:
         """Get secure URL for document access."""
         try:
-            document = self.db.query(KYCDocument).join(KYCProfile).filter(
-                KYCDocument.id == document_id,
-                KYCProfile.user_id == user_id
-            ).first()
+            document = (
+                self.db.query(KYCDocument)
+                .join(KYCProfile)
+                .filter(KYCDocument.id == document_id, KYCProfile.user_id == user_id)
+                .first()
+            )
 
             if not document:
                 return None
@@ -354,11 +362,16 @@ class DocumentService:
     def delete_document(self, document_id: str, user_id: str) -> bool:
         """Delete document (if allowed)."""
         try:
-            document = self.db.query(KYCDocument).join(KYCProfile).filter(
-                KYCDocument.id == document_id,
-                KYCProfile.user_id == user_id,
-                KYCProfile.status != "verified"  # Can't delete from verified profiles
-            ).first()
+            document = (
+                self.db.query(KYCDocument)
+                .join(KYCProfile)
+                .filter(
+                    KYCDocument.id == document_id,
+                    KYCProfile.user_id == user_id,
+                    KYCProfile.status != "verified",  # Can't delete from verified profiles
+                )
+                .first()
+            )
 
             if not document:
                 return False

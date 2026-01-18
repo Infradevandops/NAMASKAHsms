@@ -256,7 +256,7 @@ function showToast(message, type = 'info') {
     
     if (type === 'success') toast.style.backgroundColor = '#10b981';
     else if (type === 'error') toast.style.backgroundColor = '#ef4444';
-    else toast.style.backgroundColor = '#3b82f6';
+    else toast.style.backgroundColor = '#0ea5e9';
     
     document.body.appendChild(toast);
     

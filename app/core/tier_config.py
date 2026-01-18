@@ -1,4 +1,5 @@
 """Tier configuration and feature definitions - Updated for 4-tier system."""
+
 from typing import Dict, Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -14,13 +15,19 @@ class TierConfig:
             # Fallback to hardcoded config if no DB session
             return cls._get_fallback_config(tier)
 
-        result = db.execute(text("""
+        result = db.execute(
+            text(
+                """
             SELECT tier, name, price_monthly, quota_usd, overage_rate,
                    has_api_access, has_area_code_selection, has_isp_filtering,
-                   api_key_limit, support_level
+                   api_key_limit, support_level, daily_verification_limit,
+                   monthly_verification_limit
             FROM subscription_tiers
             WHERE tier = :tier
-        """), {"tier": tier})
+        """
+            ),
+            {"tier": tier},
+        )
 
         row = result.fetchone()
         if not row:
@@ -38,11 +45,14 @@ class TierConfig:
             "has_isp_filtering": bool(row[7]),
             "api_key_limit": row[8],
             "support_level": row[9],
+            "daily_verification_limit": row[10],
+            "monthly_verification_limit": row[11],
+            "country_limit": row[12],
             "features": {
                 "webhooks": bool(row[5]),  # API access enables webhooks
                 "priority_routing": tier in ["pro", "custom"],
                 "custom_branding": tier == "custom",
-            }
+            },
         }
 
     @classmethod
@@ -51,13 +61,18 @@ class TierConfig:
         if not db:
             return cls._get_fallback_tiers()
 
-        result = db.execute(text("""
+        result = db.execute(
+            text(
+                """
             SELECT tier, name, price_monthly, quota_usd, overage_rate,
                    has_api_access, has_area_code_selection, has_isp_filtering,
-                   api_key_limit, support_level
+                   api_key_limit, support_level, daily_verification_limit,
+                   monthly_verification_limit
             FROM subscription_tiers
             ORDER BY price_monthly
-        """))
+        """
+            )
+        )
 
         tiers = []
         for row in result.fetchall():
@@ -73,11 +88,14 @@ class TierConfig:
                 "has_isp_filtering": bool(row[7]),
                 "api_key_limit": row[8],
                 "support_level": row[9],
+                "daily_verification_limit": row[10],
+                "monthly_verification_limit": row[11],
+                "country_limit": row[12],
                 "features": {
                     "webhooks": bool(row[5]),
                     "priority_routing": row[0] in ["pro", "custom"],
                     "custom_branding": row[0] == "custom",
-                }
+                },
             }
             tiers.append(tier_config)
 
@@ -106,7 +124,14 @@ class TierConfig:
                 "has_isp_filtering": False,
                 "api_key_limit": 0,
                 "support_level": "community",
-                "features": {"webhooks": False, "priority_routing": False, "custom_branding": False}
+                "daily_verification_limit": 100,
+                "monthly_verification_limit": 3000,
+                "country_limit": 5,
+                "features": {
+                    "webhooks": False,
+                    "priority_routing": False,
+                    "custom_branding": False,
+                },
             },
             "payg": {
                 "name": "Pay-As-You-Go",
@@ -121,7 +146,14 @@ class TierConfig:
                 "has_isp_filtering": True,
                 "api_key_limit": 0,
                 "support_level": "community",
-                "features": {"webhooks": False, "priority_routing": False, "custom_branding": False}
+                "daily_verification_limit": 500,
+                "monthly_verification_limit": 15000,
+                "country_limit": -1,
+                "features": {
+                    "webhooks": False,
+                    "priority_routing": False,
+                    "custom_branding": False,
+                },
             },
             "pro": {
                 "name": "Pro",
@@ -136,7 +168,10 @@ class TierConfig:
                 "has_isp_filtering": True,
                 "api_key_limit": 10,
                 "support_level": "priority",
-                "features": {"webhooks": True, "priority_routing": True, "custom_branding": False}
+                "daily_verification_limit": 2000,
+                "monthly_verification_limit": 60000,
+                "country_limit": -1,
+                "features": {"webhooks": True, "priority_routing": True, "custom_branding": False},
             },
             "custom": {
                 "name": "Custom",
@@ -151,8 +186,11 @@ class TierConfig:
                 "has_isp_filtering": True,
                 "api_key_limit": -1,
                 "support_level": "dedicated",
-                "features": {"webhooks": True, "priority_routing": True, "custom_branding": True}
-            }
+                "daily_verification_limit": 10000,
+                "monthly_verification_limit": 300000,
+                "country_limit": -1,
+                "features": {"webhooks": True, "priority_routing": True, "custom_branding": True},
+            },
         }
         return fallback_tiers.get(tier.lower(), fallback_tiers["freemium"])
 

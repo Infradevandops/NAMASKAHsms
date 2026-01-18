@@ -5,8 +5,8 @@
  * 
  * Tier Colors:
  * - Freemium: Green (#10B981)
- * - PayG: Blue (#3B82F6)
- * - Pro: Orange (#F59E0B)
+ * - PayG: Orange (#FF7854)
+ * - Pro: Amber (#F59E0B)
  * - Custom: Purple (#8B5CF6)
  */
 
@@ -16,9 +16,9 @@
     --tier-freemium-light: rgba(16, 185, 129, 0.1);
     --tier-freemium-dark: #059669;
     
-    --tier-payg: #3B82F6;
-    --tier-payg-light: rgba(59, 130, 246, 0.1);
-    --tier-payg-dark: #2563EB;
+    --tier-payg: #FF7854;
+    --tier-payg-light: rgba(255, 120, 84, 0.1);
+    --tier-payg-dark: #E85D3A;
     
     --tier-pro: #F59E0B;
     --tier-pro-light: rgba(245, 158, 11, 0.1);
@@ -131,7 +131,7 @@
 
 .tier-card-payg:hover,
 .tier-card[data-tier="payg"]:hover {
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
+    box-shadow: 0 8px 24px rgba(255, 120, 84, 0.2);
 }
 
 .tier-card-pro,

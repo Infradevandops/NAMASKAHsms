@@ -1,4 +1,5 @@
 """Infrastructure management API endpoints."""
+
 from app.models.user import User
 from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends, Request
@@ -12,7 +13,7 @@ async def get_regions_status():
     """Get status of all regions."""
     return {
         "regions": region_manager.get_region_status(),
-        "primary_region": region_manager.primary_region
+        "primary_region": region_manager.primary_region,
     }
 
 
@@ -27,7 +28,7 @@ async def get_optimal_region(request: Request, country: str = None):
     return {
         "optimal_region": optimal,
         "endpoint": region_manager.regions[optimal].endpoint,
-        "user_country": country
+        "user_country": country,
     }
 
 
@@ -35,10 +36,7 @@ async def get_optimal_region(request: Request, country: str = None):
 async def perform_health_check(admin_user: User = Depends(get_current_admin_user)):
     """Perform health check on all regions (admin only)."""
     results = await region_manager.health_check_regions()
-    return {
-        "health_check_results": results,
-        "timestamp": "2024 - 01-01T00:00:00Z"
-    }
+    return {"health_check_results": results, "timestamp": "2024 - 01-01T00:00:00Z"}
 
 
 @router.get("/cdn/config")

@@ -1,4 +1,5 @@
 """KYC request/response schemas."""
+
 from datetime import datetime, date
 from typing import Optional, List, Dict, Any
 from pydantic import BaseModel, validator, Field
@@ -6,6 +7,7 @@ from pydantic import BaseModel, validator, Field
 
 class KYCProfileCreate(BaseModel):
     """Schema for creating KYC profile."""
+
     full_name: str = Field(..., min_length=2, max_length=100)
     phone_number: str = Field(..., min_length=10, max_length=20)
     date_of_birth: date = Field(...)
@@ -18,22 +20,23 @@ class KYCProfileCreate(BaseModel):
     postal_code: str = Field(..., min_length=3, max_length=20)
     country: str = Field(..., min_length=2, max_length=3)
 
-    @validator('date_of_birth')
+    @validator("date_of_birth")
     def validate_age(cls, v):
         today = date.today()
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
         if age < 18:
-            raise ValueError('Must be at least 18 years old')
+            raise ValueError("Must be at least 18 years old")
         if age > 120:
-            raise ValueError('Invalid date of birth')
+            raise ValueError("Invalid date of birth")
         return v
 
-    @validator('phone_number')
+    @validator("phone_number")
     def validate_phone(cls, v):
         import re
+
         # Basic phone validation
-        if not re.match(r'^\+?[1 - 9]\d{1,14}$', v.replace(' ', '').replace('-', '')):
-            raise ValueError('Invalid phone number format')
+        if not re.match(r"^\+?[1 - 9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
+            raise ValueError("Invalid phone number format")
         return v
 
     model_config = {
@@ -48,7 +51,7 @@ class KYCProfileCreate(BaseModel):
                 "city": "New York",
                 "state": "NY",
                 "postal_code": "10001",
-                "country": "US"
+                "country": "US",
             }
         }
     }
@@ -56,6 +59,7 @@ class KYCProfileCreate(BaseModel):
 
 class KYCProfileResponse(BaseModel):
     """Schema for KYC profile response."""
+
     id: str
     user_id: str
     status: str
@@ -92,14 +96,15 @@ class KYCProfileResponse(BaseModel):
                 "pep_status": False,
                 "submitted_at": "2024 - 01-20T10:00:00Z",
                 "verified_at": "2024 - 01-20T15:30:00Z",
-                "created_at": "2024 - 01-20T10:00:00Z"
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
 class KYCDocumentResponse(BaseModel):
     """Schema for KYC document response."""
+
     id: str
     document_type: str
     verification_status: str
@@ -118,14 +123,15 @@ class KYCDocumentResponse(BaseModel):
                 "confidence_score": 0.95,
                 "file_name": "passport.jpg",
                 "file_size": 2048000,
-                "uploaded_at": "2024 - 01-20T10:00:00Z"
+                "uploaded_at": "2024 - 01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
 class KYCVerificationDecision(BaseModel):
     """Schema for admin KYC verification decision."""
+
     decision: str = Field(..., pattern="^(approved|rejected)$")
     verification_level: Optional[str] = Field("basic", pattern="^(basic|enhanced|premium)$")
     notes: Optional[str] = Field(None, max_length=1000)
@@ -135,7 +141,7 @@ class KYCVerificationDecision(BaseModel):
             "example": {
                 "decision": "approved",
                 "verification_level": "enhanced",
-                "notes": "All documents verified successfully"
+                "notes": "All documents verified successfully",
             }
         }
     }
@@ -143,6 +149,7 @@ class KYCVerificationDecision(BaseModel):
 
 class KYCLimitsResponse(BaseModel):
     """Schema for KYC limits response."""
+
     verification_level: str
     daily_limit: float
     monthly_limit: float
@@ -160,11 +167,7 @@ class KYCLimitsResponse(BaseModel):
                 "annual_limit": 50000.0,
                 "allowed_services": ["basic", "premium", "enterprise"],
                 "max_transaction_amount": 500.0,
-                "current_usage": {
-                    "daily": 150.0,
-                    "monthly": 800.0,
-                    "annual": 2500.0
-                }
+                "current_usage": {"daily": 150.0, "monthly": 800.0, "annual": 2500.0},
             }
         }
     }
@@ -172,6 +175,7 @@ class KYCLimitsResponse(BaseModel):
 
 class AMLScreeningResponse(BaseModel):
     """Schema for AML screening response."""
+
     id: str
     screening_type: str
     status: str
@@ -192,14 +196,15 @@ class AMLScreeningResponse(BaseModel):
                 "matches_found": [],
                 "reviewed_by": None,
                 "review_decision": None,
-                "created_at": "2024 - 01-20T10:00:00Z"
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
 class KYCStatsResponse(BaseModel):
     """Schema for KYC statistics response."""
+
     total_profiles: int
     verified_profiles: int
     pending_profiles: int
@@ -215,11 +220,7 @@ class KYCStatsResponse(BaseModel):
                 "pending_profiles": 100,
                 "rejected_profiles": 50,
                 "verification_rate": 85.0,
-                "level_distribution": {
-                    "basic": 500,
-                    "enhanced": 300,
-                    "premium": 50
-                }
+                "level_distribution": {"basic": 500, "enhanced": 300, "premium": 50},
             }
         }
     }
@@ -227,6 +228,7 @@ class KYCStatsResponse(BaseModel):
 
 class BiometricVerificationRequest(BaseModel):
     """Schema for biometric verification request."""
+
     verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
     reference_document_id: Optional[str] = None
 
@@ -234,7 +236,7 @@ class BiometricVerificationRequest(BaseModel):
         "json_schema_extra": {
             "example": {
                 "verification_type": "face_match",
-                "reference_document_id": "doc_1642680000000"
+                "reference_document_id": "doc_1642680000000",
             }
         }
     }
@@ -242,6 +244,7 @@ class BiometricVerificationRequest(BaseModel):
 
 class BiometricVerificationResponse(BaseModel):
     """Schema for biometric verification response."""
+
     id: str
     verification_type: str
     verification_result: str
@@ -260,14 +263,15 @@ class BiometricVerificationResponse(BaseModel):
                 "match_score": 0.92,
                 "liveness_score": 0.88,
                 "confidence_level": "high",
-                "created_at": "2024 - 01-20T10:00:00Z"
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
 class KYCAuditLogResponse(BaseModel):
     """Schema for KYC audit log response."""
+
     id: str
     user_id: str
     action: str
@@ -290,14 +294,15 @@ class KYCAuditLogResponse(BaseModel):
                 "admin_id": "admin_1642680000000",
                 "reason": "All documents verified",
                 "ip_address": "192.168.1.1",
-                "created_at": "2024 - 01-20T10:00:00Z"
+                "created_at": "2024 - 01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
 class DocumentUploadResponse(BaseModel):
     """Schema for document upload response."""
+
     id: str
     document_type: str
     status: str
@@ -317,7 +322,7 @@ class DocumentUploadResponse(BaseModel):
                 "file_size": 2048000,
                 "upload_url": None,
                 "processing_status": "pending",
-                "uploaded_at": "2024 - 01-20T10:00:00Z"
+                "uploaded_at": "2024 - 01-20T10:00:00Z",
             }
         }
     }
@@ -325,6 +330,7 @@ class DocumentUploadResponse(BaseModel):
 
 class KYCComplianceReport(BaseModel):
     """Schema for KYC compliance report."""
+
     report_id: str
     report_type: str
     period_start: date
@@ -344,13 +350,9 @@ class KYCComplianceReport(BaseModel):
                 "period_end": "2024 - 01-31",
                 "total_verifications": 500,
                 "compliance_rate": 98.5,
-                "risk_distribution": {
-                    "low": 450,
-                    "medium": 40,
-                    "high": 10
-                },
+                "risk_distribution": {"low": 450, "medium": 40, "high": 10},
                 "aml_alerts": 5,
-                "generated_at": "2024 - 02-01T00:00:00Z"
+                "generated_at": "2024 - 02-01T00:00:00Z",
             }
         }
     }

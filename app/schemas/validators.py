@@ -1,4 +1,5 @@
 """Custom validation utilities for Pydantic schemas."""
+
 import re
 from typing import Any, Dict, List, Optional
 from datetime import datetime
@@ -13,9 +14,7 @@ def validate_phone_number(phone: str) -> str:
 
     # Check if it starts with + and has 10 - 15 digits
     if not re.match(r"^\+\d{10,15}$", cleaned):
-        raise ValueError(
-            "Invalid phone number format. Use international format: +1234567890"
-        )
+        raise ValueError("Invalid phone number format. Use international format: +1234567890")
 
     return cleaned
 
@@ -30,9 +29,7 @@ def validate_service_name(service: str) -> str:
 
     # Check for valid characters (alphanumeric, underscore, hyphen)
     if not re.match(r"^[a - z0-9_-]+$", cleaned):
-        raise ValueError(
-            "Service name can only contain letters, numbers, underscores, and hyphens"
-        )
+        raise ValueError("Service name can only contain letters, numbers, underscores, and hyphens")
 
     return cleaned
 
@@ -152,9 +149,7 @@ def validate_carrier_name(carrier: str) -> str:
     ]
 
     if cleaned not in supported_carriers:
-        raise ValueError(
-            f'Unsupported carrier. Supported: {", ".join(supported_carriers)}'
-        )
+        raise ValueError(f'Unsupported carrier. Supported: {", ".join(supported_carriers)}')
 
     return cleaned
 
@@ -253,29 +248,30 @@ def create_pagination_response(
 # ENHANCED VALIDATORS WITH COMPREHENSIVE ERROR HANDLING
 # ============================================================================
 
+
 def validate_email(email: str) -> str:
     """Validate email format with comprehensive checks."""
     if not email:
         raise ValueError("Email cannot be empty")
-    
+
     email = email.strip().lower()
-    
+
     if len(email) > 254:
         raise ValueError("Email is too long (max 254 characters)")
-    
+
     # RFC 5322 simplified email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email):
         raise ValueError("Invalid email format")
-    
+
     # Check for consecutive dots
-    if '..' in email:
+    if ".." in email:
         raise ValueError("Email cannot contain consecutive dots")
-    
+
     # Check if starts or ends with dot
-    if email.startswith('.') or email.endswith('.'):
+    if email.startswith(".") or email.endswith("."):
         raise ValueError("Email cannot start or end with a dot")
-    
+
     return email
 
 
@@ -283,29 +279,29 @@ def validate_password_strength(password: str) -> str:
     """Validate password strength with detailed requirements."""
     if not password:
         raise ValueError("Password cannot be empty")
-    
+
     if len(password) < 8:
         raise ValueError("Password must be at least 8 characters long")
-    
+
     if len(password) > 128:
         raise ValueError("Password is too long (max 128 characters)")
-    
+
     # Check for at least one uppercase letter
-    if not re.search(r'[A-Z]', password):
+    if not re.search(r"[A-Z]", password):
         raise ValueError("Password must contain at least one uppercase letter")
-    
+
     # Check for at least one lowercase letter
-    if not re.search(r'[a-z]', password):
+    if not re.search(r"[a-z]", password):
         raise ValueError("Password must contain at least one lowercase letter")
-    
+
     # Check for at least one digit
-    if not re.search(r'\d', password):
+    if not re.search(r"\d", password):
         raise ValueError("Password must contain at least one digit")
-    
+
     # Check for at least one special character
     if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>?/\\|`~]', password):
         raise ValueError("Password must contain at least one special character")
-    
+
     return password
 
 
@@ -313,19 +309,19 @@ def validate_country_code(code: str) -> str:
     """Validate country code format."""
     if not code:
         raise ValueError("Country code cannot be empty")
-    
+
     code = code.strip().upper()
-    
+
     # Accept 2-letter ISO codes or country names
     if len(code) == 2:
-        if not re.match(r'^[A-Z]{2}$', code):
+        if not re.match(r"^[A-Z]{2}$", code):
             raise ValueError("Invalid country code format")
     else:
         # Accept country names (lowercase)
         code = code.lower()
-        if not re.match(r'^[a-z]{2,}$', code):
+        if not re.match(r"^[a-z]{2,}$", code):
             raise ValueError("Invalid country format")
-    
+
     return code
 
 
@@ -333,13 +329,13 @@ def validate_positive_number(value: float, field_name: str = "value") -> float:
     """Validate that a number is positive."""
     if value is None:
         raise ValueError(f"{field_name} cannot be None")
-    
+
     if not isinstance(value, (int, float)):
         raise ValueError(f"{field_name} must be a number")
-    
+
     if value <= 0:
         raise ValueError(f"{field_name} must be positive")
-    
+
     return float(value)
 
 
@@ -347,30 +343,31 @@ def validate_non_negative_number(value: float, field_name: str = "value") -> flo
     """Validate that a number is non-negative."""
     if value is None:
         raise ValueError(f"{field_name} cannot be None")
-    
+
     if not isinstance(value, (int, float)):
         raise ValueError(f"{field_name} must be a number")
-    
+
     if value < 0:
         raise ValueError(f"{field_name} cannot be negative")
-    
+
     return float(value)
 
 
-def validate_string_length(value: str, min_length: int = 1, max_length: int = 255, 
-                          field_name: str = "value") -> str:
+def validate_string_length(
+    value: str, min_length: int = 1, max_length: int = 255, field_name: str = "value"
+) -> str:
     """Validate string length with bounds."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
-    
+
     value = value.strip()
-    
+
     if len(value) < min_length:
         raise ValueError(f"{field_name} must be at least {min_length} characters")
-    
+
     if len(value) > max_length:
         raise ValueError(f"{field_name} cannot exceed {max_length} characters")
-    
+
     return value
 
 
@@ -378,12 +375,12 @@ def validate_enum_value(value: str, allowed_values: List[str], field_name: str =
     """Validate that value is in allowed list."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
-    
+
     value = value.lower().strip()
-    
+
     if value not in [v.lower() for v in allowed_values]:
         raise ValueError(f"{field_name} must be one of: {', '.join(allowed_values)}")
-    
+
     return value
 
 
@@ -391,7 +388,7 @@ def validate_date_format(date_str: str, format_str: str = "%Y-%m-%d") -> datetim
     """Validate date format."""
     if not date_str:
         raise ValueError("Date cannot be empty")
-    
+
     try:
         return datetime.strptime(date_str.strip(), format_str)
     except ValueError:
@@ -402,26 +399,26 @@ def validate_url(url: str) -> str:
     """Validate URL format."""
     if not url:
         raise ValueError("URL cannot be empty")
-    
+
     url = url.strip()
-    
+
     # Basic URL validation
     url_pattern = re.compile(
-        r'^https?://'  # http:// or https://
-        r'(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|'  # domain
-        r'localhost|'  # localhost
-        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'  # IP
-        r'(?::\d+)?'  # optional port
-        r'(?:/?|[/?]\S+)$',
+        r"^https?://"  # http:// or https://
+        r"(?:(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}\.?|"  # domain
+        r"localhost|"  # localhost
+        r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # IP
+        r"(?::\d+)?"  # optional port
+        r"(?:/?|[/?]\S+)$",
         re.IGNORECASE,
     )
-    
+
     if not url_pattern.match(url):
         raise ValueError("Invalid URL format")
-    
+
     if len(url) > 2048:
         raise ValueError("URL is too long (max 2048 characters)")
-    
+
     return url
 
 
@@ -429,11 +426,11 @@ def validate_uuid(value: str) -> str:
     """Validate UUID format."""
     if not value:
         raise ValueError("UUID cannot be empty")
-    
-    uuid_pattern = r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+
+    uuid_pattern = r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
     if not re.match(uuid_pattern, value.lower()):
         raise ValueError("Invalid UUID format")
-    
+
     return value
 
 
@@ -441,8 +438,9 @@ def validate_json_string(value: str) -> dict:
     """Validate and parse JSON string."""
     if not value:
         raise ValueError("JSON string cannot be empty")
-    
+
     import json
+
     try:
         return json.loads(value)
     except json.JSONDecodeError as e:
@@ -453,21 +451,21 @@ def validate_ip_address(ip: str) -> str:
     """Validate IP address format (IPv4 or IPv6)."""
     if not ip:
         raise ValueError("IP address cannot be empty")
-    
+
     ip = ip.strip()
-    
+
     # IPv4 validation
-    ipv4_pattern = r'^(\d{1,3}\.){3}\d{1,3}$'
+    ipv4_pattern = r"^(\d{1,3}\.){3}\d{1,3}$"
     if re.match(ipv4_pattern, ip):
-        parts = ip.split('.')
+        parts = ip.split(".")
         if all(0 <= int(part) <= 255 for part in parts):
             return ip
-    
+
     # IPv6 validation (simplified)
-    ipv6_pattern = r'^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$'
+    ipv6_pattern = r"^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$"
     if re.match(ipv6_pattern, ip):
         return ip
-    
+
     raise ValueError("Invalid IP address format")
 
 
@@ -475,16 +473,16 @@ def validate_credit_amount(amount: float) -> float:
     """Validate credit amount for transactions."""
     if amount is None:
         raise ValueError("Amount cannot be None")
-    
+
     if not isinstance(amount, (int, float)):
         raise ValueError("Amount must be a number")
-    
+
     if amount <= 0:
         raise ValueError("Amount must be positive")
-    
+
     if amount > 1000000:
         raise ValueError("Amount exceeds maximum limit (1,000,000)")
-    
+
     # Round to 2 decimal places
     return round(amount, 2)
 
@@ -498,7 +496,7 @@ def validate_query_parameters(page: Optional[int] = None, limit: Optional[int] =
         raise ValueError("Page must be an integer")
     elif page < 1:
         raise ValueError("Page must be at least 1")
-    
+
     # Validate limit
     if limit is None:
         limit = 20
@@ -508,7 +506,7 @@ def validate_query_parameters(page: Optional[int] = None, limit: Optional[int] =
         raise ValueError("Limit must be at least 1")
     elif limit > 100:
         raise ValueError("Limit cannot exceed 100")
-    
+
     return page, limit
 
 
@@ -516,21 +514,21 @@ def validate_search_query(query: str, min_length: int = 1, max_length: int = 255
     """Validate search query."""
     if not query:
         raise ValueError("Search query cannot be empty")
-    
+
     query = query.strip()
-    
+
     if len(query) < min_length:
         raise ValueError(f"Search query must be at least {min_length} character(s)")
-    
+
     if len(query) > max_length:
         raise ValueError(f"Search query cannot exceed {max_length} characters")
-    
+
     # Remove potentially dangerous characters
-    dangerous_chars = ['<', '>', '"', "'", '&', ';', '|', '`']
+    dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
     for char in dangerous_chars:
         if char in query:
             raise ValueError(f"Search query contains invalid character: {char}")
-    
+
     return query
 
 
@@ -550,6 +548,3 @@ def validate_date_range(date_from: str, date_to: str) -> Dict[str, Any]:
         }
     except ValueError:
         return {"is_valid": False, "start_date": None, "end_date": None, "days_diff": 0}
-
-
-

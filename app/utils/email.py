@@ -1,7 +1,9 @@
 """Email utilities for SMTP configuration and template management."""
+
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from string import Template
 from typing import Any, Dict, Optional
 

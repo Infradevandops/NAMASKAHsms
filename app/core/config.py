@@ -1,4 +1,5 @@
 """Core configuration management using Pydantic Settings."""
+
 from typing import Optional
 from functools import lru_cache
 
@@ -80,7 +81,7 @@ class Settings(BaseSettings):
     sms_polling_initial_interval_seconds: int = 5
     sms_polling_later_interval_seconds: int = 10
     sms_polling_error_backoff_seconds: int = 15
-    
+
     # Voice polling configuration
     voice_polling_interval_seconds: int = 5
     voice_polling_timeout_minutes: int = 5
@@ -136,9 +137,7 @@ class Settings(BaseSettings):
         if info and hasattr(info, "data"):
             environment = info.data.get("environment", "development")
             if value.startswith("sqlite://") and environment == "production":
-                raise ValueError(
-                    "SQLite is not recommended for production. Use PostgreSQL."
-                )
+                raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
 
         return value
 

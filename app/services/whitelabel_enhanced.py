@@ -1,7 +1,9 @@
 """Enhanced white - label service with advanced features."""
+
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from app.models.whitelabel import WhiteLabelConfig
+from app.models.whitelabel_enhanced import WhiteLabelDomain, WhiteLabelTheme, WhiteLabelAsset
 
 
 class WhiteLabelEnhancedService:
@@ -11,11 +13,7 @@ class WhiteLabelEnhancedService:
         self.db = db
 
     async def setup_complete_whitelabel(
-        self,
-        partner_id: int,
-        domain: str,
-        company_name: str,
-        branding_config: Dict
+        self, partner_id: int, domain: str, company_name: str, branding_config: Dict
     ) -> Dict:
         """Complete white - label setup wizard."""
 
@@ -28,9 +26,9 @@ class WhiteLabelEnhancedService:
             secondary_color=branding_config.get("secondary_color", "#10b981"),
             custom_css=branding_config.get("custom_css"),
             api_subdomain=branding_config.get("api_subdomain"),
-            features=branding_config.get("features", {
-                "sms": True, "whatsapp": True, "telegram": True, "analytics": True
-            })
+            features=branding_config.get(
+                "features", {"sms": True, "whatsapp": True, "telegram": True, "analytics": True}
+            ),
         )
 
         self.db.add(config)
@@ -41,7 +39,7 @@ class WhiteLabelEnhancedService:
             config_id=config.id,
             domain=domain,
             subdomain=branding_config.get("api_subdomain"),
-            is_primary=True
+            is_primary=True,
         )
 
         self.db.add(domain_entry)
@@ -53,31 +51,23 @@ class WhiteLabelEnhancedService:
             css_variables={
                 "--primary - color": branding_config.get("primary_color", "#667eea"),
                 "--secondary - color": branding_config.get("secondary_color", "#10b981"),
-                "--font - family": branding_config.get("font_family",
-                                                       "Inter, sans - seri"),
+                "--font - family": branding_config.get("font_family", "Inter, sans - seri"),
                 "--border - radius": "8px",
-                "--shadow": "0 4px 6px rgba(0, 0, 0, 0.1)"
+                "--shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
             },
             custom_css=branding_config.get("custom_css"),
-            is_active=True
+            is_active=True,
         )
 
         self.db.add(theme)
         self.db.commit()
 
-        return {
-            "success": True,
-            "config_id": config.id,
-            "domain": domain,
-            "setup_complete": True
-        }
+        return {"success": True, "config_id": config.id, "domain": domain, "setup_complete": True}
 
     async def update_branding(self, config_id: int, branding_data: Dict) -> Dict:
         """Update complete branding configuration."""
 
-        config = self.db.query(WhiteLabelConfig).filter(
-            WhiteLabelConfig.id == config_id
-        ).first()
+        config = self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.id == config_id).first()
 
         if not config:
             raise ValueError("Configuration not found")
@@ -90,17 +80,22 @@ class WhiteLabelEnhancedService:
         config.custom_css = branding_data.get("custom_css", config.custom_css)
 
         # Update theme
-        theme = self.db.query(WhiteLabelTheme).filter(
-            WhiteLabelTheme.config_id == config_id,
-            WhiteLabelTheme.is_active
-        ).first()
+        theme = (
+            self.db.query(WhiteLabelTheme)
+            .filter(WhiteLabelTheme.config_id == config_id, WhiteLabelTheme.is_active)
+            .first()
+        )
 
         if theme:
-            theme.css_variables.update({
-                "--primary - color": branding_data.get("primary_color", config.primary_color),
-                "--secondary - color": branding_data.get("secondary_color", config.secondary_color),
-                "--font - family": branding_data.get("font_family", "Inter, sans - serif")
-            })
+            theme.css_variables.update(
+                {
+                    "--primary - color": branding_data.get("primary_color", config.primary_color),
+                    "--secondary - color": branding_data.get(
+                        "secondary_color", config.secondary_color
+                    ),
+                    "--font - family": branding_data.get("font_family", "Inter, sans - serif"),
+                }
+            )
             theme.custom_css = branding_data.get("custom_css")
 
         self.db.commit()
@@ -110,9 +105,9 @@ class WhiteLabelEnhancedService:
     async def verify_domain(self, domain: str) -> Dict:
         """Verify domain ownership."""
 
-        domain_entry = self.db.query(WhiteLabelDomain).filter(
-            WhiteLabelDomain.domain == domain
-        ).first()
+        domain_entry = (
+            self.db.query(WhiteLabelDomain).filter(WhiteLabelDomain.domain == domain).first()
+        )
 
         if not domain_entry:
             return {"error": "Domain not found"}
@@ -127,31 +122,34 @@ class WhiteLabelEnhancedService:
         return {
             "verified": True,
             "verification_token": verification_token,
-            "instructions": f"Add TXT record: {verification_token}"
+            "instructions": f"Add TXT record: {verification_token}",
         }
 
     async def get_partner_config(self, domain: str) -> Optional[Dict]:
         """Get complete partner configuration by domain."""
 
-        config = self.db.query(WhiteLabelConfig).filter(
-            WhiteLabelConfig.domain == domain,
-            WhiteLabelConfig.is_active
-        ).first()
+        config = (
+            self.db.query(WhiteLabelConfig)
+            .filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active)
+            .first()
+        )
 
         if not config:
             return None
 
         # Get theme
-        theme = self.db.query(WhiteLabelTheme).filter(
-            WhiteLabelTheme.config_id == config.id,
-            WhiteLabelTheme.is_active
-        ).first()
+        theme = (
+            self.db.query(WhiteLabelTheme)
+            .filter(WhiteLabelTheme.config_id == config.id, WhiteLabelTheme.is_active)
+            .first()
+        )
 
         # Get assets
-        assets = self.db.query(WhiteLabelAsset).filter(
-            WhiteLabelAsset.config_id == config.id,
-            WhiteLabelAsset.is_active
-        ).all()
+        assets = (
+            self.db.query(WhiteLabelAsset)
+            .filter(WhiteLabelAsset.config_id == config.id, WhiteLabelAsset.is_active)
+            .all()
+        )
 
         return {
             "company_name": config.company_name,
@@ -164,25 +162,26 @@ class WhiteLabelEnhancedService:
                 "name": theme.name if theme else "Default",
                 "css_variables": theme.css_variables if theme else {},
                 "custom_css": theme.custom_css if theme else None,
-                "font_family": theme.font_family if theme else "Inter, sans - serif"
+                "font_family": theme.font_family if theme else "Inter, sans - serif",
             },
             "assets": [
                 {
                     "type": asset.asset_type,
                     "url": asset.cdn_url or asset.file_path,
-                    "name": asset.file_name
+                    "name": asset.file_name,
                 }
                 for asset in assets
-            ]
+            ],
         }
 
     async def generate_custom_css(self, config_id: int) -> str:
         """Generate complete custom CSS for partner."""
 
-        theme = self.db.query(WhiteLabelTheme).filter(
-            WhiteLabelTheme.config_id == config_id,
-            WhiteLabelTheme.is_active
-        ).first()
+        theme = (
+            self.db.query(WhiteLabelTheme)
+            .filter(WhiteLabelTheme.config_id == config_id, WhiteLabelTheme.is_active)
+            .first()
+        )
 
         if not theme:
             return ""
@@ -213,9 +212,7 @@ class WhiteLabelEnhancedService:
     async def create_pwa_manifest(self, config_id: int) -> Dict:
         """Generate PWA manifest for partner."""
 
-        config = self.db.query(WhiteLabelConfig).filter(
-            WhiteLabelConfig.id == config_id
-        ).first()
+        config = self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.id == config_id).first()
 
         if not config:
             return {}
@@ -232,9 +229,9 @@ class WhiteLabelEnhancedService:
                 {
                     "src": config.logo_url or "/static/icons/icon - 192x192.png",
                     "sizes": "192x192",
-                    "type": "image/png"
+                    "type": "image/png",
                 }
-            ]
+            ],
         }
 
 

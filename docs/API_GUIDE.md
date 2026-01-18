@@ -1,7 +1,22 @@
 # Namaskah SMS API Guide
 
 **Version**: 2.5.0  
-**Last Updated**: 2025-11-23
+**Last Updated**: 2026-01-18
+
+---
+
+## API Versions
+
+### Current Version (v1)
+- **Base URL**: `/api/v1`
+- **Status**: Stable
+- **Documentation**: Use this guide for all new integrations.
+
+### Legacy API (Deprecated)
+- **Base URL**: `/api` (various endpoints)
+- **Status**: Deprecated
+- **End of Life**: v5.0
+- **Note**: All legacy endpoints will return a `Deprecation-Warning` header. Please migrate to `/api/v1`.
 
 ---
 
@@ -48,58 +63,58 @@ Authorization: Bearer <token>
 ### Authentication
 
 #### Register User
-- **POST** `/api/auth/register`
+- **POST** `/api/v1/auth/register`
 - **Body**: `{"email": "user@example.com", "password": "password123"}`
 - **Response**: User object with access token
 
 #### Login
-- **POST** `/api/auth/login`
+- **POST** `/api/v1/auth/login`
 - **Body**: `{"email": "user@example.com", "password": "password123"}`
 - **Response**: User object with access token
 
 ### Verification
 
 #### Create Verification
-- **POST** `/verify/create`
+- **POST** `/api/v1/verify/create`
 - **Auth**: Required
 - **Body**: `{"service_name": "telegram", "country": "US"}`
 - **Response**: Verification object
 
 #### Get Verification Status
-- **GET** `/verify/{verification_id}`
+- **GET** `/api/v1/verify/{verification_id}`
 - **Response**: Verification object
 
 #### Get Verification History
-- **GET** `/verify/history`
+- **GET** `/api/v1/verify/history`
 - **Auth**: Required
 - **Response**: List of verifications
 
 #### Cancel Verification
-- **DELETE** `/verify/{verification_id}`
+- **DELETE** `/api/v1/verify/{verification_id}`
 - **Auth**: Required
 - **Response**: Success message
 
 ### Billing
 
 #### Add Credits
-- **POST** `/api/billing/add-credits`
+- **POST** `/api/v1/billing/add-credits`
 - **Auth**: Required
 - **Body**: `{"amount": 50}`
 - **Response**: Transaction object
 
 #### Get Balance
-- **GET** `/api/user/balance`
+- **GET** `/api/v1/user/balance`
 - **Auth**: Required
 - **Response**: Balance object
 
 ### System
 
 #### Health Check
-- **GET** `/api/system/health`
+- **GET** `/api/v1/system/health`
 - **Response**: Health status
 
 #### Get Countries
-- **GET** `/api/countries/`
+- **GET** `/api/v1/countries/`
 - **Response**: List of countries
 
 ---
@@ -177,3 +192,14 @@ curl -X POST http://localhost:8000/api/billing/add-credits \
 ## Support
 
 For issues or questions, contact support@namaskah.app
+
+## Tier-Gated Endpoints
+
+### Requires: payg+
+- GET /api/keys
+- POST /api/keys/generate
+- GET /api/affiliate/stats
+
+### Requires: pro+
+- POST /api/verify/bulk
+- GET /api/analytics/advanced

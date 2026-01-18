@@ -2,7 +2,11 @@
 
 **Version**: 4.0.0 - Modular Monolith Architecture 🚀  
 **Status**: Production Ready  
-**Last Updated**: January 12, 2026
+**Last Updated**: January 18, 2026
+
+![Build Status](https://img.shields.io/github/actions/workflow/status/yourusername/namaskah-sms/ci.yml?branch=main)
+![Coverage](https://img.shields.io/codecov/c/github/yourusername/namaskah-sms)
+![Python Version](https://img.shields.io/badge/python-3.11-blue)
 
 ---
 

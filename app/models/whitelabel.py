@@ -1,4 +1,5 @@
 """White-label configuration model."""
+
 from sqlalchemy import Column, String, JSON, DateTime, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -7,6 +8,7 @@ from .base import Base
 
 class WhiteLabelConfig(Base):
     """White-label configuration for partners."""
+
     __tablename__ = "whitelabel_config"
 
     id = Column(String(36), primary_key=True)

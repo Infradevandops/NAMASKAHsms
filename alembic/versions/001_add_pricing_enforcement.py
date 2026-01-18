@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 revision = '001_pricing_enforcement'
-down_revision = None
+down_revision = 'pricing_templates_v1'
 branch_labels = None
 depends_on = None
 

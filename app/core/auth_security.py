@@ -1,4 +1,5 @@
 """Authentication security: rate limiting, lockout, audit logging."""
+
 import json
 import uuid
 from datetime import datetime, timedelta
@@ -12,6 +13,7 @@ logger = get_logger("auth_security")
 
 class LoginAttempt(Base):
     """Track login attempts for rate limiting."""
+
     __tablename__ = "login_attempts"
 
     id = Column(String, primary_key=True)
@@ -23,6 +25,7 @@ class LoginAttempt(Base):
 
 class AuthAuditLog(Base):
     """Audit log for authentication events."""
+
     __tablename__ = "auth_audit_logs"
 
     id = Column(String, primary_key=True)
@@ -36,6 +39,7 @@ class AuthAuditLog(Base):
 
 class AccountLockout(Base):
     """Track account lockouts."""
+
     __tablename__ = "account_lockouts"
 
     id = Column(String, primary_key=True)
@@ -45,16 +49,22 @@ class AccountLockout(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
-def check_rate_limit(db: Session, email: str, ip_address: str, max_attempts: int = 5, window_minutes: int = 15) -> bool:
+def check_rate_limit(
+    db: Session, email: str, ip_address: str, max_attempts: int = 5, window_minutes: int = 15
+) -> bool:
     """Check if email/IP has exceeded rate limit."""
     try:
         cutoff = datetime.utcnow() - timedelta(minutes=window_minutes)
-        failed_attempts = db.query(LoginAttempt).filter(
-            LoginAttempt.email == email,
-            LoginAttempt.ip_address == ip_address,
-            LoginAttempt.success == False,
-            LoginAttempt.timestamp > cutoff
-        ).count()
+        failed_attempts = (
+            db.query(LoginAttempt)
+            .filter(
+                LoginAttempt.email == email,
+                LoginAttempt.ip_address == ip_address,
+                LoginAttempt.success == False,
+                LoginAttempt.timestamp > cutoff,
+            )
+            .count()
+        )
         return failed_attempts < max_attempts
     except Exception as e:
         logger.error(f"Rate limit check error: {e}")
@@ -64,24 +74,30 @@ def check_rate_limit(db: Session, email: str, ip_address: str, max_attempts: int
 def check_account_lockout(db: Session, email: str) -> bool:
     """Check if account is locked."""
     try:
-        lockout = db.query(AccountLockout).filter(
-            AccountLockout.email == email,
-            AccountLockout.locked_until > datetime.utcnow()
-        ).first()
+        lockout = (
+            db.query(AccountLockout)
+            .filter(AccountLockout.email == email, AccountLockout.locked_until > datetime.utcnow())
+            .first()
+        )
         return lockout is not None
     except Exception as e:
         logger.error(f"Account lockout check error: {e}")
         return False
 
 
-def lock_account(db: Session, email: str, reason: str = "Too many failed login attempts", duration_minutes: int = 30):
+def lock_account(
+    db: Session,
+    email: str,
+    reason: str = "Too many failed login attempts",
+    duration_minutes: int = 30,
+):
     """Lock account temporarily."""
     try:
         lockout = AccountLockout(
             id=str(uuid.uuid4()),
             email=email,
             locked_until=datetime.utcnow() + timedelta(minutes=duration_minutes),
-            reason=reason
+            reason=reason,
         )
         db.add(lockout)
         db.commit()
@@ -99,17 +115,21 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
             email=email,
             ip_address=ip_address,
             success=success,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         db.add(attempt)
         db.commit()
 
         if not success:
-            failed_count = db.query(LoginAttempt).filter(
-                LoginAttempt.email == email,
-                LoginAttempt.success == False,
-                LoginAttempt.timestamp > datetime.utcnow() - timedelta(minutes=15)
-            ).count()
+            failed_count = (
+                db.query(LoginAttempt)
+                .filter(
+                    LoginAttempt.email == email,
+                    LoginAttempt.success == False,
+                    LoginAttempt.timestamp > datetime.utcnow() - timedelta(minutes=15),
+                )
+                .count()
+            )
 
             if failed_count >= 5:
                 lock_account(db, email)
@@ -118,8 +138,15 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
         db.rollback()
 
 
-def audit_log_auth_event(db: Session, event_type: str, user_id: str = None, email: str = None,
-                         ip_address: str = None, user_agent: str = None, details: dict = None):
+def audit_log_auth_event(
+    db: Session,
+    event_type: str,
+    user_id: str = None,
+    email: str = None,
+    ip_address: str = None,
+    user_agent: str = None,
+    details: dict = None,
+):
     """Log authentication event."""
     try:
         log = AuthAuditLog(
@@ -129,7 +156,7 @@ def audit_log_auth_event(db: Session, event_type: str, user_id: str = None, emai
             ip_address=ip_address,
             user_agent=user_agent,
             details=json.dumps(details or {}),
-            timestamp=datetime.utcnow()
+            timestamp=datetime.utcnow(),
         )
         db.add(log)
         db.commit()

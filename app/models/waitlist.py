@@ -1,4 +1,5 @@
 """Waitlist model for pre - launch email collection."""
+
 from sqlalchemy import Column, String, Boolean
 from app.models.base import BaseModel
 

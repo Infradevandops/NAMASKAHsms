@@ -1,4 +1,5 @@
 """WhatsApp Business API integration."""
+
 import httpx
 from typing import Dict, Optional
 from app.core.config import settings
@@ -26,17 +27,15 @@ class WhatsAppService:
                 "components": [
                     {
                         "type": "body",
-                        "parameters": [
-                            {"type": "text", "text": "123456"}  # Generated code
-                        ]
+                        "parameters": [{"type": "text", "text": "123456"}],  # Generated code
                     }
-                ]
-            }
+                ],
+            },
         }
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
-            "Content - Type": "application/json"
+            "Content - Type": "application/json",
         }
 
         async with httpx.AsyncClient() as client:

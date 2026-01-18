@@ -1,4 +1,5 @@
 """Data encryption utilities."""
+
 from cryptography.fernet import Fernet, InvalidToken
 from app.core.config import settings
 from app.core.logging import get_logger

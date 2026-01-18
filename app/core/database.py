@@ -1,4 +1,5 @@
 """Database connection and session management."""
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
@@ -9,9 +10,7 @@ from app.models.base import Base
 # Database engine with connection pooling
 if "sqlite" in settings.database_url:
     # SQLite for development only
-    engine = create_engine(
-        settings.database_url, connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(settings.database_url, connect_args={"check_same_thread": False})
 else:
     # PostgreSQL for production
     engine = create_engine(

@@ -25,14 +25,17 @@ INSTALLED_HASH_FILE=".venv/.requirements_hash"
 
 if [ ! -f "$INSTALLED_HASH_FILE" ] || [ "$(cat $INSTALLED_HASH_FILE)" != "$REQUIREMENTS_HASH" ]; then
     echo "Installing dependencies..."
-    if pip install -q -r requirements.txt; then
+    # Add timeout to prevent hanging
+    if timeout 120 pip install -q -r requirements.txt; then
         echo "$REQUIREMENTS_HASH" > "$INSTALLED_HASH_FILE"
+        echo "✅ Dependencies installed successfully"
     else
-        echo "Failed to install dependencies"
+        echo "⚠️  Dependency installation timed out or failed"
+        echo "💡 Try: ./start-now.sh (skips dependency check)"
         exit 1
     fi
 else
-    echo "Dependencies already installed (skipping)"
+    echo "✅ Dependencies already installed (skipping)"
 fi
 
 # Run database migrations (skip if fails - may already be applied)

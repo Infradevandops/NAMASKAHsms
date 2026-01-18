@@ -1,4 +1,5 @@
 """Auto - topup service for low balance management."""
+
 from typing import Optional
 
 from sqlalchemy.orm import Session

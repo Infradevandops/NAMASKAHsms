@@ -1,4 +1,5 @@
 """Log sanitization utilities to prevent log injection attacks."""
+
 import re
 from typing import Any, Dict, Union
 
@@ -14,10 +15,10 @@ def sanitize_log_input(data: Union[str, Dict, Any]) -> str:
 
     # Remove or replace dangerous characters that could be used for log injection
     # Remove newlines, carriage returns, and other control characters
-    sanitized = re.sub(r'[\r\n\t\x00-\x1f\x7f-\x9f]', '_', data)
+    sanitized = re.sub(r"[\r\n\t\x00-\x1f\x7f-\x9f]", "_", data)
 
     # Remove ANSI escape sequences
-    sanitized = re.sub(r'\x1b\[[0 - 9;]*m', '', sanitized)
+    sanitized = re.sub(r"\x1b\[[0 - 9;]*m", "", sanitized)
 
     # Limit length to prevent log flooding
     max_length = 500
@@ -33,7 +34,7 @@ def sanitize_user_id(user_id: str) -> str:
         return "unknown"
 
     # Only allow alphanumeric characters, hyphens, and underscores
-    sanitized = re.sub(r'[^a - zA-Z0 - 9_-]', '_', str(user_id))
+    sanitized = re.sub(r"[^a - zA-Z0 - 9_-]", "_", str(user_id))
 
     # Limit length
     if len(sanitized) > 50:
@@ -48,7 +49,7 @@ def sanitize_service_name(service_name: str) -> str:
         return "unknown"
 
     # Only allow alphanumeric characters and common service name characters
-    sanitized = re.sub(r'[^a - zA-Z0 - 9_.-]', '_', str(service_name))
+    sanitized = re.sub(r"[^a - zA-Z0 - 9_.-]", "_", str(service_name))
 
     # Limit length
     if len(sanitized) > 100:
@@ -63,12 +64,12 @@ def create_safe_log_context(**kwargs) -> Dict[str, str]:
 
     for key, value in kwargs.items():
         # Sanitize key
-        safe_key = re.sub(r'[^a - zA-Z0 - 9_]', '_', str(key))
+        safe_key = re.sub(r"[^a - zA-Z0 - 9_]", "_", str(key))
 
         # Sanitize value based on key type
-        if key in ['user_id', 'user']:
+        if key in ["user_id", "user"]:
             safe_value = sanitize_user_id(value)
-        elif key in ['service', 'service_name']:
+        elif key in ["service", "service_name"]:
             safe_value = sanitize_service_name(value)
         else:
             safe_value = sanitize_log_input(value)

@@ -1,4 +1,5 @@
 """Async processing implementation for task 12.3."""
+
 import asyncio
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
@@ -129,9 +130,7 @@ class AsyncDatabaseOperations:
                 from sqlalchemy import text
 
                 db_session.execute(
-                    text(
-                        "UPDATE users SET credits = credits + :amount WHERE id = :user_id"
-                    ),
+                    text("UPDATE users SET credits = credits + :amount WHERE id = :user_id"),
                     {"amount": amount, "user_id": user_id},
                 )
 
@@ -150,7 +149,6 @@ class AsyncDatabaseOperations:
         try:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
-
             result = db_session.execute(
                 text(
                     "DELETE FROM verifications WHERE created_at < :cutoff AND status IN ('completed', 'failed')"
@@ -166,6 +164,7 @@ class AsyncDatabaseOperations:
             logger = logging.getLogger(__name__)
             logger.error("Verification cleanup failed: %s", e)
             return 0
+
 
 # Utility functions for async operations
 

@@ -1,4 +1,5 @@
 """XSS protection middleware."""
+
 import json
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -30,7 +31,7 @@ class XSSProtectionMiddleware(BaseHTTPMiddleware):
                         content=sanitized_body,
                         status_code=response.status_code,
                         headers=dict(response.headers),
-                        media_type="application/json"
+                        media_type="application/json",
                     )
             except (json.JSONDecodeError, UnicodeDecodeError):
                 # If we can't parse JSON, return original response

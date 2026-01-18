@@ -1,4 +1,5 @@
 """Input sanitization utilities to prevent XSS attacks."""
+
 import html
 import re
 from typing import Any, Dict, List, Union
@@ -13,16 +14,14 @@ def sanitize_html(text: str) -> str:
     sanitized = html.escape(text)
 
     # Remove any remaining script tags or javascript
-    sanitized = re.sub(r'<script[^>]*>.*?</script>', '',
-                       sanitized, flags=re.IGNORECASE | re.DOTALL)
-    sanitized = re.sub(r'javascript:', '', sanitized, flags=re.IGNORECASE)
-    sanitized = re.sub(r'on\w+\s*=', '', sanitized, flags=re.IGNORECASE)
+    sanitized = re.sub(r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL)
+    sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
+    sanitized = re.sub(r"on\w+\s*=", "", sanitized, flags=re.IGNORECASE)
 
     return sanitized
 
 
-def sanitize_user_input(data: Union[str, Dict, List,
-                                    Any]) -> Union[str, Dict, List, Any]:
+def sanitize_user_input(data: Union[str, Dict, List, Any]) -> Union[str, Dict, List, Any]:
     """Recursively sanitize user input data."""
     if isinstance(data, str):
         return sanitize_html(data)
@@ -40,16 +39,15 @@ def sanitize_email_content(content: str) -> str:
         return str(content)
 
     # Allow basic HTML tags but escape everything else
-    allowed_tags = ['p', 'br', 'strong', 'b', 'em', 'i',
-                    'h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+    allowed_tags = ["p", "br", "strong", "b", "em", "i", "h1", "h2", "h3", "h4", "h5", "h6"]
 
     # First escape all HTML
     sanitized = html.escape(content)
 
     # Then unescape allowed tags
     for tag in allowed_tags:
-        sanitized = sanitized.replace(f'&lt;{tag}&gt;', f'<{tag}>')
-        sanitized = sanitized.replace(f'&lt;/{tag}&gt;', f'</{tag}>')
+        sanitized = sanitized.replace(f"&lt;{tag}&gt;", f"<{tag}>")
+        sanitized = sanitized.replace(f"&lt;/{tag}&gt;", f"</{tag}>")
 
     return sanitized
 
@@ -61,7 +59,7 @@ def validate_and_sanitize_response(response_data: Dict) -> Dict:
 
     sanitized = {}
     for key, value in response_data.items():
-        if key in ['message', 'description', 'name', 'email', 'title', 'content']:
+        if key in ["message", "description", "name", "email", "title", "content"]:
             # Sanitize user - facing text fields
             sanitized[key] = sanitize_html(str(value)) if value is not None else value
         elif isinstance(value, (dict, list)):

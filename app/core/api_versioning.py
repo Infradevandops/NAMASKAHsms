@@ -1,4 +1,5 @@
 """API versioning support."""
+
 from fastapi import Header, HTTPException
 from typing import Optional
 from app.core.logging import get_logger

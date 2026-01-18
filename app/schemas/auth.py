@@ -1,16 +1,15 @@
 """Authentication request/response schemas."""
+
 from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from app.schemas.validators import (
-    validate_email,
-    validate_password_strength
-)
+from app.schemas.validators import validate_email, validate_password_strength
 
 
 class RegisterRequest(BaseModel):
     """Schema for user registration request."""
+
     email: EmailStr = Field(..., description="Valid email address")
     password: str = Field(..., min_length=6, description="Password (minimum 6 characters)")
 
@@ -20,7 +19,9 @@ class UserCreate(BaseModel):
 
     email: EmailStr = Field(..., description="Valid email address")
     password: str = Field(
-        ..., min_length=8, description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)"
+        ...,
+        min_length=8,
+        description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)",
     )
     referral_code: Optional[str] = Field(None, description="Optional referral code")
 
@@ -30,14 +31,14 @@ class UserCreate(BaseModel):
         if not v:
             raise ValueError("Email cannot be empty")
         return validate_email(v)
-    
+
     @field_validator("password", mode="before")
     @classmethod
     def validate_password_field(cls, v):
         if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
-    
+
     @field_validator("referral_code", mode="before")
     @classmethod
     def validate_referral_code_field(cls, v):
@@ -220,7 +221,7 @@ class PasswordResetConfirm(BaseModel):
         if not v or not v.strip():
             raise ValueError("Token cannot be empty")
         return v.strip()
-    
+
     @field_validator("new_password", mode="before")
     @classmethod
     def validate_password(cls, v):
@@ -249,6 +250,4 @@ class GoogleAuthRequest(BaseModel):
 
     token: str = Field(..., description="Google OAuth token")
 
-    model_config = {
-        "json_schema_extra": {"example": {"token": "google_oauth_token_here"}}
-    }
+    model_config = {"json_schema_extra": {"example": {"token": "google_oauth_token_here"}}}

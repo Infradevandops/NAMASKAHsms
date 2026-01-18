@@ -1,6 +1,7 @@
 """
 Services API Router - SMS Service Management
 """
+
 from app.models.user import User
 from fastapi import APIRouter, Depends
 from app.core.dependencies import get_current_user
@@ -24,8 +25,8 @@ async def get_services_status():
             "sms_activate": "active",
             "5sim": "active",
             "textverified": "active",
-            "getsms": "active"
-        }
+            "getsms": "active",
+        },
     }
 
     # Cache for 1 hour
@@ -47,7 +48,7 @@ async def get_providers(current_user: User = Depends(get_current_user)):
             {"name": "SMS - Activate", "status": "active", "countries": 180},
             {"name": "5SIM", "status": "active", "countries": 150},
             {"name": "TextVerified", "status": "active", "countries": 50},
-            {"name": "GetSMS", "status": "active", "countries": 100}
+            {"name": "GetSMS", "status": "active", "countries": 100},
         ]
     }
 

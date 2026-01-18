@@ -1,4 +1,5 @@
 """Enhanced authentication with HttpOnly cookies and refresh tokens."""
+
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
@@ -9,17 +10,22 @@ from app.core.token_manager import create_tokens, verify_refresh_token
 from app.models.user import User
 from pydantic import BaseModel
 
+
 class SuccessResponse(BaseModel):
     message: str
+
 
 def get_session(db, refresh_token):
     return None
 
+
 def invalidate_session(db, refresh_token):
     pass
 
+
 def invalidate_all_sessions(db, user_id):
     pass
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -50,7 +56,7 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         content={
             "access_token": tokens["access_token"],
             "token_type": tokens["token_type"],
-            "expires_in": tokens["expires_in"]
+            "expires_in": tokens["expires_in"],
         }
     )
 
@@ -61,14 +67,19 @@ async def refresh_token(request: Request, db: Session = Depends(get_db)):
         httponly=True,
         secure=True,
         samesite="strict",
-        max_age=900  # 15 minutes
+        max_age=900,  # 15 minutes
     )
 
     return response
 
 
 @router.post("/logout")
-async def logout(request: Request, response: Response, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def logout(
+    request: Request,
+    response: Response,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Logout user and invalidate session."""
     refresh_token = request.cookies.get("refresh_token")
 
@@ -83,7 +94,9 @@ async def logout(request: Request, response: Response, user_id: str = Depends(ge
 
 
 @router.post("/logout-all")
-async def logout_all(response: Response, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def logout_all(
+    response: Response, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Logout from all devices."""
     invalidate_all_sessions(db, user_id)
 

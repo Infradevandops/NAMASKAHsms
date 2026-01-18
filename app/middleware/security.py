@@ -1,4 +1,5 @@
 """Security middleware for authentication and authorization."""
+
 from typing import List, Optional
 
 from fastapi import Request, status
@@ -8,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import settings
 from app.core.database import SessionLocal
+
 
 class NamaskahException(Exception):
     def __init__(self, error_code, message):
@@ -72,6 +74,7 @@ class JWTAuthMiddleware(BaseHTTPMiddleware):
         db = SessionLocal()
         try:
             from app.services.auth import AuthService
+
             auth_service = AuthService(db)
             user = auth_service.get_user_from_token(token)
 
@@ -129,6 +132,7 @@ class APIKeyAuthMiddleware(BaseHTTPMiddleware):
         db = SessionLocal()
         try:
             from app.services.auth import AuthService
+
             auth_service = AuthService(db)
             user = auth_service.verify_api_key(api_key)
 
@@ -155,9 +159,7 @@ class AdminRoleMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Check admin role for admin endpoints."""
         # Check if this is an admin path
-        is_admin_path = any(
-            request.url.path.startswith(path) for path in self.admin_paths
-        )
+        is_admin_path = any(request.url.path.startswith(path) for path in self.admin_paths)
 
         if is_admin_path:
             # Ensure user is authenticated
@@ -236,12 +238,8 @@ class CORSMiddleware(BaseHTTPMiddleware):
         ):
             response.headers["Access-Control-Allow-Origin"] = origin
 
-        response.headers["Access-Control-Allow-Methods"] = ", ".join(
-            self.allowed_methods
-        )
-        response.headers["Access-Control-Allow-Headers"] = ", ".join(
-            self.allowed_headers
-        )
+        response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
+        response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
 
         if self.allow_credentials:
             response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -253,9 +251,7 @@ class CORSMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         if settings.environment == "production":
-            response.headers[
-                "Strict-Transport-Security"
-            ] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         return response
 
@@ -288,8 +284,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         # HSTS for production
         if settings.environment == "production":
-            response.headers[
-                "Strict-Transport-Security"
-            ] = "max-age=31536000; includeSubDomains; preload"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains; preload"
+            )
 
         return response
