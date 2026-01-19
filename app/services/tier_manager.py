@@ -89,7 +89,7 @@ class TierManager:
         # Count existing API keys
         existing_keys = (
             self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .filter(APIKey.user_id == user_id, APIKey.is_active is True)
             .count()
         )
 

@@ -78,7 +78,7 @@ class TextVerifiedService:
 
         try:
             # Attempt to validate credentials by creating client
-            test_client = textverified.TextVerified(
+            _ = textverified.TextVerified(
                 api_key=self.api_key, api_username=self.api_username
             )
             logger.info("TextVerified credentials validated successfully")
