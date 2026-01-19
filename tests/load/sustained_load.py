@@ -2,8 +2,9 @@
 Sustained Load Test - 10 minute test with 500 users
 """
 
-from locust import HttpUser, task, between, events
 import logging
+
+from locust import HttpUser, between, events, task
 
 logger = logging.getLogger(__name__)
 

@@ -2,8 +2,9 @@
 Locust Load Testing Configuration
 """
 
-from locust import HttpUser, task, between
 import json
+
+from locust import HttpUser, between, task
 
 
 class NamaskahUser(HttpUser):
