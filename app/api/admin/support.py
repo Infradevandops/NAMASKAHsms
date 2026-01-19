@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
-from app.models.support import SupportTicket
+from app.models.system import SupportTicket
 from app.models.user import User
 from app.schemas.responses import SuccessResponse
 
