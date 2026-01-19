@@ -20,9 +20,7 @@ async def get_admin_stats(
     try:
         # Get user counts with error handling
         total_users = db.query(func.count(User.id)).scalar() or 0
-        admin_users = (
-            db.query(func.count(User.id)).filter(User.is_admin ).scalar() or 0
-        )
+        admin_users = db.query(func.count(User.id)).filter(User.is_admin).scalar() or 0
         # Remove is_active filter since it may not exist
         active_users = total_users  # Simplified - assume all users are active
 
