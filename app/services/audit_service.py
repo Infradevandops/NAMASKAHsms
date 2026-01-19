@@ -1,7 +1,8 @@
 """Audit logging for compliance."""
 
 from datetime import datetime
-from typing import Dict, Any
+from typing import Any, Dict
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -41,7 +42,9 @@ class AuditService:
 
     async def delete_user_data(self, user_id: str):
         """Delete user data for GDPR right to be forgotten."""
-        self.audit_log = [entry for entry in self.audit_log if entry["user_id"] != user_id]
+        self.audit_log = [
+            entry for entry in self.audit_log if entry["user_id"] != user_id
+        ]
         logger.info(f"User data deleted: {user_id}")
 
 

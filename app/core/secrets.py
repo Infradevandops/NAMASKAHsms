@@ -1,12 +1,13 @@
 """Secrets management for production security."""
 
+import logging
 import os
 import secrets
-import logging
 from pathlib import Path
 from typing import Dict, Optional
 
 logger = logging.getLogger(__name__)
+
 
 class SecretsManager:
     """Secure secrets management with validation."""
@@ -54,7 +55,9 @@ class SecretsManager:
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_upper = key.upper()
-        return any(sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS)
+        return any(
+            sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS
+        )
 
     @staticmethod
     def mask_secret(value: str, visible_chars: int = 4) -> str:
@@ -106,7 +109,9 @@ class SecretsManager:
             "placeholder",
         ]
         value_lower = value.lower()
-        return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
+        return (
+            any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
+        )
 
     @staticmethod
     def generate_secret_key() -> str:
@@ -144,7 +149,7 @@ class SecretsManager:
             + "# PAYSTACK_SECRET_KEY=your-paystack-key\n"
         )
 
-        from app.utils.path_security import validate_safe_path, sanitize_filename
+        from app.utils.path_security import sanitize_filename, validate_safe_path
 
         # Validate output path to prevent path traversal
         safe_filename = sanitize_filename(os.path.basename(output_path))
@@ -183,5 +188,7 @@ class SecretsManager:
             "environment": environment,
             "issues": issues,
             "warnings": warnings,
-            "secrets_count": len([k for k in os.environ if SecretsManager.is_sensitive_key(k)]),
+            "secrets_count": len(
+                [k for k in os.environ if SecretsManager.is_sensitive_key(k)]
+            ),
         }

@@ -1,9 +1,10 @@
 """Multi - factor authentication service."""
 
+import base64
+from io import BytesIO
+
 import pyotp
 import qrcode
-from io import BytesIO
-import base64
 
 
 class MFAService:

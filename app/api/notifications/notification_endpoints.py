@@ -39,7 +39,9 @@ async def get_notifications(
             user_id=user_id, unread_only=unread_only, skip=skip, limit=limit
         )
 
-        logger.info(f"Retrieved {len(result['notifications'])} notifications for user {user_id}")
+        logger.info(
+            f"Retrieved {len(result['notifications'])} notifications for user {user_id}"
+        )
 
         return result
 
@@ -84,7 +86,9 @@ async def get_unread_count(
 
 @router.get("/{notification_id}")
 async def get_notification(
-    notification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get a specific notification.
 
@@ -107,8 +111,12 @@ async def get_notification(
             "message": notification.message,
             "data": notification.data,
             "read": notification.read,
-            "created_at": notification.created_at.isoformat() if notification.created_at else None,
-            "read_at": notification.read_at.isoformat() if notification.read_at else None,
+            "created_at": (
+                notification.created_at.isoformat() if notification.created_at else None
+            ),
+            "read_at": (
+                notification.read_at.isoformat() if notification.read_at else None
+            ),
         }
 
     except ValueError as e:
@@ -124,7 +132,9 @@ async def get_notification(
 
 @router.post("/{notification_id}/read")
 async def mark_as_read(
-    notification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Mark notification as read.
 
@@ -143,7 +153,9 @@ async def mark_as_read(
         return {
             "id": notification.id,
             "read": notification.read,
-            "read_at": notification.read_at.isoformat() if notification.read_at else None,
+            "read_at": (
+                notification.read_at.isoformat() if notification.read_at else None
+            ),
         }
 
     except ValueError as e:
@@ -178,7 +190,9 @@ async def mark_all_as_read(
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
-        logger.error(f"Failed to mark all notifications as read: {str(e)}", exc_info=True)
+        logger.error(
+            f"Failed to mark all notifications as read: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to mark notifications as read",
@@ -187,7 +201,9 @@ async def mark_all_as_read(
 
 @router.delete("/{notification_id}")
 async def delete_notification(
-    notification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Delete a notification.
 

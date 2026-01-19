@@ -4,7 +4,7 @@
  */
 
 import { STORAGE_KEYS, TIMEOUTS } from './constants.js';
-import { authStore } from './store/auth-store.js';
+import { authStore } from './store/auth-store.ts';
 
 /**
  * Get the current access token

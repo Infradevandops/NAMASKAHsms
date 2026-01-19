@@ -28,7 +28,9 @@ REQUEST_DURATION = Histogram(
 
 ACTIVE_CONNECTIONS = Gauge("active_connections_total", "Number of active connections")
 
-DATABASE_CONNECTIONS = Gauge("database_connections_active", "Active database connections")
+DATABASE_CONNECTIONS = Gauge(
+    "database_connections_active", "Active database connections"
+)
 
 REDIS_CONNECTIONS = Gauge("redis_connections_active", "Active Redis connections")
 
@@ -36,7 +38,9 @@ BUSINESS_EVENTS = PrometheusCounter(
     "business_events_total", "Business events counter", ["event_type", "status"]
 )
 
-ERROR_COUNT = PrometheusCounter("errors_total", "Total errors", ["error_type", "severity"])
+ERROR_COUNT = PrometheusCounter(
+    "errors_total", "Total errors", ["error_type", "severity"]
+)
 
 SYSTEM_CPU = Gauge("system_cpu_usage_percent", "System CPU usage percentage")
 
@@ -54,10 +58,14 @@ class MetricsCollector:
         self.error_stats = Counter()
         self.business_stats = Counter()
 
-    def record_request(self, method: str, endpoint: str, status_code: int, duration: float):
+    def record_request(
+        self, method: str, endpoint: str, status_code: int, duration: float
+    ):
         """Record HTTP request metrics."""
         # Prometheus metrics
-        REQUEST_COUNT.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
+        REQUEST_COUNT.labels(
+            method=method, endpoint=endpoint, status_code=status_code
+        ).inc()
         REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
 
         # Internal stats
@@ -122,7 +130,9 @@ class MetricsCollector:
         total_requests = sum(stats["count"] for stats in self.request_stats.values())
         avg_response_time = 0
         if total_requests > 0:
-            total_time = sum(stats["total_time"] for stats in self.request_stats.values())
+            total_time = sum(
+                stats["total_time"] for stats in self.request_stats.values()
+            )
             avg_response_time = total_time / total_requests
 
         return {
@@ -231,7 +241,9 @@ class MetricsMiddleware:
                 duration = time.time() - start_time
                 status_code = message["status"]
 
-                metrics_collector.record_request(method, normalized_path, status_code, duration)
+                metrics_collector.record_request(
+                    method, normalized_path, status_code, duration
+                )
 
                 # Update active connections
                 ACTIVE_CONNECTIONS.inc()

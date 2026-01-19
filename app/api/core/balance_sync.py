@@ -3,17 +3,17 @@ Real-time Balance Sync Service
 Handles live balance updates and synchronization
 """
 
+import logging
+from datetime import datetime
+from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime
-from typing import Dict, Any
-import asyncio
-import logging
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
-from app.models.user import User
 from app.models.transaction import Transaction
+from app.models.user import User
 from app.services.textverified_service import TextVerifiedService
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,9 @@ class BalanceSyncService:
 
         except Exception as e:
             logger.error(f"Balance sync failed for user {user.id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Balance sync failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Balance sync failed: {str(e)}"
+            )
 
     async def get_textverified_balance(self) -> float:
         """
@@ -180,7 +182,9 @@ async def force_balance_refresh(
 
 
 @router.get("/tier-info")
-async def get_tier_info(current_user: User = Depends(get_current_user)) -> Dict[str, Any]:
+async def get_tier_info(
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
     """
     Get real-time tier information
     """

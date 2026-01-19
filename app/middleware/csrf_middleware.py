@@ -1,9 +1,10 @@
 """CSRF protection middleware."""
 
-from fastapi import Request, HTTPException, status
-from starlette.responses import Response
-from starlette.middleware.base import BaseHTTPMiddleware
 import secrets
+
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 
 class CSRFMiddleware(BaseHTTPMiddleware):

@@ -1,14 +1,15 @@
 """Dashboard activity endpoints."""
 
 import logging
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.verification import Verification
 from app.models.user import User
+from app.models.verification import Verification
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,9 @@ async def get_recent_activity(
 
     except Exception as e:
         logger.error(
-            f"Failed to retrieve recent activity for user {user_id}: {str(e)}", exc_info=True
+            f"Failed to retrieve recent activity for user {user_id}: {str(e)}",
+            exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve recent activity: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve recent activity: {str(e)}"
+        )

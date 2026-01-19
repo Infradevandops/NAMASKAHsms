@@ -1,9 +1,8 @@
-"""Unified rate limiting system consolidating all rate limiting implementations."""
-
+import asyncio
 import time
 from collections import defaultdict, deque
-from typing import Dict, Optional, Tuple, Any
 from dataclasses import dataclass
+from typing import Any, Dict, Optional, Tuple
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -56,10 +55,11 @@ class TokenBucket:
 
 
 class UnifiedRateLimiter:
-    """Unified rate limiter with multiple strategies."""
+    """Unified rate limiter with multiple strategies and thread safety."""
 
     def __init__(self):
         self.settings = get_settings()
+        self._lock = asyncio.Lock()
 
         # Token buckets for smooth limiting
         self.user_buckets: Dict[str, TokenBucket] = {}
@@ -74,17 +74,19 @@ class UnifiedRateLimiter:
         self.error_count = 0
         self.total_requests = 0
 
+        self.last_cleanup = time.time()
+
         # Default limits
         self.default_config = RateLimitConfig(
             requests=getattr(self.settings, "rate_limit_requests", 100),
             window=getattr(self.settings, "rate_limit_window", 3600),
         )
 
-        # Endpoint - specific limits
+        # Endpoint-specific limits
         self.endpoint_limits = {
-            "/auth/login": RateLimitConfig(100, 3600),
-            "/auth/register": RateLimitConfig(20, 3600),
-            "/auth/forgot - password": RateLimitConfig(10, 3600),
+            "/auth/login": RateLimitConfig(10, 60),  # Tighter limits for auth
+            "/auth/register": RateLimitConfig(5, 3600),
+            "/auth/forgot-password": RateLimitConfig(5, 3600),
             "/verify/create": RateLimitConfig(200, 3600),
             "/wallet/paystack/initialize": RateLimitConfig(50, 3600),
             "/support/submit": RateLimitConfig(10, 3600),
@@ -103,7 +105,9 @@ class UnifiedRateLimiter:
             "/redoc",
             "/openapi.json",
             "/system/health",
+            "/api/health",
             "/static",
+            "/api/diagnostics",
         ]
 
     def should_skip_rate_limiting(self, path: str) -> bool:
@@ -124,24 +128,33 @@ class UnifiedRateLimiter:
         return self.default_config
 
     def get_client_ip(self, request: Request) -> str:
-        """Extract client IP from request."""
-        # Check forwarded headers
-        forwarded_for = request.headers.get("X - Forwarded-For")
+        """Extract client IP from request safely."""
+        # Check forwarded headers (common in standard proxies)
+        forwarded_for = request.headers.get("X-Forwarded-For")
         if forwarded_for:
+            # In a trusted proxy environment (like AWS ALB or Nginx), the first IP is the client
+            # However, if we are behind Cloudflare, we should check CF-Connecting-IP
             return forwarded_for.split(",")[0].strip()
 
-        real_ip = request.headers.get("X - Real-IP")
+        cf_ip = request.headers.get("CF-Connecting-IP")
+        if cf_ip:
+            return cf_ip
+
+        real_ip = request.headers.get("X-Real-IP")
         if real_ip:
             return real_ip
 
         return request.client.host if request.client else "unknown"
 
-    def check_token_bucket_limit(self, user_id: Optional[str], ip: str) -> Tuple[bool, int]:
+    def check_token_bucket_limit(
+        self, user_id: Optional[str], ip: str
+    ) -> Tuple[bool, int]:
         """Check rate limit using token bucket algorithm."""
-        # Check IP limit
+        # Check IP limit - burst protection
         if ip not in self.ip_buckets:
             self.ip_buckets[ip] = TokenBucket(
-                capacity=10, refill_rate=1.0  # 10 requests burst  # 1 request per second
+                capacity=20,
+                refill_rate=2.0,  # 2 request per second refill
             )
 
         ip_bucket = self.ip_buckets[ip]
@@ -152,7 +165,8 @@ class UnifiedRateLimiter:
         if user_id:
             if user_id not in self.user_buckets:
                 self.user_buckets[user_id] = TokenBucket(
-                    capacity=20, refill_rate=2.0  # 20 requests burst  # 2 requests per second
+                    capacity=50,
+                    refill_rate=5.0,  # 5 requests per second refill
                 )
 
             user_bucket = self.user_buckets[user_id]
@@ -162,7 +176,11 @@ class UnifiedRateLimiter:
         return True, 0
 
     def check_sliding_window_limit(
-        self, user_id: Optional[str], ip: str, config: RateLimitConfig, current_time: float
+        self,
+        user_id: Optional[str],
+        ip: str,
+        config: RateLimitConfig,
+        current_time: float,
     ) -> Tuple[bool, int]:
         """Check rate limit using sliding window algorithm."""
         # Check IP limit
@@ -177,13 +195,15 @@ class UnifiedRateLimiter:
             user_requests = self.user_requests[user_id]
             self._clean_old_requests(user_requests, config.window, current_time)
 
-            user_limit = int(config.requests * 2)  # Users get 2x limit
+            user_limit = int(config.requests * 5)  # Users get 5x limit
             if len(user_requests) >= user_limit:
                 return False, config.window
 
         return True, 0
 
-    def _clean_old_requests(self, request_times: deque, window: int, current_time: float):
+    def _clean_old_requests(
+        self, request_times: deque, window: int, current_time: float
+    ):
         """Remove old requests outside the window."""
         while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
@@ -194,7 +214,7 @@ class UnifiedRateLimiter:
         while self.request_times and self.request_times[0] <= current_time - 300:
             self.request_times.popleft()
 
-        if len(self.request_times) < 2:
+        if len(self.request_times) < 10:  # Need minimum samples
             return 0.0
 
         time_span = current_time - self.request_times[0]
@@ -204,110 +224,126 @@ class UnifiedRateLimiter:
         requests_per_second = len(self.request_times) / time_span
         error_rate = self.error_count / max(self.total_requests, 1)
 
-        # Combine metrics
-        load = min(1.0, (requests_per_second / 10.0) + error_rate)
-        return load
+        # High load if RPS > 100 or Error Rate > 5%
+        rps_load = min(1.0, requests_per_second / 100.0)
 
-    def check_rate_limit(
+        return max(rps_load, error_rate)
+
+    async def check_rate_limit(
         self, request: Request, user_id: Optional[str] = None
     ) -> Tuple[bool, int, Dict[str, Any]]:
         """Check all rate limits and return result."""
-        current_time = time.time()
-        ip = self.get_client_ip(request)
-        path = request.url.path
+        async with self._lock:
+            current_time = time.time()
+            ip = self.get_client_ip(request)
+            path = request.url.path
 
-        # Skip rate limiting for public paths
-        if self.should_skip_rate_limiting(path):
-            return True, 0, {}
+            # Skip rate limiting for public paths
+            if self.should_skip_rate_limiting(path):
+                return True, 0, {}
 
-        # Get endpoint configuration
-        config = self.get_endpoint_config(path)
+            # Get endpoint configuration
+            config = self.get_endpoint_config(path)
 
-        # Check token bucket (for burst protection)
-        bucket_allowed, bucket_retry = self.check_token_bucket_limit(user_id, ip)
-        if not bucket_allowed:
-            return False, bucket_retry, {"limit_type": "burst", "retry_after": bucket_retry}
+            # Check for high system load first - Adaptive Limiting
+            system_load = self.calculate_system_load(current_time)
+            if system_load > 0.8:  # System under high stress
+                # Verify Critical endpoints are protected
+                adjusted_limit = max(1, int(config.requests * 0.2))  # 80% reduction
 
-        # Check sliding window (for precise limiting)
-        window_allowed, window_retry = self.check_sliding_window_limit(
-            user_id, ip, config, current_time
-        )
-        if not window_allowed:
-            return (
-                False,
-                window_retry,
-                {
-                    "limit_type": "window",
-                    "retry_after": window_retry,
-                    "limit": config.requests,
-                    "window": config.window,
-                },
-            )
+                # Use simplified check for high load
+                ip_requests_count = len(self.ip_requests[ip])
+                if ip_requests_count >= adjusted_limit:
+                    return (
+                        False,
+                        60,
+                        {
+                            "limit_type": "adaptive_high_load",
+                            "system_load": system_load,
+                            "retry_after": 60,
+                        },
+                    )
 
-        # Check adaptive limiting based on system load
-        system_load = self.calculate_system_load(current_time)
-        if system_load > 0.8:  # High load threshold
-            # Reduce limits by 50% during high load
-            adjusted_limit = int(config.requests * 0.5)
-            current_requests = len(self.ip_requests[ip])
-
-            if current_requests >= adjusted_limit:
+            # Check token bucket (for burst protection)
+            bucket_allowed, bucket_retry = self.check_token_bucket_limit(user_id, ip)
+            if not bucket_allowed:
                 return (
                     False,
-                    60,
-                    {  # 1 minute retry
-                        "limit_type": "adaptive",
-                        "system_load": system_load,
-                        "adjusted_limit": adjusted_limit,
+                    bucket_retry,
+                    {"limit_type": "burst", "retry_after": bucket_retry},
+                )
+
+            # Check sliding window (for precise limiting)
+            window_allowed, window_retry = self.check_sliding_window_limit(
+                user_id, ip, config, current_time
+            )
+            if not window_allowed:
+                return (
+                    False,
+                    window_retry,
+                    {
+                        "limit_type": "window",
+                        "retry_after": window_retry,
+                        "limit": config.requests,
+                        "window": config.window,
                     },
                 )
 
-        # Record the request
-        self.ip_requests[ip].append(current_time)
-        if user_id:
-            self.user_requests[user_id].append(current_time)
+            # Record the request
+            self.ip_requests[ip].append(current_time)
+            if user_id:
+                self.user_requests[user_id].append(current_time)
 
-        self.request_times.append(current_time)
-        self.total_requests += 1
+            self.request_times.append(current_time)
+            self.total_requests += 1
 
-        # Cleanup periodically
-        if int(current_time) % 60 == 0:
-            self._cleanup_old_entries(current_time)
+            # Cleanup periodically (every 60s)
+            if current_time - self.last_cleanup > 60:
+                self._cleanup_old_entries(current_time)
+                self.last_cleanup = current_time
 
-        # Calculate remaining requests
-        remaining = self._get_remaining_requests(user_id, ip, config, current_time)
+            # Calculate remaining requests
+            remaining = self._get_remaining_requests(user_id, ip, config, current_time)
 
-        return (
-            True,
-            0,
-            {
-                "limit": config.requests,
-                "remaining": remaining,
-                "reset": int(current_time + config.window),
-                "system_load": system_load,
-            },
-        )
+            return (
+                True,
+                0,
+                {
+                    "limit": config.requests,
+                    "remaining": remaining,
+                    "reset": int(current_time + config.window),
+                    "system_load": system_load,
+                },
+            )
 
     def _get_remaining_requests(
-        self, user_id: Optional[str], ip: str, config: RateLimitConfig, current_time: float
+        self,
+        user_id: Optional[str],
+        ip: str,
+        config: RateLimitConfig,
+        current_time: float,
     ) -> int:
         """Get remaining requests for client."""
         if user_id:
             request_times = self.user_requests[user_id]
-            effective_limit = config.requests * 2
+            effective_limit = config.requests * 5
         else:
             request_times = self.ip_requests[ip]
             effective_limit = config.requests
 
-        self._clean_old_requests(request_times, config.window, current_time)
-        return max(0, effective_limit - len(request_times))
+        # We don't clean here inside _get_remaining as it's just a view
+        # Cleaning happens in check_sliding_window_limit
+
+        # Simple count of requests in window
+        window_start = current_time - config.window
+        count = sum(1 for t in request_times if t > window_start)
+
+        return max(0, effective_limit - count)
 
     def _cleanup_old_entries(self, current_time: float):
         """Clean up old entries to prevent memory leaks."""
-        max_window = max(
-            self.default_config.window,
-            max((config.window for config in self.endpoint_limits.values()), default=0),
-        )
+        # Global max window
+        max_window = 3600
         cutoff_time = current_time - max_window
 
         # Clean IP requests
@@ -316,7 +352,9 @@ class UnifiedRateLimiter:
             while request_times and request_times[0] <= cutoff_time:
                 request_times.popleft()
             if not request_times:
-                del self.ip_requests[ip]
+                del self.ip_requests[ip]  # Remove empty keys
+                if ip in self.ip_buckets:
+                    del self.ip_buckets[ip]
 
         # Clean user requests
         for user_id in list(self.user_requests.keys()):
@@ -325,6 +363,8 @@ class UnifiedRateLimiter:
                 request_times.popleft()
             if not request_times:
                 del self.user_requests[user_id]
+                if user_id in self.user_buckets:
+                    del self.user_buckets[user_id]
 
     def record_error(self):
         """Record an error for adaptive limiting."""
@@ -343,8 +383,10 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
         # Get user ID from request state (set by auth middleware)
         user_id = getattr(request.state, "user_id", None)
 
-        # Check rate limits
-        allowed, retry_after, metadata = self.rate_limiter.check_rate_limit(request, user_id)
+        # Check rate limits (async call now)
+        allowed, retry_after, metadata = await self.rate_limiter.check_rate_limit(
+            request, user_id
+        )
 
         if not allowed:
             logger.warning(
@@ -359,13 +401,13 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
                     "retry_after": retry_after,
                     **metadata,
                 },
-                headers={"Retry - After": str(retry_after)},
+                headers={"Retry-After": str(retry_after)},
             )
 
         # Process request
         start_time = time.time()
         response = await call_next(request)
-        process_time = time.time() - start_time
+        time.time() - start_time
 
         # Record errors for adaptive limiting
         if response.status_code >= 500:
@@ -373,11 +415,12 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
 
         # Add rate limit headers
         if metadata:
-            response.headers["X - RateLimit-Limit"] = str(metadata.get("limit", ""))
-            response.headers["X - RateLimit-Remaining"] = str(metadata.get("remaining", ""))
-            response.headers["X - RateLimit-Reset"] = str(metadata.get("reset", ""))
-            response.headers["X - System-Load"] = f"{metadata.get('system_load', 0):.2f}"
-            response.headers["X - Process-Time"] = f"{process_time:.3f}"
+            response.headers["X-RateLimit-Limit"] = str(metadata.get("limit", ""))
+            response.headers["X-RateLimit-Remaining"] = str(
+                metadata.get("remaining", "")
+            )
+            response.headers["X-RateLimit-Reset"] = str(metadata.get("reset", ""))
+            response.headers["X-System-Load"] = f"{metadata.get('system_load', 0):.2f}"
 
         return response
 

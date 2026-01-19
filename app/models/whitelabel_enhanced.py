@@ -1,7 +1,8 @@
 """Enhanced white - label models."""
 
-from sqlalchemy import Column, String, Integer, Boolean, Text, JSON, ForeignKey
+from sqlalchemy import JSON, Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
+
 from app.models.base import BaseModel
 
 

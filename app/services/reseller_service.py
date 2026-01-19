@@ -1,10 +1,17 @@
 """Reseller management service."""
 
-from datetime import datetime, timezone, timedelta
-from typing import List, Optional, Dict
+from datetime import datetime, timedelta
+from typing import Dict, List
+
 from sqlalchemy.orm import Session
-from app.models.reseller import SubAccountTransaction, CreditAllocation, BulkOperation
-from app.models.reseller import ResellerAccount, SubAccount
+
+from app.models.reseller import (
+    BulkOperation,
+    CreditAllocation,
+    ResellerAccount,
+    SubAccount,
+    SubAccountTransaction,
+)
 
 
 class ResellerService:
@@ -17,7 +24,11 @@ class ResellerService:
         """Create new reseller account."""
 
         # Check if user already has reseller account
-        existing = self.db.query(ResellerAccount).filter(ResellerAccount.user_id == user_id).first()
+        existing = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.user_id == user_id)
+            .first()
+        )
 
         if existing:
             return {"error": "User already has reseller account"}
@@ -53,7 +64,11 @@ class ResellerService:
     ) -> Dict:
         """Create new sub - account."""
 
-        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
+        reseller = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.id == reseller_id)
+            .first()
+        )
 
         if not reseller:
             return {"error": "Reseller account not found"}
@@ -106,11 +121,17 @@ class ResellerService:
     ) -> Dict:
         """Allocate credits to sub - account."""
 
-        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
+        reseller = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.id == reseller_id)
+            .first()
+        )
 
         sub_account = (
             self.db.query(SubAccount)
-            .filter(SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id)
+            .filter(
+                SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id
+            )
             .first()
         )
 
@@ -192,7 +213,10 @@ class ResellerService:
             reseller_id=reseller_id,
             operation_type="credit_topup",
             total_accounts=len(account_ids),
-            operation_data={"amount_per_account": amount_per_account, "account_ids": account_ids},
+            operation_data={
+                "amount_per_account": amount_per_account,
+                "account_ids": account_ids,
+            },
         )
 
         self.db.add(bulk_op)
@@ -257,7 +281,9 @@ class ResellerService:
         )
 
         # Calculate metrics
-        total_usage = sum(t.amount for t in transactions if t.transaction_type == "debit")
+        total_usage = sum(
+            t.amount for t in transactions if t.transaction_type == "debit"
+        )
         total_credits_allocated = sum(
             t.amount for t in transactions if t.transaction_type == "credit"
         )

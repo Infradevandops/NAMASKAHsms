@@ -1,6 +1,7 @@
 """Tier response schemas for validation."""
 
-from typing import Dict, List, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -77,7 +78,9 @@ class AnalyticsSummaryResponse(BaseModel):
     """Response schema for /api/analytics/summary endpoint."""
 
     total_verifications: int = Field(..., ge=0, description="Total verifications")
-    successful_verifications: int = Field(..., ge=0, description="Successful verifications")
+    successful_verifications: int = Field(
+        ..., ge=0, description="Successful verifications"
+    )
     failed_verifications: int = Field(..., ge=0, description="Failed verifications")
     pending_verifications: int = Field(..., ge=0, description="Pending verifications")
     success_rate: float = Field(..., ge=0, le=1, description="Success rate (0-1)")

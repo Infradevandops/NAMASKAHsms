@@ -4,9 +4,9 @@ These validators ensure API responses contain all required fields
 and have correct data types for frontend consumption.
 """
 
-from typing import Dict, Any, List, Optional
+from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field, validator
-from datetime import datetime
 
 
 class TierFeaturesSchema(BaseModel):
@@ -147,7 +147,9 @@ def validate_current_tier_response(data: Dict[str, Any]) -> CurrentTierResponse:
     return CurrentTierResponse(**data)
 
 
-def validate_analytics_summary_response(data: Dict[str, Any]) -> AnalyticsSummaryResponse:
+def validate_analytics_summary_response(
+    data: Dict[str, Any],
+) -> AnalyticsSummaryResponse:
     """Validate /api/analytics/summary response.
 
     Args:
@@ -162,7 +164,9 @@ def validate_analytics_summary_response(data: Dict[str, Any]) -> AnalyticsSummar
     return AnalyticsSummaryResponse(**data)
 
 
-def validate_dashboard_activity_response(data: List[Dict[str, Any]]) -> List[ActivityItemSchema]:
+def validate_dashboard_activity_response(
+    data: List[Dict[str, Any]],
+) -> List[ActivityItemSchema]:
     """Validate /api/dashboard/activity/recent response.
 
     Args:

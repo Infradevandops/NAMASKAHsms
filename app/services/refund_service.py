@@ -1,16 +1,15 @@
 """Refund service for managing payment refunds."""
 
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any
+from datetime import datetime, timezone
+from typing import Any, Dict
 
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models.user import User
 from app.models.refund import Refund
-from app.models.transaction import Transaction, PaymentLog
-from app.services.paystack_service import paystack_service
+from app.models.transaction import PaymentLog, Transaction
+from app.models.user import User
 
 logger = get_logger(__name__)
 
@@ -57,7 +56,10 @@ class RefundService:
         # Check if already refunded
         existing_refund = (
             self.db.query(Refund)
-            .filter(Refund.payment_id == payment_id, Refund.status.in_(["success", "pending"]))
+            .filter(
+                Refund.payment_id == payment_id,
+                Refund.status.in_(["success", "pending"]),
+            )
             .first()
         )
 
@@ -66,7 +68,9 @@ class RefundService:
 
         # Check refund window
         if payment_log.created_at:
-            days_since_payment = (datetime.now(timezone.utc) - payment_log.created_at).days
+            days_since_payment = (
+                datetime.now(timezone.utc) - payment_log.created_at
+            ).days
             if days_since_payment > self.refund_window_days:
                 raise ValueError(
                     f"Refund window expired. Refunds allowed within {self.refund_window_days} days"
@@ -118,7 +122,9 @@ class RefundService:
             raise ValueError(f"Cannot process refund with status: {refund.status}")
 
         # Get payment log for original reference
-        payment_log = self.db.query(PaymentLog).filter(PaymentLog.id == refund.payment_id).first()
+        payment_log = (
+            self.db.query(PaymentLog).filter(PaymentLog.id == refund.payment_id).first()
+        )
 
         if not payment_log:
             raise ValueError(f"Original payment not found: {refund.payment_id}")
@@ -200,12 +206,18 @@ class RefundService:
             "status": refund.status,
             "amount": refund.amount,
             "reason": refund.reason,
-            "initiated_at": refund.initiated_at.isoformat() if refund.initiated_at else None,
-            "processed_at": refund.processed_at.isoformat() if refund.processed_at else None,
+            "initiated_at": (
+                refund.initiated_at.isoformat() if refund.initiated_at else None
+            ),
+            "processed_at": (
+                refund.processed_at.isoformat() if refund.processed_at else None
+            ),
             "error_message": refund.error_message,
         }
 
-    def get_refund_history(self, user_id: str, skip: int = 0, limit: int = 20) -> Dict[str, Any]:
+    def get_refund_history(
+        self, user_id: str, skip: int = 0, limit: int = 20
+    ) -> Dict[str, Any]:
         """Get refund history for user.
 
         Args:
@@ -253,8 +265,12 @@ class RefundService:
                     "amount": r.amount,
                     "reason": r.reason,
                     "status": r.status,
-                    "initiated_at": r.initiated_at.isoformat() if r.initiated_at else None,
-                    "processed_at": r.processed_at.isoformat() if r.processed_at else None,
+                    "initiated_at": (
+                        r.initiated_at.isoformat() if r.initiated_at else None
+                    ),
+                    "processed_at": (
+                        r.processed_at.isoformat() if r.processed_at else None
+                    ),
                 }
                 for r in refunds
             ],
@@ -292,7 +308,9 @@ class RefundService:
 
         return refund
 
-    def handle_refund_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def handle_refund_webhook(
+        self, event: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Handle refund webhook from Paystack.
 
         Args:
@@ -310,7 +328,9 @@ class RefundService:
 
                 # Get payment log
                 payment_log = (
-                    self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+                    self.db.query(PaymentLog)
+                    .filter(PaymentLog.reference == reference)
+                    .first()
                 )
 
                 if not payment_log:
@@ -318,7 +338,11 @@ class RefundService:
                     return {"status": "ignored", "message": "Payment not found"}
 
                 # Get refund
-                refund = self.db.query(Refund).filter(Refund.payment_id == payment_log.id).first()
+                refund = (
+                    self.db.query(Refund)
+                    .filter(Refund.payment_id == payment_log.id)
+                    .first()
+                )
 
                 if not refund:
                     logger.warning(f"Refund not found for payment: {reference}")

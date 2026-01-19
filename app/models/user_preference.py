@@ -1,4 +1,5 @@
-from sqlalchemy import Boolean, Column, String, Float, Integer
+from sqlalchemy import Boolean, Column, Float, String
+
 from app.models.base import BaseModel
 
 
@@ -13,6 +14,8 @@ class UserPreference(BaseModel):
     profile_visibility = Column(Boolean, default=False)
     analytics_tracking = Column(Boolean, default=True)
     data_retention = Column(String, default="90")  # '30', '90', '365', 'forever'
+    language = Column(String, default="en")
+    currency = Column(String, default="USD")
 
     # Billing Settings
     billing_email = Column(String, nullable=True)

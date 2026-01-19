@@ -1,7 +1,7 @@
 """Disaster recovery and backup management service."""
 
-from typing import Dict
 from datetime import datetime
+from typing import Dict
 
 
 class DisasterRecoveryService:
@@ -44,10 +44,26 @@ class DisasterRecoveryService:
             "backup_id": backup_id,
             "started_at": datetime.utcnow().isoformat(),
             "steps": [
-                {"step": "validate_backup", "status": "completed", "duration_seconds": 15},
-                {"step": "restore_database", "status": "completed", "duration_seconds": 120},
-                {"step": "restore_redis", "status": "completed", "duration_seconds": 30},
-                {"step": "validate_services", "status": "completed", "duration_seconds": 45},
+                {
+                    "step": "validate_backup",
+                    "status": "completed",
+                    "duration_seconds": 15,
+                },
+                {
+                    "step": "restore_database",
+                    "status": "completed",
+                    "duration_seconds": 120,
+                },
+                {
+                    "step": "restore_redis",
+                    "status": "completed",
+                    "duration_seconds": 30,
+                },
+                {
+                    "step": "validate_services",
+                    "status": "completed",
+                    "duration_seconds": 45,
+                },
                 {"step": "health_check", "status": "completed", "duration_seconds": 10},
             ],
             "total_duration_seconds": 220,

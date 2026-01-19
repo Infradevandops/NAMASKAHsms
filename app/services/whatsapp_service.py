@@ -1,7 +1,9 @@
 """WhatsApp Business API integration."""
 
-import httpx
 from typing import Dict, Optional
+
+import httpx
+
 from app.core.config import settings
 
 
@@ -27,7 +29,9 @@ class WhatsAppService:
                 "components": [
                     {
                         "type": "body",
-                        "parameters": [{"type": "text", "text": "123456"}],  # Generated code
+                        "parameters": [
+                            {"type": "text", "text": "123456"}
+                        ],  # Generated code
                     }
                 ],
             },

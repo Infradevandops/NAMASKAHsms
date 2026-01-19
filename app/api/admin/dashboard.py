@@ -1,20 +1,15 @@
 """Admin Dashboard API router with optimized analytics."""
 
-from app.core.logging import get_logger
-from app.core.dependencies import get_current_admin_user as require_admin
-from app.core.unified_cache import cache
-from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_admin_user as require_admin
+from app.core.logging import get_logger
+from app.models.pricing_template import PricingTemplate
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
-from app.models.pricing_template import PricingTemplate
 
 logger = get_logger(__name__)
 
@@ -31,12 +26,15 @@ async def get_admin_stats(
         # Get basic counts with single queries
         users = db.query(func.count(User.id)).scalar() or 0
         active_users = (
-            db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar() or 0
+            db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar()
+            or 0
         )
 
         verifications = db.query(func.count(Verification.id)).scalar() or 0
         pending_verifications = (
-            db.query(func.count(Verification.id)).filter(Verification.status == "pending").scalar()
+            db.query(func.count(Verification.id))
+            .filter(Verification.status == "pending")
+            .scalar()
             or 0
         )
         success_verifications = (
@@ -47,7 +45,9 @@ async def get_admin_stats(
         )
 
         # Calculate success rate safely
-        success_rate = (success_verifications / verifications * 100) if verifications > 0 else 0
+        success_rate = (
+            (success_verifications / verifications * 100) if verifications > 0 else 0
+        )
 
         # Calculate revenue safely
         revenue = (
@@ -107,7 +107,9 @@ async def get_recent_verifications(
 
     except Exception as e:
         logger.error(f"Recent verifications error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch recent verifications")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch recent verifications"
+        )
 
 
 @router.get("/pricing/templates")

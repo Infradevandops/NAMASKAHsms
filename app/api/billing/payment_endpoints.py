@@ -1,20 +1,21 @@
 """Payment processing endpoints for Paystack integration."""
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+import json
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-import json
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.services.paystack_service import paystack_service
+from app.models.transaction import PaymentLog, Transaction
+from app.models.user import User
+from app.schemas.payment import CryptoWalletResponse
 from app.services.email_service import email_service
 from app.services.notification_service import NotificationService
-from app.models.user import User
-from app.models.transaction import Transaction, PaymentLog
-from app.schemas.payment import CryptoWalletResponse
+from app.services.paystack_service import paystack_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -72,7 +73,8 @@ async def initialize_payment(
         if not paystack_service.enabled:
             logger.error("Paystack not configured")
             raise HTTPException(
-                status_code=503, detail="Payment service unavailable. Please try again later."
+                status_code=503,
+                detail="Payment service unavailable. Please try again later.",
             )
 
         # Convert USD to Kobo (1 USD = 1500 NGN, 1 NGN = 100 Kobo)
@@ -124,7 +126,8 @@ async def initialize_payment(
             )
 
         logger.info(
-            f"Payment initialized: Reference={reference}, " f"Amount=${amount_usd}, User={user_id}"
+            f"Payment initialized: Reference={reference}, "
+            f"Amount=${amount_usd}, User={user_id}"
         )
 
         return {
@@ -142,9 +145,12 @@ async def initialize_payment(
         logger.warning(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error in payment initialization: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error in payment initialization: {str(e)}", exc_info=True
+        )
         raise HTTPException(
-            status_code=500, detail="An unexpected error occurred. Please try again later."
+            status_code=500,
+            detail="An unexpected error occurred. Please try again later.",
         )
 
 
@@ -195,7 +201,9 @@ async def verify_payment(
             result = await paystack_service.verify_payment(reference)
         except Exception as e:
             logger.error(f"Paystack verification error: {str(e)}")
-            raise HTTPException(status_code=503, detail="Payment verification service unavailable")
+            raise HTTPException(
+                status_code=503, detail="Payment verification service unavailable"
+            )
 
         # Update payment log
         payment_log.status = result["status"]
@@ -247,7 +255,9 @@ async def verify_payment(
         logger.warning(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
-        logger.error(f"Unexpected error in payment verification: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error in payment verification: {str(e)}", exc_info=True
+        )
         raise HTTPException(status_code=500, detail="An unexpected error occurred")
 
 
@@ -300,7 +310,9 @@ async def paystack_webhook(
             logger.info(f"Charge success: Reference={reference}, Amount={amount}")
 
             # Get payment log
-            payment_log = db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+            payment_log = (
+                db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+            )
 
             if not payment_log:
                 logger.warning(f"Payment log not found for reference: {reference}")
@@ -382,7 +394,9 @@ async def paystack_webhook(
 
             except Exception as e:
                 db.rollback()
-                logger.error(f"Error processing successful payment: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Error processing successful payment: {str(e)}", exc_info=True
+                )
                 return {"status": "error", "message": str(e)}
 
         # Handle charge.failed event
@@ -393,7 +407,11 @@ async def paystack_webhook(
             logger.warning(f"Charge failed: Reference={reference}, Reason={reason}")
 
             try:
-                payment_log = db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+                payment_log = (
+                    db.query(PaymentLog)
+                    .filter(PaymentLog.reference == reference)
+                    .first()
+                )
 
                 if payment_log:
                     payment_log.status = "failed"
@@ -416,12 +434,16 @@ async def paystack_webhook(
                                         "reference": reference,
                                         "amount_usd": payment_log.amount_usd,
                                         "reason": reason,
-                                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                                        "timestamp": datetime.now(
+                                            timezone.utc
+                                        ).isoformat(),
                                     },
                                 )
                             )
                         except Exception as e:
-                            logger.warning(f"Failed to send failed payment email: {str(e)}")
+                            logger.warning(
+                                f"Failed to send failed payment email: {str(e)}"
+                            )
 
                         # Create in-app notification
                         try:
@@ -441,7 +463,9 @@ async def paystack_webhook(
                             logger.warning(f"Failed to create notification: {str(e)}")
             except Exception as e:
                 db.rollback()
-                logger.error(f"Error processing failed payment: {str(e)}", exc_info=True)
+                logger.error(
+                    f"Error processing failed payment: {str(e)}", exc_info=True
+                )
                 return {"status": "error", "message": str(e)}
 
         else:
@@ -485,7 +509,9 @@ async def get_transactions(
             raise HTTPException(status_code=400, detail="skip must be non-negative")
 
         if limit < 1 or limit > 100:
-            raise HTTPException(status_code=400, detail="limit must be between 1 and 100")
+            raise HTTPException(
+                status_code=400, detail="limit must be between 1 and 100"
+            )
 
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()

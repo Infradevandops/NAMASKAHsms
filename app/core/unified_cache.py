@@ -1,10 +1,12 @@
 """Unified caching system with Redis and in - memory fallback."""
 
+import functools
 import json
 import time
-import functools
-from typing import Any, Optional, Callable, Dict
+from typing import Any, Callable, Dict, Optional
+
 import redis.asyncio as aioredis
+
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -78,7 +80,10 @@ class UnifiedCacheManager:
         try:
             redis_url = getattr(settings, "redis_url", None) or "redis://localhost:6379"
             self.redis_client = aioredis.from_url(
-                redis_url, decode_responses=True, max_connections=20, retry_on_timeout=True
+                redis_url,
+                decode_responses=True,
+                max_connections=20,
+                retry_on_timeout=True,
             )
             await self.redis_client.ping()
             self._connected = True
@@ -267,13 +272,17 @@ async def invalidate_user_cache(user_id: str):
     await cache.invalidate_pattern(f"verification:{user_id}*")
 
 
-async def cache_verification(verification_id: str, data: Any, ttl: Optional[int] = None):
+async def cache_verification(
+    verification_id: str, data: Any, ttl: Optional[int] = None
+):
     """Cache verification data."""
     key = cache.cache_key("verification", verification_id)
     await cache.set(key, data, ttl or cache.ttl_defaults["verification"])
 
 
-async def cache_provider_data(provider: str, data_type: str, data: Any, ttl: Optional[int] = None):
+async def cache_provider_data(
+    provider: str, data_type: str, data: Any, ttl: Optional[int] = None
+):
     """Cache provider - specific data."""
     key = cache.cache_key("provider", provider, data_type)
     await cache.set(key, data, ttl or cache.ttl_defaults["provider"])

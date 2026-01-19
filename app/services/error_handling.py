@@ -1,9 +1,11 @@
 """Comprehensive error handling and retry logic."""
 
 import asyncio
-import httpx
-from typing import Callable, Any, Optional, TypeVar
 from functools import wraps
+from typing import Any, Callable, Optional, TypeVar
+
+import httpx
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -59,7 +61,9 @@ def retry_with_backoff(config: Optional[RetryConfig] = None):
                             f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}"
                         )
 
-            raise last_exception or Exception(f"Failed after {config.max_retries} attempts")
+            raise last_exception or Exception(
+                f"Failed after {config.max_retries} attempts"
+            )
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs) -> Any:
@@ -82,7 +86,9 @@ def retry_with_backoff(config: Optional[RetryConfig] = None):
                             f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}"
                         )
 
-            raise last_exception or Exception(f"Failed after {config.max_retries} attempts")
+            raise last_exception or Exception(
+                f"Failed after {config.max_retries} attempts"
+            )
 
         # Return async wrapper if function is async
         if asyncio.iscoroutinefunction(func):

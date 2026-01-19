@@ -1,8 +1,8 @@
 """Notification model for user notifications."""
 
-from sqlalchemy import Column, String, Text, Boolean, ForeignKey, DateTime
+from sqlalchemy import Boolean, Column, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
-from datetime import datetime, timezone
+
 from app.models.base import BaseModel
 
 

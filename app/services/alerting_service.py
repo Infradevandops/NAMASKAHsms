@@ -1,14 +1,19 @@
 """Alerting and notification service."""
 
-from typing import Dict, List
 from datetime import datetime
+from typing import Dict, List
 
 
 class AlertingService:
     """Advanced alerting and notification system."""
 
     def __init__(self):
-        self.alert_channels = {"email": True, "slack": True, "webhook": True, "sms": False}
+        self.alert_channels = {
+            "email": True,
+            "slack": True,
+            "webhook": True,
+            "sms": False,
+        }
         self.alert_rules = {
             "critical": {"cooldown": 300, "escalation": True},
             "warning": {"cooldown": 900, "escalation": False},
@@ -44,7 +49,9 @@ class AlertingService:
         """Send Slack alert."""
         # Simulate Slack notification
         emoji = {"critical": "🚨", "warning": "⚠️", "info": "ℹ️"}
-        print(f"💬 Slack Alert: {emoji.get(alert['severity'], '📢')} {alert['message']}")
+        print(
+            f"💬 Slack Alert: {emoji.get(alert['severity'], '📢')} {alert['message']}"
+        )
 
     async def _send_webhook_alert(self, alert: Dict):
         """Send webhook alert."""

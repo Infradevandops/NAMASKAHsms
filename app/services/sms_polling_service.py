@@ -5,13 +5,13 @@ import re
 from datetime import datetime, timezone
 from typing import Dict, List
 
-from app.core.database import SessionLocal
-from app.core.logging import get_logger
 from app.core.config import settings
-from app.models import Verification
-from app.services.textverified_service import TextVerifiedService
-from app.services.notification_service import NotificationService
+from app.core.database import SessionLocal
 from app.core.exceptions import ExternalServiceError
+from app.core.logging import get_logger
+from app.models import Verification
+from app.services.notification_service import NotificationService
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -27,7 +27,9 @@ class SMSPollingService:
         if verification_id in self.polling_tasks:
             return
 
-        task = asyncio.create_task(self._poll_verification(verification_id, phone_number))
+        task = asyncio.create_task(
+            self._poll_verification(verification_id, phone_number)
+        )
         self.polling_tasks[verification_id] = task
         logger.info(f"Started polling for verification {verification_id}")
 
@@ -41,7 +43,9 @@ class SMSPollingService:
     async def _poll_verification(self, verification_id: str, phone_number: str):
         """Poll TextVerified for SMS updates."""
         initial_interval = settings.sms_polling_initial_interval_seconds
-        max_attempts = int((settings.sms_polling_max_minutes * 60) / max(1, initial_interval))
+        max_attempts = int(
+            (settings.sms_polling_max_minutes * 60) / max(1, initial_interval)
+        )
         attempt = 0
 
         while attempt < max_attempts:
@@ -49,11 +53,15 @@ class SMSPollingService:
             try:
                 db = SessionLocal()
                 verification = (
-                    db.query(Verification).filter(Verification.id == verification_id).first()
+                    db.query(Verification)
+                    .filter(Verification.id == verification_id)
+                    .first()
                 )
 
                 if not verification or verification.status != "pending":
-                    logger.info(f"Verification {verification_id} no longer pending, stopping poll")
+                    logger.info(
+                        f"Verification {verification_id} no longer pending, stopping poll"
+                    )
                     break
 
                 # Use activation_id (TextVerified's ID) not our internal verification_id
@@ -64,7 +72,9 @@ class SMSPollingService:
                     break
 
                 try:
-                    sms_data = await self.textverified.check_sms(verification.activation_id)
+                    sms_data = await self.textverified.check_sms(
+                        verification.activation_id
+                    )
                 except Exception as e:
                     logger.warning(
                         f"TextVerified check failed for {verification.activation_id}: {str(e)}"
@@ -143,11 +153,15 @@ class SMSPollingService:
                 logger.info(f"Polling cancelled for verification {verification_id}")
                 break
             except ExternalServiceError as e:
-                logger.warning(f"TextVerified polling error for {verification_id}: {str(e)}")
+                logger.warning(
+                    f"TextVerified polling error for {verification_id}: {str(e)}"
+                )
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                 attempt += 1
             except Exception as e:
-                logger.error(f"Unexpected polling error for {verification_id}: {str(e)}")
+                logger.error(
+                    f"Unexpected polling error for {verification_id}: {str(e)}"
+                )
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                 attempt += 1
             finally:
@@ -169,7 +183,8 @@ class SMSPollingService:
                 pending_verifications = (
                     db.query(Verification)
                     .filter(
-                        Verification.status == "pending", Verification.provider == "textverified"
+                        Verification.status == "pending",
+                        Verification.provider == "textverified",
                     )
                     .all()
                 )

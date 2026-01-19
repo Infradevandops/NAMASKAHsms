@@ -1,7 +1,8 @@
 """Balance transaction model for tracking balance changes."""
 
-from sqlalchemy import Column, String, Numeric, Text, ForeignKey
+from sqlalchemy import Column, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import relationship
+
 from app.models.base import BaseModel
 
 

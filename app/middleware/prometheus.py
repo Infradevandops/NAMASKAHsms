@@ -1,9 +1,10 @@
 """Prometheus metrics middleware."""
 
-from prometheus_client import Counter, Histogram
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
 import time
+
+from fastapi import Request
+from prometheus_client import Counter, Histogram
+from starlette.middleware.base import BaseHTTPMiddleware
 
 request_count = Counter(
     "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status"]
@@ -21,9 +22,13 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
         duration = time.time() - start
 
         request_count.labels(
-            method=request.method, endpoint=request.url.path, status=response.status_code
+            method=request.method,
+            endpoint=request.url.path,
+            status=response.status_code,
         ).inc()
 
-        request_duration.labels(method=request.method, endpoint=request.url.path).observe(duration)
+        request_duration.labels(
+            method=request.method, endpoint=request.url.path
+        ).observe(duration)
 
         return response

@@ -1,8 +1,10 @@
 """Role-Based Access Control (RBAC) system."""
 
 from enum import Enum
-from fastapi import HTTPException, status, Depends
+
+from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 
 
@@ -48,11 +50,15 @@ def require_role(*allowed_roles: Role):
     return check_role
 
 
-def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Dependency to require admin role."""
     user_role = get_user_role(db, user_id)
     if user_role != Role.ADMIN:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     return user_id
 
 
@@ -63,6 +69,7 @@ def require_moderator_or_admin(
     user_role = get_user_role(db, user_id)
     if user_role not in [Role.ADMIN, Role.MODERATOR]:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Moderator or admin access required"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Moderator or admin access required",
         )
     return user_id

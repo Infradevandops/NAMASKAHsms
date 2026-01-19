@@ -1,8 +1,8 @@
 """Input sanitization utilities to prevent XSS attacks."""
 
 import html
-import re
 import os
+import re
 from typing import Any, Dict, List, Union
 
 
@@ -15,14 +15,18 @@ def sanitize_html(text: str) -> str:
     sanitized = html.escape(text)
 
     # Remove any remaining script tags or javascript
-    sanitized = re.sub(r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL)
+    sanitized = re.sub(
+        r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL
+    )
     sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
     sanitized = re.sub(r"on\w+\s*=", "", sanitized, flags=re.IGNORECASE)
 
     return sanitized
 
 
-def sanitize_user_input(data: Union[str, Dict, List, Any]) -> Union[str, Dict, List, Any]:
+def sanitize_user_input(
+    data: Union[str, Dict, List, Any],
+) -> Union[str, Dict, List, Any]:
     """Recursively sanitize user input data."""
     if isinstance(data, str):
         return sanitize_html(data)
@@ -40,7 +44,20 @@ def sanitize_email_content(content: str) -> str:
         return str(content)
 
     # Allow basic HTML tags but escape everything else
-    allowed_tags = ["p", "br", "strong", "b", "em", "i", "h1", "h2", "h3", "h4", "h5", "h6"]
+    allowed_tags = [
+        "p",
+        "br",
+        "strong",
+        "b",
+        "em",
+        "i",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+    ]
 
     # First escape all HTML
     sanitized = html.escape(content)
@@ -79,18 +96,17 @@ def sanitize_filename(filename: str) -> str:
 
     # Remove directory separators
     filename = os.path.basename(filename)
-    
+
     # Remove invalid characters (keep alphanumeric, dots, dashes, underscores)
-    filename = re.sub(r'[^a-zA-Z0-9._-]', '', filename)
-    
+    filename = re.sub(r"[^a-zA-Z0-9._-]", "", filename)
+
     # Limit length
     if len(filename) > 255:
         base, ext = os.path.splitext(filename)
-        filename = base[:255-len(ext)] + ext
-        
+        filename = base[: 255 - len(ext)] + ext
+
     # Prevent empty filename
     if not filename:
         filename = "unnamed_file"
-        
-    return filename
 
+    return filename

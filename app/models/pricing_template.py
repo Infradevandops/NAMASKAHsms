@@ -1,9 +1,20 @@
 """Pricing Template Models"""
 
-from sqlalchemy import Column, Integer, String, Boolean, DECIMAL, TIMESTAMP, Text, ForeignKey, JSON
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    TIMESTAMP,
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
 from app.core.database import Base
 
 # Use cross-dialect JSONB (Postgres) / JSON (SQLite)
@@ -28,7 +39,9 @@ class PricingTemplate(Base):
     template_metadata = Column(JSONB)  # For A/B testing, notes, etc.
 
     # Relationships
-    tiers = relationship("TierPricing", back_populates="template", cascade="all, delete-orphan")
+    tiers = relationship(
+        "TierPricing", back_populates="template", cascade="all, delete-orphan"
+    )
     history = relationship("PricingHistory", back_populates="template")
     creator = relationship("User", foreign_keys=[created_by])
 
@@ -66,8 +79,12 @@ class PricingHistory(Base):
     __tablename__ = "pricing_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    template_id = Column(Integer, ForeignKey("pricing_templates.id", ondelete="SET NULL"))
-    action = Column(String(50), nullable=False)  # 'activated', 'deactivated', 'created', 'updated'
+    template_id = Column(
+        Integer, ForeignKey("pricing_templates.id", ondelete="SET NULL")
+    )
+    action = Column(
+        String(50), nullable=False
+    )  # 'activated', 'deactivated', 'created', 'updated'
     previous_template_id = Column(Integer)
     changed_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
     changed_at = Column(TIMESTAMP, server_default=func.now(), index=True)
@@ -79,7 +96,9 @@ class PricingHistory(Base):
     user = relationship("User", foreign_keys=[changed_by])
 
     def __repr__(self):
-        return f"<PricingHistory(action='{self.action}', template_id={self.template_id})>"
+        return (
+            f"<PricingHistory(action='{self.action}', template_id={self.template_id})>"
+        )
 
 
 class UserPricingAssignment(Base):
@@ -87,7 +106,9 @@ class UserPricingAssignment(Base):
 
     __tablename__ = "user_pricing_assignments"
 
-    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(
+        String, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True
+    )
     template_id = Column(
         Integer, ForeignKey("pricing_templates.id", ondelete="CASCADE"), nullable=False
     )

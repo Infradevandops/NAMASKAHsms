@@ -1,8 +1,9 @@
 """Startup initialization for the application."""
 
 import os
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError
+
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 
 from app.core.database import SessionLocal, engine
 from app.core.logging import get_logger
@@ -193,7 +194,9 @@ def ensure_admin_user():
         admin_password = os.getenv("ADMIN_PASSWORD")
 
         if not admin_password:
-            logger.warning("ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
+            logger.warning(
+                "ADMIN_PASSWORD not set in environment. Skipping admin user creation."
+            )
             return
 
         # Check if admin exists
@@ -252,7 +255,9 @@ def run_startup_initialization():
     except OSError as e:
         logger.error(f"Environment configuration error during startup: {e}")
     except (ImportError, AttributeError, TypeError) as e:
-        logger.error(f"Configuration or import error during startup initialization: {e}")
+        logger.error(
+            f"Configuration or import error during startup initialization: {e}"
+        )
     except Exception as e:
         logger.critical(f"Critical unexpected error during startup initialization: {e}")
         raise

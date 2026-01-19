@@ -56,7 +56,9 @@ async def initiate_refund(
             "status": refund.status,
             "amount": refund.amount,
             "reason": refund.reason,
-            "initiated_at": refund.initiated_at.isoformat() if refund.initiated_at else None,
+            "initiated_at": (
+                refund.initiated_at.isoformat() if refund.initiated_at else None
+            ),
         }
 
     except ValueError as e:
@@ -65,13 +67,16 @@ async def initiate_refund(
     except Exception as e:
         logger.error(f"Failed to initiate refund: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initiate refund"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to initiate refund",
         )
 
 
 @router.get("/refund/{reference}")
 async def get_refund_status(
-    reference: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    reference: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get refund status.
 
@@ -125,7 +130,9 @@ async def get_refund_history(
     """
     try:
         refund_service = RefundService(db)
-        result = refund_service.get_refund_history(user_id=user_id, skip=skip, limit=limit)
+        result = refund_service.get_refund_history(
+            user_id=user_id, skip=skip, limit=limit
+        )
 
         logger.info(f"Retrieved {len(result['refunds'])} refunds for user {user_id}")
 
@@ -144,7 +151,9 @@ async def get_refund_history(
 
 @router.post("/refund/{reference}/cancel")
 async def cancel_refund(
-    reference: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    reference: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Cancel a pending refund.
 
@@ -180,5 +189,6 @@ async def cancel_refund(
     except Exception as e:
         logger.error(f"Failed to cancel refund: {str(e)}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to cancel refund"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to cancel refund",
         )

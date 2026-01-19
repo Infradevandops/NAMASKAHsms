@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
+
 from app.schemas.validators import validate_email, validate_password_strength
 
 
@@ -11,7 +12,9 @@ class RegisterRequest(BaseModel):
     """Schema for user registration request."""
 
     email: EmailStr = Field(..., description="Valid email address")
-    password: str = Field(..., min_length=6, description="Password (minimum 6 characters)")
+    password: str = Field(
+        ..., min_length=6, description="Password (minimum 6 characters)"
+    )
 
 
 class UserCreate(BaseModel):
@@ -213,7 +216,9 @@ class PasswordResetConfirm(BaseModel):
     """Schema for password reset confirmation."""
 
     token: str = Field(..., min_length=1, description="Password reset token")
-    new_password: str = Field(..., min_length=8, description="New password (minimum 8 characters)")
+    new_password: str = Field(
+        ..., min_length=8, description="New password (minimum 8 characters)"
+    )
 
     @field_validator("token", mode="before")
     @classmethod
@@ -250,4 +255,6 @@ class GoogleAuthRequest(BaseModel):
 
     token: str = Field(..., description="Google OAuth token")
 
-    model_config = {"json_schema_extra": {"example": {"token": "google_oauth_token_here"}}}
+    model_config = {
+        "json_schema_extra": {"example": {"token": "google_oauth_token_here"}}
+    }

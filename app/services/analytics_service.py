@@ -1,9 +1,11 @@
-from sqlalchemy.orm import Session
-from sqlalchemy import func, and_
 from datetime import datetime, timedelta
+
+from sqlalchemy import and_, func
+from sqlalchemy.orm import Session
+
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
 
 
 class AnalyticsService:
@@ -14,7 +16,9 @@ class AnalyticsService:
         """Get dashboard overview metrics"""
         # Users
         total_users = self.db.query(func.count(User.id)).scalar() or 0
-        active_users = self.db.query(func.count(User.id)).filter(User.credits > 0).scalar() or 0
+        active_users = (
+            self.db.query(func.count(User.id)).filter(User.credits > 0).scalar() or 0
+        )
 
         # Verifications
         total_verifications = self.db.query(func.count(Verification.id)).scalar() or 0
@@ -25,7 +29,9 @@ class AnalyticsService:
             or 0
         )
         success_rate = (
-            (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
+            (success_verifications / total_verifications * 100)
+            if total_verifications > 0
+            else 0
         )
 
         # Revenue
@@ -40,7 +46,12 @@ class AnalyticsService:
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
         monthly_revenue = (
             self.db.query(func.sum(Transaction.amount))
-            .filter(and_(Transaction.type == "credit", Transaction.created_at >= thirty_days_ago))
+            .filter(
+                and_(
+                    Transaction.type == "credit",
+                    Transaction.created_at >= thirty_days_ago,
+                )
+            )
             .scalar()
             or 0
         )
@@ -68,9 +79,9 @@ class AnalyticsService:
             self.db.query(
                 func.date(Verification.created_at).label("date"),
                 func.count(Verification.id).label("verifications"),
-                func.sum(func.case([(Verification.status == "completed", 1)], else_=0)).label(
-                    "success"
-                ),
+                func.sum(
+                    func.case([(Verification.status == "completed", 1)], else_=0)
+                ).label("success"),
             )
             .filter(Verification.created_at >= start_date)
             .group_by(func.date(Verification.created_at))
@@ -79,7 +90,11 @@ class AnalyticsService:
         )
 
         return [
-            {"date": str(row.date), "verifications": row.verifications, "success": row.success or 0}
+            {
+                "date": str(row.date),
+                "verifications": row.verifications,
+                "success": row.success or 0,
+            }
             for row in results
         ]
 
@@ -90,7 +105,9 @@ class AnalyticsService:
                 Verification.service_name,
                 func.count(Verification.id).label("count"),
                 (
-                    func.sum(func.case([(Verification.status == "completed", 1)], else_=0))
+                    func.sum(
+                        func.case([(Verification.status == "completed", 1)], else_=0)
+                    )
                     * 100.0
                     / func.count(Verification.id)
                 ).label("success_rate"),

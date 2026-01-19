@@ -1,8 +1,9 @@
 """Token management with refresh tokens and HttpOnly cookies - Task 1.2."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, Optional
 import secrets
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
+
 from app.utils.security import create_access_token, verify_token
 
 

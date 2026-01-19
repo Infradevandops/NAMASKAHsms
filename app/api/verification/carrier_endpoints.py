@@ -1,14 +1,13 @@
 """Carrier/ISP filtering endpoints (requires payg tier or higher)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from app.services.tier_manager import TierManager
+from app.core.dependencies import require_tier
 from app.core.logging import get_logger
 from app.core.tier_helpers import raise_tier_error
+from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
 
@@ -44,11 +43,17 @@ async def get_available_carriers(
             f"Retrieved {len(carriers) if carriers else 0} carriers for {country}, user_id: {user_id}"
         )
 
-        return {"success": True, "country": country, "carriers": carriers, "tier": "turbo"}
+        return {
+            "success": True,
+            "country": country,
+            "carriers": carriers,
+            "tier": "turbo",
+        }
 
     except Exception as e:
         logger.error(
-            f"Failed to get carriers for {country}, user_id: {user_id}: {str(e)}", exc_info=True
+            f"Failed to get carriers for {country}, user_id: {user_id}: {str(e)}",
+            exc_info=True,
         )
         raise HTTPException(status_code=500, detail="Failed to retrieve carrier list")
 
@@ -88,6 +93,7 @@ async def get_available_area_codes(
 
     except Exception as e:
         logger.error(
-            f"Failed to get area codes for {country}, user_id: {user_id}: {str(e)}", exc_info=True
+            f"Failed to get area codes for {country}, user_id: {user_id}: {str(e)}",
+            exc_info=True,
         )
         raise HTTPException(status_code=500, detail="Failed to retrieve area code list")

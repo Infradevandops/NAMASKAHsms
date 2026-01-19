@@ -1,8 +1,9 @@
 """Configuration loader with AWS Secrets Manager integration."""
 
-from typing import Optional, Dict, Any
-from app.core.config import Settings
 import logging
+from typing import Any, Dict, Optional
+
+from app.core.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,9 @@ class ConfigWithSecrets:
                 result = secret_value
 
             # Log successful retrieval
-            self.audit.log_get(secret_name=secret_name, user_id=user_id, ip_address=ip_address)
+            self.audit.log_get(
+                secret_name=secret_name, user_id=user_id, ip_address=ip_address
+            )
 
             return result
 
@@ -135,7 +138,9 @@ class ConfigWithSecrets:
             success = self.secrets_manager.set_secret(secret_name, secret_value)
 
             if success:
-                self.audit.log_set(secret_name=secret_name, user_id=user_id, ip_address=ip_address)
+                self.audit.log_set(
+                    secret_name=secret_name, user_id=user_id, ip_address=ip_address
+                )
             else:
                 self.audit.log_error(
                     action="set",

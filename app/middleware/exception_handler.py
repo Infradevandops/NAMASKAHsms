@@ -3,21 +3,19 @@
 import traceback
 import uuid
 from typing import Callable, Optional
-from datetime import datetime
 
-from fastapi import Request, status
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from app.core.logging import get_logger
 from app.core.error_responses import (
     ErrorCode,
-    ErrorResponse,
     create_error_response,
     get_http_status_code,
 )
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -44,7 +42,10 @@ class ValidationException(AppException):
 
     def __init__(self, message: str, details: Optional[list] = None):
         super().__init__(
-            message=message, code=ErrorCode.VALIDATION_ERROR, details=details, status_code=400
+            message=message,
+            code=ErrorCode.VALIDATION_ERROR,
+            details=details,
+            status_code=400,
         )
 
 
@@ -66,7 +67,9 @@ class ResourceNotFoundException(AppException):
     """Resource not found exception."""
 
     def __init__(self, resource: str = "Resource"):
-        super().__init__(message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404)
+        super().__init__(
+            message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404
+        )
 
 
 class ConflictException(AppException):
@@ -80,14 +83,18 @@ class RateLimitException(AppException):
     """Rate limit exceeded exception."""
 
     def __init__(self, message: str = "Too many requests"):
-        super().__init__(message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429)
+        super().__init__(
+            message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429
+        )
 
 
 class InsufficientCreditsException(AppException):
     """Insufficient credits exception."""
 
     def __init__(self, message: str = "Insufficient credits"):
-        super().__init__(message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402)
+        super().__init__(
+            message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402
+        )
 
 
 class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
@@ -144,7 +151,9 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=e.status_code, content=error_response.dict())
+            return JSONResponse(
+                status_code=e.status_code, content=error_response.dict()
+            )
 
         except SQLAlchemyError as e:
             """Handle database errors."""
@@ -299,7 +308,9 @@ def setup_exception_handlers(app):
         request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
         logger.error(
-            f"Unhandled exception: {str(exc)}", extra={"request_id": request_id}, exc_info=True
+            f"Unhandled exception: {str(exc)}",
+            extra={"request_id": request_id},
+            exc_info=True,
         )
 
         error_response = create_error_response(

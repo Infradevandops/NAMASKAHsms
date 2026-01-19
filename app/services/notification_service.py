@@ -1,10 +1,10 @@
 """Notification service for managing in-app notifications."""
 
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.models.notification import Notification
@@ -59,7 +59,8 @@ class NotificationService:
         self.db.commit()
 
         logger.info(
-            f"Notification created: User={user_id}, Type={notification_type}, " f"Title={title}"
+            f"Notification created: User={user_id}, Type={notification_type}, "
+            f"Title={title}"
         )
 
         return notification
@@ -98,7 +99,10 @@ class NotificationService:
 
         # Get notifications
         notifications = (
-            query.order_by(desc(Notification.created_at)).offset(skip).limit(min(limit, 100)).all()
+            query.order_by(desc(Notification.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
         )
 
         logger.info(
@@ -244,7 +248,9 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         # Delete all notifications
-        count = self.db.query(Notification).filter(Notification.user_id == user_id).delete()
+        count = (
+            self.db.query(Notification).filter(Notification.user_id == user_id).delete()
+        )
 
         self.db.commit()
 
@@ -305,7 +311,12 @@ class NotificationService:
         return count
 
     async def send_email(
-        self, to_email: str, subject: str, body: str, template: str = None, data: dict = None
+        self,
+        to_email: str,
+        subject: str,
+        body: str,
+        template: str = None,
+        data: dict = None,
     ) -> bool:
         """Send an email notification."""
         logger.info(f"Sending email to {to_email}. Subject: {subject}")

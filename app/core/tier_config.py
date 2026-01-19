@@ -1,8 +1,9 @@
 """Tier configuration and feature definitions - Updated for 4-tier system."""
 
-from typing import Dict, Any
-from sqlalchemy.orm import Session
+from typing import Any, Dict
+
 from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 
 class TierConfig:
@@ -188,7 +189,11 @@ class TierConfig:
                 "sms_retention_days": 7,
                 "rate_limit_per_minute": 100,
                 "rate_limit_per_hour": 2000,
-                "features": {"webhooks": True, "priority_routing": True, "custom_branding": False},
+                "features": {
+                    "webhooks": True,
+                    "priority_routing": True,
+                    "custom_branding": False,
+                },
             },
             "custom": {
                 "name": "Custom",
@@ -209,7 +214,11 @@ class TierConfig:
                 "sms_retention_days": 30,
                 "rate_limit_per_minute": 500,
                 "rate_limit_per_hour": 10000,
-                "features": {"webhooks": True, "priority_routing": True, "custom_branding": True},
+                "features": {
+                    "webhooks": True,
+                    "priority_routing": True,
+                    "custom_branding": True,
+                },
             },
         }
         return fallback_tiers.get(tier.lower(), fallback_tiers["freemium"])
@@ -217,4 +226,7 @@ class TierConfig:
     @classmethod
     def _get_fallback_tiers(cls) -> list:
         """Fallback tier list when database is unavailable."""
-        return [cls._get_fallback_config(tier) for tier in ["freemium", "payg", "pro", "custom"]]
+        return [
+            cls._get_fallback_config(tier)
+            for tier in ["freemium", "payg", "pro", "custom"]
+        ]

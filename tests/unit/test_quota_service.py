@@ -1,146 +1,37 @@
-from unittest.mock import MagicMock, patch
-
 import pytest
 
+from app.models.user_quota import MonthlyQuotaUsage
 from app.services.quota_service import QuotaService
 
-# Mock data
-TIER_CONFIG_MOCK = {
-    "free": {"quota_usd": 10.0, "overage_rate": 0.5},
-    "pro": {"quota_usd": 100.0, "overage_rate": 0.3},
-}
 
+class TestQuotaService:
+    def test_get_monthly_usage_empty(self, db_session, regular_user):
+        usage = QuotaService.get_monthly_usage(db_session, regular_user.id)
+        assert usage["quota_used"] == 0.0
+        assert usage["quota_limit"] == 0.0  # Freemium default
 
-@pytest.fixture
-def mock_db():
-    return MagicMock()
+    def test_add_quota_usage(self, db_session, regular_user):
+        QuotaService.add_quota_usage(db_session, regular_user.id, 10.0)
+        usage = QuotaService.get_monthly_usage(db_session, regular_user.id)
+        assert usage["quota_used"] == 10.0
 
+    def test_calculate_overage_pro(self, db_session, regular_user):
+        regular_user.subscription_tier = "pro"
+        db_session.commit()
 
-@pytest.fixture
-def mock_tier_config():
-    with patch("app.services.quota_service.TIER_CONFIG", TIER_CONFIG_MOCK):
-        yield TIER_CONFIG_MOCK
+        # Pro has 15.0 USD quota, 0.30 overage rate
+        # Usage 10.0, adding 10.0 -> 5.0 overage @ 0.30 = 1.50
+        QuotaService.add_quota_usage(db_session, regular_user.id, 10.0)
+        overage = QuotaService.calculate_overage(db_session, regular_user.id, 10.0)
+        assert overage == 1.50  # (20 - 15) * 0.3
 
+    def test_reset_monthly_quota(self, db_session, regular_user):
+        regular_user.monthly_quota_used = 100.0
+        db_session.commit()
 
-def test_get_monthly_usage_no_usage(mock_db, mock_tier_config):
-    # Mock user query
-    user = MagicMock()
-    user.subscription_tier = "free"
-    mock_db.query.return_value.filter.return_value.first.side_effect = [None, user]
-    # First call is for usage (returns None), second for user (returns user)
-    # Wait, query chaining: db.query(MonthlyQuotaUsage).filter(...).first()
+        QuotaService.reset_monthly_quota(db_session, regular_user.id)
+        assert regular_user.monthly_quota_used == 0.0
 
-    # Let's verify the query structure in QuotaService
-    # usage = db.query(MonthlyQuotaUsage).filter(...).first()
-    # user = db.query(User).filter(...).first()
-
-    # Setup mocks differently
-    mock_query = mock_db.query.return_value
-    mock_filter = mock_query.filter.return_value
-
-    # We need to handle different return values for different queries
-    # This is tricky with simple mocks. Let's rely on patching the models/imports if needed
-    # or just checking call arguments if we can't easily differentiate.
-    # A cleaner way is to mock return values based on call.
-
-    # Simpler approach: usage is None, user is found.
-    # The code does db.query(MonthlyQuotaUsage)... THEN db.query(User)...
-
-    # We can use side_effect on first()
-    mock_filter.first.side_effect = [None, user]
-
-    result = QuotaService.get_monthly_usage(mock_db, "user1")
-
-    assert result["quota_used"] == 0.0
-    assert result["quota_limit"] == 10.0
-    assert result["remaining"] == 10.0
-
-
-def test_get_monthly_usage_with_usage(mock_db, mock_tier_config):
-    usage_mock = MagicMock()
-    usage_mock.quota_used = 5.0
-    usage_mock.overage_used = 0.0
-
-    user = MagicMock()
-    user.subscription_tier = "free"
-
-    mock_db.query.return_value.filter.return_value.first.side_effect = [
-        usage_mock,
-        user,
-    ]
-
-    result = QuotaService.get_monthly_usage(mock_db, "user1")
-
-    assert result["quota_used"] == 5.0
-    assert result["remaining"] == 5.0
-
-
-def test_add_quota_usage_new_record(mock_db):
-    # Mock usage query returning None
-    mock_db.query.return_value.filter.return_value.first.return_value = None
-
-    QuotaService.add_quota_usage(mock_db, "user1", 2.0)
-
-    # Verify add was called
-    assert mock_db.add.called
-    assert mock_db.commit.called
-
-    # Get the added object
-    added_obj = mock_db.add.call_args[0][0]
-    assert added_obj.user_id == "user1"
-    assert added_obj.quota_used == 2.0
-
-
-def test_add_quota_usage_existing_record(mock_db):
-    usage_mock = MagicMock()
-    usage_mock.quota_used = 1.0
-    mock_db.query.return_value.filter.return_value.first.return_value = usage_mock
-
-    QuotaService.add_quota_usage(mock_db, "user1", 2.0)
-
-    assert usage_mock.quota_used == 3.0
-    assert mock_db.commit.called
-
-
-def test_calculate_overage_within_limit(mock_db, mock_tier_config):
-    # usage=5, limit=10, cost=1
-    usage_mock = MagicMock()
-    usage_mock.quota_used = 5.0
-
-    user = MagicMock()
-    user.subscription_tier = "free"
-
-    # Logic calls get_monthly_usage first
-    # get_monthly_usage calls db twice.
-    # Then calculate_overage doesn't call db again unless overage.
-
-    # It's easier to patch get_monthly_usage
-    with patch.object(QuotaService, "get_monthly_usage") as mock_get:
-        mock_get.return_value = {"quota_used": 5.0, "quota_limit": 10.0}
-
-        overage = QuotaService.calculate_overage(mock_db, "user1", 1.0)
-        assert overage == 0.0
-
-
-def test_calculate_overage_exceeded(mock_db, mock_tier_config):
-    # usage=9, limit=10, cost=2 -> total 11 -> 1 overage
-    user = MagicMock()
-    user.subscription_tier = "free"  # rate 0.5
-
-    mock_db.query.return_value.filter.return_value.first.return_value = user
-
-    with patch.object(QuotaService, "get_monthly_usage") as mock_get:
-        mock_get.return_value = {"quota_used": 9.0, "quota_limit": 10.0}
-
-        overage = QuotaService.calculate_overage(mock_db, "user1", 2.0)
-        # Expected: (11 - 10) * 0.5 = 0.5
-        assert overage == 0.5
-
-
-def test_get_overage_rate(mock_db, mock_tier_config):
-    user = MagicMock()
-    user.subscription_tier = "pro"
-    mock_db.query.return_value.filter.return_value.first.return_value = user
-
-    rate = QuotaService.get_overage_rate(mock_db, "user1")
-    assert rate == 0.3
+    def test_get_overage_rate(self, db_session, regular_user):
+        regular_user.subscription_tier = "pro"
+        assert QuotaService.get_overage_rate(db_session, regular_user.id) == 0.30

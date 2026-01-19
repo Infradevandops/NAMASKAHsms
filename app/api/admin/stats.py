@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
 from sqlalchemy.orm import Session
+
+from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
-from app.api.admin.dependencies import require_admin
-from sqlalchemy import func
 
 router = APIRouter(prefix="/admin", tags=["admin-stats"])
 
@@ -19,7 +20,9 @@ async def get_admin_stats(
     try:
         # Get user counts with error handling
         total_users = db.query(func.count(User.id)).scalar() or 0
-        admin_users = db.query(func.count(User.id)).filter(User.is_admin == True).scalar() or 0
+        admin_users = (
+            db.query(func.count(User.id)).filter(User.is_admin == True).scalar() or 0
+        )
         # Remove is_active filter since it may not exist
         active_users = total_users  # Simplified - assume all users are active
 
@@ -50,13 +53,17 @@ async def get_admin_stats(
             pending_verifications = 0
 
         success_rate = (
-            (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
+            (success_verifications / total_verifications * 100)
+            if total_verifications > 0
+            else 0
         )
 
         # Get revenue with error handling
         try:
             total_revenue = (
-                db.query(func.sum(Transaction.amount)).filter(Transaction.type == "credit").scalar()
+                db.query(func.sum(Transaction.amount))
+                .filter(Transaction.type == "credit")
+                .scalar()
                 or 0
             )
         except Exception:

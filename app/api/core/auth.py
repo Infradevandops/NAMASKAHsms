@@ -1,18 +1,22 @@
 """Authentication API router."""
 
-from datetime import timedelta
-from typing import Optional
-from pydantic import BaseModel  # Added back BaseModel as it's used by SuccessResponse
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from fastapi.responses import (
+from fastapi.responses import (  # Keep JSONResponse and HTMLResponse as they are used later
     HTMLResponse,
     JSONResponse,
-)  # Keep JSONResponse and HTMLResponse as they are used later
-from sqlalchemy.orm import Session
+)
 from google.oauth2 import id_token  # Keep id_token as it might be used for Google OAuth
+from pydantic import BaseModel  # Added back BaseModel as it's used by SuccessResponse
+from sqlalchemy.orm import Session
 
+from app.core.auth_security import audit_log_auth_event, record_login_attempt
+from app.core.config import get_settings
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id, require_tier
+from app.core.exceptions import AuthenticationError, ValidationError
+from app.core.token_manager import create_tokens
+from app.models.api_key import APIKey
+from app.models.user import User
 from app.schemas.auth import (
     APIKeyCreate,
     APIKeyListResponse,
@@ -25,20 +29,7 @@ from app.schemas.auth import (
     UserCreate,
     UserResponse,
 )
-from app.core.auth_security import (
-    check_rate_limit,
-    check_account_lockout,
-    record_login_attempt,
-    audit_log_auth_event,
-)
 from app.services import get_auth_service, get_notification_service
-from app.core.config import get_settings
-from app.utils.security import create_access_token, hash_password, verify_password
-from app.models.user import User
-from app.models.api_key import APIKey
-from app.core.dependencies import get_current_user_id, require_tier
-from app.core.exceptions import AuthenticationError, ValidationError
-from app.core.token_manager import create_tokens
 
 
 class SuccessResponse(BaseModel):
@@ -48,8 +39,12 @@ class SuccessResponse(BaseModel):
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
 
-@router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-async def register(user_data: UserCreate, request: Request, db: Session = Depends(get_db)):
+@router.post(
+    "/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED
+)
+async def register(
+    user_data: UserCreate, request: Request, db: Session = Depends(get_db)
+):
     """Register new user account."""
 
     auth_service = get_auth_service(db)
@@ -68,7 +63,11 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
 
         try:
             audit_log_auth_event(
-                db, "register", user_id=new_user.id, ip_address=ip_address, user_agent=user_agent
+                db,
+                "register",
+                user_id=new_user.id,
+                ip_address=ip_address,
+                user_agent=user_agent,
             )
         except Exception:
             pass
@@ -169,7 +168,9 @@ async def login_page():
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(login_data: LoginRequest, request: Request, db: Session = Depends(get_db)):
+async def login(
+    login_data: LoginRequest, request: Request, db: Session = Depends(get_db)
+):
     """Authenticate user with email and password."""
 
     print(
@@ -247,8 +248,9 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
             pass
 
         # Task 1.2: Create tokens and store refresh token
-        from app.core.token_manager import get_refresh_token_expiry
         from datetime import datetime, timezone
+
+        from app.core.token_manager import get_refresh_token_expiry
 
         tokens = create_tokens(authenticated_user.id, authenticated_user.email)
 
@@ -295,13 +297,17 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
         raise
     except AuthenticationError:
         try:
-            audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
+            audit_log_auth_event(
+                db, "login_failed", ip_address=ip_address, user_agent=user_agent
+            )
         except Exception:
             pass
         raise HTTPException(status_code=401, detail="Authentication failed")
     except (ValueError, KeyError):
         try:
-            audit_log_auth_event(db, "login_error", ip_address=ip_address, user_agent=user_agent)
+            audit_log_auth_event(
+                db, "login_error", ip_address=ip_address, user_agent=user_agent
+            )
         except Exception:
             pass
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -336,7 +342,11 @@ async def google_auth(
 
         try:
             audit_log_auth_event(
-                db, "google_login", user_id=user.id, ip_address=ip_address, user_agent=user_agent
+                db,
+                "google_login",
+                user_id=user.id,
+                ip_address=ip_address,
+                user_agent=user_agent,
             )
         except Exception:
             pass
@@ -367,7 +377,9 @@ async def google_auth(
 
 
 @router.get("/me", response_model=UserResponse)
-def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_current_user(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current authenticated user information."""
     current_user = db.query(User).filter(User.id == user_id).first()
 
@@ -381,7 +393,9 @@ def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = 
 
 
 @router.post("/forgot-password", response_model=SuccessResponse)
-async def forgot_password(request_data: PasswordResetRequest, db: Session = Depends(get_db)):
+async def forgot_password(
+    request_data: PasswordResetRequest, db: Session = Depends(get_db)
+):
     """Request password reset link."""
     auth_service = get_auth_service(db)
     notification_service = get_notification_service(db)
@@ -426,14 +440,18 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     user.verification_token = None
     db.commit()
 
-    return SuccessResponse(message="Email verified successfully. You can now use all features.")
+    return SuccessResponse(
+        message="Email verified successfully. You can now use all features."
+    )
 
 
 # Tier dependency for payg+ access to API keys
 require_payg_for_api_keys = require_tier("payg")
 
 
-@router.post("/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED
+)
 def create_api_key(
     api_key_data: APIKeyCreate,
     user_id: str = Depends(require_payg_for_api_keys),
@@ -456,7 +474,9 @@ def create_api_key(
 
 
 @router.get("/api-keys", response_model=list[APIKeyListResponse])
-def list_api_keys(user_id: str = Depends(require_payg_for_api_keys), db: Session = Depends(get_db)):
+def list_api_keys(
+    user_id: str = Depends(require_payg_for_api_keys), db: Session = Depends(get_db)
+):
     """List user's API keys. Requires PayG tier or higher."""
 
     api_keys = db.query(APIKey).filter(APIKey.user_id == user_id).all()
@@ -482,7 +502,9 @@ def delete_api_key(
 ):
     """Delete API key. Requires PayG tier or higher."""
 
-    api_key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+    api_key = (
+        db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+    )
 
     if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")
@@ -562,7 +584,9 @@ async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
         # Check if refresh token is expired
         from datetime import datetime, timezone
 
-        if user.refresh_token_expires and user.refresh_token_expires < datetime.now(timezone.utc):
+        if user.refresh_token_expires and user.refresh_token_expires < datetime.now(
+            timezone.utc
+        ):
             raise HTTPException(status_code=401, detail="Refresh token expired")
 
         # Create new tokens

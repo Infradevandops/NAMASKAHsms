@@ -4,14 +4,11 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 from sqlalchemy.orm import Session
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
 
-
-from app.core.config import get_settings
-from app.models.user import User
+from app.core.exceptions import ValidationError
 from app.models.api_key import APIKey
-from app.core.exceptions import AuthenticationError, ValidationError
+from app.models.user import User
+from app.services.base import BaseService
 from app.utils.security import (
     create_access_token,
     generate_api_key,
@@ -20,7 +17,6 @@ from app.utils.security import (
     verify_password,
     verify_token,
 )
-from app.services.base import BaseService
 
 
 class AuthService(BaseService[User]):
@@ -29,7 +25,9 @@ class AuthService(BaseService[User]):
     def __init__(self, db: Session):
         super().__init__(User, db)
 
-    def register_user(self, email: str, password: str, referral_code: Optional[str] = None) -> User:
+    def register_user(
+        self, email: str, password: str, referral_code: Optional[str] = None
+    ) -> User:
         """Register a new user account."""
         # Check if user exists
         existing = self.db.query(User).filter(User.email == email).first()
@@ -45,7 +43,9 @@ class AuthService(BaseService[User]):
 
         # Handle referral
         if referral_code:
-            referrer = self.db.query(User).filter(User.referral_code == referral_code).first()
+            referrer = (
+                self.db.query(User).filter(User.referral_code == referral_code).first()
+            )
             if referrer:
                 user_data["referred_by"] = referrer.id
                 user_data["free_verifications"] = 2.0  # Bonus for being referred
@@ -68,7 +68,9 @@ class AuthService(BaseService[User]):
                 return None
 
             # Verify password with proper error handling
-            print(f"[AUTH] Verifying password, hash starts with: {user.password_hash[:30]}")
+            print(
+                f"[AUTH] Verifying password, hash starts with: {user.password_hash[:30]}"
+            )
             verified = verify_password(password, user.password_hash)
             print(f"[AUTH] Password verified: {verified}")
             if not verified:
@@ -114,7 +116,9 @@ class AuthService(BaseService[User]):
         raw_key = f"nsk_{generate_api_key()}"
         hashed_key = hash_password(raw_key)
         key_preview = f"...{raw_key[-6:]}"  # Last 6 chars for display
-        api_key = APIKey(user_id=user_id, key_hash=hashed_key, key_preview=key_preview, name=name)
+        api_key = APIKey(
+            user_id=user_id, key_hash=hashed_key, key_preview=key_preview, name=name
+        )
         self.db.add(api_key)
         self.db.commit()
         self.db.refresh(api_key)
@@ -135,7 +139,9 @@ class AuthService(BaseService[User]):
     def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
         """Deactivate API key for user."""
         api_key = (
-            self.db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+            self.db.query(APIKey)
+            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
+            .first()
         )
 
         if not api_key:
@@ -229,7 +235,7 @@ class AuthService(BaseService[User]):
         expires = user.reset_token_expires
         if expires.tzinfo is None:
             expires = expires.replace(tzinfo=timezone.utc)
-            
+
         if now > expires:
             return False
 

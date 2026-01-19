@@ -1,8 +1,9 @@
-from app.core.database import get_db
-from fastapi import APIRouter, HTTPException, Depends
-from sqlalchemy.orm import Session
 from typing import List
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
 from app.core.dependencies import get_db
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
@@ -13,12 +14,16 @@ async def join_waitlist(data: WaitlistJoin, db: Session = Depends(get_db)):
     """Add email to waitlist"""
     try:
         # Check if email already exists
-        existing = db.query(Waitlist).filter(Waitlist.email == data.email.lower()).first()
+        existing = (
+            db.query(Waitlist).filter(Waitlist.email == data.email.lower()).first()
+        )
         if existing:
             return {"success": True, "message": "Email already on waitlist"}
 
         # Create new waitlist entry
-        waitlist_entry = Waitlist(email=data.email.lower(), name=data.name, source=data.source)
+        waitlist_entry = Waitlist(
+            email=data.email.lower(), name=data.name, source=data.source
+        )
 
         db.add(waitlist_entry)
         db.commit()

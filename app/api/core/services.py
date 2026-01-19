@@ -2,10 +2,11 @@
 Services API Router - SMS Service Management
 """
 
-from app.models.user import User
 from fastapi import APIRouter, Depends
+
 from app.core.dependencies import get_current_user
 from app.core.unified_cache import cache
+from app.models.user import User
 
 router = APIRouter(prefix="/services", tags=["services"])
 

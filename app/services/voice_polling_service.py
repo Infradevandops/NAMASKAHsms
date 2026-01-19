@@ -1,14 +1,15 @@
 """Voice Polling Service - Production Hardened"""
 
-from app.core.logging import get_logger
-from app.core.database import get_db
-from app.core.config import get_settings
-from app.models.verification import Verification
-from app.services.textverified_service import TextVerifiedService
-from app.services.notification_service import NotificationService
 import asyncio
-from datetime import datetime, timedelta
 from contextlib import contextmanager
+from datetime import datetime, timedelta
+
+from app.core.config import get_settings
+from app.core.database import get_db
+from app.core.logging import get_logger
+from app.models.verification import Verification
+from app.services.notification_service import NotificationService
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger("voice_polling")
 settings = get_settings()
@@ -77,7 +78,9 @@ class VoicePollingService:
             result = None
             for attempt in range(settings.voice_max_retry_attempts):
                 try:
-                    result = self.tv_service.client.verifications.get(verification.activation_id)
+                    result = self.tv_service.client.verifications.get(
+                        verification.activation_id
+                    )
                     break
                 except Exception as e:
                     if attempt == settings.voice_max_retry_attempts - 1:

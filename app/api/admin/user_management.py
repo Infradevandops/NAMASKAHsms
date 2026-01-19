@@ -1,20 +1,22 @@
 """Admin user management endpoints."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-from typing import Optional
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
 from app.core.logging import get_logger
+from app.models.user import User
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/users", tags=["Admin User Management"])
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -186,7 +188,11 @@ async def unsuspend_user(
         db.commit()
         logger.info(f"Admin {admin_id} unsuspended user {user_id}")
 
-        return {"success": True, "message": f"User {user_id} unsuspended", "user_id": user_id}
+        return {
+            "success": True,
+            "message": f"User {user_id} unsuspended",
+            "user_id": user_id,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -225,7 +231,9 @@ async def ban_user(
             "success": True,
             "message": f"User {user_id} banned",
             "user_id": user_id,
-            "banned_at": user.banned_at.isoformat() if hasattr(user, "banned_at") else None,
+            "banned_at": (
+                user.banned_at.isoformat() if hasattr(user, "banned_at") else None
+            ),
             "reason": reason,
         }
     except HTTPException:
@@ -256,7 +264,11 @@ async def unban_user(
         db.commit()
         logger.info(f"Admin {admin_id} unbanned user {user_id}")
 
-        return {"success": True, "message": f"User {user_id} unbanned", "user_id": user_id}
+        return {
+            "success": True,
+            "message": f"User {user_id} unbanned",
+            "user_id": user_id,
+        }
     except HTTPException:
         raise
     except Exception as e:

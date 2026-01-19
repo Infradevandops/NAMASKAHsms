@@ -1,8 +1,10 @@
 """Business intelligence and analytics service."""
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Any, Dict
+
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.rental import Rental
 
 
@@ -44,7 +46,9 @@ class BusinessIntelligenceService:
         # High - value users (>$10 spent)
         high_value_query = select(func.count(func.distinct(Rental.user_id))).where(
             Rental.user_id.in_(
-                select(Rental.user_id).group_by(Rental.user_id).having(func.sum(Rental.cost) > 10)
+                select(Rental.user_id)
+                .group_by(Rental.user_id)
+                .having(func.sum(Rental.cost) > 10)
             )
         )
         high_value_result = await self.db.execute(high_value_query)
@@ -53,7 +57,9 @@ class BusinessIntelligenceService:
         return {
             "active_users_30d": active_users or 0,
             "high_value_users": high_value_users or 0,
-            "user_retention_rate": round((active_users / max(high_value_users, 1)) * 100, 2),
+            "user_retention_rate": round(
+                (active_users / max(high_value_users, 1)) * 100, 2
+            ),
         }
 
     @async_cache(ttl=7200)
@@ -77,7 +83,9 @@ class BusinessIntelligenceService:
 
         growth_rate = 0
         if previous_revenue > 0:
-            growth_rate = ((current_revenue - previous_revenue) / previous_revenue) * 100
+            growth_rate = (
+                (current_revenue - previous_revenue) / previous_revenue
+            ) * 100
 
         return {
             "weekly_growth_rate": round(growth_rate, 2),

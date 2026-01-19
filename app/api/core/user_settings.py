@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Depends, Body, HTTPException, status
-from typing import Dict, Any
-from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from typing import Any, Dict
 
-from app.core.dependencies import get_current_user_id
+from fastapi import APIRouter, Body, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.models.user import User, NotificationSettings
+from app.core.dependencies import get_current_user_id
+from app.models.user import NotificationSettings, User
 from app.models.user_preference import UserPreference
-from app.utils.security import verify_password, hash_password
+from app.utils.security import hash_password, verify_password
 
 router = APIRouter(prefix="/user", tags=["User Settings"])
 
@@ -33,7 +34,9 @@ async def save_notifications(
     """
     # Check if settings exist
     settings = (
-        db.query(NotificationSettings).filter(NotificationSettings.user_id == user_id).first()
+        db.query(NotificationSettings)
+        .filter(NotificationSettings.user_id == user_id)
+        .first()
     )
 
     if not settings:
@@ -47,7 +50,9 @@ async def save_notifications(
         db.add(settings)
     else:
         settings.email_on_sms = data.get("verification_alerts", settings.email_on_sms)
-        settings.email_on_low_balance = data.get("payment_receipts", settings.email_on_low_balance)
+        settings.email_on_low_balance = data.get(
+            "payment_receipts", settings.email_on_low_balance
+        )
 
     db.commit()
     return {"status": "success", "message": "Notification preferences saved"}
@@ -77,7 +82,10 @@ async def save_privacy(
         pref.analytics_tracking if pref.analytics_tracking is not None else True,
     )
     pref.data_retention = str(
-        data.get("data_retention", pref.data_retention if pref.data_retention is not None else "90")
+        data.get(
+            "data_retention",
+            pref.data_retention if pref.data_retention is not None else "90",
+        )
     )
 
     db.commit()
@@ -117,7 +125,9 @@ async def save_billing(
 
 
 @router.post("/logout-all")
-async def logout_all(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def logout_all(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """
     Logout all devices by clearing refresh token.
     In a more advanced setup, implementing token versions would be better.
@@ -153,11 +163,12 @@ async def delete_account(
     try:
         db.delete(user)
         db.commit()
-    except Exception as e:
+    except Exception:
         db.rollback()
         # Fallback to soft delete or just erroring out for safefy
         raise HTTPException(
-            status_code=500, detail="Could not delete account due to existing dependencies."
+            status_code=500,
+            detail="Could not delete account due to existing dependencies.",
         )
 
     return {"status": "success", "message": "Account deleted"}

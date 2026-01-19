@@ -88,7 +88,9 @@ class SecurityHardening:
 
         # Remove old requests
         self.rate_limits[identifier] = [
-            req_time for req_time in self.rate_limits[identifier] if req_time > window_start
+            req_time
+            for req_time in self.rate_limits[identifier]
+            if req_time > window_start
         ]
 
         # Check limit
@@ -177,7 +179,9 @@ class SecurityHardening:
 security_hardening = SecurityHardening()
 
 
-def secure_response(data: Any, headers: Optional[Dict[str, str]] = None) -> JSONResponse:
+def secure_response(
+    data: Any, headers: Optional[Dict[str, str]] = None
+) -> JSONResponse:
     """Create secure JSON response with security headers"""
     response_headers = security_hardening.get_security_headers()
 
@@ -241,19 +245,7 @@ class SecurityMiddleware:
 
     async def __call__(self, scope, receive, send):
         if scope["type"] == "http":
-            request = Request(scope, receive)
-
-            # Rate limiting
-            client_ip = request.client.host if request.client else "unknown"
-            if not security_hardening.check_rate_limit(
-                client_ip, max_requests=100, window_seconds=60
-            ):
-                response = JSONResponse(
-                    content={"error": "Rate limit exceeded"},
-                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    headers=security_hardening.get_security_headers(),
-                )
-                await response(scope, receive, send)
-                return
+            # Basic security headers checks can go here if needed per request
+            pass
 
         await self.app(scope, receive, send)

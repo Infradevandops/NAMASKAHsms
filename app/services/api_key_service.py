@@ -1,10 +1,14 @@
 """API key service with tier enforcement."""
 
-from sqlalchemy.orm import Session
-from app.models.user import User
-from app.models.api_key import APIKey
-from app.core.tier_config_simple import TIER_CONFIG
+import hashlib
 import uuid
+
+from sqlalchemy.orm import Session
+
+from app.core.tier_config_simple import TIER_CONFIG
+from app.models.api_key import APIKey
+from app.models.user import User
+from app.utils.security import generate_api_key
 
 
 class APIKeyService:
@@ -27,7 +31,9 @@ class APIKeyService:
             return True
 
         current_count = (
-            db.query(APIKey).filter(APIKey.user_id == user_id, APIKey.is_active == True).count()
+            db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .count()
         )
 
         return current_count < limit
@@ -49,7 +55,9 @@ class APIKeyService:
             return 999
 
         current_count = (
-            db.query(APIKey).filter(APIKey.user_id == user_id, APIKey.is_active == True).count()
+            db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .count()
         )
 
         return max(0, limit - current_count)
@@ -60,14 +68,25 @@ class APIKeyService:
         if not APIKeyService.can_create_key(db, user_id):
             raise ValueError("API key limit reached for your tier")
 
+        raw_key = f"sk_{generate_api_key(32)}"
+        key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
+        key_preview = raw_key[-4:]
+
         key = APIKey(
             id=str(uuid.uuid4()),
             user_id=user_id,
-            key=str(uuid.uuid4()),
-            name=name or f"Key {len(db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
+            key_hash=key_hash,
+            key_preview=key_preview,
+            name=name
+            or f"Key {len(db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
             is_active=True,
         )
         db.add(key)
         db.commit()
 
-        return {"id": key.id, "key": key.key, "name": key.name, "created_at": key.created_at}
+        return {
+            "id": key.id,
+            "key": raw_key,
+            "name": key.name,
+            "created_at": key.created_at,
+        }

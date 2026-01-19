@@ -1,16 +1,15 @@
 """Credit system service for managing user credits and transactions."""
 
-from decimal import Decimal
 from datetime import datetime, timezone
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
+from app.core.exceptions import InsufficientCreditsError
 from app.core.logging import get_logger
-from app.models.user import User
 from app.models.transaction import Transaction
-from app.core.exceptions import InsufficientCreditsError, ValidationError
+from app.models.user import User
 
 logger = get_logger(__name__)
 
@@ -77,7 +76,10 @@ class CreditService:
 
         # Create transaction record
         transaction = Transaction(
-            user_id=user_id, amount=amount, type=transaction_type, description=description
+            user_id=user_id,
+            amount=amount,
+            type=transaction_type,
+            description=description,
         )
 
         self.db.add(transaction)
@@ -177,7 +179,11 @@ class CreditService:
         }
 
     def get_transaction_history(
-        self, user_id: str, transaction_type: Optional[str] = None, skip: int = 0, limit: int = 20
+        self,
+        user_id: str,
+        transaction_type: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 20,
     ) -> Dict[str, Any]:
         """Get transaction history for user.
 
@@ -207,7 +213,10 @@ class CreditService:
 
         # Apply pagination and sorting
         transactions = (
-            query.order_by(desc(Transaction.created_at)).offset(skip).limit(min(limit, 100)).all()
+            query.order_by(desc(Transaction.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
         )
 
         logger.info(
@@ -247,7 +256,9 @@ class CreditService:
             raise ValueError(f"User {user_id} not found")
 
         # Get all transactions
-        transactions = self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
+        transactions = (
+            self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
+        )
 
         # Calculate totals by type
         summary = {
@@ -392,7 +403,8 @@ class CreditService:
         self.db.commit()
 
         logger.warning(
-            f"Admin reset credits for user {user_id}. " f"Balance: {old_balance} -> {new_amount}"
+            f"Admin reset credits for user {user_id}. "
+            f"Balance: {old_balance} -> {new_amount}"
         )
 
         return {

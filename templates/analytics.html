@@ -1,7 +1,8 @@
 {% extends "dashboard_base.html" %}
 
 {% block page_title %}<span data-i18n="analytics.title">Analytics</span>{% endblock %}
-{% block page_subtitle %}<span data-i18n="analytics.subtitle">Track your verification performance and spending</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="analytics.subtitle">Track your verification performance and spending</span>{%
+endblock %}
 
 {% block head_extra %}
 {{ super() }}
@@ -14,14 +15,14 @@
         gap: 24px;
         margin-bottom: 32px;
     }
-    
+
     .stat-card {
         background: var(--bg-card);
         border-radius: var(--radius-card);
         padding: 24px;
         box-shadow: var(--shadow-soft);
     }
-    
+
     .stat-card .stat-label {
         font-size: 12px;
         color: var(--text-muted);
@@ -29,22 +30,30 @@
         letter-spacing: 0.5px;
         margin-bottom: 8px;
     }
-    
+
     .stat-card .stat-value {
         font-size: 32px;
         font-weight: 700;
         color: var(--text-primary);
     }
-    
+
     .stat-card .stat-change {
         font-size: 12px;
         margin-top: 8px;
     }
-    
-    .stat-change.positive { color: #10b981; }
-    .stat-change.negative { color: #ef4444; }
-    .stat-change.neutral { color: var(--text-muted); }
-    
+
+    .stat-change.positive {
+        color: #10b981;
+    }
+
+    .stat-change.negative {
+        color: #ef4444;
+    }
+
+    .stat-change.neutral {
+        color: var(--text-muted);
+    }
+
     .chart-container {
         background: var(--bg-card);
         border-radius: var(--radius-card);
@@ -52,24 +61,24 @@
         box-shadow: var(--shadow-soft);
         margin-bottom: 24px;
     }
-    
+
     .chart-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 20px;
     }
-    
+
     .chart-title {
         font-size: 18px;
         font-weight: 600;
     }
-    
+
     .chart-controls {
         display: flex;
         gap: 8px;
     }
-    
+
     .chart-btn {
         padding: 6px 12px;
         border: 1px solid var(--border-color);
@@ -79,13 +88,14 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    
-    .chart-btn:hover, .chart-btn.active {
+
+    .chart-btn:hover,
+    .chart-btn.active {
         background: var(--primary);
         color: white;
         border-color: var(--primary);
     }
-    
+
     .chart-placeholder {
         height: 300px;
         display: flex;
@@ -95,44 +105,44 @@
         border-radius: 8px;
         color: var(--text-muted);
     }
-    
+
     .chart-canvas {
         width: 100%;
-        height: 300px;
+        min-height: 350px;
     }
-    
+
     .analytics-table {
         width: 100%;
         border-collapse: collapse;
     }
-    
+
     .analytics-table th,
     .analytics-table td {
         padding: 12px 16px;
         text-align: left;
         border-bottom: 1px solid var(--border-color);
     }
-    
+
     .analytics-table th {
         font-size: 12px;
         color: var(--text-muted);
         text-transform: uppercase;
         font-weight: 600;
     }
-    
+
     .export-btn {
         display: inline-flex;
         align-items: center;
         gap: 8px;
     }
-    
+
     .date-range-picker {
         display: flex;
         gap: 12px;
         align-items: center;
         margin-bottom: 24px;
     }
-    
+
     .date-input {
         padding: 8px 12px;
         border: 1px solid var(--border-color);
@@ -140,36 +150,36 @@
         background: var(--bg-body);
         color: var(--text-primary);
     }
-    
+
     .empty-state {
         text-align: center;
         padding: 60px 20px;
         color: var(--text-muted);
     }
-    
+
     .empty-state-icon {
         font-size: 48px;
         margin-bottom: 16px;
     }
-    
+
     .loading-overlay {
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(255,255,255,0.8);
+        background: rgba(255, 255, 255, 0.8);
         display: flex;
         align-items: center;
         justify-content: center;
         border-radius: var(--radius-card);
     }
-    
+
     @media (max-width: 768px) {
         .analytics-grid {
             grid-template-columns: repeat(2, 1fr);
         }
-        
+
         .chart-header {
             flex-direction: column;
             gap: 12px;
@@ -187,7 +197,8 @@
     <label for="date-to" style="font-size: 14px; color: var(--text-secondary);">To:</label>
     <input type="date" id="date-to" class="date-input" aria-label="End date">
     <button class="btn btn-secondary" onclick="loadAnalytics()" style="padding: 8px 16px;">Apply</button>
-    <button class="btn btn-secondary export-btn" onclick="exportData('csv')" style="padding: 8px 16px;" aria-label="Export data as CSV">
+    <button class="btn btn-secondary export-btn" onclick="exportData('csv')" style="padding: 8px 16px;"
+        aria-label="Export data as CSV">
         📥 Export CSV
     </button>
 </div>
@@ -248,30 +259,37 @@
             <button class="chart-btn" data-range="90" onclick="setChartRange(90)">90 Days</button>
         </div>
     </div>
-    <div id="verifications-chart" class="chart-placeholder" aria-label="Verifications chart">
-        <span class="loading-spinner"></span> Loading chart...
+    <div id="verifications-chart" class="chart-canvas" aria-label="Verifications chart">
+        <div style="display: flex; align-items: center; justify-content: center; height: 350px;">
+            <span class="loading-spinner"></span> Loading chart...
+        </div>
     </div>
 </div>
 
 <!-- Two Column Layout for Pie Charts -->
-<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
+<div
+    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; margin-bottom: 24px;">
     <!-- Status Breakdown -->
     <div class="chart-container">
         <div class="chart-header">
             <h3 class="chart-title">Status Breakdown</h3>
         </div>
-        <div id="status-chart" class="chart-placeholder" aria-label="Status breakdown chart">
-            <span class="loading-spinner"></span> Loading...
+        <div id="status-chart" class="chart-canvas" aria-label="Status breakdown chart">
+            <div style="display: flex; align-items: center; justify-content: center; height: 350px;">
+                <span class="loading-spinner"></span> Loading...
+            </div>
         </div>
     </div>
-    
+
     <!-- Spending by Service -->
     <div class="chart-container">
         <div class="chart-header">
             <h3 class="chart-title">Spending by Service</h3>
         </div>
-        <div id="spending-chart" class="chart-placeholder" aria-label="Spending by service chart">
-            <span class="loading-spinner"></span> Loading...
+        <div id="spending-chart" class="chart-canvas" aria-label="Spending by service chart">
+            <div style="display: flex; align-items: center; justify-content: center; height: 350px;">
+                <span class="loading-spinner"></span> Loading...
+            </div>
         </div>
     </div>
 </div>
@@ -327,22 +345,23 @@
 {{ super() }}
 <script src="/static/js/frontend-logger.js"></script>
 <script src="/static/js/api-retry.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
 <script>
     // Analytics state
     let analyticsData = null;
     let chartRange = 30;
-    
+
     // Initialize date range (last 30 days)
     function initDateRange() {
         const today = new Date();
         const thirtyDaysAgo = new Date(today);
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+
         document.getElementById('date-to').value = today.toISOString().split('T')[0];
         document.getElementById('date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
     }
-    
+
     // Load analytics data
     async function loadAnalytics() {
         const token = localStorage.getItem('access_token');
@@ -350,19 +369,19 @@
             showError('Please log in to view analytics');
             return;
         }
-        
+
         const fromDate = document.getElementById('date-from').value;
         const toDate = document.getElementById('date-to').value;
-        
+
         try {
             // Show loading state
             showLoading(true);
             hideError();
-            
+
             const response = await ApiRetry.fetchWithRetry(`/api/analytics/summary?from=${fromDate}&to=${toDate}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
+
             if (!response.ok) {
                 if (response.status === 401) {
                     window.location.href = '/auth/login';
@@ -370,30 +389,30 @@
                 }
                 throw new Error(`HTTP ${response.status}`);
             }
-            
+
             analyticsData = await response.json();
-            
+
             if (isEmptyData(analyticsData)) {
                 showEmptyState();
                 return;
             }
-            
+
             renderStats(analyticsData);
             renderCharts(analyticsData);
             renderServicesTable(analyticsData);
             showLoading(false);
-            
+
         } catch (error) {
             console.error('[Analytics] Load failed:', error);
             showError(error.message || 'Failed to load analytics');
         }
     }
-    
+
     // Check if data is empty
     function isEmptyData(data) {
         return !data || (data.total_verifications === 0 && data.total_spent === 0);
     }
-    
+
     // Render summary stats
     function renderStats(data) {
         document.getElementById('stat-total').textContent = formatNumber(data.total_verifications || 0);
@@ -402,7 +421,7 @@
         document.getElementById('stat-spent').textContent = formatCurrency(data.total_spent || 0);
         document.getElementById('stat-avg-cost').textContent = formatCurrency(data.avg_cost || 0);
         document.getElementById('stat-rate').textContent = formatPercent(data.success_rate || 0);
-        
+
         // Update change indicators
         const monthlyChange = data.monthly_change || 0;
         const changeEl = document.getElementById('stat-total-change');
@@ -416,128 +435,194 @@
             changeEl.textContent = 'No change vs last month';
             changeEl.className = 'stat-change neutral';
         }
-        
+
         document.getElementById('stat-success-rate').textContent = `${formatPercent(data.success_rate || 0)} success rate`;
         document.getElementById('stat-failed-change').textContent = `${formatNumber(data.pending_verifications || 0)} pending`;
         document.getElementById('stat-spent-change').textContent = `This period`;
         document.getElementById('stat-rate-change').textContent = data.success_rate >= 90 ? '✓ Excellent' : data.success_rate >= 70 ? '○ Good' : '⚠ Needs attention';
     }
-    
-    // Render charts (simplified - using CSS bars instead of Chart.js)
+
+    // Render charts using ApexCharts
     function renderCharts(data) {
         renderVerificationsChart(data);
         renderStatusChart(data);
         renderSpendingChart(data);
     }
-    
-    // Simple bar chart for verifications over time
+
+    // Line chart for verifications over time
     function renderVerificationsChart(data) {
         const container = document.getElementById('verifications-chart');
         const dailyData = data.daily_verifications || [];
-        
+
         if (dailyData.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No data for selected period</div>';
+            container.innerHTML = '<div class="empty-state">No data for selected period</div>';
             return;
         }
-        
-        const maxValue = Math.max(...dailyData.map(d => d.count || 0), 1);
-        
-        let html = '<div style="display: flex; align-items: flex-end; gap: 4px; height: 250px; padding: 20px 0;">';
-        
-        for (const day of dailyData.slice(-chartRange)) {
-            const height = ((day.count || 0) / maxValue) * 200;
-            const date = new Date(day.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-            html += `
-                <div style="flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 20px;">
-                    <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">${day.count || 0}</div>
-                    <div style="width: 100%; max-width: 30px; height: ${Math.max(height, 4)}px; background: var(--primary); border-radius: 4px 4px 0 0;" title="${date}: ${day.count || 0} verifications"></div>
-                    <div style="font-size: 9px; color: var(--text-muted); margin-top: 4px; transform: rotate(-45deg); white-space: nowrap;">${date}</div>
-                </div>
-            `;
-        }
-        
-        html += '</div>';
-        container.innerHTML = html;
+
+        const options = {
+            series: [{
+                name: 'Verifications',
+                data: dailyData.slice(-chartRange).map(d => d.count || 0)
+            }],
+            chart: {
+                height: 350,
+                type: 'area',
+                toolbar: { show: false },
+                zoom: { enabled: false },
+                foreColor: '#94a3b8'
+            },
+            colors: ['#FE3C72'],
+            dataLabels: { enabled: false },
+            stroke: { curve: 'smooth', width: 3 },
+            fill: {
+                type: 'gradient',
+                gradient: {
+                    shadeIntensity: 1,
+                    opacityFrom: 0.45,
+                    opacityTo: 0.05,
+                    stops: [20, 100, 100, 100]
+                }
+            },
+            xaxis: {
+                categories: dailyData.slice(-chartRange).map(d => {
+                    const date = new Date(d.date);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                }),
+                axisBorder: { show: false },
+                axisTicks: { show: false }
+            },
+            yaxis: {
+                labels: {
+                    formatter: (val) => Math.floor(val)
+                }
+            },
+            grid: {
+                borderColor: 'rgba(148, 163, 184, 0.1)',
+                strokeDashArray: 4
+            },
+            tooltip: {
+                theme: 'dark'
+            }
+        };
+
+        container.innerHTML = '';
+        const chart = new ApexCharts(container, options);
+        chart.render();
     }
-    
-    // Pie chart for status breakdown (CSS-based)
+
+    // Donut chart for status breakdown
     function renderStatusChart(data) {
         const container = document.getElementById('status-chart');
-        const total = (data.successful_verifications || 0) + (data.failed_verifications || 0) + (data.pending_verifications || 0);
-        
-        if (total === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No data</div>';
+
+        const series = [
+            data.successful_verifications || 0,
+            data.failed_verifications || 0,
+            data.pending_verifications || 0
+        ];
+
+        if (series.reduce((a, b) => a + b, 0) === 0) {
+            container.innerHTML = '<div class="empty-state">No status data</div>';
             return;
         }
-        
-        const successPct = ((data.successful_verifications || 0) / total * 100).toFixed(1);
-        const failedPct = ((data.failed_verifications || 0) / total * 100).toFixed(1);
-        const pendingPct = ((data.pending_verifications || 0) / total * 100).toFixed(1);
-        
-        container.innerHTML = `
-            <div style="display: flex; gap: 24px; align-items: center; justify-content: center; padding: 20px;">
-                <div style="width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(#10b981 0% ${successPct}%, #ef4444 ${successPct}% ${parseFloat(successPct) + parseFloat(failedPct)}%, #f59e0b ${parseFloat(successPct) + parseFloat(failedPct)}% 100%);"></div>
-                <div style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></div>
-                        <span>Successful: ${data.successful_verifications || 0} (${successPct}%)</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #ef4444; border-radius: 2px;"></div>
-                        <span>Failed: ${data.failed_verifications || 0} (${failedPct}%)</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                        <div style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></div>
-                        <span>Pending: ${data.pending_verifications || 0} (${pendingPct}%)</span>
-                    </div>
-                </div>
-            </div>
-        `;
+
+        const options = {
+            series: series,
+            chart: {
+                type: 'donut',
+                height: 350,
+                foreColor: '#94a3b8'
+            },
+            labels: ['Successful', 'Failed', 'Pending'],
+            colors: ['#10b981', '#ef4444', '#f59e0b'],
+            plotOptions: {
+                pie: {
+                    donut: {
+                        size: '70%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                label: 'Total',
+                                color: '#94a3b8'
+                            }
+                        }
+                    }
+                }
+            },
+            legend: {
+                position: 'bottom'
+            },
+            stroke: { show: false },
+            tooltip: { theme: 'dark' }
+        };
+
+        container.innerHTML = '';
+        const chart = new ApexCharts(container, options);
+        chart.render();
     }
-    
+
     // Bar chart for spending by service
     function renderSpendingChart(data) {
         const container = document.getElementById('spending-chart');
         const services = data.spending_by_service || [];
-        
+
         if (services.length === 0) {
-            container.innerHTML = '<div style="text-align: center; color: var(--text-muted);">No spending data</div>';
+            container.innerHTML = '<div class="empty-state">No spending data</div>';
             return;
         }
-        
-        const maxSpent = Math.max(...services.map(s => s.amount || 0), 1);
-        
-        let html = '<div style="padding: 20px;">';
-        
-        for (const service of services.slice(0, 5)) {
-            const width = ((service.amount || 0) / maxSpent) * 100;
-            html += `
-                <div style="margin-bottom: 16px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-                        <span style="font-size: 14px;">${escapeHtml(service.name || 'Unknown')}</span>
-                        <span style="font-size: 14px; font-weight: 600;">${formatCurrency(service.amount || 0)}</span>
-                    </div>
-                    <div style="height: 8px; background: var(--bg-body); border-radius: 4px; overflow: hidden;">
-                        <div style="height: 100%; width: ${width}%; background: var(--primary); border-radius: 4px;"></div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        html += '</div>';
-        container.innerHTML = html;
+
+        const options = {
+            series: [{
+                name: 'Spent',
+                data: services.slice(0, 5).map(s => s.amount || 0)
+            }],
+            chart: {
+                type: 'bar',
+                height: 350,
+                toolbar: { show: false },
+                foreColor: '#94a3b8'
+            },
+            colors: ['#FE3C72'],
+            plotOptions: {
+                bar: {
+                    borderRadius: 4,
+                    horizontal: true,
+                    barHeight: '40%'
+                }
+            },
+            dataLabels: {
+                enabled: true,
+                formatter: (val) => `$${val.toFixed(2)}`,
+                style: { colors: ['#fff'] }
+            },
+            xaxis: {
+                categories: services.slice(0, 5).map(s => s.name || 'Unknown'),
+                labels: {
+                    formatter: (val) => `$${val}`
+                }
+            },
+            grid: {
+                borderColor: 'rgba(148, 163, 184, 0.1)',
+                strokeDashArray: 4
+            },
+            tooltip: { theme: 'dark' }
+        };
+
+        container.innerHTML = '';
+        const chart = new ApexCharts(container, options);
+        chart.render();
     }
-    
+
     // Render services table
     function renderServicesTable(data) {
         const tbody = document.getElementById('services-tbody');
         const services = data.top_services || [];
-        
+
         if (services.length === 0) {
             tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: var(--text-muted);">No services used yet</td></tr>';
             return;
         }
-        
+
         let html = '';
         for (const service of services) {
             html += `
@@ -553,10 +638,10 @@
                 </tr>
             `;
         }
-        
+
         tbody.innerHTML = html;
     }
-    
+
     // Set chart range
     function setChartRange(days) {
         chartRange = days;
@@ -567,20 +652,20 @@
             renderVerificationsChart(analyticsData);
         }
     }
-    
+
     // Export data
     function exportData(format) {
         if (!analyticsData) {
             alert('No data to export');
             return;
         }
-        
+
         if (format === 'csv') {
             const csv = generateCSV(analyticsData);
             downloadFile(csv, 'analytics-export.csv', 'text/csv');
         }
     }
-    
+
     // Generate CSV
     function generateCSV(data) {
         let csv = 'Metric,Value\n';
@@ -591,7 +676,7 @@
         csv += `Total Spent,$${(data.total_spent || 0).toFixed(2)}\n`;
         csv += `Average Cost,$${(data.avg_cost || 0).toFixed(2)}\n`;
         csv += `Success Rate,${(data.success_rate || 0).toFixed(1)}%\n`;
-        
+
         if (data.top_services && data.top_services.length > 0) {
             csv += '\nTop Services\n';
             csv += 'Service,Verifications,Success Rate,Total Spent\n';
@@ -599,10 +684,10 @@
                 csv += `${s.name || 'Unknown'},${s.count || 0},${(s.success_rate || 0).toFixed(1)}%,$${(s.total_spent || 0).toFixed(2)}\n`;
             }
         }
-        
+
         return csv;
     }
-    
+
     // Download file
     function downloadFile(content, filename, type) {
         const blob = new Blob([content], { type });
@@ -615,39 +700,39 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
     }
-    
+
     // Utility functions
     function formatNumber(num) {
         return new Intl.NumberFormat().format(num);
     }
-    
+
     function formatCurrency(amount) {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
     }
-    
+
     function formatPercent(value) {
         return `${(value || 0).toFixed(1)}%`;
     }
-    
+
     function escapeHtml(text) {
         if (!text) return '';
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+
     // UI state functions
     function showLoading(show) {
         document.getElementById('stats-grid').style.opacity = show ? '0.5' : '1';
     }
-    
+
     function showEmptyState() {
         document.getElementById('stats-grid').style.display = 'none';
         document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'none');
         document.getElementById('empty-state').style.display = 'block';
         document.getElementById('error-state').style.display = 'none';
     }
-    
+
     function showError(message) {
         document.getElementById('stats-grid').style.display = 'none';
         document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'none');
@@ -655,14 +740,14 @@
         document.getElementById('error-state').style.display = 'block';
         document.getElementById('error-message').textContent = message;
     }
-    
+
     function hideError() {
         document.getElementById('stats-grid').style.display = 'grid';
         document.querySelectorAll('.chart-container').forEach(el => el.style.display = 'block');
         document.getElementById('empty-state').style.display = 'none';
         document.getElementById('error-state').style.display = 'none';
     }
-    
+
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
         initDateRange();

@@ -1,14 +1,15 @@
 """Payment history and management endpoints."""
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-from typing import Optional
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.services.payment_service import PaymentService
 from app.models.user import User
+from app.services.payment_service import PaymentService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -18,7 +19,9 @@ router = APIRouter(prefix="/billing", tags=["Billing"])
 async def get_payment_history(
     user_id: str = Depends(get_current_user_id),
     status_filter: Optional[str] = Query(
-        None, alias="status", description="Filter by status: pending, success, failed, refunded"
+        None,
+        alias="status",
+        description="Filter by status: pending, success, failed, refunded",
     ),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
@@ -44,7 +47,8 @@ async def get_payment_history(
         )
 
         logger.info(
-            f"Retrieved payment history for user {user_id}: " f"{len(history['payments'])} payments"
+            f"Retrieved payment history for user {user_id}: "
+            f"{len(history['payments'])} payments"
         )
 
         return history
@@ -123,7 +127,9 @@ async def refund_payment(
             raise HTTPException(status_code=403, detail="Admin access required")
 
         payment_service = PaymentService(db)
-        result = payment_service.refund_payment(reference=reference, user_id=user_id, reason=reason)
+        result = payment_service.refund_payment(
+            reference=reference, user_id=user_id, reason=reason
+        )
 
         logger.info(f"Refunded payment: {reference}")
 
@@ -137,13 +143,16 @@ async def refund_payment(
     except Exception as e:
         logger.error(f"Failed to refund payment: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to refund payment"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to refund payment",
         )
 
 
 @router.get("/payment/{reference}")
 async def get_payment_details(
-    reference: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    reference: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get details for a specific payment.
 
@@ -183,7 +192,9 @@ async def get_payment_details(
             "status": payment_log.status,
             "credited": payment_log.credited,
             "payment_method": payment_log.payment_method,
-            "created_at": payment_log.created_at.isoformat() if payment_log.created_at else None,
+            "created_at": (
+                payment_log.created_at.isoformat() if payment_log.created_at else None
+            ),
             "webhook_received": payment_log.webhook_received,
             "email": payment_log.email,
         }
@@ -236,13 +247,16 @@ async def initiate_payment_v2(
     except Exception as e:
         logger.error(f"Failed to initiate payment: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to initiate payment"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to initiate payment",
         )
 
 
 @router.post("/verify/{reference}")
 async def verify_payment_v2(
-    reference: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    reference: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Verify a payment transaction (v2 with service).
 
@@ -260,7 +274,9 @@ async def verify_payment_v2(
     """
     try:
         payment_service = PaymentService(db)
-        result = await payment_service.verify_payment(reference=reference, user_id=user_id)
+        result = await payment_service.verify_payment(
+            reference=reference, user_id=user_id
+        )
 
         logger.info(f"Verified payment: {reference}")
 
@@ -272,5 +288,6 @@ async def verify_payment_v2(
     except Exception as e:
         logger.error(f"Failed to verify payment: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to verify payment"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to verify payment",
         )

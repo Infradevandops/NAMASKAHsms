@@ -1,8 +1,9 @@
 """KYC request/response schemas."""
 
-from datetime import datetime, date
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, validator, Field
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class KYCProfileCreate(BaseModel):
@@ -20,7 +21,8 @@ class KYCProfileCreate(BaseModel):
     postal_code: str = Field(..., min_length=3, max_length=20)
     country: str = Field(..., min_length=2, max_length=3)
 
-    @validator("date_of_birth")
+    @field_validator("date_of_birth")
+    @classmethod
     def validate_age(cls, v):
         today = date.today()
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
@@ -30,7 +32,8 @@ class KYCProfileCreate(BaseModel):
             raise ValueError("Invalid date of birth")
         return v
 
-    @validator("phone_number")
+    @field_validator("phone_number")
+    @classmethod
     def validate_phone(cls, v):
         import re
 
@@ -133,7 +136,9 @@ class KYCVerificationDecision(BaseModel):
     """Schema for admin KYC verification decision."""
 
     decision: str = Field(..., pattern="^(approved|rejected)$")
-    verification_level: Optional[str] = Field("basic", pattern="^(basic|enhanced|premium)$")
+    verification_level: Optional[str] = Field(
+        "basic", pattern="^(basic|enhanced|premium)$"
+    )
     notes: Optional[str] = Field(None, max_length=1000)
 
     model_config = {

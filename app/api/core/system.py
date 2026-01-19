@@ -1,16 +1,14 @@
 """System API router for health checks and service status."""
 
 from datetime import datetime, timezone
-from pathlib import Path
-from fastapi import APIRouter, Depends, Request
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from pydantic import BaseModel
 
-from app.core.database import get_db
-from app.core.dependencies import get_current_admin_user
+from fastapi import APIRouter, Depends
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
+from app.core.database import get_db
 
 router = APIRouter(prefix="/system", tags=["System"])
 root_router = APIRouter()

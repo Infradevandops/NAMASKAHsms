@@ -1,16 +1,17 @@
 """Admin tier management endpoints - Full implementation."""
 
+from datetime import datetime, timedelta, timezone
+from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from datetime import datetime, timezone, timedelta
-from typing import Optional, List
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
-from app.core.tier_config import TierConfig
 from app.core.logging import get_logger
+from app.core.tier_config import TierConfig
+from app.models.user import User
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/tiers", tags=["Admin Tier Management"])
@@ -33,7 +34,9 @@ class TierStatsResponse(BaseModel):
     percentage: float
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -42,7 +45,9 @@ async def require_admin(user_id: str = Depends(get_current_user_id), db: Session
 
 
 @router.get("/stats")
-async def get_tier_stats(admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+async def get_tier_stats(
+    admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
+):
     """Get tier distribution statistics."""
     try:
         total_users = db.query(User).count()
@@ -55,7 +60,9 @@ async def get_tier_stats(admin_id: str = Depends(require_admin), db: Session = D
         for tier in tiers:
             count = db.query(User).filter(User.subscription_tier == tier).count()
             percentage = (count / total_users * 100) if total_users > 0 else 0
-            stats.append({"tier": tier, "user_count": count, "percentage": round(percentage, 2)})
+            stats.append(
+                {"tier": tier, "user_count": count, "percentage": round(percentage, 2)}
+            )
 
         return {"stats": stats, "total_users": total_users}
     except Exception as e:
@@ -127,7 +134,9 @@ async def set_user_tier(
             )
 
         if request.duration_days < 1 or request.duration_days > 365:
-            raise HTTPException(status_code=400, detail="Duration must be between 1 and 365 days")
+            raise HTTPException(
+                status_code=400, detail="Duration must be between 1 and 365 days"
+            )
 
         old_tier = user.subscription_tier or "freemium"
         user.subscription_tier = request.tier
@@ -149,7 +158,9 @@ async def set_user_tier(
             "message": f"User tier updated from {old_tier} to {request.tier}",
             "user_id": user_id,
             "new_tier": request.tier,
-            "expires_at": user.tier_expires_at.isoformat() if user.tier_expires_at else None,
+            "expires_at": (
+                user.tier_expires_at.isoformat() if user.tier_expires_at else None
+            ),
         }
     except HTTPException:
         raise
@@ -172,7 +183,9 @@ async def bulk_update_tier(
             raise HTTPException(status_code=400, detail=f"Invalid tier: {request.tier}")
 
         if len(request.user_ids) > 1000:
-            raise HTTPException(status_code=400, detail="Maximum 1000 users per request")
+            raise HTTPException(
+                status_code=400, detail="Maximum 1000 users per request"
+            )
 
         users = db.query(User).filter(User.id.in_(request.user_ids)).all()
         if not users:
@@ -190,7 +203,9 @@ async def bulk_update_tier(
             updated_count += 1
 
         db.commit()
-        logger.info(f"Admin {admin_id} bulk updated {updated_count} users to {request.tier}")
+        logger.info(
+            f"Admin {admin_id} bulk updated {updated_count} users to {request.tier}"
+        )
 
         return {
             "success": True,
@@ -224,9 +239,13 @@ async def get_user_tier(
             "email": user.email,
             "current_tier": tier,
             "tier_name": tier_config["name"],
-            "expires_at": user.tier_expires_at.isoformat() if user.tier_expires_at else None,
+            "expires_at": (
+                user.tier_expires_at.isoformat() if user.tier_expires_at else None
+            ),
             "is_expired": (
-                user.tier_expires_at < datetime.now(timezone.utc) if user.tier_expires_at else False
+                user.tier_expires_at < datetime.now(timezone.utc)
+                if user.tier_expires_at
+                else False
             ),
             "tier_config": {
                 "price_monthly": tier_config["price_monthly"],
@@ -260,7 +279,9 @@ async def reset_user_tier(
         user.tier_expires_at = None
 
         db.commit()
-        logger.info(f"Admin {admin_id} reset user {user_id} from {old_tier} to freemium")
+        logger.info(
+            f"Admin {admin_id} reset user {user_id} from {old_tier} to freemium"
+        )
 
         return {
             "success": True,
@@ -306,7 +327,9 @@ async def get_expiring_tiers(
                     "id": u.id,
                     "email": u.email,
                     "tier": u.subscription_tier or "freemium",
-                    "expires_at": u.tier_expires_at.isoformat() if u.tier_expires_at else None,
+                    "expires_at": (
+                        u.tier_expires_at.isoformat() if u.tier_expires_at else None
+                    ),
                     "days_until_expiry": (
                         (u.tier_expires_at - now).days if u.tier_expires_at else None
                     ),
@@ -350,7 +373,9 @@ async def extend_tier_expiry(
             "message": f"Tier extended by {days} days",
             "user_id": user_id,
             "old_expiry": old_expiry.isoformat() if old_expiry else None,
-            "new_expiry": user.tier_expires_at.isoformat() if user.tier_expires_at else None,
+            "new_expiry": (
+                user.tier_expires_at.isoformat() if user.tier_expires_at else None
+            ),
         }
     except HTTPException:
         raise

@@ -12,6 +12,51 @@ from app.models.user import User
 from app.services.reseller_service import ResellerService
 
 
+@pytest.fixture
+def service(db_session):
+    from app.services.reseller_service import ResellerService
+
+    return ResellerService(db_session)
+
+
+def test_get_reseller_service(db_session):
+    from app.services.reseller_service import get_reseller_service
+
+    svc = get_reseller_service(db_session)
+    assert svc is not None
+
+
+@pytest.mark.asyncio
+async def test_create_sub_account_invalid_reseller(service):
+    res = await service.create_sub_account(99999, "Name", "email@ex.com")
+    assert res["error"] == "Reseller account not found"
+
+
+@pytest.mark.asyncio
+async def test_allocate_credits_invalid_ids(service):
+    res = await service.allocate_credits(999, 888, 10.0)
+    assert res["error"] == "Invalid reseller or sub - account"
+
+
+@pytest.mark.asyncio
+async def test_bulk_credit_topup_partial_failure(service, regular_user, db_session):
+    # Setup reseller
+    res_res = await service.create_reseller_account(regular_user.id)
+    rid = res_res["reseller_id"]
+
+    # Sub1 success
+    s1 = await service.create_sub_account(rid, "S1", "s1@ex.com")
+    # Sub2 fail (not exists, ID 9999)
+
+    regular_user.credits = 100.0
+    db_session.commit()
+
+    res = await service.bulk_credit_topup(rid, [s1["sub_account_id"], 9999], 10.0)
+    assert res["processed"] == 1
+    assert res["failed"] == 1
+    assert len(res["errors"]) == 1
+
+
 class TestResellerService:
     """Test reseller service functionality."""
 

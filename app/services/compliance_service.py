@@ -1,7 +1,7 @@
 """SOC 2 compliance and security audit service."""
 
-from typing import Dict
 from datetime import datetime
+from typing import Dict
 
 
 class ComplianceService:
@@ -29,7 +29,9 @@ class ComplianceService:
             controls_status[control_id] = await self._assess_control(control_id)
 
         # Calculate overall compliance score
-        compliant_controls = sum(1 for status in controls_status.values() if status["compliant"])
+        compliant_controls = sum(
+            1 for status in controls_status.values() if status["compliant"]
+        )
         compliance_score = (compliant_controls / len(self.soc2_controls)) * 100
 
         return {
@@ -44,15 +46,42 @@ class ComplianceService:
         """Assess individual SOC 2 control."""
         # Simulated control assessments
         control_assessments = {
-            "CC1": {"compliant": True, "evidence": ["Security policies", "Training records"]},
-            "CC2": {"compliant": True, "evidence": ["Documentation", "Communication logs"]},
-            "CC3": {"compliant": True, "evidence": ["Risk assessments", "Threat modeling"]},
-            "CC4": {"compliant": True, "evidence": ["Monitoring dashboards", "Alert logs"]},
-            "CC5": {"compliant": True, "evidence": ["Access controls", "Segregation of duties"]},
-            "CC6": {"compliant": True, "evidence": ["MFA implementation", "Access reviews"]},
-            "CC7": {"compliant": True, "evidence": ["Backup procedures", "Incident response"]},
-            "CC8": {"compliant": True, "evidence": ["Change management", "Version control"]},
-            "CC9": {"compliant": True, "evidence": ["Vulnerability scans", "Patch management"]},
+            "CC1": {
+                "compliant": True,
+                "evidence": ["Security policies", "Training records"],
+            },
+            "CC2": {
+                "compliant": True,
+                "evidence": ["Documentation", "Communication logs"],
+            },
+            "CC3": {
+                "compliant": True,
+                "evidence": ["Risk assessments", "Threat modeling"],
+            },
+            "CC4": {
+                "compliant": True,
+                "evidence": ["Monitoring dashboards", "Alert logs"],
+            },
+            "CC5": {
+                "compliant": True,
+                "evidence": ["Access controls", "Segregation of duties"],
+            },
+            "CC6": {
+                "compliant": True,
+                "evidence": ["MFA implementation", "Access reviews"],
+            },
+            "CC7": {
+                "compliant": True,
+                "evidence": ["Backup procedures", "Incident response"],
+            },
+            "CC8": {
+                "compliant": True,
+                "evidence": ["Change management", "Version control"],
+            },
+            "CC9": {
+                "compliant": True,
+                "evidence": ["Vulnerability scans", "Patch management"],
+            },
         }
 
         return control_assessments.get(control_id, {"compliant": False, "evidence": []})
@@ -73,7 +102,9 @@ class ComplianceService:
                     1 for c in compliance_status["controls"].values() if c["compliant"]
                 ),
                 "non_compliant_controls": sum(
-                    1 for c in compliance_status["controls"].values() if not c["compliant"]
+                    1
+                    for c in compliance_status["controls"].values()
+                    if not c["compliant"]
                 ),
             },
             "recommendations": [

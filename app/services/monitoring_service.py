@@ -1,11 +1,11 @@
 """Advanced monitoring and observability service."""
 
-from typing import Dict, List
-from datetime import datetime, timedelta
-from sqlalchemy.orm import Session
-from app.models.verification import Verification
 from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Dict, List
+
 from app.core.database import get_db
+from app.models.verification import Verification
 
 
 @dataclass
@@ -37,17 +37,23 @@ class MonitoringService:
         hour_ago = now - timedelta(hours=1)
 
         # Request metrics
-        total_requests = db.query(Verification).filter(Verification.created_at >= hour_ago).count()
+        total_requests = (
+            db.query(Verification).filter(Verification.created_at >= hour_ago).count()
+        )
 
         successful_requests = (
             db.query(Verification)
-            .filter(Verification.created_at >= hour_ago, Verification.status == "completed")
+            .filter(
+                Verification.created_at >= hour_ago, Verification.status == "completed"
+            )
             .count()
         )
 
         failed_requests = (
             db.query(Verification)
-            .filter(Verification.created_at >= hour_ago, Verification.status == "failed")
+            .filter(
+                Verification.created_at >= hour_ago, Verification.status == "failed"
+            )
             .count()
         )
 
@@ -83,7 +89,10 @@ class MonitoringService:
         alerts = []
 
         # Response time alert
-        if metrics["performance"]["p95_response_time"] > self.thresholds["response_time_p95"]:
+        if (
+            metrics["performance"]["p95_response_time"]
+            > self.thresholds["response_time_p95"]
+        ):
             alerts.append(
                 {
                     "type": "performance",

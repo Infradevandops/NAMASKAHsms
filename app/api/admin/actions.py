@@ -1,17 +1,21 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
+from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.user import User
 from app.models.verification import Verification
-from app.api.admin.dependencies import require_admin
-from datetime import datetime
 
 router = APIRouter(prefix="/admin", tags=["admin-actions"])
 
 
 @router.post("/users/{user_id}/suspend")
 async def suspend_user(
-    user_id: str, current_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    user_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Suspend a user account"""
     user = db.query(User).filter(User.id == user_id).first()
@@ -26,7 +30,9 @@ async def suspend_user(
 
 @router.post("/users/{user_id}/activate")
 async def activate_user(
-    user_id: str, current_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    user_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Activate a user account"""
     user = db.query(User).filter(User.id == user_id).first()
@@ -41,10 +47,14 @@ async def activate_user(
 
 @router.post("/verifications/{verification_id}/cancel")
 async def cancel_verification(
-    verification_id: str, current_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    verification_id: str,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Cancel a pending verification"""
-    verification = db.query(Verification).filter(Verification.id == verification_id).first()
+    verification = (
+        db.query(Verification).filter(Verification.id == verification_id).first()
+    )
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
@@ -99,7 +109,9 @@ async def export_verifications(
 
 
 @router.post("/export/users")
-async def export_users(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+async def export_users(
+    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
+):
     """Export user data"""
     users = db.query(User).all()
 

@@ -1,10 +1,11 @@
 """Query optimization utilities - WITH ERROR HANDLING."""
 
-from sqlalchemy.orm import joinedload
 from sqlalchemy.exc import SQLAlchemyError
-from app.models.verification import Verification
-from app.models.user import User
+from sqlalchemy.orm import joinedload
+
 from app.core.logging import get_logger
+from app.models.user import User
+from app.models.verification import Verification
 
 logger = get_logger(__name__)
 

@@ -3,17 +3,18 @@
 Requires pro tier or higher for access.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import Dict, List
-from pydantic import BaseModel
-from datetime import datetime, timezone
 import uuid
+from datetime import datetime, timezone
+from typing import Dict, List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import require_tier
-from app.models.user import User
 from app.core.logging import get_logger
+from app.models.user import User
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/bulk-purchase", tags=["Bulk Purchase"])
@@ -45,7 +46,9 @@ class BulkPurchaseResponse(BaseModel):
 
 @router.post("/", response_model=BulkPurchaseResponse)
 async def create_bulk_purchase(
-    request: BulkPurchaseRequest, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
+    request: BulkPurchaseRequest,
+    user_id: str = Depends(require_pro),
+    db: Session = Depends(get_db),
 ) -> BulkPurchaseResponse:
     """Create a bulk purchase order.
 
@@ -70,18 +73,23 @@ async def create_bulk_purchase(
             f"Bulk purchase validation failed for user {user_id}: quantity too high ({request.quantity})"
         )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Maximum 100 numbers per bulk purchase"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Maximum 100 numbers per bulk purchase",
         )
 
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         logger.error(f"User not found for bulk purchase: {user_id}")
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
 
     # Calculate cost (placeholder - would use pricing calculator)
     cost_per_number = 0.50  # Base cost
-    bulk_discount = 0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
+    bulk_discount = (
+        0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
+    )
     discounted_cost = cost_per_number * (1 - bulk_discount)
     total_cost = discounted_cost * request.quantity
 
@@ -120,7 +128,9 @@ async def get_bulk_purchase_status(
     bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
 ) -> Dict:
     """Get status of a bulk purchase order."""
-    logger.debug(f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}")
+    logger.debug(
+        f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}"
+    )
 
     # Placeholder - would query actual bulk order
     return {
@@ -148,7 +158,9 @@ async def cancel_bulk_purchase(
     bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
 ) -> Dict:
     """Cancel a pending bulk purchase order."""
-    logger.info(f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}")
+    logger.info(
+        f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}"
+    )
 
     # Placeholder - would cancel actual bulk order
     return {

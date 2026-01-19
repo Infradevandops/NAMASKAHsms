@@ -1,15 +1,15 @@
 """Unified error handling system consolidating all error handling implementations."""
 
 import logging
-from typing import Callable, Dict, Any, Optional
+from typing import Any, Callable, Dict, Optional
 
-from fastapi import Request, Response, HTTPException
-from fastapi.responses import JSONResponse
+from fastapi import Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
 
 # from botocore.exceptions import ClientError, BotoCoreError
 # # from cryptography.fernet import InvalidToken
@@ -38,19 +38,25 @@ class NamaskahException(Exception):
 
 class AuthenticationError(NamaskahException):
     def __init__(
-        self, message: str = "Authentication failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Authentication failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "AUTH_ERROR", details, 401)
 
 
 class AuthorizationError(NamaskahException):
-    def __init__(self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None):
+    def __init__(
+        self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None
+    ):
         super().__init__(message, "AUTHZ_ERROR", details, 403)
 
 
 class ValidationError(NamaskahException):
     def __init__(
-        self, message: str = "Validation failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Validation failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "VALIDATION_ERROR", details, 400)
 
@@ -69,14 +75,18 @@ class ExternalServiceError(NamaskahException):
 
 class DatabaseError(NamaskahException):
     def __init__(
-        self, message: str = "Database operation failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Database operation failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "DATABASE_ERROR", details, 500)
 
 
 class PaymentError(NamaskahException):
     def __init__(
-        self, message: str = "Payment processing failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Payment processing failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "PAYMENT_ERROR", details, 402)
 
@@ -84,9 +94,7 @@ class PaymentError(NamaskahException):
 class InsufficientCreditsError(NamaskahException):
     def __init__(self, required_or_message, available=None):
         if available is not None:
-            message = (
-                f"Insufficient credits. Required: {required_or_message}, Available: {available}"
-            )
+            message = f"Insufficient credits. Required: {required_or_message}, Available: {available}"
             details = {"required": required_or_message, "available": available}
         else:
             message = str(required_or_message)
@@ -96,21 +104,27 @@ class InsufficientCreditsError(NamaskahException):
 
 class VerificationError(NamaskahException):
     def __init__(
-        self, message: str = "Verification failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Verification failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "VERIFICATION_ERROR", details, 400)
 
 
 class RentalError(NamaskahException):
     def __init__(
-        self, message: str = "Rental operation failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Rental operation failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "RENTAL_ERROR", details, 400)
 
 
 class RateLimitError(NamaskahException):
     def __init__(
-        self, message: str = "Rate limit exceeded", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Rate limit exceeded",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "RATE_LIMIT_ERROR", details, 429)
 
@@ -135,9 +149,9 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
         self.fallback_responses = self._get_fallback_responses()
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        # Skip error handling for auth endpoints
+        # Skip error handling for auth endpoints and all API endpoints
         path = str(request.url.path)
-        if path.startswith("/api/auth/") or path.startswith("/auth/"):
+        if path.startswith("/api/") or path.startswith("/auth/"):
             return await call_next(request)
 
         try:
@@ -301,7 +315,9 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
 # Exception Handlers
 
 
-async def unified_exception_handler(request: Request, exc: NamaskahException) -> JSONResponse:
+async def unified_exception_handler(
+    request: Request, exc: NamaskahException
+) -> JSONResponse:
     """Handle custom Namaskah exceptions."""
     logger.error(
         "NamaskahException: %s - %s",
@@ -312,25 +328,31 @@ async def unified_exception_handler(request: Request, exc: NamaskahException) ->
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=jsonable_encoder({
-            "error": exc.error_code,
-            "message": exc.message,
-            "details": exc.details,
-        }),
+        content=jsonable_encoder(
+            {
+                "error": exc.error_code,
+                "message": exc.message,
+                "details": exc.details,
+            }
+        ),
     )
 
 
-async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
+async def http_exception_handler(
+    request: Request, exc: StarletteHTTPException
+) -> JSONResponse:
     """Handle HTTP exceptions."""
     logger.warning("HTTPException: %s - %s", exc.status_code, exc.detail)
 
     return JSONResponse(
         status_code=exc.status_code,
-        content=jsonable_encoder({
-            "error": "HTTP_ERROR",
-            "message": exc.detail,
-            "details": {"status_code": exc.status_code},
-        }),
+        content=jsonable_encoder(
+            {
+                "error": "HTTP_ERROR",
+                "message": exc.detail,
+                "details": {"status_code": exc.status_code},
+            }
+        ),
     )
 
 
@@ -342,11 +364,13 @@ async def validation_exception_handler(
 
     return JSONResponse(
         status_code=422,
-        content=jsonable_encoder({
-            "error": "VALIDATION_ERROR",
-            "message": "Request validation failed",
-            "details": {"errors": exc.errors()},
-        }),
+        content=jsonable_encoder(
+            {
+                "error": "VALIDATION_ERROR",
+                "message": "Request validation failed",
+                "details": {"errors": exc.errors()},
+            }
+        ),
     )
 
 
@@ -371,11 +395,13 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
     return JSONResponse(
         status_code=500,
-        content=jsonable_encoder({
-            "error": "INTERNAL_ERROR",
-            "message": "An unexpected error occurred",
-            "details": error_details,
-        }),
+        content=jsonable_encoder(
+            {
+                "error": "INTERNAL_ERROR",
+                "message": "An unexpected error occurred",
+                "details": error_details,
+            }
+        ),
     )
 
 
@@ -390,7 +416,9 @@ def handle_database_exceptions(func):
             return func(*args, **kwargs)
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
-            raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
+            raise ValidationError(
+                "Data integrity constraint violated", {"original_error": str(e)}
+            )
         except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
@@ -415,7 +443,9 @@ def handle_aws_exceptions(service_name: str):
             except Exception as e:
                 logger.error(f"AWS {service_name} error in {func.__name__}: {e}")
                 raise ExternalServiceError(
-                    service_name, f"{service_name} operation failed", {"original_error": str(e)}
+                    service_name,
+                    f"{service_name} operation failed",
+                    {"original_error": str(e)},
                 )
 
         return wrapper
@@ -430,14 +460,20 @@ def handle_encryption_exceptions(func):
         try:
             return func(*args, **kwargs)
         except ValueError as e:
-            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
+            if "Invalid" in str(e) and (
+                "key" in str(e).lower() or "token" in str(e).lower()
+            ):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
-                raise ValidationError("Invalid encryption key or token", {"original_error": str(e)})
+                raise ValidationError(
+                    "Invalid encryption key or token", {"original_error": str(e)}
+                )
             raise
         except Exception as e:
             if "token" in str(e).lower() or "decrypt" in str(e).lower():
                 logger.error(f"Encryption error in {func.__name__}: {e}")
-                raise ValidationError("Encryption/decryption failed", {"original_error": str(e)})
+                raise ValidationError(
+                    "Encryption/decryption failed", {"original_error": str(e)}
+                )
             raise
 
     return wrapper
@@ -451,9 +487,13 @@ def handle_http_client_exceptions(service_name: str):
             try:
                 return func(*args, **kwargs)
             except ConnectionError as e:
-                logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
+                logger.error(
+                    f"Connection error to {service_name} in {func.__name__}: {e}"
+                )
                 raise ExternalServiceError(
-                    service_name, f"Failed to connect to {service_name}", {"original_error": str(e)}
+                    service_name,
+                    f"Failed to connect to {service_name}",
+                    {"original_error": str(e)},
                 )
             except TimeoutError as e:
                 logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
@@ -464,14 +504,18 @@ def handle_http_client_exceptions(service_name: str):
                 )
             except Exception as e:
                 if "timeout" in str(e).lower():
-                    logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
+                    logger.error(
+                        f"Timeout error to {service_name} in {func.__name__}: {e}"
+                    )
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
                 elif "connection" in str(e).lower():
-                    logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
+                    logger.error(
+                        f"Connection error to {service_name} in {func.__name__}: {e}"
+                    )
                     raise ExternalServiceError(
                         service_name,
                         f"Connection error to {service_name}",
@@ -496,7 +540,9 @@ def safe_int_conversion(value: str, default: int = 0, field_name: str = "value")
         return default
 
 
-def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
+def safe_json_parse(
+    json_str: str, default: dict = None, field_name: str = "data"
+) -> dict:
     """Safely parse JSON string with specific error handling."""
     import json
 

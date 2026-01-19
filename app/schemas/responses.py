@@ -1,6 +1,7 @@
 """Standardized response schemas for all API endpoints."""
 
 from typing import Any, Dict, List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -18,7 +19,7 @@ class SuccessResponse(BaseModel):
 
     success: bool = True
     message: str = Field(..., description="Success message")
-    data: Optional[Dict[str, Any]] = Field(None, description="Response data")
+    data: Optional[Any] = Field(None, description="Response data")
 
 
 class PaginatedResponse(BaseModel):

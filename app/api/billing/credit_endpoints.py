@@ -1,15 +1,16 @@
 """Credit system endpoints for managing user credits and transactions."""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy.orm import Session
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_current_user
+from app.core.dependencies import get_current_user_id
+from app.core.exceptions import InsufficientCreditsError
 from app.core.logging import get_logger
-from app.services.credit_service import CreditService
 from app.models.user import User
-from app.core.exceptions import InsufficientCreditsError, ValidationError
+from app.services.credit_service import CreditService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/user", tags=["Credits"])
@@ -18,19 +19,13 @@ router = APIRouter(prefix="/user", tags=["Credits"])
 class CreditBalanceResponse:
     """Response model for credit balance."""
 
-    pass
-
 
 class TransactionResponse:
     """Response model for transaction."""
 
-    pass
-
 
 class TransactionHistoryResponse:
     """Response model for transaction history."""
-
-    pass
 
 
 @router.get("/balance")
@@ -62,7 +57,8 @@ async def get_user_balance(
     except Exception as e:
         logger.error(f"Failed to get balance for user {user_id}: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to retrieve balance"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to retrieve balance",
         )
 
 
@@ -70,7 +66,8 @@ async def get_user_balance(
 async def get_credit_history(
     user_id: str = Depends(get_current_user_id),
     transaction_type: Optional[str] = Query(
-        None, description="Filter by type: credit, debit, bonus, refund, transfer, admin_reset"
+        None,
+        description="Filter by type: credit, debit, bonus, refund, transfer, admin_reset",
     ),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
@@ -149,7 +146,9 @@ async def get_credit_summary(
 @router.post("/credits/add")
 async def add_credits(
     amount: float = Query(..., gt=0, description="Amount to add"),
-    description: str = Query("Manual credit addition", description="Transaction description"),
+    description: str = Query(
+        "Manual credit addition", description="Transaction description"
+    ),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
@@ -174,7 +173,10 @@ async def add_credits(
 
         credit_service = CreditService(db)
         result = credit_service.add_credits(
-            user_id=user_id, amount=amount, description=description, transaction_type="credit"
+            user_id=user_id,
+            amount=amount,
+            description=description,
+            transaction_type="credit",
         )
 
         logger.info(f"Added {amount} credits for user {user_id}")
@@ -189,7 +191,8 @@ async def add_credits(
     except Exception as e:
         logger.error(f"Failed to add credits: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to add credits"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to add credits",
         )
 
 
@@ -221,7 +224,10 @@ async def deduct_credits(
 
         credit_service = CreditService(db)
         result = credit_service.deduct_credits(
-            user_id=user_id, amount=amount, description=description, transaction_type="debit"
+            user_id=user_id,
+            amount=amount,
+            description=description,
+            transaction_type="debit",
         )
 
         logger.info(f"Deducted {amount} credits from user {user_id}")
@@ -239,7 +245,8 @@ async def deduct_credits(
     except Exception as e:
         logger.error(f"Failed to deduct credits: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to deduct credits"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to deduct credits",
         )
 
 
@@ -279,7 +286,10 @@ async def transfer_credits(
 
         credit_service = CreditService(db)
         result = credit_service.transfer_credits(
-            from_user_id=user_id, to_user_id=to_user_id, amount=amount, description=description
+            from_user_id=user_id,
+            to_user_id=to_user_id,
+            amount=amount,
+            description=description,
         )
 
         logger.info(f"Transferred {amount} credits from {user_id} to {to_user_id}")
@@ -297,7 +307,8 @@ async def transfer_credits(
     except Exception as e:
         logger.error(f"Failed to transfer credits: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to transfer credits"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to transfer credits",
         )
 
 
@@ -340,5 +351,6 @@ async def reset_credits(
     except Exception as e:
         logger.error(f"Failed to reset credits: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to reset credits"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to reset credits",
         )

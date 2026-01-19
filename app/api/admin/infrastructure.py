@@ -1,9 +1,10 @@
 """Infrastructure management API endpoints."""
 
-from app.models.user import User
-from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends, Request
+
+from app.core.dependencies import get_current_admin_user
 from app.core.region_manager import region_manager
+from app.models.user import User
 
 router = APIRouter(prefix="/infrastructure", tags=["infrastructure"])
 

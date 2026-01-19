@@ -1,35 +1,29 @@
-// @ts-check
 import { createStore } from 'zustand/vanilla'
 import { persist, createJSONStorage } from 'zustand/middleware'
 
-/**
- * @typedef {Object} User
- * @property {string} id
- * @property {string} email
- * @property {number} credits
- * @property {string} plan_tier
- */
+export interface User {
+    id: string;
+    email: string;
+    credits: number;
+    plan_tier: string;
+}
 
-/**
- * @typedef {Object} AuthState
- * @property {string|null} accessToken
- * @property {string|null} refreshToken
- * @property {User|null} user
- * @property {boolean} isAuthenticated
- * @property {boolean} isLoading
- * @property {string|null} error
- * 
- * @typedef {Object} AuthActions
- * @property {(token: string, refreshToken?: string) => void} setTokens
- * @property {(user: User) => void} setUser
- * @property {() => void} logout
- * @property {(error: string) => void} setError
- * @property {() => void} setLoading
- * 
- * @typedef {AuthState & AuthActions} AuthStore
- */
+export interface AuthState {
+    accessToken: string | null;
+    refreshToken: string | null;
+    user: User | null;
+    isAuthenticated: boolean;
+    isLoading: boolean;
+    error: string | null;
 
-export const authStore = createStore(
+    setTokens: (accessToken: string, refreshToken?: string) => void;
+    setUser: (user: User) => void;
+    logout: () => void;
+    setError: (error: string) => void;
+    setLoading: () => void;
+}
+
+export const authStore = createStore<AuthState>()(
     persist(
         (set) => ({
             accessToken: null,
@@ -39,19 +33,14 @@ export const authStore = createStore(
             isLoading: false,
             error: null,
 
-            /**
-             * @param {string} accessToken
-             * @param {string|null} [refreshToken]
-             */
-            setTokens: (accessToken, refreshToken) => set({
+            setTokens: (accessToken: string, refreshToken?: string) => set({
                 accessToken,
                 refreshToken: refreshToken || null,
                 isAuthenticated: true,
                 error: null
             }),
 
-            /** @param {User} user */
-            setUser: (user) => set({ user, isLoading: false }),
+            setUser: (user: User) => set({ user, isLoading: false }),
 
             logout: () => set({
                 accessToken: null,
@@ -61,14 +50,13 @@ export const authStore = createStore(
                 error: null
             }),
 
-            /** @param {string} error */
-            setError: (error) => set({ error, isLoading: false }),
+            setError: (error: string) => set({ error, isLoading: false }),
 
             setLoading: () => set({ isLoading: true })
         }),
         {
-            name: 'auth-storage', // name of the item in the storage (must be unique)
-            storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+            name: 'auth-storage',
+            storage: createJSONStorage(() => localStorage),
         }
     )
 )

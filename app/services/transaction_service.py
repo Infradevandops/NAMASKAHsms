@@ -1,9 +1,11 @@
 """Transaction logging service."""
 
-from sqlalchemy.orm import Session
-from app.models.transaction import Transaction
-from datetime import datetime
 import uuid
+from datetime import datetime
+
+from sqlalchemy.orm import Session
+
+from app.models.transaction import Transaction
 
 
 class TransactionService:
@@ -11,7 +13,12 @@ class TransactionService:
 
     @staticmethod
     def log_sms_purchase(
-        db: Session, user_id: str, cost: float, tier: str, service: str = None, filters: dict = None
+        db: Session,
+        user_id: str,
+        cost: float,
+        tier: str,
+        service: str = None,
+        filters: dict = None,
     ) -> str:
         """Log SMS purchase transaction."""
         if not filters:

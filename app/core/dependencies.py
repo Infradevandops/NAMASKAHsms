@@ -1,16 +1,18 @@
 """FastAPI dependency injection utilities."""
 
 import logging
+from typing import Callable, Optional
+
 import jwt
-from typing import Optional, Callable
-from fastapi import Depends, HTTPException, status, Request
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
+
+from app.models.user import User
 
 from .config import settings
 from .database import get_db
-from .tier_helpers import get_user_tier, has_tier_access, get_tier_display_name, raise_tier_error
-from app.models.user import User
+from .tier_helpers import get_user_tier, has_tier_access, raise_tier_error
 
 logger = logging.getLogger(__name__)
 
@@ -48,20 +50,28 @@ def get_current_user_id(
         user_id = payload.get("user_id")
         if not user_id:
             logger.warning("Token missing user_id")
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+            )
         return user_id
     except jwt.InvalidTokenError as e:
         logger.warning(f"Token decode failed: {str(e)}")
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
+        )
 
 
-def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_current_user(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current user object from database."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+        )
     return user
 
 
@@ -72,7 +82,9 @@ def get_admin_user_id(
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     return user_id
 
 
@@ -83,7 +95,9 @@ def get_current_admin_user(
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     return user
 
 

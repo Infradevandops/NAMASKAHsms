@@ -1,8 +1,9 @@
 """SOC 2 compliance API endpoints."""
 
-from app.models.user import User
-from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
 from fastapi import APIRouter, Depends
+
+from app.core.dependencies import get_current_admin_user
+from app.models.user import User
 from app.services.compliance_service import compliance_service
 
 router = APIRouter(prefix="/compliance", tags=["compliance"])

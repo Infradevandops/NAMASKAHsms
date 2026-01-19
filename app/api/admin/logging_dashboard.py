@@ -2,14 +2,13 @@
 
 import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, func
 
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id
-from app.models.user import User
 
 logger = logging.getLogger(__name__)
 
@@ -148,8 +147,12 @@ async def get_error_trends(
 
     return {
         "period_days": days,
-        "total_402_errors": len([e for e in tier_402_errors if e["timestamp"] >= cutoff_iso]),
-        "total_db_errors": len([e for e in database_errors if e["timestamp"] >= cutoff_iso]),
+        "total_402_errors": len(
+            [e for e in tier_402_errors if e["timestamp"] >= cutoff_iso]
+        ),
+        "total_db_errors": len(
+            [e for e in database_errors if e["timestamp"] >= cutoff_iso]
+        ),
         "errors_402_by_day": errors_402_by_day,
         "db_errors_by_day": db_errors_by_day,
         "errors_by_required_tier": errors_by_tier,
@@ -172,13 +175,25 @@ async def get_logs_summary(
         "total_402_errors": len(tier_402_errors),
         "total_db_errors": len(database_errors),
         "last_hour": {
-            "tier_api_calls": len([c for c in tier_api_calls if c["timestamp"] >= last_hour]),
-            "errors_402": len([e for e in tier_402_errors if e["timestamp"] >= last_hour]),
-            "db_errors": len([e for e in database_errors if e["timestamp"] >= last_hour]),
+            "tier_api_calls": len(
+                [c for c in tier_api_calls if c["timestamp"] >= last_hour]
+            ),
+            "errors_402": len(
+                [e for e in tier_402_errors if e["timestamp"] >= last_hour]
+            ),
+            "db_errors": len(
+                [e for e in database_errors if e["timestamp"] >= last_hour]
+            ),
         },
         "last_24h": {
-            "tier_api_calls": len([c for c in tier_api_calls if c["timestamp"] >= last_24h]),
-            "errors_402": len([e for e in tier_402_errors if e["timestamp"] >= last_24h]),
-            "db_errors": len([e for e in database_errors if e["timestamp"] >= last_24h]),
+            "tier_api_calls": len(
+                [c for c in tier_api_calls if c["timestamp"] >= last_24h]
+            ),
+            "errors_402": len(
+                [e for e in tier_402_errors if e["timestamp"] >= last_24h]
+            ),
+            "db_errors": len(
+                [e for e in database_errors if e["timestamp"] >= last_24h]
+            ),
         },
     }

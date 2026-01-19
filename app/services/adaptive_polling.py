@@ -1,7 +1,9 @@
 """Adaptive polling service that optimizes intervals based on metrics."""
 
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 
 logger = get_logger(__name__)
@@ -29,7 +31,9 @@ class AdaptivePollingService:
 
         # Calculate average time to receive SMS
         polling_times = [
-            (v.completed_at - v.created_at).total_seconds() for v in verifications if v.completed_at
+            (v.completed_at - v.created_at).total_seconds()
+            for v in verifications
+            if v.completed_at
         ]
 
         if not polling_times:
@@ -40,7 +44,9 @@ class AdaptivePollingService:
         # Optimize interval: use 1/3 of average time, min 5s, max 30s
         optimal = max(5, min(30, int(avg_time / 3)))
 
-        logger.info(f"Optimal polling interval: {optimal}s (avg SMS time: {avg_time:.1f}s)")
+        logger.info(
+            f"Optimal polling interval: {optimal}s (avg SMS time: {avg_time:.1f}s)"
+        )
         return optimal
 
     @staticmethod
@@ -58,7 +64,9 @@ class AdaptivePollingService:
         if len(verifications) < 5:
             return False
 
-        success_rate = sum(1 for v in verifications if v.status == "completed") / len(verifications)
+        success_rate = sum(1 for v in verifications if v.status == "completed") / len(
+            verifications
+        )
 
         # If success rate < 70%, increase interval
         return success_rate < 0.70
@@ -78,7 +86,9 @@ class AdaptivePollingService:
         if len(verifications) < 10:
             return False
 
-        success_rate = sum(1 for v in verifications if v.status == "completed") / len(verifications)
+        success_rate = sum(1 for v in verifications if v.status == "completed") / len(
+            verifications
+        )
 
         # If success rate > 95%, decrease interval
         return success_rate > 0.95

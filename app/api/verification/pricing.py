@@ -1,12 +1,13 @@
 """Pricing endpoint for verification services"""
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.core.logging import get_logger
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.services.tier_manager import TierManager
+from app.core.logging import get_logger
 from app.core.tier_helpers import raise_tier_error
+from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
 

@@ -1,6 +1,5 @@
 """Database migration utilities."""
 
-from app.utils.timezone_utils import utc_now, parse_date_string, get_timestamp_filename
 import logging
 import os
 import subprocess
@@ -8,6 +7,7 @@ from typing import Optional
 
 from sqlalchemy import text
 
+from app.utils.timezone_utils import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +60,9 @@ class MigrationManager:
                 return False
 
             # Sanitize message to prevent injection
-            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[:100]
+            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[
+                :100
+            ]
 
             result = subprocess.run(
                 [alembic_path, "revision", "--autogenerate", "-m", safe_message],
@@ -144,7 +146,7 @@ class MigrationManager:
             return False
 
         try:
-            from datetime import datetime
+            pass
 
             db_path = self.settings.database_url.replace("sqlite:///", "")
             backup_path = f"{db_path}.backup_{utc_now().strftime('%Y%m%d_%H%M%S')}"

@@ -1,4 +1,5 @@
 import os
+import time
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -160,3 +161,77 @@ async def test_retry_backoff_connection_error(service):
         res = await service._retry_with_backoff(task)
         assert res == "Success"
         assert mock_sleep.called
+
+
+@pytest.mark.asyncio
+async def test_get_health_status(service, mock_client_instance):
+    mock_client_instance.account.balance = 12.34
+    res = await service.get_health_status()
+    assert res["status"] == "operational"
+    assert res["balance"] == 12.34
+
+
+@pytest.mark.asyncio
+async def test_get_health_status_disabled(service):
+    service.enabled = False
+    res = await service.get_health_status()
+    assert res["status"] == "error"
+    assert "not configured" in res["error"]
+
+
+def test_circuit_breaker(service):
+    # Success resets
+    service._circuit_breaker_failures = 3
+    service._record_success()
+    assert service._circuit_breaker_failures == 0
+
+    # Failure threshold
+    for i in range(5):
+        service._record_failure()
+    assert service._check_circuit_breaker() is False
+
+    # Reset time check
+    with patch("time.time", return_value=time.time() + 400):
+        assert service._check_circuit_breaker() is True
+
+
+@pytest.mark.asyncio
+async def test_aliases_and_legacy(service, mock_client_instance):
+    # get_account_balance
+    mock_client_instance.account.balance = 5.0
+    val = await service.get_account_balance()
+    assert val == 5.0
+
+    # cancel_number
+    res = await service.cancel_number("v2")
+    assert res is True
+
+    # get_number
+    mock_verif = MagicMock()
+    mock_verif.id = "v3"
+    mock_verif.number = "5550000"
+    mock_verif.total_cost = 1.0
+    mock_client_instance.verifications.create.return_value = mock_verif
+    res = await service.get_number("telegram")
+    assert res["id"] == "v3"
+
+
+@pytest.mark.asyncio
+async def test_get_verification_status(service, mock_client_instance):
+    mock_sms = MagicMock()
+    mock_sms.message = "OKCODE"
+    mock_verif = MagicMock()
+    mock_verif.sms = [mock_sms]
+    mock_client_instance.verifications.details.return_value = mock_verif
+
+    res = await service.get_verification_status("v1")
+    assert res["status"] == "completed"
+    assert res["sms_code"] == "OKCODE"
+
+
+@pytest.mark.asyncio
+async def test_check_sms_circuit_open(service):
+    service._circuit_breaker_reset_time = time.time() + 100
+    res = await service.check_sms("v1")
+    assert res["status"] == "error"
+    assert "temporarily unavailable" in res["error"]

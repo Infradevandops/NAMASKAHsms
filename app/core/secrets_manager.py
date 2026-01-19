@@ -2,10 +2,11 @@
 
 import json
 import logging
-from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+
 import boto3
-from botocore.exceptions import ClientError, BotoCoreError
+from botocore.exceptions import BotoCoreError, ClientError
 
 from app.utils.exception_handling import handle_aws_exceptions, safe_json_parse
 
@@ -26,9 +27,13 @@ class SecretsManager:
     def _init_client(self):
         """Initialize AWS Secrets Manager client."""
         self.client = boto3.client("secretsmanager", region_name=self.region_name)
-        logger.info(f"AWS Secrets Manager client initialized for region {self.region_name}")
+        logger.info(
+            f"AWS Secrets Manager client initialized for region {self.region_name}"
+        )
 
-    def get_secret(self, secret_name: str, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    def get_secret(
+        self, secret_name: str, force_refresh: bool = False
+    ) -> Optional[Dict[str, Any]]:
         """Get secret from AWS Secrets Manager with caching."""
         if not self.client:
             logger.error("Secrets Manager client not initialized")
@@ -67,7 +72,9 @@ class SecretsManager:
             if error_code == "ResourceNotFoundException":
                 logger.warning(f"Secret not found: {secret_name}")
             else:
-                logger.error(f"Failed to retrieve secret {secret_name}: {error_code} - {e}")
+                logger.error(
+                    f"Failed to retrieve secret {secret_name}: {error_code} - {e}"
+                )
             return None
         except BotoCoreError as e:
             logger.error(f"AWS connection error retrieving secret {secret_name}: {e}")
@@ -84,7 +91,9 @@ class SecretsManager:
 
             # Try to update existing secret
             try:
-                self.client.update_secret(SecretId=secret_name, SecretString=secret_string)
+                self.client.update_secret(
+                    SecretId=secret_name, SecretString=secret_string
+                )
                 logger.info(f"Updated secret: {secret_name}")
             except ClientError as e:
                 if e.response["Error"]["Code"] == "ResourceNotFoundException":

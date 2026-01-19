@@ -2,12 +2,10 @@
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.notification import Notification
-from app.models.user import User
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -33,7 +31,9 @@ async def get_notifications(
 
 @router.post("/{notification_id}/read")
 async def mark_notification_read(
-    notification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Mark notification as read."""
     notification = (
@@ -52,7 +52,9 @@ async def mark_notification_read(
 
 
 @router.post("/mark-all-read")
-async def mark_all_read(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def mark_all_read(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Mark all notifications as read."""
     db.query(Notification).filter(
         Notification.user_id == user_id, Notification.is_read == False
@@ -65,7 +67,9 @@ async def mark_all_read(user_id: str = Depends(get_current_user_id), db: Session
 
 @router.delete("/{notification_id}")
 async def delete_notification(
-    notification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    notification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Delete a notification."""
     notification = (

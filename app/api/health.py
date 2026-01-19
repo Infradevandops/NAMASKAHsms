@@ -1,7 +1,9 @@
 """Health check endpoint for monitoring and deployment verification."""
-from fastapi import APIRouter, Response
-from datetime import datetime
+
 import sys
+from datetime import datetime
+
+from fastapi import APIRouter
 
 router = APIRouter(tags=["health"])
 
@@ -13,7 +15,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.utcnow().isoformat(),
         "version": "4.0.0",
-        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
     }
 
 

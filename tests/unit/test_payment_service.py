@@ -86,7 +86,7 @@ class TestPaymentService:
         assert log.credited is True
 
         db_session.refresh(regular_user)
-        assert regular_user.credits == 10.0  # Assumes 0 initial
+        assert regular_user.credits == 20.0  # 10 initial + 10 added
 
     def test_handle_charge_success_webhook(
         self, payment_service, regular_user, db_session
@@ -119,7 +119,7 @@ class TestPaymentService:
         assert log.credited is True
 
         db_session.refresh(regular_user)
-        assert regular_user.credits == 20.0
+        assert regular_user.credits == 30.0  # 10 initial + 20 added
 
     def test_handle_charge_failed_webhook(
         self, payment_service, regular_user, db_session

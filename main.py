@@ -19,6 +19,7 @@ from app.middleware.xss_protection import XSSProtectionMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.core.unified_error_handling import setup_unified_middleware
+from app.core.unified_rate_limiting import setup_unified_rate_limiting
 from app.core.database import get_db
 from app.core.config import get_settings
 
@@ -85,6 +86,7 @@ def create_app() -> FastAPI:
     )
     
     setup_unified_middleware(fastapi_app)
+    setup_unified_rate_limiting(fastapi_app)
     
     @fastapi_app.middleware("http")
     async def fix_mime_types(request: Request, call_next):

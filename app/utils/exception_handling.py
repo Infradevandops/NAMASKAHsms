@@ -1,16 +1,17 @@
 """Exception handling utilities for specific error types."""
 
 import logging
-from typing import Optional, Dict, Any
-from sqlalchemy.exc import SQLAlchemyError, IntegrityError, OperationalError
-from botocore.exceptions import ClientError, BotoCoreError
+from typing import Any, Dict, Optional
+
+from botocore.exceptions import BotoCoreError, ClientError
 from cryptography.fernet import InvalidToken
+from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 
 from app.core.exceptions import (
+    AuthorizationError,
+    ExternalServiceError,
     NamaskahException,
     ValidationError,
-    ExternalServiceError,
-    AuthorizationError,
 )
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,9 @@ class DatabaseError(NamaskahException):
     """Database operation errors."""
 
     def __init__(
-        self, message: str = "Database operation failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Database operation failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "DATABASE_ERROR", details)
 
@@ -29,7 +32,9 @@ class EncryptionError(NamaskahException):
     """Encryption/decryption errors."""
 
     def __init__(
-        self, message: str = "Encryption operation failed", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Encryption operation failed",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "ENCRYPTION_ERROR", details)
 
@@ -38,7 +43,9 @@ class ConfigurationError(NamaskahException):
     """Configuration errors."""
 
     def __init__(
-        self, message: str = "Configuration error", details: Optional[Dict[str, Any]] = None
+        self,
+        message: str = "Configuration error",
+        details: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(message, "CONFIG_ERROR", details)
 
@@ -63,7 +70,9 @@ def handle_database_exceptions(func):
             return func(*args, **kwargs)
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
-            raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
+            raise ValidationError(
+                "Data integrity constraint violated", {"original_error": str(e)}
+            )
         except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
@@ -119,7 +128,9 @@ def handle_aws_exceptions(service_name: str):
             except BotoCoreError as e:
                 logger.error(f"AWS {service_name} core error in {func.__name__}: {e}")
                 raise AWSServiceError(
-                    service_name, f"{service_name} connection failed", {"original_error": str(e)}
+                    service_name,
+                    f"{service_name} connection failed",
+                    {"original_error": str(e)},
                 )
 
         return wrapper
@@ -141,7 +152,9 @@ def handle_encryption_exceptions(func):
                 {"original_error": str(e)},
             )
         except ValueError as e:
-            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
+            if "Invalid" in str(e) and (
+                "key" in str(e).lower() or "token" in str(e).lower()
+            ):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
                 raise EncryptionError(
                     "Invalid encryption key or \
@@ -162,7 +175,9 @@ def safe_int_conversion(value: str, default: int = 0, field_name: str = "value")
         return default
 
 
-def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
+def safe_json_parse(
+    json_str: str, default: dict = None, field_name: str = "data"
+) -> dict:
     """Safely parse JSON string with specific error handling."""
     import json
 
@@ -184,9 +199,13 @@ def handle_http_client_exceptions(service_name: str):
             try:
                 return func(*args, **kwargs)
             except ConnectionError as e:
-                logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
+                logger.error(
+                    f"Connection error to {service_name} in {func.__name__}: {e}"
+                )
                 raise ExternalServiceError(
-                    service_name, f"Failed to connect to {service_name}", {"original_error": str(e)}
+                    service_name,
+                    f"Failed to connect to {service_name}",
+                    {"original_error": str(e)},
                 )
             except TimeoutError as e:
                 logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
@@ -197,14 +216,18 @@ def handle_http_client_exceptions(service_name: str):
                 )
             except Exception as e:
                 if "timeout" in str(e).lower():
-                    logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
+                    logger.error(
+                        f"Timeout error to {service_name} in {func.__name__}: {e}"
+                    )
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
                 elif "connection" in str(e).lower():
-                    logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
+                    logger.error(
+                        f"Connection error to {service_name} in {func.__name__}: {e}"
+                    )
                     raise ExternalServiceError(
                         service_name,
                         f"Connection error to {service_name}",

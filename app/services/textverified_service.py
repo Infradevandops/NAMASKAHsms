@@ -7,8 +7,9 @@ except ImportError:
 
 import os
 import time
-from typing import Dict, Optional, Any
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Any, Dict, Optional
+
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -20,7 +21,9 @@ class TextVerifiedService:
 
     def __init__(self):
         # Load credentials from environment variables
-        self.api_key = os.getenv("TEXTVERIFIED_API_KEY") or settings.textverified_api_key
+        self.api_key = (
+            os.getenv("TEXTVERIFIED_API_KEY") or settings.textverified_api_key
+        )
         self.api_username = os.getenv("TEXTVERIFIED_EMAIL") or getattr(
             settings, "textverified_email", "huff_06psalm@icloud.com"
         )
@@ -135,7 +138,9 @@ class TextVerifiedService:
         """Record a failure and potentially open circuit breaker."""
         self._circuit_breaker_failures += 1
         if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
-            self._circuit_breaker_reset_time = time.time() + self._circuit_breaker_timeout
+            self._circuit_breaker_reset_time = (
+                time.time() + self._circuit_breaker_timeout
+            )
             logger.error(
                 f"Circuit breaker OPENED after {self._circuit_breaker_failures} failures. Will retry in {self._circuit_breaker_timeout}s"
             )
@@ -217,7 +222,9 @@ class TextVerifiedService:
             logger.error(f"TextVerified balance error: {str(e)}")
             raise
 
-    async def _retry_with_backoff(self, func, max_retries: int = 3, initial_delay: float = 1.0):
+    async def _retry_with_backoff(
+        self, func, max_retries: int = 3, initial_delay: float = 1.0
+    ):
         """Retry a function with exponential backoff.
 
         Args:
@@ -341,7 +348,12 @@ class TextVerifiedService:
         except Exception as e:
             logger.error(f"TextVerified check error: {str(e)}")
             self._record_failure()
-            return {"sms_code": None, "sms_text": None, "status": "error", "error": str(e)}
+            return {
+                "sms_code": None,
+                "sms_text": None,
+                "status": "error",
+                "error": str(e),
+            }
 
     async def get_pricing(self, country: str, service: str) -> Dict[str, Any]:
         """Get service pricing.
@@ -381,7 +393,9 @@ class TextVerifiedService:
             for service in services_data:
                 # Extract service_name from Service object
                 service_name = (
-                    service.service_name if hasattr(service, "service_name") else str(service)
+                    service.service_name
+                    if hasattr(service, "service_name")
+                    else str(service)
                 )
 
                 # Skip duplicates
@@ -399,7 +413,9 @@ class TextVerifiedService:
                     }
                 )
 
-            logger.info(f"Retrieved {len(formatted_services)} services from TextVerified API")
+            logger.info(
+                f"Retrieved {len(formatted_services)} services from TextVerified API"
+            )
             return formatted_services
 
         except Exception as e:
@@ -488,7 +504,12 @@ class TextVerifiedService:
             return result
         except Exception as e:
             logger.error(f"Get SMS error: {str(e)}")
-            return {"sms_code": None, "sms_text": None, "status": "error", "error": str(e)}
+            return {
+                "sms_code": None,
+                "sms_text": None,
+                "status": "error",
+                "error": str(e),
+            }
 
     async def cancel_number(self, activation_id: str) -> bool:
         """Cancel number and get refund (alias for cancel_activation).
@@ -532,7 +553,12 @@ class TextVerifiedService:
 
         except Exception as e:
             logger.error(f"Verification status error: {str(e)}")
-            return {"status": "error", "sms_code": None, "sms_text": None, "error": str(e)}
+            return {
+                "status": "error",
+                "sms_code": None,
+                "sms_text": None,
+                "error": str(e),
+            }
 
     async def cancel_activation(self, activation_id: str) -> bool:
         """Cancel activation and get refund.

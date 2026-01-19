@@ -1,8 +1,9 @@
 """Response validation utilities for API endpoints."""
 
-from typing import Any, Dict, Type, TypeVar, Tuple, Optional, Union
-from pydantic import BaseModel, ValidationError
 import logging
+from typing import Any, Dict, Optional, Tuple, Type, TypeVar
+
+from pydantic import BaseModel, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,14 @@ def validate_response(data: Any, schema: Type[T]) -> T:
 
         logger.error(f"Response validation failed: {error_messages}")
         raise ResponseValidationError(
-            f"Response validation failed: {'; '.join(error_messages)}", errors=e.errors()
+            f"Response validation failed: {'; '.join(error_messages)}",
+            errors=e.errors(),
         )
 
 
-def validate_response_safe(data: Any, schema: Type[T]) -> Tuple[bool, Optional[T], Optional[str]]:
+def validate_response_safe(
+    data: Any, schema: Type[T]
+) -> Tuple[bool, Optional[T], Optional[str]]:
     """Safely validate response data without raising exceptions.
 
     Args:

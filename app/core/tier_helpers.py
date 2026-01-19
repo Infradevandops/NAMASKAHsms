@@ -4,15 +4,14 @@ This module provides utility functions for working with user subscription tiers,
 including tier hierarchy checks, access validation, and display name mapping.
 """
 
-from typing import Optional
+import logging
+from datetime import datetime
+
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from datetime import datetime
-from fastapi import HTTPException
-from app.schemas.tier_response import TierAccessDenied
-import logging
-
 from app.models.user import User
+from app.schemas.tier_response import TierAccessDenied
 
 logger = logging.getLogger(__name__)
 
@@ -111,5 +110,3 @@ def log_tier_check(user_id: str, endpoint: str, tier: str, allowed: bool):
             "timestamp": datetime.utcnow().isoformat(),
         },
     )
-
-

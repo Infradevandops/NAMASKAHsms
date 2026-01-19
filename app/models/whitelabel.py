@@ -1,8 +1,10 @@
 """White-label configuration model."""
 
-from sqlalchemy import Column, String, JSON, DateTime, Boolean
-from sqlalchemy.orm import relationship
 from datetime import datetime
+
+from sqlalchemy import JSON, Boolean, Column, DateTime, String
+from sqlalchemy.orm import relationship
+
 from .base import Base
 
 
@@ -17,6 +19,10 @@ class WhiteLabelConfig(Base):
     logo_url = Column(String(500))
     primary_color = Column(String(7))
     secondary_color = Column(String(7))
+    company_name = Column(String(255))
+    custom_css = Column(String)
+    api_subdomain = Column(String(255))
+    features = Column(JSON)
     custom_branding = Column(JSON)
     enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)

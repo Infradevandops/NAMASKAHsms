@@ -1,23 +1,26 @@
 """Admin verification history endpoints."""
 
+import csv
+from datetime import datetime, timedelta, timezone
+from io import StringIO
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone, timedelta
-from typing import Optional
-import csv
-from io import StringIO
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
+from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/verifications", tags=["Admin Verification History"])
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -53,7 +56,10 @@ async def list_verifications(
 
         total = query.count()
         verifications = (
-            query.order_by(Verification.created_at.desc()).limit(limit).offset(offset).all()
+            query.order_by(Verification.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+            .all()
         )
 
         return {
@@ -68,10 +74,14 @@ async def list_verifications(
                     "service": v.service_name,
                     "status": v.status,
                     "phone_number": (
-                        v.phone_number[:3] + "***" + v.phone_number[-2:] if v.phone_number else None
+                        v.phone_number[:3] + "***" + v.phone_number[-2:]
+                        if v.phone_number
+                        else None
                     ),
                     "created_at": v.created_at.isoformat() if v.created_at else None,
-                    "completed_at": v.completed_at.isoformat() if v.completed_at else None,
+                    "completed_at": (
+                        v.completed_at.isoformat() if v.completed_at else None
+                    ),
                     "cost_usd": float(v.cost or 0),
                 }
                 for v in verifications
@@ -86,11 +96,15 @@ async def list_verifications(
 
 @router.get("/{verification_id}")
 async def get_verification_detail(
-    verification_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
+    verification_id: str,
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Get detailed verification info."""
     try:
-        verification = db.query(Verification).filter(Verification.id == verification_id).first()
+        verification = (
+            db.query(Verification).filter(Verification.id == verification_id).first()
+        )
         if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
 
@@ -104,9 +118,13 @@ async def get_verification_detail(
             "service": verification.service_name,
             "status": verification.status,
             "phone_number": verification.phone_number,
-            "created_at": verification.created_at.isoformat() if verification.created_at else None,
+            "created_at": (
+                verification.created_at.isoformat() if verification.created_at else None
+            ),
             "completed_at": (
-                verification.completed_at.isoformat() if verification.completed_at else None
+                verification.completed_at.isoformat()
+                if verification.completed_at
+                else None
             ),
             "cost_usd": float(verification.cost or 0),
             "messages_count": (
@@ -130,7 +148,9 @@ async def get_verification_analytics(
     try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
-        verifications = db.query(Verification).filter(Verification.created_at >= cutoff_date).all()
+        verifications = (
+            db.query(Verification).filter(Verification.created_at >= cutoff_date).all()
+        )
 
         total = len(verifications)
         completed = len([v for v in verifications if v.status == "completed"])
@@ -163,7 +183,9 @@ async def get_verification_analytics(
             "pending": pending,
             "success_rate": round((completed / total * 100) if total > 0 else 0, 2),
             "total_cost_usd": round(total_cost, 2),
-            "avg_cost_per_verification": round(total_cost / total if total > 0 else 0, 2),
+            "avg_cost_per_verification": round(
+                total_cost / total if total > 0 else 0, 2
+            ),
             "by_country": by_country,
             "by_service": by_service,
         }

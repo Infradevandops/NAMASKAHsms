@@ -1,7 +1,9 @@
 """Performance monitoring utilities - WITH ERROR HANDLING."""
 
-from prometheus_client import Histogram, Counter
 import time
+
+from prometheus_client import Counter, Histogram
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -38,7 +40,9 @@ class PerformanceMonitor:
                 finally:
                     try:
                         duration = time.time() - start
-                        request_duration.labels(method=method, endpoint=endpoint).observe(duration)
+                        request_duration.labels(
+                            method=method, endpoint=endpoint
+                        ).observe(duration)
                     except Exception as e:
                         logger.error(f"Error recording metrics: {e}")
 

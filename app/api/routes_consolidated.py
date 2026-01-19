@@ -1,14 +1,19 @@
 """Consolidated routing - all pages and redirects."""
 
+from pathlib import Path
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from pathlib import Path
-from typing import Optional
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_optional_user_id, require_tier
+from app.core.dependencies import (
+    get_current_user_id,
+    get_optional_user_id,
+    require_tier,
+)
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -45,7 +50,11 @@ async def landing_page(request: Request, db: Session = Depends(get_db)):
         try:
             from app.models.subscription_tier import SubscriptionTier
 
-            tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
+            tiers = (
+                db.query(SubscriptionTier)
+                .order_by(SubscriptionTier.price_monthly)
+                .all()
+            )
             user_count = db.query(User).count()
         except Exception as db_error:
             logger.warning(f"Database query failed, using defaults: {db_error}")
@@ -103,18 +112,24 @@ async def pricing_page(request: Request):
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """User dashboard."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "dashboard.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/verify", response_class=HTMLResponse)
 async def verify_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """SMS verification page."""
     from app.models.user import User
@@ -125,7 +140,9 @@ async def verify_page(
 
 @router.get("/wallet", response_class=HTMLResponse)
 async def wallet_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Wallet/billing page."""
     from app.models.user import User
@@ -136,18 +153,24 @@ async def wallet_page(
 
 @router.get("/profile", response_class=HTMLResponse)
 async def profile_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """User profile page."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "profile.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/settings", response_class=HTMLResponse)
 async def settings_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Settings page."""
     from app.models.user import User
@@ -160,7 +183,9 @@ async def settings_page(
 
 @router.get("/history", response_class=HTMLResponse)
 async def history_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Verification history page."""
     from app.models.user import User
@@ -173,35 +198,77 @@ async def history_page(
 
 @router.get("/analytics", response_class=HTMLResponse)
 async def analytics_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Analytics dashboard page."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("analytics.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "analytics.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/notifications", response_class=HTMLResponse)
 async def notifications_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Notifications center page."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("notifications.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "notifications.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/privacy-settings", response_class=HTMLResponse)
 async def privacy_settings_page(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """GDPR/Privacy settings page (authenticated)."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("gdpr_settings.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "gdpr_settings.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/webhooks", response_class=HTMLResponse)
+async def webhooks_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Webhook builder page."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse(
+        "webhooks.html", {"request": request, "user": user}
+    )
+
+
+@router.get("/referrals", response_class=HTMLResponse)
+async def referrals_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Referral program dashboard."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse(
+        "referrals.html", {"request": request, "user": user}
+    )
 
 
 # ============================================================================
@@ -211,7 +278,9 @@ async def privacy_settings_page(
 
 @router.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Admin dashboard."""
     from app.models.user import User
@@ -219,12 +288,16 @@ async def admin_dashboard(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/dashboard.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/admin/tier-management", response_class=HTMLResponse)
 async def admin_tier_management(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Admin tier management."""
     from app.models.user import User
@@ -239,7 +312,9 @@ async def admin_tier_management(
 
 @router.get("/admin/verification-history", response_class=HTMLResponse)
 async def admin_verification_history(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Admin verification history."""
     from app.models.user import User
@@ -254,7 +329,9 @@ async def admin_verification_history(
 
 @router.get("/admin/pricing-templates", response_class=HTMLResponse)
 async def admin_pricing_templates(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Admin pricing templates."""
     from app.models.user import User
@@ -269,7 +346,9 @@ async def admin_pricing_templates(
 
 @router.get("/admin/logs", response_class=HTMLResponse)
 async def admin_logging_dashboard(
-    request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Admin logging dashboard."""
     from app.models.user import User
@@ -291,7 +370,8 @@ async def admin_logging_dashboard(
 async def about_page(request: Request):
     """About page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "about", "page_title": "About Namaskah"}
+        "info.html",
+        {"request": request, "page_type": "about", "page_title": "About Namaskah"},
     )
 
 
@@ -299,7 +379,8 @@ async def about_page(request: Request):
 async def contact_page(request: Request):
     """Contact page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "contact", "page_title": "Contact Us"}
+        "info.html",
+        {"request": request, "page_type": "contact", "page_title": "Contact Us"},
     )
 
 
@@ -315,7 +396,8 @@ async def faq_page(request: Request):
 async def privacy_page(request: Request):
     """Privacy policy page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "privacy", "page_title": "Privacy Policy"}
+        "info.html",
+        {"request": request, "page_type": "privacy", "page_title": "Privacy Policy"},
     )
 
 
@@ -323,7 +405,8 @@ async def privacy_page(request: Request):
 async def terms_page(request: Request):
     """Terms of service page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "terms", "page_title": "Terms of Service"}
+        "info.html",
+        {"request": request, "page_type": "terms", "page_title": "Terms of Service"},
     )
 
 
@@ -331,7 +414,8 @@ async def terms_page(request: Request):
 async def refund_page(request: Request):
     """Refund policy page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "refund", "page_title": "Refund Policy"}
+        "info.html",
+        {"request": request, "page_type": "refund", "page_title": "Refund Policy"},
     )
 
 
@@ -339,7 +423,8 @@ async def refund_page(request: Request):
 async def cookies_page(request: Request):
     """Cookie policy page."""
     return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "cookies", "page_title": "Cookie Policy"}
+        "info.html",
+        {"request": request, "page_type": "cookies", "page_title": "Cookie Policy"},
     )
 
 
@@ -364,7 +449,9 @@ async def status_page(
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(request: Request, user_id: Optional[str] = Depends(get_optional_user_id)):
+async def home(
+    request: Request, user_id: Optional[str] = Depends(get_optional_user_id)
+):
     """Home - redirect to appropriate page."""
     if user_id:
         return RedirectResponse(url="/dashboard", status_code=302)
@@ -443,13 +530,17 @@ async def test_login_page(request: Request):
 
 @router.get("/voice-verify", response_class=HTMLResponse)
 async def voice_verify_page(
-    request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(require_payg),
+    db: Session = Depends(get_db),
 ):
     """Voice verification page. Requires payg tier or higher."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("voice_verify.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "voice_verify.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/voice-status/{verification_id}", response_class=HTMLResponse)
@@ -464,7 +555,8 @@ async def voice_status_page(
 
     user = db.query(User).filter(User.id == user_id).first()
     return templates.TemplateResponse(
-        "voice_status.html", {"request": request, "user": user, "verification_id": verification_id}
+        "voice_status.html",
+        {"request": request, "user": user, "verification_id": verification_id},
     )
 
 
@@ -481,24 +573,32 @@ async def verification_modal(request: Request):
 
 @router.get("/api-docs", response_class=HTMLResponse)
 async def api_docs_page(
-    request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(require_payg),
+    db: Session = Depends(get_db),
 ):
     """API documentation page. Requires payg tier or higher."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("api_docs.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "api_docs.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/affiliate", response_class=HTMLResponse)
 async def affiliate_page(
-    request: Request, user_id: str = Depends(require_payg), db: Session = Depends(get_db)
+    request: Request,
+    user_id: str = Depends(require_payg),
+    db: Session = Depends(get_db),
 ):
     """Affiliate program page. Requires payg tier or higher."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("affiliate_program.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "affiliate_program.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/bulk-purchase", response_class=HTMLResponse)
@@ -509,4 +609,6 @@ async def bulk_purchase_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse("bulk_purchase.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "bulk_purchase.html", {"request": request, "user": user}
+    )

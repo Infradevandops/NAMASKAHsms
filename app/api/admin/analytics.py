@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
+from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.user import User
-from app.api.admin.dependencies import require_admin
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/admin/analytics", tags=["admin-analytics"])
@@ -23,7 +24,9 @@ async def get_analytics_overview(
 
 @router.get("/timeseries")
 async def get_timeseries(
-    days: int = 30, current_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    days: int = 30,
+    current_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Get timeseries data for charts"""
     service = AnalyticsService(db)

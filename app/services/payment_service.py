@@ -1,17 +1,16 @@
 """Payment service for managing payments and credits."""
 
 from datetime import datetime, timezone
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, Optional
 
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
+from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
-from app.models.transaction import Transaction, PaymentLog
-from app.services.paystack_service import paystack_service
 from app.services.credit_service import CreditService
-from app.core.exceptions import InsufficientCreditsError, ValidationError
+from app.services.paystack_service import paystack_service
 
 logger = get_logger(__name__)
 
@@ -223,7 +222,9 @@ class PaymentService:
         logger.info(f"Charge success: Reference={reference}, Amount={amount}")
 
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+        payment_log = (
+            self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+        )
 
         if not payment_log:
             logger.warning(f"Payment log not found: {reference}")
@@ -286,7 +287,9 @@ class PaymentService:
         logger.warning(f"Charge failed: Reference={reference}")
 
         # Get payment log
-        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+        payment_log = (
+            self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
+        )
 
         if payment_log:
             payment_log.status = "failed"
@@ -326,7 +329,10 @@ class PaymentService:
 
         # Apply pagination and sorting
         payments = (
-            query.order_by(desc(PaymentLog.created_at)).offset(skip).limit(min(limit, 100)).all()
+            query.order_by(desc(PaymentLog.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
         )
 
         logger.info(

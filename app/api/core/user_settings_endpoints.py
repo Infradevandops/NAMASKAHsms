@@ -1,14 +1,14 @@
 """User settings management endpoints."""
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.user_preference import UserPreference
 from app.models.user import User
+from app.models.user_preference import UserPreference
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/user", tags=["User Settings"])
@@ -32,14 +32,21 @@ async def get_user_settings(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
-        prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        prefs = (
+            db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        )
         if not prefs:
-            prefs = UserPreference(user_id=user_id, email_notifications=True, sms_alerts=False)
+            prefs = UserPreference(
+                user_id=user_id, email_notifications=True, sms_alerts=False
+            )
             db.add(prefs)
             db.commit()
             db.refresh(prefs)
 
-        return {"email_notifications": prefs.email_notifications, "sms_alerts": prefs.sms_alerts}
+        return {
+            "email_notifications": prefs.email_notifications,
+            "sms_alerts": prefs.sms_alerts,
+        }
     except HTTPException:
         raise
     except Exception as e:
@@ -60,7 +67,9 @@ async def update_user_settings(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
-        prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        prefs = (
+            db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        )
         if not prefs:
             prefs = UserPreference(user_id=user_id)
             db.add(prefs)

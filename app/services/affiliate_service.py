@@ -1,9 +1,11 @@
 """Affiliate program service."""
 
-from typing import Dict, List, Optional
-from sqlalchemy.orm import Session
-from app.models.affiliate import AffiliateApplication
 from datetime import datetime
+from typing import Dict, List, Optional
+
+from sqlalchemy.orm import Session
+
+from app.models.affiliate import AffiliateApplication
 
 
 class AffiliateService:
@@ -22,7 +24,10 @@ class AffiliateService:
         # Check for existing application
         existing = (
             db.query(AffiliateApplication)
-            .filter(AffiliateApplication.email == email, AffiliateApplication.status == "pending")
+            .filter(
+                AffiliateApplication.email == email,
+                AffiliateApplication.status == "pending",
+            )
             .first()
         )
 
@@ -89,7 +94,9 @@ class AffiliateService:
     async def get_all_applications(self, db: Session) -> List[Dict]:
         """Get all affiliate applications."""
         applications = (
-            db.query(AffiliateApplication).order_by(AffiliateApplication.created_at.desc()).all()
+            db.query(AffiliateApplication)
+            .order_by(AffiliateApplication.created_at.desc())
+            .all()
         )
 
         return [
@@ -112,7 +119,9 @@ class AffiliateService:
     ) -> Dict:
         """Update affiliate application status."""
         application = (
-            db.query(AffiliateApplication).filter(AffiliateApplication.id == application_id).first()
+            db.query(AffiliateApplication)
+            .filter(AffiliateApplication.id == application_id)
+            .first()
         )
 
         if not application:

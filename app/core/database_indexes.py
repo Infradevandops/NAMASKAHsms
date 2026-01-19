@@ -1,6 +1,7 @@
 """Database indexes for query optimization - WITH ERROR HANDLING."""
 
 from sqlalchemy.exc import SQLAlchemyError
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

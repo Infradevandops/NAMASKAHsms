@@ -44,7 +44,9 @@ class PaymentInitialize(BaseModel):
         return v
 
     model_config = {
-        "json_schema_extra": {"example": {"amount_usd": 20.0, "payment_method": "paystack"}}
+        "json_schema_extra": {
+            "example": {"amount_usd": 20.0, "payment_method": "paystack"}
+        }
     }
 
 
@@ -80,7 +82,9 @@ class PaymentVerify(BaseModel):
 
     reference: str = Field(..., description="Payment reference to verify")
 
-    model_config = {"json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}}
+    model_config = {
+        "json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}
+    }
 
 
 class PaymentVerifyResponse(BaseModel):
@@ -177,7 +181,9 @@ class RefundRequest(BaseModel):
     """Schema for refund request."""
 
     transaction_id: str = Field(..., description="Transaction ID to refund")
-    amount: Optional[float] = Field(None, gt=0, description="Partial refund amount (optional)")
+    amount: Optional[float] = Field(
+        None, gt=0, description="Partial refund amount (optional)"
+    )
     reason: str = Field(..., description="Refund reason")
 
     @field_validator("amount", mode="before")

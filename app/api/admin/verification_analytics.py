@@ -1,17 +1,17 @@
 """Admin verification analytics endpoints - OPTIMIZED"""
 
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
-from sqlalchemy import desc, func
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import desc, func
+from sqlalchemy.orm import Session, joinedload
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.core.unified_cache import cache
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
 
 router = APIRouter(prefix="/admin/verifications", tags=["admin-analytics"])
 
@@ -43,12 +43,16 @@ async def get_all_verifications(
         query = query.filter(Verification.status == status)
 
     if search_user:
-        query = query.filter((User.email.ilike(f"%{search_user}%")) | (User.id == search_user))
+        query = query.filter(
+            (User.email.ilike(f"%{search_user}%")) | (User.id == search_user)
+        )
 
     total = query.count()
 
     # Use joinedload to fetch related data in single query
-    verifications = query.options(joinedload(Verification.user)).limit(limit).offset(offset).all()
+    verifications = (
+        query.options(joinedload(Verification.user)).limit(limit).offset(offset).all()
+    )
 
     results = []
     for v in verifications:
@@ -81,9 +85,15 @@ async def get_verification_stats(
     # Optimized aggregation queries
     stats = db.query(
         func.count(Verification.id).label("total"),
-        func.sum(func.case((Verification.status == "completed", 1), else_=0)).label("completed"),
-        func.sum(func.case((Verification.status == "pending", 1), else_=0)).label("pending"),
-        func.sum(func.case((Verification.status == "failed", 1), else_=0)).label("failed"),
+        func.sum(func.case((Verification.status == "completed", 1), else_=0)).label(
+            "completed"
+        ),
+        func.sum(func.case((Verification.status == "pending", 1), else_=0)).label(
+            "pending"
+        ),
+        func.sum(func.case((Verification.status == "failed", 1), else_=0)).label(
+            "failed"
+        ),
         func.sum(Verification.cost).label("revenue"),
     ).first()
 
@@ -122,7 +132,12 @@ async def get_verification_stats(
         "success_rate": (completed / total * 100) if total > 0 else 0,
         "total_revenue": float(stats.revenue or 0),
         "top_users": [
-            {"user_id": u, "email": e, "verification_count": c, "total_spent": float(s or 0)}
+            {
+                "user_id": u,
+                "email": e,
+                "verification_count": c,
+                "total_spent": float(s or 0),
+            }
             for u, e, c, s in top_users
         ],
         "top_services": [{"service": s, "count": c} for s, c in top_services],
@@ -196,9 +211,13 @@ async def export_verifications(
     query = db.query(Verification).order_by(desc(Verification.created_at))
 
     if start_date:
-        query = query.filter(Verification.created_at >= datetime.fromisoformat(start_date))
+        query = query.filter(
+            Verification.created_at >= datetime.fromisoformat(start_date)
+        )
     if end_date:
-        query = query.filter(Verification.created_at <= datetime.fromisoformat(end_date))
+        query = query.filter(
+            Verification.created_at <= datetime.fromisoformat(end_date)
+        )
 
     verifications = query.all()
 

@@ -3,10 +3,9 @@ Preview Router - Theme Selector and Preview Routes
 Handles routing for different UI themes (minimal, dark, soft)
 """
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
 
 router = APIRouter(prefix="/preview", tags=["preview"])
 templates = Jinja2Templates(directory="templates")

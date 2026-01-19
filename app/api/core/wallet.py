@@ -1,24 +1,26 @@
 """Wallet API router - Updated Error Handling"""
 
-from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id
-from typing import Optional
-from datetime import datetime, timedelta, timezone
 import csv
 import io
 import json
+from datetime import datetime, timedelta, timezone
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.core.database import get_db
 from app.core.custom_exceptions import (
-    PaymentError,
     InvalidInputError,
+    PaymentError,
     ResourceNotFoundError,
 )
+from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.core.logging import get_logger
+from app.models.transaction import Transaction
+from app.models.user import User
 from app.schemas.payment import (
     PaymentInitialize,
     PaymentInitializeResponse,
@@ -28,8 +30,6 @@ from app.schemas.payment import (
     TransactionResponse,
     WalletBalanceResponse,
 )
-from app.models.user import User
-from app.models.transaction import Transaction
 from app.services import get_payment_service
 from app.services.webhook_service import WebhookService
 
@@ -38,7 +38,9 @@ router = APIRouter(prefix="/wallet", tags=["Wallet"])
 
 
 @router.get("/balance", response_model=WalletBalanceResponse)
-def get_wallet_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_wallet_balance(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current wallet balance."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -172,7 +174,12 @@ def get_transaction_history(
             query = query.filter(Transaction.type == transaction_type)
 
         total = query.count()
-        transactions = query.order_by(Transaction.created_at.desc()).offset(skip).limit(limit).all()
+        transactions = (
+            query.order_by(Transaction.created_at.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
         return TransactionHistoryResponse(
             transactions=[TransactionResponse.from_orm(t) for t in transactions],
@@ -218,7 +225,9 @@ async def export_transactions(
             return StreamingResponse(
                 iter([output.getvalue()]),
                 media_type="text/csv",
-                headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.csv"},
+                headers={
+                    "Content-Disposition": f"attachment; filename=transactions_{user_id}.csv"
+                },
             )
 
         else:

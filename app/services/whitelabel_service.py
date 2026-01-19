@@ -1,6 +1,7 @@
 """White - label platform service."""
 
 from typing import Dict, Optional
+
 from app.core.database import get_db
 from app.models.whitelabel import WhiteLabelConfig
 
@@ -47,7 +48,8 @@ class WhiteLabelService:
             custom_css=config_data.get("custom_css"),
             api_subdomain=config_data.get("api_subdomain"),
             features=config_data.get(
-                "features", {"sms": True, "whatsapp": True, "telegram": True, "analytics": True}
+                "features",
+                {"sms": True, "whatsapp": True, "telegram": True, "analytics": True},
             ),
         )
 

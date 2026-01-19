@@ -36,7 +36,8 @@ async def estimate_verification_cost(
     except Exception as e:
         logger.error(f"Failed to estimate cost: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to estimate cost"
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to estimate cost",
         )
 
 

@@ -1,10 +1,10 @@
 """Audit logging for secrets access and management."""
 
-import logging
 import json
+import logging
 from datetime import datetime
-from typing import Dict, Any, Optional
 from enum import Enum
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,10 @@ class SecretsAudit:
         )
 
     def log_rotate(
-        self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None
+        self,
+        secret_name: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
     ):
         """Log secret rotation."""
         self.log_action(

@@ -36,7 +36,9 @@ class CDNService:
         return {
             "primary_endpoint": self.cdn_endpoints[self.primary_cdn],
             "fallback_endpoints": [
-                url for key, url in self.cdn_endpoints.items() if key != self.primary_cdn
+                url
+                for key, url in self.cdn_endpoints.items()
+                if key != self.primary_cdn
             ],
             "cache_headers": {
                 "Cache - Control": "public, max - age = 31536000",

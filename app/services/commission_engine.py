@@ -1,9 +1,11 @@
 """Advanced commission calculation engine."""
 
-from typing import Dict, Optional
-from sqlalchemy.orm import Session
-from app.models.commission import CommissionTier, RevenueShare
 from datetime import datetime
+from typing import Dict, Optional
+
+from sqlalchemy.orm import Session
+
+from app.models.commission import CommissionTier, RevenueShare
 
 
 class CommissionEngine:
@@ -35,7 +37,9 @@ class CommissionEngine:
         base_commission = transaction_amount * tier["base_rate"]
 
         # Calculate performance bonus
-        bonus_commission = await self._calculate_bonus(partner_id, tier, transaction_amount)
+        bonus_commission = await self._calculate_bonus(
+            partner_id, tier, transaction_amount
+        )
 
         total_commission = base_commission + bonus_commission
 
@@ -79,7 +83,10 @@ class CommissionEngine:
         )
 
         for tier in tiers:
-            if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
+            if (
+                total_volume >= tier.min_volume
+                and total_referrals >= tier.min_referrals
+            ):
                 return {
                     "name": tier.name,
                     "base_rate": tier.base_rate,
@@ -118,7 +125,10 @@ class CommissionEngine:
         """Get partner's total transaction volume."""
         result = (
             self.db.query(self.db.func.sum(RevenueShare.revenue_amount))
-            .filter(RevenueShare.partner_id == partner_id, RevenueShare.status == "completed")
+            .filter(
+                RevenueShare.partner_id == partner_id,
+                RevenueShare.status == "completed",
+            )
             .scalar()
         )
 
@@ -130,13 +140,19 @@ class CommissionEngine:
         if not partner or not partner.referral_code:
             return 0
 
-        result = self.db.query(User).filter(User.referred_by == partner.referral_code).count()
+        result = (
+            self.db.query(User)
+            .filter(User.referred_by == partner.referral_code)
+            .count()
+        )
 
         return result
 
     async def _get_monthly_volume(self, partner_id: int) -> float:
         """Get partner's current month volume."""
-        start_of_month = utc_now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        start_of_month = utc_now().replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
 
         result = (
             self.db.query(self.db.func.sum(RevenueShare.revenue_amount))
@@ -153,7 +169,9 @@ class CommissionEngine:
     async def process_payouts(self) -> Dict:
         """Process pending commission payouts."""
         # Get all pending revenue shares
-        pending_shares = self.db.query(RevenueShare).filter(RevenueShare.status == "pending").all()
+        pending_shares = (
+            self.db.query(RevenueShare).filter(RevenueShare.status == "pending").all()
+        )
 
         processed_count = 0
         total_amount = 0.0

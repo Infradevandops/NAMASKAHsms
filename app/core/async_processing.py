@@ -130,7 +130,9 @@ class AsyncDatabaseOperations:
                 from sqlalchemy import text
 
                 db_session.execute(
-                    text("UPDATE users SET credits = credits + :amount WHERE id = :user_id"),
+                    text(
+                        "UPDATE users SET credits = credits + :amount WHERE id = :user_id"
+                    ),
                     {"amount": amount, "user_id": user_id},
                 )
 

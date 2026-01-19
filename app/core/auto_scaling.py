@@ -1,7 +1,8 @@
 """Auto - scaling configuration."""
 
+from typing import Any, Dict
+
 import psutil
-from typing import Dict, Any
 
 
 class AutoScaler:

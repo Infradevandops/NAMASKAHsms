@@ -159,7 +159,9 @@ class AdminRoleMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Check admin role for admin endpoints."""
         # Check if this is an admin path
-        is_admin_path = any(request.url.path.startswith(path) for path in self.admin_paths)
+        is_admin_path = any(
+            request.url.path.startswith(path) for path in self.admin_paths
+        )
 
         if is_admin_path:
             # Ensure user is authenticated
@@ -238,8 +240,12 @@ class CORSMiddleware(BaseHTTPMiddleware):
         ):
             response.headers["Access-Control-Allow-Origin"] = origin
 
-        response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
-        response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
+        response.headers["Access-Control-Allow-Methods"] = ", ".join(
+            self.allowed_methods
+        )
+        response.headers["Access-Control-Allow-Headers"] = ", ".join(
+            self.allowed_headers
+        )
 
         if self.allow_credentials:
             response.headers["Access-Control-Allow-Credentials"] = "true"
@@ -251,7 +257,9 @@ class CORSMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         if settings.environment == "production":
-            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            response.headers["Strict-Transport-Security"] = (
+                "max-age=31536000; includeSubDomains"
+            )
 
         return response
 

@@ -1,6 +1,7 @@
 """Fraud detection ML service."""
 
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -18,7 +19,12 @@ class FraudDetectionService:
     ) -> Tuple[float, bool]:
         """Score verification for fraud risk."""
         # Feature extraction
-        features = {"user_id": user_id, "country": country, "service": service, "ip": ip}
+        features = {
+            "user_id": user_id,
+            "country": country,
+            "service": service,
+            "ip": ip,
+        }
 
         # Simple heuristic scoring (placeholder for ML model)
         score = self._calculate_score(features)

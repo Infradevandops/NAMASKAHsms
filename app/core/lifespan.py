@@ -1,14 +1,15 @@
 """Application lifespan management."""
 
-from contextlib import asynccontextmanager
-from fastapi import FastAPI
 import asyncio
+from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+
+from app.core.config import get_settings
+from app.core.database import engine
 from app.core.logging import get_logger
 from app.core.startup import run_startup_initialization
 from app.core.unified_cache import cache
-from app.core.database import engine
-from app.core.config import get_settings
 
 
 @asynccontextmanager
@@ -33,7 +34,6 @@ async def lifespan(app: FastAPI):
     try:
         startup_logger.info("Initializing database...")
         from app.models.base import Base
-        import app.models
 
         Base.registry.configure()
         Base.metadata.create_all(bind=engine)
@@ -46,6 +46,7 @@ async def lifespan(app: FastAPI):
     try:
         startup_logger.info("Checking admin user...")
         import os
+
         if os.getenv("TESTING") != "1":
             run_startup_initialization()
 
@@ -68,7 +69,9 @@ async def lifespan(app: FastAPI):
                     sms_polling_service.start_background_service(),
                     timeout=settings.async_task_timeout_seconds,
                 )
-                sms_logger.info("SMS polling service exited; restarting supervisor in 5s")
+                sms_logger.info(
+                    "SMS polling service exited; restarting supervisor in 5s"
+                )
                 await asyncio.sleep(5)
             except asyncio.TimeoutError:
                 sms_logger.warning("SMS polling service timed out; restarting")
@@ -88,7 +91,9 @@ async def lifespan(app: FastAPI):
                     voice_polling_service.start_background_service(),
                     timeout=settings.async_task_timeout_seconds,
                 )
-                voice_logger.info("Voice polling service exited; restarting supervisor in 5s")
+                voice_logger.info(
+                    "Voice polling service exited; restarting supervisor in 5s"
+                )
                 await asyncio.sleep(5)
             except asyncio.TimeoutError:
                 voice_logger.warning("Voice polling service timed out; restarting")

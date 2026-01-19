@@ -1,9 +1,11 @@
 """Webhook and notification service for real - time updates."""
 
 import asyncio
-import httpx
-from typing import Dict, Optional, Any
 from datetime import datetime
+from typing import Any, Dict, Optional
+
+import httpx
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -23,16 +25,25 @@ class WebhookNotificationService:
         if not url:
             return False
 
-        payload = {"event": event, "timestamp": datetime.utcnow().isoformat(), "data": data}
+        payload = {
+            "event": event,
+            "timestamp": datetime.utcnow().isoformat(),
+            "data": data,
+        }
 
-        default_headers = {"Content - Type": "application/json", "User - Agent": "Namaskah/1.0"}
+        default_headers = {
+            "Content - Type": "application/json",
+            "User - Agent": "Namaskah/1.0",
+        }
         if headers:
             default_headers.update(headers)
 
         for attempt in range(self.max_retries):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
-                    response = await client.post(url, json=payload, headers=default_headers)
+                    response = await client.post(
+                        url, json=payload, headers=default_headers
+                    )
 
                     if response.status_code in [200, 201, 202]:
                         logger.info(f"Webhook sent successfully: {event} to {url}")
@@ -47,7 +58,9 @@ class WebhookNotificationService:
                     f"Webhook timeout (attempt {attempt + 1}/{self.max_retries}): {event}"
                 )
             except Exception as e:
-                logger.error(f"Webhook error (attempt {attempt + 1}/{self.max_retries}): {str(e)}")
+                logger.error(
+                    f"Webhook error (attempt {attempt + 1}/{self.max_retries}): {str(e)}"
+                )
 
             if attempt < self.max_retries - 1:
                 await asyncio.sleep(2**attempt)  # Exponential backoff
@@ -84,12 +97,19 @@ class WebhookNotificationService:
         if not webhook_url:
             return True
 
-        data = {"verification_id": verification_id, "sms_code": sms_code, "status": "completed"}
+        data = {
+            "verification_id": verification_id,
+            "sms_code": sms_code,
+            "status": "completed",
+        }
 
         return await self.send_webhook(webhook_url, "sms.received", data)
 
     async def notify_verification_cancelled(
-        self, verification_id: str, refund_amount: float, webhook_url: Optional[str] = None
+        self,
+        verification_id: str,
+        refund_amount: float,
+        webhook_url: Optional[str] = None,
     ) -> bool:
         """Notify about cancelled verification."""
         if not webhook_url:
@@ -124,7 +144,9 @@ class EmailNotificationService:
         """Send verification created email."""
         try:
             # Integration with email service (SendGrid, AWS SES, etc.)
-            logger.info(f"Email notification sent to {email} for verification {verification_id}")
+            logger.info(
+                f"Email notification sent to {email} for verification {verification_id}"
+            )
             return True
         except Exception as e:
             logger.error(f"Email notification failed: {str(e)}")

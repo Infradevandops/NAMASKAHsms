@@ -60,12 +60,18 @@ class DataMasker:
         return masked
 
     @classmethod
-    def _mask_list(cls, data: List[Any], mask_char: str, preserve_length: bool) -> List[Any]:
+    def _mask_list(
+        cls, data: List[Any], mask_char: str, preserve_length: bool
+    ) -> List[Any]:
         """Mask sensitive data in list."""
-        return [cls.mask_sensitive_data(item, mask_char, preserve_length) for item in data]
+        return [
+            cls.mask_sensitive_data(item, mask_char, preserve_length) for item in data
+        ]
 
     @classmethod
-    def _mask_string_value(cls, value: str, mask_char: str, preserve_length: bool) -> str:
+    def _mask_string_value(
+        cls, value: str, mask_char: str, preserve_length: bool
+    ) -> str:
         """Mask sensitive patterns in string values."""
         # Check for common sensitive patterns
         if cls._contains_sensitive_pattern(value):
@@ -85,7 +91,9 @@ class DataMasker:
     def _contains_sensitive_pattern(cls, value: str) -> bool:
         """Check if a string value contains sensitive patterns."""
         # Check for JWT tokens
-        if re.match(r"^[A - Za-z0 - 9-_]+\.[A - Za-z0 - 9-_]+\.[A - Za-z0 - 9-_]*$", value):
+        if re.match(
+            r"^[A - Za-z0 - 9-_]+\.[A - Za-z0 - 9-_]+\.[A - Za-z0 - 9-_]*$", value
+        ):
             return True
 
         # Check for API keys (long alphanumeric strings)
@@ -143,7 +151,9 @@ class DataMasker:
         error_msg = re.sub(r"arn:aws:[^\s]*", "[AWS_RESOURCE]", error_msg)
 
         # Remove IP addresses
-        error_msg = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "[IP_ADDRESS]", error_msg)
+        error_msg = re.sub(
+            r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "[IP_ADDRESS]", error_msg
+        )
 
         # Remove potential secrets (long alphanumeric strings)
         error_msg = re.sub(r"\b[A - Za-z0 - 9]{20,}\b", "[REDACTED]", error_msg)
@@ -208,7 +218,9 @@ def sanitize_log_data(log_data: Dict[str, Any]) -> Dict[str, Any]:
         sanitized["headers"] = DataMasker.mask_headers(sanitized["headers"])
 
     if "query_params" in sanitized:
-        sanitized["query_params"] = DataMasker.mask_query_params(sanitized["query_params"])
+        sanitized["query_params"] = DataMasker.mask_query_params(
+            sanitized["query_params"]
+        )
 
     return sanitized
 

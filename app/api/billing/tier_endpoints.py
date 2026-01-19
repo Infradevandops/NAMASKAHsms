@@ -1,17 +1,18 @@
 """Tier management API endpoints - Updated for 4-tier pricing system."""
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
 from sqlalchemy.orm import Session
-from sqlalchemy import func, text
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.tier_config import TierConfig
 from app.models.user import User
-from app.models.verification import Verification
 from app.models.user_quota import MonthlyQuotaUsage
+from app.models.verification import Verification
 
 logger = logging.getLogger(__name__)
 
@@ -30,13 +31,17 @@ async def list_tiers(db: Session = Depends(get_db)):
         formatted_tiers = []
         for tier in tiers:
             # Convert price from cents to dollars
-            price_monthly_dollars = tier["price_monthly"] / 100 if tier["price_monthly"] else 0
+            price_monthly_dollars = (
+                tier["price_monthly"] / 100 if tier["price_monthly"] else 0
+            )
             formatted_tier = {
                 "tier": tier["tier"],
                 "name": tier["name"],
                 "price_monthly": price_monthly_dollars,
                 "price_display": (
-                    "Free" if tier["price_monthly"] == 0 else f"${price_monthly_dollars:.2f}/mo"
+                    "Free"
+                    if tier["price_monthly"] == 0
+                    else f"${price_monthly_dollars:.2f}/mo"
                 ),
                 "quota_usd": tier["quota_usd"],
                 "overage_rate": tier["overage_rate"],
@@ -83,7 +88,9 @@ async def get_current_tier(
                 f"Retrieved tier config for {user_tier}: {tier_config.get('name', 'Unknown')}"
             )
         except Exception as config_error:
-            logger.error(f"Failed to get tier config for {user_tier}: {str(config_error)}")
+            logger.error(
+                f"Failed to get tier config for {user_tier}: {str(config_error)}"
+            )
             # Use fallback config
             tier_config = TierConfig._get_fallback_config(user_tier)
 
@@ -102,7 +109,8 @@ async def get_current_tier(
             monthly_usage = (
                 db.query(MonthlyQuotaUsage)
                 .filter(
-                    MonthlyQuotaUsage.user_id == user_id, MonthlyQuotaUsage.month == current_month
+                    MonthlyQuotaUsage.user_id == user_id,
+                    MonthlyQuotaUsage.month == current_month,
                 )
                 .first()
             )
@@ -137,7 +145,9 @@ async def get_current_tier(
             quota_used_usd = user.monthly_quota_used or 0.0
 
         # Calculate quota remaining and within_quota status
-        quota_limit = float(tier_config.get("quota_usd", 0) or 0)  # Convert Decimal to float
+        quota_limit = float(
+            tier_config.get("quota_usd", 0) or 0
+        )  # Convert Decimal to float
         quota_remaining_usd = max(0, quota_limit - quota_used_usd)
         within_quota = quota_used_usd <= quota_limit if quota_limit > 0 else True
 
@@ -168,7 +178,10 @@ async def get_current_tier(
         # Re-raise HTTP exceptions as-is
         raise
     except Exception as e:
-        logger.error(f"Unexpected error fetching tier for user {user_id}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error fetching tier for user {user_id}: {str(e)}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=500, detail=f"Failed to retrieve tier information: {str(e)}"
         )
@@ -176,7 +189,9 @@ async def get_current_tier(
 
 @router.post("/upgrade")
 async def upgrade_tier(
-    request_data: dict, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    request_data: dict,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Upgrade user to a higher tier."""
     logger.info(f"Upgrade request from user {user_id}: {request_data}")
@@ -193,14 +208,17 @@ async def upgrade_tier(
             raise HTTPException(status_code=404, detail="User not found")
 
         current_tier = user.subscription_tier or "freemium"
-        logger.debug(f"User {user_id} current tier: {current_tier}, target: {target_tier}")
+        logger.debug(
+            f"User {user_id} current tier: {current_tier}, target: {target_tier}"
+        )
 
         # Validate upgrade path
         tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
         if tier_hierarchy.get(target_tier, -1) <= tier_hierarchy.get(current_tier, 0):
             logger.warning(f"Invalid upgrade path: {current_tier} -> {target_tier}")
             raise HTTPException(
-                status_code=400, detail=f"Cannot upgrade from {current_tier} to {target_tier}"
+                status_code=400,
+                detail=f"Cannot upgrade from {current_tier} to {target_tier}",
             )
 
         # Get target tier config
@@ -214,7 +232,9 @@ async def upgrade_tier(
         user.tier_upgraded_at = datetime.utcnow()
         db.commit()
 
-        logger.info(f"Successfully upgraded user {user_id} from {current_tier} to {target_tier}")
+        logger.info(
+            f"Successfully upgraded user {user_id} from {current_tier} to {target_tier}"
+        )
 
         # Convert price from cents to dollars
         price_monthly_dollars = (
@@ -253,13 +273,21 @@ async def downgrade_tier(
         user.subscription_tier = "freemium"
         db.commit()
 
-        logger.info(f"Successfully downgraded user {user_id} from {previous_tier} to freemium")
+        logger.info(
+            f"Successfully downgraded user {user_id} from {previous_tier} to freemium"
+        )
 
-        return {"success": True, "message": "Downgraded to Freemium tier", "new_tier": "freemium"}
+        return {
+            "success": True,
+            "message": "Downgraded to Freemium tier",
+            "new_tier": "freemium",
+        }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Failed to downgrade user {user_id}: {str(e)}", exc_info=True)
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Failed to downgrade tier: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to downgrade tier: {str(e)}"
+        )

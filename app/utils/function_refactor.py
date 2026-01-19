@@ -1,8 +1,8 @@
 """Utilities for function refactoring and code organization."""
 
-from typing import Dict, Callable
-from functools import wraps
 import logging
+from functools import wraps
+from typing import Callable, Dict
 
 logger = logging.getLogger(__name__)
 

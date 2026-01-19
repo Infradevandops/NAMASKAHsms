@@ -1,20 +1,18 @@
 """SMS verification purchase endpoints."""
 
+import asyncio
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from datetime import datetime, timezone
-from typing import Optional
-import asyncio
-import uuid
-import random
 
 from app.core.database import get_db
 from app.core.logging import get_logger
-from app.services.textverified_service import TextVerifiedService
-from app.services.notification_service import NotificationService
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
+from app.services.notification_service import NotificationService
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -57,7 +55,9 @@ async def request_verification(
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             logger.error(f"User {user_id} not found")
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
+            )
 
         # Get TextVerified service
         logger.info(f"Initializing TextVerified service for user {user_id}")
@@ -160,7 +160,9 @@ async def request_verification(
                 pass
 
         db.commit()
-        logger.info(f"Transaction committed successfully for verification {verification.id}")
+        logger.info(
+            f"Transaction committed successfully for verification {verification.id}"
+        )
 
         # Notification: Verification Initiated
         try:
@@ -211,7 +213,8 @@ async def request_verification(
         db.rollback()
         logger.warning(f"Validation error in verification request: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=f"Validation error: {str(e)}"
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Validation error: {str(e)}",
         )
     except ConnectionError as e:
         db.rollback()
@@ -224,11 +227,14 @@ async def request_verification(
         db.rollback()
         logger.error(f"Timeout error in verification request: {str(e)}")
         raise HTTPException(
-            status_code=status.HTTP_504_GATEWAY_TIMEOUT, detail="Request timeout. Please try again."
+            status_code=status.HTTP_504_GATEWAY_TIMEOUT,
+            detail="Request timeout. Please try again.",
         )
     except Exception as e:
         db.rollback()
-        logger.error(f"Unexpected error in verification request: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error in verification request: {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again or contact support.",

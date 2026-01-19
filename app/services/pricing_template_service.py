@@ -1,16 +1,18 @@
 """Pricing Template Service"""
 
-from sqlalchemy.orm import Session
-from sqlalchemy import and_
 from datetime import datetime
 from typing import List, Optional
+
+from sqlalchemy import and_
+from sqlalchemy.orm import Session
+
+from app.core.logging import get_logger
 from app.models.pricing_template import (
+    PricingHistory,
     PricingTemplate,
     TierPricing,
-    PricingHistory,
     UserPricingAssignment,
 )
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -46,7 +48,11 @@ class PricingTemplateService:
         # Return active template for region
         return (
             self.db.query(PricingTemplate)
-            .filter(and_(PricingTemplate.is_active == True, PricingTemplate.region == region))
+            .filter(
+                and_(
+                    PricingTemplate.is_active == True, PricingTemplate.region == region
+                )
+            )
             .first()
         )
 
@@ -63,7 +69,11 @@ class PricingTemplateService:
 
     def get_template(self, template_id: int) -> Optional[PricingTemplate]:
         """Get specific template by ID"""
-        return self.db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+        return (
+            self.db.query(PricingTemplate)
+            .filter(PricingTemplate.id == template_id)
+            .first()
+        )
 
     def activate_template(
         self, template_id: int, admin_user_id: int, notes: str = None
@@ -121,7 +131,9 @@ class PricingTemplateService:
         """Create new pricing template"""
 
         # Check if name already exists
-        existing = self.db.query(PricingTemplate).filter(PricingTemplate.name == name).first()
+        existing = (
+            self.db.query(PricingTemplate).filter(PricingTemplate.name == name).first()
+        )
 
         if existing:
             raise ValueError(f"Template with name '{name}' already exists")
@@ -157,7 +169,9 @@ class PricingTemplateService:
         logger.info(f"Created pricing template '{name}' (ID: {template.id})")
         return template
 
-    def update_template(self, template_id: int, admin_user_id: int, **updates) -> PricingTemplate:
+    def update_template(
+        self, template_id: int, admin_user_id: int, **updates
+    ) -> PricingTemplate:
         """Update template metadata (not tiers)"""
         template = self.get_template(template_id)
 
@@ -253,7 +267,9 @@ class PricingTemplateService:
         )
 
         if assigned_users > 0:
-            raise ValueError(f"Cannot delete template with {assigned_users} assigned users")
+            raise ValueError(
+                f"Cannot delete template with {assigned_users} assigned users"
+            )
 
         # Log deletion before deleting
         self._log_history(
@@ -270,14 +286,21 @@ class PricingTemplateService:
         logger.info(f"Deleted pricing template '{template.name}' (ID: {template_id})")
         return True
 
-    def rollback_to_previous(self, admin_user_id: int, region: str = "US") -> PricingTemplate:
+    def rollback_to_previous(
+        self, admin_user_id: int, region: str = "US"
+    ) -> PricingTemplate:
         """Rollback to previous active pricing template"""
 
         # Get last deactivation in this region
         last_deactivation = (
             self.db.query(PricingHistory)
             .join(PricingTemplate, PricingHistory.template_id == PricingTemplate.id)
-            .filter(and_(PricingHistory.action == "deactivated", PricingTemplate.region == region))
+            .filter(
+                and_(
+                    PricingHistory.action == "deactivated",
+                    PricingTemplate.region == region,
+                )
+            )
             .order_by(PricingHistory.changed_at.desc())
             .first()
         )
@@ -291,7 +314,9 @@ class PricingTemplateService:
             notes="Rollback to previous pricing",
         )
 
-    def assign_user_to_template(self, user_id: int, template_id: int, assigned_by: str = "admin"):
+    def assign_user_to_template(
+        self, user_id: int, template_id: int, assigned_by: str = "admin"
+    ):
         """Assign specific template to user (for A/B testing)"""
 
         # Check if template exists
@@ -317,10 +342,14 @@ class PricingTemplateService:
             self.db.add(assignment)
 
         self.db.commit()
-        logger.info(f"Assigned user {user_id} to template {template_id} by {assigned_by}")
+        logger.info(
+            f"Assigned user {user_id} to template {template_id} by {assigned_by}"
+        )
         return assignment
 
-    def get_pricing_history(self, template_id: int = None, limit: int = 50) -> List[PricingHistory]:
+    def get_pricing_history(
+        self, template_id: int = None, limit: int = 50
+    ) -> List[PricingHistory]:
         """Get pricing change history"""
         query = self.db.query(PricingHistory)
 

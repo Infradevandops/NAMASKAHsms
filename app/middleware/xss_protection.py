@@ -1,8 +1,10 @@
 """XSS protection middleware."""
 
 import json
+
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.utils.sanitization import validate_and_sanitize_response
 
 

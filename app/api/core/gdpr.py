@@ -1,11 +1,17 @@
 """GDPR compliance endpoints for data export and account deletion."""
 
-from app.core.dependencies import get_current_user_id
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from datetime import datetime
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.models.api_key import APIKey
+from app.models.audit_log import AuditLog
+from app.models.user import User, Webhook
+from app.models.verification import Verification
+from app.schemas.responses import SuccessResponse
 
 router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 
@@ -74,4 +80,6 @@ async def delete_account(
     db.delete(user)
     db.commit()
 
-    return SuccessResponse(message="Account and all associated data deleted successfully")
+    return SuccessResponse(
+        message="Account and all associated data deleted successfully"
+    )

@@ -2,13 +2,13 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.token_manager import create_tokens, verify_refresh_token
 from app.models.user import User
-from pydantic import BaseModel
 
 
 class SuccessResponse(BaseModel):
@@ -95,7 +95,9 @@ async def logout(
 
 @router.post("/logout-all")
 async def logout_all(
-    response: Response, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    response: Response,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Logout from all devices."""
     invalidate_all_sessions(db, user_id)

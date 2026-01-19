@@ -2,20 +2,16 @@
 
 from datetime import datetime, timezone
 from typing import Optional
-import csv
-import io
-from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
-from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.verification import Verification
 from app.models.user import User
+from app.models.verification import Verification
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -78,7 +74,9 @@ async def get_available_services():
         )
 
 
-@router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_verification(
     verification_data: VerificationCreate,
     user_id: str = Depends(get_current_user_id),
@@ -97,11 +95,9 @@ async def create_verification(
 
         if current_user.free_verifications > 0:
             current_user.free_verifications -= 1
-            actual_cost = 0.0
             db.commit()
         elif current_user.credits >= base_cost:
             current_user.credits -= base_cost
-            actual_cost = base_cost
             db.commit()
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
@@ -159,7 +155,9 @@ async def create_verification(
 async def get_verification_status(verification_id: str, db: Session = Depends(get_db)):
     """Get verification status."""
     try:
-        verification = db.query(Verification).filter(Verification.id == verification_id).first()
+        verification = (
+            db.query(Verification).filter(Verification.id == verification_id).first()
+        )
 
         if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
@@ -173,14 +171,18 @@ async def get_verification_status(verification_id: str, db: Session = Depends(ge
             "cost": verification.cost,
             "created_at": verification.created_at.isoformat(),
             "completed_at": (
-                verification.completed_at.isoformat() if verification.completed_at else None
+                verification.completed_at.isoformat()
+                if verification.completed_at
+                else None
             ),
         }
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Status fetch error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch verification status")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch verification status"
+        )
 
 
 @router.get("/history", response_model=VerificationHistoryResponse)
@@ -190,7 +192,9 @@ def get_verification_history(
 ):
     """Get verification history."""
     try:
-        verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
+        verifications = (
+            db.query(Verification).filter(Verification.user_id == user_id).all()
+        )
 
         return VerificationHistoryResponse(
             verifications=[],
@@ -198,12 +202,16 @@ def get_verification_history(
         )
     except Exception as e:
         logger.error(f"History fetch error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to fetch verification history")
+        raise HTTPException(
+            status_code=500, detail="Failed to fetch verification history"
+        )
 
 
 @router.get("/{verification_id}/status")
 async def get_verification_status_polling(
-    verification_id: str, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+    verification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get verification status for polling."""
     try:
@@ -245,14 +253,18 @@ async def get_verification_status_polling(
             "cost": verification.cost,
             "created_at": verification.created_at.isoformat(),
             "completed_at": (
-                verification.completed_at.isoformat() if verification.completed_at else None
+                verification.completed_at.isoformat()
+                if verification.completed_at
+                else None
             ),
         }
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Status check error: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to check verification status")
+        raise HTTPException(
+            status_code=500, detail="Failed to check verification status"
+        )
 
 
 @router.delete("/{verification_id}", response_model=SuccessResponse)

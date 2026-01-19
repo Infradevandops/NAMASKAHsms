@@ -4,14 +4,15 @@ Requires payg tier or higher for access.
 """
 
 import logging
+from typing import Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import Dict, List
 
 from app.core.database import get_db
 from app.core.dependencies import require_tier
-from app.services.affiliate_service import affiliate_service, AffiliateService
-from app.models.affiliate import AffiliateApplication, AffiliateProgram
+from app.models.affiliate import AffiliateApplication
+from app.services.affiliate_service import affiliate_service
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,9 @@ async def get_available_programs(
 
 @router.post("/apply")
 async def apply_for_affiliate(
-    application_data: Dict, user_id: str = Depends(require_payg), db: Session = Depends(get_db)
+    application_data: Dict,
+    user_id: str = Depends(require_payg),
+    db: Session = Depends(get_db),
 ) -> Dict:
     """Apply for affiliate program."""
     logger.info(
@@ -54,7 +57,9 @@ async def apply_for_affiliate(
         logger.info(f"Affiliate application created successfully for user {user_id}")
         return result
     except ValueError as e:
-        logger.warning(f"Affiliate application validation failed for user {user_id}: {str(e)}")
+        logger.warning(
+            f"Affiliate application validation failed for user {user_id}: {str(e)}"
+        )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
@@ -67,13 +72,17 @@ async def get_my_applications(
 
     applications = (
         db.query(AffiliateApplication)
-        .filter(AffiliateApplication.email.isnot(None))  # Placeholder - would filter by user
+        .filter(
+            AffiliateApplication.email.isnot(None)
+        )  # Placeholder - would filter by user
         .order_by(AffiliateApplication.created_at.desc())
         .limit(10)
         .all()
     )
 
-    logger.debug(f"Retrieved {len(applications)} affiliate applications for user {user_id}")
+    logger.debug(
+        f"Retrieved {len(applications)} affiliate applications for user {user_id}"
+    )
 
     return [
         {

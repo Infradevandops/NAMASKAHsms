@@ -3,12 +3,12 @@ Verification Status Polling Service
 Handles real-time status updates for pending verifications
 """
 
+import logging
+from datetime import datetime
+from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
-from typing import Dict, Any, List
-import asyncio
-import logging
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
@@ -33,7 +33,9 @@ class VerificationStatusService:
         try:
             # Get verification from database
             verification = (
-                self.db.query(Verification).filter(Verification.id == verification_id).first()
+                self.db.query(Verification)
+                .filter(Verification.id == verification_id)
+                .first()
             )
 
             if not verification:
@@ -48,7 +50,9 @@ class VerificationStatusService:
                     "sms_code": verification.sms_code,
                     "sms_text": verification.sms_text,
                     "updated_at": (
-                        verification.updated_at.isoformat() if verification.updated_at else None
+                        verification.updated_at.isoformat()
+                        if verification.updated_at
+                        else None
                     ),
                 }
 
@@ -62,8 +66,12 @@ class VerificationStatusService:
                     # Update database with new status
                     old_status = verification.status
                     verification.status = tv_status.get("status", verification.status)
-                    verification.sms_code = tv_status.get("sms_code") or verification.sms_code
-                    verification.sms_text = tv_status.get("sms_text") or verification.sms_text
+                    verification.sms_code = (
+                        tv_status.get("sms_code") or verification.sms_code
+                    )
+                    verification.sms_text = (
+                        tv_status.get("sms_text") or verification.sms_text
+                    )
                     verification.updated_at = datetime.utcnow()
 
                     self.db.commit()
@@ -75,7 +83,9 @@ class VerificationStatusService:
                         )
 
                 except Exception as e:
-                    logger.error(f"TextVerified API polling failed for {verification_id}: {e}")
+                    logger.error(
+                        f"TextVerified API polling failed for {verification_id}: {e}"
+                    )
 
             return {
                 "id": verification.id,
@@ -86,13 +96,17 @@ class VerificationStatusService:
                 "service_name": verification.service_name,
                 "created_at": verification.created_at.isoformat(),
                 "updated_at": (
-                    verification.updated_at.isoformat() if verification.updated_at else None
+                    verification.updated_at.isoformat()
+                    if verification.updated_at
+                    else None
                 ),
             }
 
         except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Status polling failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Status polling failed: {str(e)}"
+            )
 
     async def poll_user_verifications(self, user_id: str) -> List[Dict[str, Any]]:
         """
@@ -149,7 +163,9 @@ async def get_verification_status(
     # Verify user owns this verification
     verification = (
         db.query(Verification)
-        .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
+        .filter(
+            Verification.id == verification_id, Verification.user_id == current_user.id
+        )
         .first()
     )
 
@@ -169,7 +185,11 @@ async def get_status_updates(
     status_service = VerificationStatusService(db)
     updates = await status_service.poll_user_verifications(current_user.id)
 
-    return {"updates": updates, "count": len(updates), "timestamp": datetime.utcnow().isoformat()}
+    return {
+        "updates": updates,
+        "count": len(updates),
+        "timestamp": datetime.utcnow().isoformat(),
+    }
 
 
 @router.post("/refresh-status/{verification_id}")
@@ -186,7 +206,9 @@ async def force_status_refresh(
     # Verify user owns this verification
     verification = (
         db.query(Verification)
-        .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
+        .filter(
+            Verification.id == verification_id, Verification.user_id == current_user.id
+        )
         .first()
     )
 

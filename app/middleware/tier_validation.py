@@ -1,13 +1,12 @@
 """Tier validation middleware for feature gating."""
 
-from fastapi import Request, HTTPException, status
-from fastapi.responses import JSONResponse
-from starlette.middleware.base import BaseHTTPMiddleware
 from typing import Callable
 
+from fastapi import Request
+from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.logging import get_logger
-from app.core.tier_config import TierConfig
-from app.core.tier_helpers import raise_tier_error, get_tier_display_name
+from app.core.tier_helpers import get_tier_display_name, raise_tier_error
 
 logger = get_logger(__name__)
 
@@ -18,7 +17,10 @@ class TierValidationMiddleware(BaseHTTPMiddleware):
     # Routes that require specific tiers
     TIER_ROUTES = {
         # Area code selection (Starter+)
-        "/api/verification/purchase": {"min_tier": "starter", "check_param": "area_code"},
+        "/api/verification/purchase": {
+            "min_tier": "starter",
+            "check_param": "area_code",
+        },
         "/api/verification/area-codes": {"min_tier": "starter"},
         # ISP/Carrier filtering (Turbo only)
         "/api/verification/carriers": {"min_tier": "turbo"},
@@ -27,7 +29,10 @@ class TierValidationMiddleware(BaseHTTPMiddleware):
         "/api/keys": {"min_tier": "starter"},
         "/api/keys/generate": {"min_tier": "starter"},
         # Rentals (Starter+)
-        "/api/rentals": {"min_tier": "starter", "check_params": ["area_code", "carrier"]},
+        "/api/rentals": {
+            "min_tier": "starter",
+            "check_params": ["area_code", "carrier"],
+        },
         "/api/rentals/create": {"min_tier": "starter"},
         "/rental-modal": {"min_tier": "starter"},
     }
@@ -87,7 +92,9 @@ class TierValidationMiddleware(BaseHTTPMiddleware):
                     if user_level < required_level:
                         user_tier_name = get_tier_display_name(user_tier)
                         required_tier_name = get_tier_display_name(required_tier)
-                        raise_tier_error(user_tier_name, required_tier_name, str(user.id))
+                        raise_tier_error(
+                            user_tier_name, required_tier_name, str(user.id)
+                        )
             except Exception as e:
                 logger.error(f"Error checking request body: {e}")
                 # Continue processing, don't block on parameter check errors

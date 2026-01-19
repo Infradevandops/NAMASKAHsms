@@ -2,10 +2,10 @@
 
 import secrets
 import string
-import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
+import bcrypt
 import jwt
 
 from app.core.config import settings
@@ -28,7 +28,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         return False
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
 
@@ -39,13 +41,17 @@ def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta]
 
     to_encode.update({"exp": expire})
 
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(
+        to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
 
 
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
     """Verify and decode a JWT token."""
     try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+        )
         return payload
     except jwt.InvalidTokenError:
         return None
@@ -77,7 +83,11 @@ def mask_sensitive_data(data: str, visible_chars: int = 4) -> str:
     if len(data) <= visible_chars * 2:
         return "*" * len(data)
 
-    return data[:visible_chars] + "*" * (len(data) - visible_chars * 2) + data[-visible_chars:]
+    return (
+        data[:visible_chars]
+        + "*" * (len(data) - visible_chars * 2)
+        + data[-visible_chars:]
+    )
 
 
 def validate_password_strength(password: str) -> Dict[str, Any]:

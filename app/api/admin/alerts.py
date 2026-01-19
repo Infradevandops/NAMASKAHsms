@@ -1,6 +1,7 @@
 """Alert webhook handler for AlertManager."""
 
 from fastapi import APIRouter, Request
+
 from app.core.logging import get_logger
 
 router = APIRouter(prefix="/api/alerts", tags=["alerts"])

@@ -3,10 +3,12 @@
 import json
 import uuid
 from datetime import datetime, timedelta
-from sqlalchemy import Column, String, Boolean, DateTime
+
+from sqlalchemy import Boolean, Column, DateTime, String
 from sqlalchemy.orm import Session
-from app.models.base import Base
+
 from app.core.logging import get_logger
+from app.models.base import Base
 
 logger = get_logger("auth_security")
 
@@ -50,7 +52,11 @@ class AccountLockout(Base):
 
 
 def check_rate_limit(
-    db: Session, email: str, ip_address: str, max_attempts: int = 5, window_minutes: int = 15
+    db: Session,
+    email: str,
+    ip_address: str,
+    max_attempts: int = 5,
+    window_minutes: int = 15,
 ) -> bool:
     """Check if email/IP has exceeded rate limit."""
     try:
@@ -76,7 +82,10 @@ def check_account_lockout(db: Session, email: str) -> bool:
     try:
         lockout = (
             db.query(AccountLockout)
-            .filter(AccountLockout.email == email, AccountLockout.locked_until > datetime.utcnow())
+            .filter(
+                AccountLockout.email == email,
+                AccountLockout.locked_until > datetime.utcnow(),
+            )
             .first()
         )
         return lockout is not None

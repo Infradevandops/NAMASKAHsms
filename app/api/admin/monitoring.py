@@ -1,8 +1,9 @@
 """Advanced monitoring API endpoints."""
 
+from fastapi import APIRouter, BackgroundTasks, Depends
+
+from app.core.dependencies import get_current_admin_user
 from app.models.user import User
-from app.core.dependencies import get_current_user_id, get_current_admin_user, get_admin_user_id
-from fastapi import APIRouter, Depends, BackgroundTasks
 from app.services.monitoring_service import monitoring_service
 
 router = APIRouter(prefix="/monitoring", tags=["monitoring"])
@@ -29,7 +30,8 @@ async def check_system_alerts():
 
 @router.post("/alerts/test")
 async def test_alerting_system(
-    background_tasks: BackgroundTasks, admin_user: User = Depends(get_current_admin_user)
+    background_tasks: BackgroundTasks,
+    admin_user: User = Depends(get_current_admin_user),
 ):
     """Test alerting system (admin only)."""
     test_alert = {

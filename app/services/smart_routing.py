@@ -1,10 +1,12 @@
 """Smart SMS routing with AI - based provider selection."""
 
-from typing import Dict
 from datetime import datetime, timedelta
+from typing import Dict
+
+from sqlalchemy import case, func
+
 from app.core.database import get_db
 from app.models.verification import Verification
-from sqlalchemy import func, case
 
 
 class SmartRouter:
@@ -12,7 +14,11 @@ class SmartRouter:
 
     def __init__(self):
         self.provider_stats = {}
-        self.routing_rules = {"cost_weight": 0.3, "success_weight": 0.5, "speed_weight": 0.2}
+        self.routing_rules = {
+            "cost_weight": 0.3,
+            "success_weight": 0.5,
+            "speed_weight": 0.2,
+        }
 
     async def select_provider(self, service: str, country: str = "0") -> str:
         """Select optimal provider based on AI analysis."""
@@ -26,7 +32,9 @@ class SmartRouter:
         # Return provider with highest score
         return max(scores, key=scores.get)
 
-    async def _get_provider_stats(self, provider: str, service: str, country: str) -> Dict:
+    async def _get_provider_stats(
+        self, provider: str, service: str, country: str
+    ) -> Dict:
         """Get provider performance statistics."""
         db = next(get_db())
 

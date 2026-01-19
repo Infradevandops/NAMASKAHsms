@@ -1,7 +1,9 @@
 """Telegram Bot integration service."""
 
-import httpx
 from typing import Dict
+
+import httpx
+
 from app.core.config import settings
 
 

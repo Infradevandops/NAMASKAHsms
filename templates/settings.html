@@ -635,17 +635,17 @@
 
                 // Load basic profile
                 try {
-                    FrontendLogger.logApiCall('GET', '/api/user/me');
-                    console.log('[Settings] Fetching user data from /api/user/me...');
+                    FrontendLogger.logApiCall('GET', '/api/v1/user/me');
+                    console.log('[Settings] Fetching user data from /api/v1/user/me...');
 
-                    const userRes = await ApiRetry.fetchWithRetry('/api/user/me', {
+                    const userRes = await ApiRetry.fetchWithRetry('/api/v1/user/me', {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    FrontendLogger.logApiResponse('GET', '/api/user/me', userRes.status);
+                    FrontendLogger.logApiResponse('GET', '/api/v1/user/me', userRes.status);
                     console.log('[Settings] API response status:', userRes.status);
 
                     if (userRes.ok) {

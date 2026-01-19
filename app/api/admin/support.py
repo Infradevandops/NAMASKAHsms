@@ -1,7 +1,5 @@
 """Support API router for customer support and help desk functionality."""
 
-from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -10,6 +8,8 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
@@ -409,7 +409,9 @@ async def get_support_stats(
     """Get support statistics (admin only)."""
     try:
         total_tickets = db.query(SupportTicket).count()
-        open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+        open_tickets = (
+            db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+        )
         resolved_tickets = (
             db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
         )
@@ -424,7 +426,9 @@ async def get_support_stats(
             "closed_tickets": total_tickets - open_tickets - resolved_tickets,
             "avg_response_time": avg_response_time,
             "resolution_rate": (
-                round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0
+                round((resolved_tickets / total_tickets * 100), 1)
+                if total_tickets > 0
+                else 0
             ),
         }
 

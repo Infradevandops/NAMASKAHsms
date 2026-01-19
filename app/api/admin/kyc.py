@@ -1,32 +1,32 @@
 """KYC (Know Your Customer) API endpoints."""
 
-from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id, get_admin_user_id
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_admin_user_id, get_current_user_id
+from app.core.logging import get_logger
+from app.models.kyc import KYCAuditLog, KYCDocument, KYCProfile
 from app.schemas.kyc import (
+    KYCDocumentResponse,
     KYCProfileCreate,
     KYCProfileResponse,
-    KYCDocumentResponse,
-    KYCVerificationDecision,
-    KYCProfileResponse,
-    KYCDocumentResponse,
-    KYCVerificationDecision,
     KYCStatsResponse,
+    KYCVerificationDecision,
 )
-from app.services.kyc_service import get_kyc_service
 from app.services.document_service import get_document_service
-from app.models.kyc import KYCProfile, KYCDocument, KYCAuditLog
-from sqlalchemy import func
+from app.services.kyc_service import get_kyc_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
 
-@router.post("/profile", response_model=KYCProfileResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/profile", response_model=KYCProfileResponse, status_code=status.HTTP_201_CREATED
+)
 async def create_kyc_profile(
     profile_data: KYCProfileCreate,
     user_id: str = Depends(get_current_user_id),
@@ -35,7 +35,9 @@ async def create_kyc_profile(
     """Submit KYC profile for verification."""
     try:
         # Check if profile already exists
-        existing_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
+        existing_profile = (
+            db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
+        )
         if existing_profile:
             raise HTTPException(status_code=400, detail="KYC profile already exists")
 
@@ -54,7 +56,9 @@ async def create_kyc_profile(
 
 
 @router.get("/profile", response_model=KYCProfileResponse)
-def get_kyc_profile(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_kyc_profile(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current user's KYC profile."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
@@ -98,7 +102,8 @@ async def upload_kyc_document(
         allowed_types = ["passport", "license", "id_card", "utility_bill", "selfie"]
         if document_type not in allowed_types:
             raise HTTPException(
-                status_code=400, detail=f"Invalid document type. Allowed: {allowed_types}"
+                status_code=400,
+                detail=f"Invalid document type. Allowed: {allowed_types}",
             )
 
         # Get KYC profile
@@ -130,14 +135,18 @@ async def upload_kyc_document(
 
 
 @router.get("/documents", response_model=List[KYCDocumentResponse])
-def get_kyc_documents(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_kyc_documents(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get user's uploaded KYC documents."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
-    documents = db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
+    documents = (
+        db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
+    )
 
     return [KYCDocumentResponse.from_orm(doc) for doc in documents]
 
@@ -166,7 +175,9 @@ async def submit_kyc_for_review(
 
 
 @router.get("/limits")
-def get_kyc_limits(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+def get_kyc_limits(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get user's current KYC limits."""
     kyc_service = get_kyc_service(db)
     limits = kyc_service.get_user_limits(user_id)
@@ -185,7 +196,9 @@ def get_kyc_limits(user_id: str = Depends(get_current_user_id), db: Session = De
 
 @router.get("/admin/pending", response_model=List[KYCProfileResponse])
 def get_pending_kyc_reviews(
-    admin_id: str = Depends(get_admin_user_id), limit: int = 50, db: Session = Depends(get_db)
+    admin_id: str = Depends(get_admin_user_id),
+    limit: int = 50,
+    db: Session = Depends(get_db),
 ):
     """Get all pending KYC reviews (admin only)."""
     pending_profiles = (
@@ -225,14 +238,22 @@ async def admin_verify_kyc(
 
 
 @router.get("/admin/stats", response_model=KYCStatsResponse)
-def get_kyc_statistics(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+def get_kyc_statistics(
+    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
+):
     """Get KYC statistics (admin only)."""
 
     # Basic stats
     total_profiles = db.query(KYCProfile).count()
-    verified_profiles = db.query(KYCProfile).filter(KYCProfile.status == "verified").count()
-    pending_profiles = db.query(KYCProfile).filter(KYCProfile.status == "pending").count()
-    rejected_profiles = db.query(KYCProfile).filter(KYCProfile.status == "rejected").count()
+    verified_profiles = (
+        db.query(KYCProfile).filter(KYCProfile.status == "verified").count()
+    )
+    pending_profiles = (
+        db.query(KYCProfile).filter(KYCProfile.status == "pending").count()
+    )
+    rejected_profiles = (
+        db.query(KYCProfile).filter(KYCProfile.status == "rejected").count()
+    )
 
     # Verification levels
     level_stats = (
@@ -247,14 +268,18 @@ def get_kyc_statistics(admin_id: str = Depends(get_admin_user_id), db: Session =
         verified_profiles=verified_profiles,
         pending_profiles=pending_profiles,
         rejected_profiles=rejected_profiles,
-        verification_rate=verified_profiles / total_profiles * 100 if total_profiles > 0 else 0,
+        verification_rate=(
+            verified_profiles / total_profiles * 100 if total_profiles > 0 else 0
+        ),
         level_distribution={level: count for level, count in level_stats},
     )
 
 
 @router.get("/admin/audit/{user_id}")
 def get_kyc_audit_trail(
-    user_id: str, admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
+    user_id: str,
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get KYC audit trail for user (admin only)."""
     audit_logs = (
@@ -280,7 +305,9 @@ def get_kyc_audit_trail(
 
 @router.post("/admin/aml - screen/{kyc_profile_id}")
 async def trigger_aml_screening(
-    kyc_profile_id: str, admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
+    kyc_profile_id: str,
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db),
 ):
     """Trigger AML screening for KYC profile (admin only)."""
     kyc_service = get_kyc_service(db)

@@ -2,13 +2,16 @@
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 
 router = APIRouter(prefix="/analytics", tags=["Analytics"])
 
 
 @router.get("/success - rate")
-async def get_success_rate(hours: int = Query(24, ge=1, le=168), db: Session = Depends(get_db)):
+async def get_success_rate(
+    hours: int = Query(24, ge=1, le=168), db: Session = Depends(get_db)
+):
     """Get overall verification success rate."""
     metrics = AnalyticsService.get_success_rate(db, hours)
     return {"period_hours": hours, "metrics": metrics}
@@ -33,14 +36,18 @@ async def get_country_metrics(
 
 
 @router.get("/polling")
-async def get_polling_metrics(hours: int = Query(24, ge=1, le=168), db: Session = Depends(get_db)):
+async def get_polling_metrics(
+    hours: int = Query(24, ge=1, le=168), db: Session = Depends(get_db)
+):
     """Get SMS polling performance metrics."""
     metrics = AnalyticsService.get_polling_metrics(db, hours)
     return {"period_hours": hours, "metrics": metrics}
 
 
 @router.get("/polling/optimal - interval")
-async def get_optimal_polling_interval(service: str = Query(None), db: Session = Depends(get_db)):
+async def get_optimal_polling_interval(
+    service: str = Query(None), db: Session = Depends(get_db)
+):
     """Get optimal polling interval based on metrics."""
     interval = AdaptivePollingService.get_optimal_interval(db, service)
     return {

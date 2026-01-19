@@ -1,30 +1,50 @@
 """Number blacklist API endpoints."""
 
-from app.core.logging import get_logger
-from app.core.dependencies import get_current_user_id
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.core.logging import get_logger
+from app.models.blacklist import NumberBlacklist
 
 logger = get_logger(__name__)
+
+
+class BlacklistCreate(BaseModel):
+    phone_number: str = Field(..., description="Phone number to blacklist")
+    service_name: str = Field(default="all", description="Service name")
+    country: str = Field(default=None, description="Country code")
+    reason: str = Field(default="manual_block", description="Reason for blacklisting")
+    days: int = Field(default=30, description="Number of days to blacklist")
+
+    @field_validator("phone_number")
+    @classmethod
+    def validate_phone(cls, v):
+        if not v.startswith("+") or len(v) < 7:
+            raise ValueError("Phone number must start with + and be at least 7 digits")
+        return v
+
 
 router = APIRouter(prefix="/blacklist", tags=["Blacklist"])
 
 
+@router.post("")
 @router.post("/add")
 async def add_to_blacklist(
-    phone_number: str,
-    service_name: str,
-    country: str = None,
-    reason: str = "manual_block",
-    days: int = 30,
+    request: BlacklistCreate,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Manually add number to blacklist."""
+    phone_number = request.phone_number
+    service_name = request.service_name
+    country = request.country
+    reason = request.reason
+    days = request.days
     try:
         # Check if already blacklisted
         existing = (
@@ -101,7 +121,11 @@ async def get_blacklist(
             if not entry.is_expired
         ]
 
-        return {"success": True, "blacklist": active_blacklist, "total": len(active_blacklist)}
+        return {
+            "success": True,
+            "blacklist": active_blacklist,
+            "total": len(active_blacklist),
+        }
 
     except Exception as e:
         logger.error(f"Failed to get blacklist: {str(e)}")
@@ -118,7 +142,9 @@ async def remove_from_blacklist(
     try:
         entry = (
             db.query(NumberBlacklist)
-            .filter(NumberBlacklist.id == blacklist_id, NumberBlacklist.user_id == user_id)
+            .filter(
+                NumberBlacklist.id == blacklist_id, NumberBlacklist.user_id == user_id
+            )
             .first()
         )
 
@@ -128,7 +154,10 @@ async def remove_from_blacklist(
         db.delete(entry)
         db.commit()
 
-        return {"success": True, "message": f"Number {entry.phone_number} removed from blacklist"}
+        return {
+            "success": True,
+            "message": f"Number {entry.phone_number} removed from blacklist",
+        }
 
     except HTTPException:
         pass

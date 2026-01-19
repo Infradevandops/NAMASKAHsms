@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.user import User
-from app.models.pricing_template import PricingTemplate, TierPricing, PricingHistory
-from app.api.admin.dependencies import require_admin
-from pydantic import BaseModel
-from typing import List, Optional
 from datetime import datetime
+from typing import List, Optional
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
+from sqlalchemy.orm import Session
+
+from app.api.admin.dependencies import require_admin
+from app.core.database import get_db
+from app.models.pricing_template import PricingHistory, PricingTemplate, TierPricing
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/pricing", tags=["admin-pricing"])
 
@@ -39,7 +41,9 @@ async def get_pricing_templates(
 
     result = []
     for template in templates:
-        tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
+        tiers = (
+            db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
+        )
         result.append(
             {
                 "id": template.id,
@@ -48,11 +52,17 @@ async def get_pricing_templates(
                 "is_active": template.is_active,
                 "region": template.region,
                 "currency": template.currency,
-                "created_at": template.created_at.isoformat() if template.created_at else None,
-                "effective_date": (
-                    template.effective_date.isoformat() if template.effective_date else None
+                "created_at": (
+                    template.created_at.isoformat() if template.created_at else None
                 ),
-                "expires_at": template.expires_at.isoformat() if template.expires_at else None,
+                "effective_date": (
+                    template.effective_date.isoformat()
+                    if template.effective_date
+                    else None
+                ),
+                "expires_at": (
+                    template.expires_at.isoformat() if template.expires_at else None
+                ),
                 "tiers": [
                     {
                         "id": tier.id,
@@ -82,7 +92,11 @@ async def create_pricing_template(
     """Create new pricing template with tiers"""
 
     # Check if template name already exists
-    existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data.name).first()
+    existing = (
+        db.query(PricingTemplate)
+        .filter(PricingTemplate.name == template_data.name)
+        .first()
+    )
     if existing:
         raise HTTPException(status_code=400, detail="Template name already exists")
 
@@ -125,16 +139,24 @@ async def create_pricing_template(
 
     db.commit()
 
-    return {"success": True, "template_id": template.id, "message": "Template created successfully"}
+    return {
+        "success": True,
+        "template_id": template.id,
+        "message": "Template created successfully",
+    }
 
 
 @router.post("/templates/{template_id}/activate")
 async def activate_template(
-    template_id: int, admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    template_id: int,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Activate a pricing template (deactivates others)"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+    template = (
+        db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+    )
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
@@ -160,11 +182,15 @@ async def activate_template(
 
 @router.post("/templates/{template_id}/deactivate")
 async def deactivate_template(
-    template_id: int, admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    template_id: int,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Deactivate a pricing template"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+    template = (
+        db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+    )
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
@@ -188,7 +214,9 @@ async def deactivate_template(
 async def get_active_template(db: Session = Depends(get_db)):
     """Get currently active pricing template"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.is_active == True).first()
+    template = (
+        db.query(PricingTemplate).filter(PricingTemplate.is_active == True).first()
+    )
     if not template:
         return {"active_template": None}
 
@@ -218,7 +246,9 @@ async def get_active_template(db: Session = Depends(get_db)):
 
 @router.get("/templates/{template_id}/history")
 async def get_template_history(
-    template_id: int, admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
+    template_id: int,
+    admin_user: User = Depends(require_admin),
+    db: Session = Depends(get_db),
 ):
     """Get pricing template change history"""
 
@@ -351,7 +381,11 @@ async def create_quick_templates(
                     "monthly_price": 6.99,
                     "included_quota": 20,
                     "overage_rate": 0.35,
-                    "features": ["Area code filtering", "2,000/day", "🎄 Holiday Special"],
+                    "features": [
+                        "Area code filtering",
+                        "2,000/day",
+                        "🎄 Holiday Special",
+                    ],
                     "api_keys_limit": 8,
                     "display_order": 2,
                 },
@@ -360,7 +394,11 @@ async def create_quick_templates(
                     "monthly_price": 19.99,
                     "included_quota": 50,
                     "overage_rate": 0.20,
-                    "features": ["Area + ISP filtering", "20,000/day", "🎄 Holiday Special"],
+                    "features": [
+                        "Area + ISP filtering",
+                        "20,000/day",
+                        "🎄 Holiday Special",
+                    ],
                     "api_keys_limit": 20,
                     "display_order": 3,
                 },
@@ -382,7 +420,9 @@ async def create_quick_templates(
     for template_data in templates_data:
         # Check if template already exists
         existing = (
-            db.query(PricingTemplate).filter(PricingTemplate.name == template_data["name"]).first()
+            db.query(PricingTemplate)
+            .filter(PricingTemplate.name == template_data["name"])
+            .first()
         )
         if existing:
             continue
@@ -394,7 +434,8 @@ async def create_quick_templates(
             region="US",
             currency="USD",
             created_by=admin_user.id,
-            is_active=template_data["name"] == "Standard Pricing",  # Activate standard by default
+            is_active=template_data["name"]
+            == "Standard Pricing",  # Activate standard by default
         )
         db.add(template)
         db.flush()

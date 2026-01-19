@@ -1,15 +1,16 @@
 """Admin endpoints with RBAC."""
 
+from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from datetime import datetime, timezone, timedelta
+from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
-from app.core.tier_config import TierConfig
 from app.core.logging import get_logger
+from app.core.tier_config import TierConfig
+from app.models.user import User
 
 logger = get_logger(__name__)
 
@@ -18,7 +19,9 @@ class SuccessResponse(BaseModel):
     message: str
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -30,7 +33,9 @@ async def require_moderator_or_admin(
 ):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or (not user.is_admin and not user.is_moderator):
-        raise HTTPException(status_code=403, detail="Moderator or admin access required")
+        raise HTTPException(
+            status_code=403, detail="Moderator or admin access required"
+        )
     return user_id
 
 
@@ -45,7 +50,9 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/users")
-async def list_users(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+async def list_users(
+    user_id: str = Depends(require_admin), db: Session = Depends(get_db)
+):
     """List all users (admin only)."""
     users = db.query(User).all()
     return {
@@ -142,18 +149,24 @@ async def set_user_tier(
 
     valid_tiers = ["freemium", "payg", "pro", "custom"]
     if request.tier not in valid_tiers:
-        raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}"
+        )
 
     old_tier = user.subscription_tier or "payg"
     user.subscription_tier = request.tier
 
     if request.tier != "payg":
-        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
+        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(
+            days=request.duration_days
+        )
     else:
         user.tier_expires_at = None
 
     db.commit()
-    logger.info(f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}")
+    logger.info(
+        f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}"
+    )
 
     return {
         "success": True,
