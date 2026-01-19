@@ -66,7 +66,7 @@ def check_rate_limit(
             .filter(
                 LoginAttempt.email == email,
                 LoginAttempt.ip_address == ip_address,
-                LoginAttempt.success == False,
+                LoginAttempt.success is False,
                 LoginAttempt.timestamp > cutoff,
             )
             .count()
@@ -134,7 +134,7 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
                 db.query(LoginAttempt)
                 .filter(
                     LoginAttempt.email == email,
-                    LoginAttempt.success == False,
+                    LoginAttempt.success is False,
                     LoginAttempt.timestamp > datetime.utcnow() - timedelta(minutes=15),
                 )
                 .count()

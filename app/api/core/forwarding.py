@@ -238,12 +238,12 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #667eea;">SMS Message Received</h2>
-                    
+
                     {f'<p style="background: #fef3c7; padding: 10px; border-radius: 4px; border-left: 4px solid #f59e0b;"><strong>⚠️ This is a test message</strong></p>' if sms_data.get("is_test") else ''}
-                    
+
                     <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
                         <h3 style="margin-top: 0;">Message Details</h3>
-                        
+
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Phone Number:</strong></td>
@@ -267,7 +267,7 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
                             </tr>
                         </table>
                     </div>
-                    
+
                     <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
                         This is an automated SMS forwarding notification from Namaskah SMS.
                         To manage your forwarding settings, visit your dashboard.

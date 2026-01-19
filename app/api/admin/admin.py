@@ -334,11 +334,11 @@ def get_platform_stats(
         popular_services_raw = db.execute(
             text(
                 """
-                SELECT service_name, COUNT(*) as count 
-                FROM verifications 
-                WHERE service_name IS NOT NULL 
-                GROUP BY service_name 
-                ORDER BY count DESC 
+                SELECT service_name, COUNT(*) as count
+                FROM verifications
+                WHERE service_name IS NOT NULL
+                GROUP BY service_name
+                ORDER BY count DESC
                 LIMIT 5
             """
             )

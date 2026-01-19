@@ -544,7 +544,7 @@ async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
         try:
             body = await request.json()
             refresh_token = body.get("refresh_token")
-        except:
+        except Exception:
             pass
 
         # 2. Check cookies

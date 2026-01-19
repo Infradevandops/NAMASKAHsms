@@ -107,11 +107,11 @@ def ensure_subscription_tiers_table():
                 conn.execute(
                     text(
                         """
-                    INSERT INTO subscription_tiers 
-                    (id, tier, name, price_monthly, payment_required, quota_usd, overage_rate, 
-                     has_api_access, has_area_code_selection, has_isp_filtering, 
+                    INSERT INTO subscription_tiers
+                    (id, tier, name, price_monthly, payment_required, quota_usd, overage_rate,
+                     has_api_access, has_area_code_selection, has_isp_filtering,
                      api_key_limit, support_level)
-                    VALUES 
+                    VALUES
                     (:id, :tier, :name, :price_monthly, :payment_required, :quota_usd, :overage_rate,
                      :has_api_access, :has_area_code_selection, :has_isp_filtering,
                      :api_key_limit, :support_level)

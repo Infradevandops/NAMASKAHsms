@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification
@@ -16,9 +17,6 @@ from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
-
-# Required authentication dependency
-from app.core.dependencies import get_current_user_id
 
 
 @router.post("/request", status_code=status.HTTP_201_CREATED)

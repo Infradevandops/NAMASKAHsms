@@ -215,7 +215,7 @@ async def get_active_template(db: Session = Depends(get_db)):
     """Get currently active pricing template"""
 
     template = (
-        db.query(PricingTemplate).filter(PricingTemplate.is_active == True).first()
+        db.query(PricingTemplate).filter(PricingTemplate.is_active ).first()
     )
     if not template:
         return {"active_template": None}
