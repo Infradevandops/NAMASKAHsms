@@ -5,19 +5,23 @@ Create subscription_tiers table and populate with freemium structure
 
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.database import get_db
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
+
 def create_subscription_tiers_table():
     """Create subscription_tiers table and populate with new structure"""
-    
+
     db = next(get_db())
-    
+
     # Create the table
-    db.execute(text("""
+    db.execute(
+        text(
+            """
         CREATE TABLE IF NOT EXISTS subscription_tiers (
             id TEXT PRIMARY KEY,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -42,11 +46,13 @@ def create_subscription_tiers_table():
             rate_limit_per_minute INTEGER DEFAULT 10 NOT NULL,
             rate_limit_per_hour INTEGER DEFAULT 100 NOT NULL
         )
-    """))
-    
+    """
+        )
+    )
+
     # Clear existing data
     db.execute(text("DELETE FROM subscription_tiers"))
-    
+
     # Insert new tier structure
     tiers_data = [
         {
@@ -67,7 +73,7 @@ def create_subscription_tiers_table():
             "country_limit": -1,
             "sms_retention_days": 7,
             "support_level": "community",
-            "features": '{"deposit_bonus": true, "sms_per_deposit": 9, "deposit_amount": 20.0, "effective_rate": 2.22, "random_numbers_only": true}'
+            "features": '{"deposit_bonus": true, "sms_per_deposit": 9, "deposit_amount": 20.0, "effective_rate": 2.22, "random_numbers_only": true}',
         },
         {
             "id": "payg_tier",
@@ -87,7 +93,7 @@ def create_subscription_tiers_table():
             "country_limit": -1,
             "sms_retention_days": 14,
             "support_level": "community",
-            "features": '{"base_rate": 2.50, "state_filter_cost": 0.25, "isp_filter_cost": 0.50, "combined_filter_cost": 0.75, "custom_balance": true, "no_monthly_commitment": true}'
+            "features": '{"base_rate": 2.50, "state_filter_cost": 0.25, "isp_filter_cost": 0.50, "combined_filter_cost": 0.75, "custom_balance": true, "no_monthly_commitment": true}',
         },
         {
             "id": "pro_tier",
@@ -107,7 +113,7 @@ def create_subscription_tiers_table():
             "country_limit": -1,
             "sms_retention_days": 30,
             "support_level": "priority",
-            "features": '{"included_quota": 15.0, "overage_rate": 0.30, "all_filters_included": true, "affiliate_program": true, "priority_support": true, "api_keys": 10}'
+            "features": '{"included_quota": 15.0, "overage_rate": 0.30, "all_filters_included": true, "affiliate_program": true, "priority_support": true, "api_keys": 10}',
         },
         {
             "id": "custom_tier",
@@ -127,12 +133,14 @@ def create_subscription_tiers_table():
             "country_limit": -1,
             "sms_retention_days": 90,
             "support_level": "dedicated",
-            "features": '{"included_quota": 25.0, "overage_rate": 0.20, "unlimited_api_keys": true, "enhanced_affiliate_program": true, "dedicated_support": true, "priority_features": true, "white_label_options": true}'
-        }
+            "features": '{"included_quota": 25.0, "overage_rate": 0.20, "unlimited_api_keys": true, "enhanced_affiliate_program": true, "dedicated_support": true, "priority_features": true, "white_label_options": true}',
+        },
     ]
-    
+
     for tier_data in tiers_data:
-        db.execute(text("""
+        db.execute(
+            text(
+                """
             INSERT INTO subscription_tiers (
                 id, tier, name, description, price_monthly, payment_required,
                 quota_usd, overage_rate, has_api_access, has_area_code_selection,
@@ -146,24 +154,29 @@ def create_subscription_tiers_table():
                 :monthly_verification_limit, :country_limit, :sms_retention_days,
                 :support_level, :features, :rate_limit_per_minute, :rate_limit_per_hour
             )
-        """), {
-            **tier_data,
-            "rate_limit_per_minute": 10,
-            "rate_limit_per_hour": 100
-        })
+        """
+            ),
+            {**tier_data, "rate_limit_per_minute": 10, "rate_limit_per_hour": 100},
+        )
         print(f"✅ Created tier: {tier_data['name']}")
-    
+
     # Update existing users to freemium tier
-    db.execute(text("""
+    db.execute(
+        text(
+            """
         UPDATE users 
         SET subscription_tier = 'freemium', tier_id = 'freemium'
         WHERE subscription_tier IS NULL OR subscription_tier = ''
-    """))
-    
+    """
+        )
+    )
+
     db.commit()
     db.close()
-    
-    print(f"\n🎉 Successfully created subscription_tiers table and populated with 4 tiers!")
+
+    print(
+        f"\n🎉 Successfully created subscription_tiers table and populated with 4 tiers!"
+    )
     print("\n📋 New tier structure:")
     print("   • Freemium ($0/mo) - 9 SMS per $20 deposit")
     print("   • Pay-As-You-Go ($0/mo) - $2.50/SMS + filters")
@@ -171,6 +184,9 @@ def create_subscription_tiers_table():
     print("   • Custom ($35/mo) - $25 quota + unlimited API")
     print("\n🚀 All users updated to start in Freemium tier!")
 
+
 if __name__ == "__main__":
-    print("🏗️  Creating subscription_tiers table and populating with freemium structure...")
+    print(
+        "🏗️  Creating subscription_tiers table and populating with freemium structure..."
+    )
     create_subscription_tiers_table()

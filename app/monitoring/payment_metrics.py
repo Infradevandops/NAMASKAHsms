@@ -48,10 +48,14 @@ class PaymentMetrics:
         successful_payments = self.payment_total.get("success", 0)
         failed_payments = self.payment_total.get("failed", 0)
 
-        success_rate = (successful_payments / total_payments * 100) if total_payments > 0 else 0
+        success_rate = (
+            (successful_payments / total_payments * 100) if total_payments > 0 else 0
+        )
 
         avg_amount = (
-            sum(self.payment_amounts) / len(self.payment_amounts) if self.payment_amounts else 0
+            sum(self.payment_amounts) / len(self.payment_amounts)
+            if self.payment_amounts
+            else 0
         )
 
         avg_webhook_latency = (
@@ -87,7 +91,9 @@ class PaymentMetrics:
         total_payments = sum(self.payment_total.values())
         successful_payments = self.payment_total.get("success", 0)
 
-        success_rate = (successful_payments / total_payments * 100) if total_payments > 0 else 100
+        success_rate = (
+            (successful_payments / total_payments * 100) if total_payments > 0 else 100
+        )
 
         avg_webhook_latency = (
             sum(self.webhook_latencies) / len(self.webhook_latencies)

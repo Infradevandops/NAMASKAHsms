@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Update admin balance for testing"""
 import sys
-sys.path.insert(0, '.')
+
+sys.path.insert(0, ".")
 
 from app.core.database import SessionLocal
 from app.models.user import User
@@ -12,17 +13,17 @@ print("=" * 60)
 print("UPDATE ADMIN BALANCE")
 print("=" * 60)
 
-admin = db.query(User).filter(User.email == 'admin@namaskah.app').first()
+admin = db.query(User).filter(User.email == "admin@namaskah.app").first()
 
 if admin:
     old_balance = admin.credits
-    
+
     # Set to a different amount to prove it's dynamic
     new_balance = 47.50
-    
+
     admin.credits = new_balance
     db.commit()
-    
+
     print(f"\n✅ Balance Updated!")
     print(f"   Old Balance: ${old_balance:.2f}")
     print(f"   New Balance: ${new_balance:.2f}")

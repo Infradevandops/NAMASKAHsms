@@ -6,20 +6,22 @@ Creates the 4-tier freemium model: Freemium, Pay-As-You-Go, Pro, Custom
 
 import sys
 import os
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.core.database import get_db
 from app.models.subscription_tier import SubscriptionTier, TierEnum
 from sqlalchemy.orm import Session
 
+
 def create_freemium_tiers():
     """Create the new 4-tier freemium structure"""
-    
+
     db = next(get_db())
-    
+
     # Clear existing tiers
     db.query(SubscriptionTier).delete()
-    
+
     tiers_data = [
         {
             "tier": TierEnum.FREEMIUM,
@@ -43,8 +45,8 @@ def create_freemium_tiers():
                 "sms_per_deposit": 9,
                 "deposit_amount": 20.0,
                 "effective_rate": 2.22,
-                "random_numbers_only": True
-            }
+                "random_numbers_only": True,
+            },
         },
         {
             "tier": TierEnum.PAYG,
@@ -69,8 +71,8 @@ def create_freemium_tiers():
                 "isp_filter_cost": 0.50,
                 "combined_filter_cost": 0.75,
                 "custom_balance": True,
-                "no_monthly_commitment": True
-            }
+                "no_monthly_commitment": True,
+            },
         },
         {
             "tier": TierEnum.PRO,
@@ -95,8 +97,8 @@ def create_freemium_tiers():
                 "all_filters_included": True,
                 "affiliate_program": True,
                 "priority_support": True,
-                "api_keys": 10
-            }
+                "api_keys": 10,
+            },
         },
         {
             "tier": TierEnum.CUSTOM,
@@ -122,22 +124,22 @@ def create_freemium_tiers():
                 "enhanced_affiliate_program": True,
                 "dedicated_support": True,
                 "priority_features": True,
-                "white_label_options": True
-            }
-        }
+                "white_label_options": True,
+            },
+        },
     ]
-    
+
     created_count = 0
-    
+
     for tier_data in tiers_data:
         tier = SubscriptionTier(**tier_data)
         db.add(tier)
         created_count += 1
         print(f"✅ Created tier: {tier_data['name']}")
-    
+
     db.commit()
     db.close()
-    
+
     print(f"\n🎉 Successfully created {created_count} subscription tiers!")
     print("\n📋 New tier structure:")
     print("   • Freemium ($0/mo) - 9 SMS per $20 deposit")
@@ -145,6 +147,7 @@ def create_freemium_tiers():
     print("   • Pro ($25/mo) - $15 quota + API access")
     print("   • Custom ($35/mo) - $25 quota + unlimited API")
     print("\n🚀 New users will automatically start in Freemium tier!")
+
 
 if __name__ == "__main__":
     print("🏗️  Initializing New Freemium Tier Structure...")

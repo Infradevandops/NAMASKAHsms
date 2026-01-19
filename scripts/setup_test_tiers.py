@@ -39,118 +39,119 @@ VALID_TIERS = ["freemium", "payg", "pro", "custom"]
 def setup_test_tiers(db: Session) -> dict:
     """Set subscription tiers for test users."""
     results = {"updated": [], "created": [], "not_found": [], "errors": []}
-    
+
     for email, tier in TEST_USER_TIERS.items():
         try:
             user = db.query(User).filter(User.email == email).first()
-            
+
             if user:
                 old_tier = user.subscription_tier
                 user.subscription_tier = tier
                 db.commit()
-                results["updated"].append({
-                    "email": email,
-                    "old_tier": old_tier,
-                    "new_tier": tier
-                })
+                results["updated"].append(
+                    {"email": email, "old_tier": old_tier, "new_tier": tier}
+                )
                 print(f"✓ Updated {email}: {old_tier} → {tier}")
             else:
                 results["not_found"].append(email)
                 print(f"⚠ User not found: {email}")
-                
+
         except Exception as e:
             db.rollback()
             results["errors"].append({"email": email, "error": str(e)})
             print(f"✗ Error updating {email}: {e}")
-    
+
     return results
 
 
 def verify_test_tiers(db: Session) -> dict:
     """Verify test users have correct tiers."""
     results = {"correct": [], "incorrect": [], "not_found": []}
-    
+
     print("\nVerifying test user tiers:")
     print("-" * 50)
-    
+
     for email, expected_tier in TEST_USER_TIERS.items():
         user = db.query(User).filter(User.email == email).first()
-        
+
         if user:
             actual_tier = user.subscription_tier or "freemium"
             if actual_tier == expected_tier:
                 results["correct"].append(email)
                 print(f"✓ {email}: {actual_tier} (correct)")
             else:
-                results["incorrect"].append({
-                    "email": email,
-                    "expected": expected_tier,
-                    "actual": actual_tier
-                })
+                results["incorrect"].append(
+                    {"email": email, "expected": expected_tier, "actual": actual_tier}
+                )
                 print(f"✗ {email}: {actual_tier} (expected: {expected_tier})")
         else:
             results["not_found"].append(email)
             print(f"⚠ {email}: NOT FOUND")
-    
+
     print("-" * 50)
-    print(f"Correct: {len(results['correct'])}, Incorrect: {len(results['incorrect'])}, Not Found: {len(results['not_found'])}")
-    
+    print(
+        f"Correct: {len(results['correct'])}, Incorrect: {len(results['incorrect'])}, Not Found: {len(results['not_found'])}"
+    )
+
     return results
 
 
 def list_all_users(db: Session) -> list:
     """List all users and their tiers."""
     users = db.query(User).order_by(User.email).all()
-    
+
     print("\nAll Users and Tiers:")
     print("-" * 60)
     print(f"{'Email':<35} {'Tier':<15} {'Admin':<6}")
     print("-" * 60)
-    
+
     for user in users:
         tier = user.subscription_tier or "freemium"
         admin = "Yes" if user.is_admin else "No"
         print(f"{user.email:<35} {tier:<15} {admin:<6}")
-    
+
     print("-" * 60)
     print(f"Total users: {len(users)}")
-    
-    return [{"email": u.email, "tier": u.subscription_tier, "is_admin": u.is_admin} for u in users]
+
+    return [
+        {"email": u.email, "tier": u.subscription_tier, "is_admin": u.is_admin}
+        for u in users
+    ]
 
 
 def create_test_users(db: Session) -> dict:
     """Create missing test users."""
     from app.core.security import get_password_hash
-    
+
     results = {"created": [], "exists": [], "errors": []}
-    
+
     for email, tier in TEST_USER_TIERS.items():
         try:
             existing = db.query(User).filter(User.email == email).first()
-            
+
             if existing:
                 results["exists"].append(email)
                 continue
-            
+
             # Create new user
             user = User(
                 email=email,
                 hashed_password=get_password_hash("TestPassword123!"),
                 subscription_tier=tier,
                 is_active=True,
-                is_admin=email.endswith("@namaskah.app")
+                is_admin=email.endswith("@namaskah.app"),
             )
             db.add(user)
             db.commit()
-            
+
             results["created"].append({"email": email, "tier": tier})
             print(f"✓ Created {email} with tier {tier}")
-            
+
         except Exception as e:
             db.rollback()
             results["errors"].append({"email": email, "error": str(e)})
             print(f"✗ Error creating {email}: {e}")
-    
+
     return results
 
 
@@ -163,31 +164,35 @@ def main():
         print("  list     - List all users and their tiers")
         print("  create   - Create missing test users")
         sys.exit(1)
-    
+
     command = sys.argv[1].lower()
-    
+
     db = SessionLocal()
     try:
         if command == "setup":
             print("Setting up test user tiers...")
             results = setup_test_tiers(db)
-            print(f"\nSummary: {len(results['updated'])} updated, {len(results['not_found'])} not found")
-            
+            print(
+                f"\nSummary: {len(results['updated'])} updated, {len(results['not_found'])} not found"
+            )
+
         elif command == "verify":
             verify_test_tiers(db)
-            
+
         elif command == "list":
             list_all_users(db)
-            
+
         elif command == "create":
             print("Creating missing test users...")
             results = create_test_users(db)
-            print(f"\nSummary: {len(results['created'])} created, {len(results['exists'])} already exist")
-            
+            print(
+                f"\nSummary: {len(results['created'])} created, {len(results['exists'])} already exist"
+            )
+
         else:
             print(f"Unknown command: {command}")
             sys.exit(1)
-            
+
     finally:
         db.close()
 

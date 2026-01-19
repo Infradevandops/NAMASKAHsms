@@ -8,9 +8,9 @@ from pathlib import Path
 def run_security_tests():
     """Run all security tests."""
     print("🛡️ Running comprehensive security tests...\n")
-    
+
     project_root = Path(__file__).parent.parent
-    
+
     # Test categories to run
     test_categories = [
         ("SQL Injection Tests", "app/tests/test_sql_injection.py"),
@@ -18,18 +18,18 @@ def run_security_tests():
         ("Log Injection Tests", "app/tests/test_log_injection.py"),
         ("Comprehensive Security Tests", "app/tests/test_security_comprehensive.py"),
     ]
-    
+
     results = {}
-    
+
     for category, test_file in test_categories:
         print(f"🔍 Running {category}...")
-        
+
         test_path = project_root / test_file
         if not test_path.exists():
             print(f"⚠️ Test file not found: {test_file}")
             results[category] = "SKIPPED"
             continue
-        
+
         try:
             # Run pytest for the specific test file
             result = subprocess.run(
@@ -37,9 +37,9 @@ def run_security_tests():
                 cwd=project_root,
                 capture_output=True,
                 text=True,
-                timeout=60
+                timeout=60,
             )
-            
+
             if result.returncode == 0:
                 print(f"✅ {category}: PASSED")
                 results[category] = "PASSED"
@@ -47,14 +47,14 @@ def run_security_tests():
                 print(f"❌ {category}: FAILED")
                 print(f"Error output: {result.stdout[-200:]}")
                 results[category] = "FAILED"
-                
+
         except subprocess.TimeoutExpired:
             print(f"⏰ {category}: TIMEOUT")
             results[category] = "TIMEOUT"
         except Exception as e:
             print(f"💥 {category}: ERROR - {e}")
             results[category] = "ERROR"
-    
+
     # Run security scan
     print(f"\n🔍 Running automated security scan...")
     try:
@@ -63,9 +63,9 @@ def run_security_tests():
             [sys.executable, str(scan_script), str(project_root)],
             capture_output=True,
             text=True,
-            timeout=120
+            timeout=120,
         )
-        
+
         if result.returncode == 0:
             print("✅ Security scan: PASSED")
             results["Security Scan"] = "PASSED"
@@ -73,31 +73,31 @@ def run_security_tests():
             print("❌ Security scan: ISSUES FOUND")
             print(result.stdout[-300:])
             results["Security Scan"] = "FAILED"
-            
+
     except Exception as e:
         print(f"💥 Security scan: ERROR - {e}")
         results["Security Scan"] = "ERROR"
-    
+
     # Print summary
     print(f"\n📊 Security Test Summary:")
     print("=" * 50)
-    
+
     passed = sum(1 for status in results.values() if status == "PASSED")
     total = len(results)
-    
+
     for category, status in results.items():
         status_icon = {
             "PASSED": "✅",
-            "FAILED": "❌", 
+            "FAILED": "❌",
             "SKIPPED": "⚠️",
             "TIMEOUT": "⏰",
-            "ERROR": "💥"
+            "ERROR": "💥",
         }.get(status, "❓")
-        
+
         print(f"{status_icon} {category}: {status}")
-    
+
     print(f"\nOverall: {passed}/{total} tests passed")
-    
+
     # Return exit code
     if passed == total:
         print("\n🎉 All security tests passed!")

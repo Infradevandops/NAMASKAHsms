@@ -1,11 +1,13 @@
 """Setup default enterprise tiers."""
+
 from app.core.database import SessionLocal
 from app.models.enterprise import EnterpriseTier
+
 
 def setup_default_tiers():
     """Create default enterprise tiers."""
     db = SessionLocal()
-    
+
     tiers = [
         {
             "name": "Business",
@@ -17,8 +19,8 @@ def setup_default_tiers():
             "features": {
                 "api_rate_limit": 2000,
                 "webhook_retries": 5,
-                "analytics_retention": 180
-            }
+                "analytics_retention": 180,
+            },
         },
         {
             "name": "Enterprise",
@@ -30,8 +32,8 @@ def setup_default_tiers():
             "features": {
                 "api_rate_limit": 5000,
                 "webhook_retries": 10,
-                "analytics_retention": 365
-            }
+                "analytics_retention": 365,
+            },
         },
         {
             "name": "Premium",
@@ -43,23 +45,26 @@ def setup_default_tiers():
             "features": {
                 "api_rate_limit": 10000,
                 "webhook_retries": 15,
-                "analytics_retention": 730
-            }
-        }
+                "analytics_retention": 730,
+            },
+        },
     ]
-    
+
     for tier_data in tiers:
-        existing = db.query(EnterpriseTier).filter(
-            EnterpriseTier.name == tier_data["name"]
-        ).first()
-        
+        existing = (
+            db.query(EnterpriseTier)
+            .filter(EnterpriseTier.name == tier_data["name"])
+            .first()
+        )
+
         if not existing:
             tier = EnterpriseTier(**tier_data)
             db.add(tier)
-    
+
     db.commit()
     db.close()
     print("Enterprise tiers setup complete!")
+
 
 if __name__ == "__main__":
     setup_default_tiers()
