@@ -47,7 +47,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/unit/ --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing --cov-fail-under=40 -v
+          pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=70 -v
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -95,15 +95,12 @@ jobs:
       
       - name: Run isort
         run: isort --check-only app/ tests/
-        continue-on-error: true
       
       - name: Run Flake8
         run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821
-        continue-on-error: true
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
-        continue-on-error: true
 
   security:
     name: Security Scan
@@ -121,18 +118,15 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety check --json || true
-        continue-on-error: true
+        run: safety check --exit-code 1
       
       - name: Run Bandit security scan
         run: |
-          bandit -r app/ -f json -o bandit-report.json || true
+          bandit -r app/ -f json -o bandit-report.json
           bandit -r app/ -ll
-        continue-on-error: true
       
       - name: Run pip-audit
-        run: pip-audit --desc || true
-        continue-on-error: true
+        run: pip-audit --strict
       
       - name: Upload security reports
         uses: actions/upload-artifact@v4
@@ -142,9 +136,213 @@ jobs:
           path: bandit-report.json
           retention-days: 30
 
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 3s
+          --health-retries 3
+        ports:
+          - 6379:6379
+    env:
+      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+      REDIS_URL: redis://localhost:6379
+      TESTING: 1
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run integration tests
+        run: pytest tests/integration/ -v --maxfail=1
+
+  e2e-smoke:
+    name: E2E Smoke Tests
+    needs: [test, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install playwright pytest-playwright
+          playwright install chromium
+      
+      - name: Run E2E smoke tests
+        run: pytest tests/e2e/test_critical_paths.py -v
+
+  secrets-scan:
+    name: Secrets Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  migration-test:
+    name: Database Migration Test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: migration_test
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+        ports:
+          - 5432:5432
+    env:
+      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/migration_test
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      
+      - name: Test migrations up
+        run: alembic upgrade head
+      
+      - name: Test migrations down
+        run: alembic downgrade -1
+      
+      - name: Test idempotency
+        run: alembic upgrade head
+
+  container-scan:
+    name: Container Security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t namaskah:${{ github.sha }} .
+      
+      - name: Run Trivy scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: namaskah:${{ github.sha }}
+          severity: HIGH,CRITICAL
+          exit-code: 1
+          format: sarif
+          output: trivy-results.sarif
+      
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
+  performance:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install locust
+      
+      - name: Start application
+        run: |
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+      
+      - name: Run load tests
+        run: |
+          locust -f tests/load/locustfile.py \
+            --headless \
+            --users 100 \
+            --spawn-rate 10 \
+            --run-time 2m \
+            --host http://localhost:8000
+      
+      - name: Check performance thresholds
+        run: python scripts/check_performance_thresholds.py
+
+  contract-tests:
+    name: API Contract Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install openapi-spec-validator schemathesis
+      
+      - name: Validate OpenAPI spec
+        run: openapi-spec-validator docs/api_v2_spec.yaml
+      
+      - name: Start application
+        run: |
+          pip install -r requirements.txt
+          uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+      
+      - name: Run contract tests
+        run: |
+          schemathesis run http://localhost:8000/openapi.json \
+            --checks all \
+            --hypothesis-max-examples=50
+
   deploy-staging:
     name: Deploy to Staging
-    needs: [test, lint, security]
+    needs: [test, lint, security, integration, migration-test]
     if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
@@ -163,18 +361,26 @@ jobs:
           fi
       
       - name: Wait for deployment
-        run: sleep 30
+        run: sleep 60
       
-      - name: Health check
+      - name: Health check with retry
         run: |
           if [ -n "${{ secrets.STAGING_DEPLOY_HOOK }}" ]; then
-            curl -f https://staging.namaskah.app/health || echo "⚠️ Health check failed"
+            for i in {1..5}; do
+              if curl -f https://staging.namaskah.app/health; then
+                echo "✅ Health check passed"
+                exit 0
+              fi
+              echo "⏳ Retry $i/5..."
+              sleep 10
+            done
+            echo "❌ Health check failed"
+            exit 1
           fi
-        continue-on-error: true
 
   deploy-production:
     name: Deploy to Production
-    needs: [test, lint, security]
+    needs: [test, lint, security, integration, e2e-smoke, migration-test, container-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:
@@ -194,14 +400,26 @@ jobs:
           fi
       
       - name: Wait for deployment
-        run: sleep 45
+        run: sleep 60
       
-      - name: Production health check
+      - name: Production health check with retry
+        id: health_check
         run: |
-          curl -f https://namaskah.app/health || {
-            echo "❌ Production health check failed!"
-            exit 1
-          }
+          for i in {1..5}; do
+            if curl -f https://namaskah.app/health; then
+              echo "✅ Health check passed"
+              exit 0
+            fi
+            echo "⏳ Retry $i/5..."
+            sleep 10
+          done
+          echo "❌ Health check failed"
+          exit 1
+      
+      - name: Smoke test critical endpoints
+        run: |
+          curl -f https://namaskah.app/api/v1/health || exit 1
+          curl -f https://namaskah.app/api/diagnostics || exit 1
       
       - name: Notify deployment success
         if: success()
@@ -210,8 +428,19 @@ jobs:
           echo "Version: ${{ github.sha }}"
           echo "Deployed by: ${{ github.actor }}"
       
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "🔄 Triggering rollback..."
+          if [ -n "${{ secrets.RENDER_ROLLBACK_HOOK }}" ]; then
+            curl -X POST ${{ secrets.RENDER_ROLLBACK_HOOK }}
+            echo "✅ Rollback initiated"
+          else
+            echo "⚠️ Rollback hook not configured"
+          fi
+      
       - name: Notify deployment failure
         if: failure()
         run: |
           echo "❌ Production deployment failed!"
-          echo "Rollback may be required"
+          echo "Rollback has been triggered"
