@@ -1,4 +1,5 @@
 """Pytest configuration for E2E tests"""
+
 import pytest
 from playwright.sync_api import sync_playwright
 

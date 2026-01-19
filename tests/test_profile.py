@@ -1,6 +1,4 @@
 """Tests for Profile Page functionality."""
-import pytest
-from unittest.mock import patch, MagicMock
 
 
 class TestProfilePage:
@@ -61,10 +59,7 @@ class TestProfileEndpoints:
         response = client.put(
             "/api/user/settings",
             headers=auth_headers,
-            json={
-                "language": "en",
-                "currency": "USD"
-            }
+            json={"language": "en", "currency": "USD"},
         )
         # May succeed or fail based on schema
         assert response.status_code in [200, 422, 501]
@@ -79,19 +74,19 @@ class TestAvatarUpload:
         response = client.post(
             "/api/user/avatar",
             headers=auth_headers,
-            files={}  # Empty file to test endpoint
+            files={},  # Empty file to test endpoint
         )
         # May not exist yet
         assert response.status_code in [200, 400, 404, 422, 501]
 
     def test_avatar_file_validation(self):
         """Avatar should validate file type and size."""
-        valid_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+        valid_types = ["image/jpeg", "image/png", "image/gif", "image/webp"]
         max_size = 2 * 1024 * 1024  # 2MB
-        
+
         for mime_type in valid_types:
-            assert mime_type.startswith('image/')
-        
+            assert mime_type.startswith("image/")
+
         assert max_size == 2097152
 
 
@@ -115,16 +110,16 @@ class TestProfileDataFormat:
 
     def test_user_profile_has_required_fields(self):
         """User profile should have required fields."""
-        expected_fields = ['id', 'email', 'created_at']
+        expected_fields = ["id", "email", "created_at"]
         sample_user = {
-            'id': 'user-123',
-            'email': 'test@example.com',
-            'display_name': 'Test User',
-            'avatar_url': None,
-            'subscription_tier': 'freemium',
-            'email_verified': True,
-            'created_at': '2026-01-01T00:00:00Z',
-            'last_login': '2026-01-13T10:00:00Z'
+            "id": "user-123",
+            "email": "test@example.com",
+            "display_name": "Test User",
+            "avatar_url": None,
+            "subscription_tier": "freemium",
+            "email_verified": True,
+            "created_at": "2026-01-01T00:00:00Z",
+            "last_login": "2026-01-13T10:00:00Z",
         }
         for field in expected_fields:
             assert field in sample_user
@@ -132,10 +127,10 @@ class TestProfileDataFormat:
     def test_tier_display_names(self):
         """Tier display names should be correct."""
         tier_display = {
-            'freemium': 'Freemium',
-            'payg': 'Pay-As-You-Go',
-            'pro': 'Pro',
-            'custom': 'Custom'
+            "freemium": "Freemium",
+            "payg": "Pay-As-You-Go",
+            "pro": "Pro",
+            "custom": "Custom",
         }
         for tier, display in tier_display.items():
             assert display is not None

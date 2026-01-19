@@ -47,7 +47,7 @@ test.describe('Settings Page', () => {
             {
                 name: 'access_token',
                 value: token,
-                url: 'http://localhost:8000',
+                url: 'http://localhost:9527',
             }
         ]);
 

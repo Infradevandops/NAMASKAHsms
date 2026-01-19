@@ -1,5 +1,4 @@
 """Integration tests for core user flows."""
-import pytest
 
 
 def test_countries_list_flow(client):

@@ -3,32 +3,33 @@
 Feature: tier-system-rbac
 Tests validate the tier hierarchy access checks and subscription status logic.
 """
-import pytest
-from hypothesis import given, strategies as st, settings as hyp_settings
+
+from hypothesis import given
+from hypothesis import settings as hyp_settings
+from hypothesis import strategies as st
 
 from app.core.tier_helpers import (
-    TIER_HIERARCHY,
     TIER_DISPLAY_NAMES,
+    TIER_HIERARCHY,
+    get_tier_display_name,
     has_tier_access,
     is_subscribed,
-    get_tier_display_name,
 )
-
 
 # Valid tier strategies
 valid_tiers = st.sampled_from(list(TIER_HIERARCHY.keys()))
 paid_tiers = st.sampled_from(["payg", "pro", "custom"])
 all_tiers_including_invalid = st.one_of(
     valid_tiers,
-    st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY)
+    st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY),
 )
 
 
 class TestTierHierarchyAccessCheck:
     """Property 4: Tier Hierarchy Access Check
-    
+
     **Validates: Requirements 3.3**
-    
+
     For any two valid tiers, has_tier_access returns True if and only if
     the user tier's hierarchy level >= required tier's hierarchy level.
     """
@@ -39,10 +40,10 @@ class TestTierHierarchyAccessCheck:
         """For any valid tiers, access is granted iff user level >= required level."""
         user_level = TIER_HIERARCHY[user_tier]
         required_level = TIER_HIERARCHY[required_tier]
-        
+
         result = has_tier_access(user_tier, required_tier)
         expected = user_level >= required_level
-        
+
         assert result == expected, (
             f"has_tier_access({user_tier}, {required_tier}) returned {result}, "
             f"expected {expected} (levels: {user_level} vs {required_level})"
@@ -64,14 +65,18 @@ class TestTierHierarchyAccessCheck:
                 if level <= TIER_HIERARCHY[required_tier]:
                     assert has_tier_access(user_tier, lower_tier) is True
 
-    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY))
+    @given(
+        invalid_tier=st.text(min_size=1, max_size=20).filter(
+            lambda x: x not in TIER_HIERARCHY
+        )
+    )
     @hyp_settings(max_examples=50)
     def test_invalid_tier_defaults_to_zero(self, invalid_tier: str):
         """Invalid tiers should be treated as level 0 (freemium equivalent)."""
         # Invalid user tier should only access freemium-level features
         assert has_tier_access(invalid_tier, "freemium") is True
         assert has_tier_access(invalid_tier, "payg") is False
-        
+
         # Invalid required tier should be accessible by any valid tier
         for tier in TIER_HIERARCHY:
             assert has_tier_access(tier, invalid_tier) is True
@@ -79,9 +84,9 @@ class TestTierHierarchyAccessCheck:
 
 class TestSubscriptionStatusCheck:
     """Property 5: Subscription Status Check
-    
+
     **Validates: Requirements 3.4**
-    
+
     For any tier, is_subscribed returns True if and only if
     the tier is one of the paid tiers (payg, pro, custom).
     """
@@ -93,10 +98,10 @@ class TestSubscriptionStatusCheck:
         paid_tier_set = {"payg", "pro", "custom"}
         result = is_subscribed(tier)
         expected = tier in paid_tier_set
-        
-        assert result == expected, (
-            f"is_subscribed({tier}) returned {result}, expected {expected}"
-        )
+
+        assert (
+            result == expected
+        ), f"is_subscribed({tier}) returned {result}, expected {expected}"
 
     @given(tier=paid_tiers)
     @hyp_settings(max_examples=100)
@@ -108,9 +113,11 @@ class TestSubscriptionStatusCheck:
         """Freemium tier should not be considered subscribed."""
         assert is_subscribed("freemium") is False
 
-    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(
-        lambda x: x not in TIER_HIERARCHY
-    ))
+    @given(
+        invalid_tier=st.text(min_size=1, max_size=20).filter(
+            lambda x: x not in TIER_HIERARCHY
+        )
+    )
     @hyp_settings(max_examples=50)
     def test_invalid_tier_not_subscribed(self, invalid_tier: str):
         """Invalid tiers should not be considered subscribed."""
@@ -128,9 +135,11 @@ class TestTierDisplayNames:
         assert result == TIER_DISPLAY_NAMES[tier]
         assert result != "Unknown"
 
-    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(
-        lambda x: x not in TIER_HIERARCHY
-    ))
+    @given(
+        invalid_tier=st.text(min_size=1, max_size=20).filter(
+            lambda x: x not in TIER_HIERARCHY
+        )
+    )
     @hyp_settings(max_examples=50)
     def test_invalid_tier_returns_unknown(self, invalid_tier: str):
         """Invalid tiers should return 'Unknown' as display name."""

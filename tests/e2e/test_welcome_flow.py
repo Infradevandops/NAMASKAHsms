@@ -1,5 +1,5 @@
 """E2E test for welcome modal user flow"""
-import pytest
+
 from playwright.sync_api import Page, expect
 
 
@@ -39,7 +39,7 @@ def test_complete_flow(page: Page):
     page.select_option("#currency", "USD")
     page.click("button[type='submit']")
     page.wait_for_url("http://localhost:8000/")
-    
+
     lang = page.evaluate("localStorage.getItem('language')")
     curr = page.evaluate("localStorage.getItem('currency')")
     assert lang == "en"
@@ -60,7 +60,7 @@ def test_preferences_persist(page: Page):
     page.select_option("#currency", "EUR")
     page.click("button[type='submit']")
     page.wait_for_url("http://localhost:8000/")
-    
+
     page.goto("http://localhost:8000/welcome")
     assert page.locator("#language").input_value() == "es"
     assert page.locator("#currency").input_value() == "EUR"

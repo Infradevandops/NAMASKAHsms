@@ -1,6 +1,4 @@
 """Tests for Provider Status functionality."""
-import pytest
-from unittest.mock import patch, MagicMock
 
 
 class TestProviderStatusEndpoints:
@@ -23,7 +21,7 @@ class TestProviderStatusEndpoints:
         if response.status_code == 200:
             data = response.json()
             # Should have providers array
-            assert 'providers' in data or isinstance(data, list)
+            assert "providers" in data or isinstance(data, list)
 
 
 class TestProviderStatusPage:
@@ -66,21 +64,23 @@ class TestProviderStatusData:
 
     def test_provider_has_required_fields(self):
         """Provider status should have required fields."""
-        expected_fields = ['name', 'status', 'uptime_percent', 'response_time_ms']
+        expected_fields = ["name", "status", "uptime_percent", "response_time_ms"]
         sample_provider = {
-            'name': 'TextVerified',
-            'provider_id': 'textverified',
-            'status': 'operational',
-            'uptime_percent': 99.9,
-            'response_time_ms': 150,
-            'success_rate': 98.5
+            "name": "TextVerified",
+            "provider_id": "textverified",
+            "status": "operational",
+            "uptime_percent": 99.9,
+            "response_time_ms": 150,
+            "success_rate": 98.5,
         }
         for field in expected_fields:
-            assert field in sample_provider or field.replace('_', '') in str(sample_provider)
+            assert field in sample_provider or field.replace("_", "") in str(
+                sample_provider
+            )
 
     def test_valid_status_values(self):
         """Provider status should be one of valid values."""
-        valid_statuses = ['operational', 'degraded', 'down', 'unknown']
+        valid_statuses = ["operational", "degraded", "down", "unknown"]
         for status in valid_statuses:
             assert status in valid_statuses
 
@@ -96,23 +96,24 @@ class TestProviderStatusUI:
     def test_status_badge_classes(self):
         """Status badges should have correct CSS classes."""
         status_classes = {
-            'operational': 'status-operational',
-            'degraded': 'status-degraded',
-            'down': 'status-down',
-            'unknown': 'status-unknown'
+            "operational": "status-operational",
+            "degraded": "status-degraded",
+            "down": "status-down",
+            "unknown": "status-unknown",
         }
         for status, css_class in status_classes.items():
-            assert css_class.startswith('status-')
+            assert css_class.startswith("status-")
 
     def test_uptime_bar_color_logic(self):
         """Uptime bar should use correct colors based on percentage."""
+
         def get_uptime_color(uptime):
             if uptime >= 99:
-                return '#10b981'  # Green
+                return "#10b981"  # Green
             if uptime >= 95:
-                return '#f59e0b'  # Yellow
-            return '#ef4444'  # Red
+                return "#f59e0b"  # Yellow
+            return "#ef4444"  # Red
 
-        assert get_uptime_color(99.9) == '#10b981'
-        assert get_uptime_color(97) == '#f59e0b'
-        assert get_uptime_color(90) == '#ef4444'
+        assert get_uptime_color(99.9) == "#10b981"
+        assert get_uptime_color(97) == "#f59e0b"
+        assert get_uptime_color(90) == "#ef4444"

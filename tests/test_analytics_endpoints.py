@@ -3,13 +3,11 @@
 Feature: tier-system-rbac
 Tests validate analytics summary and dashboard activity endpoints.
 """
-import pytest
-from datetime import datetime, timezone, timedelta
-from sqlalchemy.orm import Session
+
+from datetime import datetime, timedelta, timezone
 
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
 from app.utils.security import hash_password
 from tests.conftest import create_test_token
 
@@ -21,11 +19,10 @@ class TestAnalyticsSummaryEndpoint:
         """Test that /api/analytics/summary returns all required fields."""
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
-            "/api/analytics/summary",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         required_fields = {
             "total_verifications",
@@ -38,20 +35,19 @@ class TestAnalyticsSummaryEndpoint:
             "recent_activity",
             "monthly_verifications",
             "monthly_spent",
-            "last_updated"
+            "last_updated",
         }
-        
+
         assert all(field in data for field in required_fields)
 
     def test_analytics_summary_with_no_verifications(self, client, regular_user):
         """Test analytics summary when user has no verifications."""
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
-            "/api/analytics/summary",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["total_verifications"] == 0
         assert data["successful_verifications"] == 0
@@ -72,18 +68,17 @@ class TestAnalyticsSummaryEndpoint:
                 capability="sms",
                 status=status,
                 cost=0.05,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
-            "/api/analytics/summary",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["total_verifications"] == 10
         assert data["successful_verifications"] == 7
@@ -91,11 +86,15 @@ class TestAnalyticsSummaryEndpoint:
         # Success rate is returned as decimal (0.7) not percentage (70.0)
         assert data["success_rate"] == 0.7
 
-    def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, db):
+    def test_analytics_summary_counts_monthly_verifications(
+        self, client, regular_user, db
+    ):
         """Test that monthly verifications are counted correctly."""
         # Create verifications in current month
-        current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-        
+        current_month = datetime.now(timezone.utc).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
+
         for i in range(5):
             verification = Verification(
                 id=f"monthly_{i}",
@@ -106,10 +105,10 @@ class TestAnalyticsSummaryEndpoint:
                 capability="sms",
                 status="completed",
                 cost=0.05,
-                created_at=current_month + timedelta(days=i)
+                created_at=current_month + timedelta(days=i),
             )
             db.add(verification)
-        
+
         # Create verification from previous month (should not be counted)
         old_verification = Verification(
             id="old_verify",
@@ -120,18 +119,17 @@ class TestAnalyticsSummaryEndpoint:
             capability="sms",
             status="completed",
             cost=0.05,
-            created_at=current_month - timedelta(days=1)
+            created_at=current_month - timedelta(days=1),
         )
         db.add(old_verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
-            "/api/analytics/summary",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert data["monthly_verifications"] == 5
 
@@ -143,7 +141,7 @@ class TestAnalyticsSummaryEndpoint:
     def test_analytics_summary_with_different_user_tiers(self, client, db):
         """Test analytics summary with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
-        
+
         for tier in tiers_to_test:
             user = User(
                 id=f"analytics_{tier}",
@@ -154,16 +152,15 @@ class TestAnalyticsSummaryEndpoint:
                 credits=10.0,
                 subscription_tier=tier,
                 is_active=True,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(user)
         db.commit()
-        
+
         for tier in tiers_to_test:
             token = create_test_token(f"analytics_{tier}", f"analytics_{tier}@test.com")
             response = client.get(
-                "/api/analytics/summary",
-                headers={"Authorization": f"Bearer {token}"}
+                "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
             )
             assert response.status_code == 200
             data = response.json()
@@ -178,10 +175,10 @@ class TestDashboardActivityEndpoint:
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert isinstance(data, list)
 
@@ -198,18 +195,18 @@ class TestDashboardActivityEndpoint:
                 capability="sms",
                 status="completed",
                 cost=0.05,
-                created_at=datetime.now(timezone.utc) - timedelta(hours=i)
+                created_at=datetime.now(timezone.utc) - timedelta(hours=i),
             )
             db.add(verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 5
 
@@ -224,21 +221,21 @@ class TestDashboardActivityEndpoint:
             capability="sms",
             status="completed",
             cost=0.05,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) > 0
-        
+
         activity = data[0]
         required_fields = {"id", "service_name", "phone_number", "status", "created_at"}
         assert all(field in activity for field in required_fields)
@@ -256,18 +253,18 @@ class TestDashboardActivityEndpoint:
                 capability="sms",
                 status="completed",
                 cost=0.05,
-                created_at=datetime.now(timezone.utc) - timedelta(hours=i)
+                created_at=datetime.now(timezone.utc) - timedelta(hours=i),
             )
             db.add(verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         assert len(data) == 10
 
@@ -285,25 +282,27 @@ class TestDashboardActivityEndpoint:
                 capability="sms",
                 status="completed",
                 cost=0.05,
-                created_at=base_time - timedelta(hours=i)
+                created_at=base_time - timedelta(hours=i),
             )
             db.add(verification)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         # Most recent should be first
         assert data[0]["id"] == "order_test_0"
         assert data[1]["id"] == "order_test_1"
         assert data[2]["id"] == "order_test_2"
 
-    def test_activity_recent_only_returns_user_activities(self, client, regular_user, db):
+    def test_activity_recent_only_returns_user_activities(
+        self, client, regular_user, db
+    ):
         """Test that activity endpoint only returns current user's activities."""
         # Create verification for regular user
         verification1 = Verification(
@@ -315,10 +314,10 @@ class TestDashboardActivityEndpoint:
             capability="sms",
             status="completed",
             cost=0.05,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(verification1)
-        
+
         # Create verification for different user
         other_user = User(
             id="other_user",
@@ -329,11 +328,11 @@ class TestDashboardActivityEndpoint:
             credits=10.0,
             subscription_tier="freemium",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(other_user)
         db.commit()
-        
+
         verification2 = Verification(
             id="user2_activity",
             user_id="other_user",
@@ -343,18 +342,18 @@ class TestDashboardActivityEndpoint:
             capability="sms",
             status="completed",
             cost=0.05,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(verification2)
         db.commit()
-        
+
         token = create_test_token(regular_user.id, regular_user.email)
         response = client.get(
             "/api/dashboard/activity/recent",
-            headers={"Authorization": f"Bearer {token}"}
+            headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
-        
+
         data = response.json()
         # Should only have 1 activity (for regular_user)
         assert len(data) == 1
@@ -368,7 +367,7 @@ class TestDashboardActivityEndpoint:
     def test_activity_recent_with_different_user_tiers(self, client, db):
         """Test activity endpoint with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
-        
+
         for tier in tiers_to_test:
             user = User(
                 id=f"activity_{tier}",
@@ -379,16 +378,16 @@ class TestDashboardActivityEndpoint:
                 credits=10.0,
                 subscription_tier=tier,
                 is_active=True,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(user)
         db.commit()
-        
+
         for tier in tiers_to_test:
             token = create_test_token(f"activity_{tier}", f"activity_{tier}@test.com")
             response = client.get(
                 "/api/dashboard/activity/recent",
-                headers={"Authorization": f"Bearer {token}"}
+                headers={"Authorization": f"Bearer {token}"},
             )
             assert response.status_code == 200
             data = response.json()

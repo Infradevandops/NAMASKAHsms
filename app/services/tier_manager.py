@@ -1,12 +1,13 @@
 """Tier management service for subscription-based feature access."""
 
-from typing import Optional
-from sqlalchemy.orm import Session
 from datetime import datetime, timezone
+from typing import Optional
 
-from app.models.user import User
-from app.core.tier_config import TierConfig
+from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
+from app.core.tier_config import TierConfig
+from app.models.user import User
 
 logger = get_logger(__name__)
 
@@ -29,9 +30,11 @@ class TierManager:
             if expires:
                 if expires.tzinfo is None:
                     expires = expires.replace(tzinfo=timezone.utc)
-                
+
                 if expires < datetime.now(timezone.utc):
-                    logger.warning(f"User {user_id} tier expired, downgrading to freemium")
+                    logger.warning(
+                        f"User {user_id} tier expired, downgrading to freemium"
+                    )
                     user.subscription_tier = "freemium"
                     self.db.commit()
                     return "freemium"
@@ -78,12 +81,15 @@ class TierManager:
         config = TierConfig.get_tier_config(tier)
 
         if not config["has_api_access"]:
-            return False, "API access not available on Freemium tier. Upgrade to Starter or Turbo."
+            return (
+                False,
+                "API access not available on Freemium tier. Upgrade to Starter or Turbo.",
+            )
 
         # Count existing API keys
         existing_keys = (
             self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .filter(APIKey.user_id == user_id, APIKey.is_active is True)
             .count()
         )
 
@@ -94,7 +100,10 @@ class TierManager:
             return True, None
 
         if existing_keys >= api_key_limit:
-            return False, f"API key limit reached ({api_key_limit} keys for {tier.title()} tier)"
+            return (
+                False,
+                f"API key limit reached ({api_key_limit} keys for {tier.title()} tier)",
+            )
 
         return True, None
 

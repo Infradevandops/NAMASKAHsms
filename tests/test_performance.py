@@ -2,9 +2,10 @@
 
 Tests API response times and frontend performance targets.
 """
-import pytest
+
 import time
 from datetime import datetime, timezone
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
@@ -15,7 +16,7 @@ from tests.conftest import create_test_token
 
 class TestAPIResponseTimes:
     """Test API endpoint response times."""
-    
+
     def test_tiers_list_response_time(self, client: TestClient, db: Session):
         """/api/tiers/ should respond in < 100ms."""
         user = User(
@@ -26,27 +27,26 @@ class TestAPIResponseTimes:
             is_admin=False,
             subscription_tier="payg",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
-        
+
         # Warm up request
         client.get("/api/tiers/", headers={"Authorization": f"Bearer {token}"})
-        
+
         # Measure response time
         start = time.time()
         response = client.get(
-            "/api/tiers/",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/tiers/", headers={"Authorization": f"Bearer {token}"}
         )
         elapsed = (time.time() - start) * 1000  # Convert to ms
-        
+
         assert response.status_code == 200
         assert elapsed < 500, f"Response time {elapsed:.2f}ms exceeds 500ms target"
-    
+
     def test_tiers_current_response_time(self, client: TestClient, db: Session):
         """/api/tiers/current should respond in < 100ms."""
         user = User(
@@ -57,27 +57,26 @@ class TestAPIResponseTimes:
             is_admin=False,
             subscription_tier="pro",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
-        
+
         # Warm up request
         client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
-        
+
         # Measure response time
         start = time.time()
         response = client.get(
-            "/api/tiers/current",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
         )
         elapsed = (time.time() - start) * 1000
-        
+
         assert response.status_code == 200
         assert elapsed < 500, f"Response time {elapsed:.2f}ms exceeds 500ms target"
-    
+
     def test_analytics_summary_response_time(self, client: TestClient, db: Session):
         """/api/analytics/summary should respond in < 500ms."""
         user = User(
@@ -88,27 +87,28 @@ class TestAPIResponseTimes:
             is_admin=False,
             subscription_tier="payg",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
-        
+
         # Warm up request
-        client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
-        
+        client.get(
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
+        )
+
         # Measure response time
         start = time.time()
         response = client.get(
-            "/api/analytics/summary",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
         )
         elapsed = (time.time() - start) * 1000
-        
+
         assert response.status_code == 200
         assert elapsed < 1000, f"Response time {elapsed:.2f}ms exceeds 1000ms target"
-    
+
     def test_api_keys_list_response_time(self, client: TestClient, db: Session):
         """/api/auth/api-keys should respond in < 200ms."""
         user = User(
@@ -119,31 +119,30 @@ class TestAPIResponseTimes:
             is_admin=False,
             subscription_tier="payg",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
-        
+
         # Warm up request
         client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
-        
+
         # Measure response time
         start = time.time()
         response = client.get(
-            "/api/auth/api-keys",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
         )
         elapsed = (time.time() - start) * 1000
-        
+
         assert response.status_code == 200
         assert elapsed < 500, f"Response time {elapsed:.2f}ms exceeds 500ms target"
 
 
 class TestConcurrentRequests:
     """Test system behavior under concurrent load."""
-    
+
     def test_multiple_tier_requests(self, client: TestClient, db: Session):
         """System handles multiple concurrent tier requests."""
         user = User(
@@ -154,14 +153,14 @@ class TestConcurrentRequests:
             is_admin=False,
             subscription_tier="pro",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
         headers = {"Authorization": f"Bearer {token}"}
-        
+
         # Make 10 sequential requests (simulating concurrent load)
         response_times = []
         for _ in range(10):
@@ -170,10 +169,10 @@ class TestConcurrentRequests:
             elapsed = (time.time() - start) * 1000
             response_times.append(elapsed)
             assert response.status_code == 200
-        
+
         avg_time = sum(response_times) / len(response_times)
         max_time = max(response_times)
-        
+
         # Average should be under 200ms, max under 500ms
         assert avg_time < 500, f"Average response time {avg_time:.2f}ms exceeds 500ms"
         assert max_time < 1000, f"Max response time {max_time:.2f}ms exceeds 1000ms"
@@ -181,7 +180,7 @@ class TestConcurrentRequests:
 
 class TestDatabaseQueryPerformance:
     """Test database query efficiency."""
-    
+
     def test_tier_query_with_user_data(self, client: TestClient, db: Session):
         """Tier queries efficiently load user data."""
         # Create user with quota data
@@ -193,22 +192,23 @@ class TestDatabaseQueryPerformance:
             is_admin=False,
             subscription_tier="payg",
             is_active=True,
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
-        
+
         token = create_test_token(user.id, user.email)
-        
+
         # Request should include all user tier data in single response
         response = client.get(
-            "/api/tiers/current",
-            headers={"Authorization": f"Bearer {token}"}
+            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
         )
-        
+
         assert response.status_code == 200
         data = response.json()
-        
+
         # Verify all expected fields are present (no N+1 queries needed)
         assert "current_tier" in data
-        assert "quota_limit_usd" in data or "monthly_quota_usd" in data or True  # Field may vary
+        assert (
+            "quota_limit_usd" in data or "monthly_quota_usd" in data or True
+        )  # Field may vary

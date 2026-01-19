@@ -1,9 +1,10 @@
-import pytest
-from app.models.api_key import APIKey
 from datetime import datetime, timedelta, timezone
-from app.services.tier_manager import TierManager
-from app.models.subscription_tier import SubscriptionTier
+
+import pytest
+
 from app.models.api_key import APIKey
+from app.services.tier_manager import TierManager
+
 
 class TestTierManagement:
     @pytest.fixture
@@ -19,7 +20,7 @@ class TestTierManagement:
         regular_user.subscription_tier = "pro"
         regular_user.tier_expires_at = datetime.now(timezone.utc) - timedelta(days=1)
         db_session.commit()
-        
+
         # 2. Get tier - should trigger downgrade
         tier = tier_manager.get_user_tier(regular_user.id)
         assert tier == "freemium"
@@ -28,38 +29,43 @@ class TestTierManagement:
     def test_check_feature_access(self, tier_manager, regular_user, db_session):
         # Freemium: no API access
         assert tier_manager.check_feature_access(regular_user.id, "api_access") is False
-        
+
         # Upgrade to pro
         regular_user.subscription_tier = "pro"
         db_session.commit()
-        
+
         assert tier_manager.check_feature_access(regular_user.id, "api_access") is True
-        assert tier_manager.check_feature_access(regular_user.id, "priority_routing") is True
+        assert (
+            tier_manager.check_feature_access(regular_user.id, "priority_routing")
+            is True
+        )
 
     def test_can_create_api_key_limits(self, tier_manager, regular_user, db_session):
         # 1. Freemium cannot create API keys
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is False
         assert "not available" in msg
-        
+
         # 2. Upgrade to Pro (Limit = 10 in fallback config)
         regular_user.subscription_tier = "pro"
         db_session.commit()
-        
+
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is True
-        
+
         # 3. Fill up keys
         for i in range(10):
-            db_session.add(APIKey(
-                user_id=regular_user.id,
-                name=f"Key {i}",
-                key_hash=f"hash_{i}",
-                key_preview=f"...{i}",
-                is_active=True
-            ))
+            db_session.add(
+                APIKey(
+                    user_id=regular_user.id,
+                    name=f"Key {i}",
+                    key_hash=f"hash_{i}",
+                    key_preview=f"...{i}",
+                    is_active=True,
+                )
+            )
         db_session.commit()
-        
+
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is False
         assert "limit reached" in msg

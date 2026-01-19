@@ -146,6 +146,7 @@ LOGIN_TEST.html
 *AUDIT*.md
 *COMPLETE*.md
 *COMPLETION*.md
+*CREDENTIAL_LOG*.txt
 *CREDENTIALS*.md
 *TESTING*.md
 *TROUBLESHOOTING*.md
@@ -188,6 +189,40 @@ INDEX_*.md
 DEBUG_*.md
 ENTERPRISE_*.md
 
+# Project Output & Temporary Files
+*.txt
+!requirements.txt
+!requirements-*.txt
+!robots.txt
+error_log.txt
+error_output.txt
+test_output_*.txt
+out.txt
+err.txt
+
+# Local Scripts & Shortcuts
+server.sh
+start-fast.sh
+start-now.sh
+verify-startup-fix.sh
+verify-ci-cd.sh
+test_settings_api.py
+
+# Monitoring & Local Dev
+monitoring/
+nginx.conf/
+postman/
+PythonClient/
+
+# Build & Cache
+.cache/
+.pytest_cache/
+__pycache__/
+node_modules/
+htmlcov/
+playwright-report/
+test-results/
+
 # Task/Planning Documents (docs/)
 docs/TEMPLATE_*.md
 docs/USER_FLOWS*.md
@@ -214,18 +249,8 @@ verify-*.sh
 
 # Test Output
 test_output.txt
-test_settings_api.py
 
 # Screenshots (testing only)
 screenshots/
 images/test/
 Screenshot*.png
-
-# Nginx configs (local only)
-nginx.conf/
-
-# Python Client (separate repo)
-PythonClient/
-
-# Postman collections (versioned separately)
-postman/

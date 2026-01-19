@@ -3,23 +3,21 @@
 Feature: tier-system-rbac
 Tests validate that API response schemas correctly validate response structures.
 """
+
 import pytest
-from pydantic import ValidationError
 
 from app.schemas.tier import (
-    TiersListResponse,
-    CurrentTierResponse,
     AnalyticsSummaryResponse,
+    CurrentTierResponse,
+    DashboardActivity,
     DashboardActivityResponse,
-    TierInfo,
-    TierFeatures,
-    DashboardActivity
+    TiersListResponse,
 )
 from app.utils.response_validator import (
+    ResponseValidationError,
+    check_required_fields,
     validate_response,
     validate_response_safe,
-    check_required_fields,
-    ResponseValidationError
 )
 
 
@@ -42,8 +40,8 @@ class TestTiersListResponseValidator:
                         "area_code_selection": False,
                         "isp_filtering": False,
                         "api_key_limit": 0,
-                        "support_level": "community"
-                    }
+                        "support_level": "community",
+                    },
                 },
                 {
                     "tier": "payg",
@@ -57,8 +55,8 @@ class TestTiersListResponseValidator:
                         "area_code_selection": True,
                         "isp_filtering": False,
                         "api_key_limit": 5,
-                        "support_level": "email"
-                    }
+                        "support_level": "email",
+                    },
                 },
                 {
                     "tier": "pro",
@@ -72,8 +70,8 @@ class TestTiersListResponseValidator:
                         "area_code_selection": True,
                         "isp_filtering": True,
                         "api_key_limit": 20,
-                        "support_level": "priority"
-                    }
+                        "support_level": "priority",
+                    },
                 },
                 {
                     "tier": "custom",
@@ -87,12 +85,12 @@ class TestTiersListResponseValidator:
                         "area_code_selection": True,
                         "isp_filtering": True,
                         "api_key_limit": -1,
-                        "support_level": "priority"
-                    }
-                }
+                        "support_level": "priority",
+                    },
+                },
             ]
         }
-        
+
         validated = validate_response(data, TiersListResponse)
         assert validated is not None
         assert len(validated.tiers) == 4
@@ -113,12 +111,12 @@ class TestTiersListResponseValidator:
                         "area_code_selection": False,
                         "isp_filtering": False,
                         "api_key_limit": 0,
-                        "support_level": "community"
-                    }
+                        "support_level": "community",
+                    },
                 }
             ]
         }
-        
+
         with pytest.raises(ResponseValidationError):
             validate_response(data, TiersListResponse)
 
@@ -138,12 +136,13 @@ class TestTiersListResponseValidator:
                         "area_code_selection": False,
                         "isp_filtering": False,
                         "api_key_limit": 0,
-                        "support_level": "community"
-                    }
+                        "support_level": "community",
+                    },
                 }
-            ] * 4
+            ]
+            * 4
         }
-        
+
         with pytest.raises(ResponseValidationError):
             validate_response(data, TiersListResponse)
 
@@ -168,10 +167,10 @@ class TestCurrentTierResponseValidator:
                 "area_code_selection": False,
                 "isp_filtering": False,
                 "api_key_limit": 0,
-                "support_level": "community"
-            }
+                "support_level": "community",
+            },
         }
-        
+
         validated = validate_response(data, CurrentTierResponse)
         assert validated is not None
         assert validated.current_tier == "freemium"
@@ -193,10 +192,10 @@ class TestCurrentTierResponseValidator:
                 "area_code_selection": False,
                 "isp_filtering": False,
                 "api_key_limit": 0,
-                "support_level": "community"
-            }
+                "support_level": "community",
+            },
         }
-        
+
         with pytest.raises(ResponseValidationError):
             validate_response(data, CurrentTierResponse)
 
@@ -217,10 +216,10 @@ class TestCurrentTierResponseValidator:
                 "area_code_selection": False,
                 "isp_filtering": False,
                 "api_key_limit": 0,
-                "support_level": "community"
-            }
+                "support_level": "community",
+            },
         }
-        
+
         with pytest.raises(ResponseValidationError):
             validate_response(data, CurrentTierResponse)
 
@@ -242,9 +241,9 @@ class TestAnalyticsSummaryResponseValidator:
             "recent_activity": 30,
             "monthly_verifications": 100,
             "monthly_spent": 50.0,
-            "last_updated": "2024-01-01T00:00:00"
+            "last_updated": "2024-01-01T00:00:00",
         }
-        
+
         validated = validate_response(data, AnalyticsSummaryResponse)
         assert validated is not None
         assert validated.total_verifications == 100
@@ -263,9 +262,9 @@ class TestAnalyticsSummaryResponseValidator:
             "recent_activity": 30,
             "monthly_verifications": 100,
             "monthly_spent": 50.0,
-            "last_updated": "2024-01-01T00:00:00"
+            "last_updated": "2024-01-01T00:00:00",
         }
-        
+
         with pytest.raises(ResponseValidationError):
             validate_response(data, AnalyticsSummaryResponse)
 
@@ -281,19 +280,20 @@ class TestDashboardActivityResponseValidator:
                 "service_name": "sms",
                 "phone_number": "+1234567890",
                 "status": "completed",
-                "created_at": "2024-01-01T00:00:00"
+                "created_at": "2024-01-01T00:00:00",
             },
             {
                 "id": "activity_2",
                 "service_name": "sms",
                 "phone_number": "+1234567891",
                 "status": "pending",
-                "created_at": "2024-01-01T00:01:00"
-            }
+                "created_at": "2024-01-01T00:01:00",
+            },
         ]
-        
+
         # Validate each item in the list
         from pydantic import parse_obj_as
+
         validated = parse_obj_as(DashboardActivityResponse, data)
         assert validated is not None
         assert len(validated) == 2
@@ -306,11 +306,12 @@ class TestDashboardActivityResponseValidator:
                 "service_name": "sms",
                 "phone_number": "+1234567890",
                 "status": "invalid_status",
-                "created_at": "2024-01-01T00:00:00"
+                "created_at": "2024-01-01T00:00:00",
             }
         ]
-        
-        from pydantic import parse_obj_as, ValidationError
+
+        from pydantic import ValidationError, parse_obj_as
+
         with pytest.raises(ValidationError):
             parse_obj_as(DashboardActivityResponse, data)
 
@@ -325,9 +326,9 @@ class TestResponseValidatorUtilities:
             "service_name": "sms",
             "phone_number": "+1234567890",
             "status": "completed",
-            "created_at": "2024-01-01T00:00:00"
+            "created_at": "2024-01-01T00:00:00",
         }
-        
+
         is_valid, validated, error = validate_response_safe(data, DashboardActivity)
         assert is_valid is True
         assert validated is not None
@@ -339,7 +340,7 @@ class TestResponseValidatorUtilities:
             "id": "activity_1",
             # Missing required fields
         }
-        
+
         is_valid, validated, error = validate_response_safe(data, DashboardActivity)
         assert is_valid is False
         assert validated is None
@@ -347,24 +348,21 @@ class TestResponseValidatorUtilities:
 
     def test_check_required_fields_all_present(self):
         """Test checking required fields when all are present."""
-        data = {
-            "field1": "value1",
-            "field2": "value2",
-            "field3": "value3"
-        }
-        
-        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
+        data = {"field1": "value1", "field2": "value2", "field3": "value3"}
+
+        all_present, missing = check_required_fields(
+            data, ["field1", "field2", "field3"]
+        )
         assert all_present is True
         assert len(missing) == 0
 
     def test_check_required_fields_some_missing(self):
         """Test checking required fields when some are missing."""
-        data = {
-            "field1": "value1",
-            "field3": "value3"
-        }
-        
-        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
+        data = {"field1": "value1", "field3": "value3"}
+
+        all_present, missing = check_required_fields(
+            data, ["field1", "field2", "field3"]
+        )
         assert all_present is False
         assert "field2" in missing
         assert len(missing) == 1

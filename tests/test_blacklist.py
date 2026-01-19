@@ -1,6 +1,4 @@
 """Tests for Blacklist Management functionality."""
-import pytest
-from unittest.mock import patch, MagicMock
 
 
 class TestBlacklistEndpoints:
@@ -22,10 +20,7 @@ class TestBlacklistEndpoints:
         response = client.post(
             "/blacklist",
             headers=auth_headers,
-            json={
-                "phone_number": "+1234567890",
-                "reason": "Test blacklist"
-            }
+            json={"phone_number": "+1234567890", "reason": "Test blacklist"},
         )
         # May require PAYG+ tier
         assert response.status_code in [200, 201, 403, 404, 422, 501]
@@ -35,28 +30,19 @@ class TestBlacklistEndpoints:
         response = client.post(
             "/blacklist",
             headers=auth_headers,
-            json={
-                "phone_number": "invalid",
-                "reason": "Test"
-            }
+            json={"phone_number": "invalid", "reason": "Test"},
         )
         # Should fail validation
         assert response.status_code in [400, 422, 403, 404, 501]
 
     def test_remove_from_blacklist(self, client, auth_headers):
         """Should remove number from blacklist."""
-        response = client.delete(
-            "/blacklist/test-id",
-            headers=auth_headers
-        )
+        response = client.delete("/blacklist/test-id", headers=auth_headers)
         assert response.status_code in [200, 204, 403, 404, 501]
 
     def test_blacklist_pagination(self, client, auth_headers):
         """Should support pagination."""
-        response = client.get(
-            "/blacklist?page=1&limit=20",
-            headers=auth_headers
-        )
+        response = client.get("/blacklist?page=1&limit=20", headers=auth_headers)
         assert response.status_code in [200, 403, 404, 501]
 
 
@@ -103,12 +89,12 @@ class TestBlacklistDataFormat:
 
     def test_blacklist_entry_has_required_fields(self):
         """Blacklist entry should have required fields."""
-        expected_fields = ['id', 'phone_number', 'created_at']
+        expected_fields = ["id", "phone_number", "created_at"]
         sample_entry = {
-            'id': 'bl-123',
-            'phone_number': '+1234567890',
-            'reason': 'Spam',
-            'created_at': '2026-01-13T10:00:00Z'
+            "id": "bl-123",
+            "phone_number": "+1234567890",
+            "reason": "Spam",
+            "created_at": "2026-01-13T10:00:00Z",
         }
         for field in expected_fields:
             assert field in sample_entry
@@ -116,13 +102,13 @@ class TestBlacklistDataFormat:
     def test_phone_number_validation(self):
         """Phone numbers should be validated."""
         import re
-        valid_pattern = r'^\+?[0-9]{10,15}$'
-        
-        valid_numbers = ['+1234567890', '1234567890', '+12345678901234']
-        invalid_numbers = ['abc', '123', '+1-234-567-890']
-        
+
+        valid_pattern = r"^\+?[0-9]{10,15}$"
+
+        valid_numbers = ["+1234567890", "1234567890", "+12345678901234"]
+
         for num in valid_numbers:
-            clean = num.replace('-', '').replace(' ', '')
+            clean = num.replace("-", "").replace(" ", "")
             assert re.match(valid_pattern, clean)
 
 
@@ -135,17 +121,22 @@ class TestBlacklistBulkImport:
 +1234567890
 +0987654321
 +1122334455"""
-        lines = csv_content.strip().split('\n')
+        lines = csv_content.strip().split("\n")
         # Skip header
         numbers = [line.strip() for line in lines[1:] if line.strip()]
         assert len(numbers) == 3
-        assert numbers[0] == '+1234567890'
+        assert numbers[0] == "+1234567890"
 
     def test_bulk_import_validation(self):
         """Bulk import should validate phone numbers."""
         import re
-        valid_pattern = r'^\+?[0-9]{10,15}$'
-        
-        test_numbers = ['+1234567890', 'invalid', '+0987654321']
-        valid_count = sum(1 for n in test_numbers if re.match(valid_pattern, n.replace('-', '').replace(' ', '')))
+
+        valid_pattern = r"^\+?[0-9]{10,15}$"
+
+        test_numbers = ["+1234567890", "invalid", "+0987654321"]
+        valid_count = sum(
+            1
+            for n in test_numbers
+            if re.match(valid_pattern, n.replace("-", "").replace(" ", ""))
+        )
         assert valid_count == 2

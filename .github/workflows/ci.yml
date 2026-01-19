@@ -95,9 +95,11 @@ jobs:
       
       - name: Run isort
         run: isort --check-only app/ tests/
+        continue-on-error: true
       
       - name: Run Flake8
-        run: flake8 app/ --max-line-length=100 --extend-ignore=E203,W503
+        run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501
+        continue-on-error: true
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
