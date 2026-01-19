@@ -50,7 +50,8 @@ class PricingTemplateService:
             self.db.query(PricingTemplate)
             .filter(
                 and_(
-                    PricingTemplate.is_active == True, PricingTemplate.region == region
+                    PricingTemplate.is_active.is_(True),
+                    PricingTemplate.region == region,
                 )
             )
             .first()

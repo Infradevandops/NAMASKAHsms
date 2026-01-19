@@ -92,7 +92,7 @@ class NotificationService:
 
         # Filter unread if requested
         if unread_only:
-            query = query.filter(Notification.is_read == False)
+            query = query.filter(Notification.is_read.is_(False))
 
         # Get total count
         total = query.count()
@@ -198,7 +198,7 @@ class NotificationService:
         # Update all unread notifications
         count = (
             self.db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.is_read == False)
+            .filter(Notification.user_id == user_id, Notification.is_read.is_(False))
             .update({Notification.is_read: True})
         )
 
@@ -277,7 +277,7 @@ class NotificationService:
 
         count = (
             self.db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.is_read == False)
+            .filter(Notification.user_id == user_id, Notification.is_read.is_(False))
             .count()
         )
 

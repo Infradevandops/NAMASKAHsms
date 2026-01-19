@@ -205,12 +205,12 @@ class EmailService:
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #667eea;">Payment Receipt</h2>
-                    
+
                     <p>Thank you for your payment! Your account has been credited successfully.</p>
-                    
+
                     <div style="background: #f9fafb; padding: 20px; border-radius: 8px; margin: 20px 0;">
                         <h3 style="margin-top: 0;">Payment Details</h3>
-                        
+
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>Reference:</strong></td>
@@ -234,9 +234,9 @@ class EmailService:
                             </tr>
                         </table>
                     </div>
-                    
+
                     <p>You can now use your credits to verify phone numbers on Namaskah SMS.</p>
-                    
+
                     <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
                         If you have any questions, please contact our support team.
                     </p>
@@ -266,12 +266,12 @@ class EmailService:
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #ef4444;">Payment Failed</h2>
-                    
+
                     <p>Unfortunately, your payment could not be processed.</p>
-                    
+
                     <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
                         <h3 style="margin-top: 0; color: #991b1b;">Payment Details</h3>
-                        
+
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 10px; border-bottom: 1px solid #fecaca;"><strong>Reference:</strong></td>
@@ -291,7 +291,7 @@ class EmailService:
                             </tr>
                         </table>
                     </div>
-                    
+
                     <p><strong>What you can do:</strong></p>
                     <ul>
                         <li>Check your payment method details</li>
@@ -299,7 +299,7 @@ class EmailService:
                         <li>Try again with a different payment method</li>
                         <li>Contact your bank if the issue persists</li>
                     </ul>
-                    
+
                     <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
                         If you need assistance, please contact our support team.
                     </p>
@@ -330,12 +330,12 @@ class EmailService:
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
                     <h2 style="color: #10b981;">Refund Processed</h2>
-                    
+
                     <p>Your refund has been successfully processed.</p>
-                    
+
                     <div style="background: #f0fdf4; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
                         <h3 style="margin-top: 0; color: #065f46;">Refund Details</h3>
-                        
+
                         <table style="width: 100%; border-collapse: collapse;">
                             <tr>
                                 <td style="padding: 10px; border-bottom: 1px solid #bbf7d0;"><strong>Reference:</strong></td>
@@ -359,9 +359,9 @@ class EmailService:
                             </tr>
                         </table>
                     </div>
-                    
+
                     <p>The refund will appear in your account within 3-5 business days.</p>
-                    
+
                     <p style="color: #6b7280; font-size: 12px; margin-top: 30px;">
                         If you have any questions, please contact our support team.
                     </p>

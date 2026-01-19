@@ -55,33 +55,35 @@ class AuthService(BaseService[User]):
     def authenticate_user(self, email: str, password: str) -> Optional[User]:
         """Authenticate user with email and password."""
         try:
-            print(f"[AUTH] Querying user: {email}")
+            print("[AUTH] Querying user: {}".format(email))
             user = self.db.query(User).filter(User.email == email).first()
-            print(f"[AUTH] User found: {user is not None}")
+            print("[AUTH] User found: {}".format(user is not None))
             if not user:
-                print(f"[AUTH] User not found")
+                print("[AUTH] User not found")
                 return None
 
             # Handle users without password hash (OAuth users)
             if not user.password_hash:
-                print(f"[AUTH] No password hash")
+                print("[AUTH] No password hash")
                 return None
 
             # Verify password with proper error handling
             print(
-                f"[AUTH] Verifying password, hash starts with: {user.password_hash[:30]}"
+                "[AUTH] Verifying password, hash starts with: {}".format(
+                    user.password_hash[:30]
+                )
             )
             verified = verify_password(password, user.password_hash)
-            print(f"[AUTH] Password verified: {verified}")
+            print("[AUTH] Password verified: {}".format(verified))
             if not verified:
-                print(f"[AUTH] Password verification failed")
+                print("[AUTH] Password verification failed")
                 return None
 
-            print(f"[AUTH] Authentication successful")
+            print("[AUTH] Authentication successful")
             return user
         except Exception as e:
             # Log authentication error but don't expose details
-            print(f"[AUTH] Exception: {e}")
+            print("[AUTH] Exception: {}".format(e))
             import traceback
 
             traceback.print_exc()

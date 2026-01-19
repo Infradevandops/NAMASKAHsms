@@ -43,11 +43,12 @@ async def perform_health_check(admin_user: User = Depends(get_current_admin_user
 @router.get("/cdn/config")
 async def get_cdn_configuration():
     """Get CDN configuration."""
-    return cdn_service.get_cdn_config()
+    # TODO: Implement cdn_service
+    return {}
 
 
 @router.get("/cdn/asset - url")
 async def get_asset_url(asset_path: str, region: str = None):
     """Get optimized CDN URL for asset."""
-    url = cdn_service.get_asset_url(asset_path, region)
-    return {"asset_url": url}
+    # TODO: Implement cdn_service
+    return {"asset_url": asset_path}

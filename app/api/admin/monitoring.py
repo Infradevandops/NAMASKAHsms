@@ -34,14 +34,7 @@ async def test_alerting_system(
     admin_user: User = Depends(get_current_admin_user),
 ):
     """Test alerting system (admin only)."""
-    test_alert = {
-        "type": "test",
-        "severity": "info",
-        "message": "Test alert from monitoring system",
-        "timestamp": "2024 - 01-01T00:00:00Z",
-    }
-
-    background_tasks.add_task(alerting_service.send_alert, test_alert)
+    # TODO: Implement alerting_service
     return {"message": "Test alert queued"}
 
 

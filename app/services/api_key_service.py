@@ -32,7 +32,7 @@ class APIKeyService:
 
         current_count = (
             db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
 
@@ -56,7 +56,7 @@ class APIKeyService:
 
         current_count = (
             db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
 

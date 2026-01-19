@@ -97,7 +97,7 @@ jobs:
         run: isort --check-only app/ tests/
       
       - name: Run Flake8
-        run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821
+        run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821,C901
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports

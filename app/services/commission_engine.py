@@ -68,8 +68,6 @@ class CommissionEngine:
 
     async def _get_partner_tier(self, partner_id: int) -> Optional[Dict]:
         """Get partner's current commission tier."""
-        partner = self.db.query(User).filter(User.id == partner_id).first()
-
         # Get partner's performance metrics
         total_volume = await self._get_partner_volume(partner_id)
         total_referrals = await self._get_partner_referrals(partner_id)
