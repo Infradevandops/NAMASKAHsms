@@ -41,7 +41,7 @@ class PaymentService:
         if self.redis.get(idempotency_key):
             logger.warning(f"Payment {reference} already credited")
             payment_duplicates.inc()
-            return {"status": "already_credited", "reference": reference}
+            return {"status": "duplicate", "reference": reference}
         
         # Acquire distributed lock
         lock_key = f"payment:lock:{reference}"
@@ -105,6 +105,10 @@ class PaymentService:
         # Validate amount
         if amount_usd <= 0:
             raise ValueError("Amount must be positive")
+        
+        # Maximum amount check (prevent fraud)
+        if amount_usd > 100000:
+            raise ValueError("Amount exceeds maximum allowed (100,000 USD)")
 
         # Get user
         user = self.db.query(User).filter(User.id == user_id).first()
@@ -245,7 +249,7 @@ class PaymentService:
             logger.error(f"Failed to verify payment: {str(e)}")
             raise ValueError(f"Payment verification failed: {str(e)}")
 
-    def process_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Process Paystack webhook event.
 
         Args:
@@ -259,7 +263,7 @@ class PaymentService:
 
         try:
             if event == "charge.success":
-                return self._handle_charge_success(payload)
+                return await self._handle_charge_success(payload)
             elif event == "charge.failed":
                 return self._handle_charge_failed(payload)
             else:

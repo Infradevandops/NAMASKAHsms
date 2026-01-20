@@ -1,6 +1,6 @@
 """User - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, String
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -49,6 +49,8 @@ class User(BaseModel):
     refresh_token = Column(String, nullable=True, unique=True, index=True)
     refresh_token_expires = Column(DateTime, nullable=True)
     last_login = Column(DateTime, nullable=True)
+    failed_login_attempts = Column(Integer, default=0, nullable=False)
+    subscription_start_date = Column(DateTime, nullable=True)
 
     # User preferences (language/currency)
     language = Column(String(10), default="en", nullable=False)
@@ -102,6 +104,7 @@ class Webhook(BaseModel):
     secret = Column(String(100), nullable=True)
     events = Column(String, nullable=False, default="*")  # Comma-separated events or *
     is_active = Column(Boolean, default=True, nullable=False)
+    last_delivery_at = Column(DateTime, nullable=True)
     last_success = Column(DateTime, nullable=True)
     last_failure = Column(DateTime, nullable=True)
     last_error = Column(String(500), nullable=True)

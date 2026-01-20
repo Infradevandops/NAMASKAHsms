@@ -1,6 +1,6 @@
-
 import pytest
-from app.api.auth.router import router as auth_router
+from fastapi.testclient import TestClient
+from main import app
 
 # Critical Path: API Endpoints
 # Status: Scaffolding

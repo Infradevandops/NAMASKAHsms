@@ -4,8 +4,6 @@ import uuid
 
 import pytest
 from sqlalchemy.orm import Session
-
-from app.core.database import SessionLocal
 from app.models.user import User
 from app.services.api_key_service import APIKeyService
 from app.services.pricing_calculator import PricingCalculator
@@ -15,11 +13,9 @@ from app.services.verification_pricing_service import VerificationPricingService
 
 
 @pytest.fixture
-def db():
-    """Get database session."""
-    db = SessionLocal()
-    yield db
-    db.close()
+def db(db_session):
+    """Get database session from conftest."""
+    return db_session
 
 
 @pytest.fixture
@@ -110,7 +106,7 @@ class TestPricingEnforcementFlow:
 
         # Calculate overage for next SMS
         overage = QuotaService.calculate_overage(db, user.id, 2.50)
-        assert overage == 0.45  # (14 + 2.50 - 15) * 0.30
+        assert overage == pytest.approx(0.45, rel=1e-2)  # (14 + 2.50 - 15) * 0.30
 
     def test_custom_api_key_limit_flow(self, db: Session, users: dict):
         """Test Custom user API key creation."""

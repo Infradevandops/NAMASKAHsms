@@ -2,6 +2,7 @@
 
 import hashlib
 import uuid
+from typing import List, Optional, Tuple
 
 from sqlalchemy.orm import Session
 
@@ -14,10 +15,12 @@ from app.utils.security import generate_api_key
 class APIKeyService:
     """Manage API keys with tier-based limits."""
 
-    @staticmethod
-    def can_create_key(db: Session, user_id: str) -> bool:
+    def __init__(self, db: Session):
+        self.db = db
+
+    def can_create_key(self, user_id: str) -> bool:
         """Check if user can create API key based on tier."""
-        user = db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             return False
 
@@ -31,17 +34,16 @@ class APIKeyService:
             return True
 
         current_count = (
-            db.query(APIKey)
+            self.db.query(APIKey)
             .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
 
         return current_count < limit
 
-    @staticmethod
-    def get_remaining_keys(db: Session, user_id: str) -> int:
+    def get_remaining_keys(self, user_id: str) -> int:
         """Get remaining API key slots for user."""
-        user = db.query(User).filter(User.id == user_id).first()
+        user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             return 0
 
@@ -55,38 +57,60 @@ class APIKeyService:
             return 999
 
         current_count = (
-            db.query(APIKey)
+            self.db.query(APIKey)
             .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
 
         return max(0, limit - current_count)
 
-    @staticmethod
-    def create_key(db: Session, user_id: str, name: str = None) -> dict:
-        """Create new API key if allowed."""
-        if not APIKeyService.can_create_key(db, user_id):
+    def generate_api_key(self, user_id: str, name: str = None) -> tuple[str, APIKey]:
+        """Generate a new API key."""
+        if not self.can_create_key(user_id):
             raise ValueError("API key limit reached for your tier")
 
         raw_key = f"sk_{generate_api_key(32)}"
         key_hash = hashlib.sha256(raw_key.encode()).hexdigest()
         key_preview = raw_key[-4:]
 
-        key = APIKey(
+        api_key = APIKey(
             id=str(uuid.uuid4()),
             user_id=user_id,
             key_hash=key_hash,
             key_preview=key_preview,
             name=name
-            or f"Key {len(db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
+            or f"Key {len(self.db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
             is_active=True,
         )
-        db.add(key)
-        db.commit()
+        self.db.add(api_key)
+        self.db.commit()
+        self.db.refresh(api_key)
 
-        return {
-            "id": key.id,
-            "key": raw_key,
-            "name": key.name,
-            "created_at": key.created_at,
-        }
+        return raw_key, api_key
+
+    def get_user_keys(self, user_id: str, include_inactive: bool = False) -> list[APIKey]:
+        """Get all API keys for a user."""
+        query = self.db.query(APIKey).filter(APIKey.user_id == user_id)
+        if not include_inactive:
+            query = query.filter(APIKey.is_active.is_(True))
+        return query.all()
+
+    def revoke_api_key(self, key_id: str, user_id: str) -> bool:
+        """Revoke an API key."""
+        api_key = (
+            self.db.query(APIKey)
+            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
+            .first()
+        )
+        if not api_key:
+            return False
+
+        api_key.is_active = False
+        self.db.commit()
+        return True
+
+    def rotate_api_key(self, key_id: str, user_id: str) -> Optional[tuple[str, APIKey]]:
+        """Rotate an API key."""
+        if not self.revoke_api_key(key_id, user_id):
+            return None
+        return self.generate_api_key(user_id)

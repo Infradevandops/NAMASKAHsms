@@ -63,7 +63,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         ]
 
         # Skip rate limiting for public pages
-        if any(request.url.path.startswith(path) for path in public_paths):
+        path = request.url.path
+        if path == "/" or any(path.startswith(p + "/") for p in public_paths if p != "/") or path in public_paths:
             return await call_next(request)
 
         current_time = time.time()
@@ -106,9 +107,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         )
         reset_time = int(current_time + window)
 
-        response.headers["X - RateLimit-Limit"] = str(requests_limit)
-        response.headers["X - RateLimit-Remaining"] = str(remaining)
-        response.headers["X - RateLimit-Reset"] = str(reset_time)
+        response.headers["X-RateLimit-Limit"] = str(requests_limit)
+        response.headers["X-RateLimit-Remaining"] = str(remaining)
+        response.headers["X-RateLimit-Reset"] = str(reset_time)
 
         return response
 
@@ -213,7 +214,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
                 "message": message,
                 "retry_after": self.default_window,
             },
-            headers={"Retry - After": str(self.default_window)},
+            headers={"Retry-After": str(self.default_window)},
         )
 
 
@@ -272,9 +273,9 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
             self.error_count += 1
 
         # Add performance headers
-        response.headers["X - Process-Time"] = f"{process_time:.3f}"
-        response.headers["X - System-Load"] = f"{system_load:.2f}"
-        response.headers["X - Rate-Limit"] = str(adjusted_limit)
+        response.headers["X-Process-Time"] = f"{process_time:.3f}"
+        response.headers["X-System-Load"] = f"{system_load:.2f}"
+        response.headers["X-Rate-Limit"] = str(adjusted_limit)
 
         return response
 

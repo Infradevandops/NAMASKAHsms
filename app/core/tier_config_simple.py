@@ -11,6 +11,7 @@ TIER_CONFIG = {
         "has_api_access": False,
         "has_area_code_selection": False,
         "has_isp_filtering": False,
+        "rate_limit_per_minute": 5,
     },
     "payg": {
         "name": "Pay-As-You-Go",
@@ -22,6 +23,7 @@ TIER_CONFIG = {
         "has_api_access": False,
         "has_area_code_selection": True,
         "has_isp_filtering": True,
+        "rate_limit_per_minute": 30,
     },
     "pro": {
         "name": "Pro",
@@ -33,6 +35,7 @@ TIER_CONFIG = {
         "has_api_access": True,
         "has_area_code_selection": True,
         "has_isp_filtering": True,
+        "rate_limit_per_minute": 60,
     },
     "custom": {
         "name": "Custom",
@@ -44,5 +47,6 @@ TIER_CONFIG = {
         "has_api_access": True,
         "has_area_code_selection": True,
         "has_isp_filtering": True,
+        "rate_limit_per_minute": 500,
     },
 }

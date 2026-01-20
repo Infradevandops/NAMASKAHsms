@@ -30,6 +30,9 @@ from .user import (
     User,
     Webhook,
 )
+from .subscription_tier import SubscriptionTier
+from .user_preference import UserPreference
+from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
 from .whitelabel import WhiteLabelConfig
 from .whitelabel_enhanced import (
@@ -50,6 +53,9 @@ __all__ = [
     "NotificationSettings",
     "Referral",
     "Subscription",
+    "SubscriptionTier",
+    "UserPreference",
+    "MonthlyQuotaUsage",
     "NotificationPreferences",
     "Notification",
     "BalanceTransaction",

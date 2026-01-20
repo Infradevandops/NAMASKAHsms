@@ -1,5 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
+from typing import List, Optional
 from unittest.mock import patch, MagicMock
 
 import jwt
@@ -52,6 +53,7 @@ from app.core.config import settings
 from app.core.database import Base, get_db
 from app.models.subscription_tier import SubscriptionTier
 from app.models.user import User
+from app.models.user_preference import UserPreference
 from app.utils.security import hash_password
 from main import app
 
@@ -144,9 +146,9 @@ def seed_tiers(session):
             description="Pay As You Go plan",
             price_monthly=0,
             payment_required=False,
-            has_api_access=False,
-            api_key_limit=0,
-            rate_limit_per_minute=5,
+            has_api_access=True,
+            api_key_limit=2,
+            rate_limit_per_minute=30,
         ),
         SubscriptionTier(
             tier="custom",

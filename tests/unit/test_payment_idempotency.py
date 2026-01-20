@@ -22,7 +22,7 @@ async def test_duplicate_payment_prevented(db_session, redis_client):
     
     # Duplicate credit attempt
     result2 = await service.credit_user("ref123", 10.0, "user1")
-    assert result2["status"] == "already_credited"
+    assert result2["status"] == "duplicate"
     
     # Verify user only credited once
     user = db_session.query(User).filter(User.id == "user1").first()

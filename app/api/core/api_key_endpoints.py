@@ -85,8 +85,10 @@ async def generate_api_key(
         name=api_key_model.name,
         key=plain_key,  # Only shown once!
         key_preview=api_key_model.key_preview,
+        is_active=api_key_model.is_active,
         created_at=api_key_model.created_at,
         expires_at=api_key_model.expires_at,
+        last_used=api_key_model.last_used,
     )
 
 
@@ -132,8 +134,10 @@ async def rotate_api_key(
         name=new_key.name,
         key=plain_key,  # Only shown once!
         key_preview=new_key.key_preview,
+        is_active=new_key.is_active,
         created_at=new_key.created_at,
         expires_at=new_key.expires_at,
+        last_used=new_key.last_used,
     )
 
 

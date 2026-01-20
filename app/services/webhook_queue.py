@@ -27,6 +27,16 @@ class WebhookQueue:
         logger.info(f"Enqueued webhook {webhook_id}: {message_id}")
         return message_id
     
+    async def dequeue(self, count: int = 1):
+        """Remove and return webhooks from queue (for manual/test processing)."""
+        messages = self.redis.xread({self.stream: "0"}, count=count)
+        result = []
+        if messages:
+            for stream, msgs in messages:
+                for msg_id, payload in msgs:
+                    result.append({"id": msg_id, "payload": payload})
+        return result
+
     async def process_batch(self, batch_size: int = 10):
         """Process webhooks from queue."""
         # Create consumer group if not exists

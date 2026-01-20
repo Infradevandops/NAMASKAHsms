@@ -9,8 +9,9 @@ from app.services.payment_service import PaymentService
 
 class TestPaymentService:
     @pytest.fixture
-    def payment_service(self, db_session):
-        return PaymentService(db_session)
+    def payment_service(self, db_session, redis_client):
+        with patch("redis.Redis.from_url", return_value=redis_client):
+            return PaymentService(db_session)
 
     @patch("app.services.payment_service.paystack_service")
     async def test_initiate_payment_success(
@@ -88,7 +89,7 @@ class TestPaymentService:
         db_session.refresh(regular_user)
         assert regular_user.credits == 20.0  # 10 initial + 10 added
 
-    def test_handle_charge_success_webhook(
+    async def test_handle_charge_success_webhook(
         self, payment_service, regular_user, db_session
     ):
         # 1. Setup pending payment
@@ -109,7 +110,7 @@ class TestPaymentService:
         payload = {"reference": reference, "amount": 3000000}  # 30000 NGN in kobo
 
         # 2. Process webhook
-        result = payment_service.process_webhook("charge.success", payload)
+        result = await payment_service.process_webhook("charge.success", payload)
 
         assert result["status"] == "success"
 
@@ -121,7 +122,7 @@ class TestPaymentService:
         db_session.refresh(regular_user)
         assert regular_user.credits == 30.0  # 10 initial + 20 added
 
-    def test_handle_charge_failed_webhook(
+    async def test_handle_charge_failed_webhook(
         self, payment_service, regular_user, db_session
     ):
         reference = "ref_fail"
@@ -135,7 +136,7 @@ class TestPaymentService:
         db_session.add(log)
         db_session.commit()
 
-        payment_service.process_webhook("charge.failed", {"reference": reference})
+        await payment_service.process_webhook("charge.failed", {"reference": reference})
 
         db_session.refresh(log)
         assert log.status == "failed"
@@ -204,7 +205,7 @@ class TestPaymentService:
         db_session.refresh(log)
         assert log.status == "refunded"
 
-    def test_process_webhook_invalid_event(self, payment_service):
+    async def test_process_webhook_invalid_event(self, payment_service):
         # Should not raise error, just return status
-        result = payment_service.process_webhook("unknown.event", {})
+        result = await payment_service.process_webhook("unknown.event", {})
         assert result["status"] == "ignored"

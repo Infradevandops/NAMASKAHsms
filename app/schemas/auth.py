@@ -161,9 +161,11 @@ class APIKeyResponse(BaseModel):
     id: str
     name: str
     key: str = Field(..., description="API key (shown only once)")
+    key_preview: str = Field(..., description="Masked API key")
     is_active: bool
     created_at: datetime
-    last_used: Optional[datetime]
+    expires_at: Optional[datetime] = None
+    last_used: Optional[datetime] = None
 
     model_config = {
         "from_attributes": True,
@@ -188,7 +190,9 @@ class APIKeyListResponse(BaseModel):
     key_preview: str = Field(..., description="Masked API key")
     is_active: bool
     created_at: datetime
-    last_used: Optional[datetime]
+    expires_at: Optional[datetime] = None
+    last_used: Optional[datetime] = None
+    request_count: int = Field(default=0, description="Number of requests made with this key")
 
     model_config = {
         "json_schema_extra": {

@@ -585,34 +585,56 @@ services:
 - [Deployment Guide](.kiro/PRODUCTION_DEPLOYMENT_PLAN.md) - Deployment instructions
 - [Security Guide](docs/SECURITY_AND_COMPLIANCE.md) - Security details
 - [Database Guide](.kiro/PRODUCTION_DATABASE_GUIDE.md) - Database management
+- [Workflow Roadmap](WORKFLOW_IMPROVEMENT_ROADMAP.md) - CI/CD improvements & timeline
+- [Quick Fixes](WORKFLOW_QUICK_FIXES.md) - Week 1-2 critical fixes
 
 ---
 
 ## 🛣️ Roadmap
 
-### Q1 2026 ✅
+### Q1 2026 - Foundation ✅🔄
 - ✅ Modular monolith refactor
 - ✅ Tier system implementation
 - ✅ API key management
 - ✅ Payment integration (Paystack)
+- 🔄 **Payment flow hardening** (race condition fixes, idempotency)
+- 🔄 **Security hardening** (blocking scans, vulnerability elimination)
+- 🔄 **Test coverage** (23% → 50%)
+- 🔄 **Enable integration tests** (PostgreSQL, Redis)
+- 🔄 **E2E smoke tests** (critical user journeys)
 
-### Q2 2026 🔄
+### Q2 2026 - Reliability 🔄
 - 🔄 SDK libraries (Python, JavaScript, Go)
-- 🔄 Webhook builder
+- 🔄 Webhook builder with persistent queue
 - 🔄 Enhanced analytics dashboard
 - 🔄 Referral program
+- 📋 **Distributed tracing** (OpenTelemetry)
+- 📋 **Performance testing** (Locust, p95 < 500ms)
+- 📋 **API contract testing** (Schemathesis)
+- 📋 **Container security** (Trivy scanning)
+- 📋 **Blue-green deployments**
 
-### Q3 2026 📋
-- Geographic targeting improvements
-- Device type filtering
-- Team management features
-- SSO integration
+### Q3 2026 - Optimization 📋
+- 📋 Geographic targeting improvements
+- 📋 Device type filtering
+- 📋 Team management features
+- 📋 SSO integration
+- 📋 **Multi-region deployment**
+- 📋 **Chaos engineering** (failure scenario testing)
+- 📋 **Advanced testing** (property-based, mutation, fuzz)
+- 📋 **Test coverage** (70% → 85%)
 
-### Q4 2026 📋
-- Enterprise tier
-- White-label options
-- Advanced reporting
-- Multi-currency support
+### Q4 2026 - Excellence 📋
+- 📋 Enterprise tier
+- 📋 White-label options
+- 📋 Advanced reporting
+- 📋 Multi-currency support
+- 📋 **SOC 2 compliance automation**
+- 📋 **Circuit breakers & bulkheads**
+- 📋 **SLO-based monitoring**
+- 📋 **Test coverage** (85% → 90%)
+
+**See [WORKFLOW_IMPROVEMENT_ROADMAP.md](./WORKFLOW_IMPROVEMENT_ROADMAP.md) for detailed timeline**
 
 ---
 
