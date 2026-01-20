@@ -18,7 +18,7 @@ slowapi==0.1.9
 google-auth==2.23.4
 google-auth-oauthlib==1.1.0
 google-auth-httplib2==0.1.1
-sentry-sdk[fastapi]==1.39.1
+sentry-sdk[fastapi]==2.20.0
 redis==5.0.1
 structlog==23.2.0
 pytest==7.4.3
@@ -43,4 +43,4 @@ sendgrid==6.10.0  # For SendGrid
 # Security: FastAPI will use the most secure compatible Starlette version
 # Note: FastAPI 0.115.4 uses Starlette ~0.41.0 which includes security fixes
 urllib3>=2.6.3 # not directly required, pinned by Snyk to avoid a vulnerability
-Pillow==10.1.0
+Pillow==11.1.0

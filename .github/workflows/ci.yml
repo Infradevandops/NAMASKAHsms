@@ -119,7 +119,7 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety check --exit-code 1 || echo "⚠️ Vulnerabilities found"
+        run: safety scan --exit-code 1 || echo "⚠️ Vulnerabilities found"
       
       - name: Run Bandit security scan
         run: |
