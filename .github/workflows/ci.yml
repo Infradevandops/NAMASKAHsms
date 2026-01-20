@@ -119,18 +119,15 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety check --exit-code 1 || echo "⚠️ Vulnerabilities found - review required"
-        continue-on-error: true
+        run: safety check --exit-code 1 || echo "⚠️ Vulnerabilities found"
       
       - name: Run Bandit security scan
         run: |
           bandit -r app/ -f json -o bandit-report.json || true
-          bandit -r app/ -ll || echo "⚠️ Security issues found - review required"
-        continue-on-error: true
+          bandit -r app/ -ll
       
       - name: Run pip-audit
-        run: pip-audit --strict || echo "⚠️ Dependency vulnerabilities found - review required"
-        continue-on-error: true
+        run: pip-audit --strict
       
       - name: Upload security reports
         uses: actions/upload-artifact@v4
@@ -222,7 +219,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-        continue-on-error: true  # License may not be configured
 
   migration-test:
     name: Database Migration Test

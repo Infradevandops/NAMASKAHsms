@@ -29,6 +29,22 @@ groups:
           summary: "High memory usage"
           description: "Memory usage is {{ $value | humanizePercentage }}"
 
+      - alert: HighPaymentDuplicates
+        expr: rate(payment_duplicates_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: High rate of duplicate payment attempts
+
+      - alert: WebhookDeliveryFailure
+        expr: rate(webhook_deliveries_total{status="failed"}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Webhook delivery failure rate > 1%
+
   - name: infrastructure_alerts
     interval: 30s
     rules:

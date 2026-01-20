@@ -1,6 +1,6 @@
 import os
 from datetime import datetime, timedelta, timezone
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import jwt
 import pytest
@@ -8,6 +8,7 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
+import fakeredis
 
 os.environ["TESTING"] = "1"
 os.environ["SECRET_KEY"] = "test_secret_key_for_testing_32_characters_long_enough"
@@ -79,6 +80,14 @@ def db_session():
 @pytest.fixture(scope="function")
 def db(db_session):
     return db_session
+
+
+@pytest.fixture(scope="function")
+def redis_client():
+    """Create a fake Redis client for testing."""
+    server = fakeredis.FakeServer()
+    redis = fakeredis.FakeRedis(server=server, decode_responses=True)
+    return redis
 
 
 @pytest.fixture(scope="function")

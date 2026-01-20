@@ -11,17 +11,80 @@ from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
 from app.services.credit_service import CreditService
 from app.services.paystack_service import paystack_service
+from redis import Redis
+from redis.lock import Lock
+from app.core.config import get_settings
+from prometheus_client import Counter, Histogram
 
 logger = get_logger(__name__)
+
+# Metrics
+payment_credits = Counter('payment_credits_total', 'Total payment credits')
+payment_duplicates = Counter('payment_duplicates_total', 'Duplicate payment attempts')
+payment_duration = Histogram('payment_duration_seconds', 'Payment processing time')
+webhook_deliveries = Counter('webhook_deliveries_total', 'Webhook deliveries', ['status'])
 
 
 class PaymentService:
     """Service for managing payments and payment processing."""
 
-    def __init__(self, db: Session):
+    def __init__(self, db: Session, redis: Redis = None):
         """Initialize payment service with database session."""
         self.db = db
         self.credit_service = CreditService(db)
+        self.redis = redis or Redis.from_url(get_settings().redis_url)
+
+    async def credit_user(self, reference: str, amount: float, user_id: str) -> Dict[str, Any]:
+        """Credit user with idempotency guarantee."""
+        # Check if already credited
+        idempotency_key = f"payment:credited:{reference}"
+        if self.redis.get(idempotency_key):
+            logger.warning(f"Payment {reference} already credited")
+            payment_duplicates.inc()
+            return {"status": "already_credited", "reference": reference}
+        
+        # Acquire distributed lock
+        lock_key = f"payment:lock:{reference}"
+        lock = Lock(self.redis, lock_key, timeout=10, blocking_timeout=5)
+        
+        if not lock.acquire(blocking=True):
+            raise ValueError("Could not acquire payment lock")
+            
+        with payment_duration.time():
+            try:
+                # Use SELECT FOR UPDATE to prevent race conditions
+                user = (
+                    self.db.query(User)
+                    .filter(User.id == user_id)
+                    .with_for_update()
+                    .first()
+                )
+                
+                if not user:
+                    raise ValueError(f"User {user_id} not found")
+                
+                # Credit user
+                user.credits = (user.credits or 0.0) + amount
+                
+                # Mark as credited (24 hour TTL)
+                self.redis.setex(idempotency_key, 86400, "1")
+                
+                # Create transaction
+                transaction = Transaction(
+                    user_id=user_id,
+                    amount=amount,
+                    type="credit",
+                    description=f"Payment {reference}",
+                )
+                self.db.add(transaction)
+                self.db.commit()
+                
+                logger.info(f"Credited {amount} to user {user_id} (ref: {reference})")
+                payment_credits.inc()
+                return {"status": "success", "amount": amount, "new_balance": user.credits}
+                
+            finally:
+                lock.release()
 
     async def initiate_payment(
         self, user_id: str, amount_usd: float, description: str = "Credit purchase"
@@ -207,7 +270,7 @@ class PaymentService:
             logger.error(f"Webhook processing error: {str(e)}")
             return {"status": "error", "message": str(e)}
 
-    def _handle_charge_success(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def _handle_charge_success(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle charge.success webhook event.
 
         Args:
@@ -217,9 +280,8 @@ class PaymentService:
             Dictionary with processing result
         """
         reference = payload.get("reference")
-        amount = payload.get("amount")
-
-        logger.info(f"Charge success: Reference={reference}, Amount={amount}")
+        
+        logger.info(f"Charge success: Reference={reference}")
 
         # Get payment log
         payment_log = (
@@ -228,51 +290,30 @@ class PaymentService:
 
         if not payment_log:
             logger.warning(f"Payment log not found: {reference}")
+            webhook_deliveries.labels(status="ignored").inc()
             return {"status": "ignored", "message": "Payment not found"}
 
-        # Check if already credited
-        if payment_log.credited:
-            logger.warning(f"Payment already credited: {reference}")
-            return {"status": "ignored", "message": "Payment already credited"}
-
-        # Get user
-        user = self.db.query(User).filter(User.id == payment_log.user_id).first()
-        if not user:
-            logger.error(f"User not found: {payment_log.user_id}")
-            return {"status": "error", "message": "User not found"}
-
-        # Add credits
-        credits_to_add = payment_log.namaskah_amount
-        user.credits = (user.credits or 0.0) + credits_to_add
-
-        # Create transaction record
-        transaction = Transaction(
-            user_id=payment_log.user_id,
-            amount=credits_to_add,
-            type="credit",
-            description=f"Payment via Paystack (Ref: {reference})",
-        )
-
-        self.db.add(transaction)
-
-        # Update payment log
-        payment_log.status = "success"
-        payment_log.credited = True
-        payment_log.webhook_received = True
-
-        self.db.commit()
-
-        logger.info(
-            f"Credits added via webhook: User={payment_log.user_id}, "
-            f"Amount={credits_to_add}, New Balance={user.credits}"
-        )
-
-        return {
-            "status": "success",
-            "message": "Credits added successfully",
-            "user_id": payment_log.user_id,
-            "amount": credits_to_add,
-        }
+        # Use idempotent credit function
+        try:
+            result = await self.credit_user(
+                reference=reference,
+                amount=payment_log.namaskah_amount,
+                user_id=payment_log.user_id
+            )
+            
+            # Update payment log
+            payment_log.status = "success"
+            payment_log.credited = True
+            payment_log.webhook_received = True
+            self.db.commit()
+            
+            webhook_deliveries.labels(status="success").inc()
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to credit user: {str(e)}")
+            webhook_deliveries.labels(status="error").inc()
+            return {"status": "error", "message": str(e)}
 
     def _handle_charge_failed(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Handle charge.failed webhook event.
