@@ -44,7 +44,7 @@ class TierManager:
     def check_feature_access(self, user_id: str, feature: str) -> bool:
         """Check if user has access to a specific feature."""
         tier = self.get_user_tier(user_id)
-        config = TierConfig.get_tier_config(tier)
+        config = TierConfig.get_tier_config(tier, self.db)
 
         feature_map = {
             "api_access": config["has_api_access"],
@@ -60,7 +60,7 @@ class TierManager:
     def get_tier_limits(self, user_id: str) -> dict:
         """Get all limits for user's current tier."""
         tier = self.get_user_tier(user_id)
-        config = TierConfig.get_tier_config(tier)
+        config = TierConfig.get_tier_config(tier, self.db)
 
         return {
             "tier": tier,
@@ -78,7 +78,7 @@ class TierManager:
         from app.models.api_key import APIKey
 
         tier = self.get_user_tier(user_id)
-        config = TierConfig.get_tier_config(tier)
+        config = TierConfig.get_tier_config(tier, self.db)
 
         if not config["has_api_access"]:
             return (
@@ -87,10 +87,10 @@ class TierManager:
             )
 
         # Count existing API keys
-        existing_keys = (
+        existing_keys = len(
             self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active is True)
-            .count()
+            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .all()
         )
 
         api_key_limit = config["api_key_limit"]

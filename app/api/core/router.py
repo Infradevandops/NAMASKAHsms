@@ -18,9 +18,7 @@ from app.api.core.system import router as system_router
 from app.api.core.textverified_balance import router as textverified_balance_router
 from app.api.core.user_profile import router as user_profile_router
 from app.api.core.user_settings import router as user_settings_router
-from app.api.core.user_settings_endpoints import (
-    router as user_settings_endpoints_router,
-)
+from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
 from app.api.core.wallet import router as wallet_router
 from app.api.core.webhooks import router as webhooks_router
 

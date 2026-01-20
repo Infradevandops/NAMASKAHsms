@@ -40,8 +40,9 @@ class TestTierManagement:
             is True
         )
 
-    def test_can_create_api_key_limits(self, tier_manager, regular_user, db_session):
+    def test_can_create_api_key_limits(self, regular_user, db_session):
         # 1. Freemium cannot create API keys
+        tier_manager = TierManager(db_session)
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is False
         assert "not available" in msg
@@ -50,6 +51,7 @@ class TestTierManagement:
         regular_user.subscription_tier = "pro"
         db_session.commit()
 
+        tier_manager = TierManager(db_session)
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is True
 
@@ -66,6 +68,8 @@ class TestTierManagement:
             )
         db_session.commit()
 
+        # Recreate tier_manager to get fresh session state
+        tier_manager = TierManager(db_session)
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is False
         assert "limit reached" in msg
