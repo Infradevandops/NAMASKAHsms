@@ -192,7 +192,9 @@ class APIKeyListResponse(BaseModel):
     created_at: datetime
     expires_at: Optional[datetime] = None
     last_used: Optional[datetime] = None
-    request_count: int = Field(default=0, description="Number of requests made with this key")
+    request_count: int = Field(
+        default=0, description="Number of requests made with this key"
+    )
 
     model_config = {
         "json_schema_extra": {

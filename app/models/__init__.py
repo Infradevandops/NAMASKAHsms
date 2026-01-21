@@ -14,6 +14,7 @@ from .reseller import (
     SubAccount,
     SubAccountTransaction,
 )
+from .subscription_tier import SubscriptionTier
 from .system import (
     ActivityLog,
     BannedNumber,
@@ -30,7 +31,6 @@ from .user import (
     User,
     Webhook,
 )
-from .subscription_tier import SubscriptionTier
 from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt

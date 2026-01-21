@@ -2,7 +2,7 @@
 
 import hashlib
 import uuid
-from typing import List, Optional, Tuple
+from typing import Optional
 
 from sqlalchemy.orm import Session
 
@@ -88,7 +88,9 @@ class APIKeyService:
 
         return raw_key, api_key
 
-    def get_user_keys(self, user_id: str, include_inactive: bool = False) -> list[APIKey]:
+    def get_user_keys(
+        self, user_id: str, include_inactive: bool = False
+    ) -> list[APIKey]:
         """Get all API keys for a user."""
         query = self.db.query(APIKey).filter(APIKey.user_id == user_id)
         if not include_inactive:

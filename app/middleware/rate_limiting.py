@@ -64,7 +64,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Skip rate limiting for public pages
         path = request.url.path
-        if path == "/" or any(path.startswith(p + "/") for p in public_paths if p != "/") or path in public_paths:
+        if (
+            path == "/"
+            or any(path.startswith(p + "/") for p in public_paths if p != "/")
+            or path in public_paths
+        ):
             return await call_next(request)
 
         current_time = time.time()

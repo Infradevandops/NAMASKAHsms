@@ -1,7 +1,8 @@
-
 import pytest
-from app.services.notification_service import NotificationService
+
 from app.models.notification import Notification
+from app.services.notification_service import NotificationService
+
 
 class TestNotificationServiceComplete:
     """Comprehensive tests for NotificationService."""
@@ -13,9 +14,9 @@ class TestNotificationServiceComplete:
             user_id=regular_user.id,
             notification_type="info",
             title="Welcome",
-            message="Welcome to Namaskah"
+            message="Welcome to Namaskah",
         )
-        
+
         assert notif.id is not None
         assert notif.user_id == regular_user.id
         assert notif.is_read is False
@@ -23,16 +24,16 @@ class TestNotificationServiceComplete:
     def test_get_notifications(self, db_session, regular_user):
         """Test retrieving notifications."""
         service = NotificationService(db_session)
-        
+
         # Create a few notifications
         for i in range(5):
             service.create_notification(
                 user_id=regular_user.id,
                 notification_type="test",
                 title=f"Test {i}",
-                message=f"Message {i}"
+                message=f"Message {i}",
             )
-            
+
         result = service.get_notifications(regular_user.id)
         assert result["total"] == 5
         assert len(result["notifications"]) == 5
@@ -44,11 +45,11 @@ class TestNotificationServiceComplete:
             user_id=regular_user.id,
             notification_type="test",
             title="Read Me",
-            message="Please read"
+            message="Please read",
         )
-        
+
         service.mark_as_read(notif.id, regular_user.id)
-        
+
         db_session.refresh(notif)
         assert notif.is_read is True
 
@@ -59,25 +60,27 @@ class TestNotificationServiceComplete:
             user_id=regular_user.id,
             notification_type="test",
             title="Delete Me",
-            message="Bye"
+            message="Bye",
         )
-        
+
         service.delete_notification(notif.id, regular_user.id)
-        
-        count = db_session.query(Notification).filter(Notification.id == notif.id).count()
+
+        count = (
+            db_session.query(Notification).filter(Notification.id == notif.id).count()
+        )
         assert count == 0
 
     def test_get_unread_count(self, db_session, regular_user):
         """Test unread count calculation."""
         service = NotificationService(db_session)
-        
+
         service.create_notification(regular_user.id, "type", "t1", "m1")
         service.create_notification(regular_user.id, "type", "t2", "m2")
-        
+
         assert service.get_unread_count(regular_user.id) == 2
-        
+
         # Mark one as read
         notifs = service.get_notifications(regular_user.id)["notifications"]
         service.mark_as_read(notifs[0]["id"], regular_user.id)
-        
+
         assert service.get_unread_count(regular_user.id) == 1

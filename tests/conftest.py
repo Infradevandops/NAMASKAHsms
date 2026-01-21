@@ -1,15 +1,15 @@
 import os
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import fakeredis
 import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-import fakeredis
 
 os.environ["TESTING"] = "1"
 os.environ["SECRET_KEY"] = "test_secret_key_for_testing_32_characters_long_enough"

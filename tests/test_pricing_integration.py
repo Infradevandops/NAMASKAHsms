@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.services.api_key_service import APIKeyService
 from app.services.pricing_calculator import PricingCalculator

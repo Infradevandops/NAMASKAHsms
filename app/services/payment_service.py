@@ -3,26 +3,28 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
+from prometheus_client import Counter, Histogram
+from redis import Redis
+from redis.lock import Lock
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
 from app.services.credit_service import CreditService
 from app.services.paystack_service import paystack_service
-from redis import Redis
-from redis.lock import Lock
-from app.core.config import get_settings
-from prometheus_client import Counter, Histogram
 
 logger = get_logger(__name__)
 
 # Metrics
-payment_credits = Counter('payment_credits_total', 'Total payment credits')
-payment_duplicates = Counter('payment_duplicates_total', 'Duplicate payment attempts')
-payment_duration = Histogram('payment_duration_seconds', 'Payment processing time')
-webhook_deliveries = Counter('webhook_deliveries_total', 'Webhook deliveries', ['status'])
+payment_credits = Counter("payment_credits_total", "Total payment credits")
+payment_duplicates = Counter("payment_duplicates_total", "Duplicate payment attempts")
+payment_duration = Histogram("payment_duration_seconds", "Payment processing time")
+webhook_deliveries = Counter(
+    "webhook_deliveries_total", "Webhook deliveries", ["status"]
+)
 
 
 class PaymentService:
@@ -34,7 +36,9 @@ class PaymentService:
         self.credit_service = CreditService(db)
         self.redis = redis or Redis.from_url(get_settings().redis_url)
 
-    async def credit_user(self, reference: str, amount: float, user_id: str) -> Dict[str, Any]:
+    async def credit_user(
+        self, reference: str, amount: float, user_id: str
+    ) -> Dict[str, Any]:
         """Credit user with idempotency guarantee."""
         # Check if already credited
         idempotency_key = f"payment:credited:{reference}"
@@ -42,14 +46,14 @@ class PaymentService:
             logger.warning(f"Payment {reference} already credited")
             payment_duplicates.inc()
             return {"status": "duplicate", "reference": reference}
-        
+
         # Acquire distributed lock
         lock_key = f"payment:lock:{reference}"
         lock = Lock(self.redis, lock_key, timeout=10, blocking_timeout=5)
-        
+
         if not lock.acquire(blocking=True):
             raise ValueError("Could not acquire payment lock")
-            
+
         with payment_duration.time():
             try:
                 # Use SELECT FOR UPDATE to prevent race conditions
@@ -59,16 +63,16 @@ class PaymentService:
                     .with_for_update()
                     .first()
                 )
-                
+
                 if not user:
                     raise ValueError(f"User {user_id} not found")
-                
+
                 # Credit user
                 user.credits = (user.credits or 0.0) + amount
-                
+
                 # Mark as credited (24 hour TTL)
                 self.redis.setex(idempotency_key, 86400, "1")
-                
+
                 # Create transaction
                 transaction = Transaction(
                     user_id=user_id,
@@ -78,11 +82,15 @@ class PaymentService:
                 )
                 self.db.add(transaction)
                 self.db.commit()
-                
+
                 logger.info(f"Credited {amount} to user {user_id} (ref: {reference})")
                 payment_credits.inc()
-                return {"status": "success", "amount": amount, "new_balance": user.credits}
-                
+                return {
+                    "status": "success",
+                    "amount": amount,
+                    "new_balance": user.credits,
+                }
+
             finally:
                 lock.release()
 
@@ -105,7 +113,7 @@ class PaymentService:
         # Validate amount
         if amount_usd <= 0:
             raise ValueError("Amount must be positive")
-        
+
         # Maximum amount check (prevent fraud)
         if amount_usd > 100000:
             raise ValueError("Amount exceeds maximum allowed (100,000 USD)")
@@ -249,7 +257,9 @@ class PaymentService:
             logger.error(f"Failed to verify payment: {str(e)}")
             raise ValueError(f"Payment verification failed: {str(e)}")
 
-    async def process_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_webhook(
+        self, event: str, payload: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Process Paystack webhook event.
 
         Args:
@@ -284,7 +294,7 @@ class PaymentService:
             Dictionary with processing result
         """
         reference = payload.get("reference")
-        
+
         logger.info(f"Charge success: Reference={reference}")
 
         # Get payment log
@@ -302,18 +312,18 @@ class PaymentService:
             result = await self.credit_user(
                 reference=reference,
                 amount=payment_log.namaskah_amount,
-                user_id=payment_log.user_id
+                user_id=payment_log.user_id,
             )
-            
+
             # Update payment log
             payment_log.status = "success"
             payment_log.credited = True
             payment_log.webhook_received = True
             self.db.commit()
-            
+
             webhook_deliveries.labels(status="success").inc()
             return result
-            
+
         except Exception as e:
             logger.error(f"Failed to credit user: {str(e)}")
             webhook_deliveries.labels(status="error").inc()
