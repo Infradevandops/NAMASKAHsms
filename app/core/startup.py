@@ -193,29 +193,59 @@ def ensure_admin_user():
         admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
         admin_password = os.getenv("ADMIN_PASSWORD")
 
+        logger.info(f"🔐 Admin user check starting for: {admin_email}")
+        
         if not admin_password:
             logger.warning(
-                "ADMIN_PASSWORD not set in environment. Skipping admin user creation."
+                "⚠️ ADMIN_PASSWORD not set in environment. Skipping admin user creation."
+            )
+            logger.warning(
+                "⚠️ Set ADMIN_PASSWORD environment variable to enable admin access."
             )
             return
+
+        logger.info(f"✅ ADMIN_PASSWORD found (length: {len(admin_password)} chars)")
 
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            # Update password and tier to ensure it's correct
+            logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
+            
+            # ALWAYS update password on startup to ensure it matches env var
+            old_hash_preview = existing_admin.password_hash[:30] if existing_admin.password_hash else "None"
             existing_admin.password_hash = hash_password(admin_password)
+            new_hash_preview = existing_admin.password_hash[:30]
+            
             existing_admin.is_admin = True
             existing_admin.email_verified = True
-            existing_admin.subscription_tier = (
-                "custom"  # Changed from 'turbo' to 'custom' (highest tier)
-            )
-            existing_admin.credits = 10000.0
-            existing_admin.free_verifications = 1000.0
+            existing_admin.subscription_tier = "custom"
+            existing_admin.credits = max(existing_admin.credits or 0, 10000.0)
+            existing_admin.is_active = True
+            existing_admin.is_suspended = False
+            existing_admin.is_banned = False
+            
             db.commit()
-            logger.info("Admin user verified and updated with Turbo tier")
+            
+            logger.info(f"✅ Admin user updated successfully")
+            logger.info(f"   Email: {admin_email}")
+            logger.info(f"   Tier: {existing_admin.subscription_tier}")
+            logger.info(f"   Credits: {existing_admin.credits}")
+            logger.info(f"   Old hash: {old_hash_preview}...")
+            logger.info(f"   New hash: {new_hash_preview}...")
+            logger.info(f"   Password length: {len(admin_password)} chars")
+            
+            # Verify the password works
+            from app.utils.security import verify_password
+            if verify_password(admin_password, existing_admin.password_hash):
+                logger.info("✅ Password verification successful!")
+            else:
+                logger.error("❌ Password verification FAILED after update!")
+            
             return
 
-        # Create admin user with Turbo tier access
+        # Create admin user with custom tier access
+        logger.info(f"🆕 Creating new admin user: {admin_email}")
+        
         admin_user = User(
             email=admin_email,
             password_hash=hash_password(admin_password),
@@ -223,19 +253,38 @@ def ensure_admin_user():
             is_admin=True,
             email_verified=True,
             free_verifications=1000.0,
-            subscription_tier="custom",  # Changed from 'turbo' to 'custom' (highest tier)
+            subscription_tier="custom",
+            is_active=True,
         )
 
         db.add(admin_user)
         db.commit()
+        db.refresh(admin_user)
 
-        logger.info(f"Admin user created: {admin_email}")
+        logger.info(f"✅ Admin user created successfully")
+        logger.info(f"   Email: {admin_email}")
+        logger.info(f"   ID: {admin_user.id}")
+        logger.info(f"   Tier: {admin_user.subscription_tier}")
+        logger.info(f"   Credits: {admin_user.credits}")
+        logger.info(f"   Hash: {admin_user.password_hash[:30]}...")
+        
+        # Verify the password works
+        from app.utils.security import verify_password
+        if verify_password(admin_password, admin_user.password_hash):
+            logger.info("✅ Password verification successful!")
+        else:
+            logger.error("❌ Password verification FAILED after creation!")
 
     except IntegrityError as e:
-        logger.warning(f"Admin user creation failed - user may already exist: {e}")
+        logger.warning(f"⚠️ Admin user creation failed - user may already exist: {e}")
         db.rollback()
     except SQLAlchemyError as e:
-        logger.error(f"Database error creating admin user: {e}")
+        logger.error(f"❌ Database error creating admin user: {e}")
+        db.rollback()
+    except Exception as e:
+        logger.error(f"❌ Unexpected error in ensure_admin_user: {e}")
+        import traceback
+        traceback.print_exc()
         db.rollback()
     finally:
         db.close()
