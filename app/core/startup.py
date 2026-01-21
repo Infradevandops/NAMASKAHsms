@@ -172,6 +172,16 @@ def ensure_database_schema():
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMP",
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_reason VARCHAR(500)",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS description VARCHAR(500)",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS daily_verification_limit INTEGER DEFAULT -1",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS monthly_verification_limit INTEGER DEFAULT -1",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS country_limit TEXT DEFAULT 'all'",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS sms_retention_days INTEGER DEFAULT 7",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS features TEXT",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS rate_limit_per_minute INTEGER DEFAULT 60",
+                "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS rate_limit_per_hour INTEGER DEFAULT 1000",
             ]
 
             for sql in columns_to_add:
