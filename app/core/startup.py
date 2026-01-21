@@ -232,7 +232,7 @@ def ensure_admin_user():
 
             db.commit()
 
-            logger.info(f"✅ Admin user updated successfully")
+            logger.info("✅ Admin user updated successfully")
             logger.info(f"   Email: {admin_email}")
             logger.info(f"   Tier: {existing_admin.subscription_tier}")
             logger.info(f"   Credits: {existing_admin.credits}")
@@ -268,7 +268,7 @@ def ensure_admin_user():
         db.commit()
         db.refresh(admin_user)
 
-        logger.info(f"✅ Admin user created successfully")
+        logger.info("✅ Admin user created successfully")
         logger.info(f"   Email: {admin_email}")
         logger.info(f"   ID: {admin_user.id}")
         logger.info(f"   Tier: {admin_user.subscription_tier}")
