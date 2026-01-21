@@ -407,8 +407,7 @@ jobs:
             curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
             echo "✅ Deployed to production"
           else
-            echo "❌ Production deploy hook not set"
-            exit 1
+            echo "⚠️ Production deploy hook not configured - skipping deployment"
           fi
       
       - name: Wait for deployment
