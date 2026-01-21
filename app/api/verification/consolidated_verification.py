@@ -12,6 +12,8 @@ from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification
+from app.services.tier_manager import TierManager
+from app.core.tier_helpers import raise_tier_error
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -26,6 +28,8 @@ class VerificationCreate(BaseModel):
     service_name: str
     country: str = "US"
     capability: str = "sms"
+    area_code: Optional[str] = None
+    carrier: Optional[str] = None
 
 
 class VerificationResponse(BaseModel):
@@ -94,6 +98,10 @@ async def create_verification(
         base_cost = 0.50
 
         if current_user.free_verifications > 0:
+            # Free verifications don't support custom filters normally
+            if verification_data.area_code or verification_data.carrier:
+                 if current_user.credits < 1.0: # Buffer for premium features
+                     raise HTTPException(status_code=402, detail="Premium filters require credits even for free users")
             current_user.free_verifications -= 1
             db.commit()
         elif current_user.credits >= base_cost:
@@ -101,6 +109,16 @@ async def create_verification(
             db.commit()
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
+
+        # Tier-based feature gating
+        tier_manager = TierManager(db)
+        if verification_data.area_code and not tier_manager.check_feature_access(user_id, "area_code_selection"):
+            user_tier = tier_manager.get_user_tier(user_id)
+            raise_tier_error(user_tier, "payg", user_id)
+            
+        if verification_data.carrier and not tier_manager.check_feature_access(user_id, "isp_filtering"):
+            user_tier = tier_manager.get_user_tier(user_id)
+            raise_tier_error(user_tier, "pro", user_id)
 
         # Get TextVerified service
         from app.services.textverified_service import TextVerifiedService
@@ -110,9 +128,11 @@ async def create_verification(
         if not tv_service.enabled:
             raise HTTPException(status_code=503, detail="SMS service unavailable")
 
-        # Purchase number from TextVerified
-        result = await tv_service.buy_number(
-            verification_data.country, verification_data.service_name
+        # Purchase number from TextVerified with optional filters
+        result = await tv_service.create_verification(
+            service=verification_data.service_name,
+            area_code=verification_data.area_code,
+            carrier=verification_data.carrier
         )
 
         verification = Verification(
@@ -123,8 +143,10 @@ async def create_verification(
             cost=result["cost"],
             phone_number=result["phone_number"],
             country=verification_data.country,
-            activation_id=result["activation_id"],
+            activation_id=result["id"], # Adjusted to match create_verification result keys
             provider="textverified",
+            requested_area_code=verification_data.area_code,
+            requested_carrier=verification_data.carrier
         )
 
         db.add(verification)

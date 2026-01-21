@@ -29,6 +29,49 @@
                 style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9fafb; cursor: not-allowed; font-size: 14px;">
         </div>
 
+        <!-- Premium Filtering Section -->
+        <div id="premium-filters"
+            style="margin-top: 20px; border-top: 1px solid #f3f4f6; padding-top: 15px; margin-bottom: 15px;">
+            <div
+                style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                Premium Filtering</div>
+
+            <!-- Area Code Selection (PAYG+) -->
+            <div id="area-code-container" style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Area Code</label>
+                <div id="area-code-field-wrapper">
+                    <select id="area-code-select"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="">Any Area Code</option>
+                    </select>
+                </div>
+                <div id="area-code-lock"
+                    style="display: none; padding: 10px; background: #fff7ed; border: 1px dashed #fdba74; border-radius: 8px; font-size: 12px; color: #9a3412;">
+                    🔒 <a href="/settings?tab=billing"
+                        style="color: #ea580c; font-weight: 700; text-decoration: none;">Upgrade to Starter</a> to
+                    select specific area codes
+                </div>
+            </div>
+
+            <!-- ISP/Carrier Selection (PRO+) -->
+            <div id="carrier-container" style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Carrier /
+                    ISP</label>
+                <div id="carrier-field-wrapper">
+                    <select id="carrier-select"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="">Any Carrier</option>
+                    </select>
+                </div>
+                <div id="carrier-lock"
+                    style="display: none; padding: 10px; background: #fff1f2; border: 1px dashed #fecdd3; border-radius: 8px; font-size: 12px; color: #9f1239;">
+                    🔒 <a href="/settings?tab=billing"
+                        style="color: #e11d48; font-weight: 700; text-decoration: none;">Upgrade to Pro</a> to filter by
+                    ISP/Carrier
+                </div>
+            </div>
+        </div>
+
         <div
             style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-radius: 10px;">
             <div style="text-align: center;">
@@ -92,6 +135,94 @@
     let pollingInterval = null;
     let allServices = [];
     let servicesLoaded = false;
+    let userTier = 'freemium';
+
+    const TIER_RANK = {
+        'freemium': 0,
+        'payg': 1,
+        'starter': 1,
+        'pro': 2,
+        'custom': 3
+    };
+
+    /**
+     * Check tier access and toggle UI filters
+     */
+    async function checkTierAccess() {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await axios.get('/api/tiers/current', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            userTier = res.data.current_tier || 'freemium';
+            console.log(`[Verify] User Tier: ${userTier}`);
+
+            const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
+
+            // Area Code (PAYG/Starter+)
+            if (currentRank < 1) {
+                document.getElementById('area-code-select').style.display = 'none';
+                document.getElementById('area-code-lock').style.display = 'block';
+            } else {
+                document.getElementById('area-code-select').style.display = 'block';
+                document.getElementById('area-code-lock').style.display = 'none';
+            }
+
+            // Carrier (Pro+)
+            if (currentRank < 2) {
+                document.getElementById('carrier-select').style.display = 'none';
+                document.getElementById('carrier-lock').style.display = 'block';
+            } else {
+                document.getElementById('carrier-select').style.display = 'block';
+                document.getElementById('carrier-lock').style.display = 'none';
+                loadCarriers(); // Load carriers for Pro users
+            }
+        } catch (error) {
+            console.warn('[Verify] Could not determine user tier:', error);
+        }
+    }
+
+    async function loadCarriers() {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await axios.get('/api/v1/verification/carriers/US', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const select = document.getElementById('carrier-select');
+            res.data.carriers.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.textContent = c.name;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('[Verify] Failed to load carriers:', e);
+        }
+    }
+
+    async function loadAreaCodes(serviceId) {
+        if (!serviceId || (TIER_RANK[userTier] || 0) < 1) return;
+
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await axios.get(`/api/v1/verification/area-codes/US`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const select = document.getElementById('area-code-select');
+
+            // Keep "Any" option
+            select.innerHTML = '<option value="">Any Area Code</option>';
+
+            res.data.area_codes.forEach(ac => {
+                const opt = document.createElement('option');
+                opt.value = ac.area_code;
+                opt.textContent = `${ac.area_code} (${ac.city}, ${ac.state})`;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error('[Verify] Failed to load area codes:', e);
+        }
+    }
 
     async function loadServices() {
         console.log('Loading services...');
@@ -179,6 +310,9 @@
         document.getElementById('purchase-btn').disabled = false;
         document.getElementById('purchase-btn').textContent = 'Get SMS Code';
         console.log(`Selected: ${name} ($${cost})`);
+
+        // Load area codes for selected service if user has access
+        loadAreaCodes(id);
     }
 
     async function purchaseVerification() {
@@ -189,10 +323,15 @@
         btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
 
         try {
+            const areaCode = document.getElementById('area-code-select').value;
+            const carrier = document.getElementById('carrier-select').value;
+
             const res = await axios.post('/api/verify/create', {
                 service_name: selectedService,
                 country: 'US',
-                capability: 'sms'
+                capability: 'sms',
+                area_code: areaCode || null,
+                carrier: carrier || null
             });
 
             if (res.data && res.data.phone_number) {
@@ -302,6 +441,7 @@
     // Initialize on page load
     (async function init() {
         console.log('Initializing SMS Verification page...');
+        await checkTierAccess(); // Check tier gating first
         await loadServices();
         setupSearchListener();
         console.log('✅ Page ready');

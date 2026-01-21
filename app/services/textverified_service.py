@@ -458,10 +458,19 @@ class TextVerifiedService:
 
             logger.info(f"Creating verification for {service}")
 
+            # Build request with optional filters
+            kwargs = {
+                "service_name": service,
+                "capability": textverified.ReservationCapability.SMS
+            }
+            
+            if area_code:
+                kwargs["area_code_select_option"] = [area_code] if isinstance(area_code, str) else area_code
+            if carrier:
+                kwargs["carrier_select_option"] = [carrier] if isinstance(carrier, str) else carrier
+
             # Use the textverified package to create verification
-            verification = self.client.verifications.create(
-                service_name=service, capability=textverified.ReservationCapability.SMS
-            )
+            verification = self.client.verifications.create(**kwargs)
 
             result = {
                 "id": verification.id,

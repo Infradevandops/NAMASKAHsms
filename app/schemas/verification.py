@@ -12,6 +12,8 @@ class VerificationRequest(BaseModel):
     service: str = Field(..., description="Service name (telegram, whatsapp, etc)")
     country: str = Field(default="US", description="Country code")
     capability: str = Field(default="sms", description="sms or voice")
+    area_codes: Optional[list[str]] = Field(default=None, description="Preferred area codes")
+    carriers: Optional[list[str]] = Field(default=None, description="Preferred carriers")
 
     @field_validator("country", mode="before")
     @classmethod

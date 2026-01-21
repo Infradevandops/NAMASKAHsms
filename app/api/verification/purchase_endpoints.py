@@ -68,6 +68,24 @@ async def request_verification(
             )
         logger.info("TextVerified service initialized successfully")
 
+        # Check tier access for filtering features
+        from app.services.tier_manager import TierManager
+        tier_manager = TierManager(db)
+        
+        if request.area_codes:
+            if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail="Area code filtering requires payg tier or higher. Upgrade your plan."
+                )
+        
+        if request.carriers:
+            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail="Carrier filtering requires payg tier or higher. Upgrade your plan."
+                )
+
         # Calculate SMS cost using new pricing system
         from app.services.pricing_calculator import PricingCalculator
 
@@ -99,7 +117,16 @@ async def request_verification(
         logger.info(
             f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
         )
-        result = await tv_service.buy_number(request.country, request.service)
+        
+        # Pass area codes and carriers if provided
+        area_code = request.area_codes[0] if request.area_codes else None
+        carrier = request.carriers[0] if request.carriers else None
+        
+        result = await tv_service.create_verification(
+            service=request.service,
+            area_code=area_code,
+            carrier=carrier
+        )
         logger.info(
             f"Number purchased successfully: {result['phone_number']}, cost: ${result['cost']:.2f}"
         )
@@ -125,7 +152,7 @@ async def request_verification(
             capability=request.capability,
             cost=actual_cost,  # Use our calculated cost
             provider="textverified",
-            activation_id=result["activation_id"],
+            activation_id=result["id"],
             status="pending",
             created_at=datetime.now(timezone.utc),
         )
@@ -197,7 +224,7 @@ async def request_verification(
             "country": request.country,
             "cost": actual_cost,
             "status": "pending",
-            "activation_id": result["activation_id"],
+            "activation_id": result["id"],
             "demo_mode": False,
         }
 
