@@ -10,7 +10,7 @@
  */
 
 import { TIMEOUTS, ENDPOINTS, STORAGE_KEYS } from './constants.js';
-import { hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
+import { hasAuthToken, getAuthHeaders } from './auth-helpers.js';
 import { initTierCard } from './tier-card.js';
 
 // ============================================

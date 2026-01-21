@@ -18,7 +18,7 @@ import {
     TIER_CTA_CONFIG,
     STORAGE_KEYS
 } from './constants.js';
-import { hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
+import { hasAuthToken, getAuthHeaders } from './auth-helpers.js';
 
 /**
  * TierCard class - manages the tier card widget

@@ -6,7 +6,7 @@
  */
 
 import { ENDPOINTS, STORAGE_KEYS, TIERS, TIER_DISPLAY_NAMES } from './constants.js';
-import { getAuthToken, hasAuthToken, getAuthHeaders } from './auth-helpers.ts';
+import { getAuthToken, hasAuthToken, getAuthHeaders } from './auth-helpers.js';
 
 /**
  * Feature access map - which tiers can access which features

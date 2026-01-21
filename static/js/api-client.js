@@ -8,7 +8,7 @@
  */
 
 import { TIMEOUTS, HTTP_STATUS, STORAGE_KEYS } from './constants.js';
-import { getAuthHeaders, hasAuthToken, clearAuth } from './auth-helpers.ts';
+import { getAuthHeaders, hasAuthToken, clearAuth } from './auth-helpers.js';
 
 /**
  * Custom API Error class
