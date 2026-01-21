@@ -112,17 +112,18 @@ class TestPricingEnforcementFlow:
     def test_custom_api_key_limit_flow(self, db: Session, users: dict):
         """Test Custom user API key creation."""
         user = users["custom"]
+        service = APIKeyService(db)
 
         # Can create keys
-        assert APIKeyService.can_create_key(db, user.id)
+        assert service.can_create_key(user.id)
 
         # Get remaining
-        remaining = APIKeyService.get_remaining_keys(db, user.id)
+        remaining = service.get_remaining_keys(user.id)
         assert remaining == 999  # Unlimited
 
         # Create key
-        key_info = APIKeyService.create_key(db, user.id, "Test Key")
-        assert key_info["name"] == "Test Key"
+        raw_key, api_key = service.generate_api_key(user.id, name="Test Key")
+        assert api_key.name == "Test Key"
 
     def test_freemium_cannot_use_filters_flow(self, db: Session, users: dict):
         """Test freemium cannot use filters."""

@@ -92,44 +92,51 @@ class TestAPIKeyService:
 
     def test_can_create_key_freemium(self, db: Session, freemium_user_with_bonus: User):
         """Test freemium cannot create keys."""
-        assert APIKeyService.can_create_key(db, freemium_user_with_bonus.id) is False
+        service = APIKeyService(db)
+        assert service.can_create_key(freemium_user_with_bonus.id) is False
 
     def test_can_create_key_pro(self, db: Session, pro_user: User):
         """Test pro can create keys."""
-        assert APIKeyService.can_create_key(db, pro_user.id) is True
+        service = APIKeyService(db)
+        assert service.can_create_key(pro_user.id) is True
 
     def test_get_remaining_keys_pro(self, db: Session, pro_user: User):
         """Test remaining keys for pro."""
-        remaining = APIKeyService.get_remaining_keys(db, pro_user.id)
+        service = APIKeyService(db)
+        remaining = service.get_remaining_keys(pro_user.id)
         assert remaining == 10
 
     def test_get_remaining_keys_freemium(
         self, db: Session, freemium_user_with_bonus: User
     ):
         """Test remaining keys for freemium."""
-        remaining = APIKeyService.get_remaining_keys(db, freemium_user_with_bonus.id)
+        service = APIKeyService(db)
+        remaining = service.get_remaining_keys(freemium_user_with_bonus.id)
         assert remaining == 0
 
     def test_create_key_pro(self, db: Session, pro_user: User):
         """Test creating key for pro user."""
-        key_info = APIKeyService.create_key(db, pro_user.id, "Test Key")
-        assert key_info["name"] == "Test Key"
-        assert key_info["key"] is not None
+        service = APIKeyService(db)
+        raw_key, api_key = service.generate_api_key(pro_user.id, name="Test Key")
+        assert api_key.name == "Test Key"
+        assert raw_key is not None
 
     def test_create_key_freemium_fails(
         self, db: Session, freemium_user_with_bonus: User
     ):
         """Test creating key for freemium fails."""
+        service = APIKeyService(db)
         with pytest.raises(ValueError, match="API key limit reached"):
-            APIKeyService.create_key(db, freemium_user_with_bonus.id)
+            service.generate_api_key(freemium_user_with_bonus.id)
 
     def test_create_key_limit_reached(self, db: Session, pro_user: User):
         """Test key limit enforcement."""
+        service = APIKeyService(db)
         for i in range(10):
-            APIKeyService.create_key(db, pro_user.id, f"Key {i}")
+            service.generate_api_key(pro_user.id, name=f"Key {i}")
 
         with pytest.raises(ValueError, match="API key limit reached"):
-            APIKeyService.create_key(db, pro_user.id)
+            service.generate_api_key(pro_user.id)
 
 
 class TestTransactionService:
