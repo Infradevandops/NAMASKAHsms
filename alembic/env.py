@@ -1,4 +1,5 @@
 """Alembic environment configuration."""
+
 import os
 import sys
 from logging.config import fileConfig
@@ -54,10 +55,10 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     # Skip migrations if SKIP_MIGRATIONS env var is set
-    if os.getenv('SKIP_MIGRATIONS', '').lower() in ('true', '1', 'yes'):
+    if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
         print("⚠️  SKIP_MIGRATIONS enabled, skipping migrations")
         return
-    
+
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
@@ -77,8 +78,8 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     # Check SKIP_MIGRATIONS before doing anything
-    skip_val = os.getenv('SKIP_MIGRATIONS', 'NOT_SET')
-    skip = skip_val.lower() in ('true', '1', 'yes')
+    skip_val = os.getenv("SKIP_MIGRATIONS", "NOT_SET")
+    skip = skip_val.lower() in ("true", "1", "yes")
     if skip:
         print("⚠️  SKIP_MIGRATIONS enabled, skipping all migrations")
     else:

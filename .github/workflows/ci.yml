@@ -88,7 +88,7 @@ jobs:
       
       - name: Install linting tools
         run: |
-          pip install black flake8 mypy isort pylint
+          pip install black==24.3.0 flake8 mypy isort pylint
       
       - name: Run Black
         run: black --check app/ tests/
@@ -214,11 +214,15 @@ jobs:
         with:
           fetch-depth: 0
       
+      - name: Install Gitleaks
+        run: |
+          VERSION="8.18.2"
+          wget https://github.com/gitleaks/gitleaks/releases/download/v${VERSION}/gitleaks_${VERSION}_linux_x64.tar.gz
+          tar -xf gitleaks_${VERSION}_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+      
       - name: Run Gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+        run: gitleaks detect --source . -v -c gitleaks.toml
 
   migration-test:
     name: Database Migration Test
