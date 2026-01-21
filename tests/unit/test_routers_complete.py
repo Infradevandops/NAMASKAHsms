@@ -18,7 +18,7 @@ def test_core_router_inclusion():
         "/api/auth/register",
         "/api/keys",
         "/api/webhooks",
-        "/user/me",  # from user_profile_router
+        "/api/user/me",  # from user_profile_router
         "/api/user/preferences",  # from preferences_router
         "/system/health",  # from system_router
         "/api/countries",
