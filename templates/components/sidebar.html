@@ -7,20 +7,71 @@
         </button>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
+        <!-- Main -->
         <a href="/dashboard" class="nav-item" data-page="dashboard" data-tooltip="Dashboard" aria-current="false">
             <span aria-hidden="true">📊</span> <span data-i18n="common.dashboard">Dashboard</span>
         </a>
+
+        <!-- Services Section -->
+        <div class="nav-divider" role="separator"></div>
+        <div class="nav-section-title" role="heading" aria-level="2">Services</div>
+        
         <a href="/verify" class="nav-item" data-page="verify" data-tooltip="SMS Verification">
             <span aria-hidden="true">📱</span> <span data-i18n="verify.title">SMS Verification</span>
         </a>
+        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify"
+            data-tooltip="Voice Verification (Premium)" style="display: none;"
+            aria-label="Voice Verification - Premium feature">
+            <span aria-hidden="true">📞</span> <span>Voice Verify</span>
+        </a>
+
+        <!-- Finance Section -->
+        <div class="nav-divider" role="separator"></div>
+        <div class="nav-section-title" role="heading" aria-level="2">Finance</div>
+
         <a href="/wallet" class="nav-item" data-page="wallet" data-tooltip="Wallet">
             <span aria-hidden="true">💰</span> <span data-i18n="common.wallet">Wallet</span>
         </a>
         <a href="/history" class="nav-item" data-page="history" data-tooltip="History">
             <span aria-hidden="true">📜</span> <span data-i18n="wallet.transaction_history">History</span>
         </a>
+        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase"
+            data-tooltip="Bulk Purchase (Pro)" style="display: none;" aria-label="Bulk Purchase - Pro feature">
+            <span aria-hidden="true">📦</span> <span>Bulk Purchase</span>
+        </a>
+
+        <!-- Developers Section (Gated) -->
+        <div class="developer-section-header" style="display: none;">
+            <div class="nav-divider" role="separator"></div>
+            <div class="nav-section-title" role="heading" aria-level="2">Developers</div>
+        </div>
+
+        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys"
+            data-tooltip="API Keys (Premium)" style="display: none;" aria-label="API Keys - Premium feature">
+            <span aria-hidden="true">🔑</span> <span>API Keys</span>
+        </a>
+        <a href="/webhooks" class="nav-item tier-gated" data-min-tier="payg" data-page="webhooks"
+            data-tooltip="Webhook Builder (Premium)" style="display: none;"
+            aria-label="Webhook Builder - Premium feature">
+            <span aria-hidden="true">🔗</span> <span>Webhooks</span>
+        </a>
+        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs"
+            data-tooltip="API Documentation (Premium)" style="display: none;"
+            aria-label="API Documentation - Premium feature">
+            <span aria-hidden="true">📚</span> <span>API Docs</span>
+        </a>
+
+        <!-- General Section -->
+        <div class="nav-divider" role="separator"></div>
+        <div class="nav-section-title" role="heading" aria-level="2">General</div>
+
         <a href="/analytics" class="nav-item" data-page="analytics" data-tooltip="Analytics">
             <span aria-hidden="true">📈</span> <span data-i18n="analytics.title">Analytics</span>
+        </a>
+        <a href="/referrals" class="nav-item tier-gated" data-min-tier="payg" data-page="referrals"
+            data-tooltip="Referral Program (Premium)" style="display: none;"
+            aria-label="Referral Program - Premium feature">
+            <span aria-hidden="true">🤝</span> <span>Referral Program</span>
         </a>
         <a href="/notifications" class="nav-item" data-page="notifications" data-tooltip="Notifications">
             <span aria-hidden="true">🔔</span> <span data-i18n="notifications.title">Notifications</span>
@@ -30,39 +81,6 @@
             <span aria-hidden="true">⚙️</span> <span data-i18n="common.settings">Settings</span>
         </a>
 
-        <!-- Tier-gated navigation items -->
-        <div class="nav-divider tier-gated-section" style="display: none;" role="separator"></div>
-        <div class="nav-section-title tier-gated-section" style="display: none;" role="heading" aria-level="2">PREMIUM
-        </div>
-
-        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys"
-            data-tooltip="API Keys (Premium)" style="display: none;" aria-label="API Keys - Premium feature">
-            <span aria-hidden="true">🔑</span> <span>API Keys</span>
-        </a>
-        <a href="/referrals" class="nav-item tier-gated" data-min-tier="payg" data-page="referrals"
-            data-tooltip="Referral Program (Premium)" style="display: none;"
-            aria-label="Referral Program - Premium feature">
-            <span aria-hidden="true">🤝</span> <span>Referral Program</span>
-        </a>
-        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs"
-            data-tooltip="API Documentation (Premium)" style="display: none;"
-            aria-label="API Documentation - Premium feature">
-            <span aria-hidden="true">📚</span> <span>API Docs</span>
-        </a>
-        <a href="/webhooks" class="nav-item tier-gated" data-min-tier="payg" data-page="webhooks"
-            data-tooltip="Webhook Builder (Premium)" style="display: none;"
-            aria-label="Webhook Builder - Premium feature">
-            <span aria-hidden="true">🔗</span> <span>Webhooks</span>
-        </a>
-        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify"
-            data-tooltip="Voice Verification (Premium)" style="display: none;"
-            aria-label="Voice Verification - Premium feature">
-            <span aria-hidden="true">📞</span> <span>Voice Verify</span>
-        </a>
-        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase"
-            data-tooltip="Bulk Purchase (Pro)" style="display: none;" aria-label="Bulk Purchase - Pro feature">
-            <span aria-hidden="true">📦</span> <span>Bulk Purchase</span>
-        </a>
 
         {% if user and user.is_admin %}
         <div class="nav-divider" role="separator"></div>
@@ -74,8 +92,7 @@
     </nav>
     <div class="sidebar-footer">
         <label for="lang-switcher" class="sr-only">Select language</label>
-        <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher" aria-label="Select language"
-            style="width: 100%; margin-bottom: 8px; padding: 8px; border: 1px solid rgba(0,0,0,0.1); border-radius: 6px; background: transparent; font-size: 14px; color: var(--text-main);">
+        <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher" aria-label="Select language">
             <option value="en">🇺🇸 English</option>
             <option value="es">🇪🇸 Español</option>
             <option value="fr">🇫🇷 Français</option>
@@ -287,6 +304,22 @@
         padding: 12px;
         border-top: 1px solid #F0F0F0;
     }
+    
+    #lang-switcher {
+        width: 100%;
+        margin-bottom: 8px;
+        padding: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 6px;
+        background: transparent;
+        font-size: 14px;
+        color: var(--text-main);
+        cursor: pointer;
+    }
+    
+    #lang-switcher:hover {
+        background: #F9FAFB;
+    }
 
     /* Tier-gated item styling */
     .nav-item.tier-gated {
@@ -394,10 +427,9 @@
      * Update sidebar visibility based on user tier
      */
     function updateSidebarVisibility(userTier) {
+        // Handle individual gated items
         const tierGatedItems = document.querySelectorAll('.nav-item.tier-gated');
-        const tierGatedSections = document.querySelectorAll('.tier-gated-section');
-        let hasVisibleItems = false;
-
+        
         tierGatedItems.forEach(item => {
             const requiredTier = item.dataset.minTier || 'payg';
             const hasAccess = hasTierAccess(userTier, requiredTier);
@@ -405,16 +437,19 @@
             if (hasAccess) {
                 item.style.display = 'flex';
                 item.classList.remove('locked');
-                hasVisibleItems = true;
             } else {
                 item.style.display = 'none';
                 item.classList.add('locked');
             }
         });
 
-        // Show/hide section divider and title
-        tierGatedSections.forEach(section => {
-            section.style.display = hasVisibleItems ? 'block' : 'none';
+        // Handle Developers Section Visibility
+        // Show only if user has at least PAYG access (which all dev items require)
+        const devHeaders = document.querySelectorAll('.developer-section-header');
+        const canSeeDevTools = hasTierAccess(userTier, 'payg');
+        
+        devHeaders.forEach(header => {
+            header.style.display = canSeeDevTools ? 'block' : 'none';
         });
 
         console.log('[Sidebar] Updated visibility for tier:', userTier);
