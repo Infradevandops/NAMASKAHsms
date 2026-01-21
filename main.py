@@ -139,7 +139,7 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(core_router, deprecated=True)
     fastapi_app.include_router(admin_router, deprecated=True)
     fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
-    fastapi_app.include_router(verification_router, deprecated=True)
+    fastapi_app.include_router(verification_router, prefix="/api", deprecated=True)
 
     # Version 1 API
     fastapi_app.include_router(v1_router)
