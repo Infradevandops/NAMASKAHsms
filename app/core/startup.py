@@ -194,7 +194,7 @@ def ensure_admin_user():
         admin_password = os.getenv("ADMIN_PASSWORD")
 
         logger.info(f"🔐 Admin user check starting for: {admin_email}")
-        
+
         if not admin_password:
             logger.warning(
                 "⚠️ ADMIN_PASSWORD not set in environment. Skipping admin user creation."
@@ -209,13 +209,19 @@ def ensure_admin_user():
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
-            
+            logger.info(
+                f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})"
+            )
+
             # ALWAYS update password on startup to ensure it matches env var
-            old_hash_preview = existing_admin.password_hash[:30] if existing_admin.password_hash else "None"
+            old_hash_preview = (
+                existing_admin.password_hash[:30]
+                if existing_admin.password_hash
+                else "None"
+            )
             existing_admin.password_hash = hash_password(admin_password)
             new_hash_preview = existing_admin.password_hash[:30]
-            
+
             existing_admin.is_admin = True
             existing_admin.email_verified = True
             existing_admin.subscription_tier = "custom"
@@ -223,9 +229,9 @@ def ensure_admin_user():
             existing_admin.is_active = True
             existing_admin.is_suspended = False
             existing_admin.is_banned = False
-            
+
             db.commit()
-            
+
             logger.info(f"✅ Admin user updated successfully")
             logger.info(f"   Email: {admin_email}")
             logger.info(f"   Tier: {existing_admin.subscription_tier}")
@@ -233,19 +239,20 @@ def ensure_admin_user():
             logger.info(f"   Old hash: {old_hash_preview}...")
             logger.info(f"   New hash: {new_hash_preview}...")
             logger.info(f"   Password length: {len(admin_password)} chars")
-            
+
             # Verify the password works
             from app.utils.security import verify_password
+
             if verify_password(admin_password, existing_admin.password_hash):
                 logger.info("✅ Password verification successful!")
             else:
                 logger.error("❌ Password verification FAILED after update!")
-            
+
             return
 
         # Create admin user with custom tier access
         logger.info(f"🆕 Creating new admin user: {admin_email}")
-        
+
         admin_user = User(
             email=admin_email,
             password_hash=hash_password(admin_password),
@@ -267,9 +274,10 @@ def ensure_admin_user():
         logger.info(f"   Tier: {admin_user.subscription_tier}")
         logger.info(f"   Credits: {admin_user.credits}")
         logger.info(f"   Hash: {admin_user.password_hash[:30]}...")
-        
+
         # Verify the password works
         from app.utils.security import verify_password
+
         if verify_password(admin_password, admin_user.password_hash):
             logger.info("✅ Password verification successful!")
         else:
@@ -284,6 +292,7 @@ def ensure_admin_user():
     except Exception as e:
         logger.error(f"❌ Unexpected error in ensure_admin_user: {e}")
         import traceback
+
         traceback.print_exc()
         db.rollback()
     finally:
