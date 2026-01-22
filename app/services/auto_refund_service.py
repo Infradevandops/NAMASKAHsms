@@ -111,9 +111,9 @@ class AutoRefundService:
                 notif_service = NotificationService(self.db)
                 notif_service.create_notification(
                     user_id=verification.user_id,
-                    notification_type="refund_processed",
-                    title="Refund Processed",
-                    message=f"${refund_amount:.2f} refunded for {verification.service_name} verification ({reason})",
+                    notification_type="instant_refund",
+                    title="💰 Instant Refund Processed",
+                    message=f"${refund_amount:.2f} refunded for {verification.service_name} ({reason}) - New balance: ${new_balance:.2f}",
                 )
             except Exception as e:
                 logger.warning(f"Failed to send refund notification: {e}")

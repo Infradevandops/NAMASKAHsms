@@ -5,10 +5,12 @@ Revision ID: quota_pricing_v3_1
 Created: 2025-12-25
 """
 
-from alembic import op
+from decimal import Decimal
+
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
-from decimal import Decimal
+
+from alembic import op
 
 # revision identifiers
 revision = "quota_pricing_v3_1"

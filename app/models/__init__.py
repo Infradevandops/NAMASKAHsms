@@ -23,7 +23,6 @@ from .system import (
     SupportTicket,
 )
 from .transaction import PaymentLog, Transaction
-from .verification_preset import VerificationPreset
 from .user import (
     NotificationPreferences,
     NotificationSettings,
@@ -35,6 +34,7 @@ from .user import (
 from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
+from .verification_preset import VerificationPreset
 from .whitelabel import WhiteLabelConfig
 from .whitelabel_enhanced import (
     PartnerFeature,

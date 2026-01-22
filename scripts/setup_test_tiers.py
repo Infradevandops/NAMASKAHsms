@@ -14,13 +14,14 @@ Feature: tier-system-rbac
 Validates: Requirements 14.1, 14.2, 14.3, 14.4, 14.5
 """
 
-import sys
 import os
+import sys
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
+
 from app.core.database import SessionLocal
 from app.models.user import User
 

@@ -6,8 +6,9 @@ Create Date: 2026-01-22
 
 """
 
-from alembic import op
 import sqlalchemy as sa
+
+from alembic import op
 
 revision = "002_add_idempotency_key"
 down_revision = "pricing_templates_v1"
@@ -18,14 +19,13 @@ depends_on = None
 def upgrade():
     """Add idempotency_key column to verifications table."""
     op.add_column(
-        "verifications",
-        sa.Column("idempotency_key", sa.String(), nullable=True)
+        "verifications", sa.Column("idempotency_key", sa.String(), nullable=True)
     )
     op.create_index(
-        "ix_verifications_idempotency_key", 
-        "verifications", 
-        ["idempotency_key"], 
-        unique=False
+        "ix_verifications_idempotency_key",
+        "verifications",
+        ["idempotency_key"],
+        unique=False,
     )
 
 

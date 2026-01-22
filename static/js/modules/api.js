@@ -21,13 +21,16 @@ export const api = {
   },
 
   /**
-   * Get US area codes
+   * Get US area codes (hardcoded to US - only provider supported)
    * @async
+   * @param {string} service - Optional service name
    * @returns {Promise<Object>} Area codes data
    */
-  async getAreaCodes() {
+  async getAreaCodes(service = null) {
     try {
-      const response = await fetch('/api/countries/usa/area-codes');
+      const params = new URLSearchParams({ country: 'US' });
+      if (service) params.append('service', service);
+      const response = await fetch(`/api/area-codes?${params}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -55,13 +58,13 @@ export const api = {
   },
 
   /**
-   * Get available carriers
+   * Get available carriers (hardcoded to US - only provider supported)
    * @async
    * @returns {Promise<Object>} Carriers data
    */
   async getCarriers() {
     try {
-      const response = await fetch('/api/countries/usa/carriers');
+      const response = await fetch('/api/verification/carriers/US');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -74,18 +77,16 @@ export const api = {
    * Get pricing for verification
    * @async
    * @param {string} service - Service name
-   * @param {string} areaCode - Area code
-   * @param {string} carrier - Carrier name
+   * @param {string} areaCode - Area code (optional)
+   * @param {string} carrier - Carrier name (optional)
    * @returns {Promise<Object>} Pricing data
    */
-  async getPricing(service, areaCode, carrier) {
+  async getPricing(service, areaCode = null, carrier = null) {
     try {
-      const params = new URLSearchParams({
-        service,
-        area_code: areaCode || 'any',
-        carrier: carrier || 'any'
-      });
-      const response = await fetch(`/api/verification/pricing?${params}`);
+      const params = new URLSearchParams({ service });
+      if (areaCode) params.append('area_code', areaCode);
+      if (carrier) params.append('carrier', carrier);
+      const response = await fetch(`/api/pricing?${params}`);
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -95,19 +96,25 @@ export const api = {
   },
 
   /**
-   * Purchase verification
+   * Purchase verification (hardcoded to US - only provider supported)
    * @async
    * @param {string} service - Service name
-   * @param {string} areaCode - Area code
-   * @param {string} carrier - Carrier name
+   * @param {string} areaCode - Area code (optional)
+   * @param {string} carrier - Carrier name (optional)
    * @returns {Promise<Object>} Purchase result
    */
-  async purchaseVerification(service, areaCode, carrier) {
+  async purchaseVerification(service, areaCode = null, carrier = null) {
     try {
-      const response = await fetch('/api/verification/purchase', {
+      const body = {
+        service,
+        country: 'US',
+        area_codes: areaCode ? [areaCode] : null,
+        carriers: carrier ? [carrier] : null
+      };
+      const response = await fetch('/api/verification/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ service, area_code: areaCode, carrier })
+        body: JSON.stringify(body)
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();

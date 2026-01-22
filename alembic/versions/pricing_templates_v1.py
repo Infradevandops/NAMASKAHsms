@@ -5,9 +5,10 @@ Revision ID: pricing_templates_v1
 Created: 2025-12-25
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
+
+from alembic import op
 
 revision = "pricing_templates_v1"
 down_revision = "quota_pricing_v3_1"

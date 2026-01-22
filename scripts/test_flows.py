@@ -3,9 +3,9 @@
 Comprehensive flow testing to verify all critical user journeys work flawlessly
 """
 
+import asyncio
 import os
 import sys
-import asyncio
 from datetime import datetime
 
 
@@ -15,8 +15,8 @@ def test_authentication_flow():
 
     try:
         # Test auth service import
-        from app.services.auth_service import AuthService
         from app.core.database import SessionLocal
+        from app.services.auth_service import AuthService
 
         db = SessionLocal()
         auth_service = AuthService(db)
@@ -38,8 +38,8 @@ def test_pricing_flow():
     print("\n💰 TESTING PRICING FLOW:")
 
     try:
-        from app.services.pricing_calculator import PricingCalculator
         from app.core.database import SessionLocal
+        from app.services.pricing_calculator import PricingCalculator
 
         db = SessionLocal()
         calculator = PricingCalculator(db)
@@ -110,17 +110,18 @@ def test_admin_dashboard_flow():
 
     try:
         # Test admin endpoints
-        from app.api.admin.stats import router as stats_router
-        from app.api.admin.pricing_api import router as pricing_api_router
         from app.api.admin.actions import router as actions_router
+        from app.api.admin.pricing_api import router as pricing_api_router
+        from app.api.admin.stats import router as stats_router
 
         print("  ✅ Admin stats: Available")
         print("  ✅ Admin pricing: Available")
         print("  ✅ Admin actions: Available")
 
         # Test database queries for admin
-        from app.core.database import SessionLocal
         from sqlalchemy import text
+
+        from app.core.database import SessionLocal
 
         db = SessionLocal()
 
@@ -189,8 +190,9 @@ def test_database_flow():
     print("\n🗄️ TESTING DATABASE FLOW:")
 
     try:
-        from app.core.database import SessionLocal
         from sqlalchemy import text
+
+        from app.core.database import SessionLocal
 
         db = SessionLocal()
 
@@ -299,8 +301,8 @@ def test_complete_user_journey():
         print("  ✅ Step 2: Pricing display available")
 
         # Step 3: User can purchase SMS (TextVerified + purchase endpoints)
-        from app.services.textverified_service import TextVerifiedService
         from app.api.verification.purchase_endpoints import router
+        from app.services.textverified_service import TextVerifiedService
 
         print("  ✅ Step 3: SMS purchase flow available")
 

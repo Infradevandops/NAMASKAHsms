@@ -4,15 +4,16 @@ Initialize Pricing Templates for Namaskah Admin Dashboard
 Creates Standard, Promotional, and Holiday pricing templates
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_db
-from app.models.user import User
-from app.models.pricing_template import PricingTemplate, TierPricing, PricingHistory
 from sqlalchemy.orm import Session
+
+from app.core.database import get_db
+from app.models.pricing_template import PricingHistory, PricingTemplate, TierPricing
+from app.models.user import User
 
 
 def create_pricing_templates():

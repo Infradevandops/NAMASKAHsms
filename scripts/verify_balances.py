@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Verify user balances in database."""
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.core.database import engine
 from sqlalchemy.orm import sessionmaker
-from app.models.user import User
+
+from app.core.database import engine
 from app.models.balance_transaction import BalanceTransaction
+from app.models.user import User
 
 Session = sessionmaker(bind=engine)
 db = Session()

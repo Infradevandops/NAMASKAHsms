@@ -75,7 +75,7 @@ async def test_get_balance_cached(service, mock_client_instance):
 async def test_buy_number_success(service, mock_client_instance):
     mock_verif = MagicMock()
     mock_verif.id = "v1"
-    mock_verif.number = "5551234"
+    mock_verif.number = "5551234567"
     mock_verif.total_cost = 1.5
 
     mock_client_instance.verifications.create.return_value = mock_verif
@@ -83,7 +83,7 @@ async def test_buy_number_success(service, mock_client_instance):
     result = await service.buy_number("US", "telegram")
 
     assert result["activation_id"] == "v1"
-    assert result["phone_number"] == "+15551234"
+    assert result["phone_number"] == "+1 (555) 123-4567"
     assert result["cost"] == 1.5
 
 
@@ -116,17 +116,24 @@ async def test_check_sms_received(service, mock_client_instance):
 
 @pytest.mark.asyncio
 async def test_get_services_list(service, mock_client_instance):
-    s1 = MagicMock()
-    s1.service_name = "tg"
-    s1.cost = 0.5
+    mock_response = MagicMock()
+    mock_response.data = [{"service_name": "tg", "cost": 0.5}]
+    mock_client_instance._perform_action.return_value = mock_response
 
-    mock_client_instance.services.list.return_value = [s1]
+    # Need to mock textverified.Service.from_api
+    with patch(
+        "app.services.textverified_service.textverified.Service.from_api"
+    ) as mock_from_api:
+        s1 = MagicMock()
+        s1.service_name = "tg"
+        s1.cost = 0.5
+        mock_from_api.return_value = s1
 
-    services = await service.get_services_list()
+        services = await service.get_services_list()
 
-    assert len(services) == 1
-    assert services[0]["id"] == "tg"
-    assert services[0]["cost"] == 0.5
+        assert len(services) == 1
+        assert services[0]["id"] == "tg"
+        assert services[0]["cost"] == 0.5
 
 
 @pytest.mark.asyncio
@@ -140,7 +147,7 @@ async def test_cancel_activation(service, mock_client_instance):
 async def test_get_area_codes(service, mock_client_instance):
     ac = MagicMock()
     ac.area_code = 415
-    mock_client_instance.area_codes.list.return_value = [ac]
+    mock_client_instance.services.area_codes.return_value = [ac]
 
     codes = await service.get_area_codes_list("tg")
     assert "415" in codes

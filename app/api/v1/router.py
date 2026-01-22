@@ -51,11 +51,11 @@ from app.api.verification.carrier_endpoints import router as carrier_router
 
 # Verification Leaves
 from app.api.verification.consolidated_verification import router as verify_router
+from app.api.verification.preset_endpoints import router as preset_router
 from app.api.verification.pricing import router as pricing_router
 from app.api.verification.purchase_endpoints import router as purchase_router
 from app.api.verification.status_polling import router as status_polling_router
 from app.api.verification.textverified_endpoints import router as textverified_router
-from app.api.verification.preset_endpoints import router as preset_router
 
 v1_router = APIRouter(prefix="/api/v1")
 

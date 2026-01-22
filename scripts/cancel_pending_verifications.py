@@ -2,10 +2,10 @@
 """
 Cancel pending SMS verifications and update timestamps
 """
-import sqlite3
-from datetime import datetime
-import sys
 import os
+import sqlite3
+import sys
+from datetime import datetime
 
 # Add app directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))

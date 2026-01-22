@@ -1,5 +1,5 @@
-import sys
 import os
+import sys
 
 # Add parent dir to path
 sys.path.append(os.path.abspath("."))

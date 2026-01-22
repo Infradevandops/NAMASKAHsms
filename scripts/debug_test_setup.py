@@ -1,14 +1,15 @@
-import sys
 import os
+import sys
 
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
 from app.core.database import Base
-from app.models.user import User
 from app.models.subscription_tier import SubscriptionTier
+from app.models.user import User
 
 print("Testing database setup...")
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """Test checkpoint endpoints with actual API calls."""
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import datetime
+
 from fastapi.testclient import TestClient
-from main import app
+
 from app.core.database import SessionLocal
 from app.models.user import User
-from datetime import datetime
+from main import app
 
 client = TestClient(app)
 

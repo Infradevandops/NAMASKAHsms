@@ -3,9 +3,9 @@
 Comprehensive analysis to check for potential breaking changes from removed files
 """
 
+import glob
 import os
 import re
-import glob
 from collections import defaultdict
 
 
@@ -103,8 +103,8 @@ def test_core_functionality():
 
     try:
         # Test pricing system
-        from app.services.pricing_calculator import PricingCalculator
         from app.core.database import SessionLocal
+        from app.services.pricing_calculator import PricingCalculator
 
         db = SessionLocal()
         calculator = PricingCalculator(db)
@@ -128,8 +128,8 @@ def test_core_functionality():
 
     try:
         # Test API endpoints
-        from app.api.billing.tier_endpoints import router as tier_router
         from app.api.billing.pricing_endpoints import router as pricing_router
+        from app.api.billing.tier_endpoints import router as tier_router
 
         print(f"  ✅ API routers: tier and pricing loaded")
 
@@ -142,8 +142,9 @@ def check_database_dependencies():
     print("\n🔍 CHECKING DATABASE DEPENDENCIES:")
 
     try:
-        from app.core.database import SessionLocal
         from sqlalchemy import text
+
+        from app.core.database import SessionLocal
 
         db = SessionLocal()
 

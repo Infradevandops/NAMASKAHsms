@@ -4,13 +4,14 @@ Distribute existing users across all 4 tiers
 Spreads users evenly for testing purposes
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_db
 from sqlalchemy import text
+
+from app.core.database import get_db
 
 
 def distribute_users_across_tiers():

@@ -36,7 +36,7 @@ class Verification(BaseModel):
 
     # Bulk purchase tracking
     bulk_id = Column(String, index=True)
-    
+
     # Idempotency
     idempotency_key = Column(String, index=True)
 

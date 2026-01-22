@@ -63,10 +63,10 @@ class TextVerifiedService:
 
     def _format_phone_number(self, number: str) -> str:
         """Format phone number for display.
-        
+
         Args:
             number: Raw phone number from provider
-            
+
         Returns:
             Formatted phone number
         """
@@ -367,7 +367,13 @@ class TextVerifiedService:
                 "error": str(e),
             }
 
-    async def get_pricing(self, service: str, country: str = "US", area_code: str = None, carrier: str = None) -> Dict[str, Any]:
+    async def get_pricing(
+        self,
+        service: str,
+        country: str = "US",
+        area_code: str = None,
+        carrier: str = None,
+    ) -> Dict[str, Any]:
         """Get service pricing from TextVerified API.
 
         Args:
@@ -385,45 +391,47 @@ class TextVerifiedService:
 
             # Build payload for pricing check
             # We use the explicit endpoint to get the real cost
-            payload = {
-                "serviceName": service,
-                "country": country,
-                "capability": "sms"
-            }
-            
+            payload = {"serviceName": service, "country": country, "capability": "sms"}
+
             # Using low-level action to ensure country is passed
             from textverified.action import _Action
+
             action = _Action(method="POST", href="/api/pub/v2/pricing/verifications")
-            
+
             # Note: The API technically takes boolean for area_code/carrier in VerificationPriceCheckRequest
             # but for accurate costing we want to simulate the purchase parameters if possible.
             # If the API only supports 'has_area_code', we set it to True.
-            
+
             if area_code:
                 payload["areaCode"] = True
             if carrier:
                 payload["carrier"] = True
 
             response = self.client._perform_action(action, json=payload)
-            
+
             if response and response.data:
                 cost = float(response.data.get("price", 0.0))
                 return {"cost": cost, "currency": "USD"}
-            
+
             return {"cost": 0.0, "currency": "USD"}
 
         except Exception as e:
             logger.error(f"Pricing fetch error: {str(e)}")
             # Fallback pricing if API fails
-            return {"cost": 0.75 if country.lower() != "us" else 0.50, "currency": "USD"}
+            return {
+                "cost": 0.75 if country.lower() != "us" else 0.50,
+                "currency": "USD",
+            }
 
-    async def get_services_list(self, country: str = "US", force_refresh: bool = False) -> list:
+    async def get_services_list(
+        self, country: str = "US", force_refresh: bool = False
+    ) -> list:
         """Get list of available services from TextVerified API.
 
         Args:
             country: Country code (default US)
             force_refresh: Whether to force refresh cache
-            
+
         Returns:
             List of services with id, name, and cost
         """
@@ -443,16 +451,17 @@ class TextVerifiedService:
                 # Actually, looking at services_api.py, it doesn't take **kwargs.
                 # We'll use the low-level call to be safe.
             )
-            
+
             # Re-performing via low-level to include country
             from textverified.action import _Action
+
             action = _Action(method="GET", href="/api/pub/v2/services")
             response = self.client._perform_action(
                 action,
                 params={
                     "numberType": "mobile",
                     "reservationType": "verification",
-                    "country": country
+                    "country": country,
                 },
             )
             services_data = [textverified.Service.from_api(i) for i in response.data]
@@ -507,7 +516,11 @@ class TextVerifiedService:
             raise
 
     async def create_verification(
-        self, service: str, country: str = "US", area_code: str = None, carrier: str = None
+        self,
+        service: str,
+        country: str = "US",
+        area_code: str = None,
+        carrier: str = None,
     ) -> Dict[str, Any]:
         """Create verification with TextVerified API.
 
@@ -530,22 +543,31 @@ class TextVerifiedService:
             # Build request with optional filters
             # If country is not US, we use the low-level client._perform_action to ensure 'country' is passed.
             # The SDK's high-level verifications.create doesn't support 'country' in its NewVerificationRequest.
-            
+
             payload = {
                 "serviceName": service,
-                "capability": textverified.ReservationCapability.SMS.value if hasattr(textverified.ReservationCapability.SMS, 'value') else 'sms'
+                "capability": (
+                    textverified.ReservationCapability.SMS.value
+                    if hasattr(textverified.ReservationCapability.SMS, "value")
+                    else "sms"
+                ),
             }
-            
+
             if country and country.lower() != "us":
                 payload["country"] = country
 
             if area_code:
-                payload["areaCodeSelectOption"] = [area_code] if isinstance(area_code, str) else area_code
+                payload["areaCodeSelectOption"] = (
+                    [area_code] if isinstance(area_code, str) else area_code
+                )
             if carrier:
-                payload["carrierSelectOption"] = [carrier] if isinstance(carrier, str) else carrier
+                payload["carrierSelectOption"] = (
+                    [carrier] if isinstance(carrier, str) else carrier
+                )
 
             # Perform the POST request directly
             from textverified.action import _Action
+
             action = _Action(method="POST", href="/api/pub/v2/verifications")
             response = self.client._perform_action(action, json=payload)
 
@@ -556,7 +578,7 @@ class TextVerifiedService:
 
             result = {
                 "id": verification["id"],
-                "phone_number": self._format_phone_number(verification['number']),
+                "phone_number": self._format_phone_number(verification["number"]),
                 "cost": float(verification["totalCost"]),
             }
 
@@ -694,7 +716,9 @@ class TextVerifiedService:
                 return []
 
             # TextVerified SDK v2 uses services.area_codes()
-            if hasattr(self.client, "services") and hasattr(self.client.services, "area_codes"):
+            if hasattr(self.client, "services") and hasattr(
+                self.client.services, "area_codes"
+            ):
                 # Note: The SDK method doesn't seem to take service_name in its call but in the API it might.
                 # However, the SDK's area_codes() method uses /api/pub/v2/area-codes
                 codes = self.client.services.area_codes()
@@ -703,6 +727,39 @@ class TextVerifiedService:
             return []
         except Exception as e:
             logger.warning(f"Failed to fetch area codes: {e}")
+            return []
+
+    async def get_area_codes(self, country: str, service: str = None) -> list:
+        """Get available area codes with counts from TextVerified.
+
+        Args:
+            country: Country code (e.g., US)
+            service: Optional service name
+
+        Returns:
+            List of area codes with availability count
+        """
+        try:
+            if not self.enabled:
+                return []
+
+            # Get area codes from TextVerified API
+            codes = await self.get_area_codes_list(service or "telegram", country)
+
+            # Format with availability (TextVerified doesn't provide counts, so we return basic info)
+            area_codes = []
+            for code in codes:
+                area_codes.append(
+                    {
+                        "area_code": code,
+                        "state": "US",  # Default for US numbers
+                        "available_count": 10,  # Placeholder - TextVerified doesn't expose this
+                    }
+                )
+
+            return area_codes
+        except Exception as e:
+            logger.error(f"Failed to fetch area codes: {e}")
             return []
 
     async def get_available_carriers(self, country: str = "US") -> list:
@@ -720,23 +777,27 @@ class TextVerifiedService:
 
             # Get carriers via low-level action as it's not in the high-level SDK
             from textverified.action import _Action
-            action = _Action(method="GET", href=f"/api/pub/v2/carriers")
+
+            action = _Action(method="GET", href="/api/pub/v2/carriers")
             response = self.client._perform_action(action, params={"country": country})
-            
+
             carriers = []
             if response and response.data:
                 import random
+
                 for item in response.data:
                     # Simulate success rate for analytics feature
                     # In a real scenario, this would come from historical DB stats
-                    success_rate = random.randint(85, 99) 
-                    
-                    carriers.append({
-                        "id": item.get("name"), 
-                        "name": item.get("name"),
-                        "success_rate": success_rate
-                    })
-            
+                    success_rate = random.randint(85, 99)
+
+                    carriers.append(
+                        {
+                            "id": item.get("name"),
+                            "name": item.get("name"),
+                            "success_rate": success_rate,
+                        }
+                    )
+
             return carriers
         except Exception as e:
             logger.error(f"Failed to fetch carriers for {country}: {e}")

@@ -4,14 +4,15 @@ Verify user credentials and tier access
 Tests login and tier-specific features for each user
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_db
-from sqlalchemy import text
 from passlib.context import CryptContext
+from sqlalchemy import text
+
+from app.core.database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

@@ -1,6 +1,6 @@
 """Consolidated SMS Verification API."""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -10,10 +10,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
+from app.core.tier_helpers import raise_tier_error
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.tier_manager import TierManager
-from app.core.tier_helpers import raise_tier_error
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
@@ -98,13 +98,20 @@ async def create_verification(
 
         # Check for duplicate request (idempotency)
         if verification_data.idempotency_key:
-            existing = db.query(Verification).filter(
-                Verification.user_id == user_id,
-                Verification.idempotency_key == verification_data.idempotency_key,
-                Verification.created_at > datetime.now(timezone.utc) - timedelta(minutes=5)
-            ).first()
+            existing = (
+                db.query(Verification)
+                .filter(
+                    Verification.user_id == user_id,
+                    Verification.idempotency_key == verification_data.idempotency_key,
+                    Verification.created_at
+                    > datetime.now(timezone.utc) - timedelta(minutes=5),
+                )
+                .first()
+            )
             if existing:
-                logger.info(f"Returning cached verification for idempotency key: {verification_data.idempotency_key}")
+                logger.info(
+                    f"Returning cached verification for idempotency key: {verification_data.idempotency_key}"
+                )
                 return {
                     "id": existing.id,
                     "service_name": existing.service_name,
@@ -126,8 +133,11 @@ async def create_verification(
         if current_user.free_verifications > 0:
             # Free verifications don't support custom filters normally
             if verification_data.area_code or verification_data.carrier:
-                 if current_user.credits < 1.0: # Buffer for premium features
-                     raise HTTPException(status_code=402, detail="Premium filters require credits even for free users")
+                if current_user.credits < 1.0:  # Buffer for premium features
+                    raise HTTPException(
+                        status_code=402,
+                        detail="Premium filters require credits even for free users",
+                    )
             current_user.free_verifications -= 1
             db.commit()
         elif current_user.credits >= base_cost:
@@ -136,14 +146,13 @@ async def create_verification(
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
 
-
         # Tier-based feature gating
         tier_manager = TierManager(db)
         if verification_data.area_code and verification_data.area_code != "any":
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 user_tier = tier_manager.get_user_tier(user_id)
                 raise_tier_error(user_tier, "payg", user_id)
-            
+
         if verification_data.carrier and verification_data.carrier != "any":
             if not tier_manager.check_feature_access(user_id, "isp_filtering"):
                 user_tier = tier_manager.get_user_tier(user_id)
@@ -164,30 +173,38 @@ async def create_verification(
                 service=verification_data.service_name,
                 country=verification_data.country,
                 area_code=verification_data.area_code,
-                carrier=verification_data.carrier
+                carrier=verification_data.carrier,
             )
         except Exception as e:
             # Task 10: Intelligent Fallback (Tier 4 Turbo)
             user_tier = tier_manager.get_user_tier(user_id)
-            is_turbo = user_tier in ["turbo", "custom"] # Assuming 'turbo' or 'custom' are Tier 4
-            
+            is_turbo = user_tier in [
+                "turbo",
+                "custom",
+            ]  # Assuming 'turbo' or 'custom' are Tier 4
+
             # Check if failure is likely due to filters (area code/carrier)
             has_filters = verification_data.area_code or verification_data.carrier
-            
+
             if is_turbo and has_filters:
-                logger.warning(f"Verification failed with filters for user {user_id}. Attempting fallback. Error: {e}")
+                logger.warning(
+                    f"Verification failed with filters for user {user_id}. Attempting fallback. Error: {e}"
+                )
                 try:
                     # Retry without filters
                     result = await tv_service.create_verification(
                         service=verification_data.service_name,
                         country=verification_data.country,
                         area_code=None,
-                        carrier=None
+                        carrier=None,
                     )
                     fallback_applied = True
                 except Exception as fallback_error:
                     logger.error(f"Fallback verification also failed: {fallback_error}")
-                    raise HTTPException(status_code=500, detail=f"Verification failed even after fallback: {str(fallback_error)}")
+                    raise HTTPException(
+                        status_code=500,
+                        detail=f"Verification failed even after fallback: {str(fallback_error)}",
+                    )
             else:
                 raise e
 
@@ -203,7 +220,7 @@ async def create_verification(
             provider="textverified",
             requested_area_code=verification_data.area_code,
             requested_carrier=verification_data.carrier,
-            idempotency_key=verification_data.idempotency_key
+            idempotency_key=verification_data.idempotency_key,
         )
 
         db.add(verification)
@@ -221,7 +238,7 @@ async def create_verification(
             "created_at": verification.created_at.isoformat(),
             "completed_at": None,
             "fallback_applied": fallback_applied,
-            "carrier": verification.requested_carrier
+            "carrier": verification.requested_carrier,
         }
 
     except HTTPException:
@@ -276,10 +293,10 @@ def get_verification_history(
     """Get verification history."""
     try:
         query = db.query(Verification).filter(Verification.user_id == user_id)
-        
+
         # Get total count before pagination
         total_count = query.count()
-        
+
         # Apply pagination and sorting
         verifications = (
             query.order_by(Verification.created_at.desc())
@@ -300,10 +317,10 @@ def get_verification_history(
                     cost=v.cost,
                     created_at=v.created_at.isoformat(),
                     completed_at=v.completed_at.isoformat() if v.completed_at else None,
-                    fallback_applied=False, # We might want to store this in DB if possible
+                    fallback_applied=False,  # We might want to store this in DB if possible
                     sms_code=v.sms_code,
                     sms_text=v.sms_text,
-                    carrier=v.requested_carrier or v.operator
+                    carrier=v.requested_carrier or v.operator,
                 )
             )
 

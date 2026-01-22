@@ -3,14 +3,15 @@
 Create subscription_tiers table and populate with freemium structure
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import get_db
 from sqlalchemy import text
 from sqlalchemy.orm import Session
+
+from app.core.database import get_db
 
 
 def create_subscription_tiers_table():

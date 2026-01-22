@@ -2,10 +2,11 @@
 """
 Reset admin account lockout and create proper admin user
 """
-import sqlite3
-from datetime import datetime
-import sys
 import os
+import sqlite3
+import sys
+from datetime import datetime
+
 from passlib.context import CryptContext
 
 # Add app directory to path

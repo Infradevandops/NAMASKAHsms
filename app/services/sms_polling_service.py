@@ -107,13 +107,13 @@ class SMSPollingService:
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
 
-                    # Notification: SMS Code Received
+                    # Notification: SMS Code Received (Task 2.4 Enhanced)
                     try:
                         notif_service = NotificationService(db)
                         notif_service.create_notification(
                             user_id=verification.user_id,
                             notification_type="verification_complete",
-                            title="SMS Code Received",
+                            title="✅ SMS Code Received!",
                             message=f"Code {verification.sms_code} received for {verification.service_name}",
                         )
                     except Exception:
@@ -129,6 +129,7 @@ class SMSPollingService:
                     # CRITICAL FIX: Auto-refund for timeout
                     try:
                         from app.services.auto_refund_service import AutoRefundService
+
                         refund_service = AutoRefundService(db)
                         refund_result = refund_service.process_verification_refund(
                             verification_id, "timeout"
@@ -140,7 +141,7 @@ class SMSPollingService:
                     except Exception as refund_error:
                         logger.error(
                             f"Failed to process auto-refund for {verification_id}: {refund_error}",
-                            exc_info=True
+                            exc_info=True,
                         )
 
                     # Notification: Verification Failed
@@ -165,6 +166,21 @@ class SMSPollingService:
                     await asyncio.sleep(settings.sms_polling_later_interval_seconds)
 
                 attempt += 1
+
+                # Progress Update (Task 2.3)
+                if (
+                    attempt == 4
+                ):  # After ~2 minutes (assuming 30s interval for later or initial)
+                    try:
+                        notif_service = NotificationService(db)
+                        notif_service.create_notification(
+                            user_id=verification.user_id,
+                            notification_type="verification_progress",
+                            title="⏳ Still Waiting",
+                            message=f"Waiting for SMS code for {verification.service_name}...",
+                        )
+                    except Exception:
+                        pass
 
             except asyncio.CancelledError:
                 logger.info(f"Polling cancelled for verification {verification_id}")

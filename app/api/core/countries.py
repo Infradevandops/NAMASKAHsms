@@ -246,7 +246,7 @@ async def get_country_services(country: str):
     # International support enabled for all countries in fallback list
     country_code = country.lower()
     cache_key_str = cache.cache_key(f"services_v3_{country_code}")
-    
+
     cached_result = await cache.get(cache_key_str)
     if cached_result:
         return cached_result
@@ -256,7 +256,9 @@ async def get_country_services(country: str):
 
         integration = TextVerifiedService()
         # Fetch services specific to the requested country
-        services = await integration.get_services_list(country=country_code, force_refresh=True)
+        services = await integration.get_services_list(
+            country=country_code, force_refresh=True
+        )
 
         result = {
             "success": True,
@@ -270,5 +272,9 @@ async def get_country_services(country: str):
         return result
 
     except Exception as e:
-        logger.error(f"Failed to get services from TextVerified for {country}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Failed to load services for {country}")
+        logger.error(
+            f"Failed to get services from TextVerified for {country}: {str(e)}"
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Failed to load services for {country}"
+        )

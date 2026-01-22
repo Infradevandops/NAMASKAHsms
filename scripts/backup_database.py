@@ -4,10 +4,11 @@ Automated Database Backup Script
 Backs up PostgreSQL database with rotation and verification
 """
 
-import subprocess
 import datetime
 import logging
+import subprocess
 from pathlib import Path
+
 from app.core.config import get_settings
 
 # Setup logging

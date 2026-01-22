@@ -43,25 +43,28 @@ async def get_verification_pricing(
                 raise_tier_error(user_tier, "turbo", user_id)
 
         from app.services.textverified_service import TextVerifiedService
+
         integration = TextVerifiedService()
 
         # Get real-time pricing from provider
         # This returns the cost 'To Us' from TextVerified
         pricing_data = await integration.get_pricing(
-            service=service, 
+            service=service,
             country=country,
             area_code=area_code if area_code != "any" else None,
-            carrier=carrier if carrier != "any" else None
+            carrier=carrier if carrier != "any" else None,
         )
         provider_cost = pricing_data["cost"]
 
         # Application Margins / Premiums
         # We add a small markup for premium features on top of provider cost
-        margin_percent = 0.10 # 10% base margin
+        margin_percent = 0.10  # 10% base margin
         area_code_markup = 0.10 if area_code and area_code != "any" else 0
         carrier_markup = 0.15 if carrier and carrier != "any" else 0
 
-        total_price = provider_cost * (1 + margin_percent) + area_code_markup + carrier_markup
+        total_price = (
+            provider_cost * (1 + margin_percent) + area_code_markup + carrier_markup
+        )
 
         return {
             "success": True,

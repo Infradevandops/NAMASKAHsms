@@ -4,14 +4,15 @@ Initialize New Freemium Tier Structure
 Creates the 4-tier freemium model: Freemium, Pay-As-You-Go, Pro, Custom
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.models.subscription_tier import SubscriptionTier, TierEnum
-from sqlalchemy.orm import Session
 
 
 def create_freemium_tiers():

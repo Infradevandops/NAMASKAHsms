@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 """Verify that the checkpoint requirements are met."""
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from datetime import datetime, timedelta
+
 from fastapi.testclient import TestClient
-from main import app
+
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.models.verification import Verification
-from datetime import datetime, timedelta
+from main import app
 
 client = TestClient(app)
 

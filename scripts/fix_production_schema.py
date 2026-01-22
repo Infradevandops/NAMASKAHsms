@@ -2,6 +2,7 @@
 """Fix production database schema - add missing columns."""
 import os
 import sys
+
 from sqlalchemy import create_engine, text
 
 # Get database URL from environment

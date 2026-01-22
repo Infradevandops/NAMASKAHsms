@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """Verify that all checkpoint endpoints are working correctly."""
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import SessionLocal
-from app.models.user import User
-from app.core.tier_helpers import get_user_tier, has_tier_access, is_subscribed
-from app.api.billing.tier_endpoints import get_current_tier
-from app.api.core.dashboard_activity import get_recent_activity
-from app.api.core.analytics_enhanced import get_analytics_summary
-from fastapi import Depends
 from unittest.mock import MagicMock
+
+from fastapi import Depends
+
+from app.api.billing.tier_endpoints import get_current_tier
+from app.api.core.analytics_enhanced import get_analytics_summary
+from app.api.core.dashboard_activity import get_recent_activity
+from app.core.database import SessionLocal
+from app.core.tier_helpers import get_user_tier, has_tier_access, is_subscribed
+from app.models.user import User
 
 
 def test_tier_helpers():

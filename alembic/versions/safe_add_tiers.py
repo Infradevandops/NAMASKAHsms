@@ -6,9 +6,10 @@ Create Date: 2025-12-24
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 from sqlalchemy import inspect
+
+from alembic import op
 
 revision = "safe_add_tiers"
 down_revision = None

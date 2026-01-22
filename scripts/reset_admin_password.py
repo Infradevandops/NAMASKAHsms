@@ -19,7 +19,9 @@ def reset_admin_password():
 
     if not admin_password:
         print("❌ ADMIN_PASSWORD environment variable not set!")
-        print("Usage: ADMIN_PASSWORD='your-password' python scripts/reset_admin_password.py")
+        print(
+            "Usage: ADMIN_PASSWORD='your-password' python scripts/reset_admin_password.py"
+        )
         sys.exit(1)
 
     db = SessionLocal()
@@ -30,7 +32,7 @@ def reset_admin_password():
         if not admin:
             print(f"❌ Admin user not found: {admin_email}")
             print("Creating new admin user...")
-            
+
             admin = User(
                 email=admin_email,
                 password_hash=hash_password(admin_password),
@@ -47,19 +49,19 @@ def reset_admin_password():
             # Update password
             old_hash = admin.password_hash
             new_hash = hash_password(admin_password)
-            
+
             admin.password_hash = new_hash
             admin.is_admin = True
             admin.email_verified = True
             admin.subscription_tier = "custom"
             admin.credits = max(admin.credits, 10000.0)
-            
+
             db.commit()
-            
+
             print(f"✅ Admin password updated: {admin_email}")
             print(f"   Old hash: {old_hash[:30]}...")
             print(f"   New hash: {new_hash[:30]}...")
-            
+
             # Verify the password works
             if verify_password(admin_password, new_hash):
                 print("✅ Password verification successful!")
@@ -78,6 +80,7 @@ def reset_admin_password():
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         db.rollback()
         sys.exit(1)

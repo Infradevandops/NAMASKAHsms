@@ -12,10 +12,10 @@ def test_imports():
     """Test if all modules import correctly."""
     print("Testing imports...")
     try:
-        from main import app
-        from app.models.user import User
-        from app.models.notification import Notification
         from app.models.balance_transaction import BalanceTransaction
+        from app.models.notification import Notification
+        from app.models.user import User
+        from main import app
 
         print("✅ All imports successful")
         return True
@@ -59,6 +59,7 @@ def test_balance_api():
     print("\nTesting balance API...")
     try:
         from fastapi.testclient import TestClient
+
         from main import app
 
         client = TestClient(app)
@@ -81,6 +82,7 @@ def test_notification_api():
     print("\nTesting notification API...")
     try:
         from fastapi.testclient import TestClient
+
         from main import app
 
         client = TestClient(app)
@@ -104,8 +106,8 @@ def test_models():
     """Test database models."""
     print("\nTesting models...")
     try:
-        from app.models.notification import Notification
         from app.models.balance_transaction import BalanceTransaction
+        from app.models.notification import Notification
         from app.models.user import User
 
         # Check if models have required fields

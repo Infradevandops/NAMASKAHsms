@@ -6,9 +6,9 @@ Create Date: 2025-12-27
 
 """
 
-from alembic import op
 import sqlalchemy as sa
 
+from alembic import op
 
 revision = "001_pricing_enforcement"
 down_revision = "pricing_templates_v1"

@@ -2,6 +2,7 @@
 """Initialize subscription_tiers table in production database."""
 import os
 import sys
+
 from sqlalchemy import create_engine, text
 
 # Get database URL from environment

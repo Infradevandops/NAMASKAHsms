@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Clean up old verifications to stop polling spam."""
 from datetime import datetime, timedelta
+
 from app.core.database import SessionLocal
-from app.models.verification import Verification
 from app.core.logging import get_logger
+from app.models.verification import Verification
 
 logger = get_logger(__name__)
 

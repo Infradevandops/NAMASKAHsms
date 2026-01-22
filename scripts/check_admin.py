@@ -14,11 +14,11 @@ from app.models.user import User
 def check_admin():
     """Check admin user status."""
     admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
-    
+
     db = SessionLocal()
     try:
         admin = db.query(User).filter(User.email == admin_email).first()
-        
+
         if not admin:
             print(f"❌ No admin user found with email: {admin_email}")
             print("\nSearching for any admin users...")
@@ -30,7 +30,7 @@ def check_admin():
             else:
                 print("❌ No admin users found in database")
             return
-        
+
         print(f"✅ Admin user found: {admin_email}")
         print(f"\n📊 Admin User Details:")
         print(f"   ID: {admin.id}")
@@ -45,10 +45,11 @@ def check_admin():
         print(f"   Is Active: {getattr(admin, 'is_active', 'N/A')}")
         print(f"   Is Suspended: {getattr(admin, 'is_suspended', 'N/A')}")
         print(f"   Is Banned: {getattr(admin, 'is_banned', 'N/A')}")
-        
+
     except Exception as e:
         print(f"❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         db.close()

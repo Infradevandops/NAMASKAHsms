@@ -4,12 +4,12 @@ Frontend Consolidation Script
 Consolidates duplicate templates and CSS files with comprehensive error handling
 """
 
-import os
-import sys
 import json
 import logging
+import os
+import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
 
 # Setup logging
 logging.basicConfig(

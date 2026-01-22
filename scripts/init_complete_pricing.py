@@ -7,28 +7,30 @@ Fixes all major discrepancies:
 - Initializes database with correct pricing
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.database import engine, SessionLocal
-from app.models.base import Base
-import app.models
+import uuid
+from datetime import datetime
+
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Float,
     Boolean,
+    Column,
     DateTime,
+    Float,
     ForeignKey,
+    Integer,
+    String,
     Text,
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime
-import uuid
+
+import app.models
+from app.core.database import SessionLocal, engine
+from app.models.base import Base
 
 # Create all tables first
 Base.metadata.create_all(bind=engine)

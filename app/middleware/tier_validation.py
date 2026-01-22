@@ -1,116 +1,72 @@
-"""Tier validation middleware for feature gating."""
+"""Tier Validation Middleware for Feature Access Control."""
 
-from typing import Callable
+from fastapi import HTTPException, status
 
-from fastapi import Request
-from starlette.middleware.base import BaseHTTPMiddleware
+from app.models.user import User
 
-from app.core.logging import get_logger
-from app.core.tier_helpers import get_tier_display_name, raise_tier_error
+TIER_HIERARCHY = {
+    "freemium": ["freemium"],
+    "payg": ["payg", "pro", "custom"],
+    "pro": ["pro", "custom"],
+    "custom": ["custom"],
+}
 
-logger = get_logger(__name__)
+TIER_FEATURES = {
+    "area_code_selection": ["payg", "pro", "custom"],
+    "carrier_selection": ["pro", "custom"],
+    "api_access": ["pro", "custom"],
+    "location_filters": ["payg", "pro", "custom"],
+    "isp_filters": ["payg", "pro", "custom"],
+}
 
 
-class TierValidationMiddleware(BaseHTTPMiddleware):
-    """Middleware to validate tier access for premium features."""
+def require_tier(user: User, feature: str):
+    """Validate user has required tier for feature.
 
-    # Routes that require specific tiers
-    TIER_ROUTES = {
-        # Area code selection (Starter+)
-        "/api/verification/purchase": {
-            "min_tier": "starter",
-            "check_param": "area_code",
-        },
-        "/api/verification/area-codes": {"min_tier": "starter"},
-        # ISP/Carrier filtering (Turbo only)
-        "/api/verification/carriers": {"min_tier": "turbo"},
-        "/api/verification/isp-filter": {"min_tier": "turbo"},
-        # API key management (Starter+)
-        "/api/keys": {"min_tier": "starter"},
-        "/api/keys/generate": {"min_tier": "starter"},
-        # Rentals (Starter+)
-        "/api/rentals": {
-            "min_tier": "starter",
-            "check_params": ["area_code", "carrier"],
-        },
-        "/api/rentals/create": {"min_tier": "starter"},
-        "/rental-modal": {"min_tier": "starter"},
-    }
+    Args:
+        user: User object
+        feature: Feature name to check
 
-    TIER_HIERARCHY = {
-        "freemium": 0,
-        "starter": 1,
-        "turbo": 2,
-    }
+    Raises:
+        HTTPException: If user doesn't have required tier
 
-    async def dispatch(self, request: Request, call_next: Callable):
-        """Check tier access before processing request."""
-        path = request.url.path
+    Returns:
+        True if user has access
+    """
+    required_tiers = TIER_FEATURES.get(feature, [])
 
-        # Check if this route requires tier validation
-        route_config = None
-        for route_path, config in self.TIER_ROUTES.items():
-            if path.startswith(route_path):
-                route_config = config
-                break
+    if user.tier not in required_tiers:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "upgrade_required",
+                "message": f"This feature requires {required_tiers[0].upper()} tier or higher",
+                "feature": feature,
+                "current_tier": user.tier,
+                "required_tiers": required_tiers,
+            },
+        )
+    return True
 
-        if not route_config:
-            # No tier restriction, continue normally
-            return await call_next(request)
 
-        # Get user from request state (set by auth middleware)
-        user = getattr(request.state, "user", None)
-        if not user:
-            # No user authenticated, let auth middleware handle it
-            return await call_next(request)
+def validate_tier_access(user: User, carrier: str = None, area_code: str = None):
+    """Validate tier access for verification parameters.
 
-        user_tier = getattr(user, "subscription_tier", "freemium")
-        required_tier = route_config["min_tier"]
+    Args:
+        user: User object
+        carrier: Optional carrier selection
+        area_code: Optional area code selection
 
-        # Check if user's tier meets minimum requirement
-        user_level = self.TIER_HIERARCHY.get(user_tier, 0)
-        required_level = self.TIER_HIERARCHY.get(required_tier, 0)
+    Raises:
+        HTTPException: If user doesn't have required tier
 
-        if user_level < required_level:
-            logger.warning(
-                f"User {user.id} ({user_tier}) attempted to access {required_tier} feature: {path}"
-            )
+    Returns:
+        True if user has access
+    """
+    if carrier and carrier.lower() not in ["any", "", "none"]:
+        require_tier(user, "carrier_selection")
 
-            # Return upgrade required response
-            user_tier_name = get_tier_display_name(user_tier)
-            required_tier_name = get_tier_display_name(required_tier)
-            raise_tier_error(user_tier_name, required_tier_name, str(user.id))
+    if area_code and area_code not in ["any", "", "none"]:
+        require_tier(user, "area_code_selection")
 
-        # Check specific parameters if configured
-        if "check_param" in route_config and request.method in ["POST", "PUT"]:
-            try:
-                body = await request.json()
-                param = route_config["check_param"]
-
-                if param in body and body[param] not in [None, "", "any"]:
-                    # User is trying to use premium parameter
-                    if user_level < required_level:
-                        user_tier_name = get_tier_display_name(user_tier)
-                        required_tier_name = get_tier_display_name(required_tier)
-                        raise_tier_error(
-                            user_tier_name, required_tier_name, str(user.id)
-                        )
-            except Exception as e:
-                logger.error(f"Error checking request body: {e}")
-                # Continue processing, don't block on parameter check errors
-
-        # Check multiple parameters (for rentals)
-        if "check_params" in route_config and request.method in ["POST", "PUT"]:
-            try:
-                body = await request.json()
-                for param in route_config["check_params"]:
-                    if param in body and body[param] not in [None, "", "any"]:
-                        if param == "carrier" and user_tier != "turbo":
-                            user_tier_name = get_tier_display_name(user_tier)
-                            raise_tier_error(user_tier_name, "Turbo", str(user.id))
-            except Exception as e:
-                logger.error(f"Error checking params: {e}")
-
-        # Tier check passed, continue
-        request.state.user_tier = user_tier
-        return await call_next(request)
+    return True

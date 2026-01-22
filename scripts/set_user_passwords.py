@@ -8,9 +8,10 @@ import sys
 
 sys.path.append(".")
 
+from passlib.context import CryptContext
+
 from app.core.database import SessionLocal
 from app.models.user import User
-from passlib.context import CryptContext
 
 
 def set_user_passwords():

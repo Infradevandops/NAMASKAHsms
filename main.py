@@ -2,37 +2,41 @@
 Namaskah SMS - Optimized Application Factory
 """
 
-from fastapi import FastAPI, Request, Depends
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from starlette.middleware.gzip import GZipMiddleware
-from sqlalchemy.orm import Session
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-from app.core.logging import get_logger, setup_logging
-from app.core.lifespan import lifespan
-from app.middleware.csrf_middleware import CSRFMiddleware
-from app.middleware.xss_protection import XSSProtectionMiddleware
-from app.middleware.security import SecurityHeadersMiddleware
-from app.middleware.logging import RequestLoggingMiddleware
-from app.core.unified_error_handling import setup_unified_middleware
-from app.core.unified_rate_limiting import setup_unified_rate_limiting
-from app.core.database import get_db
-from app.core.config import get_settings
+from fastapi import Depends, FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from starlette.middleware.gzip import GZipMiddleware
+
+from app.api.admin.router import router as admin_router
+from app.api.billing.router import router as billing_router
 
 # Import modular routers
 from app.api.core.router import router as core_router
-from app.api.admin.router import router as admin_router
-from app.api.billing.router import router as billing_router
-from app.api.verification.router import router as verification_router
-from app.api.routes_consolidated import router as routes_router
-from app.api.preview_router import router as preview_router
-from app.api.v1.router import v1_router
 from app.api.health import router as health_router
+from app.api.preview_router import router as preview_router
+from app.api.routes_consolidated import router as routes_router
+from app.api.v1.router import v1_router
+from app.api.verification.area_code_endpoints import router as area_code_router
+from app.api.verification.carrier_endpoints import router as carrier_router
+from app.api.verification.pricing_endpoints import router as pricing_router
+from app.api.verification.router import router as verification_router
+from app.core.config import get_settings
+from app.core.database import get_db
+from app.core.lifespan import lifespan
+from app.core.logging import get_logger, setup_logging
+from app.core.unified_error_handling import setup_unified_middleware
+from app.core.unified_rate_limiting import setup_unified_rate_limiting
+from app.middleware.csrf_middleware import CSRFMiddleware
+from app.middleware.logging import RequestLoggingMiddleware
+from app.middleware.security import SecurityHeadersMiddleware
+from app.middleware.xss_protection import XSSProtectionMiddleware
 
 security = HTTPBearer(auto_error=False)
 TEMPLATES_DIR = Path("templates").resolve()
@@ -66,8 +70,8 @@ def create_app() -> FastAPI:
     settings = get_settings()
 
     # Initialize models
-    from app.models.base import Base
     import app.models
+    from app.models.base import Base
 
     Base.registry.configure()
 
@@ -140,6 +144,11 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(admin_router, deprecated=True)
     fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(verification_router, prefix="/api", deprecated=True)
+
+    # Verification Feature Routers
+    fastapi_app.include_router(area_code_router, prefix="/api")
+    fastapi_app.include_router(carrier_router, prefix="/api")
+    fastapi_app.include_router(pricing_router, prefix="/api")
 
     # Version 1 API
     fastapi_app.include_router(v1_router)

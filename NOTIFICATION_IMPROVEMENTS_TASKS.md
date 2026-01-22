@@ -42,9 +42,9 @@ notif_service.create_notification(
 ```
 
 **Acceptance Criteria**:
-- [ ] Notification appears immediately after cancellation
-- [ ] Shows refund amount
-- [ ] Shows new balance
+- [x] Notification appears immediately after cancellation
+- [x] Shows refund amount
+- [x] Shows new balance
 
 ---
 
@@ -66,9 +66,9 @@ notif_service.create_notification(
 ```
 
 **Acceptance Criteria**:
-- [ ] Clear refund amount displayed
-- [ ] Shows reason (timeout/cancelled/failed)
-- [ ] Shows updated balance
+- [x] Clear refund amount displayed
+- [x] Shows reason (timeout/cancelled/failed)
+- [x] Shows updated balance
 
 ---
 
@@ -100,9 +100,9 @@ except Exception as api_error:
 ```
 
 **Acceptance Criteria**:
-- [ ] User notified immediately on API failure
-- [ ] Confirms no charge was made
-- [ ] Suggests retry
+- [x] User notified immediately on API failure
+- [x] Confirms no charge was made
+- [x] Suggests retry
 
 ---
 
@@ -125,9 +125,9 @@ notif_service.create_notification(
 ```
 
 **Acceptance Criteria**:
-- [ ] Shows service name
-- [ ] Shows country
-- [ ] Shows exact cost
+- [x] Shows service name
+- [x] Shows country
+- [x] Shows exact cost
 
 ---
 
@@ -149,9 +149,9 @@ notif_service.create_notification(
 ```
 
 **Acceptance Criteria**:
-- [ ] Shows purchased phone number
-- [ ] Indicates waiting for SMS
-- [ ] Links to verification status
+- [x] Shows purchased phone number
+- [x] Indicates waiting for SMS
+- [x] Links to verification status
 
 ---
 
@@ -174,9 +174,9 @@ if attempt == 4:  # 2 minutes at 30s intervals
 ```
 
 **Acceptance Criteria**:
-- [ ] Progress update after 2 minutes
-- [ ] Not too frequent (avoid spam)
-- [ ] Clear status indication
+- [x] Progress update after 2 minutes
+- [x] Not too frequent (avoid spam)
+- [x] Clear status indication
 
 ---
 
@@ -197,9 +197,9 @@ notif_service.create_notification(
 ```
 
 **Acceptance Criteria**:
-- [ ] Shows actual code
-- [ ] Shows service name
-- [ ] Prominent success indicator
+- [x] Shows actual code
+- [x] Shows service name
+- [x] Prominent success indicator
 
 ---
 
@@ -222,9 +222,9 @@ if new_balance < old_balance:
 ```
 
 **Acceptance Criteria**:
-- [ ] Shows amount charged
-- [ ] Shows new balance
-- [ ] Clear transaction record
+- [x] Shows amount charged
+- [x] Shows new balance
+- [x] Clear transaction record
 
 ---
 

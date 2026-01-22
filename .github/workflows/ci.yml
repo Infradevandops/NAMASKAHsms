@@ -48,7 +48,6 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=20 -v
-        continue-on-error: true
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -93,19 +92,15 @@ jobs:
       
       - name: Run Black
         run: black --check app/ tests/
-        continue-on-error: true
       
       - name: Run isort
         run: isort --check-only app/ tests/
-        continue-on-error: true
       
       - name: Run Flake8
         run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821,C901
-        continue-on-error: true
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
-        continue-on-error: true
 
   security:
     name: Security Scan
@@ -123,11 +118,11 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety scan --exit-code 1 || echo "⚠️ Vulnerabilities found"
+        run: safety scan --exit-code 1
       
       - name: Run Bandit security scan
         run: |
-          bandit -r app/ -f json -o bandit-report.json || true
+          bandit -r app/ -f json -o bandit-report.json
           bandit -r app/ -ll
       
       - name: Run pip-audit
