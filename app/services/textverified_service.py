@@ -380,7 +380,7 @@ class TextVerifiedService:
             }
             
             # Using low-level action to ensure country is passed
-            from .action import _Action
+            from textverified.action import _Action
             action = _Action(method="POST", href="/api/pub/v2/pricing/verifications")
             
             # Note: The API technically takes boolean for area_code/carrier in VerificationPriceCheckRequest
@@ -433,7 +433,7 @@ class TextVerifiedService:
             )
             
             # Re-performing via low-level to include country
-            from .action import _Action
+            from textverified.action import _Action
             action = _Action(method="GET", href="/api/pub/v2/services")
             response = self.client._perform_action(
                 action,
@@ -533,7 +533,7 @@ class TextVerifiedService:
                 payload["carrierSelectOption"] = [carrier] if isinstance(carrier, str) else carrier
 
             # Perform the POST request directly
-            from .action import _Action
+            from textverified.action import _Action
             action = _Action(method="POST", href="/api/pub/v2/verifications")
             response = self.client._perform_action(action, json=payload)
 
@@ -707,7 +707,7 @@ class TextVerifiedService:
                 return []
 
             # Get carriers via low-level action as it's not in the high-level SDK
-            from .action import _Action
+            from textverified.action import _Action
             action = _Action(method="GET", href=f"/api/pub/v2/carriers")
             response = self.client._perform_action(action, params={"country": country})
             
