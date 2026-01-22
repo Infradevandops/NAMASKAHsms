@@ -5,6 +5,13 @@ Ensure that SMS verification enhancements are delivered in a sequential "ensuite
 
 ---
 
+## 💎 Core Feature Enhancement (New)
+*   **Verification History & Analysis**:
+    - [x] **Backend Fix**: Fixed critical bug where history API returned empty lists.
+    - [x] **Data Enrichment**: Added SMS Code, Text, and Carrier to API responses.
+    - [x] **Frontend Overhaul**: Replaced generic billing transaction list with detailed verification history.
+    - [x] **Features**: Added "View Message" modal, precise timestamps, and CSV export with full details.
+
 ## 💎 Tier 1: Freemium (Baseline)
 *   **01. Dynamic Pricing Preview**:
     - [x] Fetch total cost from `/api/v1/verification/pricing` before purchase.

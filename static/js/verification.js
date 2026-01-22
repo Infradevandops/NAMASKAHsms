@@ -349,7 +349,8 @@ async function purchaseVerification() {
             country: country.toUpperCase(),
             capability: 'sms',
             area_code: areaCode || null,
-            carrier: carrier || null
+            carrier: carrier || null,
+            idempotency_key: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString()
         }, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
@@ -465,16 +466,52 @@ function startPolling(id) {
 }
 
 function copyCode() {
-    const code = document.getElementById('code-display').textContent;
-    navigator.clipboard.writeText(code).then(() => {
+    const code = document.getElementById('code-display').textContent.trim();
+
+    // Success animation helper
+    const animateSuccess = () => {
         const btn = document.getElementById('copy-btn');
+        const originalText = btn.textContent;
+        const originalBg = btn.style.background;
+
         btn.textContent = 'Copied!';
         btn.style.background = '#059669';
+
         setTimeout(() => {
-            btn.textContent = 'Copy Code';
+            btn.textContent = 'Copy Code'; // Hardcoded reset, better than keeping "Copied!" if they click again
             btn.style.background = '#10b981';
         }, 2000);
-    });
+    };
+
+    // Try Modern API
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(code).then(animateSuccess).catch(() => fallbackCopy(code, animateSuccess));
+    } else {
+        fallbackCopy(code, animateSuccess);
+    }
+}
+
+function fallbackCopy(text, onSuccess) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+
+    // Ensure it's not visible but part of DOM
+    textArea.style.position = "fixed";
+    textArea.style.left = "-9999px";
+    textArea.style.top = "0";
+    document.body.appendChild(textArea);
+
+    textArea.focus();
+    textArea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) onSuccess();
+    } catch (err) {
+        console.error('Fallback copy failed', err);
+    }
+
+    document.body.removeChild(textArea);
 }
 
 async function resetForm() {

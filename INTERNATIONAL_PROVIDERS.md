@@ -18,3 +18,8 @@ The current system architecture supports international routing, but the fulfillm
 
 ### Implementation Strategy
 Future development should focus on creating `FiveSimService` and `SMSActivateService` classes adhering to the `SMSService` interface. The `SmartRouter` will then be updated to route non-US traffic to these providers automatically.
+
+### ⚠️ Current Limitations
+While the **frontend and backend architecture** fully supports selecting and routing 37+ countries (passing country codes to the provider), the **current active provider (TextVerified)** is primarily North American.
+- **US/Canada/UK**: High availability.
+- **Other Regions**: May experience empty service lists or low inventory until **5SIM** or **SMS-Activate** are integrated.

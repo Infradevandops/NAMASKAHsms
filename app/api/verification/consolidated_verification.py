@@ -1,7 +1,7 @@
 """Consolidated SMS Verification API."""
 
 from datetime import datetime, timezone, timedelta
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -43,10 +43,13 @@ class VerificationResponse(BaseModel):
     created_at: str
     completed_at: Optional[str] = None
     fallback_applied: bool = False
+    sms_code: Optional[str] = None
+    sms_text: Optional[str] = None
+    carrier: Optional[str] = None
 
 
 class VerificationHistoryResponse(BaseModel):
-    verifications: list
+    verifications: List[VerificationResponse]
     total_count: int
 
 
@@ -218,6 +221,7 @@ async def create_verification(
             "created_at": verification.created_at.isoformat(),
             "completed_at": None,
             "fallback_applied": fallback_applied,
+            "carrier": verification.requested_carrier
         }
 
     except HTTPException:
@@ -264,18 +268,48 @@ async def get_verification_status(verification_id: str, db: Session = Depends(ge
 
 @router.get("/history", response_model=VerificationHistoryResponse)
 def get_verification_history(
+    limit: int = 50,
+    offset: int = 0,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Get verification history."""
     try:
+        query = db.query(Verification).filter(Verification.user_id == user_id)
+        
+        # Get total count before pagination
+        total_count = query.count()
+        
+        # Apply pagination and sorting
         verifications = (
-            db.query(Verification).filter(Verification.user_id == user_id).all()
+            query.order_by(Verification.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+            .all()
         )
 
+        response_list = []
+        for v in verifications:
+            response_list.append(
+                VerificationResponse(
+                    id=v.id,
+                    service_name=v.service_name,
+                    phone_number=v.phone_number,
+                    capability=v.capability,
+                    status=v.status,
+                    cost=v.cost,
+                    created_at=v.created_at.isoformat(),
+                    completed_at=v.completed_at.isoformat() if v.completed_at else None,
+                    fallback_applied=False, # We might want to store this in DB if possible
+                    sms_code=v.sms_code,
+                    sms_text=v.sms_text,
+                    carrier=v.requested_carrier or v.operator
+                )
+            )
+
         return VerificationHistoryResponse(
-            verifications=[],
-            total_count=len(verifications),
+            verifications=response_list,
+            total_count=total_count,
         )
     except Exception as e:
         logger.error(f"History fetch error: {str(e)}")
