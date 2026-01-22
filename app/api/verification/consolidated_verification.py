@@ -1,6 +1,6 @@
 """Consolidated SMS Verification API."""
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -30,6 +30,7 @@ class VerificationCreate(BaseModel):
     capability: str = "sms"
     area_code: Optional[str] = None
     carrier: Optional[str] = None
+    idempotency_key: Optional[str] = None
 
 
 class VerificationResponse(BaseModel):
@@ -91,6 +92,27 @@ async def create_verification(
     try:
         if not verification_data.service_name:
             raise HTTPException(status_code=400, detail="Service name is required")
+
+        # Check for duplicate request (idempotency)
+        if verification_data.idempotency_key:
+            existing = db.query(Verification).filter(
+                Verification.user_id == user_id,
+                Verification.idempotency_key == verification_data.idempotency_key,
+                Verification.created_at > datetime.now(timezone.utc) - timedelta(minutes=5)
+            ).first()
+            if existing:
+                logger.info(f"Returning cached verification for idempotency key: {verification_data.idempotency_key}")
+                return {
+                    "id": existing.id,
+                    "service_name": existing.service_name,
+                    "phone_number": existing.phone_number,
+                    "capability": existing.capability,
+                    "status": existing.status,
+                    "cost": existing.cost,
+                    "created_at": existing.created_at.isoformat(),
+                    "completed_at": None,
+                    "fallback_applied": False,
+                }
 
         current_user = db.query(User).filter(User.id == user_id).first()
         if not current_user:
@@ -174,10 +196,11 @@ async def create_verification(
             cost=result["cost"],
             phone_number=result["phone_number"],
             country=verification_data.country,
-            activation_id=result["id"], # Adjusted to match create_verification result keys
+            activation_id=result["id"],
             provider="textverified",
             requested_area_code=verification_data.area_code,
-            requested_carrier=verification_data.carrier
+            requested_carrier=verification_data.carrier,
+            idempotency_key=verification_data.idempotency_key
         )
 
         db.add(verification)

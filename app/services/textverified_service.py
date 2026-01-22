@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.utils.phone_formatter import format_us_phone
 
 logger = get_logger(__name__)
 
@@ -59,6 +60,17 @@ class TextVerifiedService:
                 logger.warning("TextVerified package not installed")
             else:
                 logger.warning("TextVerified API key or username not configured")
+
+    def _format_phone_number(self, number: str) -> str:
+        """Format phone number for display.
+        
+        Args:
+            number: Raw phone number from provider
+            
+        Returns:
+            Formatted phone number
+        """
+        return format_us_phone(number)
 
     def _validate_credentials(self) -> bool:
         """Validate TextVerified credentials.
@@ -296,7 +308,7 @@ class TextVerifiedService:
 
             return {
                 "activation_id": verification.id,
-                "phone_number": f"+1{verification.number}",
+                "phone_number": self._format_phone_number(verification.number),
                 "cost": float(verification.total_cost),
             }
 
@@ -544,7 +556,7 @@ class TextVerifiedService:
 
             result = {
                 "id": verification["id"],
-                "phone_number": f"+{verification['number']}" if not str(verification['number']).startswith('+') else str(verification['number']),
+                "phone_number": self._format_phone_number(verification['number']),
                 "cost": float(verification["totalCost"]),
             }
 
