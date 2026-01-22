@@ -126,14 +126,31 @@ class SMSPollingService:
                     verification.status = "timeout"
                     db.commit()
 
+                    # CRITICAL FIX: Auto-refund for timeout
+                    try:
+                        from app.services.auto_refund_service import AutoRefundService
+                        refund_service = AutoRefundService(db)
+                        refund_result = refund_service.process_verification_refund(
+                            verification_id, "timeout"
+                        )
+                        if refund_result:
+                            logger.info(
+                                f"Auto-refund processed for timeout: ${refund_result['refund_amount']:.2f}"
+                            )
+                    except Exception as refund_error:
+                        logger.error(
+                            f"Failed to process auto-refund for {verification_id}: {refund_error}",
+                            exc_info=True
+                        )
+
                     # Notification: Verification Failed
                     try:
                         notif_service = NotificationService(db)
                         notif_service.create_notification(
                             user_id=verification.user_id,
                             notification_type="verification_failed",
-                            title="Verification Timeout",
-                            message=f"No SMS received for {verification.service_name}",
+                            title="Verification Timeout - Refund Issued",
+                            message=f"No SMS received for {verification.service_name}. Credits refunded.",
                         )
                     except Exception:
                         pass

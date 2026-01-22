@@ -47,6 +47,31 @@ async def request_verification(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required"
         )
 
+    # SAFETY: Check for duplicate request using idempotency key
+    if request.idempotency_key:
+        existing = (
+            db.query(Verification)
+            .filter(
+                Verification.user_id == user_id,
+                Verification.idempotency_key == request.idempotency_key,
+            )
+            .first()
+        )
+        if existing:
+            logger.info(f"Duplicate request detected: {request.idempotency_key}")
+            return {
+                "success": True,
+                "verification_id": existing.id,
+                "phone_number": existing.phone_number,
+                "service": existing.service_name,
+                "country": existing.country,
+                "cost": existing.cost,
+                "status": existing.status,
+                "activation_id": existing.activation_id,
+                "demo_mode": False,
+                "duplicate": True,
+            }
+
     # Real verification with authentication required
     try:
         # Get user
@@ -100,7 +125,7 @@ async def request_verification(
             f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}, within quota: {pricing_info['within_quota']}"
         )
 
-        # Check user has sufficient credits
+        # Check user has sufficient credits BEFORE calling API
         logger.info(
             f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}"
         )
@@ -113,7 +138,7 @@ async def request_verification(
                 detail=f"Insufficient credits. Available: ${user.credits:.2f}, Required: ${sms_cost:.2f}",
             )
 
-        # Purchase number from TextVerified
+        # CRITICAL FIX: Call TextVerified API FIRST (before deducting credits)
         logger.info(
             f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
         )
@@ -122,51 +147,68 @@ async def request_verification(
         area_code = request.area_codes[0] if request.area_codes else None
         carrier = request.carriers[0] if request.carriers else None
         
-        result = await tv_service.create_verification(
-            service=request.service,
-            area_code=area_code,
-            carrier=carrier
-        )
-        logger.info(
-            f"Number purchased successfully: {result['phone_number']}, cost: ${result['cost']:.2f}"
-        )
+        textverified_result = None
+        verification = None
+        
+        try:
+            # Step 1: Call TextVerified API FIRST
+            textverified_result = await tv_service.create_verification(
+                service=request.service,
+                area_code=area_code,
+                carrier=carrier
+            )
+            logger.info(
+                f"TextVerified API success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
+            )
 
-        # Double-check credits after getting actual cost (use calculated cost, not TextVerified cost)
-        actual_cost = sms_cost  # Use our pricing system cost
-        if user.credits < actual_cost:
+            # Step 2: Create verification record (not committed yet)
+            actual_cost = sms_cost  # Use our pricing system cost
+            logger.info(f"Creating verification record for user {user_id}")
+            verification = Verification(
+                user_id=user_id,
+                service_name=request.service,
+                phone_number=textverified_result["phone_number"],
+                country=request.country,
+                capability=request.capability,
+                cost=actual_cost,
+                provider="textverified",
+                activation_id=textverified_result["id"],
+                status="pending",
+                idempotency_key=request.idempotency_key,
+                created_at=datetime.now(timezone.utc),
+            )
+            db.add(verification)
+            db.flush()  # Get the ID before commit
+            logger.info(f"Verification record created with ID: {verification.id}")
+
+            # Step 3: Deduct credits ONLY after API success
+            old_balance = user.credits
+            user.credits -= actual_cost
+            new_balance = user.credits
+            logger.info(
+                f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}"
+            )
+        
+        except Exception as api_error:
+            # CRITICAL: Rollback if TextVerified API fails
+            db.rollback()
             logger.error(
-                f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${actual_cost:.2f}"
+                f"TextVerified API failed, transaction rolled back: {str(api_error)}",
+                exc_info=True
             )
+            
+            # If we got a number but DB failed, cancel it
+            if textverified_result and textverified_result.get('id'):
+                try:
+                    await tv_service.cancel_verification(textverified_result['id'])
+                    logger.info(f"Cancelled TextVerified number: {textverified_result['id']}")
+                except Exception as cancel_error:
+                    logger.error(f"Failed to cancel TextVerified number: {cancel_error}")
+            
             raise HTTPException(
-                status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Insufficient credits. Required: ${actual_cost:.2f}, Available: ${user.credits:.2f}",
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="SMS service temporarily unavailable. Your credits were not charged.",
             )
-
-        # Create verification record
-        logger.info(f"Creating verification record for user {user_id}")
-        verification = Verification(
-            user_id=user_id,
-            service_name=request.service,
-            phone_number=result["phone_number"],
-            country=request.country,
-            capability=request.capability,
-            cost=actual_cost,  # Use our calculated cost
-            provider="textverified",
-            activation_id=result["id"],
-            status="pending",
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(verification)
-        db.flush()  # Get the ID before commit
-        logger.info(f"Verification record created with ID: {verification.id}")
-
-        # Deduct credits from user (use our calculated cost)
-        old_balance = user.credits
-        user.credits -= actual_cost
-        new_balance = user.credits
-        logger.info(
-            f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}"
-        )
 
         # Record usage for quota tracking
         calculator.record_sms_usage(user_id, actual_cost)
@@ -184,6 +226,7 @@ async def request_verification(
             except Exception:
                 pass
 
+        # CRITICAL: Commit transaction (all or nothing)
         db.commit()
         logger.info(
             f"Transaction committed successfully for verification {verification.id}"
@@ -219,12 +262,12 @@ async def request_verification(
         return {
             "success": True,
             "verification_id": verification.id,
-            "phone_number": result["phone_number"],
+            "phone_number": textverified_result["phone_number"],
             "service": request.service,
             "country": request.country,
             "cost": actual_cost,
             "status": "pending",
-            "activation_id": result["id"],
+            "activation_id": textverified_result["id"],
             "demo_mode": False,
         }
 

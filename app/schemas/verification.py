@@ -14,6 +14,7 @@ class VerificationRequest(BaseModel):
     capability: str = Field(default="sms", description="sms or voice")
     area_codes: Optional[list[str]] = Field(default=None, description="Preferred area codes")
     carriers: Optional[list[str]] = Field(default=None, description="Preferred carriers")
+    idempotency_key: Optional[str] = Field(default=None, description="Idempotency key to prevent duplicate charges")
 
     @field_validator("country", mode="before")
     @classmethod
