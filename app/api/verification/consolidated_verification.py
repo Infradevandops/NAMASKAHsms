@@ -41,6 +41,7 @@ class VerificationResponse(BaseModel):
     cost: float
     created_at: str
     completed_at: Optional[str] = None
+    fallback_applied: bool = False
 
 
 class VerificationHistoryResponse(BaseModel):
@@ -110,15 +111,18 @@ async def create_verification(
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
 
+
         # Tier-based feature gating
         tier_manager = TierManager(db)
-        if verification_data.area_code and not tier_manager.check_feature_access(user_id, "area_code_selection"):
-            user_tier = tier_manager.get_user_tier(user_id)
-            raise_tier_error(user_tier, "payg", user_id)
+        if verification_data.area_code and verification_data.area_code != "any":
+            if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+                user_tier = tier_manager.get_user_tier(user_id)
+                raise_tier_error(user_tier, "payg", user_id)
             
-        if verification_data.carrier and not tier_manager.check_feature_access(user_id, "isp_filtering"):
-            user_tier = tier_manager.get_user_tier(user_id)
-            raise_tier_error(user_tier, "pro", user_id)
+        if verification_data.carrier and verification_data.carrier != "any":
+            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+                user_tier = tier_manager.get_user_tier(user_id)
+                raise_tier_error(user_tier, "pro", user_id)
 
         # Get TextVerified service
         from app.services.textverified_service import TextVerifiedService
@@ -129,11 +133,38 @@ async def create_verification(
             raise HTTPException(status_code=503, detail="SMS service unavailable")
 
         # Purchase number from TextVerified with optional filters
-        result = await tv_service.create_verification(
-            service=verification_data.service_name,
-            area_code=verification_data.area_code,
-            carrier=verification_data.carrier
-        )
+        fallback_applied = False
+        try:
+            result = await tv_service.create_verification(
+                service=verification_data.service_name,
+                country=verification_data.country,
+                area_code=verification_data.area_code,
+                carrier=verification_data.carrier
+            )
+        except Exception as e:
+            # Task 10: Intelligent Fallback (Tier 4 Turbo)
+            user_tier = tier_manager.get_user_tier(user_id)
+            is_turbo = user_tier in ["turbo", "custom"] # Assuming 'turbo' or 'custom' are Tier 4
+            
+            # Check if failure is likely due to filters (area code/carrier)
+            has_filters = verification_data.area_code or verification_data.carrier
+            
+            if is_turbo and has_filters:
+                logger.warning(f"Verification failed with filters for user {user_id}. Attempting fallback. Error: {e}")
+                try:
+                    # Retry without filters
+                    result = await tv_service.create_verification(
+                        service=verification_data.service_name,
+                        country=verification_data.country,
+                        area_code=None,
+                        carrier=None
+                    )
+                    fallback_applied = True
+                except Exception as fallback_error:
+                    logger.error(f"Fallback verification also failed: {fallback_error}")
+                    raise HTTPException(status_code=500, detail=f"Verification failed even after fallback: {str(fallback_error)}")
+            else:
+                raise e
 
         verification = Verification(
             user_id=user_id,
@@ -163,6 +194,7 @@ async def create_verification(
             "cost": verification.cost,
             "created_at": verification.created_at.isoformat(),
             "completed_at": None,
+            "fallback_applied": fallback_applied,
         }
 
     except HTTPException:

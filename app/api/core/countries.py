@@ -12,12 +12,8 @@ router = APIRouter(prefix="/countries", tags=["Countries"])
 
 @router.get("/")
 async def get_all_countries():
-    """Get all countries - USA only (TextVerified supports USA only)"""
-    return {
-        "success": True,
-        "countries": [{"code": "usa", "name": "United States", "prefix": "1"}],
-        "total": 1,
-    }
+    """Get all supported countries (Internationally enabled for PAYG+)."""
+    return get_fallback_countries()
 
 
 def get_flag_emoji(country_code: str) -> str:
@@ -246,11 +242,11 @@ async def get_usa_carriers():
 
 @router.get("/{country}/services")
 async def get_country_services(country: str):
-    """Get available services for USA from TextVerified API"""
-    if country.lower() != "usa":
-        raise HTTPException(status_code=404, detail="Only USA is supported")
-
-    cache_key_str = cache.cache_key("usa_services_v3")
+    """Get available services for a specific country from TextVerified API"""
+    # International support enabled for all countries in fallback list
+    country_code = country.lower()
+    cache_key_str = cache.cache_key(f"services_v3_{country_code}")
+    
     cached_result = await cache.get(cache_key_str)
     if cached_result:
         return cached_result
@@ -259,18 +255,20 @@ async def get_country_services(country: str):
         from app.services.textverified_service import TextVerifiedService
 
         integration = TextVerifiedService()
-        services = await integration.get_services_list(force_refresh=True)
+        # Fetch services specific to the requested country
+        services = await integration.get_services_list(country=country_code, force_refresh=True)
 
         result = {
             "success": True,
-            "country": "United States",
+            "country": country.upper(),
             "services": services,
             "total": len(services),
         }
 
+        # Cache for 1 hour (3600 seconds)
         await cache.set(cache_key_str, result, ttl=3600)
         return result
 
     except Exception as e:
-        logger.error(f"Failed to get services from TextVerified: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to load services")
+        logger.error(f"Failed to get services from TextVerified for {country}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load services for {country}")

@@ -23,6 +23,7 @@ from .system import (
     SupportTicket,
 )
 from .transaction import PaymentLog, Transaction
+from .verification_preset import VerificationPreset
 from .user import (
     NotificationPreferences,
     NotificationSettings,

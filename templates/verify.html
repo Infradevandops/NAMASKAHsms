@@ -4,447 +4,237 @@
 {% block page_subtitle %}<span data-i18n="verify.subtitle">Get instant SMS codes for any service</span>{% endblock %}
 
 {% block content %}
-<div style="max-width: 550px; margin: 0 auto;">
-    <div class="card" style="padding: 20px;">
-        <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;" data-i18n="verify.title">Request SMS Code
-        </h2>
+<style>
+    @keyframes pulse-ring {
+        0% {
+            transform: scale(0.33);
+        }
 
-        <div style="margin-bottom: 12px; position: relative;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
-                data-i18n="verify.select_service">Service</label>
-            <input type="text" id="service-search" placeholder="Search services (e.g., Telegram, WhatsApp)..."
-                autocomplete="off"
-                style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
-                onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
-                onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-            <div id="service-dropdown"
-                style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;">
-            </div>
-        </div>
+        80%,
+        100% {
+            opacity: 0;
+        }
+    }
 
-        <div style="margin-bottom: 12px;">
-            <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
-                data-i18n="verify.select_country">Country</label>
-            <input type="text" value="🇺🇸 United States" readonly
-                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 8px; background: #f9fafb; cursor: not-allowed; font-size: 14px;">
-        </div>
+    @keyframes pulse-dot {
+        0% {
+            transform: scale(0.8);
+        }
 
-        <!-- Premium Filtering Section -->
-        <div id="premium-filters"
-            style="margin-top: 20px; border-top: 1px solid #f3f4f6; padding-top: 15px; margin-bottom: 15px;">
+        50% {
+            transform: scale(1);
+        }
+
+        100% {
+            transform: scale(0.8);
+        }
+    }
+
+    .pulse-container {
+        display: inline-block;
+        position: relative;
+        width: 40px;
+        height: 40px;
+        margin-bottom: 8px;
+    }
+
+    .pulse-ring {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        border: 3px solid #3b82f6;
+        box-sizing: border-box;
+        animation: pulse-ring 1.25s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .pulse-dot {
+        display: block;
+        width: 100%;
+        height: 100%;
+        background: #3b82f6;
+        border-radius: 50%;
+        animation: pulse-dot 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) -0.4s infinite;
+    }
+</style>
+<div style="max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: 280px 1fr; gap: 20px;">
+
+    <!-- Presets Sidebar (Tier 3+) -->
+    <div class="card" style="padding: 20px; height: fit-content;" id="presets-card">
+        <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 600; color: #4b5563;">
+            <i class="fas fa-star" style="color: #f59e0b; margin-right: 6px;"></i>Quick Presets
+        </h3>
+
+        <div id="presets-list" style="margin-bottom: 16px;">
             <div
-                style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
-                Premium Filtering</div>
-
-            <!-- Area Code Selection (PAYG+) -->
-            <div id="area-code-container" style="margin-bottom: 12px;">
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Area Code</label>
-                <div id="area-code-field-wrapper">
-                    <select id="area-code-select"
-                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
-                        <option value="">Any Area Code</option>
-                    </select>
-                </div>
-                <div id="area-code-lock"
-                    style="display: none; padding: 10px; background: #fff7ed; border: 1px dashed #fdba74; border-radius: 8px; font-size: 12px; color: #9a3412;">
-                    🔒 <a href="/settings?tab=billing"
-                        style="color: #ea580c; font-weight: 700; text-decoration: none;">Upgrade to Starter</a> to
-                    select specific area codes
-                </div>
-            </div>
-
-            <!-- ISP/Carrier Selection (PRO+) -->
-            <div id="carrier-container" style="margin-bottom: 12px;">
-                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Carrier /
-                    ISP</label>
-                <div id="carrier-field-wrapper">
-                    <select id="carrier-select"
-                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
-                        <option value="">Any Carrier</option>
-                    </select>
-                </div>
-                <div id="carrier-lock"
-                    style="display: none; padding: 10px; background: #fff1f2; border: 1px dashed #fecdd3; border-radius: 8px; font-size: 12px; color: #9f1239;">
-                    🔒 <a href="/settings?tab=billing"
-                        style="color: #e11d48; font-weight: 700; text-decoration: none;">Upgrade to Pro</a> to filter by
-                    ISP/Carrier
-                </div>
+                style="font-size: 13px; color: #9ca3af; text-align: center; padding: 20px; background: #f9fafb; border-radius: 8px;">
+                Loading presets...
             </div>
         </div>
 
-        <div
-            style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-radius: 10px;">
-            <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="service-cost">$0.00</div>
-                <div
-                    style="font-size: 10px; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
-                    Cost</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: #10b981;">~30s</div>
-                <div
-                    style="font-size: 10px; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
-                    Delivery</div>
-            </div>
-            <div style="text-align: center;">
-                <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">95%</div>
-                <div
-                    style="font-size: 10px; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
-                    Success</div>
-            </div>
+        <div id="save-preset-ui" style="display: none; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+            <input type="text" id="preset-name-input" placeholder="Preset Name (e.g. US WhatsApp)"
+                style="width: 100%; margin-bottom: 8px; font-size: 12px; padding: 6px; border: 1px solid #d1d5db; border-radius: 4px;">
+            <button onclick="saveCurrentPreset()" class="btn"
+                style="width: 100%; font-size: 12px; padding: 6px; background: #4b5563; color: white;">
+                Save Current Selection
+            </button>
         </div>
 
-        <button class="btn" id="purchase-btn" onclick="purchaseVerification()" disabled
-            style="width: 100%; background: var(--primary); font-size: 14px; padding: 12px;"
-            data-i18n="verify.buy_number">Continue</button>
-    </div>
-
-    <div class="card" id="reception-card" style="display: none; padding: 20px; margin-top: 16px;">
-        <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;">SMS Reception</h2>
-
-        <div id="phone-display"
-            style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 10px; margin-bottom: 16px; color: white; text-align: center; letter-spacing: 1px;">
-        </div>
-
-        <div
-            style="background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
-            <div id="status-text"
-                style="font-size: 12px; color: #1e40af; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
-                Waiting for SMS</div>
-            <div id="code-display"
-                style="font-size: 36px; font-weight: 700; color: #2563eb; letter-spacing: 4px; text-align: center; font-family: 'Courier New', monospace;">
-                ------</div>
-        </div>
-
-        <div style="display: flex; gap: 10px;">
-            <button class="btn" id="copy-btn" onclick="copyCode()"
-                style="flex: 1; display: none; background: #10b981; font-size: 14px; padding: 12px;">Copy Code</button>
-            <button class="btn" id="cancel-btn" onclick="cancelVerification()"
-                style="flex: 1; background: #ef4444; font-size: 14px; padding: 12px;">Cancel</button>
+        <div id="preset-lock"
+            style="display: none; padding: 15px; text-align: center; background: #f3f4f6; border-radius: 8px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
+            <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Upgrade to <b>Pro</b> to save and use
+                efficiency presets.</p>
+            <a href="/settings?tab=billing" class="btn"
+                style="display: block; font-size: 11px; padding: 6px; background: #2563eb; color: white; text-decoration: none;">View
+                Plans</a>
         </div>
     </div>
-</div>
-{% endblock %}
 
-{% block scripts %}
-{{ super() }}
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-<script>
-    let selectedService = null;
-    let currentVerification = null;
-    let pollingInterval = null;
-    let allServices = [];
-    let servicesLoaded = false;
-    let userTier = 'freemium';
+    <!-- Main Verification Interface -->
+    <div>
+        <div class="card" style="padding: 20px;">
+            <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;" data-i18n="verify.title">Request SMS
+                Code
+            </h2>
 
-    const TIER_RANK = {
-        'freemium': 0,
-        'payg': 1,
-        'starter': 1,
-        'pro': 2,
-        'custom': 3
-    };
-
-    /**
-     * Check tier access and toggle UI filters
-     */
-    async function checkTierAccess() {
-        try {
-            const token = localStorage.getItem('access_token');
-            const res = await axios.get('/api/tiers/current', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            userTier = res.data.current_tier || 'freemium';
-            console.log(`[Verify] User Tier: ${userTier}`);
-
-            const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
-
-            // Area Code (PAYG/Starter+)
-            if (currentRank < 1) {
-                document.getElementById('area-code-select').style.display = 'none';
-                document.getElementById('area-code-lock').style.display = 'block';
-            } else {
-                document.getElementById('area-code-select').style.display = 'block';
-                document.getElementById('area-code-lock').style.display = 'none';
-            }
-
-            // Carrier (Pro+)
-            if (currentRank < 2) {
-                document.getElementById('carrier-select').style.display = 'none';
-                document.getElementById('carrier-lock').style.display = 'block';
-            } else {
-                document.getElementById('carrier-select').style.display = 'block';
-                document.getElementById('carrier-lock').style.display = 'none';
-                loadCarriers(); // Load carriers for Pro users
-            }
-        } catch (error) {
-            console.warn('[Verify] Could not determine user tier:', error);
-        }
-    }
-
-    async function loadCarriers() {
-        try {
-            const token = localStorage.getItem('access_token');
-            const res = await axios.get('/api/v1/verification/carriers/US', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const select = document.getElementById('carrier-select');
-            res.data.carriers.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                opt.textContent = c.name;
-                select.appendChild(opt);
-            });
-        } catch (e) {
-            console.error('[Verify] Failed to load carriers:', e);
-        }
-    }
-
-    async function loadAreaCodes(serviceId) {
-        if (!serviceId || (TIER_RANK[userTier] || 0) < 1) return;
-
-        try {
-            const token = localStorage.getItem('access_token');
-            const res = await axios.get(`/api/v1/verification/area-codes/US`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            const select = document.getElementById('area-code-select');
-
-            // Keep "Any" option
-            select.innerHTML = '<option value="">Any Area Code</option>';
-
-            res.data.area_codes.forEach(ac => {
-                const opt = document.createElement('option');
-                opt.value = ac.area_code;
-                opt.textContent = `${ac.area_code} (${ac.city}, ${ac.state})`;
-                select.appendChild(opt);
-            });
-        } catch (e) {
-            console.error('[Verify] Failed to load area codes:', e);
-        }
-    }
-
-    async function loadServices() {
-        console.log('Loading services...');
-        try {
-            const res = await axios.get('/api/verification/textverified/services');
-            if (res.data && res.data.services) {
-                allServices = res.data.services;
-                servicesLoaded = true;
-                console.log(`✅ Loaded ${allServices.length} services from API`);
-            }
-        } catch (error) {
-            console.error('❌ Failed to load services from API:', error);
-            // Fallback services
-            allServices = [
-                { id: 'telegram', name: 'Telegram', cost: 0.50 },
-                { id: 'whatsapp', name: 'WhatsApp', cost: 0.75 },
-                { id: 'google', name: 'Google', cost: 0.50 },
-                { id: 'facebook', name: 'Facebook', cost: 0.60 },
-                { id: 'instagram', name: 'Instagram', cost: 0.65 },
-                { id: 'twitter', name: 'Twitter', cost: 0.55 },
-                { id: 'discord', name: 'Discord', cost: 0.45 },
-                { id: 'tiktok', name: 'TikTok', cost: 0.70 }
-            ];
-            servicesLoaded = true;
-            console.log(`⚠️ Using ${allServices.length} fallback services`);
-        }
-    }
-
-    function setupSearchListener() {
-        const searchInput = document.getElementById('service-search');
-        const dropdown = document.getElementById('service-dropdown');
-
-        searchInput.addEventListener('input', (e) => {
-            const query = e.target.value.toLowerCase().trim();
-
-            if (!servicesLoaded) {
-                dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">Loading services...</div>';
-                dropdown.style.display = 'block';
-                return;
-            }
-
-            if (!query || query.length < 1) {
-                dropdown.style.display = 'none';
-                return;
-            }
-
-            const filtered = allServices.filter(s => s.name.toLowerCase().includes(query));
-
-            if (filtered.length === 0) {
-                dropdown.innerHTML = '<div style="padding: 12px; color: #9ca3af; text-align: center;">No services found</div>';
-                dropdown.style.display = 'block';
-                return;
-            }
-
-            dropdown.innerHTML = filtered.slice(0, 10).map(s => {
-                const safeName = s.name.replace(/'/g, "\\'");
-                return `
-            <div onclick="selectService('${s.id}', '${safeName}', ${s.cost})" 
-                 style="padding: 12px; cursor: pointer; border-bottom: 1px solid #f3f4f6; transition: background 0.15s;"
-                 onmouseover="this.style.background='#f9fafb'"
-                 onmouseout="this.style.background='white'">
-                <div style="font-weight: 600; color: #1f2937;">${s.name}</div>
-                <div style="font-size: 12px; color: #6b7280; margin-top: 2px;">$${s.cost.toFixed(2)} per verification</div>
+            <div style="margin-bottom: 12px; position: relative;">
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
+                    data-i18n="verify.select_service">Service</label>
+                <input type="text" id="service-search" placeholder="Search services (e.g., Telegram, WhatsApp)..."
+                    autocomplete="off"
+                    style="width: 100%; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
+                    onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
+                    onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
+                <div id="service-dropdown"
+                    style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;">
+                </div>
             </div>
-            `;
-            }).join('');
-            dropdown.style.display = 'block';
 
-            console.log(`Found ${filtered.length} services for "${query}"`);
-        });
+            <div style="margin-bottom: 12px;">
+                <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
+                    data-i18n="verify.select_country">Country</label>
+                <div id="country-field-wrapper">
+                    <select id="country-select" onchange="onCountryChange()"
+                        style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                        <option value="usa">🇺🇸 United States</option>
+                    </select>
+                </div>
+                <div id="country-lock"
+                    style="display: none; padding: 10px; background: #eff6ff; border: 1px dashed #3b82f6; border-radius: 8px; font-size: 12px; color: #1e40af; margin-top: 4px;">
+                    🔒 <a href="/settings?tab=billing"
+                        style="color: #2563eb; font-weight: 700; text-decoration: none;">Upgrade to Starter</a> to
+                    unlock
+                    37+ other countries
+                </div>
+            </div>
 
-        // Close dropdown when clicking outside
-        document.addEventListener('click', (e) => {
-            if (e.target !== searchInput && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-    }
+            <!-- Premium Filtering Section -->
+            <div id="premium-filters"
+                style="margin-top: 20px; border-top: 1px solid #f3f4f6; padding-top: 15px; margin-bottom: 15px;">
+                <div
+                    style="font-size: 12px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px;">
+                    Premium Filtering</div>
 
-    function selectService(id, name, cost) {
-        selectedService = id;
-        document.getElementById('service-search').value = name;
-        document.getElementById('service-cost').textContent = `$${cost.toFixed(2)}`;
-        document.getElementById('service-dropdown').style.display = 'none';
-        document.getElementById('purchase-btn').disabled = false;
-        document.getElementById('purchase-btn').textContent = 'Get SMS Code';
-        console.log(`Selected: ${name} ($${cost})`);
+                <!-- Area Code Selection (PAYG+) -->
+                <div id="area-code-container" style="margin-bottom: 12px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Area
+                        Code</label>
+                    <div id="area-code-field-wrapper">
+                        <select id="area-code-select"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                            <option value="">Any Area Code</option>
+                        </select>
+                    </div>
+                    <div id="area-code-lock"
+                        style="display: none; padding: 10px; background: #fff7ed; border: 1px dashed #fdba74; border-radius: 8px; font-size: 12px; color: #9a3412;">
+                        🔒 <a href="/settings?tab=billing"
+                            style="color: #ea580c; font-weight: 700; text-decoration: none;">Upgrade to Starter</a> to
+                        select specific area codes
+                    </div>
+                </div>
 
-        // Load area codes for selected service if user has access
-        loadAreaCodes(id);
-    }
+                <!-- ISP/Carrier Selection (PRO+) -->
+                <div id="carrier-container" style="margin-bottom: 12px;">
+                    <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;">Carrier /
+                        ISP</label>
+                    <div id="carrier-field-wrapper">
+                        <select id="carrier-select"
+                            style="width: 100%; padding: 10px; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; background: white;">
+                            <option value="">Any Carrier</option>
+                        </select>
+                    </div>
+                    <div id="carrier-lock"
+                        style="display: none; padding: 10px; background: #fff1f2; border: 1px dashed #fecdd3; border-radius: 8px; font-size: 12px; color: #9f1239;">
+                        🔒 <a href="/settings?tab=billing"
+                            style="color: #e11d48; font-weight: 700; text-decoration: none;">Upgrade to Pro</a> to
+                        filter by
+                        ISP/Carrier
+                    </div>
+                </div>
+            </div>
 
-    async function purchaseVerification() {
-        if (!selectedService) return;
+            <div
+                style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, #f0f4ff 0%, #e0e7ff 100%); border-radius: 10px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: var(--primary);" id="service-cost">$0.00</div>
+                    <div
+                        style="font-size: 10px; color: #6366f1; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                        Cost</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: #10b981;">~30s</div>
+                    <div
+                        style="font-size: 10px; color: #059669; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                        Delivery</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 20px; font-weight: 700; color: #f59e0b;">95%</div>
+                    <div
+                        style="font-size: 10px; color: #d97706; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
+                        Success</div>
+                </div>
+            </div>
 
-        const btn = document.getElementById('purchase-btn');
-        btn.disabled = true;
-        btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
+            <button class="btn" id="purchase-btn" onclick="purchaseVerification()" disabled
+                style="width: 100%; background: var(--primary); font-size: 14px; padding: 12px;"
+                data-i18n="verify.buy_number">Continue</button>
+        </div>
 
-        try {
-            const areaCode = document.getElementById('area-code-select').value;
-            const carrier = document.getElementById('carrier-select').value;
+        <div class="card" id="reception-card" style="display: none; padding: 20px; margin-top: 16px;">
+            <h2 style="font-size: 16px; margin-bottom: 16px; font-weight: 600;">SMS Reception</h2>
 
-            const res = await axios.post('/api/verify/create', {
-                service_name: selectedService,
-                country: 'US',
-                capability: 'sms',
-                area_code: areaCode || null,
-                carrier: carrier || null
-            });
+            <div id="phone-display"
+                style="font-size: 18px; font-weight: 700; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; border-radius: 10px; margin-bottom: 16px; color: white; text-align: center; letter-spacing: 1px;">
+            </div>
 
-            if (res.data && res.data.phone_number) {
-                currentVerification = res.data;
-                document.getElementById('phone-display').textContent = res.data.phone_number;
-                document.getElementById('reception-card').style.display = 'block';
-                startPolling(res.data.id);
-                if (window.refreshBalance) window.refreshBalance();
-            }
-        } catch (error) {
-            alert(error.response?.data?.detail || 'Purchase failed');
-            btn.disabled = false;
-            btn.textContent = 'Get SMS Code';
-        }
-    }
+            <div
+                style="background: #f0f9ff; border: 2px solid #bfdbfe; border-radius: 10px; padding: 20px; margin-bottom: 16px;">
+                <div id="status-text"
+                    style="font-size: 12px; color: #1e40af; margin-bottom: 10px; text-align: center; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600;">
+                    Waiting for SMS</div>
+                <div id="code-display"
+                    style="font-size: 36px; font-weight: 700; color: #2563eb; letter-spacing: 4px; text-align: center; font-family: 'Courier New', monospace;">
+                    ------</div>
+            </div>
 
-    async function cancelVerification() {
-        if (!currentVerification) return;
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" id="copy-btn" onclick="copyCode()"
+                    style="flex: 1; display: none; background: #10b981; font-size: 14px; padding: 12px;">Copy
+                    Code</button>
+                <button class="btn" id="cancel-btn" onclick="cancelVerification()"
+                    style="flex: 1; background: #ef4444; font-size: 14px; padding: 12px;">Cancel</button>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
 
-        const btn = document.getElementById('cancel-btn');
-        btn.disabled = true;
-        btn.textContent = 'Cancelling...';
-
-        try {
-            await axios.delete(`/api/verify/${currentVerification.id}`);
-        } catch (error) {
-            console.error('Cancel failed:', error);
-        }
-
-        resetForm();
-    }
-
-    function startPolling(id) {
-        let count = 0;
-        document.getElementById('status-text').innerHTML = '<div class="spinner-sm" style="margin: 0 auto 8px; border-color: #bfdbfe; border-top-color: #2563eb;"></div>Waiting for SMS';
-
-        pollingInterval = setInterval(async () => {
-            count++;
-            try {
-                const res = await axios.get(`/api/verify/${id}/status`);
-                if (res.data.sms_code) {
-                    document.getElementById('code-display').textContent = res.data.sms_code;
-                    document.getElementById('status-text').textContent = 'SMS Received';
-                    document.getElementById('status-text').parentElement.style.background = '#d1fae5';
-                    document.getElementById('status-text').parentElement.style.borderColor = '#a7f3d0';
-                    document.getElementById('status-text').style.color = '#065f46';
-                    document.getElementById('code-display').style.color = '#059669';
-                    document.getElementById('copy-btn').style.display = 'block';
-                    clearInterval(pollingInterval);
-                } else if (count >= 60) {
-                    document.getElementById('status-text').textContent = 'Timeout - No SMS received';
-                    document.getElementById('status-text').parentElement.style.background = '#fee2e2';
-                    document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
-                    document.getElementById('status-text').style.color = '#991b1b';
-                    clearInterval(pollingInterval);
-                }
-            } catch (error) {
-                if (count >= 60) clearInterval(pollingInterval);
-            }
-        }, 5000);
-    }
-
-    function copyCode() {
-        const code = document.getElementById('code-display').textContent;
-        navigator.clipboard.writeText(code).then(() => {
-            const btn = document.getElementById('copy-btn');
-            btn.textContent = 'Copied!';
-            btn.style.background = '#059669';
-            setTimeout(() => {
-                btn.textContent = 'Copy Code';
-                btn.style.background = '#10b981';
-            }, 2000);
-        });
-    }
-
-    async function resetForm() {
-        if (currentVerification) {
-            try {
-                await axios.delete(`/api/verify/${currentVerification.id}`);
-            } catch (error) { }
-        }
-
-        selectedService = null;
-        currentVerification = null;
-        if (pollingInterval) clearInterval(pollingInterval);
-
-        document.getElementById('service-search').value = '';
-        document.getElementById('service-cost').textContent = '$0.00';
-        document.getElementById('reception-card').style.display = 'none';
-        document.getElementById('code-display').textContent = '------';
-        document.getElementById('copy-btn').style.display = 'none';
-        document.getElementById('cancel-btn').disabled = false;
-        document.getElementById('cancel-btn').textContent = 'Cancel';
-        document.getElementById('purchase-btn').disabled = true;
-        document.getElementById('purchase-btn').textContent = 'Continue';
-
-        // Reset status styling
-        const statusContainer = document.getElementById('status-text').parentElement;
-        statusContainer.style.background = '#f0f9ff';
-        statusContainer.style.borderColor = '#bfdbfe';
-        document.getElementById('status-text').style.color = '#1e40af';
-        document.getElementById('code-display').style.color = '#2563eb';
-
-        if (window.refreshBalance) window.refreshBalance();
-    }
-
-    // Initialize on page load
-    (async function init() {
-        console.log('Initializing SMS Verification page...');
-        await checkTierAccess(); // Check tier gating first
-        await loadServices();
-        setupSearchListener();
-        console.log('✅ Page ready');
-    })();
-</script>
-{% endblock %}
+    {% block scripts %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="/static/js/verification.js"></script>
+    {% endblock %}
