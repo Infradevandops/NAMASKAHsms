@@ -18,7 +18,7 @@ Ensure that SMS verification enhancements are delivered in a sequential "ensuite
     - [x] Respect `country_limit` from `TierManager`.
 *   **04. Area Code Selection & Search**:
     - [x] Unlock `requested_area_code` filtering.
-    - [ ] Implement city/state geolocation search (e.g., "Chicago" -> 312).
+    - [x] Implement city/state geolocation search (e.g., "Chicago" -> 312).
 *   **05. Geo-UX Improvements**:
     - [x] Show state labels next to area codes (e.g., "NY (212)").
 

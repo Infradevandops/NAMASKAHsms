@@ -21,7 +21,7 @@ FROM python:3.11-slim as production
 WORKDIR /app
 
 # Create non-root user for security
-RUN groupadd -r appuser && useradd -r -g appuser appuser
+RUN groupadd -r appuser && useradd -r -g appuser -d /home/appuser -m appuser
 
 # Install runtime dependencies only
 RUN apt-get update && apt-get install -y \
@@ -43,7 +43,7 @@ USER appuser
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8000/system/health || exit 1
+  CMD curl -f http://localhost:8000/health || exit 1
 
 # Resource limits
 ENV PYTHONUNBUFFERED=1

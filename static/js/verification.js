@@ -3,6 +3,7 @@ let selectedService = null;
 let currentVerification = null;
 let pollingInterval = null;
 let allServices = [];
+let allAreaCodes = [];
 let servicesLoaded = false;
 let userTier = 'freemium';
 
@@ -150,20 +151,26 @@ async function loadAreaCodes(serviceId) {
         const res = await axios.get(`/api/v1/verification/area-codes/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        allAreaCodes = res.data.area_codes;
         const select = document.getElementById('area-code-select');
 
-        // Keep "Any" option
-        select.innerHTML = '<option value="">Any Area Code</option>';
-
-        res.data.area_codes.forEach(ac => {
-            const opt = document.createElement('option');
-            opt.value = ac.area_code;
-            opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
-            select.appendChild(opt);
-        });
+        renderAreaCodes(allAreaCodes);
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
     }
+}
+
+function renderAreaCodes(codes) {
+    const select = document.getElementById('area-code-select');
+    // Keep "Any" option
+    select.innerHTML = '<option value="">Any Area Code</option>';
+
+    codes.forEach(ac => {
+        const opt = document.createElement('option');
+        opt.value = ac.area_code;
+        opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
+        select.appendChild(opt);
+    });
 }
 
 async function loadServices(country = 'usa') {
@@ -266,8 +273,26 @@ function selectService(id, name, cost) {
     loadAreaCodes(id);
 
     // Trigger dynamic pricing preview
-    updatePricePreview();
+    debouncedUpdatePricePreview();
 }
+
+/**
+ * Debounce utility to limit frequency of API calls
+ */
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+// Debounced version of price preview
+const debouncedUpdatePricePreview = debounce(updatePricePreview, 500);
 
 async function updatePricePreview() {
     if (!selectedService) return;
@@ -350,8 +375,8 @@ async function purchaseVerification() {
                 fallbackAlert.innerHTML = `
                     <div style="font-size: 16px;">⚡</div>
                     <div>
-                        <strong style="font-weight: 600; display: block; margin-bottom: 2px;">Intelligent Fallback Active</strong>
-                        Your specific filter was unavailable due to high demand. We've automatically optimized your connection to the best available line in the region to ensure delivery.
+                        <strong style="font-weight: 600; display: block; margin-bottom: 2px;">${i18n.t('verify.intelligent_fallback')}</strong>
+                        ${i18n.t('verify.fallback_message')}
                     </div>
                 `;
                 const container = document.getElementById('reception-card').parentNode;
@@ -535,8 +560,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadServices();
 
     // Add listeners for filters to update pricing
-    document.getElementById('area-code-select').addEventListener('change', updatePricePreview);
-    document.getElementById('carrier-select').addEventListener('change', updatePricePreview);
+    document.getElementById('area-code-select').addEventListener('change', debouncedUpdatePricePreview);
+    document.getElementById('carrier-select').addEventListener('change', debouncedUpdatePricePreview);
 
     // Tier 3: Load Presets logic
     const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
@@ -550,8 +575,29 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     setupSearchListener();
+    setupAreaCodeSearch();
     console.log('✅ Page ready');
 });
+
+function setupAreaCodeSearch() {
+    const searchInput = document.getElementById('area-code-search');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        if (!query) {
+            renderAreaCodes(allAreaCodes);
+            return;
+        }
+
+        const filtered = allAreaCodes.filter(ac =>
+            ac.city.toLowerCase().includes(query) ||
+            ac.state.toLowerCase().includes(query) ||
+            ac.area_code.includes(query)
+        );
+        renderAreaCodes(filtered);
+    });
+}
 
 // --- Preset Logic ---
 async function loadUserPresets() {
@@ -642,7 +688,7 @@ async function applyPreset(serviceId, countryId, areaCode, carrier) {
         // Fallback if not found in list immediately (shouldn't happen if services loaded)
         selectedService = serviceId;
         loadAreaCodes(serviceId);
-        updatePricePreview();
+        debouncedUpdatePricePreview();
     }
 
     // 3. Set Filters
@@ -650,7 +696,7 @@ async function applyPreset(serviceId, countryId, areaCode, carrier) {
     setTimeout(() => {
         if (areaCode) document.getElementById('area-code-select').value = areaCode;
         if (carrier) document.getElementById('carrier-select').value = carrier;
-        updatePricePreview();
+        debouncedUpdatePricePreview();
     }, 1000);
 }
 
