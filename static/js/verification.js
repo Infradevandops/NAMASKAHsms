@@ -33,6 +33,7 @@ async function checkTierAccess() {
         if (currentRank >= 1) {
             document.getElementById('area-code-field-wrapper').style.display = 'block';
             document.getElementById('area-code-lock').style.display = 'none';
+            await loadAreaCodes(); // Load area codes immediately for PAYG+ users
         }
 
         // Carrier (Pro+)
@@ -86,8 +87,8 @@ async function loadCarriers() {
     }
 }
 
-async function loadAreaCodes(serviceId) {
-    if (!serviceId || (TIER_RANK[userTier] || 0) < 1) return;
+async function loadAreaCodes(serviceId = null) {
+    if ((TIER_RANK[userTier] || 0) < 1) return;
 
     const select = document.getElementById('area-code-select');
     
