@@ -49,7 +49,7 @@ async function checkTierAccess() {
 async function loadCarriers() {
     try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/v1/verification/carriers/US`, {
+        const res = await axios.get(`/api/verification/carriers/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const select = document.getElementById('carrier-select');
@@ -65,6 +65,7 @@ async function loadCarriers() {
             }
             select.appendChild(opt);
         });
+        console.log(`✅ Loaded ${res.data.carriers.length} carriers`);
     } catch (e) {
         console.error('[Verify] Failed to load carriers:', e);
     }
@@ -75,7 +76,7 @@ async function loadAreaCodes(serviceId) {
 
     try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/v1/verification/area-codes/US`, {
+        const res = await axios.get(`/api/verification/area-codes/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         allAreaCodes = res.data.area_codes;
@@ -87,6 +88,7 @@ async function loadAreaCodes(serviceId) {
             opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
             select.appendChild(opt);
         });
+        console.log(`✅ Loaded ${allAreaCodes.length} area codes`);
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
     }
@@ -96,7 +98,7 @@ async function loadServices() {
     console.log('Loading services for US...');
     try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/v1/countries/US/services`, {
+        const res = await axios.get(`/api/countries/US/services`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -226,7 +228,7 @@ async function updatePricePreview() {
         if (areaCode) params.append('area_code', areaCode);
         if (carrier) params.append('carrier', carrier);
 
-        const res = await axios.get(`/api/v1/verification/pricing?${params.toString()}`, {
+        const res = await axios.get(`/api/verification/pricing?${params.toString()}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
