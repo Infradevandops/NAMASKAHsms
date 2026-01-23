@@ -19,96 +19,84 @@ async def get_available_carriers(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Get list of available carriers/ISPs for a country with real-time data.
-
-    Available to all authenticated users for viewing.
-    Selection requires PRO+ tier (enforced at purchase time).
+    """Get list of available carriers/ISPs from actual verifications.
+    
+    Extracts carriers from past verifications since TextVerified doesn't have a carriers endpoint.
     """
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
-    # Static fallback carriers
-    STATIC_FALLBACK_CARRIERS = [
-        {"id": "verizon", "name": "Verizon", "success_rate": 95},
-        {"id": "att", "name": "AT&T", "success_rate": 93},
-        {"id": "tmobile", "name": "T-Mobile", "success_rate": 92},
-        {"id": "sprint", "name": "Sprint", "success_rate": 88},
-        {"id": "us_cellular", "name": "US Cellular", "success_rate": 87},
-    ]
-
     try:
-        # Try to get from TextVerified API
-        from app.services.textverified_service import TextVerifiedService
-        from app.services.availability_service import AvailabilityService
-        from app.core.unified_cache import cache
-
-        # Check cache first
-        cache_key = f"carriers_{country}"
-        cached_data = await cache.get(cache_key)
-        if cached_data:
-            logger.info(f"Returning cached carriers for {country}")
-            return cached_data
-
-        tv_service = TextVerifiedService()
-        availability_service = AvailabilityService(db)
-
-        # Get carriers from TextVerified (DYNAMIC)
-        carriers = await tv_service.get_available_carriers(country)
-
+        from app.models.verification import Verification
+        from sqlalchemy import func, distinct
+        
+        # Get unique carriers from past verifications
+        carriers_query = (
+            db.query(
+                Verification.operator,
+                func.count(Verification.id).label('total'),
+                func.sum(func.case((Verification.status == 'completed', 1), else_=0)).label('completed')
+            )
+            .filter(
+                Verification.country == country,
+                Verification.operator.isnot(None),
+                Verification.operator != ''
+            )
+            .group_by(Verification.operator)
+            .all()
+        )
+        
+        carriers = []
+        for operator, total, completed in carriers_query:
+            success_rate = (completed / total * 100) if total > 0 else 90
+            carriers.append({
+                "id": operator.lower().replace(' ', '_'),
+                "name": operator,
+                "success_rate": round(success_rate, 1),
+                "total_verifications": total,
+            })
+        
+        # If no carriers found, use fallback
         if not carriers:
-            raise Exception("No carriers returned from API")
-
-        # Enhance with YOUR success rates (REAL DATA)
-        enhanced_carriers = []
-        for carrier in carriers:
-            stats = availability_service.get_carrier_availability(
-                carrier["name"], country
-            )
-            enhanced_carriers.append(
-                {
-                    "id": carrier.get("id", carrier["name"].lower().replace(" ", "_")),
-                    "name": carrier["name"],
-                    "success_rate": stats.get("success_rate", carrier.get("success_rate", 90)),
-                    "total_verifications": stats.get("total", 0),
-                }
-            )
-
-        # Sort by success rate (highest first)
-        enhanced_carriers.sort(key=lambda x: x["success_rate"], reverse=True)
-
-        # Get user tier for response
+            carriers = [
+                {"id": "verizon", "name": "Verizon", "success_rate": 95, "total_verifications": 0},
+                {"id": "att", "name": "AT&T", "success_rate": 93, "total_verifications": 0},
+                {"id": "tmobile", "name": "T-Mobile", "success_rate": 92, "total_verifications": 0},
+                {"id": "sprint", "name": "Sprint", "success_rate": 88, "total_verifications": 0},
+                {"id": "us_cellular", "name": "US Cellular", "success_rate": 87, "total_verifications": 0},
+            ]
+        
+        # Sort by success rate
+        carriers.sort(key=lambda x: x["success_rate"], reverse=True)
+        
         user = db.query(User).filter(User.id == user_id).first()
         user_tier = user.subscription_tier if user else "freemium"
-
+        
         result = {
             "success": True,
             "country": country,
-            "carriers": enhanced_carriers,
+            "carriers": carriers,
             "tier": user_tier,
             "can_select": user_tier in ["pro", "custom"],
-            "source": "textverified_api",
+            "source": "database" if len(carriers_query) > 0 else "fallback",
         }
-
-        # Cache for 5 minutes
-        await cache.set(cache_key, result, ttl=300)
-
-        logger.info(
-            f"Retrieved {len(enhanced_carriers)} carriers from TextVerified API for {country}"
-        )
+        
+        logger.info(f"Retrieved {len(carriers)} carriers from {'database' if len(carriers_query) > 0 else 'fallback'} for {country}")
         return result
-
+        
     except Exception as e:
-        logger.error(
-            f"Failed to get carriers from TextVerified API: {str(e)}, using fallback"
-        )
-
-        # FALLBACK to static list
+        logger.error(f"Failed to get carriers: {str(e)}", exc_info=True)
+        
         user = db.query(User).filter(User.id == user_id).first()
         user_tier = user.subscription_tier if user else "freemium"
-
+        
         return {
             "success": True,
             "country": country,
-            "carriers": STATIC_FALLBACK_CARRIERS,
+            "carriers": [
+                {"id": "verizon", "name": "Verizon", "success_rate": 95, "total_verifications": 0},
+                {"id": "att", "name": "AT&T", "success_rate": 93, "total_verifications": 0},
+                {"id": "tmobile", "name": "T-Mobile", "success_rate": 92, "total_verifications": 0},
+            ],
             "tier": user_tier,
             "can_select": user_tier in ["pro", "custom"],
             "source": "fallback",
