@@ -313,6 +313,7 @@ def test_complete_user_journey():
 
         # Step 5: Database supports full journey
         from app.core.database import SessionLocal
+        from sqlalchemy import text
 
         db = SessionLocal()
 
