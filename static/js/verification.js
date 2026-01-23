@@ -47,12 +47,20 @@ async function checkTierAccess() {
 }
 
 async function loadCarriers() {
+    const select = document.getElementById('carrier-select');
+    
     try {
+        // Show loading state
+        select.innerHTML = '<option value="">Loading carriers...</option>';
+        select.disabled = true;
+        
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/verification/carriers/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const select = document.getElementById('carrier-select');
+        
+        // Re-enable and populate
+        select.disabled = false;
         select.innerHTML = '<option value="">Any Carrier</option>';
         
         if (res.data.carriers && res.data.carriers.length > 0) {
@@ -72,19 +80,31 @@ async function loadCarriers() {
         }
     } catch (e) {
         console.error('[Verify] Failed to load carriers:', e);
+        // Show error state with fallback
+        select.disabled = false;
+        select.innerHTML = '<option value="">Any Carrier (using fallback)</option>';
     }
 }
 
 async function loadAreaCodes(serviceId) {
     if (!serviceId || (TIER_RANK[userTier] || 0) < 1) return;
 
+    const select = document.getElementById('area-code-select');
+    
     try {
+        // Show loading state
+        select.innerHTML = '<option value="">Loading area codes...</option>';
+        select.disabled = true;
+        
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/verification/area-codes/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        
         allAreaCodes = res.data.area_codes;
-        const select = document.getElementById('area-code-select');
+        
+        // Re-enable and populate
+        select.disabled = false;
         select.innerHTML = '<option value="">Any Area Code</option>';
         
         if (allAreaCodes && allAreaCodes.length > 0) {
@@ -107,6 +127,9 @@ async function loadAreaCodes(serviceId) {
         }
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
+        // Show error state with fallback
+        select.disabled = false;
+        select.innerHTML = '<option value="">Any Area Code (using fallback)</option>';
     }
 }
 
