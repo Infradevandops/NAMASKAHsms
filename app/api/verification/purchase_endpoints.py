@@ -174,23 +174,33 @@ async def request_verification(
             f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
         )
 
-        # Pass area codes and carriers if provided
+        # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
         carrier = request.carriers[0] if request.carriers else None
+        
+        # Log what filters are being applied
+        if area_code:
+            logger.info(f"User {user_id} requesting area code: {area_code}")
+        if carrier:
+            logger.info(f"User {user_id} requesting carrier: {carrier}")
 
         textverified_result = None
         verification = None
 
         try:
-            # Step 1: Call TextVerified API FIRST
+            # Step 1: Call TextVerified API FIRST with filters
+            logger.info(f"Calling TextVerified API - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}")
             textverified_result = await tv_service.create_verification(
-                service=request.service, area_code=area_code, carrier=carrier
+                service=request.service, 
+                country=request.country,
+                area_code=area_code, 
+                carrier=carrier
             )
             logger.info(
                 f"TextVerified API success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
             )
 
-            # Step 2: Create verification record (not committed yet)
+            # Step 2: Create verification record with filter tracking
             actual_cost = sms_cost  # Use our pricing system cost
             logger.info(f"Creating verification record for user {user_id}")
             verification = Verification(
@@ -204,6 +214,8 @@ async def request_verification(
                 activation_id=textverified_result["id"],
                 status="pending",
                 idempotency_key=final_idempotency_key,
+                requested_area_code=area_code,  # Track requested filter
+                operator=carrier,  # Track requested carrier
                 created_at=datetime.now(timezone.utc),
             )
             db.add(verification)

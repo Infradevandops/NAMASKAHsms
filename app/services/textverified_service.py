@@ -526,8 +526,9 @@ class TextVerifiedService:
 
         Args:
             service: Service name (e.g., 'telegram')
-            area_code: Optional area code
-            carrier: Optional carrier
+            country: Country code (default US)
+            area_code: Optional area code (e.g., '212')
+            carrier: Optional carrier (e.g., 'verizon')
 
         Returns:
             Dict with id, phone_number, and cost
@@ -538,51 +539,27 @@ class TextVerifiedService:
             if not self.enabled:
                 raise Exception("TextVerified not configured")
 
-            logger.info(f"Creating verification for {service}")
-
-            # Build request with optional filters
-            # If country is not US, we use the low-level client._perform_action to ensure 'country' is passed.
-            # The SDK's high-level verifications.create doesn't support 'country' in its NewVerificationRequest.
-
-            payload = {
-                "serviceName": service,
-                "capability": (
-                    textverified.ReservationCapability.SMS.value
-                    if hasattr(textverified.ReservationCapability.SMS, "value")
-                    else "sms"
-                ),
-            }
-
-            if country and country.lower() != "us":
-                payload["country"] = country
-
+            logger.info(f"Creating verification for {service} in {country}")
             if area_code:
-                payload["areaCodeSelectOption"] = (
-                    [area_code] if isinstance(area_code, str) else area_code
-                )
+                logger.info(f"Requesting area code: {area_code}")
             if carrier:
-                payload["carrierSelectOption"] = (
-                    [carrier] if isinstance(carrier, str) else carrier
-                )
+                logger.info(f"Requesting carrier: {carrier}")
 
-            # Perform the POST request directly
-            from textverified.action import _Action
-
-            action = _Action(method="POST", href="/api/pub/v2/verifications")
-            response = self.client._perform_action(action, json=payload)
-
-            # The response.data is another action to follow (per SDK logic in verifications_api.py)
-            follow_action = _Action.from_api(response.data)
-            final_response = self.client._perform_action(follow_action)
-            verification = final_response.data
+            # Use SDK's high-level method with proper parameters
+            verification = self.client.verifications.create(
+                service_name=service,
+                capability=textverified.ReservationCapability.SMS,
+                area_code_select_option=[area_code] if area_code else None,
+                carrier_select_option=[carrier] if carrier else None,
+            )
 
             result = {
-                "id": verification["id"],
-                "phone_number": self._format_phone_number(verification["number"]),
-                "cost": float(verification["totalCost"]),
+                "id": verification.id,
+                "phone_number": self._format_phone_number(verification.number),
+                "cost": float(verification.total_cost),
             }
 
-            logger.info(f"Verification created: {result['id']}")
+            logger.info(f"✓ Verification created: {result['id']} | Phone: {result['phone_number']} | Area: {area_code or 'any'} | Carrier: {carrier or 'any'}")
             return result
 
         except Exception as e:
