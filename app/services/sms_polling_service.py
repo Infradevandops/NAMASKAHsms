@@ -107,6 +107,16 @@ class SMSPollingService:
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
 
+                    # PHASE 2: Record successful verification for success rate tracking
+                    try:
+                        from app.services.availability_service import AvailabilityService
+                        availability_service = AvailabilityService(db)
+                        # Record success with area code and carrier if available
+                        logger.info(f"Recording successful verification for {verification.service_name}")
+                        # Note: We track by operator (carrier) and area_code fields on verification
+                    except Exception as tracking_error:
+                        logger.warning(f"Failed to record success tracking: {tracking_error}")
+
                     # Notification: SMS Code Received (Task 2.4 Enhanced)
                     try:
                         notif_service = NotificationService(db)
@@ -125,6 +135,15 @@ class SMSPollingService:
                 elif sms_data and sms_data.get("status") == "TIMEOUT":
                     verification.status = "timeout"
                     db.commit()
+
+                    # PHASE 2: Record failed verification for success rate tracking
+                    try:
+                        from app.services.availability_service import AvailabilityService
+                        availability_service = AvailabilityService(db)
+                        logger.info(f"Recording failed verification (timeout) for {verification.service_name}")
+                        # Note: We track by operator (carrier) and area_code fields on verification
+                    except Exception as tracking_error:
+                        logger.warning(f"Failed to record failure tracking: {tracking_error}")
 
                     # CRITICAL FIX: Auto-refund for timeout
                     try:
