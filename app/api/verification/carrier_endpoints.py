@@ -169,12 +169,16 @@ async def get_available_area_codes(
         availability_service = AvailabilityService(db)
 
         # Get area codes from TextVerified (DYNAMIC)
+        logger.info(f"Calling TextVerified API for area codes: country={country}")
         codes = await tv_service.get_area_codes(country, service="telegram")
         
-        logger.info(f"TextVerified returned {len(codes) if codes else 0} area codes")
+        logger.info(f"TextVerified API returned: {type(codes)}, length={len(codes) if codes else 0}")
+        if codes:
+            logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
 
         if not codes or len(codes) == 0:
-            raise Exception(f"No area codes returned from API (got {type(codes)})")
+            logger.error(f"TextVerified API returned empty or None for area codes")
+            raise Exception(f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})")
 
         # Enhance with city/state data and success rates
         enhanced = []
@@ -231,8 +235,10 @@ async def get_available_area_codes(
 
     except Exception as e:
         logger.error(
-            f"Failed to get area codes from TextVerified API: {str(e)}, using fallback"
+            f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True
         )
+        logger.error(f"Exception type: {type(e).__name__}")
+        logger.error(f"Full traceback will be in logs")
 
         # FALLBACK to static list
         user = db.query(User).filter(User.id == user_id).first()
