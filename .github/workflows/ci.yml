@@ -118,7 +118,7 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety scan --exit-code 1
+        run: safety check
       
       - name: Run Bandit security scan
         run: |
