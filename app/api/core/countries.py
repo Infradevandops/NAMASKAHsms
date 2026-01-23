@@ -12,8 +12,15 @@ router = APIRouter(prefix="/countries", tags=["Countries"])
 
 @router.get("/")
 async def get_all_countries():
-    """Get all supported countries (Internationally enabled for PAYG+)."""
-    return get_fallback_countries()
+    """Get all supported countries - Currently US only (TextVerified limitation)."""
+    return {
+        "success": True,
+        "countries": [
+            {"code": "usa", "name": "United States", "prefix": "1", "flag": "🇺🇸"},
+        ],
+        "total": 1,
+        "note": "Only US supported - awaiting additional provider integrations",
+    }
 
 
 def get_flag_emoji(country_code: str) -> str:
@@ -74,96 +81,6 @@ def get_flag_emoji(country_code: str) -> str:
         "taiwan": "🇹🇼",
     }
     return flag_map.get(country_code.lower(), "🌍")
-
-
-def get_fallback_countries():
-    """Fallback country list if API fails - all 37 countries"""
-    return {
-        "success": True,
-        "countries": [
-            # North America
-            {"code": "usa", "name": "United States", "prefix": "1", "flag": "🇺🇸"},
-            {"code": "canada", "name": "Canada", "prefix": "1", "flag": "🇨🇦"},
-            {"code": "mexico", "name": "Mexico", "prefix": "52", "flag": "🇲🇽"},
-            # Europe
-            {"code": "uk", "name": "United Kingdom", "prefix": "44", "flag": "🇬🇧"},
-            {"code": "germany", "name": "Germany", "prefix": "49", "flag": "🇩🇪"},
-            {"code": "france", "name": "France", "prefix": "33", "flag": "🇫🇷"},
-            {"code": "italy", "name": "Italy", "prefix": "39", "flag": "🇮🇹"},
-            {"code": "spain", "name": "Spain", "prefix": "34", "flag": "🇪🇸"},
-            {
-                "code": "netherlands",
-                "name": "Netherlands",
-                "prefix": "31",
-                "flag": "🇳🇱",
-            },
-            {"code": "poland", "name": "Poland", "prefix": "48", "flag": "🇵🇱"},
-            {"code": "russia", "name": "Russia", "prefix": "7", "flag": "🇷🇺"},
-            {"code": "ukraine", "name": "Ukraine", "prefix": "380", "flag": "🇺🇦"},
-            {"code": "sweden", "name": "Sweden", "prefix": "46", "flag": "🇸🇪"},
-            {"code": "norway", "name": "Norway", "prefix": "47", "flag": "🇳🇴"},
-            {"code": "finland", "name": "Finland", "prefix": "358", "flag": "🇫🇮"},
-            # Asia
-            {"code": "india", "name": "India", "prefix": "91", "flag": "🇮🇳"},
-            {"code": "china", "name": "China", "prefix": "86", "flag": "🇨🇳"},
-            {"code": "japan", "name": "Japan", "prefix": "81", "flag": "🇯🇵"},
-            {
-                "code": "south_korea",
-                "name": "South Korea",
-                "prefix": "82",
-                "flag": "🇰🇷",
-            },
-            {"code": "singapore", "name": "Singapore", "prefix": "65", "flag": "🇸🇬"},
-            {"code": "thailand", "name": "Thailand", "prefix": "66", "flag": "🇹🇭"},
-            {"code": "vietnam", "name": "Vietnam", "prefix": "84", "flag": "🇻🇳"},
-            {
-                "code": "philippines",
-                "name": "Philippines",
-                "prefix": "63",
-                "flag": "🇵🇭",
-            },
-            {"code": "indonesia", "name": "Indonesia", "prefix": "62", "flag": "🇮🇩"},
-            {"code": "malaysia", "name": "Malaysia", "prefix": "60", "flag": "🇲🇾"},
-            # Oceania
-            {"code": "australia", "name": "Australia", "prefix": "61", "flag": "🇦🇺"},
-            {
-                "code": "new_zealand",
-                "name": "New Zealand",
-                "prefix": "64",
-                "flag": "🇳🇿",
-            },
-            # South America
-            {"code": "brazil", "name": "Brazil", "prefix": "55", "flag": "🇧🇷"},
-            {"code": "argentina", "name": "Argentina", "prefix": "54", "flag": "🇦🇷"},
-            {"code": "chile", "name": "Chile", "prefix": "56", "flag": "🇨🇱"},
-            {"code": "colombia", "name": "Colombia", "prefix": "57", "flag": "🇨🇴"},
-            # Africa
-            {
-                "code": "south_africa",
-                "name": "South Africa",
-                "prefix": "27",
-                "flag": "🇿🇦",
-            },
-            {"code": "nigeria", "name": "Nigeria", "prefix": "234", "flag": "🇳🇬"},
-            {"code": "egypt", "name": "Egypt", "prefix": "20", "flag": "🇪🇬"},
-            # Middle East
-            {"code": "israel", "name": "Israel", "prefix": "972", "flag": "🇮🇱"},
-            {
-                "code": "uae",
-                "name": "United Arab Emirates",
-                "prefix": "971",
-                "flag": "🇦🇪",
-            },
-            {
-                "code": "saudi_arabia",
-                "name": "Saudi Arabia",
-                "prefix": "966",
-                "flag": "🇸🇦",
-            },
-        ],
-        "total": 37,
-        "note": "Fallback list - API unavailable",
-    }
 
 
 @router.get("/usa/area-codes")

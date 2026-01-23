@@ -3,9 +3,11 @@
 from datetime import datetime, timedelta
 from typing import Any, Dict
 
+from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.rental import Rental
+from app.utils.performance import async_cache
 
 
 class BusinessIntelligenceService:

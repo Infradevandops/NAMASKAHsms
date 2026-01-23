@@ -29,87 +29,27 @@ async function checkTierAccess() {
 
         const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
 
-        // Country Selector (PAYG/Starter+)
-        if (currentRank < 1) {
-            document.getElementById('country-select').disabled = true;
-            document.getElementById('country-select').style.background = '#f9fafb';
-            document.getElementById('country-lock').style.display = 'block';
-        } else {
-            document.getElementById('country-select').disabled = false;
-            document.getElementById('country-select').style.background = 'white';
-            document.getElementById('country-lock').style.display = 'none';
-            loadCountries(); // Load all available countries for paying users
-        }
-
-        // Area Code (PAYG/Starter+)
-        if (currentRank < 1) {
-            document.getElementById('area-code-select').style.display = 'none';
-            document.getElementById('area-code-lock').style.display = 'block';
-        } else {
-            document.getElementById('area-code-select').style.display = 'block';
+        // Area Code (PAYG+)
+        if (currentRank >= 1) {
+            document.getElementById('area-code-field-wrapper').style.display = 'block';
             document.getElementById('area-code-lock').style.display = 'none';
         }
 
         // Carrier (Pro+)
-        if (currentRank < 2) {
-            document.getElementById('carrier-select').style.display = 'none';
-            document.getElementById('carrier-lock').style.display = 'block';
-        } else {
-            document.getElementById('carrier-select').style.display = 'block';
+        if (currentRank >= 2) {
+            document.getElementById('carrier-field-wrapper').style.display = 'block';
             document.getElementById('carrier-lock').style.display = 'none';
-            loadCarriers(); // Load carriers for Pro users
+            loadCarriers();
         }
     } catch (error) {
         console.warn('[Verify] Could not determine user tier:', error);
     }
 }
 
-async function loadCountries() {
+async function loadCarriers() {
     try {
         const token = localStorage.getItem('access_token');
-        const res = await axios.get('/api/countries/', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const select = document.getElementById('country-select');
-
-        // Clear but keep US as first
-        select.innerHTML = '<option value="usa">🇺🇸 United States</option>';
-
-        res.data.countries.forEach(c => {
-            if (c.code === 'usa') return;
-            const opt = document.createElement('option');
-            opt.value = c.code;
-            opt.textContent = `${c.flag || '🌍'} ${c.name}`;
-            select.appendChild(opt);
-        });
-    } catch (e) {
-        console.error('[Verify] Failed to load countries:', e);
-    }
-}
-
-async function onCountryChange() {
-    const country = document.getElementById('country-select').value;
-    console.log(`[Verify] Country changed to: ${country}`);
-
-    // Reset service selection
-    selectedService = null;
-    document.getElementById('service-search').value = '';
-    document.getElementById('purchase-btn').disabled = true;
-
-    // Reload services for new country
-    await loadServices(country);
-
-    // Load carriers for new country if pro
-    const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
-    if (currentRank >= 2) {
-        loadCarriers(country);
-    }
-}
-
-async function loadCarriers(country = 'usa') {
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/v1/verification/carriers/${country}`, {
+        const res = await axios.get(`/api/v1/verification/carriers/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const select = document.getElementById('carrier-select');
@@ -117,7 +57,6 @@ async function loadCarriers(country = 'usa') {
         res.data.carriers.forEach(c => {
             const opt = document.createElement('option');
             opt.value = c.id;
-            // Add success rate badge if available (Task 08)
             if (c.success_rate) {
                 const icon = c.success_rate > 90 ? '🟢' : '🟠';
                 opt.textContent = `${c.name} (${icon} ${c.success_rate}% Success)`;
@@ -134,26 +73,12 @@ async function loadCarriers(country = 'usa') {
 async function loadAreaCodes(serviceId) {
     if (!serviceId || (TIER_RANK[userTier] || 0) < 1) return;
 
-    const country = document.getElementById('country-select').value;
-    // Currently area codes are mostly for US
-    if (country !== 'usa') {
-        document.getElementById('area-code-container').style.opacity = '0.5';
-        document.getElementById('area-code-select').disabled = true;
-        document.getElementById('area-code-select').innerHTML = '<option value="">Region selection unavailable for this country</option>';
-        return;
-    } else {
-        document.getElementById('area-code-container').style.opacity = '1';
-        document.getElementById('area-code-select').disabled = false;
-    }
-
     try {
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/v1/verification/area-codes/US`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         allAreaCodes = res.data.area_codes;
-        const select = document.getElementById('area-code-select');
-
         renderAreaCodes(allAreaCodes);
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
@@ -173,39 +98,33 @@ function renderAreaCodes(codes) {
     });
 }
 
-async function loadServices(country = 'usa') {
-    console.log(`Loading services for ${country}...`);
+async function loadServices() {
+    console.log('Loading services for US...');
     try {
         const token = localStorage.getItem('access_token');
-        // Unified services endpoint with country param
-        const res = await axios.get(`/api/v1/countries/${country}/services`, {
+        const res = await axios.get(`/api/v1/countries/US/services`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (res.data && res.data.services) {
             allServices = res.data.services;
             servicesLoaded = true;
-            console.log(`✅ Loaded ${allServices.length} services for ${country} from API`);
+            console.log(`✅ Loaded ${allServices.length} services for US from API`);
         }
     } catch (error) {
-        console.error(`❌ Failed to load services for ${country} from API:`, error);
-        // Fallback services (only for US for now, others will just show error if API fails)
-        if (country === 'usa') {
-            allServices = [
-                { id: 'telegram', name: 'Telegram', cost: 0.50 },
-                { id: 'whatsapp', name: 'WhatsApp', cost: 0.75 },
-                { id: 'google', name: 'Google', cost: 0.50 },
-                { id: 'facebook', name: 'Facebook', cost: 0.60 },
-                { id: 'instagram', name: 'Instagram', cost: 0.65 },
-                { id: 'twitter', name: 'Twitter', cost: 0.55 },
-                { id: 'discord', name: 'Discord', cost: 0.45 },
-                { id: 'tiktok', name: 'TikTok', cost: 0.70 }
-            ];
-            servicesLoaded = true;
-            console.log(`⚠️ Using ${allServices.length} fallback US services`);
-        } else {
-            showError(`Failed to load services for ${country}. Please try again later.`);
-        }
+        console.error(`❌ Failed to load services for US from API:`, error);
+        allServices = [
+            { id: 'telegram', name: 'Telegram', cost: 0.50 },
+            { id: 'whatsapp', name: 'WhatsApp', cost: 0.75 },
+            { id: 'google', name: 'Google', cost: 0.50 },
+            { id: 'facebook', name: 'Facebook', cost: 0.60 },
+            { id: 'instagram', name: 'Instagram', cost: 0.65 },
+            { id: 'twitter', name: 'Twitter', cost: 0.55 },
+            { id: 'discord', name: 'Discord', cost: 0.45 },
+            { id: 'tiktok', name: 'TikTok', cost: 0.70 }
+        ];
+        servicesLoaded = true;
+        console.log(`⚠️ Using ${allServices.length} fallback US services`);
     }
 }
 
@@ -298,18 +217,16 @@ async function updatePricePreview() {
     if (!selectedService) return;
 
     const costDisplay = document.getElementById('service-cost');
-    // Show loading state
     costDisplay.style.opacity = '0.5';
 
     try {
-        const country = document.getElementById('country-select').value;
         const areaCode = document.getElementById('area-code-select').value;
         const carrier = document.getElementById('carrier-select').value;
         const token = localStorage.getItem('access_token');
 
         const params = new URLSearchParams({
             service: selectedService,
-            country: country,
+            country: 'US',
         });
 
         if (areaCode) params.append('area_code', areaCode);
@@ -321,7 +238,6 @@ async function updatePricePreview() {
 
         if (res.data && res.data.total_price) {
             costDisplay.textContent = `$${res.data.total_price.toFixed(2)}`;
-            // Optional: Show breakdown in tooltip or console
             console.log(`[Pricing] Base: $${res.data.provider_cost}, Total: $${res.data.total_price}`);
         }
     } catch (error) {
@@ -339,14 +255,13 @@ async function purchaseVerification() {
     btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
 
     try {
-        const country = document.getElementById('country-select').value;
         const areaCode = document.getElementById('area-code-select').value;
         const carrier = document.getElementById('carrier-select').value;
-        const token = localStorage.getItem('access_token'); // Ensure token is used
+        const token = localStorage.getItem('access_token');
 
         const res = await axios.post('/api/v1/verify/create', {
             service_name: selectedService,
-            country: country.toUpperCase(),
+            country: 'US',
             capability: 'sms',
             area_code: areaCode || null,
             carrier: carrier || null,
@@ -364,11 +279,8 @@ async function purchaseVerification() {
                 </div>
             `;
             if (res.data.fallback_applied) {
-                // Remove any existing fallback alert first
                 const existingAlert = document.querySelector('.fallback-alert');
-                if (existingAlert) {
-                    existingAlert.remove();
-                }
+                if (existingAlert) existingAlert.remove();
 
                 const fallbackAlert = document.createElement('div');
                 fallbackAlert.className = 'fallback-alert';
@@ -710,26 +622,17 @@ async function deletePreset(id, event) {
 }
 
 async function applyPreset(serviceId, countryId, areaCode, carrier) {
-    console.log("Applying preset:", serviceId, countryId, areaCode, carrier);
+    console.log("Applying preset:", serviceId, areaCode, carrier);
 
-    // 1. Set Country
-    document.getElementById('country-select').value = countryId;
-    await onCountryChange(); // This reloads services
-
-    // 2. Select Service (after reload)
-    // Find service name from loaded services to update input
     const s = allServices.find(x => x.id === serviceId);
     if (s) {
         selectService(s.id, s.name, s.cost);
     } else {
-        // Fallback if not found in list immediately (shouldn't happen if services loaded)
         selectedService = serviceId;
         loadAreaCodes(serviceId);
         debouncedUpdatePricePreview();
     }
 
-    // 3. Set Filters
-    // Set timeout to allow area codes to load
     setTimeout(() => {
         if (areaCode) document.getElementById('area-code-select').value = areaCode;
         if (carrier) document.getElementById('carrier-select').value = carrier;
