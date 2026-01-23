@@ -39,7 +39,7 @@ async function checkTierAccess() {
         if (currentRank >= 2) {
             document.getElementById('carrier-field-wrapper').style.display = 'block';
             document.getElementById('carrier-lock').style.display = 'none';
-            loadCarriers();
+            await loadCarriers();
         }
     } catch (error) {
         console.warn('[Verify] Could not determine user tier:', error);
@@ -79,23 +79,17 @@ async function loadAreaCodes(serviceId) {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         allAreaCodes = res.data.area_codes;
-        renderAreaCodes(allAreaCodes);
+        const select = document.getElementById('area-code-select');
+        select.innerHTML = '<option value="">Any Area Code</option>';
+        allAreaCodes.forEach(ac => {
+            const opt = document.createElement('option');
+            opt.value = ac.area_code;
+            opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
+            select.appendChild(opt);
+        });
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
     }
-}
-
-function renderAreaCodes(codes) {
-    const select = document.getElementById('area-code-select');
-    // Keep "Any" option
-    select.innerHTML = '<option value="">Any Area Code</option>';
-
-    codes.forEach(ac => {
-        const opt = document.createElement('option');
-        opt.value = ac.area_code;
-        opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
-        select.appendChild(opt);
-    });
 }
 
 async function loadServices() {
@@ -524,29 +518,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     setupSearchListener();
-    setupAreaCodeSearch();
     console.log('✅ Page ready');
 });
-
-function setupAreaCodeSearch() {
-    const searchInput = document.getElementById('area-code-search');
-    if (!searchInput) return;
-
-    searchInput.addEventListener('input', (e) => {
-        const query = e.target.value.toLowerCase().trim();
-        if (!query) {
-            renderAreaCodes(allAreaCodes);
-            return;
-        }
-
-        const filtered = allAreaCodes.filter(ac =>
-            ac.city.toLowerCase().includes(query) ||
-            ac.state.toLowerCase().includes(query) ||
-            ac.area_code.includes(query)
-        );
-        renderAreaCodes(filtered);
-    });
-}
 
 // --- Preset Logic ---
 async function loadUserPresets() {

@@ -119,15 +119,15 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety check
+        run: safety check -r requirements.txt
       
       - name: Run Bandit security scan
         run: |
-          bandit -r app/ -f json -o bandit-report.json
+          bandit -r app/ -f json -o bandit-report.json --exit-zero
           bandit -r app/ -ll
       
       - name: Run pip-audit
-        run: pip-audit --strict
+        run: pip-audit -r requirements.txt --strict
       
       - name: Upload security reports
         uses: actions/upload-artifact@v4

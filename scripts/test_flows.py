@@ -312,8 +312,9 @@ def test_complete_user_journey():
         print("  ✅ Step 4: Admin analytics available")
 
         # Step 5: Database supports full journey
-        from app.core.database import SessionLocal
         from sqlalchemy import text
+
+        from app.core.database import SessionLocal
 
         db = SessionLocal()
 
