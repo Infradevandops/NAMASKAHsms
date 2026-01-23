@@ -1,6 +1,7 @@
 """Verification - related database models."""
 
 from sqlalchemy import Boolean, Column, DateTime, Float, String
+from sqlalchemy.orm import deferred
 
 from app.models.base import BaseModel
 
@@ -37,8 +38,8 @@ class Verification(BaseModel):
     # Bulk purchase tracking
     bulk_id = Column(String, index=True)
 
-    # Idempotency
-    idempotency_key = Column(String, index=True, nullable=True)
+    # Idempotency (deferred to avoid querying non-existent column in production)
+    idempotency_key = deferred(Column(String, index=True, nullable=True))
 
 
 class NumberRental(BaseModel):
