@@ -170,9 +170,11 @@ async def get_available_area_codes(
 
         # Get area codes from TextVerified (DYNAMIC)
         codes = await tv_service.get_area_codes(country, service="telegram")
+        
+        logger.info(f"TextVerified returned {len(codes) if codes else 0} area codes")
 
-        if not codes:
-            raise Exception("No area codes returned from API")
+        if not codes or len(codes) == 0:
+            raise Exception(f"No area codes returned from API (got {type(codes)})")
 
         # Enhance with city/state data and success rates
         enhanced = []
