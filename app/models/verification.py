@@ -36,9 +36,9 @@ class Verification(BaseModel):
 
     # Bulk purchase tracking
     bulk_id = Column(String, index=True)
-
-    # TODO: Add idempotency_key after production migration
-    # idempotency_key = Column(String, index=True, nullable=True)
+    
+    # Idempotency
+    idempotency_key = Column(String, index=True, nullable=True)
 
 
 class NumberRental(BaseModel):
