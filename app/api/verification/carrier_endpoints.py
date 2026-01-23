@@ -188,16 +188,21 @@ async def get_available_area_codes(
             )
             
             # Get success rate from your data
-            stats = availability_service.get_area_code_availability(
-                area_code_str, country
-            )
+            try:
+                stats = availability_service.get_area_code_availability(
+                    area_code_str, country
+                )
+                success_rate = stats.get("success_rate", 90)
+            except Exception as stats_error:
+                logger.warning(f"Failed to get stats for area code {area_code_str}: {stats_error}")
+                success_rate = 90
             
             enhanced.append({
                 "area_code": area_code_str,
                 "city": city_data.get("city", "Unknown"),
                 "state": city_data.get("state", country.upper()),
                 "available_count": code.get("available_count", 10),
-                "success_rate": stats.get("success_rate", 90),
+                "success_rate": success_rate,
             })
 
         # Sort by success rate (highest first)
