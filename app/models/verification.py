@@ -38,7 +38,7 @@ class Verification(BaseModel):
     bulk_id = Column(String, index=True)
 
     # Idempotency
-    idempotency_key = Column(String, index=True)
+    idempotency_key = Column(String, index=True, nullable=True)
 
 
 class NumberRental(BaseModel):
