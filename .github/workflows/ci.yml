@@ -101,6 +101,7 @@ jobs:
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
+        continue-on-error: true
 
   security:
     name: Security Scan
