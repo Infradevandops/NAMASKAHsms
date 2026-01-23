@@ -138,7 +138,7 @@ class AvailabilityService:
         verifications = query.all()
 
         if not verifications:
-            return {"success_rate": 0, "status": "unknown"}
+            return {"success_rate": 90, "total": 0, "status": "unknown"}
 
         total = len(verifications)
         completed = sum(1 for v in verifications if v.status == "completed")
@@ -153,7 +153,42 @@ class AvailabilityService:
 
         return {
             "success_rate": round(success_rate, 1),
-            "total_attempts": total,
+            "total": total,
+            "status": status,
+        }
+
+    def get_area_code_availability(
+        self, area_code: str, country: str = None, hours: int = 24
+    ) -> Dict:
+        """Get availability stats for an area code."""
+        cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
+
+        query = self.db.query(Verification).filter(
+            Verification.area_code == area_code, Verification.created_at >= cutoff
+        )
+
+        if country:
+            query = query.filter(Verification.country == country)
+
+        verifications = query.all()
+
+        if not verifications:
+            return {"success_rate": 90, "total": 0, "status": "unknown"}
+
+        total = len(verifications)
+        completed = sum(1 for v in verifications if v.status == "completed")
+        success_rate = (completed / total * 100) if total > 0 else 0
+
+        if success_rate >= 85:
+            status = "excellent"
+        elif success_rate >= 70:
+            status = "good"
+        else:
+            status = "poor"
+
+        return {
+            "success_rate": round(success_rate, 1),
+            "total": total,
             "status": status,
         }
 

@@ -54,18 +54,22 @@ async function loadCarriers() {
         });
         const select = document.getElementById('carrier-select');
         select.innerHTML = '<option value="">Any Carrier</option>';
-        res.data.carriers.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c.id;
-            if (c.success_rate) {
-                const icon = c.success_rate > 90 ? '🟢' : '🟠';
-                opt.textContent = `${c.name} (${icon} ${c.success_rate}% Success)`;
-            } else {
-                opt.textContent = c.name;
-            }
-            select.appendChild(opt);
-        });
-        console.log(`✅ Loaded ${res.data.carriers.length} carriers`);
+        
+        if (res.data.carriers && res.data.carriers.length > 0) {
+            res.data.carriers.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                
+                // Add visual indicator based on success rate
+                const icon = c.success_rate >= 90 ? '🟢' : 
+                             c.success_rate >= 75 ? '🟡' : '🔴';
+                
+                // Format: "Verizon - 🟢 95.3% Success"
+                opt.textContent = `${c.name} - ${icon} ${c.success_rate.toFixed(1)}% Success`;
+                select.appendChild(opt);
+            });
+            console.log(`✅ Loaded ${res.data.carriers.length} carriers (source: ${res.data.source})`);
+        }
     } catch (e) {
         console.error('[Verify] Failed to load carriers:', e);
     }
@@ -82,13 +86,25 @@ async function loadAreaCodes(serviceId) {
         allAreaCodes = res.data.area_codes;
         const select = document.getElementById('area-code-select');
         select.innerHTML = '<option value="">Any Area Code</option>';
-        allAreaCodes.forEach(ac => {
-            const opt = document.createElement('option');
-            opt.value = ac.area_code;
-            opt.textContent = `${ac.city}, ${ac.state} (${ac.area_code})`;
-            select.appendChild(opt);
-        });
-        console.log(`✅ Loaded ${allAreaCodes.length} area codes`);
+        
+        if (allAreaCodes && allAreaCodes.length > 0) {
+            allAreaCodes.forEach(ac => {
+                const opt = document.createElement('option');
+                opt.value = ac.area_code;
+                
+                // Add visual indicator if success rate available
+                let displayText = `${ac.city}, ${ac.state} (${ac.area_code})`;
+                if (ac.success_rate) {
+                    const icon = ac.success_rate >= 90 ? '🟢' : 
+                                 ac.success_rate >= 75 ? '🟡' : '🔴';
+                    displayText = `${ac.city}, ${ac.state} (${ac.area_code}) - ${icon} ${ac.success_rate.toFixed(1)}%`;
+                }
+                
+                opt.textContent = displayText;
+                select.appendChild(opt);
+            });
+            console.log(`✅ Loaded ${allAreaCodes.length} area codes (source: ${res.data.source})`);
+        }
     } catch (e) {
         console.error('[Verify] Failed to load area codes:', e);
     }
