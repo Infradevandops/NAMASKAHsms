@@ -55,11 +55,17 @@ class VerificationHistoryResponse(BaseModel):
 
 import re
 
+
 def create_safe_error_detail(e):
     """Sanitize error messages to prevent sensitive data leakage."""
     msg = str(e)[:100]
     # Remove common sensitive patterns
-    msg = re.sub(r'(password|api_key|secret|token|auth)\s*[=:]\s*\S+', r'\1=***', msg, flags=re.IGNORECASE)
+    msg = re.sub(
+        r"(password|api_key|secret|token|auth)\s*[=:]\s*\S+",
+        r"\1=***",
+        msg,
+        flags=re.IGNORECASE,
+    )
     return msg
 
 

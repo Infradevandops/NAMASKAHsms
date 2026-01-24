@@ -177,7 +177,7 @@ async def request_verification(
         # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
         carrier = request.carriers[0] if request.carriers else None
-        
+
         # Log what filters are being applied
         if area_code:
             logger.info(f"User {user_id} requesting area code: {area_code}")
@@ -189,12 +189,14 @@ async def request_verification(
 
         try:
             # Step 1: Call TextVerified API FIRST with filters
-            logger.info(f"Calling TextVerified API - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}")
+            logger.info(
+                f"Calling TextVerified API - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}"
+            )
             textverified_result = await tv_service.create_verification(
-                service=request.service, 
+                service=request.service,
                 country=request.country,
-                area_code=area_code, 
-                carrier=carrier
+                area_code=area_code,
+                carrier=carrier,
             )
             logger.info(
                 f"TextVerified API success: {textverified_result['phone_number']}, id: {textverified_result['id']}"

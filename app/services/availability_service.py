@@ -164,7 +164,8 @@ class AvailabilityService:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         query = self.db.query(Verification).filter(
-            Verification.requested_area_code == area_code, Verification.created_at >= cutoff
+            Verification.requested_area_code == area_code,
+            Verification.created_at >= cutoff,
         )
 
         if country:

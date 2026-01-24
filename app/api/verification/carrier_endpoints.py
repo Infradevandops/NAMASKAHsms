@@ -20,57 +20,87 @@ async def get_available_carriers(
     db: Session = Depends(get_db),
 ):
     """Get list of available carriers/ISPs from actual verifications.
-    
+
     Extracts carriers from past verifications since TextVerified doesn't have a carriers endpoint.
     """
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
     try:
+        from sqlalchemy import distinct, func
+
         from app.models.verification import Verification
-        from sqlalchemy import func, distinct
-        
+
         # Get unique carriers from past verifications
         carriers_query = (
             db.query(
                 Verification.operator,
-                func.count(Verification.id).label('total'),
-                func.sum(func.case((Verification.status == 'completed', 1), else_=0)).label('completed')
+                func.count(Verification.id).label("total"),
+                func.sum(
+                    func.case((Verification.status == "completed", 1), else_=0)
+                ).label("completed"),
             )
             .filter(
                 Verification.country == country,
                 Verification.operator.isnot(None),
-                Verification.operator != ''
+                Verification.operator != "",
             )
             .group_by(Verification.operator)
             .all()
         )
-        
+
         carriers = []
         for operator, total, completed in carriers_query:
             success_rate = (completed / total * 100) if total > 0 else 90
-            carriers.append({
-                "id": operator.lower().replace(' ', '_'),
-                "name": operator,
-                "success_rate": round(success_rate, 1),
-                "total_verifications": total,
-            })
-        
+            carriers.append(
+                {
+                    "id": operator.lower().replace(" ", "_"),
+                    "name": operator,
+                    "success_rate": round(success_rate, 1),
+                    "total_verifications": total,
+                }
+            )
+
         # If no carriers found, use fallback
         if not carriers:
             carriers = [
-                {"id": "verizon", "name": "Verizon", "success_rate": 95, "total_verifications": 0},
-                {"id": "att", "name": "AT&T", "success_rate": 93, "total_verifications": 0},
-                {"id": "tmobile", "name": "T-Mobile", "success_rate": 92, "total_verifications": 0},
-                {"id": "sprint", "name": "Sprint", "success_rate": 88, "total_verifications": 0},
-                {"id": "us_cellular", "name": "US Cellular", "success_rate": 87, "total_verifications": 0},
+                {
+                    "id": "verizon",
+                    "name": "Verizon",
+                    "success_rate": 95,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "att",
+                    "name": "AT&T",
+                    "success_rate": 93,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "tmobile",
+                    "name": "T-Mobile",
+                    "success_rate": 92,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "sprint",
+                    "name": "Sprint",
+                    "success_rate": 88,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "us_cellular",
+                    "name": "US Cellular",
+                    "success_rate": 87,
+                    "total_verifications": 0,
+                },
             ]
-        
+
         # Sort by success rate
         carriers.sort(key=lambda x: x["success_rate"], reverse=True)
-        
+
         user = db.query(User).filter(User.id == user_id).first()
         user_tier = user.subscription_tier if user else "freemium"
-        
+
         result = {
             "success": True,
             "country": country,
@@ -79,23 +109,40 @@ async def get_available_carriers(
             "can_select": user_tier in ["pro", "custom"],
             "source": "database" if len(carriers_query) > 0 else "fallback",
         }
-        
-        logger.info(f"Retrieved {len(carriers)} carriers from {'database' if len(carriers_query) > 0 else 'fallback'} for {country}")
+
+        logger.info(
+            f"Retrieved {len(carriers)} carriers from {'database' if len(carriers_query) > 0 else 'fallback'} for {country}"
+        )
         return result
-        
+
     except Exception as e:
         logger.error(f"Failed to get carriers: {str(e)}", exc_info=True)
-        
+
         user = db.query(User).filter(User.id == user_id).first()
         user_tier = user.subscription_tier if user else "freemium"
-        
+
         return {
             "success": True,
             "country": country,
             "carriers": [
-                {"id": "verizon", "name": "Verizon", "success_rate": 95, "total_verifications": 0},
-                {"id": "att", "name": "AT&T", "success_rate": 93, "total_verifications": 0},
-                {"id": "tmobile", "name": "T-Mobile", "success_rate": 92, "total_verifications": 0},
+                {
+                    "id": "verizon",
+                    "name": "Verizon",
+                    "success_rate": 95,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "att",
+                    "name": "AT&T",
+                    "success_rate": 93,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "tmobile",
+                    "name": "T-Mobile",
+                    "success_rate": 92,
+                    "total_verifications": 0,
+                },
             ],
             "tier": user_tier,
             "can_select": user_tier in ["pro", "custom"],
@@ -142,9 +189,9 @@ async def get_available_area_codes(
 
     try:
         # Try to get from TextVerified API
-        from app.services.textverified_service import TextVerifiedService
-        from app.services.availability_service import AvailabilityService
         from app.core.unified_cache import cache
+        from app.services.availability_service import AvailabilityService
+        from app.services.textverified_service import TextVerifiedService
 
         # Check cache first
         cache_key = f"area_codes_{country}"
@@ -159,36 +206,46 @@ async def get_available_area_codes(
         # Get area codes from TextVerified (DYNAMIC)
         logger.info(f"Calling TextVerified API for area codes: country={country}")
         codes = await tv_service.get_area_codes(country, service="telegram")
-        
-        logger.info(f"TextVerified API returned: {type(codes)}, length={len(codes) if codes else 0}")
+
+        logger.info(
+            f"TextVerified API returned: {type(codes)}, length={len(codes) if codes else 0}"
+        )
         if codes:
             logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
 
         if not codes or len(codes) == 0:
             logger.error(f"TextVerified API returned empty or None for area codes")
-            raise Exception(f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})")
+            raise Exception(
+                f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})"
+            )
 
         # Enhance with city/state data and success rates
         enhanced = []
         for code in codes:
             area_code_str = str(code.get("area_code", ""))
-            
+
             # Try to find city/state from static map
             city_data = next(
-                (ac for ac in STATIC_FALLBACK_AREA_CODES if ac["area_code"] == area_code_str),
-                {"city": "Unknown", "state": country.upper()}
+                (
+                    ac
+                    for ac in STATIC_FALLBACK_AREA_CODES
+                    if ac["area_code"] == area_code_str
+                ),
+                {"city": "Unknown", "state": country.upper()},
             )
-            
+
             # Default success rate (don't query DB for each code - too slow)
             success_rate = 90
-            
-            enhanced.append({
-                "area_code": area_code_str,
-                "city": city_data.get("city", "Unknown"),
-                "state": city_data.get("state", country.upper()),
-                "available_count": code.get("available_count", 10),
-                "success_rate": success_rate,
-            })
+
+            enhanced.append(
+                {
+                    "area_code": area_code_str,
+                    "city": city_data.get("city", "Unknown"),
+                    "state": city_data.get("state", country.upper()),
+                    "available_count": code.get("available_count", 10),
+                    "success_rate": success_rate,
+                }
+            )
 
         # Sort by success rate (highest first)
         enhanced.sort(key=lambda x: x["success_rate"], reverse=True)

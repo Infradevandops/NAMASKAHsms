@@ -559,7 +559,9 @@ class TextVerifiedService:
                 "cost": float(verification.total_cost),
             }
 
-            logger.info(f"✓ Verification created: {result['id']} | Phone: {result['phone_number']} | Area: {area_code or 'any'} | Carrier: {carrier or 'any'}")
+            logger.info(
+                f"✓ Verification created: {result['id']} | Phone: {result['phone_number']} | Area: {area_code or 'any'} | Carrier: {carrier or 'any'}"
+            )
             return result
 
         except Exception as e:
