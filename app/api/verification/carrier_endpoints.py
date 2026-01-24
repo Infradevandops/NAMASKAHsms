@@ -1,6 +1,6 @@
 """Carrier/ISP filtering endpoints."""
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -26,7 +26,7 @@ async def get_available_carriers(
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
     try:
-        from sqlalchemy import distinct, func
+        from sqlalchemy import func
 
         from app.models.verification import Verification
 
@@ -190,7 +190,6 @@ async def get_available_area_codes(
     try:
         # Try to get from TextVerified API
         from app.core.unified_cache import cache
-        from app.services.availability_service import AvailabilityService
         from app.services.textverified_service import TextVerifiedService
 
         # Check cache first
@@ -201,20 +200,19 @@ async def get_available_area_codes(
             return cached_data
 
         tv_service = TextVerifiedService()
-        availability_service = AvailabilityService(db)
 
         # Get area codes from TextVerified (DYNAMIC)
-        logger.info(f"Calling TextVerified API for area codes: country={country}")
+        logger.info("Calling TextVerified API for area codes: country=%s", country)
         codes = await tv_service.get_area_codes(country, service="telegram")
 
         logger.info(
-            f"TextVerified API returned: {type(codes)}, length={len(codes) if codes else 0}"
+            "TextVerified API returned: %s, length=%s", type(codes), len(codes) if codes else 0
         )
         if codes:
             logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
 
         if not codes or len(codes) == 0:
-            logger.error(f"TextVerified API returned empty or None for area codes")
+            logger.error("TextVerified API returned empty or None for area codes")
             raise Exception(
                 f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})"
             )
@@ -275,8 +273,8 @@ async def get_available_area_codes(
         logger.error(
             f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True
         )
-        logger.error(f"Exception type: {type(e).__name__}")
-        logger.error(f"Full traceback will be in logs")
+        logger.error("Exception type: %s", type(e).__name__)
+        logger.error("Full traceback will be in logs")
 
         # FALLBACK to static list
         user = db.query(User).filter(User.id == user_id).first()

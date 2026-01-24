@@ -1,5 +1,6 @@
 """Consolidated SMS Verification API."""
 
+import re
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
@@ -54,9 +55,6 @@ class VerificationResponse(BaseModel):
 class VerificationHistoryResponse(BaseModel):
     verifications: List[VerificationResponse]
     total_count: int
-
-
-import re
 
 
 def create_safe_error_detail(e):

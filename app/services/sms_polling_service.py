@@ -109,12 +109,6 @@ class SMSPollingService:
 
                     # PHASE 2: Record successful verification for success rate tracking
                     try:
-                        from app.services.availability_service import (
-                            AvailabilityService,
-                        )
-
-                        availability_service = AvailabilityService(db)
-                        # Record success with area code and carrier if available
                         logger.info(
                             f"Recording successful verification for {verification.service_name}"
                         )
@@ -145,11 +139,6 @@ class SMSPollingService:
 
                     # PHASE 2: Record failed verification for success rate tracking
                     try:
-                        from app.services.availability_service import (
-                            AvailabilityService,
-                        )
-
-                        availability_service = AvailabilityService(db)
                         logger.info(
                             f"Recording failed verification (timeout) for {verification.service_name}"
                         )
