@@ -206,7 +206,9 @@ async def get_available_area_codes(
         codes = await tv_service.get_area_codes(country, service="telegram")
 
         logger.info(
-            "TextVerified API returned: %s, length=%s", type(codes), len(codes) if codes else 0
+            "TextVerified API returned: %s, length=%s",
+            type(codes),
+            len(codes) if codes else 0,
         )
         if codes:
             logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
