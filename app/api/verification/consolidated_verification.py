@@ -183,8 +183,8 @@ async def create_verification(
                     icon="credit_card",
                 )
 
-                logger.info(
-                    f"Transaction created: User={user_id}, Amount=-${base_cost}, Balance: ${old_balance:.2f} → ${current_user.credits:.2f}"
+                logger.critical(
+                    f"🔔 NOTIFICATION SYSTEM ACTIVE - Transaction created: User={user_id}, Amount=-${base_cost}, Balance: ${old_balance:.2f} → ${current_user.credits:.2f}"
                 )
             except Exception as notif_error:
                 logger.error(
