@@ -183,8 +183,6 @@ async def create_verification(
                     notification_type="credit_deducted",
                     title="💳 Credits Used",
                     message=f"${base_cost:.2f} deducted for {verification_data.service_name}. Balance: ${current_user.credits:.2f}",
-                    link=f"/verify",
-                    icon="credit_card",
                 )
 
                 logger.critical(
@@ -293,8 +291,6 @@ async def create_verification(
                 notification_type="verification_created",
                 title="📱 Verification Started",
                 message=f"Phone: {verification.phone_number}. Waiting for SMS...",
-                link=f"/verify/{verification.id}",
-                icon="phone",
             )
             db.commit()
         except Exception as notif_error:
@@ -456,8 +452,6 @@ async def get_verification_status_polling(
                             notification_type="sms_received",
                             title="✅ SMS Code Received",
                             message=f"Code: {sms_result['sms_code']} for {verification.service_name}",
-                            link=f"/verify/{verification_id}",
-                            icon="message",
                         )
                         db.commit()
                     except Exception as notif_error:
