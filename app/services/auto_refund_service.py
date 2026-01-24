@@ -104,7 +104,7 @@ class AutoRefundService:
                 f"Reason={reason}, Balance: ${old_balance:.2f} → ${new_balance:.2f}"
             )
 
-            # Send notification
+            # Send notification - CRITICAL: Must succeed
             try:
                 from app.services.notification_service import NotificationService
 
@@ -112,11 +112,19 @@ class AutoRefundService:
                 notif_service.create_notification(
                     user_id=verification.user_id,
                     notification_type="instant_refund",
-                    title="💰 Instant Refund Processed",
-                    message=f"${refund_amount:.2f} refunded for {verification.service_name} ({reason}) - New balance: ${new_balance:.2f}",
+                    title="💰 Instant Refund",
+                    message=f"${refund_amount:.2f} refunded for {verification.service_name} ({reason}). Balance: ${new_balance:.2f}",
+                    link="/wallet",
+                    icon="money_back",
                 )
+                self.db.commit()
+                logger.info(f"✓ Refund notification sent to {verification.user_id}")
             except Exception as e:
-                logger.warning(f"Failed to send refund notification: {e}")
+                logger.error(
+                    f"🚨 CRITICAL: Refund notification failed for {verification.user_id}: {e}",
+                    exc_info=True,
+                )
+                # Don't fail the refund, but ensure it's logged
 
             return {
                 "verification_id": verification_id,

@@ -153,7 +153,45 @@ async def create_verification(
             current_user.free_verifications -= 1
             db.commit()
         elif current_user.credits >= base_cost:
+            old_balance = current_user.credits
             current_user.credits -= base_cost
+
+            # Create transaction record
+            try:
+                from app.models.transaction import Transaction
+
+                transaction = Transaction(
+                    user_id=user_id,
+                    amount=-base_cost,
+                    type="sms_purchase",
+                    description=f"{verification_data.service_name} verification ({verification_data.country})",
+                    service=verification_data.service_name,
+                    status="completed",
+                )
+                db.add(transaction)
+
+                # Send deduction notification
+                from app.services.notification_service import NotificationService
+
+                notif_service = NotificationService(db)
+                notif_service.create_notification(
+                    user_id=user_id,
+                    notification_type="credit_deducted",
+                    title="💳 Credits Used",
+                    message=f"${base_cost:.2f} deducted for {verification_data.service_name}. Balance: ${current_user.credits:.2f}",
+                    link=f"/verify",
+                    icon="credit_card",
+                )
+
+                logger.info(
+                    f"Transaction created: User={user_id}, Amount=-${base_cost}, Balance: ${old_balance:.2f} → ${current_user.credits:.2f}"
+                )
+            except Exception as notif_error:
+                logger.error(
+                    f"Failed to create transaction/notification: {notif_error}"
+                )
+                # Don't fail the verification, just log
+
             db.commit()
         else:
             raise HTTPException(status_code=402, detail="Insufficient credits")
@@ -240,6 +278,26 @@ async def create_verification(
         db.refresh(verification)
 
         logger.info(f"Verification created: {verification.id}")
+
+        # Send verification created notification
+        try:
+            from app.services.notification_service import NotificationService
+
+            notif_service = NotificationService(db)
+            notif_service.create_notification(
+                user_id=user_id,
+                notification_type="verification_created",
+                title="📱 Verification Started",
+                message=f"Phone: {verification.phone_number}. Waiting for SMS...",
+                link=f"/verify/{verification.id}",
+                icon="phone",
+            )
+            db.commit()
+        except Exception as notif_error:
+            logger.error(
+                f"Failed to send verification created notification: {notif_error}"
+            )
+            # Don't fail the verification
         return {
             "id": verification.id,
             "service_name": verification.service_name,
@@ -381,6 +439,27 @@ async def get_verification_status_polling(
                     logger.info(
                         f"SMS received for verification {verification_id}: {sms_result['sms_code']}"
                     )
+
+                    # Send SMS received notification
+                    try:
+                        from app.services.notification_service import (
+                            NotificationService,
+                        )
+
+                        notif_service = NotificationService(db)
+                        notif_service.create_notification(
+                            user_id=verification.user_id,
+                            notification_type="sms_received",
+                            title="✅ SMS Code Received",
+                            message=f"Code: {sms_result['sms_code']} for {verification.service_name}",
+                            link=f"/verify/{verification_id}",
+                            icon="message",
+                        )
+                        db.commit()
+                    except Exception as notif_error:
+                        logger.error(
+                            f"Failed to send SMS received notification: {notif_error}"
+                        )
             except Exception as e:
                 logger.warning(f"SMS check failed for {verification_id}: {e}")
 
