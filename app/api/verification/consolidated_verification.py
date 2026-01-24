@@ -18,6 +18,9 @@ from app.services.tier_manager import TierManager
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
 
+# DEPLOYMENT VERIFICATION: Notification system v2.0 - 2026-01-24 04:50 UTC
+NOTIFICATION_SYSTEM_VERSION = "2.0.0"
+
 
 class SuccessResponse(BaseModel):
     message: str
@@ -72,6 +75,7 @@ def create_safe_error_detail(e):
 @router.get("/services")
 async def get_available_services():
     """Get available services from TextVerified API."""
+    logger.info(f"🔔 NOTIFICATION SYSTEM VERSION: {NOTIFICATION_SYSTEM_VERSION}")
     try:
         from app.services.textverified_service import TextVerifiedService
 
