@@ -4,7 +4,7 @@ services:
     name: namaskah-api-staging
     env: python
     plan: free
-    buildCommand: pip install -r requirements.txt
+    buildCommand: pip install -r requirements.txt && bash render_build.sh
     startCommand: gunicorn main:app -k uvicorn.workers.UvicornWorker
     envVars:
       - key: DATABASE_URL
