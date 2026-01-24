@@ -8,7 +8,7 @@ from sqlalchemy import and_, desc, func
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import require_admin
+from app.core.dependencies import get_current_admin_user
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/admin/refunds", tags=["Admin - Refunds"])
 @router.get("/monitor")
 async def monitor_refunds(
     minutes: int = Query(60, ge=1, le=1440),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
 ):
     """Real-time refund monitoring dashboard."""
@@ -113,7 +113,7 @@ async def monitor_refunds(
 async def process_missing_refunds(
     minutes: int = Query(60, ge=1, le=1440),
     dry_run: bool = Query(True),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
 ):
     """Process all missing refunds."""
@@ -138,7 +138,7 @@ async def process_missing_refunds(
 @router.get("/stats")
 async def refund_stats(
     days: int = Query(7, ge=1, le=90),
-    current_user: User = Depends(require_admin),
+    current_user: User = Depends(get_current_admin_user),
     db: Session = Depends(get_db),
 ):
     """Refund statistics over time."""
