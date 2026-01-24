@@ -4,7 +4,6 @@ from app.api.admin.actions import router as actions_router
 from app.api.admin.analytics import router as analytics_router
 from app.api.admin.audit_compliance import router as audit_compliance_router
 from app.api.admin.dashboard import router as dashboard_router
-from app.api.admin.db_schema import router as db_schema_router
 from app.api.admin.export import router as export_router
 from app.api.admin.logging_dashboard import router as logging_dashboard_router
 from app.api.admin.pricing_control import router as pricing_control_router
@@ -30,4 +29,3 @@ router.include_router(actions_router, prefix="/api")
 router.include_router(pricing_control_router, prefix="/api")
 router.include_router(verification_actions_router, prefix="/api")
 router.include_router(logging_dashboard_router, prefix="/api")
-router.include_router(db_schema_router, prefix="/api")
