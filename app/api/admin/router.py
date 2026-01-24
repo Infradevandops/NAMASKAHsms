@@ -7,6 +7,7 @@ from app.api.admin.dashboard import router as dashboard_router
 from app.api.admin.export import router as export_router
 from app.api.admin.logging_dashboard import router as logging_dashboard_router
 from app.api.admin.pricing_control import router as pricing_control_router
+from app.api.admin.refund_monitoring import router as refund_monitoring_router
 from app.api.admin.stats import router as stats_router
 from app.api.admin.tier_management import router as tier_management_router
 from app.api.admin.user_management import router as user_management_router
@@ -29,3 +30,4 @@ router.include_router(actions_router, prefix="/api")
 router.include_router(pricing_control_router, prefix="/api")
 router.include_router(verification_actions_router, prefix="/api")
 router.include_router(logging_dashboard_router, prefix="/api")
+router.include_router(refund_monitoring_router, prefix="/api")
