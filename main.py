@@ -20,7 +20,6 @@ from app.api.billing.router import router as billing_router
 # Import modular routers
 from app.api.core.router import router as core_router
 from app.api.health import router as health_router
-from app.api.health_db import router as health_db_router
 from app.api.preview_router import router as preview_router
 from app.api.routes_consolidated import router as routes_router
 from app.api.v1.router import v1_router
@@ -139,7 +138,6 @@ def create_app() -> FastAPI:
     # ============== ROUTERS ==============
     # Health checks (must be first for monitoring)
     fastapi_app.include_router(health_router)
-    fastapi_app.include_router(health_db_router)
 
     # Modular Routers (Legacy - Deprecated)
     fastapi_app.include_router(core_router, deprecated=True)
