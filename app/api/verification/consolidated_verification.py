@@ -161,6 +161,7 @@ async def create_verification(
             # Create transaction record
             try:
                 from app.models.transaction import Transaction
+                from app.services.notification_dispatcher import NotificationDispatcher
 
                 transaction = Transaction(
                     user_id=user_id,
@@ -172,16 +173,9 @@ async def create_verification(
                 )
                 db.add(transaction)
 
-                # Send deduction notification
-                from app.services.notification_service import NotificationService
-
-                notif_service = NotificationService(db)
-                notif_service.create_notification(
-                    user_id=user_id,
-                    notification_type="credit_deducted",
-                    title="💳 Credits Used",
-                    message=f"${base_cost:.2f} deducted for {verification_data.service_name}. Balance: ${current_user.credits:.2f}",
-                )
+                # Send deduction notification using dispatcher
+                dispatcher = NotificationDispatcher(db)
+                dispatcher.on_credit_deducted(user_id, base_cost, verification_data.service_name)
 
                 logger.critical(
                     f"🔔 NOTIFICATION SYSTEM ACTIVE - Transaction created: User={user_id}, Amount=-${base_cost}, Balance: ${old_balance:.2f} → ${current_user.credits:.2f}"
@@ -279,23 +273,16 @@ async def create_verification(
 
         logger.info(f"Verification created: {verification.id}")
 
-        # Send verification created notification
+        # Send verification created notification using dispatcher
         try:
-            from app.services.notification_service import NotificationService
+            from app.services.notification_dispatcher import NotificationDispatcher
 
-            notif_service = NotificationService(db)
-            notif_service.create_notification(
-                user_id=user_id,
-                notification_type="verification_created",
-                title="📱 Verification Started",
-                message=f"Phone: {verification.phone_number}. Waiting for SMS...",
-            )
-            db.commit()
+            dispatcher = NotificationDispatcher(db)
+            dispatcher.on_verification_created(verification)
         except Exception as notif_error:
             logger.error(
-                f"Failed to send verification created notification: {notif_error}"
+                f"Failed to dispatch verification created notification: {notif_error}"
             )
-            # Don't fail the verification
         return {
             "id": verification.id,
             "service_name": verification.service_name,

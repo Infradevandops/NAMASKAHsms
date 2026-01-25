@@ -152,24 +152,77 @@
 
 <script>
 (function() {
-    let notificationsOpen = false;
-
-async function loadNotifications() {
-    const list = document.getElementById('notification-list');
-    const badge = document.getElementById('notification-badge');
+    'use strict';
     
-    try {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
+    let notificationsOpen = false;
+    
+    // Initialize on DOM ready
+    function init() {
+        const button = document.querySelector('.bell-button');
+        if (button) {
+            button.addEventListener('click', toggleNotifications);
+            console.log('✅ Notification bell initialized');
+        } else {
+            console.error('❌ Bell button not found');
+        }
         
-        const res = await fetch('/api/notifications', {
-            headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Cache-Control': 'no-cache'
+        // Close on outside click
+        document.addEventListener('click', (e) => {
+            const bell = document.getElementById('notification-bell');
+            if (bell && !bell.contains(e.target) && notificationsOpen) {
+                toggleNotifications();
             }
         });
         
-        if (res.ok) {
+        // Load notifications on init
+        loadNotifications();
+    }
+    
+    // Toggle dropdown visibility
+    function toggleNotifications() {
+        const dropdown = document.getElementById('notification-dropdown');
+        if (!dropdown) {
+            console.error('❌ Dropdown not found');
+            return;
+        }
+        
+        notificationsOpen = !notificationsOpen;
+        dropdown.style.display = notificationsOpen ? 'block' : 'none';
+        
+        if (notificationsOpen) {
+            loadNotifications();
+        }
+    }
+    
+    // Load notifications from API
+    async function loadNotifications() {
+        const list = document.getElementById('notification-list');
+        const badge = document.getElementById('notification-badge');
+        
+        if (!list) {
+            console.error('❌ Notification list not found');
+            return;
+        }
+        
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                console.warn('⚠️ No auth token');
+                list.innerHTML = '<div class="empty-state">Please log in</div>';
+                return;
+            }
+            
+            const res = await fetch('/api/notifications', {
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            
+            if (!res.ok) {
+                throw new Error(`API error: ${res.status}`);
+            }
+            
             const data = await res.json();
             const notifications = data.notifications || [];
             const unreadCount = notifications.filter(n => !n.is_read).length;
@@ -187,108 +240,95 @@ async function loadNotifications() {
                 list.innerHTML = '<div class="empty-state">No notifications</div>';
             } else {
                 list.innerHTML = notifications.map(n => `
-                    <div class="notification-item ${n.is_read ? '' : 'unread'}" onclick="markAsRead('${n.id}', '${n.link || ''}')">
+                    <div class="notification-item ${n.is_read ? '' : 'unread'}" 
+                         onclick="markAsRead('${n.id}', '${n.link || ''}')">
                         <div class="notification-title">${escapeHtml(n.title)}</div>
                         <div class="notification-message">${escapeHtml(n.message || '')}</div>
                         <div class="notification-time">${formatTime(n.created_at)}</div>
                     </div>
                 `).join('');
             }
-        } else {
+            
+            console.log(`✅ Loaded ${notifications.length} notifications`);
+        } catch (error) {
+            console.error('❌ Notification load failed:', error);
             list.innerHTML = '<div class="empty-state">Failed to load notifications</div>';
         }
-    } catch (error) {
-        console.error('Notification load error:', error);
-        list.innerHTML = '<div class="empty-state">Failed to load notifications</div>';
     }
-}
-
-function toggleNotifications() {
-    const dropdown = document.getElementById('notification-dropdown');
-    notificationsOpen = !notificationsOpen;
     
-    if (notificationsOpen) {
-        dropdown.style.display = 'block';
-        loadNotifications();
-    } else {
-        dropdown.style.display = 'none';
-    }
-}
-
-async function markAsRead(notificationId, link) {
-    try {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-        
-        await fetch(`/api/notifications/${notificationId}/read`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        loadNotifications();
-        
-        if (link) {
-            window.location.href = link;
+    // Mark single notification as read
+    async function markAsRead(notificationId, link) {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            await fetch(`/api/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            loadNotifications();
+            
+            if (link) {
+                window.location.href = link;
+            }
+        } catch (error) {
+            console.error('❌ Mark read error:', error);
         }
-    } catch (error) {
-        console.error('Mark read error:', error);
     }
-}
-
-async function markAllRead() {
-    try {
-        const token = localStorage.getItem('access_token');
-        if (!token) return;
-        
-        await fetch('/api/notifications/mark-all-read', {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        loadNotifications();
-    } catch (error) {
-        console.error('Mark all read error:', error);
-    }
-}
-
-function formatTime(timestamp) {
-    if (!timestamp) return '';
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = Math.floor((now - date) / 1000);
     
-    if (diff < 60) return 'Just now';
-    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-    if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
-    return date.toLocaleDateString();
-}
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Close dropdown when clicking outside
-document.addEventListener('click', (e) => {
-    const bell = document.getElementById('notification-bell');
-    if (bell && !bell.contains(e.target) && notificationsOpen) {
-        toggleNotifications();
+    // Mark all notifications as read
+    async function markAllRead() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+            
+            await fetch('/api/notifications/mark-all-read', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            loadNotifications();
+        } catch (error) {
+            console.error('❌ Mark all read error:', error);
+        }
     }
-});
-
-// Load notifications on page load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', loadNotifications);
-} else {
-    loadNotifications();
-}
-
-// Refresh every 60 seconds
-setInterval(loadNotifications, 60000);
-
-// Expose globally
-window.refreshNotifications = loadNotifications;
+    
+    // Format time
+    function formatTime(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = Math.floor((now - date) / 1000);
+        
+        if (diff < 60) return 'Just now';
+        if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+        if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+        if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
+        return date.toLocaleDateString();
+    }
+    
+    // Escape HTML
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Expose globally
+    window.toggleNotifications = toggleNotifications;
+    window.markAsRead = markAsRead;
+    window.markAllRead = markAllRead;
+    window.refreshNotifications = loadNotifications;
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+    
+    // Refresh every 30 seconds
+    setInterval(loadNotifications, 30000);
 })();
 </script>

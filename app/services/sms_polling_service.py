@@ -10,6 +10,7 @@ from app.core.database import SessionLocal
 from app.core.exceptions import ExternalServiceError
 from app.core.logging import get_logger
 from app.models import Verification
+from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.textverified_service import TextVerifiedService
 
@@ -120,15 +121,10 @@ class SMSPollingService:
 
                     # Notification: SMS Code Received (Task 2.4 Enhanced)
                     try:
-                        notif_service = NotificationService(db)
-                        notif_service.create_notification(
-                            user_id=verification.user_id,
-                            notification_type="verification_complete",
-                            title="✅ SMS Code Received!",
-                            message=f"Code {verification.sms_code} received for {verification.service_name}",
-                        )
-                    except Exception:
-                        pass
+                        dispatcher = NotificationDispatcher(db)
+                        dispatcher.on_sms_received(verification)
+                    except Exception as e:
+                        logger.warning(f"Failed to dispatch SMS received notification: {e}")
 
                     logger.info(f"SMS received for verification {verification_id}")
                     break

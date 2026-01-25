@@ -138,6 +138,45 @@ async def verify_page(
     return templates.TemplateResponse("verify.html", {"request": request, "user": user})
 
 
+@router.get("/verify/modern", response_class=HTMLResponse)
+async def verify_modern_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Modern SMS verification page with improved UX."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("verify_modern.html", {"request": request, "user": user})
+
+
+@router.get("/verify/voice", response_class=HTMLResponse)
+async def voice_verify_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Voice verification page."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("voice_verify.html", {"request": request, "user": user})
+
+
+@router.get("/verify/voice/modern", response_class=HTMLResponse)
+async def voice_verify_modern_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Modern voice verification page with improved UX."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("voice_verify_modern.html", {"request": request, "user": user})
+
+
 @router.get("/wallet", response_class=HTMLResponse)
 async def wallet_page(
     request: Request,

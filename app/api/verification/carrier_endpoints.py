@@ -31,12 +31,14 @@ async def get_available_carriers(
         from app.models.verification import Verification
 
         # Get unique carriers from past verifications
+        from sqlalchemy import case
+        
         carriers_query = (
             db.query(
                 Verification.operator,
                 func.count(Verification.id).label("total"),
                 func.sum(
-                    func.case((Verification.status == "completed", 1), else_=0)
+                    case([(Verification.status == "completed", 1)], else_=0)
                 ).label("completed"),
             )
             .filter(
