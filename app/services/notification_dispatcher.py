@@ -60,7 +60,7 @@ class NotificationDispatcher:
                 notification_type="verification_failed",
                 title="❌ Verification Failed",
                 message=f"Verification for {verification.service_name} failed: {reason}",
-                link=f"/verify",
+                link="/verify",
             )
             logger.info(f"Created verification_failed notification for {verification.user_id}")
             return True
