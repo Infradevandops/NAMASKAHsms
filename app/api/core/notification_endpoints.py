@@ -7,6 +7,7 @@ from app.api.notifications.analytics_endpoints import router as analytics_router
 from app.api.notifications.email_endpoints import router as email_router
 from app.api.notifications.notification_center import router as notification_center_router
 from app.api.notifications.preferences import router as preferences_router
+from app.api.notifications.push_endpoints import router as push_router
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.notification import Notification
@@ -24,6 +25,9 @@ router.include_router(email_router)
 
 # Include analytics router
 router.include_router(analytics_router)
+
+# Include push notifications router
+router.include_router(push_router)
 
 
 @router.get("")

@@ -25,7 +25,7 @@ class NotificationAnalytics(BaseModel):
     read_time_ms = Column(Integer, nullable=True)  # Time from delivered to read in milliseconds
     click_time_ms = Column(Integer, nullable=True)  # Time from delivered to clicked in milliseconds
     retry_count = Column(Integer, default=0, nullable=False)
-    metadata = Column(JSON, nullable=True)  # Additional tracking data
+    tracking_data = Column(JSON, nullable=True)  # Additional tracking data
 
     def to_dict(self):
         """Convert to dictionary."""

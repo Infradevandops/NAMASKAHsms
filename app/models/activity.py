@@ -19,7 +19,7 @@ class Activity(BaseModel):
     status = Column(String(20), default="completed", nullable=False)  # completed, pending, failed
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
-    metadata = Column(JSON, nullable=True)  # Additional context (cost, service_name, etc.)
+    activity_data = Column(JSON, nullable=True)  # Additional context (cost, service_name, etc.)
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
 
@@ -37,6 +37,6 @@ class Activity(BaseModel):
             "status": self.status,
             "title": self.title,
             "description": self.description,
-            "metadata": self.metadata,
+            "activity_data": self.activity_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

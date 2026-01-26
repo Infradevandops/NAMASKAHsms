@@ -74,6 +74,7 @@ class User(BaseModel):
     # Relationships
     notifications = relationship("Notification", back_populates="user")
     notification_preferences = relationship("NotificationPreference", back_populates="user")
+    device_tokens = relationship("DeviceToken", back_populates="user")
     activities = relationship("Activity", back_populates="user")
     balance_transactions = relationship("BalanceTransaction", back_populates="user")
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
@@ -138,17 +139,6 @@ class Subscription(BaseModel):
     duration = Column(Float, default=0, nullable=False)
     expires_at = Column(DateTime)
     cancelled_at = Column(DateTime)
-
-
-class NotificationPreferences(BaseModel):
-    """Enhanced notification preferences."""
-
-    __tablename__ = "notification_preferences"
-
-    user_id = Column(String, unique=True, nullable=False, index=True)
-    in_app_notifications = Column(Boolean, default=True, nullable=False)
-    email_notifications = Column(Boolean, default=True, nullable=False)
-    receipt_notifications = Column(Boolean, default=True, nullable=False)
 
 
 # InAppNotification is defined in system.py to avoid duplication

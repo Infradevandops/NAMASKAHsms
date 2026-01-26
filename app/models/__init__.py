@@ -24,7 +24,6 @@ from .system import (
 )
 from .transaction import PaymentLog, Transaction
 from .user import (
-    NotificationPreferences,
     NotificationSettings,
     Referral,
     Subscription,
@@ -56,7 +55,6 @@ __all__ = [
     "SubscriptionTier",
     "UserPreference",
     "MonthlyQuotaUsage",
-    "NotificationPreferences",
     "Notification",
     "BalanceTransaction",
     # Verification models
