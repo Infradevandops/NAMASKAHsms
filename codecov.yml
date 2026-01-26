@@ -1,0 +1,30 @@
+coverage:
+  precision: 2
+  round: down
+  range: "70...100"
+
+ignore:
+  - "tests"
+  - "migrations"
+  - "venv"
+  - ".venv"
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+  require_base: false
+  require_head: true
+  show_carryforward_flags: false
+
+patch:
+  default:
+    target: 40
+    threshold: 1%
+  notification:
+    target: 40
+    threshold: 1%
+
+flag:
+  unittests:
+    carryforward: true
