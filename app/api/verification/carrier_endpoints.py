@@ -26,12 +26,10 @@ async def get_available_carriers(
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
     try:
-        from sqlalchemy import func
+        # Get unique carriers from past verifications
+        from sqlalchemy import case, func
 
         from app.models.verification import Verification
-
-        # Get unique carriers from past verifications
-        from sqlalchemy import case
 
         carriers_query = (
             db.query(
