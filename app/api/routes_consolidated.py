@@ -249,6 +249,19 @@ async def notifications_page(
     return templates.TemplateResponse("notifications.html", {"request": request, "user": user})
 
 
+@router.get("/notification-center", response_class=HTMLResponse)
+async def notification_center_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Advanced notification center page with filtering and search."""
+    from app.models.user import User
+
+    user = db.query(User).filter(User.id == user_id).first()
+    return templates.TemplateResponse("notification_center.html", {"request": request, "user": user})
+
+
 @router.get("/privacy-settings", response_class=HTMLResponse)
 async def privacy_settings_page(
     request: Request,

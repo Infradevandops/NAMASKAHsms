@@ -3,11 +3,15 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.notifications.notification_center import router as notification_center_router
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.notification import Notification
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
+
+# Include notification center router
+router.include_router(notification_center_router)
 
 
 @router.get("")
