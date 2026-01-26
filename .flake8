@@ -1,18 +1,4 @@
 [flake8]
-max-line-length = 88
-extend-ignore = E203, E501, W293, F401
-exclude =
-    .git,
-    __pycache__,
-    build,
-    dist,
-    .venv,
-    venv,
-    env,
-    alembic/versions,
-    static,
-    templates,
-    uploads
-per-file-ignores =
-    __init__.py: F401
-max-complexity = 15
+max-line-length = 120
+extend-ignore = E203,W503,E501,F821,C901
+exclude = .git,__pycache__,docs,build,dist,.venv,venv

@@ -1,13 +1,8 @@
 """Notification dispatcher for event-driven notifications."""
 
-from datetime import datetime
-from typing import Optional
-
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models.notification import Notification
-from app.models.user import User
 from app.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
