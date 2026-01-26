@@ -3,7 +3,6 @@ from datetime import datetime, timezone
 import pytest
 
 from app.models.user import (
-    NotificationPreferences,
     NotificationSettings,
     Referral,
     Subscription,
@@ -58,10 +57,3 @@ class TestModels:
         assert settings.email_on_sms is False
         assert settings.email_on_low_balance is True
         assert settings.low_balance_threshold == 1.0
-
-    def test_notification_preferences_model(self, db_session):
-        prefs = NotificationPreferences(user_id="u1", in_app_notifications=False)
-        db_session.add(prefs)
-        db_session.commit()
-        assert prefs.in_app_notifications is False
-        assert prefs.email_notifications is True

@@ -47,7 +47,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=20 -v
+          pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=23 -v
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -97,7 +97,7 @@ jobs:
         run: isort --check-only app/ tests/ --line-length=120
       
       - name: Run Flake8
-        run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821,C901
+        run: flake8 app/ tests/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821,C901
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
@@ -140,7 +140,7 @@ jobs:
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'  # Manual trigger only until fixed
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     services:
       postgres:
         image: postgres:15
@@ -188,7 +188,7 @@ jobs:
     name: E2E Smoke Tests
     needs: [test, lint]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'  # Manual trigger only until fixed
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       
@@ -232,7 +232,7 @@ jobs:
   migration-test:
     name: Database Migration Test
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'  # Manual trigger only until fixed
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     services:
       postgres:
         image: postgres:15
@@ -270,7 +270,7 @@ jobs:
   container-scan:
     name: Container Security
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'  # Manual trigger only, security review needed
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       
@@ -295,7 +295,7 @@ jobs:
   performance:
     name: Performance Tests
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch'  # Manual trigger only until fixed
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       
@@ -330,7 +330,7 @@ jobs:
   contract-tests:
     name: API Contract Tests
     runs-on: ubuntu-latest
-    if: false  # Disabled - OpenAPI spec needs to be generated first
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
       

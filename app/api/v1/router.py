@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 
+from app.api.activities import router as activities_router
 from app.api.admin.actions import router as admin_actions_router
 from app.api.admin.analytics import router as admin_analytics_router
 from app.api.admin.audit_compliance import router as admin_audit_compliance_router
@@ -15,7 +16,6 @@ from app.api.admin.verification_actions import router as admin_verification_acti
 from app.api.admin.verification_analytics import router as admin_verification_analytics_router
 from app.api.admin.verification_history import router as admin_verification_history_router
 from app.api.billing.router import router as billing_router
-from app.api.activities import router as activities_router
 from app.api.core.affiliate_endpoints import router as affiliate_router
 from app.api.core.analytics_enhanced import router as analytics_enhanced_router
 from app.api.core.api_key_endpoints import router as api_key_router
@@ -35,8 +35,6 @@ from app.api.core.user_settings_endpoints import router as user_settings_endpoin
 from app.api.core.wallet import router as wallet_router
 from app.api.verification.bulk_purchase_endpoints import router as bulk_purchase_router
 from app.api.verification.carrier_endpoints import router as carrier_router
-
-# Verification Leaves
 from app.api.verification.consolidated_verification import router as verify_router
 from app.api.verification.preset_endpoints import router as preset_router
 from app.api.verification.pricing import router as pricing_router

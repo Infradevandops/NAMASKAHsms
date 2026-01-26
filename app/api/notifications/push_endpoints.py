@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/notifications/push", tags=["Push Notifications"]
 @router.post("/register-device")
 async def register_device_token(
     device_token: str = Query(..., min_length=10),
-    platform: str = Query(..., regex="^(ios|android)$"),
+    platform: str = Query(..., pattern="^(ios|android)$"),
     device_name: Optional[str] = Query(None, max_length=255),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
