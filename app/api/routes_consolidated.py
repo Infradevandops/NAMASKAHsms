@@ -532,7 +532,7 @@ async def test_login_page(request: Request):
 
 
 @router.get("/voice-verify", response_class=HTMLResponse)
-async def voice_verify_page(
+async def voice_verify_page_payg(
     request: Request,
     user_id: str = Depends(require_payg),
     db: Session = Depends(get_db),

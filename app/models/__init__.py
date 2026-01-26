@@ -34,7 +34,6 @@ from .user import (
 from .user_preference import UserPreference
 from .user_quota import MonthlyQuotaUsage
 from .verification import NumberRental, Verification, VerificationReceipt
-from .verification_preset import VerificationPreset
 from .whitelabel import WhiteLabelConfig
 from .whitelabel_enhanced import (
     PartnerFeature,
