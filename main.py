@@ -27,6 +27,7 @@ from app.api.verification.area_code_endpoints import router as area_code_router
 from app.api.verification.carrier_endpoints import router as carrier_router
 from app.api.verification.pricing_endpoints import router as pricing_router
 from app.api.verification.router import router as verification_router
+from app.api.websocket_endpoints import router as websocket_router
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.lifespan import lifespan
@@ -138,6 +139,9 @@ def create_app() -> FastAPI:
     # ============== ROUTERS ==============
     # Health checks (must be first for monitoring)
     fastapi_app.include_router(health_router)
+
+    # WebSocket endpoints (real-time notifications)
+    fastapi_app.include_router(websocket_router)
 
     # Modular Routers (Legacy - Deprecated)
     fastapi_app.include_router(core_router, deprecated=True)
