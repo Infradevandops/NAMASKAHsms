@@ -74,6 +74,7 @@ class User(BaseModel):
     # Relationships
     notifications = relationship("Notification", back_populates="user")
     notification_preferences = relationship("NotificationPreference", back_populates="user")
+    activities = relationship("Activity", back_populates="user")
     balance_transactions = relationship("BalanceTransaction", back_populates="user")
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
     enterprise_account = relationship("EnterpriseAccount", back_populates="user", uselist=False)

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Feed - Namaskah</title>
+    <link rel="stylesheet" href="/static/css/activity_feed.css">
+</head>
+<body>
+    <div class="activity-feed-container">
+        <!-- Header -->
+        <div class="activity-header">
+            <h1>Activity Feed</h1>
+            <p class="subtitle">Track all your account activities</p>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="activity-filters">
+            <div class="filter-group">
+                <label for="activity-type">Activity Type:</label>
+                <select id="activity-type">
+                    <option value="">All Types</option>
+                    <option value="verification">Verification</option>
+                    <option value="payment">Payment</option>
+                    <option value="login">Login</option>
+                    <option value="settings">Settings</option>
+                    <option value="api_key">API Key</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="resource-type">Resource Type:</label>
+                <select id="resource-type">
+                    <option value="">All Resources</option>
+                    <option value="verification">Verification</option>
+                    <option value="payment">Payment</option>
+                    <option value="user">User</option>
+                    <option value="api_key">API Key</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="status-filter">Status:</label>
+                <select id="status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="date-from">From:</label>
+                <input type="date" id="date-from">
+            </div>
+
+            <div class="filter-group">
+                <label for="date-to">To:</label>
+                <input type="date" id="date-to">
+            </div>
+
+            <div class="filter-actions">
+                <button id="apply-filters" class="btn btn-primary">Apply Filters</button>
+                <button id="reset-filters" class="btn btn-secondary">Reset</button>
+                <button id="export-btn" class="btn btn-secondary">Export</button>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="activity-summary">
+            <div class="summary-card">
+                <div class="summary-value" id="total-activities">0</div>
+                <div class="summary-label">Total Activities</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="completed-count">0</div>
+                <div class="summary-label">Completed</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="pending-count">0</div>
+                <div class="summary-label">Pending</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-value" id="failed-count">0</div>
+                <div class="summary-label">Failed</div>
+            </div>
+        </div>
+
+        <!-- Activities List -->
+        <div class="activities-list">
+            <div id="activities-container" class="activities-container">
+                <!-- Activities will be loaded here -->
+            </div>
+
+            <!-- Loading indicator -->
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>Loading activities...</p>
+            </div>
+
+            <!-- Empty state -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>No activities found</h3>
+                <p>Try adjusting your filters or check back later</p>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination">
+                <button id="prev-page" class="btn btn-secondary" disabled>Previous</button>
+                <span id="page-info">Page 1</span>
+                <button id="next-page" class="btn btn-secondary">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity Detail Modal -->
+    <div id="activity-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Activity Details</h2>
+                <button class="modal-close" id="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="detail-row">
+                    <label>Activity Type:</label>
+                    <span id="modal-activity-type"></span>
+                </div>
+                <div class="detail-row">
+                    <label>Resource:</label>
+                    <span id="modal-resource"></span>
+                </div>
+                <div class="detail-row">
+                    <label>Action:</label>
+                    <span id="modal-action"></span>
+                </div>
+                <div class="detail-row">
+                    <label>Status:</label>
+                    <span id="modal-status"></span>
+                </div>
+                <div class="detail-row">
+                    <label>Description:</label>
+                    <span id="modal-description"></span>
+                </div>
+                <div class="detail-row">
+                    <label>Date:</label>
+                    <span id="modal-date"></span>
+                </div>
+                <div class="detail-row" id="metadata-section" style="display: none;">
+                    <label>Details:</label>
+                    <pre id="modal-metadata"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Export Activities</h2>
+                <button class="modal-close" id="close-export-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Choose export format:</p>
+                <div class="export-options">
+                    <button id="export-json" class="btn btn-primary">Export as JSON</button>
+                    <button id="export-csv" class="btn btn-primary">Export as CSV</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/activity_feed.js"></script>
+</body>
+</html>

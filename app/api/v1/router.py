@@ -15,6 +15,7 @@ from app.api.admin.verification_actions import router as admin_verification_acti
 from app.api.admin.verification_analytics import router as admin_verification_analytics_router
 from app.api.admin.verification_history import router as admin_verification_history_router
 from app.api.billing.router import router as billing_router
+from app.api.activities import router as activities_router
 from app.api.core.affiliate_endpoints import router as affiliate_router
 from app.api.core.analytics_enhanced import router as analytics_enhanced_router
 from app.api.core.api_key_endpoints import router as api_key_router
@@ -49,6 +50,7 @@ v1_router = APIRouter(prefix="/api/v1")
 v1_router.include_router(auth_router)
 v1_router.include_router(gdpr_router)
 v1_router.include_router(notification_router)
+v1_router.include_router(activities_router)
 v1_router.include_router(dashboard_activity_router)
 v1_router.include_router(textverified_balance_router)
 v1_router.include_router(user_profile_router)
