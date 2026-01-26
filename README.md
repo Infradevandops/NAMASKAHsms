@@ -592,22 +592,28 @@ services:
 
 ## 🛣️ Roadmap
 
-### Q1 2026 - Foundation ✅🔄
-- ✅ Modular monolith refactor
-- ✅ Tier system implementation
-- ✅ API key management
-- ✅ Payment integration (Paystack)
+### Completed Phases ✅
+
+See [CHANGELOG.md](./CHANGELOG.md) for detailed features of completed phases:
+
+- **Phase 1** (Dec 2025): Foundation & Infrastructure
+- **Phase 2** (Jan 2026): Core Platform Features  
+- **Phase 2.5** (Jan 26, 2026): Notification System (300x faster delivery, 100+ test cases)
+
+### Current & Upcoming
+
+### Q1 2026 - Foundation 🔄
 - 🔄 **Payment flow hardening** (race condition fixes, idempotency)
 - 🔄 **Security hardening** (blocking scans, vulnerability elimination)
 - 🔄 **Test coverage** (23% → 50%)
 - 🔄 **Enable integration tests** (PostgreSQL, Redis)
 - 🔄 **E2E smoke tests** (critical user journeys)
 
-### Q2 2026 - Reliability 🔄
-- 🔄 SDK libraries (Python, JavaScript, Go)
-- 🔄 Webhook builder with persistent queue
-- 🔄 Enhanced analytics dashboard
-- 🔄 Referral program
+### Q2 2026 - Reliability 📋
+- 📋 SDK libraries (Python, JavaScript, Go)
+- 📋 Webhook builder with persistent queue
+- 📋 Enhanced analytics dashboard
+- 📋 Referral program
 - 📋 **Distributed tracing** (OpenTelemetry)
 - 📋 **Performance testing** (Locust, p95 < 500ms)
 - 📋 **API contract testing** (Schemathesis)
