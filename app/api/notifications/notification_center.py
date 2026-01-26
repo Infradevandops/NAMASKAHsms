@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import and_, desc, or_
+from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
@@ -12,7 +12,6 @@ from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.notification import Notification
 from app.models.user import User
-from app.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/notifications", tags=["Notification Center"])
@@ -144,11 +143,7 @@ async def get_notification_categories(
 
         logger.info(f"Retrieved {len(categories)} notification categories for user {user_id}")
 
-        return {
-            "categories": [
-                {"type": k, "total": v["total"], "unread": v["unread"]} for k, v in categories.items()
-            ]
-        }
+        return {"categories": [{"type": k, "total": v["total"], "unread": v["unread"]} for k, v in categories.items()]}
 
     except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
@@ -336,10 +331,7 @@ async def export_notifications(
 
         # Get all notifications
         notifications = (
-            db.query(Notification)
-            .filter(Notification.user_id == user_id)
-            .order_by(desc(Notification.created_at))
-            .all()
+            db.query(Notification).filter(Notification.user_id == user_id).order_by(desc(Notification.created_at)).all()
         )
 
         if format == "csv":

@@ -18,6 +18,27 @@ class NotificationCenterModal {
         this.createModal();
         this.setupEventListeners();
         await this.loadCategories();
+        await this.loadUnreadCount();
+    }
+
+    async loadUnreadCount() {
+        try {
+            const response = await fetch('/api/notifications');
+            const data = await response.json();
+            const unreadCount = data.unread_count || 0;
+            const badge = document.getElementById('notification-bell-badge');
+            
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.classList.add('show');
+                } else {
+                    badge.classList.remove('show');
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load unread count:', error);
+        }
     }
 
     createModal() {
@@ -153,9 +174,26 @@ class NotificationCenterModal {
             this.notifications = data.notifications;
             this.totalNotifications = data.total;
             this.renderNotifications();
+            this.updateBadge();
         } catch (error) {
             console.error('Failed to load notifications:', error);
             document.getElementById('modal-notification-list').innerHTML = '<div class="empty-state">Failed to load notifications</div>';
+        }
+    }
+
+    updateBadge() {
+        const badge = document.getElementById('notification-bell-badge');
+        if (!badge) return;
+
+        // Count unread notifications
+        const unreadCount = this.notifications.filter(n => !n.is_read).length;
+
+        if (unreadCount > 0) {
+            badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+            badge.classList.add('show');
+        } else {
+            badge.classList.remove('show');
+            badge.textContent = '';
         }
     }
 
@@ -227,6 +265,7 @@ class NotificationCenterModal {
         try {
             await fetch(`/api/notifications/bulk-read?notification_ids=${notificationId}`, { method: 'POST' });
             await this.loadNotifications();
+            await this.loadUnreadCount();
         } catch (error) {
             console.error('Failed to mark as read:', error);
         }
@@ -243,6 +282,7 @@ class NotificationCenterModal {
             await fetch(`/api/notifications/bulk-read?notification_ids=${ids}`, { method: 'POST' });
             this.selectedNotifications.clear();
             await this.loadNotifications();
+            await this.loadUnreadCount();
         } catch (error) {
             console.error('Failed to mark as read:', error);
         }
@@ -253,6 +293,7 @@ class NotificationCenterModal {
             try {
                 await fetch(`/api/notifications/bulk-delete?notification_ids=${notificationId}`, { method: 'POST' });
                 await this.loadNotifications();
+                await this.loadUnreadCount();
             } catch (error) {
                 console.error('Failed to delete:', error);
             }
@@ -272,6 +313,7 @@ class NotificationCenterModal {
             await fetch(`/api/notifications/bulk-delete?notification_ids=${ids}`, { method: 'POST' });
             this.selectedNotifications.clear();
             await this.loadNotifications();
+            await this.loadUnreadCount();
         } catch (error) {
             console.error('Failed to delete:', error);
         }
