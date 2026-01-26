@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.api.notifications.email_endpoints import router as email_router
 from app.api.notifications.notification_center import router as notification_center_router
 from app.api.notifications.preferences import router as preferences_router
 from app.core.database import get_db
@@ -16,6 +17,9 @@ router.include_router(notification_center_router)
 
 # Include preferences router
 router.include_router(preferences_router)
+
+# Include email router
+router.include_router(email_router)
 
 
 @router.get("")
