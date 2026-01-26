@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
+<link rel="stylesheet" href="/static/css/notification_center_modal.css">
 <style>
     /* Skip link for keyboard navigation */
     .skip-link {
@@ -151,6 +152,10 @@
                 </p>
             </div>
             <div class="header-actions">
+                <button class="notification-bell-btn" onclick="window.notificationCenterModal?.toggle()" title="Open notifications" aria-label="Notifications">
+                    🔔
+                    <span class="notification-bell-badge" id="notification-bell-badge"></span>
+                </button>
                 <span id="header-tier-badge" class="tier-badge" style="display: none;" aria-label="Your subscription tier"></span>
                 {% include "components/notification.html" %}
                 {% include "components/balance.html" %}
@@ -169,6 +174,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="/static/js/notification_center_modal.js"></script>
 <script src="/static/js/toast-notifications.js"></script>
 <script src="/static/js/i18n.js"></script>
 <script src="/static/js/currency.js"></script>
