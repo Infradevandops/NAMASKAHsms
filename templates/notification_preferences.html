@@ -1,0 +1,28 @@
+{% extends "dashboard_base.html" %}
+
+{% block head_extra %}
+<link rel="stylesheet" href="/static/css/notification_preferences.css">
+{% endblock %}
+
+{% block page_title %}Notification Preferences{% endblock %}
+{% block page_subtitle %}Customize how you receive notifications{% endblock %}
+
+{% block content %}
+<div class="preferences-container">
+    <div class="preferences-header">
+        <h1>Notification Preferences</h1>
+        <p>Manage how and when you receive notifications for different events</p>
+    </div>
+
+    <div id="preferences-container">
+        <div class="loading">Loading preferences...</div>
+    </div>
+
+    <div class="preferences-actions">
+        <button class="btn btn-secondary" id="reset-preferences-btn">Reset to Defaults</button>
+        <button class="btn btn-primary" id="save-preferences-btn">Save Preferences</button>
+    </div>
+</div>
+
+<script src="/static/js/notification_preferences.js"></script>
+{% endblock %}
