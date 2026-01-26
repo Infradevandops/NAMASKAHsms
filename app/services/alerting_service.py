@@ -49,9 +49,7 @@ class AlertingService:
         """Send Slack alert."""
         # Simulate Slack notification
         emoji = {"critical": "🚨", "warning": "⚠️", "info": "ℹ️"}
-        print(
-            f"💬 Slack Alert: {emoji.get(alert['severity'], '📢')} {alert['message']}"
-        )
+        print(f"💬 Slack Alert: {emoji.get(alert['severity'], '📢')} {alert['message']}")
 
     async def _send_webhook_alert(self, alert: Dict):
         """Send webhook alert."""

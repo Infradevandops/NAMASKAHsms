@@ -16,31 +16,17 @@ class AnalyticsService:
         """Get dashboard overview metrics"""
         # Users
         total_users = self.db.query(func.count(User.id)).scalar() or 0
-        active_users = (
-            self.db.query(func.count(User.id)).filter(User.credits > 0).scalar() or 0
-        )
+        active_users = self.db.query(func.count(User.id)).filter(User.credits > 0).scalar() or 0
 
         # Verifications
         total_verifications = self.db.query(func.count(Verification.id)).scalar() or 0
         success_verifications = (
-            self.db.query(func.count(Verification.id))
-            .filter(Verification.status == "completed")
-            .scalar()
-            or 0
+            self.db.query(func.count(Verification.id)).filter(Verification.status == "completed").scalar() or 0
         )
-        success_rate = (
-            (success_verifications / total_verifications * 100)
-            if total_verifications > 0
-            else 0
-        )
+        success_rate = (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
 
         # Revenue
-        total_revenue = (
-            self.db.query(func.sum(Transaction.amount))
-            .filter(Transaction.type == "credit")
-            .scalar()
-            or 0
-        )
+        total_revenue = self.db.query(func.sum(Transaction.amount)).filter(Transaction.type == "credit").scalar() or 0
 
         # Monthly revenue (last 30 days)
         thirty_days_ago = datetime.utcnow() - timedelta(days=30)
@@ -79,9 +65,7 @@ class AnalyticsService:
             self.db.query(
                 func.date(Verification.created_at).label("date"),
                 func.count(Verification.id).label("verifications"),
-                func.sum(
-                    func.case([(Verification.status == "completed", 1)], else_=0)
-                ).label("success"),
+                func.sum(func.case([(Verification.status == "completed", 1)], else_=0)).label("success"),
             )
             .filter(Verification.created_at >= start_date)
             .group_by(func.date(Verification.created_at))
@@ -105,9 +89,7 @@ class AnalyticsService:
                 Verification.service_name,
                 func.count(Verification.id).label("count"),
                 (
-                    func.sum(
-                        func.case([(Verification.status == "completed", 1)], else_=0)
-                    )
+                    func.sum(func.case([(Verification.status == "completed", 1)], else_=0))
                     * 100.0
                     / func.count(Verification.id)
                 ).label("success_rate"),

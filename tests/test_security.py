@@ -19,9 +19,7 @@ from tests.conftest import create_test_token
 class TestTierValidation:
     """Test tier validation cannot be bypassed."""
 
-    def test_cannot_bypass_tier_with_modified_request(
-        self, client: TestClient, db: Session
-    ):
+    def test_cannot_bypass_tier_with_modified_request(self, client: TestClient, db: Session):
         """Cannot bypass tier checks by modifying request headers."""
         user = User(
             id="sec_bypass_tier",
@@ -80,18 +78,14 @@ class TestTierValidation:
 
         # User1 tries to get their tier info
         token1 = create_test_token(user1.id, user1.email)
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token1}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token1}"})
 
         assert response.status_code == 200
         data = response.json()
         # Should see freemium, not pro
         assert data["current_tier"] == "freemium"
 
-    def test_cannot_modify_tier_without_authorization(
-        self, client: TestClient, db: Session
-    ):
+    def test_cannot_modify_tier_without_authorization(self, client: TestClient, db: Session):
         """Cannot upgrade tier without proper authorization."""
         user = User(
             id="sec_modify_tier",
@@ -147,9 +141,7 @@ class TestTierValidation:
         }
         forged_token = jwt.encode(forged_payload, "wrong_secret_key", algorithm="HS256")
 
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {forged_token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {forged_token}"})
 
         # Should be rejected
         assert response.status_code == 401
@@ -158,9 +150,7 @@ class TestTierValidation:
 class TestAPIKeySecurity:
     """Test API key security measures."""
 
-    def test_api_keys_not_logged_in_plain_text(
-        self, client: TestClient, db: Session, caplog
-    ):
+    def test_api_keys_not_logged_in_plain_text(self, client: TestClient, db: Session, caplog):
         """API keys are not logged in plain text."""
         user = User(
             id="sec_api_key_log",
@@ -227,13 +217,9 @@ class TestAPIKeySecurity:
             db_key = db.query(APIKey).filter(APIKey.user_id == user.id).first()
             if db_key and plain_key:
                 # The stored key_hash should not be the plain key (should be hashed)
-                assert (
-                    db_key.key_hash != plain_key
-                ), "API key appears to be stored in plain text"
+                assert db_key.key_hash != plain_key, "API key appears to be stored in plain text"
                 # Hash should be longer than plain key (bcrypt hashes are ~60 chars)
-                assert len(db_key.key_hash) > len(
-                    plain_key
-                ), "API key hash appears too short"
+                assert len(db_key.key_hash) > len(plain_key), "API key hash appears too short"
 
     def test_api_key_cannot_be_guessed(self, client: TestClient, db: Session):
         """API keys cannot be easily guessed."""
@@ -316,13 +302,9 @@ class TestAccessControl:
             "email": user.email,
             "exp": datetime.now(timezone.utc) - timedelta(hours=1),
         }
-        expired_token = jwt.encode(
-            expired_payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
-        )
+        expired_token = jwt.encode(expired_payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {expired_token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {expired_token}"})
 
         assert response.status_code == 401
 
@@ -347,9 +329,7 @@ class TestAccessControl:
         admin_endpoints = ["/api/admin/users", "/api/admin/tiers/manage"]
 
         for endpoint in admin_endpoints:
-            response = client.get(
-                endpoint, headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.get(endpoint, headers={"Authorization": f"Bearer {token}"})
             # Should be denied (401, 403, or 404 if endpoint doesn't exist)
             assert response.status_code in [
                 401,

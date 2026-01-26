@@ -13,11 +13,7 @@ class EnterpriseService:
         """Get enterprise tier for user."""
         db = next(get_db())
 
-        account = (
-            db.query(EnterpriseAccount)
-            .filter(EnterpriseAccount.user_id == user_id)
-            .first()
-        )
+        account = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
         if not account:
             return None
@@ -43,11 +39,7 @@ class EnterpriseService:
             raise ValueError(f"Tier {tier_name} not found")
 
         # Check if account already exists
-        existing = (
-            db.query(EnterpriseAccount)
-            .filter(EnterpriseAccount.user_id == user_id)
-            .first()
-        )
+        existing = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
         if existing:
             existing.tier_id = tier.id

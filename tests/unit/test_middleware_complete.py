@@ -65,10 +65,7 @@ class TestMiddleware:
             },
         )
         assert response.status_code == 200
-        assert (
-            response.headers["Access-Control-Allow-Methods"]
-            == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
-        )
+        assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
 
     def test_rate_limit_middleware(self):
         """Test rate limiting middleware."""
@@ -123,9 +120,7 @@ class TestMiddleware:
     def test_adaptive_rate_limit(self):
         """Test adaptive rate limiting."""
         app = create_test_app()
-        app.add_middleware(
-            AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1
-        )
+        app.add_middleware(AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1)
         client = TestClient(app)
 
         # Make requests to trigger rate limit

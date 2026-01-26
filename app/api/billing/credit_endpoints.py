@@ -29,9 +29,7 @@ class TransactionHistoryResponse:
 
 
 @router.get("/balance")
-async def get_user_balance(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current credit balance for user.
 
     Returns:
@@ -92,10 +90,7 @@ async def get_credit_history(
             user_id=user_id, transaction_type=transaction_type, skip=skip, limit=limit
         )
 
-        logger.info(
-            f"Retrieved credit history for user {user_id}: "
-            f"{len(history['transactions'])} transactions"
-        )
+        logger.info(f"Retrieved credit history for user {user_id}: " f"{len(history['transactions'])} transactions")
 
         return history
 
@@ -111,9 +106,7 @@ async def get_credit_history(
 
 
 @router.get("/credits/summary")
-async def get_credit_summary(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_credit_summary(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get credit transaction summary for user.
 
     Returns:
@@ -146,9 +139,7 @@ async def get_credit_summary(
 @router.post("/credits/add")
 async def add_credits(
     amount: float = Query(..., gt=0, description="Amount to add"),
-    description: str = Query(
-        "Manual credit addition", description="Transaction description"
-    ),
+    description: str = Query("Manual credit addition", description="Transaction description"),
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):

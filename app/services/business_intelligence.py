@@ -47,11 +47,7 @@ class BusinessIntelligenceService:
 
         # High - value users (>$10 spent)
         high_value_query = select(func.count(func.distinct(Rental.user_id))).where(
-            Rental.user_id.in_(
-                select(Rental.user_id)
-                .group_by(Rental.user_id)
-                .having(func.sum(Rental.cost) > 10)
-            )
+            Rental.user_id.in_(select(Rental.user_id).group_by(Rental.user_id).having(func.sum(Rental.cost) > 10))
         )
         high_value_result = await self.db.execute(high_value_query)
         high_value_users = high_value_result.scalar()
@@ -59,9 +55,7 @@ class BusinessIntelligenceService:
         return {
             "active_users_30d": active_users or 0,
             "high_value_users": high_value_users or 0,
-            "user_retention_rate": round(
-                (active_users / max(high_value_users, 1)) * 100, 2
-            ),
+            "user_retention_rate": round((active_users / max(high_value_users, 1)) * 100, 2),
         }
 
     @async_cache(ttl=7200)
@@ -71,9 +65,7 @@ class BusinessIntelligenceService:
         current_week = datetime.utcnow() - timedelta(days=7)
         previous_week = datetime.utcnow() - timedelta(days=14)
 
-        current_revenue_query = select(func.sum(Rental.cost)).where(
-            Rental.created_at >= current_week
-        )
+        current_revenue_query = select(func.sum(Rental.cost)).where(Rental.created_at >= current_week)
         current_result = await self.db.execute(current_revenue_query)
         current_revenue = current_result.scalar() or 0
 
@@ -85,9 +77,7 @@ class BusinessIntelligenceService:
 
         growth_rate = 0
         if previous_revenue > 0:
-            growth_rate = (
-                (current_revenue - previous_revenue) / previous_revenue
-            ) * 100
+            growth_rate = ((current_revenue - previous_revenue) / previous_revenue) * 100
 
         return {
             "weekly_growth_rate": round(growth_rate, 2),

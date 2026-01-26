@@ -54,9 +54,7 @@ class TestAPIEndpoints:
         """Test logout endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.post(
-            "/api/auth/logout", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.post("/api/auth/logout", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -85,9 +83,7 @@ class TestAPIEndpoints:
     # ==================== Billing Endpoints ====================
 
     @patch("app.services.payment_service.paystack_service")
-    def test_initiate_payment_endpoint(
-        self, mock_paystack, client, user_token, regular_user
-    ):
+    def test_initiate_payment_endpoint(self, mock_paystack, client, user_token, regular_user):
         """Test payment initiation endpoint."""
         mock_paystack.enabled = True
         mock_paystack.initialize_payment = AsyncMock(
@@ -111,9 +107,7 @@ class TestAPIEndpoints:
         """Test get payment history endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/billing/payments", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/billing/payments", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -121,9 +115,7 @@ class TestAPIEndpoints:
         """Test get transactions endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/billing/transactions", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/billing/transactions", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -160,9 +152,7 @@ class TestAPIEndpoints:
         """Test get verification history endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/verification/history", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/verification/history", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -172,9 +162,7 @@ class TestAPIEndpoints:
         """Test get current tier endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/tier/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tier/current", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -231,9 +219,7 @@ class TestAPIEndpoints:
         """Test revoke API key endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.delete(
-            "/api/keys/test_key_id", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.delete("/api/keys/test_key_id", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 204, 401, 404]
 
@@ -269,9 +255,7 @@ class TestAPIEndpoints:
         db_session.add(regular_user)
         db_session.commit()
 
-        response = client.get(
-            "/api/webhooks", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/webhooks", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -281,9 +265,7 @@ class TestAPIEndpoints:
         """Test admin dashboard endpoint."""
         token = user_token(admin_user.id, admin_user.email)
 
-        response = client.get(
-            "/api/admin/dashboard", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/admin/dashboard", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 403, 404]
 
@@ -291,9 +273,7 @@ class TestAPIEndpoints:
         """Test admin users list endpoint."""
         token = user_token(admin_user.id, admin_user.email)
 
-        response = client.get(
-            "/api/admin/users", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/admin/users", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 403, 404]
 
@@ -303,9 +283,7 @@ class TestAPIEndpoints:
         """Test get quota usage endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/quota/usage", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/quota/usage", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -315,9 +293,7 @@ class TestAPIEndpoints:
         """Test get user preferences endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-            "/api/preferences", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/preferences", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -342,9 +318,7 @@ class TestAPIEndpoints:
 
     def test_invalid_token(self, client):
         """Test invalid token returns 401."""
-        response = client.get(
-            "/user/me", headers={"Authorization": "Bearer invalid_token"}
-        )
+        response = client.get("/user/me", headers={"Authorization": "Bearer invalid_token"})
         assert response.status_code in [401, 404, 422]
 
     def test_not_found_endpoint(self, client):

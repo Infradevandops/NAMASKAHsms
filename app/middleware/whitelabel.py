@@ -26,13 +26,8 @@ class WhiteLabelMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add custom headers if white - labeled
-        if (
-            hasattr(request.state, "whitelabel_config")
-            and request.state.whitelabel_config
-        ):
+        if hasattr(request.state, "whitelabel_config") and request.state.whitelabel_config:
             response.headers["X - Whitelabel"] = "true"
-            response.headers["X - Brand"] = request.state.whitelabel_config.get(
-                "company_name", ""
-            )
+            response.headers["X - Brand"] = request.state.whitelabel_config.get("company_name", "")
 
         return response

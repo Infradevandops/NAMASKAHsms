@@ -62,9 +62,7 @@ class TestModelsComplete:
 
     def test_transaction_model(self, db_session, regular_user):
         """Test Transaction model."""
-        transaction = Transaction(
-            user_id=regular_user.id, amount=10.5, type="credit", description="Test"
-        )
+        transaction = Transaction(user_id=regular_user.id, amount=10.5, type="credit", description="Test")
         db_session.add(transaction)
         db_session.commit()
 
@@ -73,9 +71,7 @@ class TestModelsComplete:
 
     def test_notification_model(self, db_session, regular_user):
         """Test Notification model."""
-        notification = Notification(
-            user_id=regular_user.id, type="info", title="Test", message="Test Message"
-        )
+        notification = Notification(user_id=regular_user.id, type="info", title="Test", message="Test Message")
         db_session.add(notification)
         db_session.commit()
 

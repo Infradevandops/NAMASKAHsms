@@ -98,8 +98,7 @@ async def request_verification_improved(
     # Check sufficient credits BEFORE calling API
     if user.credits < sms_cost:
         logger.warning(
-            f"Insufficient credits: User={user_id}, "
-            f"Available=${user.credits:.2f}, Required=${sms_cost:.2f}"
+            f"Insufficient credits: User={user_id}, " f"Available=${user.credits:.2f}, Required=${sms_cost:.2f}"
         )
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -140,8 +139,7 @@ async def request_verification_improved(
     try:
         # Step 1: Call TextVerified API FIRST (before deducting credits)
         logger.info(
-            f"Calling TextVerified API: service={request.service}, "
-            f"country={request.country}, user={user_id}"
+            f"Calling TextVerified API: service={request.service}, " f"country={request.country}, user={user_id}"
         )
 
         area_code = request.area_codes[0] if request.area_codes else None
@@ -154,8 +152,7 @@ async def request_verification_improved(
         )
 
         logger.info(
-            f"TextVerified success: phone={textverified_result['phone_number']}, "
-            f"id={textverified_result['id']}"
+            f"TextVerified success: phone={textverified_result['phone_number']}, " f"id={textverified_result['id']}"
         )
 
         # Step 2: Create verification record (not committed yet)
@@ -251,9 +248,7 @@ async def request_verification_improved(
         # If TextVerified succeeded but our DB failed, we need to cancel the number
         if textverified_result and verification:
             try:
-                logger.warning(
-                    f"Attempting to cancel TextVerified number: {textverified_result['id']}"
-                )
+                logger.warning(f"Attempting to cancel TextVerified number: {textverified_result['id']}")
                 await tv_service.cancel_verification(textverified_result["id"])
                 logger.info("TextVerified number cancelled successfully")
             except Exception as cancel_error:

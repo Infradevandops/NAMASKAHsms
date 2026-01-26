@@ -142,9 +142,7 @@ async def remove_from_blacklist(
     try:
         entry = (
             db.query(NumberBlacklist)
-            .filter(
-                NumberBlacklist.id == blacklist_id, NumberBlacklist.user_id == user_id
-            )
+            .filter(NumberBlacklist.id == blacklist_id, NumberBlacklist.user_id == user_id)
             .first()
         )
 

@@ -137,9 +137,7 @@ class Settings(BaseSettings):
         if info and hasattr(info, "data"):
             environment = info.data.get("environment", "development")
             if value.startswith("sqlite://") and environment == "production":
-                raise ValueError(
-                    "SQLite is not recommended for production. Use PostgreSQL."
-                )
+                raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
 
         return value
 
@@ -172,9 +170,7 @@ class Settings(BaseSettings):
                 missing_settings.append(env_var)
 
         if missing_settings:
-            raise ValueError(
-                f"Production environment requires these settings: {', '.join(missing_settings)}"
-            )
+            raise ValueError(f"Production environment requires these settings: {', '.join(missing_settings)}")
 
         # Validate HTTPS in production
         if not self.base_url.startswith("https://"):

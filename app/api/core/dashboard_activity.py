@@ -17,9 +17,7 @@ router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
 @router.get("/activity/recent")
-async def get_recent_activity(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get recent verification activity for dashboard."""
     logger.info(f"Recent activity requested by user_id: {user_id}")
 
@@ -59,6 +57,4 @@ async def get_recent_activity(
             f"Failed to retrieve recent activity for user {user_id}: {str(e)}",
             exc_info=True,
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve recent activity: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve recent activity: {str(e)}")

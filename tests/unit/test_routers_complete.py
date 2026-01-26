@@ -26,9 +26,7 @@ def test_core_router_inclusion():
     ]
 
     for prefix in expected_prefixes:
-        assert any(
-            route.startswith(prefix) for route in routes
-        ), f"Prefix {prefix} not found in routes"
+        assert any(route.startswith(prefix) for route in routes), f"Prefix {prefix} not found in routes"
 
 
 def test_router_tags():

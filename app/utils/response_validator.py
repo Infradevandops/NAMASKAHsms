@@ -48,9 +48,7 @@ def validate_response(data: Any, schema: Type[T]) -> T:
         )
 
 
-def validate_response_safe(
-    data: Any, schema: Type[T]
-) -> Tuple[bool, Optional[T], Optional[str]]:
+def validate_response_safe(data: Any, schema: Type[T]) -> Tuple[bool, Optional[T], Optional[str]]:
     """Safely validate response data without raising exceptions.
 
     Args:
@@ -67,9 +65,7 @@ def validate_response_safe(
         return False, None, e.message
 
 
-def check_required_fields(
-    data: Dict[str, Any], required_fields: list[str]
-) -> Tuple[bool, list[str]]:
+def check_required_fields(data: Dict[str, Any], required_fields: list[str]) -> Tuple[bool, list[str]]:
     """Check if all required fields are present in the response data.
 
     Args:

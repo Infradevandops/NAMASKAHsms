@@ -11,9 +11,7 @@ class VerificationPricingService:
     """Handle verification with pricing enforcement."""
 
     @staticmethod
-    def validate_and_calculate_cost(
-        db: Session, user_id: str, filters: dict = None
-    ) -> dict:
+    def validate_and_calculate_cost(db: Session, user_id: str, filters: dict = None) -> dict:
         """Validate user can purchase and calculate cost."""
         if not filters:
             filters = {}
@@ -25,9 +23,7 @@ class VerificationPricingService:
         cost_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
 
         if not PricingCalculator.validate_balance(db, user_id, cost_info["total_cost"]):
-            raise ValueError(
-                f"Insufficient balance. Required: ${cost_info['total_cost']:.2f}"
-            )
+            raise ValueError(f"Insufficient balance. Required: ${cost_info['total_cost']:.2f}")
 
         return cost_info
 

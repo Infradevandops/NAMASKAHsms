@@ -48,9 +48,7 @@ class KYCService:
             },
         }
 
-    async def create_profile(
-        self, user_id: str, profile_data: KYCProfileCreate
-    ) -> KYCProfile:
+    async def create_profile(self, user_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
         """Create new KYC profile."""
         try:
             # Validate user exists
@@ -79,9 +77,7 @@ class KYCService:
             self.db.refresh(kyc_profile)
 
             # Log action
-            await self._log_action(
-                user_id=user_id, action="profile_created", new_status="unverified"
-            )
+            await self._log_action(user_id=user_id, action="profile_created", new_status="unverified")
 
             return kyc_profile
 
@@ -90,16 +86,10 @@ class KYCService:
             logger.error("KYC profile creation failed: %s", str(e))
             raise
 
-    async def update_profile(
-        self, kyc_profile_id: str, profile_data: KYCProfileCreate
-    ) -> KYCProfile:
+    async def update_profile(self, kyc_profile_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
         """Update existing KYC profile."""
         try:
-            kyc_profile = (
-                self.db.query(KYCProfile)
-                .filter(KYCProfile.id == kyc_profile_id)
-                .first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -140,29 +130,19 @@ class KYCService:
     async def submit_for_review(self, kyc_profile_id: str) -> KYCProfile:
         """Submit KYC profile for admin review."""
         try:
-            kyc_profile = (
-                self.db.query(KYCProfile)
-                .filter(KYCProfile.id == kyc_profile_id)
-                .first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
             # Check if required documents are uploaded
             required_docs = ["id_card", "selfie"]  # Minimum required
-            uploaded_docs = (
-                self.db.query(KYCDocument)
-                .filter(KYCDocument.kyc_profile_id == kyc_profile_id)
-                .all()
-            )
+            uploaded_docs = self.db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile_id).all()
 
             uploaded_types = [doc.document_type for doc in uploaded_docs]
             missing_docs = [doc for doc in required_docs if doc not in uploaded_types]
 
             if missing_docs:
-                raise ValidationError(
-                    f"Missing required documents: {', '.join(missing_docs)}"
-                )
+                raise ValidationError(f"Missing required documents: {', '.join(missing_docs)}")
 
             old_status = kyc_profile.status
             kyc_profile.status = "pending"
@@ -201,11 +181,7 @@ class KYCService:
     ) -> KYCProfile:
         """Admin verification decision."""
         try:
-            kyc_profile = (
-                self.db.query(KYCProfile)
-                .filter(KYCProfile.id == kyc_profile_id)
-                .first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -240,9 +216,7 @@ class KYCService:
             )
 
             # Send notification to user
-            await self._send_verification_notification(
-                kyc_profile.user_id, decision, verification_level
-            )
+            await self._send_verification_notification(kyc_profile.user_id, decision, verification_level)
 
             return kyc_profile
 
@@ -275,15 +249,9 @@ class KYCService:
                 risk_score += 0.5
 
             # Document verification status
-            documents = (
-                self.db.query(KYCDocument)
-                .filter(KYCDocument.kyc_profile_id == kyc_profile.id)
-                .all()
-            )
+            documents = self.db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
 
-            verified_docs = sum(
-                1 for doc in documents if doc.verification_status == "verified"
-            )
+            verified_docs = sum(1 for doc in documents if doc.verification_status == "verified")
             total_docs = len(documents)
 
             if total_docs > 0:
@@ -302,11 +270,7 @@ class KYCService:
     async def perform_aml_screening(self, kyc_profile_id: str) -> AMLScreening:
         """Perform AML screening."""
         try:
-            kyc_profile = (
-                self.db.query(KYCProfile)
-                .filter(KYCProfile.id == kyc_profile_id)
-                .first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -345,9 +309,7 @@ class KYCService:
     def get_user_limits(self, user_id: str) -> Dict:
         """Get user's current KYC limits."""
         try:
-            kyc_profile = (
-                self.db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
             if not kyc_profile or kyc_profile.status != "verified":
                 level = "unverified"
@@ -468,15 +430,11 @@ class KYCService:
         except Exception as e:
             logger.error("Failed to log KYC action: %s", str(e))
 
-    async def _send_verification_notification(
-        self, user_id: str, decision: str, level: str
-    ):
+    async def _send_verification_notification(self, user_id: str, decision: str, level: str):
         """Send verification result notification to user."""
         try:
             # This would integrate with your notification service
-            logger.info(
-                "Sending KYC notification to user %s: %s (%s)", user_id, decision, level
-            )
+            logger.info("Sending KYC notification to user %s: %s (%s)", user_id, decision, level)
 
         except Exception as e:
             logger.error("Failed to send KYC notification: %s", str(e))

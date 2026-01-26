@@ -37,7 +37,5 @@ def test_tier_sql_injection(client, admin_token):
 def test_rate_limiting_tier_endpoints(client, pro_user_token):
     """Tier endpoints have rate limiting."""
     for _ in range(100):
-        response = client.get(
-            "/api/keys", headers={"Authorization": f"Bearer {pro_user_token}"}
-        )
+        response = client.get("/api/keys", headers={"Authorization": f"Bearer {pro_user_token}"})
     assert response.status_code == 429

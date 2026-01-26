@@ -25,9 +25,7 @@ class AuthService(BaseService[User]):
     def __init__(self, db: Session):
         super().__init__(User, db)
 
-    def register_user(
-        self, email: str, password: str, referral_code: Optional[str] = None
-    ) -> User:
+    def register_user(self, email: str, password: str, referral_code: Optional[str] = None) -> User:
         """Register a new user account."""
         # Check if user exists
         existing = self.db.query(User).filter(User.email == email).first()
@@ -43,9 +41,7 @@ class AuthService(BaseService[User]):
 
         # Handle referral
         if referral_code:
-            referrer = (
-                self.db.query(User).filter(User.referral_code == referral_code).first()
-            )
+            referrer = self.db.query(User).filter(User.referral_code == referral_code).first()
             if referrer:
                 user_data["referred_by"] = referrer.id
                 user_data["free_verifications"] = 2.0  # Bonus for being referred
@@ -68,11 +64,7 @@ class AuthService(BaseService[User]):
                 return None
 
             # Verify password with proper error handling
-            print(
-                "[AUTH] Verifying password, hash starts with: {}".format(
-                    user.password_hash[:30]
-                )
-            )
+            print("[AUTH] Verifying password, hash starts with: {}".format(user.password_hash[:30]))
             verified = verify_password(password, user.password_hash)
             print("[AUTH] Password verified: {}".format(verified))
             if not verified:
@@ -118,9 +110,7 @@ class AuthService(BaseService[User]):
         raw_key = f"nsk_{generate_api_key()}"
         hashed_key = hash_password(raw_key)
         key_preview = f"...{raw_key[-6:]}"  # Last 6 chars for display
-        api_key = APIKey(
-            user_id=user_id, key_hash=hashed_key, key_preview=key_preview, name=name
-        )
+        api_key = APIKey(user_id=user_id, key_hash=hashed_key, key_preview=key_preview, name=name)
         self.db.add(api_key)
         self.db.commit()
         self.db.refresh(api_key)
@@ -140,11 +130,7 @@ class AuthService(BaseService[User]):
 
     def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
         """Deactivate API key for user."""
-        api_key = (
-            self.db.query(APIKey)
-            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
-            .first()
-        )
+        api_key = self.db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
 
         if not api_key:
             return False
@@ -173,9 +159,7 @@ class AuthService(BaseService[User]):
         user = self.get_by_id(user_id)
         return user is not None and user.is_admin
 
-    def create_or_get_google_user(
-        self, google_id: str, email: str, name: str = None, avatar_url: str = None
-    ) -> User:
+    def create_or_get_google_user(self, google_id: str, email: str, name: str = None, avatar_url: str = None) -> User:
         """Create or get user from Google OAuth."""
         # Check if user exists by Google ID
         user = self.db.query(User).filter(User.google_id == google_id).first()

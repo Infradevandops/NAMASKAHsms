@@ -19,16 +19,12 @@ async def cancel_verification(
 ):
     """Cancel a pending verification"""
 
-    verification = (
-        db.query(Verification).filter(Verification.id == verification_id).first()
-    )
+    verification = db.query(Verification).filter(Verification.id == verification_id).first()
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
     if verification.status != "pending":
-        raise HTTPException(
-            status_code=400, detail="Can only cancel pending verifications"
-        )
+        raise HTTPException(status_code=400, detail="Can only cancel pending verifications")
 
     # Update verification status
     verification.status = "cancelled"
@@ -58,9 +54,7 @@ async def get_verification_details(
 ):
     """Get detailed verification information"""
 
-    verification = (
-        db.query(Verification).filter(Verification.id == verification_id).first()
-    )
+    verification = db.query(Verification).filter(Verification.id == verification_id).first()
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
@@ -81,19 +75,9 @@ async def get_verification_details(
             "activation_id": verification.activation_id,
             "sms_code": verification.sms_code,
             "sms_text": verification.sms_text,
-            "created_at": (
-                verification.created_at.isoformat() if verification.created_at else None
-            ),
-            "completed_at": (
-                verification.completed_at.isoformat()
-                if verification.completed_at
-                else None
-            ),
-            "sms_received_at": (
-                verification.sms_received_at.isoformat()
-                if verification.sms_received_at
-                else None
-            ),
+            "created_at": (verification.created_at.isoformat() if verification.created_at else None),
+            "completed_at": (verification.completed_at.isoformat() if verification.completed_at else None),
+            "sms_received_at": (verification.sms_received_at.isoformat() if verification.sms_received_at else None),
         },
     }
 
@@ -110,9 +94,7 @@ async def bulk_cancel_verifications(
     refunded_amount = 0.0
 
     for verification_id in verification_ids:
-        verification = (
-            db.query(Verification).filter(Verification.id == verification_id).first()
-        )
+        verification = db.query(Verification).filter(Verification.id == verification_id).first()
         if verification and verification.status == "pending":
             verification.status = "cancelled"
             verification.completed_at = datetime.utcnow()

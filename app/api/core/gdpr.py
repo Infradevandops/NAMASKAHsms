@@ -17,9 +17,7 @@ router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 
 
 @router.get("/export")
-async def export_user_data(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def export_user_data(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Export all user data in JSON format (GDPR right to data portability)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -65,9 +63,7 @@ async def export_user_data(
 
 
 @router.delete("/account")
-async def delete_account(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def delete_account(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Delete user account and all associated data (GDPR right to be forgotten)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -80,6 +76,4 @@ async def delete_account(
     db.delete(user)
     db.commit()
 
-    return SuccessResponse(
-        message="Account and all associated data deleted successfully"
-    )
+    return SuccessResponse(message="Account and all associated data deleted successfully")

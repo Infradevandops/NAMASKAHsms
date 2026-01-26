@@ -38,9 +38,7 @@ router = APIRouter(prefix="/wallet", tags=["Wallet"])
 
 
 @router.get("/balance", response_model=WalletBalanceResponse)
-def get_wallet_balance(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_wallet_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current wallet balance."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -174,12 +172,7 @@ def get_transaction_history(
             query = query.filter(Transaction.type == transaction_type)
 
         total = query.count()
-        transactions = (
-            query.order_by(Transaction.created_at.desc())
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
+        transactions = query.order_by(Transaction.created_at.desc()).offset(skip).limit(limit).all()
 
         return TransactionHistoryResponse(
             transactions=[TransactionResponse.from_orm(t) for t in transactions],
@@ -202,10 +195,7 @@ async def export_transactions(
             raise InvalidInputError("Invalid format. Use 'csv' or 'json'")
 
         transactions = (
-            db.query(Transaction)
-            .filter(Transaction.user_id == user_id)
-            .order_by(Transaction.created_at.desc())
-            .all()
+            db.query(Transaction).filter(Transaction.user_id == user_id).order_by(Transaction.created_at.desc()).all()
         )
 
         if export_format == "csv":
@@ -225,9 +215,7 @@ async def export_transactions(
             return StreamingResponse(
                 iter([output.getvalue()]),
                 media_type="text/csv",
-                headers={
-                    "Content-Disposition": f"attachment; filename=transactions_{user_id}.csv"
-                },
+                headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.csv"},
             )
 
         else:
@@ -246,9 +234,7 @@ async def export_transactions(
             return StreamingResponse(
                 iter([output.getvalue()]),
                 media_type="application/json",
-                headers={
-                    "Content-Disposition": f"attachment; filename=transactions_{user_id}.json"
-                },
+                headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.json"},
             )
 
     except InvalidInputError as e:
@@ -308,9 +294,7 @@ def get_spending_summary(
                 or 0
             )
 
-            daily_spending.append(
-                {"date": day_start.strftime("%Y-%m-%d"), "amount": abs(day_spent)}
-            )
+            daily_spending.append({"date": day_start.strftime("%Y-%m-%d"), "amount": abs(day_spent)})
 
         user = db.query(User).filter(User.id == user_id).first()
 

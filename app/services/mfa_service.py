@@ -16,9 +16,7 @@ class MFAService:
     @staticmethod
     def generate_qr_code(user_email: str, secret: str) -> str:
         """Generate QR code for MFA setup."""
-        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
-            name=user_email, issuer_name="Namaskah SMS"
-        )
+        totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user_email, issuer_name="Namaskah SMS")
 
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
         qr.add_data(totp_uri)

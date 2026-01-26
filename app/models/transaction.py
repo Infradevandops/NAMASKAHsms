@@ -12,9 +12,7 @@ class Transaction(BaseModel):
 
     user_id = Column(String, nullable=False, index=True)
     amount = Column(Float, nullable=False)
-    type = Column(
-        String, nullable=False, index=True
-    )  # credit, debit, sms_purchase, etc.
+    type = Column(String, nullable=False, index=True)  # credit, debit, sms_purchase, etc.
     description = Column(String)
     tier = Column(String)
     service = Column(String)

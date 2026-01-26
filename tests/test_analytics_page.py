@@ -64,9 +64,7 @@ class TestAnalyticsEndpoints:
         today = datetime.now().strftime("%Y-%m-%d")
         thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
 
-        response = client.get(
-            f"/api/analytics/summary?from={thirty_days_ago}&to={today}"
-        )
+        response = client.get(f"/api/analytics/summary?from={thirty_days_ago}&to={today}")
 
         # Should not error on date params
         assert response.status_code in [200, 404, 500]

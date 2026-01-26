@@ -21,9 +21,7 @@ from tests.conftest import create_test_token
 class TestFreemiumUserJourney:
     """Test freemium user trying to access paid features."""
 
-    def test_freemium_user_gets_402_on_api_access(
-        self, client: TestClient, db: Session
-    ):
+    def test_freemium_user_gets_402_on_api_access(self, client: TestClient, db: Session):
         """Freemium user tries to access API endpoint and gets 402."""
         # Create freemium user
         user = User(
@@ -42,9 +40,7 @@ class TestFreemiumUserJourney:
         token = create_test_token(user.id, user.email)
 
         # Try to access API keys endpoint (requires payg+)
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
 
         # Should get 402 Payment Required
         assert response.status_code == 402
@@ -53,10 +49,7 @@ class TestFreemiumUserJourney:
         has_tier_info = (
             "required_tier" in data
             or "detail" in data
-            or (
-                isinstance(data.get("message"), dict)
-                and "required_tier" in data["message"]
-            )
+            or (isinstance(data.get("message"), dict) and "required_tier" in data["message"])
         )
         assert has_tier_info
 
@@ -78,9 +71,7 @@ class TestFreemiumUserJourney:
         token = create_test_token(user.id, user.email)
 
         # Can access tier info
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["current_tier"] == "freemium"
@@ -103,9 +94,7 @@ class TestFreemiumUserJourney:
         token = create_test_token(user.id, user.email)
 
         # Can see all tiers
-        response = client.get(
-            "/api/v1/tiers/", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         # Response may be a list or wrapped in {"tiers": [...]}
@@ -134,9 +123,7 @@ class TestTierUpgradeJourney:
         token = create_test_token(user.id, user.email)
 
         # Can access API keys
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
     def test_payg_user_gets_402_on_pro_features(self, client: TestClient, db: Session):
@@ -157,9 +144,7 @@ class TestTierUpgradeJourney:
         token = create_test_token(user.id, user.email)
 
         # Try to access ISP filtering (Pro feature)
-        response = client.get(
-            "/api/carriers/isp-filter", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/carriers/isp-filter", headers={"Authorization": f"Bearer {token}"})
         # Should get 402 or 404 (endpoint may not exist)
         assert response.status_code in [402, 404]
 
@@ -181,17 +166,13 @@ class TestTierUpgradeJourney:
         token = create_test_token(user.id, user.email)
 
         # Can access tier info
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["current_tier"] == "pro"
 
         # Can access API keys
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
 
@@ -216,15 +197,11 @@ class TestTierDowngradeJourney:
         token = create_test_token(user.id, user.email)
 
         # Downgrade to freemium
-        response = client.post(
-            "/api/v1/tiers/downgrade", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.post("/api/v1/tiers/downgrade", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         # Verify tier changed
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["current_tier"] == "freemium"
@@ -247,21 +224,15 @@ class TestTierDowngradeJourney:
         token = create_test_token(user.id, user.email)
 
         # Can access API keys before downgrade
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         # Downgrade
-        response = client.post(
-            "/api/v1/tiers/downgrade", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.post("/api/v1/tiers/downgrade", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         # Cannot access API keys after downgrade
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
 
@@ -275,9 +246,7 @@ class TestErrorScenarios:
 
     def test_invalid_token_returns_401(self, client: TestClient):
         """Invalid token returns 401."""
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": "Bearer invalid_token"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": "Bearer invalid_token"})
         assert response.status_code == 401
 
     def test_expired_token_returns_401(self, client: TestClient):
@@ -294,9 +263,7 @@ class TestErrorScenarios:
             "email": "test@test.com",
             "exp": datetime.now(timezone.utc) - timedelta(hours=1),
         }
-        expired_token = jwt.encode(
-            payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
-        )
+        expired_token = jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
         response = client.get(
             "/api/v1/tiers/current",
@@ -308,9 +275,7 @@ class TestErrorScenarios:
         """Request for nonexistent user returns appropriate error."""
         token = create_test_token("nonexistent_user_id", "nonexistent@test.com")
 
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"})
         # Should return 404 or handle gracefully
         assert response.status_code in [404, 401, 500]
 
@@ -336,23 +301,17 @@ class TestCustomTierJourney:
         token = create_test_token(user.id, user.email)
 
         # Can access tier info
-        response = client.get(
-            "/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/v1/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["current_tier"] == "custom"
 
         # Can access API keys
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         # Can access analytics
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
 
@@ -389,9 +348,7 @@ class TestKYCJourney:
         admin_token = create_test_token(admin.id, admin.email, is_admin=True)
 
         # 2. Check initial limits (unverified)
-        response = client.get(
-            "/api/v1/kyc/limits", headers={"Authorization": f"Bearer {user_token}"}
-        )
+        response = client.get("/api/v1/kyc/limits", headers={"Authorization": f"Bearer {user_token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["verification_level"] == "unverified"
@@ -441,9 +398,7 @@ class TestKYCJourney:
         db.commit()
 
         # 5. Submit for Review
-        response = client.post(
-            "/api/v1/kyc/submit", headers={"Authorization": f"Bearer {user_token}"}
-        )
+        response = client.post("/api/v1/kyc/submit", headers={"Authorization": f"Bearer {user_token}"})
         assert response.status_code == 200
         assert response.json()["status"] == "pending"
 
@@ -462,9 +417,7 @@ class TestKYCJourney:
         assert response.json()["new_status"] == "verified"
 
         # 7. Check Limits Updated
-        response = client.get(
-            "/api/v1/kyc/limits", headers={"Authorization": f"Bearer {user_token}"}
-        )
+        response = client.get("/api/v1/kyc/limits", headers={"Authorization": f"Bearer {user_token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["verification_level"] == "enhanced"

@@ -17,13 +17,9 @@ class TierLoadTest(HttpUser):
     @task(5)
     def check_tier(self):
         if self.token:
-            self.client.get(
-                "/api/auth/me", headers={"Authorization": f"Bearer {self.token}"}
-            )
+            self.client.get("/api/auth/me", headers={"Authorization": f"Bearer {self.token}"})
 
     @task(1)
     def access_gated_feature(self):
         if self.token:
-            self.client.get(
-                "/api/keys", headers={"Authorization": f"Bearer {self.token}"}
-            )
+            self.client.get("/api/keys", headers={"Authorization": f"Bearer {self.token}"})

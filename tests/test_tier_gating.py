@@ -13,32 +13,22 @@ from app.utils.security import hash_password
 class TestPayGEndpointGating:
     """Tests for endpoints that require payg tier or higher."""
 
-    def test_freemium_user_gets_402_on_voice_verify_page(
-        self, client, regular_user, user_token
-    ):
+    def test_freemium_user_gets_402_on_voice_verify_page(self, client, regular_user, user_token):
         """Test that freemium users get 402 when accessing /voice-verify."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/voice-verify", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_freemium_user_gets_402_on_api_docs_page(
-        self, client, regular_user, user_token
-    ):
+    def test_freemium_user_gets_402_on_api_docs_page(self, client, regular_user, user_token):
         """Test that freemium users get 402 when accessing /api-docs."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/api-docs", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_freemium_user_gets_402_on_affiliate_page(
-        self, client, regular_user, user_token
-    ):
+    def test_freemium_user_gets_402_on_affiliate_page(self, client, regular_user, user_token):
         """Test that freemium users get 402 when accessing /affiliate."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/affiliate", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/affiliate", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
     def test_payg_user_can_access_payg_pages(self, client, db, user_token):
@@ -60,9 +50,7 @@ class TestPayGEndpointGating:
         token = user_token("payg_user", "payg@test.com")
 
         # Test /voice-verify page
-        response = client.get(
-            "/voice-verify", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code != 402
 
         # Test /api-docs page
@@ -70,23 +58,17 @@ class TestPayGEndpointGating:
         assert response.status_code != 402
 
         # Test /affiliate page
-        response = client.get(
-            "/affiliate", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/affiliate", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code != 402
 
 
 class TestProEndpointGating:
     """Tests for endpoints that require pro tier or higher."""
 
-    def test_freemium_user_gets_402_on_bulk_purchase_page(
-        self, client, regular_user, user_token
-    ):
+    def test_freemium_user_gets_402_on_bulk_purchase_page(self, client, regular_user, user_token):
         """Test that freemium users get 402 when accessing /bulk-purchase."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
     def test_payg_user_gets_402_on_bulk_purchase_page(self, client, db, user_token):
@@ -106,9 +88,7 @@ class TestProEndpointGating:
         db.commit()
 
         token = user_token("payg_user_bulk", "payg_bulk@test.com")
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
     def test_pro_user_can_access_bulk_purchase_page(self, client, db, user_token):
@@ -128,9 +108,7 @@ class TestProEndpointGating:
         db.commit()
 
         token = user_token("pro_user", "pro@test.com")
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code != 402
 
 
@@ -162,37 +140,27 @@ class TestCustomTierAccess:
             assert response.status_code != 402, f"Custom user should access {page}"
 
         # Test pro pages
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code != 402
 
 
 class TestTierGatingErrorResponse:
     """Tests for 402 error response format."""
 
-    def test_402_response_includes_error_details(
-        self, client, regular_user, user_token
-    ):
+    def test_402_response_includes_error_details(self, client, regular_user, user_token):
         """Test that 402 response includes error details."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/voice-verify", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
         data = response.json()
         # Should have error details (either 'detail' or 'details' or 'message')
         assert "detail" in data or "details" in data or "message" in data
 
-    def test_402_response_indicates_required_tier(
-        self, client, regular_user, user_token
-    ):
+    def test_402_response_indicates_required_tier(self, client, regular_user, user_token):
         """Test that 402 response indicates the required tier."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/voice-verify", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
         # Response should indicate payg is required
@@ -220,9 +188,7 @@ class TestTierHierarchyEnforcement:
         db.commit()
 
         token = user_token("freemium_test", "freemium@test.com")
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
     def test_tier_hierarchy_payg_to_pro(self, client, db, user_token):
@@ -242,9 +208,7 @@ class TestTierHierarchyEnforcement:
         db.commit()
 
         token = user_token("payg_test", "payg_test@test.com")
-        response = client.get(
-            "/bulk-purchase", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
     def test_tier_hierarchy_pro_can_access_payg_features(self, client, db, user_token):
@@ -266,9 +230,7 @@ class TestTierHierarchyEnforcement:
         token = user_token("pro_test", "pro_test@test.com")
 
         # Pro users should be able to access payg pages
-        response = client.get(
-            "/voice-verify", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code != 402
 
 
@@ -281,6 +243,4 @@ class TestUnauthenticatedAccessToGatedPages:
 
         for page in pages:
             response = client.get(page)
-            assert (
-                response.status_code == 401
-            ), f"Unauthenticated user should get 401 on {page}"
+            assert response.status_code == 401, f"Unauthenticated user should get 401 on {page}"

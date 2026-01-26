@@ -189,21 +189,15 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
                 "social_security",
             ]
             for key, value in data.items():
-                if any(
-                    sensitive_key in key.lower() for sensitive_key in sensitive_keys
-                ):
+                if any(sensitive_key in key.lower() for sensitive_key in sensitive_keys):
                     sanitized[key] = "[REDACTED]"
                 elif isinstance(value, (dict, list)):
-                    sanitized[key] = RequestLoggingMiddleware._sanitize_sensitive_data(
-                        value
-                    )
+                    sanitized[key] = RequestLoggingMiddleware._sanitize_sensitive_data(value)
                 else:
                     sanitized[key] = value
             return sanitized
         elif isinstance(data, list):
-            return [
-                RequestLoggingMiddleware._sanitize_sensitive_data(item) for item in data
-            ]
+            return [RequestLoggingMiddleware._sanitize_sensitive_data(item) for item in data]
         return data
 
 
@@ -238,9 +232,7 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
         # Update average response time
         current_avg = self.metrics["avg_response_time"]
         total_requests = self.metrics["total_requests"]
-        self.metrics["avg_response_time"] = (
-            current_avg * (total_requests - 1) + process_time
-        ) / total_requests
+        self.metrics["avg_response_time"] = (current_avg * (total_requests - 1) + process_time) / total_requests
 
         # Update endpoint - specific metrics
         if endpoint not in self.metrics["endpoint_metrics"]:
@@ -258,9 +250,7 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
         # Update endpoint average time
         current_count = endpoint_metrics["count"]
         current_avg = endpoint_metrics["avg_time"]
-        endpoint_metrics["avg_time"] = (
-            current_avg * (current_count - 1) + process_time
-        ) / current_count
+        endpoint_metrics["avg_time"] = (current_avg * (current_count - 1) + process_time) / current_count
 
         # Update min/max times
         endpoint_metrics["min_time"] = min(endpoint_metrics["min_time"], process_time)
@@ -272,9 +262,7 @@ class PerformanceMetricsMiddleware(BaseHTTPMiddleware):
 
         # Add metrics headers
         response.headers["X - Total-Requests"] = str(self.metrics["total_requests"])
-        response.headers["X - Avg-Response - Time"] = (
-            f"{self.metrics['avg_response_time']:.3f}"
-        )
+        response.headers["X - Avg-Response - Time"] = f"{self.metrics['avg_response_time']:.3f}"
         response.headers["X - Error-Rate"] = (
             f"{(self.metrics['total_errors'] / self.metrics['total_requests'] * 100):.2f}%"
         )
@@ -321,9 +309,7 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         """Create audit trail for sensitive operations."""
         # Check if this is a sensitive operation
-        is_sensitive = any(
-            request.url.path.startswith(path) for path in self.sensitive_paths
-        )
+        is_sensitive = any(request.url.path.startswith(path) for path in self.sensitive_paths)
 
         if is_sensitive:
             await self._log_audit_event(request, "before")
@@ -364,9 +350,7 @@ class AuditTrailMiddleware(BaseHTTPMiddleware):
                     try:
                         body_data = json.loads(body.decode())
                         # Remove sensitive fields recursively
-                        audit_data["body"] = (
-                            RequestLoggingMiddleware._sanitize_sensitive_data(body_data)
-                        )
+                        audit_data["body"] = RequestLoggingMiddleware._sanitize_sensitive_data(body_data)
                     except (json.JSONDecodeError, UnicodeDecodeError):
                         audit_data["body"] = "[BINARY_DATA]"
             except (ValueError, UnicodeDecodeError, AttributeError):

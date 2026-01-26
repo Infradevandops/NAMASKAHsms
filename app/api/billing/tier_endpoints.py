@@ -31,18 +31,12 @@ async def list_tiers(db: Session = Depends(get_db)):
         formatted_tiers = []
         for tier in tiers:
             # Convert price from cents to dollars
-            price_monthly_dollars = (
-                tier["price_monthly"] / 100 if tier["price_monthly"] else 0
-            )
+            price_monthly_dollars = tier["price_monthly"] / 100 if tier["price_monthly"] else 0
             formatted_tier = {
                 "tier": tier["tier"],
                 "name": tier["name"],
                 "price_monthly": price_monthly_dollars,
-                "price_display": (
-                    "Free"
-                    if tier["price_monthly"] == 0
-                    else f"${price_monthly_dollars:.2f}/mo"
-                ),
+                "price_display": ("Free" if tier["price_monthly"] == 0 else f"${price_monthly_dollars:.2f}/mo"),
                 "quota_usd": tier["quota_usd"],
                 "overage_rate": tier["overage_rate"],
                 "features": {
@@ -59,15 +53,11 @@ async def list_tiers(db: Session = Depends(get_db)):
         return {"tiers": formatted_tiers}
     except Exception as e:
         logger.error(f"Failed to fetch tiers: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve tier information: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve tier information: {str(e)}")
 
 
 @router.get("/current")
-async def get_current_tier(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current user's tier information, quota usage, and pricing."""
     logger.info(f"Fetching current tier for user_id: {user_id}")
 
@@ -84,20 +74,14 @@ async def get_current_tier(
         # Get tier configuration
         try:
             tier_config = TierConfig.get_tier_config(user_tier, db)
-            logger.debug(
-                f"Retrieved tier config for {user_tier}: {tier_config.get('name', 'Unknown')}"
-            )
+            logger.debug(f"Retrieved tier config for {user_tier}: {tier_config.get('name', 'Unknown')}")
         except Exception as config_error:
-            logger.error(
-                f"Failed to get tier config for {user_tier}: {str(config_error)}"
-            )
+            logger.error(f"Failed to get tier config for {user_tier}: {str(config_error)}")
             # Use fallback config
             tier_config = TierConfig._get_fallback_config(user_tier)
 
         # Convert price from cents to dollars
-        price_monthly_dollars = (
-            tier_config["price_monthly"] / 100 if tier_config["price_monthly"] else 0
-        )
+        price_monthly_dollars = tier_config["price_monthly"] / 100 if tier_config["price_monthly"] else 0
 
         # Calculate quota usage for current month
         current_month = datetime.utcnow().strftime("%Y-%m")
@@ -124,9 +108,7 @@ async def get_current_tier(
                 logger.debug(f"Using user.monthly_quota_used: ${quota_used_usd}")
 
             # Count SMS verifications for current month
-            month_start = datetime.utcnow().replace(
-                day=1, hour=0, minute=0, second=0, microsecond=0
-            )
+            month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             sms_count = (
                 db.query(func.count(Verification.id))
                 .filter(
@@ -145,9 +127,7 @@ async def get_current_tier(
             quota_used_usd = user.monthly_quota_used or 0.0
 
         # Calculate quota remaining and within_quota status
-        quota_limit = float(
-            tier_config.get("quota_usd", 0) or 0
-        )  # Convert Decimal to float
+        quota_limit = float(tier_config.get("quota_usd", 0) or 0)  # Convert Decimal to float
         quota_remaining_usd = max(0, quota_limit - quota_used_usd)
         within_quota = quota_used_usd <= quota_limit if quota_limit > 0 else True
 
@@ -182,9 +162,7 @@ async def get_current_tier(
             f"Unexpected error fetching tier for user {user_id}: {str(e)}",
             exc_info=True,
         )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to retrieve tier information: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to retrieve tier information: {str(e)}")
 
 
 @router.post("/upgrade")
@@ -208,9 +186,7 @@ async def upgrade_tier(
             raise HTTPException(status_code=404, detail="User not found")
 
         current_tier = user.subscription_tier or "freemium"
-        logger.debug(
-            f"User {user_id} current tier: {current_tier}, target: {target_tier}"
-        )
+        logger.debug(f"User {user_id} current tier: {current_tier}, target: {target_tier}")
 
         # Validate upgrade path
         tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
@@ -232,14 +208,10 @@ async def upgrade_tier(
         user.tier_upgraded_at = datetime.utcnow()
         db.commit()
 
-        logger.info(
-            f"Successfully upgraded user {user_id} from {current_tier} to {target_tier}"
-        )
+        logger.info(f"Successfully upgraded user {user_id} from {current_tier} to {target_tier}")
 
         # Convert price from cents to dollars
-        price_monthly_dollars = (
-            tier_config["price_monthly"] / 100 if tier_config["price_monthly"] else 0
-        )
+        price_monthly_dollars = tier_config["price_monthly"] / 100 if tier_config["price_monthly"] else 0
 
         return {
             "success": True,
@@ -257,9 +229,7 @@ async def upgrade_tier(
 
 
 @router.post("/downgrade")
-async def downgrade_tier(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def downgrade_tier(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Downgrade to Freemium tier."""
     logger.info(f"Downgrade request from user {user_id}")
 
@@ -273,9 +243,7 @@ async def downgrade_tier(
         user.subscription_tier = "freemium"
         db.commit()
 
-        logger.info(
-            f"Successfully downgraded user {user_id} from {previous_tier} to freemium"
-        )
+        logger.info(f"Successfully downgraded user {user_id} from {previous_tier} to freemium")
 
         return {
             "success": True,
@@ -288,6 +256,4 @@ async def downgrade_tier(
     except Exception as e:
         logger.error(f"Failed to downgrade user {user_id}: {str(e)}", exc_info=True)
         db.rollback()
-        raise HTTPException(
-            status_code=500, detail=f"Failed to downgrade tier: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to downgrade tier: {str(e)}")

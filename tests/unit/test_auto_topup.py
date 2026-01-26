@@ -61,9 +61,7 @@ async def test_check_and_topup_disabled(auto_topup_service, db, regular_user):
 
 
 @pytest.mark.asyncio
-async def test_check_and_topup_triggered(
-    auto_topup_service, db, regular_user, mock_payment_service
-):
+async def test_check_and_topup_triggered(auto_topup_service, db, regular_user, mock_payment_service):
     # Set low balance and enabled
     regular_user.credits = 1.0
     regular_user.auto_topup_enabled = True

@@ -65,11 +65,7 @@ class TestTierHierarchyAccessCheck:
                 if level <= TIER_HIERARCHY[required_tier]:
                     assert has_tier_access(user_tier, lower_tier) is True
 
-    @given(
-        invalid_tier=st.text(min_size=1, max_size=20).filter(
-            lambda x: x not in TIER_HIERARCHY
-        )
-    )
+    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY))
     @hyp_settings(max_examples=50)
     def test_invalid_tier_defaults_to_zero(self, invalid_tier: str):
         """Invalid tiers should be treated as level 0 (freemium equivalent)."""
@@ -99,9 +95,7 @@ class TestSubscriptionStatusCheck:
         result = is_subscribed(tier)
         expected = tier in paid_tier_set
 
-        assert (
-            result == expected
-        ), f"is_subscribed({tier}) returned {result}, expected {expected}"
+        assert result == expected, f"is_subscribed({tier}) returned {result}, expected {expected}"
 
     @given(tier=paid_tiers)
     @hyp_settings(max_examples=100)
@@ -113,11 +107,7 @@ class TestSubscriptionStatusCheck:
         """Freemium tier should not be considered subscribed."""
         assert is_subscribed("freemium") is False
 
-    @given(
-        invalid_tier=st.text(min_size=1, max_size=20).filter(
-            lambda x: x not in TIER_HIERARCHY
-        )
-    )
+    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY))
     @hyp_settings(max_examples=50)
     def test_invalid_tier_not_subscribed(self, invalid_tier: str):
         """Invalid tiers should not be considered subscribed."""
@@ -135,11 +125,7 @@ class TestTierDisplayNames:
         assert result == TIER_DISPLAY_NAMES[tier]
         assert result != "Unknown"
 
-    @given(
-        invalid_tier=st.text(min_size=1, max_size=20).filter(
-            lambda x: x not in TIER_HIERARCHY
-        )
-    )
+    @given(invalid_tier=st.text(min_size=1, max_size=20).filter(lambda x: x not in TIER_HIERARCHY))
     @hyp_settings(max_examples=50)
     def test_invalid_tier_returns_unknown(self, invalid_tier: str):
         """Invalid tiers should return 'Unknown' as display name."""

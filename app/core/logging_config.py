@@ -14,11 +14,7 @@ def configure_logging() -> None:
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
             logging.StreamHandler(),
-            (
-                logging.FileHandler("app.log")
-                if not settings.debug
-                else logging.NullHandler()
-            ),
+            (logging.FileHandler("app.log") if not settings.debug else logging.NullHandler()),
         ],
     )
 
@@ -34,9 +30,7 @@ def log_operation(logger: logging.Logger, operation: str, **kwargs) -> None:
     logger.info(f"{operation} | {context}")
 
 
-def log_error(
-    logger: logging.Logger, operation: str, error: Exception, **kwargs
-) -> None:
+def log_error(logger: logging.Logger, operation: str, error: Exception, **kwargs) -> None:
     """Log an error with context."""
     context = " | ".join(f"{k}={v}" for k, v in kwargs.items())
     logger.error(f"{operation} | {context} | Error: {str(error)}")

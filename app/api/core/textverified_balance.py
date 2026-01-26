@@ -12,9 +12,7 @@ router = APIRouter(prefix="/api/textverified", tags=["textverified"])
 
 
 @router.get("/balance")
-async def get_textverified_balance(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_textverified_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get TextVerified API balance (admin only)."""
     # Check if user is admin
     user = db.query(User).filter(User.id == user_id).first()

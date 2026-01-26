@@ -39,9 +39,7 @@ class TestAPIResponseTimes:
 
         # Measure response time
         start = time.time()
-        response = client.get(
-            "/api/tiers/", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/", headers={"Authorization": f"Bearer {token}"})
         elapsed = (time.time() - start) * 1000  # Convert to ms
 
         assert response.status_code == 200
@@ -69,9 +67,7 @@ class TestAPIResponseTimes:
 
         # Measure response time
         start = time.time()
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
         elapsed = (time.time() - start) * 1000
 
         assert response.status_code == 200
@@ -95,15 +91,11 @@ class TestAPIResponseTimes:
         token = create_test_token(user.id, user.email)
 
         # Warm up request
-        client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
 
         # Measure response time
         start = time.time()
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         elapsed = (time.time() - start) * 1000
 
         assert response.status_code == 200
@@ -131,9 +123,7 @@ class TestAPIResponseTimes:
 
         # Measure response time
         start = time.time()
-        response = client.get(
-            "/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         elapsed = (time.time() - start) * 1000
 
         assert response.status_code == 200
@@ -200,15 +190,11 @@ class TestDatabaseQueryPerformance:
         token = create_test_token(user.id, user.email)
 
         # Request should include all user tier data in single response
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 200
         data = response.json()
 
         # Verify all expected fields are present (no N+1 queries needed)
         assert "current_tier" in data
-        assert (
-            "quota_limit_usd" in data or "monthly_quota_usd" in data or True
-        )  # Field may vary
+        assert "quota_limit_usd" in data or "monthly_quota_usd" in data or True  # Field may vary

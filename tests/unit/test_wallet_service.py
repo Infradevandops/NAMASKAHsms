@@ -24,44 +24,32 @@ class TestWalletSMSCostCalculations:
 
     def test_calculate_sms_cost_payg_location_filter(self, db_session):
         """Location filter: +$0.25 for PAYG."""
-        user = User(
-            email="payg_loc@example.com", subscription_tier="payg", credits=10.0
-        )
+        user = User(email="payg_loc@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
         # filter keys: state/city trigger +0.25
-        result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA"}
-        )
+        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA"})
         assert result["filter_charges"] == 0.25
         assert result["total_cost"] == 2.50 + 0.25
 
     def test_calculate_sms_cost_payg_isp_filter(self, db_session):
         """ISP filter: +$0.50 for PAYG."""
-        user = User(
-            email="payg_isp@example.com", subscription_tier="payg", credits=10.0
-        )
+        user = User(email="payg_isp@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"isp": "T-Mobile"}
-        )
+        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"isp": "T-Mobile"})
         assert result["filter_charges"] == 0.50
         assert result["total_cost"] == 2.50 + 0.50
 
     def test_calculate_sms_cost_payg_all_filters(self, db_session):
         """All filters: +$0.75 for PAYG."""
-        user = User(
-            email="payg_all@example.com", subscription_tier="payg", credits=10.0
-        )
+        user = User(email="payg_all@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA", "isp": "Verizon"}
-        )
+        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA", "isp": "Verizon"})
         assert result["filter_charges"] == 0.75
         assert result["total_cost"] == 2.50 + 0.75
 
@@ -71,9 +59,7 @@ class TestWalletSMSCostCalculations:
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(
-            db_session, user.id, {"state": "CA", "isp": "Verizon"}
-        )
+        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA", "isp": "Verizon"})
         assert result["filter_charges"] == 0.0
         assert result["total_cost"] == 2.50  # Base cost only
 
@@ -83,9 +69,7 @@ class TestWalletTransactions:
 
     def test_add_credits_transaction(self, db_session):
         """Test adding credits records a transaction."""
-        user = User(
-            email="test_add@example.com", subscription_tier="freemium", credits=0
-        )
+        user = User(email="test_add@example.com", subscription_tier="freemium", credits=0)
         db_session.add(user)
         db_session.commit()
 
@@ -97,9 +81,7 @@ class TestWalletTransactions:
             transaction_type="credit",
         )
 
-        tx = (
-            db_session.query(Transaction).filter(Transaction.user_id == user.id).first()
-        )
+        tx = db_session.query(Transaction).filter(Transaction.user_id == user.id).first()
         assert tx is not None
         assert tx.type == "credit"
         assert tx.amount == 20.0
@@ -107,9 +89,7 @@ class TestWalletTransactions:
 
     def test_deduct_credits_transaction(self, db_session):
         """Test deducting credits records a transaction."""
-        user = User(
-            email="test_deduct@example.com", subscription_tier="freemium", credits=10.0
-        )
+        user = User(email="test_deduct@example.com", subscription_tier="freemium", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
@@ -121,26 +101,20 @@ class TestWalletTransactions:
             transaction_type="debit",
         )
 
-        tx = (
-            db_session.query(Transaction).filter(Transaction.user_id == user.id).first()
-        )
+        tx = db_session.query(Transaction).filter(Transaction.user_id == user.id).first()
         assert tx is not None
         assert tx.type == "debit"
         assert tx.amount == -2.50
 
     def test_transaction_history_pagination(self, db_session):
         """Test transaction history pagination."""
-        user = User(
-            email="test_page@example.com", subscription_tier="freemium", credits=100.0
-        )
+        user = User(email="test_page@example.com", subscription_tier="freemium", credits=100.0)
         db_session.add(user)
         db_session.commit()
 
         # Create 25 transactions
         for i in range(25):
-            tx = Transaction(
-                user_id=user.id, type="credit", amount=10.0, description=f"Deposit {i}"
-            )
+            tx = Transaction(user_id=user.id, type="credit", amount=10.0, description=f"Deposit {i}")
             db_session.add(tx)
         db_session.commit()
 
@@ -162,9 +136,7 @@ class TestWalletBalanceOperations:
 
     def test_deduct_credits_sufficient_balance(self, db_session):
         """User has $10, deduct $5."""
-        user = User(
-            email="balance_ok@example.com", subscription_tier="freemium", credits=10.0
-        )
+        user = User(email="balance_ok@example.com", subscription_tier="freemium", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
@@ -176,9 +148,7 @@ class TestWalletBalanceOperations:
 
     def test_deduct_credits_insufficient_balance(self, db_session):
         """User has $3, try to deduct $5."""
-        user = User(
-            email="balance_low@example.com", subscription_tier="freemium", credits=3.0
-        )
+        user = User(email="balance_low@example.com", subscription_tier="freemium", credits=3.0)
         db_session.add(user)
         db_session.commit()
 
@@ -211,12 +181,8 @@ class TestCreditServiceTransfer:
 
     def test_transfer_credits_success(self, db_session):
         """Test successful transfer between users."""
-        sender = User(
-            email="sender@example.com", subscription_tier="pro", credits=100.0
-        )
-        recipient = User(
-            email="recipient@example.com", subscription_tier="freemium", credits=0.0
-        )
+        sender = User(email="sender@example.com", subscription_tier="pro", credits=100.0)
+        recipient = User(email="recipient@example.com", subscription_tier="freemium", credits=0.0)
         db_session.add(sender)
         db_session.add(recipient)
         db_session.commit()
@@ -233,9 +199,7 @@ class TestCreditServiceTransfer:
 
         # Verify transactions
         txs_sender = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == sender.id, Transaction.type == "transfer")
-            .all()
+            db_session.query(Transaction).filter(Transaction.user_id == sender.id, Transaction.type == "transfer").all()
         )
         txs_recipient = (
             db_session.query(Transaction)
@@ -249,12 +213,8 @@ class TestCreditServiceTransfer:
 
     def test_transfer_credits_insufficient_funds(self, db_session):
         """Test transfer fails with insufficient funds."""
-        sender = User(
-            email="poor_sender@example.com", subscription_tier="freemium", credits=10.0
-        )
-        recipient = User(
-            email="rich_recipient@example.com", subscription_tier="pro", credits=100.0
-        )
+        sender = User(email="poor_sender@example.com", subscription_tier="freemium", credits=10.0)
+        recipient = User(email="rich_recipient@example.com", subscription_tier="pro", credits=100.0)
         db_session.add(sender)
         db_session.add(recipient)
         db_session.commit()
@@ -276,9 +236,7 @@ class TestCreditServiceAdmin:
 
     def test_reset_credits(self, db_session):
         """Test admin reset credits."""
-        user = User(
-            email="reset_target@example.com", subscription_tier="freemium", credits=50.0
-        )
+        user = User(email="reset_target@example.com", subscription_tier="freemium", credits=50.0)
         db_session.add(user)
         db_session.commit()
 
@@ -300,9 +258,7 @@ class TestCreditServiceAdmin:
 
     def test_get_transaction_summary(self, db_session):
         """Test transaction summary generation."""
-        user = User(
-            email="summary_user@example.com", subscription_tier="freemium", credits=0.0
-        )
+        user = User(email="summary_user@example.com", subscription_tier="freemium", credits=0.0)
         db_session.add(user)
         db_session.commit()
 

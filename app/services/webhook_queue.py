@@ -44,9 +44,7 @@ class WebhookQueue:
         """Process webhooks from queue."""
         # Create consumer group if not exists
         try:
-            self.redis.xgroup_create(
-                self.stream, "webhook-workers", id="0", mkstream=True
-            )
+            self.redis.xgroup_create(self.stream, "webhook-workers", id="0", mkstream=True)
         except Exception:
             pass  # Group already exists
 
@@ -90,9 +88,7 @@ class WebhookQueue:
             else:
                 # Move to DLQ
                 self.redis.xadd(self.dlq_stream, payload)
-                logger.error(
-                    f"Webhook {webhook_id} moved to DLQ after {retry_count} retries"
-                )
+                logger.error(f"Webhook {webhook_id} moved to DLQ after {retry_count} retries")
 
             # Acknowledge original message
             self.redis.xack(self.stream, "webhook-workers", message_id)

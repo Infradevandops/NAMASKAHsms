@@ -37,24 +37,16 @@ class MonitoringService:
         hour_ago = now - timedelta(hours=1)
 
         # Request metrics
-        total_requests = (
-            db.query(Verification).filter(Verification.created_at >= hour_ago).count()
-        )
+        total_requests = db.query(Verification).filter(Verification.created_at >= hour_ago).count()
 
         successful_requests = (
             db.query(Verification)
-            .filter(
-                Verification.created_at >= hour_ago, Verification.status == "completed"
-            )
+            .filter(Verification.created_at >= hour_ago, Verification.status == "completed")
             .count()
         )
 
         failed_requests = (
-            db.query(Verification)
-            .filter(
-                Verification.created_at >= hour_ago, Verification.status == "failed"
-            )
-            .count()
+            db.query(Verification).filter(Verification.created_at >= hour_ago, Verification.status == "failed").count()
         )
 
         # Calculate rates
@@ -89,10 +81,7 @@ class MonitoringService:
         alerts = []
 
         # Response time alert
-        if (
-            metrics["performance"]["p95_response_time"]
-            > self.thresholds["response_time_p95"]
-        ):
+        if metrics["performance"]["p95_response_time"] > self.thresholds["response_time_p95"]:
             alerts.append(
                 {
                     "type": "performance",

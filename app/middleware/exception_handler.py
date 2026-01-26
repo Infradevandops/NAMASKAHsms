@@ -67,9 +67,7 @@ class ResourceNotFoundException(AppException):
     """Resource not found exception."""
 
     def __init__(self, resource: str = "Resource"):
-        super().__init__(
-            message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404
-        )
+        super().__init__(message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404)
 
 
 class ConflictException(AppException):
@@ -83,18 +81,14 @@ class RateLimitException(AppException):
     """Rate limit exceeded exception."""
 
     def __init__(self, message: str = "Too many requests"):
-        super().__init__(
-            message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429
-        )
+        super().__init__(message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429)
 
 
 class InsufficientCreditsException(AppException):
     """Insufficient credits exception."""
 
     def __init__(self, message: str = "Insufficient credits"):
-        super().__init__(
-            message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402
-        )
+        super().__init__(message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402)
 
 
 class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
@@ -151,9 +145,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                 request_id=request_id,
             )
 
-            return JSONResponse(
-                status_code=e.status_code, content=error_response.dict()
-            )
+            return JSONResponse(status_code=e.status_code, content=error_response.dict())
 
         except SQLAlchemyError as e:
             """Handle database errors."""

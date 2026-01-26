@@ -22,9 +22,7 @@ logger = get_logger(__name__)
 payment_credits = Counter("payment_credits_total", "Total payment credits")
 payment_duplicates = Counter("payment_duplicates_total", "Duplicate payment attempts")
 payment_duration = Histogram("payment_duration_seconds", "Payment processing time")
-webhook_deliveries = Counter(
-    "webhook_deliveries_total", "Webhook deliveries", ["status"]
-)
+webhook_deliveries = Counter("webhook_deliveries_total", "Webhook deliveries", ["status"])
 
 
 class PaymentService:
@@ -36,9 +34,7 @@ class PaymentService:
         self.credit_service = CreditService(db)
         self.redis = redis or Redis.from_url(get_settings().redis_url)
 
-    async def credit_user(
-        self, reference: str, amount: float, user_id: str
-    ) -> Dict[str, Any]:
+    async def credit_user(self, reference: str, amount: float, user_id: str) -> Dict[str, Any]:
         """Credit user with idempotency guarantee."""
         # Check if already credited
         idempotency_key = f"payment:credited:{reference}"
@@ -57,12 +53,7 @@ class PaymentService:
         with payment_duration.time():
             try:
                 # Use SELECT FOR UPDATE to prevent race conditions
-                user = (
-                    self.db.query(User)
-                    .filter(User.id == user_id)
-                    .with_for_update()
-                    .first()
-                )
+                user = self.db.query(User).filter(User.id == user_id).with_for_update().first()
 
                 if not user:
                     raise ValueError(f"User {user_id} not found")
@@ -166,8 +157,7 @@ class PaymentService:
             self.db.commit()
 
             logger.info(
-                f"Payment initiated: Reference={reference}, "
-                f"Amount=${amount_usd}, URL={result['authorization_url']}"
+                f"Payment initiated: Reference={reference}, " f"Amount=${amount_usd}, URL={result['authorization_url']}"
             )
 
             return {
@@ -199,9 +189,7 @@ class PaymentService:
         """
         # Get payment log
         payment_log = (
-            self.db.query(PaymentLog)
-            .filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id)
-            .first()
+            self.db.query(PaymentLog).filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id).first()
         )
 
         if not payment_log:
@@ -237,8 +225,7 @@ class PaymentService:
                     payment_log.credited = True
 
                     logger.info(
-                        f"Credits added: User={user_id}, Amount={credits_to_add}, "
-                        f"New Balance={user.credits}"
+                        f"Credits added: User={user_id}, Amount={credits_to_add}, " f"New Balance={user.credits}"
                     )
 
             self.db.commit()
@@ -257,9 +244,7 @@ class PaymentService:
             logger.error(f"Failed to verify payment: {str(e)}")
             raise ValueError(f"Payment verification failed: {str(e)}")
 
-    async def process_webhook(
-        self, event: str, payload: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    async def process_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Process Paystack webhook event.
 
         Args:
@@ -298,9 +283,7 @@ class PaymentService:
         logger.info(f"Charge success: Reference={reference}")
 
         # Get payment log
-        payment_log = (
-            self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
-        )
+        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
 
         if not payment_log:
             logger.warning(f"Payment log not found: {reference}")
@@ -342,9 +325,7 @@ class PaymentService:
         logger.warning(f"Charge failed: Reference={reference}")
 
         # Get payment log
-        payment_log = (
-            self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
-        )
+        payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
 
         if payment_log:
             payment_log.status = "failed"
@@ -383,16 +364,10 @@ class PaymentService:
         total = query.count()
 
         # Apply pagination and sorting
-        payments = (
-            query.order_by(desc(PaymentLog.created_at))
-            .offset(skip)
-            .limit(min(limit, 100))
-            .all()
-        )
+        payments = query.order_by(desc(PaymentLog.created_at)).offset(skip).limit(min(limit, 100)).all()
 
         logger.info(
-            f"Retrieved {len(payments)} payments for user {user_id} "
-            f"(total: {total}, skip: {skip}, limit: {limit})"
+            f"Retrieved {len(payments)} payments for user {user_id} " f"(total: {total}, skip: {skip}, limit: {limit})"
         )
 
         return {
@@ -463,9 +438,7 @@ class PaymentService:
             "total_payments": len(payments),
         }
 
-    def refund_payment(
-        self, reference: str, user_id: str, reason: str = "User requested refund"
-    ) -> Dict[str, Any]:
+    def refund_payment(self, reference: str, user_id: str, reason: str = "User requested refund") -> Dict[str, Any]:
         """Refund a payment (admin only).
 
         Args:
@@ -481,9 +454,7 @@ class PaymentService:
         """
         # Get payment log
         payment_log = (
-            self.db.query(PaymentLog)
-            .filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id)
-            .first()
+            self.db.query(PaymentLog).filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id).first()
         )
 
         if not payment_log:
@@ -521,8 +492,7 @@ class PaymentService:
         self.db.commit()
 
         logger.warning(
-            f"Payment refunded: Reference={reference}, User={user_id}, "
-            f"Amount={credits_to_deduct}, Reason={reason}"
+            f"Payment refunded: Reference={reference}, User={user_id}, " f"Amount={credits_to_deduct}, Reason={reason}"
         )
 
         return {

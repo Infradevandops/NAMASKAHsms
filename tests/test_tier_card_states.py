@@ -33,9 +33,7 @@ class TestTierCurrentEndpoint:
         response = client.get("/api/tiers/current", headers=auth_headers)
         assert response.status_code == 200
 
-    def test_response_contains_required_fields(
-        self, client: TestClient, auth_headers: dict
-    ):
+    def test_response_contains_required_fields(self, client: TestClient, auth_headers: dict):
         """Response must contain all fields required by frontend validator."""
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
@@ -99,9 +97,7 @@ class TestTierCurrentEndpoint:
         # This would require mocking the user lookup to return None
         # Implementation depends on your test fixtures
 
-    def test_handles_database_error_gracefully(
-        self, client: TestClient, auth_headers: dict
-    ):
+    def test_handles_database_error_gracefully(self, client: TestClient, auth_headers: dict):
         """Should return 500 with message on database errors."""
         # Mock database to raise exception
         with patch("app.api.billing.tier_endpoints.get_db") as mock_db:
@@ -123,9 +119,7 @@ class TestTierCurrentByTier:
             ("custom", 35.0),  # $35/month
         ],
     )
-    def test_price_by_tier(
-        self, client: TestClient, auth_headers: dict, tier: str, expected_price: float
-    ):
+    def test_price_by_tier(self, client: TestClient, auth_headers: dict, tier: str, expected_price: float):
         """Each tier should return correct price."""
         # This test requires setting up users with different tiers
         # Implementation depends on your test fixtures
@@ -139,18 +133,14 @@ class TestTierCurrentByTier:
             ("custom", True),
         ],
     )
-    def test_api_access_by_tier(
-        self, client: TestClient, auth_headers: dict, tier: str, has_api_access: bool
-    ):
+    def test_api_access_by_tier(self, client: TestClient, auth_headers: dict, tier: str, has_api_access: bool):
         """API access feature should match tier configuration."""
 
 
 class TestTierResponseValidation:
     """Tests to ensure response matches frontend validator expectations."""
 
-    def test_response_passes_frontend_validation(
-        self, client: TestClient, auth_headers: dict
-    ):
+    def test_response_passes_frontend_validation(self, client: TestClient, auth_headers: dict):
         """Response should pass the same validation as frontend."""
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
@@ -172,9 +162,7 @@ class TestTierResponseValidation:
         missing = [f for f in required_fields if f not in data]
         assert len(missing) == 0, f"Missing fields: {missing}"
 
-    def test_no_null_values_in_required_fields(
-        self, client: TestClient, auth_headers: dict
-    ):
+    def test_no_null_values_in_required_fields(self, client: TestClient, auth_headers: dict):
         """Required fields should not be null."""
         response = client.get("/api/tiers/current", headers=auth_headers)
         data = response.json()
@@ -189,9 +177,7 @@ class TestTierResponseValidation:
 class TestTierEndpointPerformance:
     """Performance tests for tier endpoint."""
 
-    def test_response_time_under_threshold(
-        self, client: TestClient, auth_headers: dict
-    ):
+    def test_response_time_under_threshold(self, client: TestClient, auth_headers: dict):
         """Endpoint should respond within acceptable time."""
         import time
 

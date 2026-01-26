@@ -35,10 +35,7 @@ class TestTierManagement:
         db_session.commit()
 
         assert tier_manager.check_feature_access(regular_user.id, "api_access") is True
-        assert (
-            tier_manager.check_feature_access(regular_user.id, "priority_routing")
-            is True
-        )
+        assert tier_manager.check_feature_access(regular_user.id, "priority_routing") is True
 
     def test_can_create_api_key_limits(self, regular_user, db_session):
         # 1. Freemium cannot create API keys

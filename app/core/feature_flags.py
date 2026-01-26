@@ -46,12 +46,8 @@ class FeatureFlagManager:
                 RolloutStrategy.PERCENTAGE,
                 {"percentage": 10},
             ),
-            "enhanced_analytics": FeatureFlag(
-                "enhanced_analytics", False, RolloutStrategy.ADMIN_ONLY
-            ),
-            "redis_caching": FeatureFlag(
-                "redis_caching", True, RolloutStrategy.ALL_USERS
-            ),
+            "enhanced_analytics": FeatureFlag("enhanced_analytics", False, RolloutStrategy.ADMIN_ONLY),
+            "redis_caching": FeatureFlag("redis_caching", True, RolloutStrategy.ALL_USERS),
             "webhook_v2": FeatureFlag(
                 "webhook_v2",
                 False,
@@ -61,9 +57,7 @@ class FeatureFlagManager:
         }
         self.flags.update(default_flags)
 
-    def is_enabled(
-        self, flag_name: str, user_id: Optional[str] = None, is_admin: bool = False
-    ) -> bool:
+    def is_enabled(self, flag_name: str, user_id: Optional[str] = None, is_admin: bool = False) -> bool:
         """Check if feature flag is enabled for user."""
         if flag_name not in self.flags:
             return False
@@ -110,16 +104,11 @@ class FeatureFlagManager:
             if config:
                 flag.config.update(config)
         else:
-            self.flags[flag_name] = FeatureFlag(
-                flag_name, enabled, strategy or RolloutStrategy.ALL_USERS, config or {}
-            )
+            self.flags[flag_name] = FeatureFlag(flag_name, enabled, strategy or RolloutStrategy.ALL_USERS, config or {})
 
     def get_user_flags(self, user_id: str, is_admin: bool = False) -> Dict[str, bool]:
         """Get all feature flags for a specific user."""
-        return {
-            flag_name: self.is_enabled(flag_name, user_id, is_admin)
-            for flag_name in self.flags
-        }
+        return {flag_name: self.is_enabled(flag_name, user_id, is_admin) for flag_name in self.flags}
 
     def export_config(self) -> str:
         """Export feature flag configuration as JSON."""
@@ -137,16 +126,12 @@ class FeatureFlagManager:
 feature_flags = FeatureFlagManager()
 
 
-def is_feature_enabled(
-    flag_name: str, user_id: Optional[str] = None, is_admin: bool = False
-) -> bool:
+def is_feature_enabled(flag_name: str, user_id: Optional[str] = None, is_admin: bool = False) -> bool:
     """Convenience function to check feature flags."""
     return feature_flags.is_enabled(flag_name, user_id, is_admin)
 
 
-def feature_flag_middleware(
-    request, user_id: Optional[str] = None, is_admin: bool = False
-):
+def feature_flag_middleware(request, user_id: Optional[str] = None, is_admin: bool = False):
     """Middleware to inject feature flags into request context."""
     if hasattr(request, "state"):
         request.state.feature_flags = feature_flags.get_user_flags(user_id, is_admin)

@@ -14,9 +14,7 @@ class AuditService:
     def __init__(self):
         self.audit_log = []
 
-    async def log_action(
-        self, user_id: str, action: str, resource: str, details: Dict[str, Any] = None
-    ):
+    async def log_action(self, user_id: str, action: str, resource: str, details: Dict[str, Any] = None):
         """Log user action."""
         entry = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -42,9 +40,7 @@ class AuditService:
 
     async def delete_user_data(self, user_id: str):
         """Delete user data for GDPR right to be forgotten."""
-        self.audit_log = [
-            entry for entry in self.audit_log if entry["user_id"] != user_id
-        ]
+        self.audit_log = [entry for entry in self.audit_log if entry["user_id"] != user_id]
         logger.info(f"User data deleted: {user_id}")
 
 

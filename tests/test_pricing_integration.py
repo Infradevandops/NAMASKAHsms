@@ -76,9 +76,7 @@ class TestPricingEnforcementFlow:
         assert PricingCalculator.validate_balance(db, user.id, cost_info["total_cost"])
 
         # Log transaction
-        tx_id = TransactionService.log_sms_purchase(
-            db, user.id, cost_info["total_cost"], "payg", "telegram", filters
-        )
+        tx_id = TransactionService.log_sms_purchase(db, user.id, cost_info["total_cost"], "payg", "telegram", filters)
         assert tx_id is not None
 
     def test_pro_quota_tracking_flow(self, db: Session, users: dict):
@@ -145,9 +143,7 @@ class TestPricingEnforcementFlow:
         VerificationPricingService.deduct_cost(db, user.id, cost_info["total_cost"])
 
         # 3. Log transaction
-        tx_id = TransactionService.log_sms_purchase(
-            db, user.id, cost_info["total_cost"], "pro", "telegram"
-        )
+        tx_id = TransactionService.log_sms_purchase(db, user.id, cost_info["total_cost"], "pro", "telegram")
 
         # 4. Verify all changes
         user = db.query(User).filter(User.id == user.id).first()

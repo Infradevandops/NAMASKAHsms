@@ -129,11 +129,7 @@ class TestSMSServiceComplete:
         db_session.add(verification)
         db_session.commit()
 
-        saved = (
-            db_session.query(Verification)
-            .filter(Verification.activation_id == "act_123")
-            .first()
-        )
+        saved = db_session.query(Verification).filter(Verification.activation_id == "act_123").first()
 
         assert saved is not None
         assert saved.status == "pending"
@@ -257,9 +253,7 @@ class TestSMSServiceComplete:
     def test_textverified_code_retrieval(self, mock_service):
         """Test retrieving code from TextVerified."""
         mock_instance = mock_service.return_value
-        mock_instance.get_code = AsyncMock(
-            return_value={"code": "123456", "status": "success"}
-        )
+        mock_instance.get_code = AsyncMock(return_value={"code": "123456", "status": "success"})
 
         # Would be called in actual service
         assert True

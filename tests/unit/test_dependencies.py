@@ -34,9 +34,7 @@ async def test_get_token_from_request():
 async def test_get_current_user_id(regular_user):
     from app.utils.security import create_access_token
 
-    token = create_access_token(
-        {"user_id": str(regular_user.id), "email": regular_user.email}
-    )
+    token = create_access_token({"user_id": str(regular_user.id), "email": regular_user.email})
     assert get_current_user_id(token) == str(regular_user.id)
 
 

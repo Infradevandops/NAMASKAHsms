@@ -33,17 +33,13 @@ class TierCreate(BaseModel):
 
 
 @router.get("/templates")
-async def get_pricing_templates(
-    admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_pricing_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get all pricing templates with their tiers"""
     templates = db.query(PricingTemplate).all()
 
     result = []
     for template in templates:
-        tiers = (
-            db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
-        )
+        tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
         result.append(
             {
                 "id": template.id,
@@ -52,17 +48,9 @@ async def get_pricing_templates(
                 "is_active": template.is_active,
                 "region": template.region,
                 "currency": template.currency,
-                "created_at": (
-                    template.created_at.isoformat() if template.created_at else None
-                ),
-                "effective_date": (
-                    template.effective_date.isoformat()
-                    if template.effective_date
-                    else None
-                ),
-                "expires_at": (
-                    template.expires_at.isoformat() if template.expires_at else None
-                ),
+                "created_at": (template.created_at.isoformat() if template.created_at else None),
+                "effective_date": (template.effective_date.isoformat() if template.effective_date else None),
+                "expires_at": (template.expires_at.isoformat() if template.expires_at else None),
                 "tiers": [
                     {
                         "id": tier.id,
@@ -92,11 +80,7 @@ async def create_pricing_template(
     """Create new pricing template with tiers"""
 
     # Check if template name already exists
-    existing = (
-        db.query(PricingTemplate)
-        .filter(PricingTemplate.name == template_data.name)
-        .first()
-    )
+    existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data.name).first()
     if existing:
         raise HTTPException(status_code=400, detail="Template name already exists")
 
@@ -154,9 +138,7 @@ async def activate_template(
 ):
     """Activate a pricing template (deactivates others)"""
 
-    template = (
-        db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-    )
+    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
@@ -188,9 +170,7 @@ async def deactivate_template(
 ):
     """Deactivate a pricing template"""
 
-    template = (
-        db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-    )
+    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
     if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
@@ -271,9 +251,7 @@ async def get_template_history(
 
 
 @router.post("/quick-templates")
-async def create_quick_templates(
-    admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def create_quick_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Create standard, promotional, and holiday templates"""
 
     templates_data = [
@@ -417,11 +395,7 @@ async def create_quick_templates(
 
     for template_data in templates_data:
         # Check if template already exists
-        existing = (
-            db.query(PricingTemplate)
-            .filter(PricingTemplate.name == template_data["name"])
-            .first()
-        )
+        existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data["name"]).first()
         if existing:
             continue
 
@@ -432,8 +406,7 @@ async def create_quick_templates(
             region="US",
             currency="USD",
             created_by=admin_user.id,
-            is_active=template_data["name"]
-            == "Standard Pricing",  # Activate standard by default
+            is_active=template_data["name"] == "Standard Pricing",  # Activate standard by default
         )
         db.add(template)
         db.flush()

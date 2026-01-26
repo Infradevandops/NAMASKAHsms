@@ -74,9 +74,7 @@ class SecurityHardening:
         # Constant - time comparison
         return secrets.compare_digest(stored_token, token)
 
-    def check_rate_limit(
-        self, identifier: str, max_requests: int = 10, window_seconds: int = 60
-    ) -> bool:
+    def check_rate_limit(self, identifier: str, max_requests: int = 10, window_seconds: int = 60) -> bool:
         """Check if request is within rate limit"""
         import time
 
@@ -88,9 +86,7 @@ class SecurityHardening:
 
         # Remove old requests
         self.rate_limits[identifier] = [
-            req_time
-            for req_time in self.rate_limits[identifier]
-            if req_time > window_start
+            req_time for req_time in self.rate_limits[identifier] if req_time > window_start
         ]
 
         # Check limit
@@ -179,9 +175,7 @@ class SecurityHardening:
 security_hardening = SecurityHardening()
 
 
-def secure_response(
-    data: Any, headers: Optional[Dict[str, str]] = None
-) -> JSONResponse:
+def secure_response(data: Any, headers: Optional[Dict[str, str]] = None) -> JSONResponse:
     """Create secure JSON response with security headers"""
     response_headers = security_hardening.get_security_headers()
 

@@ -31,9 +31,7 @@ class EmailService:
         else:
             logger.warning("Email service not configured")
 
-    async def send_payment_receipt(
-        self, user_email: str, payment_details: Dict[str, Any]
-    ) -> bool:
+    async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
         """Send payment receipt email.
 
         Args:
@@ -54,9 +52,7 @@ class EmailService:
             html_body = self._create_receipt_html(payment_details)
 
             # Send email
-            await self._send_email(
-                to_email=user_email, subject=subject, html_body=html_body
-            )
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Payment receipt sent to {user_email}")
             return True
@@ -65,9 +61,7 @@ class EmailService:
             logger.error(f"Failed to send payment receipt: {str(e)}")
             return False
 
-    async def send_payment_failed_alert(
-        self, user_email: str, payment_details: Dict[str, Any]
-    ) -> bool:
+    async def send_payment_failed_alert(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
         """Send payment failed alert email.
 
         Args:
@@ -88,9 +82,7 @@ class EmailService:
             html_body = self._create_failed_alert_html(payment_details)
 
             # Send email
-            await self._send_email(
-                to_email=user_email, subject=subject, html_body=html_body
-            )
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Payment failed alert sent to {user_email}")
             return True
@@ -99,9 +91,7 @@ class EmailService:
             logger.error(f"Failed to send payment failed alert: {str(e)}")
             return False
 
-    async def send_refund_notification(
-        self, user_email: str, refund_details: Dict[str, Any]
-    ) -> bool:
+    async def send_refund_notification(self, user_email: str, refund_details: Dict[str, Any]) -> bool:
         """Send refund notification email.
 
         Args:
@@ -122,9 +112,7 @@ class EmailService:
             html_body = self._create_refund_html(refund_details)
 
             # Send email
-            await self._send_email(
-                to_email=user_email, subject=subject, html_body=html_body
-            )
+            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Refund notification sent to {user_email}")
             return True
@@ -157,9 +145,7 @@ class EmailService:
 
             # Send email asynchronously
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(
-                None, self._send_smtp, to_email, message.as_string()
-            )
+            await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
 
             return True
 
@@ -196,9 +182,7 @@ class EmailService:
         amount_usd = payment_details.get("amount_usd", 0)
         credits_added = payment_details.get("credits_added", 0)
         new_balance = payment_details.get("new_balance", 0)
-        timestamp = payment_details.get(
-            "timestamp", datetime.now(timezone.utc).isoformat()
-        )
+        timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
         return f"""
         <html>
@@ -257,9 +241,7 @@ class EmailService:
         reference = payment_details.get("reference", "N/A")
         amount_usd = payment_details.get("amount_usd", 0)
         reason = payment_details.get("reason", "Unknown reason")
-        timestamp = payment_details.get(
-            "timestamp", datetime.now(timezone.utc).isoformat()
-        )
+        timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
         return f"""
         <html>
@@ -321,9 +303,7 @@ class EmailService:
         amount = refund_details.get("amount", 0)
         reason = refund_details.get("reason", "Refund processed")
         new_balance = refund_details.get("new_balance", 0)
-        timestamp = refund_details.get(
-            "timestamp", datetime.now(timezone.utc).isoformat()
-        )
+        timestamp = refund_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
         return f"""
         <html>

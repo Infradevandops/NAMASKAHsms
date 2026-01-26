@@ -51,9 +51,7 @@ async def test_update_branding(service, mock_db):
 
     mock_db.query.return_value.filter.return_value.first.side_effect = [config, theme]
 
-    result = await service.update_branding(
-        config_id=1, branding_data={"company_name": "New", "primary_color": "#000"}
-    )
+    result = await service.update_branding(config_id=1, branding_data={"company_name": "New", "primary_color": "#000"})
 
     assert result["success"] is True
     assert config.company_name == "New"
@@ -132,9 +130,7 @@ async def test_get_partner_config(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_generate_custom_css(service, mock_db):
-    theme = WhiteLabelTheme(
-        css_variables={"--a": "10px"}, custom_css=".cls { color: red; }"
-    )
+    theme = WhiteLabelTheme(css_variables={"--a": "10px"}, custom_css=".cls { color: red; }")
     mock_db.query.return_value.filter.return_value.first.return_value = theme
 
     css = await service.generate_custom_css(1)
@@ -146,9 +142,7 @@ async def test_generate_custom_css(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_create_pwa_manifest(service, mock_db):
-    config = WhiteLabelConfig(
-        company_name="Corp", primary_color="#f00", logo_url="/logo.png"
-    )
+    config = WhiteLabelConfig(company_name="Corp", primary_color="#f00", logo_url="/logo.png")
     mock_db.query.return_value.filter.return_value.first.return_value = config
 
     manifest = await service.create_pwa_manifest(1)

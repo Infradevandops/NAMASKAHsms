@@ -69,9 +69,7 @@ async def lifespan(app: FastAPI):
                     sms_polling_service.start_background_service(),
                     timeout=settings.async_task_timeout_seconds,
                 )
-                sms_logger.info(
-                    "SMS polling service exited; restarting supervisor in 5s"
-                )
+                sms_logger.info("SMS polling service exited; restarting supervisor in 5s")
                 await asyncio.sleep(5)
             except asyncio.TimeoutError:
                 sms_logger.warning("SMS polling service timed out; restarting")
@@ -91,9 +89,7 @@ async def lifespan(app: FastAPI):
                     voice_polling_service.start_background_service(),
                     timeout=settings.async_task_timeout_seconds,
                 )
-                voice_logger.info(
-                    "Voice polling service exited; restarting supervisor in 5s"
-                )
+                voice_logger.info("Voice polling service exited; restarting supervisor in 5s")
                 await asyncio.sleep(5)
             except asyncio.TimeoutError:
                 voice_logger.warning("Voice polling service timed out; restarting")

@@ -42,9 +42,7 @@ def initialize_admin(db: Session = Depends(get_db)):
             existing_user.credits = 1000.0
             existing_user.email_verified = True
             db.commit()
-            return SuccessResponse(
-                message="User upgraded to admin", data={"email": admin_email}
-            )
+            return SuccessResponse(message="User upgraded to admin", data={"email": admin_email})
 
         # Create new admin
         admin_user = User(

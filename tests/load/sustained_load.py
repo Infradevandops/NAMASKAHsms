@@ -36,11 +36,7 @@ class SustainedLoadUser(HttpUser):
 def on_quitting(environment, **kwargs):
     """Log final stats on test completion."""
     if environment.stats.total.fail_ratio > 0.05:
-        logger.error(
-            f"❌ Test failed with {environment.stats.total.fail_ratio*100:.1f}% error rate"
-        )
+        logger.error(f"❌ Test failed with {environment.stats.total.fail_ratio*100:.1f}% error rate")
         environment.process_exit_code = 1
     else:
-        logger.info(
-            f"✅ Test passed with {environment.stats.total.fail_ratio*100:.1f}% error rate"
-        )
+        logger.info(f"✅ Test passed with {environment.stats.total.fail_ratio*100:.1f}% error rate")

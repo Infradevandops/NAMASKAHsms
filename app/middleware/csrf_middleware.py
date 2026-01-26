@@ -40,14 +40,10 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             token_from_cookie = request.cookies.get(self.CSRF_COOKIE)
 
             if not token_from_header or not token_from_cookie:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing"
-                )
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing")
 
             if token_from_header != token_from_cookie:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid"
-                )
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid")
 
         return await call_next(request)
 

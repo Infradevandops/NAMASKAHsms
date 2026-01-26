@@ -47,7 +47,5 @@ async def test_concurrent_payment_handling(db_session, redis_client):
     results = await asyncio.gather(*tasks, return_exceptions=True)
 
     # Only one should succeed
-    success_count = sum(
-        1 for r in results if isinstance(r, dict) and r["status"] == "success"
-    )
+    success_count = sum(1 for r in results if isinstance(r, dict) and r["status"] == "success")
     assert success_count == 1

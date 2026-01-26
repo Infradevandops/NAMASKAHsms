@@ -26,9 +26,7 @@ def mock_client_instance():
 def service(mock_client_instance):
     # Patch the module-level variable 'textverified'
     with patch("app.services.textverified_service.textverified", mock_textverified):
-        with patch.dict(
-            os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}
-        ):
+        with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}):
             # Reset init
             svc = TextVerifiedService()
             return svc
@@ -121,9 +119,7 @@ async def test_get_services_list(service, mock_client_instance):
     mock_client_instance._perform_action.return_value = mock_response
 
     # Need to mock textverified.Service.from_api
-    with patch(
-        "app.services.textverified_service.textverified.Service.from_api"
-    ) as mock_from_api:
+    with patch("app.services.textverified_service.textverified.Service.from_api") as mock_from_api:
         s1 = MagicMock()
         s1.service_name = "tg"
         s1.cost = 0.5

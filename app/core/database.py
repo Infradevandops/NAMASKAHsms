@@ -11,9 +11,7 @@ from .config import settings
 # Database engine with connection pooling
 if "sqlite" in settings.database_url:
     # SQLite for development only
-    engine = create_engine(
-        settings.database_url, connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(settings.database_url, connect_args={"check_same_thread": False})
 else:
     # PostgreSQL for production
     engine = create_engine(

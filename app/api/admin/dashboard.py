@@ -25,37 +25,21 @@ async def get_admin_stats(
     try:
         # Get basic counts with single queries
         users = db.query(func.count(User.id)).scalar() or 0
-        active_users = (
-            db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar()
-            or 0
-        )
+        active_users = db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar() or 0
 
         verifications = db.query(func.count(Verification.id)).scalar() or 0
         pending_verifications = (
-            db.query(func.count(Verification.id))
-            .filter(Verification.status == "pending")
-            .scalar()
-            or 0
+            db.query(func.count(Verification.id)).filter(Verification.status == "pending").scalar() or 0
         )
         success_verifications = (
-            db.query(func.count(Verification.id))
-            .filter(Verification.status == "completed")
-            .scalar()
-            or 0
+            db.query(func.count(Verification.id)).filter(Verification.status == "completed").scalar() or 0
         )
 
         # Calculate success rate safely
-        success_rate = (
-            (success_verifications / verifications * 100) if verifications > 0 else 0
-        )
+        success_rate = (success_verifications / verifications * 100) if verifications > 0 else 0
 
         # Calculate revenue safely
-        revenue = (
-            db.query(func.sum(Verification.cost))
-            .filter(Verification.status == "completed")
-            .scalar()
-            or 0
-        )
+        revenue = db.query(func.sum(Verification.cost)).filter(Verification.status == "completed").scalar() or 0
 
         return {
             "users": users,
@@ -107,15 +91,11 @@ async def get_recent_verifications(
 
     except Exception as e:
         logger.error(f"Recent verifications error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch recent verifications"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch recent verifications")
 
 
 @router.get("/pricing/templates")
-async def get_pricing_templates(
-    admin_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_pricing_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get pricing templates for admin dashboard"""
     try:
         templates = db.query(PricingTemplate).all()

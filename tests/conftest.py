@@ -16,12 +16,8 @@ os.environ["SECRET_KEY"] = "test_secret_key_for_testing_32_characters_long_enoug
 os.environ["JWT_SECRET_KEY"] = "test_jwt_secret_key_for_testing_32_characters_long"
 
 # Mock background services to prevent startup
-patch(
-    "app.services.sms_polling_service.sms_polling_service.start_background_service"
-).start()
-patch(
-    "app.services.voice_polling_service.voice_polling_service.start_background_service"
-).start()
+patch("app.services.sms_polling_service.sms_polling_service.start_background_service").start()
+patch("app.services.voice_polling_service.voice_polling_service.start_background_service").start()
 
 # 1. Setup in-memory database engine FIRST
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
@@ -251,9 +247,7 @@ def auth_headers(regular_user, user_token):
     return {"Authorization": f"Bearer {token}"}
 
 
-def create_test_token(
-    user_id: str, email: str, is_admin: bool = False, expires_minutes: int = 15
-) -> str:
+def create_test_token(user_id: str, email: str, is_admin: bool = False, expires_minutes: int = 15) -> str:
     """Helper function to create test JWT tokens."""
     expire = datetime.now(timezone.utc) + timedelta(minutes=expires_minutes)
     to_encode = {
@@ -263,6 +257,4 @@ def create_test_token(
         "is_admin": is_admin,
         "exp": expire,
     }
-    return jwt.encode(
-        to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
-    )
+    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)

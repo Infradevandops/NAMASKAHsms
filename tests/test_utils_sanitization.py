@@ -9,10 +9,7 @@ from app.utils.sanitization import (
 
 def test_sanitize_html():
     assert sanitize_html("<div>Safe</div>") == "&lt;div&gt;Safe&lt;/div&gt;"
-    assert (
-        sanitize_html("<script>alert('xss')</script>")
-        == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
-    )
+    assert sanitize_html("<script>alert('xss')</script>") == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
     # Note: the regex in sanitize_html runs AFTER html.escape.
     # html.escape converts < to &lt;, so regex <script> won't match &lt;script&gt;.
     # The current implementation of sanitize_html seems to double-sanitize or expect unescaped input that regex catches...

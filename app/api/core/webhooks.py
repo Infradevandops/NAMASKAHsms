@@ -101,11 +101,7 @@ async def delete_webhook(
     _=Depends(require_payg),
 ):
     """Delete a webhook."""
-    webhook = (
-        db.query(Webhook)
-        .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
-        .first()
-    )
+    webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
     if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")
@@ -124,11 +120,7 @@ async def test_webhook(
     _=Depends(require_payg),
 ):
     """Send a test ping to the webhook."""
-    webhook = (
-        db.query(Webhook)
-        .filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id)
-        .first()
-    )
+    webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
     if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")

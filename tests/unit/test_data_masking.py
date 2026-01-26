@@ -48,9 +48,7 @@ def test_mask_headers():
 
 def test_mask_email():
     assert DataMasker.mask_email("user@example.com") == "u**r@example.com"
-    assert (
-        DataMasker.mask_email("me@a.com") == "**@a.com"
-    )  # Length <= 2 local part masked entirely
+    assert DataMasker.mask_email("me@a.com") == "**@a.com"  # Length <= 2 local part masked entirely
     # Code: if len(local) <= 2: masked = "*" * len(local)
     assert DataMasker.mask_email("ab@c.com") == "**@c.com"
 

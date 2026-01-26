@@ -123,14 +123,10 @@ class TestPricingCalculator:
 
     def test_pro_filters_included(self, db: Session, pro_user: User):
         """Test Pro tier includes filters."""
-        cost = PricingCalculator.calculate_sms_cost(
-            db, pro_user.id, {"state": True, "isp": True}
-        )
+        cost = PricingCalculator.calculate_sms_cost(db, pro_user.id, {"state": True, "isp": True})
         assert cost["filter_charges"] == 0.0  # Included in Pro
 
-    def test_validate_balance_freemium_sufficient(
-        self, db: Session, freemium_user: User
-    ):
+    def test_validate_balance_freemium_sufficient(self, db: Session, freemium_user: User):
         """Test balance validation for freemium with bonus SMS."""
         assert PricingCalculator.validate_balance(db, freemium_user.id, 2.50) is True
 
@@ -140,9 +136,7 @@ class TestPricingCalculator:
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
         """Test pricing breakdown."""
-        breakdown = PricingCalculator.get_pricing_breakdown(
-            db, pro_user.id, {"state": True}
-        )
+        breakdown = PricingCalculator.get_pricing_breakdown(db, pro_user.id, {"state": True})
         assert breakdown["tier"] == "pro"
         assert breakdown["quota_limit"] == 15.0
         assert breakdown["user_balance"] == 100.0

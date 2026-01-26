@@ -27,13 +27,9 @@ class SecretsManager:
     def _init_client(self):
         """Initialize AWS Secrets Manager client."""
         self.client = boto3.client("secretsmanager", region_name=self.region_name)
-        logger.info(
-            f"AWS Secrets Manager client initialized for region {self.region_name}"
-        )
+        logger.info(f"AWS Secrets Manager client initialized for region {self.region_name}")
 
-    def get_secret(
-        self, secret_name: str, force_refresh: bool = False
-    ) -> Optional[Dict[str, Any]]:
+    def get_secret(self, secret_name: str, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
         """Get secret from AWS Secrets Manager with caching."""
         if not self.client:
             logger.error("Secrets Manager client not initialized")
@@ -51,9 +47,7 @@ class SecretsManager:
 
             # Parse secret value
             if "SecretString" in response:
-                secret_value = safe_json_parse(
-                    response["SecretString"], {}, f"secret_{secret_name}"
-                )
+                secret_value = safe_json_parse(response["SecretString"], {}, f"secret_{secret_name}")
             else:
                 secret_value = response["SecretBinary"]
 
@@ -72,9 +66,7 @@ class SecretsManager:
             if error_code == "ResourceNotFoundException":
                 logger.warning(f"Secret not found: {secret_name}")
             else:
-                logger.error(
-                    f"Failed to retrieve secret {secret_name}: {error_code} - {e}"
-                )
+                logger.error(f"Failed to retrieve secret {secret_name}: {error_code} - {e}")
             return None
         except BotoCoreError as e:
             logger.error(f"AWS connection error retrieving secret {secret_name}: {e}")
@@ -91,9 +83,7 @@ class SecretsManager:
 
             # Try to update existing secret
             try:
-                self.client.update_secret(
-                    SecretId=secret_name, SecretString=secret_string
-                )
+                self.client.update_secret(SecretId=secret_name, SecretString=secret_string)
                 logger.info(f"Updated secret: {secret_name}")
             except ClientError as e:
                 if e.response["Error"]["Code"] == "ResourceNotFoundException":
@@ -131,12 +121,8 @@ class SecretsManager:
             return False
 
         try:
-            self.client.delete_secret(
-                SecretId=secret_name, RecoveryWindowInDays=recovery_window_days
-            )
-            logger.info(
-                f"Scheduled deletion of secret: {secret_name} (recovery window: {recovery_window_days} days)"
-            )
+            self.client.delete_secret(SecretId=secret_name, RecoveryWindowInDays=recovery_window_days)
+            logger.info(f"Scheduled deletion of secret: {secret_name} (recovery window: {recovery_window_days} days)")
 
             # Invalidate cache
             if secret_name in self.cache:

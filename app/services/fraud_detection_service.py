@@ -14,9 +14,7 @@ class FraudDetectionService:
         self.model = None
         self.threshold = 0.7
 
-    async def score_verification(
-        self, user_id: str, country: str, service: str, ip: str
-    ) -> Tuple[float, bool]:
+    async def score_verification(self, user_id: str, country: str, service: str, ip: str) -> Tuple[float, bool]:
         """Score verification for fraud risk."""
         # Feature extraction
         features = {

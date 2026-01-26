@@ -46,9 +46,7 @@ class AuthenticationError(NamaskahException):
 
 
 class AuthorizationError(NamaskahException):
-    def __init__(
-        self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None
-    ):
+    def __init__(self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None):
         super().__init__(message, "AUTHZ_ERROR", details, 403)
 
 
@@ -315,9 +313,7 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
 # Exception Handlers
 
 
-async def unified_exception_handler(
-    request: Request, exc: NamaskahException
-) -> JSONResponse:
+async def unified_exception_handler(request: Request, exc: NamaskahException) -> JSONResponse:
     """Handle custom Namaskah exceptions."""
     logger.error(
         "NamaskahException: %s - %s",
@@ -338,9 +334,7 @@ async def unified_exception_handler(
     )
 
 
-async def http_exception_handler(
-    request: Request, exc: StarletteHTTPException
-) -> JSONResponse:
+async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:
     """Handle HTTP exceptions."""
     logger.warning("HTTPException: %s - %s", exc.status_code, exc.detail)
 
@@ -356,9 +350,7 @@ async def http_exception_handler(
     )
 
 
-async def validation_exception_handler(
-    request: Request, exc: RequestValidationError
-) -> JSONResponse:
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
     """Handle request validation errors."""
     logger.warning("ValidationError: %s", exc.errors())
 
@@ -416,9 +408,7 @@ def handle_database_exceptions(func):
             return func(*args, **kwargs)
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
-            raise ValidationError(
-                "Data integrity constraint violated", {"original_error": str(e)}
-            )
+            raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
         except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
@@ -460,20 +450,14 @@ def handle_encryption_exceptions(func):
         try:
             return func(*args, **kwargs)
         except ValueError as e:
-            if "Invalid" in str(e) and (
-                "key" in str(e).lower() or "token" in str(e).lower()
-            ):
+            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
-                raise ValidationError(
-                    "Invalid encryption key or token", {"original_error": str(e)}
-                )
+                raise ValidationError("Invalid encryption key or token", {"original_error": str(e)})
             raise
         except Exception as e:
             if "token" in str(e).lower() or "decrypt" in str(e).lower():
                 logger.error(f"Encryption error in {func.__name__}: {e}")
-                raise ValidationError(
-                    "Encryption/decryption failed", {"original_error": str(e)}
-                )
+                raise ValidationError("Encryption/decryption failed", {"original_error": str(e)})
             raise
 
     return wrapper
@@ -487,9 +471,7 @@ def handle_http_client_exceptions(service_name: str):
             try:
                 return func(*args, **kwargs)
             except ConnectionError as e:
-                logger.error(
-                    f"Connection error to {service_name} in {func.__name__}: {e}"
-                )
+                logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Failed to connect to {service_name}",
@@ -504,18 +486,14 @@ def handle_http_client_exceptions(service_name: str):
                 )
             except Exception as e:
                 if "timeout" in str(e).lower():
-                    logger.error(
-                        f"Timeout error to {service_name} in {func.__name__}: {e}"
-                    )
+                    logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
                 elif "connection" in str(e).lower():
-                    logger.error(
-                        f"Connection error to {service_name} in {func.__name__}: {e}"
-                    )
+                    logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Connection error to {service_name}",
@@ -540,9 +518,7 @@ def safe_int_conversion(value: str, default: int = 0, field_name: str = "value")
         return default
 
 
-def safe_json_parse(
-    json_str: str, default: dict = None, field_name: str = "data"
-) -> dict:
+def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
     """Safely parse JSON string with specific error handling."""
     import json
 

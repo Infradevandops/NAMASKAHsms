@@ -138,12 +138,9 @@ class CreditService:
         current_balance = float(user.credits or 0.0)
         if current_balance < amount:
             logger.warning(
-                f"Insufficient credits for user {user_id}. "
-                f"Required: {amount}, Available: {current_balance}"
+                f"Insufficient credits for user {user_id}. " f"Required: {amount}, Available: {current_balance}"
             )
-            raise InsufficientCreditsError(
-                f"Insufficient credits. Required: {amount}, Available: {current_balance}"
-            )
+            raise InsufficientCreditsError(f"Insufficient credits. Required: {amount}, Available: {current_balance}")
 
         # Deduct credits
         old_balance = current_balance
@@ -212,12 +209,7 @@ class CreditService:
         total = query.count()
 
         # Apply pagination and sorting
-        transactions = (
-            query.order_by(desc(Transaction.created_at))
-            .offset(skip)
-            .limit(min(limit, 100))
-            .all()
-        )
+        transactions = query.order_by(desc(Transaction.created_at)).offset(skip).limit(min(limit, 100)).all()
 
         logger.info(
             f"Retrieved {len(transactions)} transactions for user {user_id} "
@@ -256,9 +248,7 @@ class CreditService:
             raise ValueError(f"User {user_id} not found")
 
         # Get all transactions
-        transactions = (
-            self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
-        )
+        transactions = self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
 
         # Calculate totals by type
         summary = {
@@ -324,8 +314,7 @@ class CreditService:
         # Check sufficient credits
         if (from_user.credits or 0.0) < amount:
             raise InsufficientCreditsError(
-                f"Insufficient credits for transfer. "
-                f"Required: {amount}, Available: {from_user.credits}"
+                f"Insufficient credits for transfer. " f"Required: {amount}, Available: {from_user.credits}"
             )
 
         # Perform transfer
@@ -351,10 +340,7 @@ class CreditService:
         self.db.add(to_transaction)
         self.db.commit()
 
-        logger.info(
-            f"Transferred {amount} credits from {from_user_id} to {to_user_id}. "
-            f"Description: {description}"
-        )
+        logger.info(f"Transferred {amount} credits from {from_user_id} to {to_user_id}. " f"Description: {description}")
 
         return {
             "from_user_id": from_user_id,
@@ -402,10 +388,7 @@ class CreditService:
         self.db.add(transaction)
         self.db.commit()
 
-        logger.warning(
-            f"Admin reset credits for user {user_id}. "
-            f"Balance: {old_balance} -> {new_amount}"
-        )
+        logger.warning(f"Admin reset credits for user {user_id}. " f"Balance: {old_balance} -> {new_amount}")
 
         return {
             "user_id": user_id,

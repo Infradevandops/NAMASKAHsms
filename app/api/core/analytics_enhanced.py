@@ -40,18 +40,16 @@ async def get_analytics_summary(
         end_date = datetime.utcnow()
         if to_date:
             try:
-                end_date = datetime.fromisoformat(
-                    to_date.replace("Z", "+00:00")
-                ).replace(hour=23, minute=59, second=59)
+                end_date = datetime.fromisoformat(to_date.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59)
             except ValueError:
                 pass
 
         start_date = end_date - timedelta(days=30)
         if from_date:
             try:
-                start_date = datetime.fromisoformat(
-                    from_date.replace("Z", "+00:00")
-                ).replace(hour=0, minute=0, second=0)
+                start_date = datetime.fromisoformat(from_date.replace("Z", "+00:00")).replace(
+                    hour=0, minute=0, second=0
+                )
             except ValueError:
                 pass
 
@@ -68,20 +66,12 @@ async def get_analytics_summary(
 
         # Calculate totals
         total_verifications = len(verifications)
-        successful_verifications = len(
-            [v for v in verifications if v.status == "completed"]
-        )
+        successful_verifications = len([v for v in verifications if v.status == "completed"])
         failed_verifications = len([v for v in verifications if v.status == "failed"])
-        pending_verifications = len(
-            [v for v in verifications if v.status in ["pending", "processing"]]
-        )
+        pending_verifications = len([v for v in verifications if v.status in ["pending", "processing"]])
 
         # Calculate success rate
-        success_rate = (
-            (successful_verifications / total_verifications * 100)
-            if total_verifications > 0
-            else 0.0
-        )
+        success_rate = (successful_verifications / total_verifications * 100) if total_verifications > 0 else 0.0
 
         # Calculate total spent in period
         spent_transactions = (
@@ -113,9 +103,7 @@ async def get_analytics_summary(
             if day in daily_stats:
                 daily_stats[day] += 1
 
-        daily_verifications = [
-            {"date": k, "count": v} for k, v in sorted(daily_stats.items())
-        ]
+        daily_verifications = [{"date": k, "count": v} for k, v in sorted(daily_stats.items())]
 
         # Top Services & Spending by Service
         services_map = {}
@@ -138,9 +126,7 @@ async def get_analytics_summary(
         spending_by_service = []
 
         for name, stats in services_map.items():
-            s_rate = (
-                (stats["success"] / stats["count"] * 100) if stats["count"] > 0 else 0
-            )
+            s_rate = (stats["success"] / stats["count"] * 100) if stats["count"] > 0 else 0
             # Mock spending distribution based on count (since we don't have service in transaction easily without join)
             # In a real app, Transaction should store service_name or related Verification ID
             estimated_spend = stats["count"] * avg_cost
@@ -180,9 +166,7 @@ async def get_analytics_summary(
             f"Analytics calculation failed for user {current_user.id}: {str(e)}",
             exc_info=True,
         )
-        raise HTTPException(
-            status_code=500, detail=f"Analytics calculation failed: {str(e)}"
-        )
+        raise HTTPException(status_code=500, detail=f"Analytics calculation failed: {str(e)}")
 
 
 @router.get("/real-time-stats")
@@ -281,17 +265,11 @@ async def get_status_updates(
                     "phone_number": verification.phone_number,
                     "service_name": verification.service_name,
                     "created_at": verification.created_at.isoformat(),
-                    "updated_at": (
-                        verification.updated_at.isoformat()
-                        if verification.updated_at
-                        else None
-                    ),
+                    "updated_at": (verification.updated_at.isoformat() if verification.updated_at else None),
                 }
             )
 
-        logger.debug(
-            f"Status updates for user {current_user.id}: {len(updates)} pending verifications"
-        )
+        logger.debug(f"Status updates for user {current_user.id}: {len(updates)} pending verifications")
 
         return {
             "updates": updates,
@@ -300,7 +278,5 @@ async def get_status_updates(
         }
 
     except Exception as e:
-        logger.error(
-            f"Status updates failed for user {current_user.id}: {str(e)}", exc_info=True
-        )
+        logger.error(f"Status updates failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Status updates failed: {str(e)}")

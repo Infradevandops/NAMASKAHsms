@@ -16,9 +16,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/compliance", tags=["Admin Audit & Compliance"])
 
 
-async def require_admin(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -49,9 +47,7 @@ async def get_audit_logs(
             query = query.filter(AuditLog.user_id == admin_id_filter)
 
         total = query.count()
-        logs = (
-            query.order_by(AuditLog.created_at.desc()).limit(limit).offset(offset).all()
-        )
+        logs = query.order_by(AuditLog.created_at.desc()).limit(limit).offset(offset).all()
 
         return {
             "total": total,
@@ -67,9 +63,7 @@ async def get_audit_logs(
                     "resource_id": log.resource_id,
                     "details": log.details,
                     "ip_address": log.ip_address,
-                    "created_at": (
-                        log.created_at.isoformat() if log.created_at else None
-                    ),
+                    "created_at": (log.created_at.isoformat() if log.created_at else None),
                 }
                 for log in logs
             ],
@@ -100,9 +94,7 @@ async def get_compliance_report(
         tier_changes = [log for log in audit_logs if log.action == "tier_update"]
 
         # Get suspension/ban actions
-        enforcement_actions = [
-            log for log in audit_logs if log.action in ["suspend", "ban"]
-        ]
+        enforcement_actions = [log for log in audit_logs if log.action in ["suspend", "ban"]]
 
         # Get data access logs
         data_access = [log for log in audit_logs if log.action == "data_export"]
@@ -141,9 +133,7 @@ async def get_compliance_report(
         return report
     except Exception as e:
         logger.error(f"Get compliance report error: {e}")
-        raise HTTPException(
-            status_code=500, detail="Failed to generate compliance report"
-        )
+        raise HTTPException(status_code=500, detail="Failed to generate compliance report")
 
 
 @router.post("/export")
@@ -165,19 +155,13 @@ async def export_user_data(
             "tier": user.subscription_tier or "payg",
             "credits": float(user.credits or 0),
             "created_at": user.created_at.isoformat() if user.created_at else None,
-            "updated_at": (
-                user.updated_at.isoformat()
-                if hasattr(user, "updated_at") and user.updated_at
-                else None
-            ),
+            "updated_at": (user.updated_at.isoformat() if hasattr(user, "updated_at") and user.updated_at else None),
         }
 
         # Get verifications
         from app.models.verification import Verification
 
-        verifications = (
-            db.query(Verification).filter(Verification.user_id == user_id).all()
-        )
+        verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
 
         verification_data = [
             {
@@ -202,21 +186,13 @@ async def export_user_data(
                 "id": k.id,
                 "name": k.name,
                 "created_at": k.created_at.isoformat() if k.created_at else None,
-                "last_used": (
-                    k.last_used.isoformat()
-                    if hasattr(k, "last_used") and k.last_used
-                    else None
-                ),
+                "last_used": (k.last_used.isoformat() if hasattr(k, "last_used") and k.last_used else None),
             }
             for k in api_keys
         ]
 
         # Get audit logs related to user
-        audit_logs = (
-            db.query(AuditLog)
-            .filter((AuditLog.resource_id == user_id) | (AuditLog.user_id == user_id))
-            .all()
-        )
+        audit_logs = db.query(AuditLog).filter((AuditLog.resource_id == user_id) | (AuditLog.user_id == user_id)).all()
 
         audit_data = [
             {
@@ -278,17 +254,13 @@ async def delete_user_data(
         user.deletion_reason = reason
 
         db.commit()
-        logger.info(
-            f"Admin {admin_id} deleted user data for {user_id}. Reason: {reason}"
-        )
+        logger.info(f"Admin {admin_id} deleted user data for {user_id}. Reason: {reason}")
 
         return {
             "success": True,
             "message": f"User data deleted for {user_id}",
             "user_id": user_id,
-            "deleted_at": (
-                user.deleted_at.isoformat() if hasattr(user, "deleted_at") else None
-            ),
+            "deleted_at": (user.deleted_at.isoformat() if hasattr(user, "deleted_at") else None),
         }
     except HTTPException:
         raise
@@ -299,9 +271,7 @@ async def delete_user_data(
 
 
 @router.get("/data-retention-policy")
-async def get_data_retention_policy(
-    admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_data_retention_policy(admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Get data retention policy."""
     return {
         "policy": {

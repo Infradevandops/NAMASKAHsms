@@ -350,9 +350,7 @@ class TestResponseValidatorUtilities:
         """Test checking required fields when all are present."""
         data = {"field1": "value1", "field2": "value2", "field3": "value3"}
 
-        all_present, missing = check_required_fields(
-            data, ["field1", "field2", "field3"]
-        )
+        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
         assert all_present is True
         assert len(missing) == 0
 
@@ -360,9 +358,7 @@ class TestResponseValidatorUtilities:
         """Test checking required fields when some are missing."""
         data = {"field1": "value1", "field3": "value3"}
 
-        all_present, missing = check_required_fields(
-            data, ["field1", "field2", "field3"]
-        )
+        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
         assert all_present is False
         assert "field2" in missing
         assert len(missing) == 1

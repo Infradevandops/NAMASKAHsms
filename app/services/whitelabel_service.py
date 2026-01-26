@@ -15,9 +15,7 @@ class WhiteLabelService:
 
         try:
             config = (
-                db.query(WhiteLabelConfig)
-                .filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active)
-                .first()
+                db.query(WhiteLabelConfig).filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active).first()
             )
         except Exception:
             # Table doesn't exist, return None

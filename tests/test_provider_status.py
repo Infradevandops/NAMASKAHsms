@@ -74,9 +74,7 @@ class TestProviderStatusData:
             "success_rate": 98.5,
         }
         for field in expected_fields:
-            assert field in sample_provider or field.replace("_", "") in str(
-                sample_provider
-            )
+            assert field in sample_provider or field.replace("_", "") in str(sample_provider)
 
     def test_valid_status_values(self):
         """Provider status should be one of valid values."""

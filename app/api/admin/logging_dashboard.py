@@ -38,9 +38,7 @@ def log_tier_api_call(user_id: str, endpoint: str, tier: str, status: int):
         tier_api_calls.pop(0)
 
 
-def log_tier_402_error(
-    user_id: str, endpoint: str, user_tier: str, required_tier: str, reason: str
-):
+def log_tier_402_error(user_id: str, endpoint: str, user_tier: str, required_tier: str, reason: str):
     """Log a 402 tier access denied error."""
     tier_402_errors.append(
         {
@@ -147,12 +145,8 @@ async def get_error_trends(
 
     return {
         "period_days": days,
-        "total_402_errors": len(
-            [e for e in tier_402_errors if e["timestamp"] >= cutoff_iso]
-        ),
-        "total_db_errors": len(
-            [e for e in database_errors if e["timestamp"] >= cutoff_iso]
-        ),
+        "total_402_errors": len([e for e in tier_402_errors if e["timestamp"] >= cutoff_iso]),
+        "total_db_errors": len([e for e in database_errors if e["timestamp"] >= cutoff_iso]),
         "errors_402_by_day": errors_402_by_day,
         "db_errors_by_day": db_errors_by_day,
         "errors_by_required_tier": errors_by_tier,
@@ -160,9 +154,7 @@ async def get_error_trends(
 
 
 @router.get("/summary")
-async def get_logs_summary(
-    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+async def get_logs_summary(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)) -> Dict[str, Any]:
     """Get summary of all logs (admin only)."""
     logger.info(f"Admin {admin_id} requested logs summary")
 
@@ -175,25 +167,13 @@ async def get_logs_summary(
         "total_402_errors": len(tier_402_errors),
         "total_db_errors": len(database_errors),
         "last_hour": {
-            "tier_api_calls": len(
-                [c for c in tier_api_calls if c["timestamp"] >= last_hour]
-            ),
-            "errors_402": len(
-                [e for e in tier_402_errors if e["timestamp"] >= last_hour]
-            ),
-            "db_errors": len(
-                [e for e in database_errors if e["timestamp"] >= last_hour]
-            ),
+            "tier_api_calls": len([c for c in tier_api_calls if c["timestamp"] >= last_hour]),
+            "errors_402": len([e for e in tier_402_errors if e["timestamp"] >= last_hour]),
+            "db_errors": len([e for e in database_errors if e["timestamp"] >= last_hour]),
         },
         "last_24h": {
-            "tier_api_calls": len(
-                [c for c in tier_api_calls if c["timestamp"] >= last_24h]
-            ),
-            "errors_402": len(
-                [e for e in tier_402_errors if e["timestamp"] >= last_24h]
-            ),
-            "db_errors": len(
-                [e for e in database_errors if e["timestamp"] >= last_24h]
-            ),
+            "tier_api_calls": len([c for c in tier_api_calls if c["timestamp"] >= last_24h]),
+            "errors_402": len([e for e in tier_402_errors if e["timestamp"] >= last_24h]),
+            "db_errors": len([e for e in database_errors if e["timestamp"] >= last_24h]),
         },
     }

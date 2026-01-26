@@ -93,11 +93,7 @@ class AffiliateService:
 
     async def get_all_applications(self, db: Session) -> List[Dict]:
         """Get all affiliate applications."""
-        applications = (
-            db.query(AffiliateApplication)
-            .order_by(AffiliateApplication.created_at.desc())
-            .all()
-        )
+        applications = db.query(AffiliateApplication).order_by(AffiliateApplication.created_at.desc()).all()
 
         return [
             {
@@ -118,11 +114,7 @@ class AffiliateService:
         self, application_id: int, status: str, admin_notes: Optional[str], db: Session
     ) -> Dict:
         """Update affiliate application status."""
-        application = (
-            db.query(AffiliateApplication)
-            .filter(AffiliateApplication.id == application_id)
-            .first()
-        )
+        application = db.query(AffiliateApplication).filter(AffiliateApplication.id == application_id).first()
 
         if not application:
             raise ValueError("Application not found")

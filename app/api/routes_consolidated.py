@@ -50,11 +50,7 @@ async def landing_page(request: Request, db: Session = Depends(get_db)):
         try:
             from app.models.subscription_tier import SubscriptionTier
 
-            tiers = (
-                db.query(SubscriptionTier)
-                .order_by(SubscriptionTier.price_monthly)
-                .all()
-            )
+            tiers = db.query(SubscriptionTier).order_by(SubscriptionTier.price_monthly).all()
             user_count = db.query(User).count()
         except Exception as db_error:
             logger.warning(f"Database query failed, using defaults: {db_error}")
@@ -120,9 +116,7 @@ async def dashboard_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "dashboard.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
 
 
 @router.get("/verify", response_class=HTMLResponse)
@@ -200,9 +194,7 @@ async def profile_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "profile.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("profile.html", {"request": request, "user": user})
 
 
 @router.get("/settings", response_class=HTMLResponse)
@@ -215,9 +207,7 @@ async def settings_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "settings.html", {"request": request, "tab": "account", "user": user}
-    )
+    return templates.TemplateResponse("settings.html", {"request": request, "tab": "account", "user": user})
 
 
 @router.get("/history", response_class=HTMLResponse)
@@ -230,9 +220,7 @@ async def history_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "history.html", {"request": request, "tab": "history", "user": user}
-    )
+    return templates.TemplateResponse("history.html", {"request": request, "tab": "history", "user": user})
 
 
 @router.get("/analytics", response_class=HTMLResponse)
@@ -245,9 +233,7 @@ async def analytics_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "analytics.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("analytics.html", {"request": request, "user": user})
 
 
 @router.get("/notifications", response_class=HTMLResponse)
@@ -260,9 +246,7 @@ async def notifications_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "notifications.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("notifications.html", {"request": request, "user": user})
 
 
 @router.get("/privacy-settings", response_class=HTMLResponse)
@@ -275,9 +259,7 @@ async def privacy_settings_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "gdpr_settings.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("gdpr_settings.html", {"request": request, "user": user})
 
 
 @router.get("/webhooks", response_class=HTMLResponse)
@@ -290,9 +272,7 @@ async def webhooks_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "webhooks.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("webhooks.html", {"request": request, "user": user})
 
 
 @router.get("/referrals", response_class=HTMLResponse)
@@ -305,9 +285,7 @@ async def referrals_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "referrals.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("referrals.html", {"request": request, "user": user})
 
 
 # ============================================================================
@@ -327,9 +305,7 @@ async def admin_dashboard(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse(
-        "admin/dashboard.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("admin/dashboard.html", {"request": request, "user": user})
 
 
 @router.get("/admin/tier-management", response_class=HTMLResponse)
@@ -344,9 +320,7 @@ async def admin_tier_management(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse(
-        "admin/tier_management.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("admin/tier_management.html", {"request": request, "user": user})
 
 
 @router.get("/admin/verification-history", response_class=HTMLResponse)
@@ -361,9 +335,7 @@ async def admin_verification_history(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse(
-        "admin/verification_history.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("admin/verification_history.html", {"request": request, "user": user})
 
 
 @router.get("/admin/pricing-templates", response_class=HTMLResponse)
@@ -378,9 +350,7 @@ async def admin_pricing_templates(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse(
-        "admin/pricing_templates.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
 
 
 @router.get("/admin/logs", response_class=HTMLResponse)
@@ -395,9 +365,7 @@ async def admin_logging_dashboard(
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse(
-        "admin/logging_dashboard.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("admin/logging_dashboard.html", {"request": request, "user": user})
 
 
 # ============================================================================
@@ -426,9 +394,7 @@ async def contact_page(request: Request):
 @router.get("/faq", response_class=HTMLResponse)
 async def faq_page(request: Request):
     """FAQ page."""
-    return templates.TemplateResponse(
-        "info.html", {"request": request, "page_type": "faq", "page_title": "FAQ"}
-    )
+    return templates.TemplateResponse("info.html", {"request": request, "page_type": "faq", "page_title": "FAQ"})
 
 
 @router.get("/privacy", response_class=HTMLResponse)
@@ -488,9 +454,7 @@ async def status_page(
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home(
-    request: Request, user_id: Optional[str] = Depends(get_optional_user_id)
-):
+async def home(request: Request, user_id: Optional[str] = Depends(get_optional_user_id)):
     """Home - redirect to appropriate page."""
     if user_id:
         return RedirectResponse(url="/dashboard", status_code=302)
@@ -577,9 +541,7 @@ async def voice_verify_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "voice_verify.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("voice_verify.html", {"request": request, "user": user})
 
 
 @router.get("/voice-status/{verification_id}", response_class=HTMLResponse)
@@ -620,9 +582,7 @@ async def api_docs_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "api_docs.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("api_docs.html", {"request": request, "user": user})
 
 
 @router.get("/affiliate", response_class=HTMLResponse)
@@ -635,19 +595,13 @@ async def affiliate_page(
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "affiliate_program.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("affiliate_program.html", {"request": request, "user": user})
 
 
 @router.get("/bulk-purchase", response_class=HTMLResponse)
-async def bulk_purchase_page(
-    request: Request, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
-):
+async def bulk_purchase_page(request: Request, user_id: str = Depends(require_pro), db: Session = Depends(get_db)):
     """Bulk purchase page. Requires pro tier or higher."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
-    return templates.TemplateResponse(
-        "bulk_purchase.html", {"request": request, "user": user}
-    )
+    return templates.TemplateResponse("bulk_purchase.html", {"request": request, "user": user})

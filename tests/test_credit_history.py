@@ -17,16 +17,12 @@ class TestCreditHistoryEndpoints:
 
     def test_get_credit_history_with_pagination(self, client, auth_headers):
         """Should support pagination parameters."""
-        response = client.get(
-            "/api/user/credits/history?page=1&limit=20", headers=auth_headers
-        )
+        response = client.get("/api/user/credits/history?page=1&limit=20", headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
     def test_get_credit_history_with_type_filter(self, client, auth_headers):
         """Should support filtering by transaction type."""
-        response = client.get(
-            "/api/user/credits/history?type=purchase", headers=auth_headers
-        )
+        response = client.get("/api/user/credits/history?type=purchase", headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
     def test_get_credit_summary_authenticated(self, client, auth_headers):
@@ -42,10 +38,7 @@ class TestCreditHistoryUI:
         """Wallet page should load successfully."""
         response = client.get("/wallet", headers=auth_headers)
         assert response.status_code == 200
-        assert (
-            b"Credit History" in response.content
-            or b"credit-history" in response.content
-        )
+        assert b"Credit History" in response.content or b"credit-history" in response.content
 
     def test_wallet_page_has_credit_history_section(self, client, auth_headers):
         """Wallet page should have credit history section."""

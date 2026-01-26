@@ -34,17 +34,13 @@ class TestCriticalUserJourneys:
         token = user_token(regular_user.id, regular_user.email)
 
         # Access dashboard
-        response = client.get(
-            "/dashboard", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
 
         # Should succeed or redirect
         assert response.status_code in [200, 302, 401]
 
     @patch("app.services.payment_service.paystack_service")
-    def test_credit_purchase_journey(
-        self, mock_paystack, client, regular_user, user_token, db_session
-    ):
+    def test_credit_purchase_journey(self, mock_paystack, client, regular_user, user_token, db_session):
         """Test complete credit purchase flow."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -81,9 +77,7 @@ class TestCriticalUserJourneys:
         # Should succeed or return error
         assert response.status_code in [200, 201, 400, 401, 402, 422]
 
-    def test_sms_verification_purchase_journey(
-        self, client, regular_user, user_token, db_session
-    ):
+    def test_sms_verification_purchase_journey(self, client, regular_user, user_token, db_session):
         """Test purchasing SMS verification."""
         # Give user enough credits
         regular_user.credits = 100.0
@@ -164,9 +158,7 @@ class TestCriticalUserJourneys:
         # Should succeed or return error
         assert response.status_code in [200, 400, 401, 422]
 
-    def test_transaction_history_retrieval_journey(
-        self, client, regular_user, user_token, db_session
-    ):
+    def test_transaction_history_retrieval_journey(self, client, regular_user, user_token, db_session):
         """Test retrieving transaction history."""
         from app.models.transaction import Transaction
 
@@ -184,9 +176,7 @@ class TestCriticalUserJourneys:
         token = user_token(regular_user.id, regular_user.email)
 
         # Get history
-        response = client.get(
-            "/api/billing/transactions", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/billing/transactions", headers={"Authorization": f"Bearer {token}"})
 
         # Should succeed
         assert response.status_code in [200, 401]

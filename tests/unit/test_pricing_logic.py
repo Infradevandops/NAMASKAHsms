@@ -11,28 +11,20 @@ class TestPricingLogic:
 
     def test_get_filter_charges_payg(self, db_session):
         """Test filter charges for PAYG user."""
-        user = User(
-            email="payg_filter@example.com", subscription_tier="payg", credits=10.0
-        )
+        user = User(email="payg_filter@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
         # State filter only
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA"}
-        )
+        charges = PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA"})
         assert charges == 0.25
 
         # ISP filter only
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"isp": "Comcast"}
-        )
+        charges = PricingCalculator.get_filter_charges(db_session, user.id, {"isp": "Comcast"})
         assert charges == 0.50
 
         # Both
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA", "isp": "Comcast"}
-        )
+        charges = PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA", "isp": "Comcast"})
         assert charges == 0.75
 
         # None
@@ -41,22 +33,16 @@ class TestPricingLogic:
 
     def test_get_filter_charges_pro(self, db_session):
         """Test filter charges for Pro user (free filters)."""
-        user = User(
-            email="pro_filter@example.com", subscription_tier="pro", credits=10.0
-        )
+        user = User(email="pro_filter@example.com", subscription_tier="pro", credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        charges = PricingCalculator.get_filter_charges(
-            db_session, user.id, {"state": "CA", "isp": "Comcast"}
-        )
+        charges = PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA", "isp": "Comcast"})
         assert charges == 0.0
 
     def test_get_filter_charges_freemium_error(self, db_session):
         """Test filter charges raises error for Freemium user."""
-        user = User(
-            email="free_filter@example.com", subscription_tier="freemium", credits=0.0
-        )
+        user = User(email="free_filter@example.com", subscription_tier="freemium", credits=0.0)
         db_session.add(user)
         db_session.commit()
 
@@ -65,18 +51,14 @@ class TestPricingLogic:
 
     def test_get_pricing_breakdown(self, db_session):
         """Test full pricing breakdown."""
-        user = User(
-            email="breakdown@example.com", subscription_tier="payg", credits=100.0
-        )
+        user = User(email="breakdown@example.com", subscription_tier="payg", credits=100.0)
         db_session.add(user)
         db_session.commit()
 
         # Mock QuotaService?? No need if it uses defaults (quota=0 for PAYG)
         # Assuming QuotaService calls work with defaults.
 
-        breakdown = PricingCalculator.get_pricing_breakdown(
-            db_session, user.id, {"state": "NY"}
-        )
+        breakdown = PricingCalculator.get_pricing_breakdown(db_session, user.id, {"state": "NY"})
 
         assert breakdown["tier"] == "payg"
         assert breakdown["base_cost"] == 2.50

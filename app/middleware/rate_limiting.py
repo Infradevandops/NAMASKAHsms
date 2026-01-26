@@ -64,11 +64,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Skip rate limiting for public pages
         path = request.url.path
-        if (
-            path == "/"
-            or any(path.startswith(p + "/") for p in public_paths if p != "/")
-            or path in public_paths
-        ):
+        if path == "/" or any(path.startswith(p + "/") for p in public_paths if p != "/") or path in public_paths:
             return await call_next(request)
 
         current_time = time.time()
@@ -81,17 +77,13 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         requests_limit, window = self._get_endpoint_limit(request.url.path)
 
         # Check IP - based rate limit
-        if not self._check_rate_limit(
-            self.ip_requests[client_ip], requests_limit, window, current_time
-        ):
+        if not self._check_rate_limit(self.ip_requests[client_ip], requests_limit, window, current_time):
             return self._create_rate_limit_response("IP rate limit exceeded")
 
         # Check user - based rate limit (if authenticated)
         if user_id:
             user_limit = requests_limit * 2  # Users get higher limits
-            if not self._check_rate_limit(
-                self.user_requests[user_id], user_limit, window, current_time
-            ):
+            if not self._check_rate_limit(self.user_requests[user_id], user_limit, window, current_time):
                 return self._create_rate_limit_response("User rate limit exceeded")
 
         # Record the request
@@ -106,9 +98,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
 
         # Add rate limit headers
-        remaining = self._get_remaining_requests(
-            client_ip, user_id, requests_limit, window, current_time
-        )
+        remaining = self._get_remaining_requests(client_ip, user_id, requests_limit, window, current_time)
         reset_time = int(current_time + window)
 
         response.headers["X-RateLimit-Limit"] = str(requests_limit)
@@ -147,9 +137,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return self.default_requests, self.default_window
 
     @staticmethod
-    def _check_rate_limit(
-        request_times: deque, limit: int, window: int, current_time: float
-    ) -> bool:
+    def _check_rate_limit(request_times: deque, limit: int, window: int, current_time: float) -> bool:
         """Check if request is within rate limit."""
         # Remove old requests outside the window
         while request_times and request_times[0] <= current_time - window:

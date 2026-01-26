@@ -213,12 +213,8 @@ def ensure_admin_user():
         logger.info(f"🔐 Admin user check starting for: {admin_email}")
 
         if not admin_password:
-            logger.warning(
-                "⚠️ ADMIN_PASSWORD not set in environment. Skipping admin user creation."
-            )
-            logger.warning(
-                "⚠️ Set ADMIN_PASSWORD environment variable to enable admin access."
-            )
+            logger.warning("⚠️ ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
+            logger.warning("⚠️ Set ADMIN_PASSWORD environment variable to enable admin access.")
             return
 
         logger.info(f"✅ ADMIN_PASSWORD found (length: {len(admin_password)} chars)")
@@ -226,16 +222,10 @@ def ensure_admin_user():
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
         if existing_admin:
-            logger.info(
-                f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})"
-            )
+            logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
 
             # ALWAYS update password on startup to ensure it matches env var
-            old_hash_preview = (
-                existing_admin.password_hash[:30]
-                if existing_admin.password_hash
-                else "None"
-            )
+            old_hash_preview = existing_admin.password_hash[:30] if existing_admin.password_hash else "None"
             existing_admin.password_hash = hash_password(admin_password)
             new_hash_preview = existing_admin.password_hash[:30]
 
@@ -330,9 +320,7 @@ def run_startup_initialization():
     except OSError as e:
         logger.error(f"Environment configuration error during startup: {e}")
     except (ImportError, AttributeError, TypeError) as e:
-        logger.error(
-            f"Configuration or import error during startup initialization: {e}"
-        )
+        logger.error(f"Configuration or import error during startup initialization: {e}")
     except Exception as e:
         logger.critical(f"Critical unexpected error during startup initialization: {e}")
         raise

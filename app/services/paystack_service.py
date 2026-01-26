@@ -75,8 +75,7 @@ class PaystackService:
 
                 result = data.get("data", {})
                 logger.info(
-                    f"Payment initialized for {email}: "
-                    f"Amount={amount_kobo}, Reference={result.get('reference')}"
+                    f"Payment initialized for {email}: " f"Amount={amount_kobo}, Reference={result.get('reference')}"
                 )
 
                 return {

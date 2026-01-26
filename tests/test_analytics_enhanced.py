@@ -16,9 +16,7 @@ def test_get_analytics_summary_empty(client, auth_headers):
     assert len(data["daily_verifications"]) > 0
 
 
-def test_get_analytics_summary_with_data(
-    client, auth_headers, db: Session, regular_user
-):
+def test_get_analytics_summary_with_data(client, auth_headers, db: Session, regular_user):
     """Test analytics summary with verifications and transactions."""
     # Add verifications
     v1 = Verification(
@@ -84,9 +82,7 @@ def test_analytics_date_filter(client, auth_headers, db: Session, regular_user):
 
     # Query extended range
     from_date = (datetime.utcnow() - timedelta(days=90)).isoformat()
-    response = client.get(
-        f"/api/analytics/summary?from_date={from_date}", headers=auth_headers
-    )
+    response = client.get(f"/api/analytics/summary?from_date={from_date}", headers=auth_headers)
     data = response.json()
     assert data["total_verifications"] == 1
 

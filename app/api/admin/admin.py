@@ -46,9 +46,7 @@ def get_all_users(
                     "email": user.email,
                     "credits": user.credits,
                     "is_admin": user.is_admin,
-                    "created_at": (
-                        user.created_at.isoformat() if user.created_at else None
-                    ),
+                    "created_at": (user.created_at.isoformat() if user.created_at else None),
                 }
             )
 
@@ -71,9 +69,7 @@ def get_user_details(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get user statistics
-        total_verifications = (
-            db.query(Verification).filter(Verification.user_id == user_id).count()
-        )
+        total_verifications = db.query(Verification).filter(Verification.user_id == user_id).count()
         total_spent = (
             db.query(Transaction)
             .filter(Transaction.user_id == user_id, Transaction.type == "debit")
@@ -119,18 +115,14 @@ def manage_user_credits(
 ):
     """Add or deduct credits from user account (admin only)."""
     if operation not in ["add", "deduct"]:
-        raise HTTPException(
-            status_code=400, detail="Operation must be 'add' or 'deduct'"
-        )
+        raise HTTPException(status_code=400, detail="Operation must be 'add' or 'deduct'")
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     if operation == "deduct" and user.credits < amount:
-        raise HTTPException(
-            status_code=400, detail=f"Insufficient balance. User has {user.credits}"
-        )
+        raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
     # Update credits
     if operation == "add":
@@ -209,9 +201,7 @@ def deduct_user_credits(
             raise HTTPException(status_code=404, detail="User not found")
 
         if user.credits < amount:
-            raise HTTPException(
-                status_code=400, detail=f"Insufficient balance. User has {user.credits}"
-            )
+            raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
         user.credits -= amount
 
@@ -219,9 +209,7 @@ def deduct_user_credits(
             user_id=user_id,
             amount=-amount,
             type="debit",
-            description=(
-                f"Admin debit: {reason}" if reason else "Admin deducted credits"
-            ),
+            description=(f"Admin debit: {reason}" if reason else "Admin deducted credits"),
         )
 
         db.add(transaction)
@@ -274,9 +262,7 @@ def activate_user(
 
 
 @router.get("/stats")
-def get_platform_stats(
-    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
-):
+def get_platform_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
     """Get platform-wide statistics (admin only)."""
     try:
         # Total users
@@ -284,49 +270,28 @@ def get_platform_stats(
 
         # New users (last 30 days)
         new_users = (
-            db.execute(
-                text(
-                    "SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '30 days'"
-                )
-            ).scalar()
-            or 0
+            db.execute(text("SELECT COUNT(*) FROM users WHERE created_at >= NOW() - INTERVAL '30 days'")).scalar() or 0
         )
 
         # Total verifications
-        total_verifications = (
-            db.execute(text("SELECT COUNT(*) FROM verifications")).scalar() or 0
-        )
+        total_verifications = db.execute(text("SELECT COUNT(*) FROM verifications")).scalar() or 0
 
         # Pending verifications
         pending_verifications = (
-            db.execute(
-                text("SELECT COUNT(*) FROM verifications WHERE status = 'pending'")
-            ).scalar()
-            or 0
+            db.execute(text("SELECT COUNT(*) FROM verifications WHERE status = 'pending'")).scalar() or 0
         )
 
         # Completed verifications
         completed_verifications = (
-            db.execute(
-                text("SELECT COUNT(*) FROM verifications WHERE status = 'completed'")
-            ).scalar()
-            or 0
+            db.execute(text("SELECT COUNT(*) FROM verifications WHERE status = 'completed'")).scalar() or 0
         )
 
         # Success rate
-        success_rate = (
-            (completed_verifications / total_verifications * 100)
-            if total_verifications > 0
-            else 0
-        )
+        success_rate = (completed_verifications / total_verifications * 100) if total_verifications > 0 else 0
 
         # Total revenue (sum of debit transactions)
         total_revenue = (
-            db.execute(
-                text(
-                    "SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'"
-                )
-            ).scalar()
+            db.execute(text("SELECT COALESCE(SUM(ABS(amount)), 0) FROM transactions WHERE type = 'debit'")).scalar()
             or 0
         )
 
@@ -343,9 +308,7 @@ def get_platform_stats(
             """
             )
         ).fetchall()
-        popular_services = [
-            {"name": row[0], "count": row[1]} for row in popular_services_raw
-        ]
+        popular_services = [{"name": row[0], "count": row[1]} for row in popular_services_raw]
 
         # Daily usage (last 7 days)
         daily_usage_raw = db.execute(
@@ -359,9 +322,7 @@ def get_platform_stats(
             """
             )
         ).fetchall()
-        daily_usage = [
-            {"date": str(row[0]), "count": row[1]} for row in daily_usage_raw
-        ]
+        daily_usage = [{"date": str(row[0]), "count": row[1]} for row in daily_usage_raw]
 
         return {
             "total_users": total_users,
@@ -465,9 +426,7 @@ async def admin_cancel_verification(
 ):
     """Cancel any verification and refund user (admin only)."""
 
-    verification = (
-        db.query(Verification).filter(Verification.id == verification_id).first()
-    )
+    verification = db.query(Verification).filter(Verification.id == verification_id).first()
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
@@ -500,9 +459,7 @@ async def admin_cancel_verification(
 
 
 @router.get("/system/health")
-def get_system_health(
-    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
-):
+def get_system_health(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
     """Get comprehensive system health status (admin only)."""
     # Database health
     try:
@@ -519,9 +476,7 @@ def get_system_health(
 
     # Verification statistics
     total_verifications = db.query(Verification).count()
-    pending_verifications = (
-        db.query(Verification).filter(Verification.status == "pending").count()
-    )
+    pending_verifications = db.query(Verification).filter(Verification.status == "pending").count()
 
     # Transaction statistics
     total_transactions = db.query(Transaction).count()
@@ -563,9 +518,7 @@ def get_all_transactions(
 
     # Pagination
     offset = (page - 1) * size
-    transactions = (
-        query.order_by(Transaction.created_at.desc()).offset(offset).limit(size).all()
-    )
+    transactions = query.order_by(Transaction.created_at.desc()).offset(offset).limit(size).all()
 
     # Calculate pages
     pages = (total + size - 1) // size
@@ -594,9 +547,7 @@ async def broadcast_notification(
     title: str = Body(..., description="Notification title"),
     message: str = Body(..., description="Notification message"),
     notification_type: str = Body("info", description="Notification type"),
-    target_users: Optional[List[str]] = Body(
-        None, description="Target user IDs (all if empty)"
-    ),
+    target_users: Optional[List[str]] = Body(None, description="Target user IDs (all if empty)"),
     admin_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):

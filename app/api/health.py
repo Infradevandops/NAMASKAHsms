@@ -49,9 +49,7 @@ async def database_health_check(db=Depends(get_db)):
             "schema_version": "4.0.0",
             "idempotency_key_present": has_idempotency,
             "message": (
-                "All systems operational"
-                if has_idempotency
-                else "Database migration pending - verifications will fail"
+                "All systems operational" if has_idempotency else "Database migration pending - verifications will fail"
             ),
         }
     except Exception as e:
@@ -69,14 +67,8 @@ async def fix_database_schema(db=Depends(get_db)):
 
         if "idempotency_key" not in columns:
             with engine.connect() as conn:
-                conn.execute(
-                    text("ALTER TABLE verifications ADD COLUMN idempotency_key VARCHAR")
-                )
-                conn.execute(
-                    text(
-                        "CREATE INDEX ix_verifications_idempotency_key ON verifications (idempotency_key)"
-                    )
-                )
+                conn.execute(text("ALTER TABLE verifications ADD COLUMN idempotency_key VARCHAR"))
+                conn.execute(text("CREATE INDEX ix_verifications_idempotency_key ON verifications (idempotency_key)"))
                 conn.commit()
                 fixes.append("Added idempotency_key column and index")
 

@@ -47,9 +47,7 @@ class TestVerificationPricingService:
 
     def test_validate_and_calculate_cost(self, db: Session, pro_user: User):
         """Test cost calculation."""
-        cost_info = VerificationPricingService.validate_and_calculate_cost(
-            db, pro_user.id
-        )
+        cost_info = VerificationPricingService.validate_and_calculate_cost(db, pro_user.id)
         assert cost_info["total_cost"] > 0
         assert cost_info["tier"] == "pro"
 
@@ -74,9 +72,7 @@ class TestVerificationPricingService:
         initial_bonus = freemium_user_with_bonus.bonus_sms_balance
         VerificationPricingService.deduct_cost(db, freemium_user_with_bonus.id, 2.50)
 
-        freemium_user = (
-            db.query(User).filter(User.id == freemium_user_with_bonus.id).first()
-        )
+        freemium_user = db.query(User).filter(User.id == freemium_user_with_bonus.id).first()
         assert freemium_user.bonus_sms_balance == initial_bonus - 1
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
@@ -106,9 +102,7 @@ class TestAPIKeyService:
         remaining = service.get_remaining_keys(pro_user.id)
         assert remaining == 10
 
-    def test_get_remaining_keys_freemium(
-        self, db: Session, freemium_user_with_bonus: User
-    ):
+    def test_get_remaining_keys_freemium(self, db: Session, freemium_user_with_bonus: User):
         """Test remaining keys for freemium."""
         service = APIKeyService(db)
         remaining = service.get_remaining_keys(freemium_user_with_bonus.id)
@@ -121,9 +115,7 @@ class TestAPIKeyService:
         assert api_key.name == "Test Key"
         assert raw_key is not None
 
-    def test_create_key_freemium_fails(
-        self, db: Session, freemium_user_with_bonus: User
-    ):
+    def test_create_key_freemium_fails(self, db: Session, freemium_user_with_bonus: User):
         """Test creating key for freemium fails."""
         service = APIKeyService(db)
         with pytest.raises(ValueError, match="API key limit reached"):
@@ -144,9 +136,7 @@ class TestTransactionService:
 
     def test_log_sms_purchase(self, db: Session, pro_user: User):
         """Test logging SMS purchase."""
-        tx_id = TransactionService.log_sms_purchase(
-            db, pro_user.id, 2.50, "pro", "telegram"
-        )
+        tx_id = TransactionService.log_sms_purchase(db, pro_user.id, 2.50, "pro", "telegram")
         assert tx_id is not None
 
     def test_log_api_key_creation(self, db: Session, pro_user: User):
@@ -156,9 +146,7 @@ class TestTransactionService:
 
     def test_log_filter_charge(self, db: Session, pro_user: User):
         """Test logging filter charge."""
-        tx_id = TransactionService.log_filter_charge(
-            db, pro_user.id, 0.25, "state", "payg"
-        )
+        tx_id = TransactionService.log_filter_charge(db, pro_user.id, 0.25, "state", "payg")
         assert tx_id is not None
 
     def test_log_overage_charge(self, db: Session, pro_user: User):

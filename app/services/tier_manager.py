@@ -32,9 +32,7 @@ class TierManager:
                     expires = expires.replace(tzinfo=timezone.utc)
 
                 if expires < datetime.now(timezone.utc):
-                    logger.warning(
-                        f"User {user_id} tier expired, downgrading to freemium"
-                    )
+                    logger.warning(f"User {user_id} tier expired, downgrading to freemium")
                     user.subscription_tier = "freemium"
                     self.db.commit()
                     return "freemium"
@@ -87,11 +85,7 @@ class TierManager:
             )
 
         # Count existing API keys
-        existing_keys = len(
-            self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active)
-            .all()
-        )
+        existing_keys = len(self.db.query(APIKey).filter(APIKey.user_id == user_id, APIKey.is_active).all())
 
         api_key_limit = config["api_key_limit"]
 

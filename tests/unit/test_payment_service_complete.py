@@ -20,9 +20,7 @@ class TestPaymentServiceExtended:
             return PaymentService(db_session)
 
     @pytest.mark.asyncio
-    async def test_payment_double_credit_prevention(
-        self, payment_service, regular_user, db_session, redis_client
-    ):
+    async def test_payment_double_credit_prevention(self, payment_service, regular_user, db_session, redis_client):
         """Test that duplicate credits are prevented via Redis lock."""
         reference = "ref_duplicate_test"
         amount = 50.0
@@ -61,14 +59,10 @@ class TestPaymentServiceExtended:
             await payment_service.initiate_payment(fake_user_id, 10.0)
 
     @patch("app.services.payment_service.paystack_service")
-    async def test_payment_paystack_error(
-        self, mock_paystack, payment_service, regular_user
-    ):
+    async def test_payment_paystack_error(self, mock_paystack, payment_service, regular_user):
         """Test handling of Paystack API errors."""
         mock_paystack.enabled = True
-        mock_paystack.initialize_payment = AsyncMock(
-            side_effect=Exception("Paystack API error")
-        )
+        mock_paystack.initialize_payment = AsyncMock(side_effect=Exception("Paystack API error"))
 
         with pytest.raises(Exception, match="Paystack API error"):
             await payment_service.initiate_payment(regular_user.id, 10.0)
@@ -80,9 +74,7 @@ class TestPaymentServiceExtended:
         with pytest.raises(ValueError, match="Payment not found"):
             await payment_service.verify_payment(invalid_ref, regular_user.id)
 
-    async def test_payment_status_transitions(
-        self, payment_service, regular_user, db_session
-    ):
+    async def test_payment_status_transitions(self, payment_service, regular_user, db_session):
         """Test valid payment status transitions."""
         reference = "ref_status_test"
 
@@ -108,9 +100,7 @@ class TestPaymentServiceExtended:
         assert log.status == "success"
         assert log.credited is True
 
-    async def test_payment_balance_update_atomic(
-        self, payment_service, regular_user, db_session, redis_client
-    ):
+    async def test_payment_balance_update_atomic(self, payment_service, regular_user, db_session, redis_client):
         """Test that balance updates are atomic."""
         reference = "ref_atomic_test"
         amount = 25.0
@@ -127,9 +117,7 @@ class TestPaymentServiceExtended:
         key = f"payment:credited:{reference}"
         assert redis_client.get(key) is not None
 
-    def test_payment_get_history_pagination(
-        self, payment_service, regular_user, db_session
-    ):
+    def test_payment_get_history_pagination(self, payment_service, regular_user, db_session):
         """Test payment history with pagination."""
         # Create multiple payment logs
         for i in range(5):
@@ -147,9 +135,7 @@ class TestPaymentServiceExtended:
         history = payment_service.get_payment_history(regular_user.id, limit=3)
         assert len(history["payments"]) <= 3
 
-    def test_payment_summary_calculations(
-        self, payment_service, regular_user, db_session
-    ):
+    def test_payment_summary_calculations(self, payment_service, regular_user, db_session):
         """Test payment summary calculations."""
         # Add successful and failed payments
         db_session.add(
@@ -177,9 +163,7 @@ class TestPaymentServiceExtended:
         assert summary["total_payments"] >= 1
 
     @pytest.mark.asyncio
-    async def test_payment_webhook_idempotency(
-        self, payment_service, regular_user, db_session, redis_client
-    ):
+    async def test_payment_webhook_idempotency(self, payment_service, regular_user, db_session, redis_client):
         """Test webhook processing is idempotent."""
         reference = "ref_webhook_idem"
 

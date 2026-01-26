@@ -26,10 +26,7 @@ async def test_setup_error_handling():
 
     app = FastAPI()
     setup_unified_error_handling(app)
-    assert any(
-        "unified" in str(handler) or "exception" in str(handler)
-        for handler in app.exception_handlers.values()
-    )
+    assert any("unified" in str(handler) or "exception" in str(handler) for handler in app.exception_handlers.values())
 
 
 @pytest.mark.asyncio

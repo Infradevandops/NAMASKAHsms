@@ -56,7 +56,4 @@ class TestWebhookNotificationService:
     @pytest.mark.asyncio
     async def test_notify_methods_no_url(self, service):
         # Should return True and not call webhook
-        assert (
-            await service.notify_verification_created("id1", "123", "serv", 1.0, None)
-            is True
-        )
+        assert await service.notify_verification_created("id1", "123", "serv", 1.0, None) is True

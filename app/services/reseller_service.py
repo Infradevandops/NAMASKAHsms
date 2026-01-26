@@ -24,11 +24,7 @@ class ResellerService:
         """Create new reseller account."""
 
         # Check if user already has reseller account
-        existing = (
-            self.db.query(ResellerAccount)
-            .filter(ResellerAccount.user_id == user_id)
-            .first()
-        )
+        existing = self.db.query(ResellerAccount).filter(ResellerAccount.user_id == user_id).first()
 
         if existing:
             return {"error": "User already has reseller account"}
@@ -64,11 +60,7 @@ class ResellerService:
     ) -> Dict:
         """Create new sub - account."""
 
-        reseller = (
-            self.db.query(ResellerAccount)
-            .filter(ResellerAccount.id == reseller_id)
-            .first()
-        )
+        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
 
         if not reseller:
             return {"error": "Reseller account not found"}
@@ -121,17 +113,11 @@ class ResellerService:
     ) -> Dict:
         """Allocate credits to sub - account."""
 
-        reseller = (
-            self.db.query(ResellerAccount)
-            .filter(ResellerAccount.id == reseller_id)
-            .first()
-        )
+        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
 
         sub_account = (
             self.db.query(SubAccount)
-            .filter(
-                SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id
-            )
+            .filter(SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id)
             .first()
         )
 
@@ -203,9 +189,7 @@ class ResellerService:
             for account in sub_accounts
         ]
 
-    async def bulk_credit_topup(
-        self, reseller_id: int, account_ids: List[int], amount_per_account: float
-    ) -> Dict:
+    async def bulk_credit_topup(self, reseller_id: int, account_ids: List[int], amount_per_account: float) -> Dict:
         """Bulk credit top - up for multiple accounts."""
 
         # Create bulk operation record
@@ -281,12 +265,8 @@ class ResellerService:
         )
 
         # Calculate metrics
-        total_usage = sum(
-            t.amount for t in transactions if t.transaction_type == "debit"
-        )
-        total_credits_allocated = sum(
-            t.amount for t in transactions if t.transaction_type == "credit"
-        )
+        total_usage = sum(t.amount for t in transactions if t.transaction_type == "debit")
+        total_credits_allocated = sum(t.amount for t in transactions if t.transaction_type == "credit")
 
         # Usage by sub - account
         usage_by_account = {}

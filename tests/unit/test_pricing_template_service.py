@@ -76,9 +76,7 @@ def test_create_template(service, mock_db):
 
 def test_create_template_duplicate_name(service, mock_db):
     # Mock existing
-    mock_db.query.return_value.filter.return_value.first.return_value = (
-        PricingTemplate()
-    )
+    mock_db.query.return_value.filter.return_value.first.return_value = PricingTemplate()
 
     with pytest.raises(ValueError, match="already exists"):
         service.create_template(

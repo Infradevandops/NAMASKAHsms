@@ -30,16 +30,12 @@ async def test_pricing_basic_calculation():
     mock_integration = AsyncMock()
     mock_integration.get_pricing.return_value = {"cost": 1.00}
 
-    with patch(
-        "app.api.verification.pricing.TierManager", return_value=mock_tier_manager
-    ):
+    with patch("app.api.verification.pricing.TierManager", return_value=mock_tier_manager):
         with patch(
             "app.services.textverified_service.TextVerifiedService",
             return_value=mock_integration,
         ):
-            result = await get_verification_pricing(
-                service="whatsapp", country="US", user_id="test_user", db=mock_db
-            )
+            result = await get_verification_pricing(service="whatsapp", country="US", user_id="test_user", db=mock_db)
 
     assert result["success"] is True
     assert result["service"] == "whatsapp"

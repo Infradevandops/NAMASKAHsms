@@ -117,11 +117,7 @@ async def get_ticket_details(
 ):
     """Get specific ticket details."""
     try:
-        ticket = (
-            db.query(SupportTicket)
-            .filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id)
-            .first()
-        )
+        ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
@@ -143,11 +139,7 @@ async def close_ticket(
 ):
     """Close a support ticket."""
     try:
-        ticket = (
-            db.query(SupportTicket)
-            .filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id)
-            .first()
-        )
+        ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
@@ -262,9 +254,7 @@ async def mark_faq_helpful(
     """Mark FAQ item as helpful or not helpful."""
     try:
         # In a real implementation, you'd track this in the database
-        return SuccessResponse(
-            message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful}
-        )
+        return SuccessResponse(message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful})
 
     except Exception as e:
         logger.error("Failed to record FAQ feedback: %s", e)
@@ -406,18 +396,12 @@ async def respond_to_ticket(
 
 
 @router.get("/admin/stats")
-async def get_support_stats(
-    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
-):
+async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
     """Get support statistics (admin only)."""
     try:
         total_tickets = db.query(SupportTicket).count()
-        open_tickets = (
-            db.query(SupportTicket).filter(SupportTicket.status == "open").count()
-        )
-        resolved_tickets = (
-            db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
-        )
+        open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+        resolved_tickets = db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
 
         # Calculate average response time (mock for now)
         avg_response_time = "4.2 hours"
@@ -428,11 +412,7 @@ async def get_support_stats(
             "resolved_tickets": resolved_tickets,
             "closed_tickets": total_tickets - open_tickets - resolved_tickets,
             "avg_response_time": avg_response_time,
-            "resolution_rate": (
-                round((resolved_tickets / total_tickets * 100), 1)
-                if total_tickets > 0
-                else 0
-            ),
+            "resolution_rate": (round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0),
         }
 
     except Exception as e:

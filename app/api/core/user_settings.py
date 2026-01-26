@@ -33,26 +33,18 @@ async def save_notifications(
     Expects: verification_alerts (bool), payment_receipts (bool)
     """
     # Check if settings exist
-    settings = (
-        db.query(NotificationSettings)
-        .filter(NotificationSettings.user_id == user_id)
-        .first()
-    )
+    settings = db.query(NotificationSettings).filter(NotificationSettings.user_id == user_id).first()
 
     if not settings:
         settings = NotificationSettings(
             user_id=user_id,
             email_on_sms=data.get("verification_alerts", True),
-            email_on_low_balance=data.get(
-                "payment_receipts", True
-            ),  # Mapping receipts to this for now
+            email_on_low_balance=data.get("payment_receipts", True),  # Mapping receipts to this for now
         )
         db.add(settings)
     else:
         settings.email_on_sms = data.get("verification_alerts", settings.email_on_sms)
-        settings.email_on_low_balance = data.get(
-            "payment_receipts", settings.email_on_low_balance
-        )
+        settings.email_on_low_balance = data.get("payment_receipts", settings.email_on_low_balance)
 
     db.commit()
     return {"status": "success", "message": "Notification preferences saved"}
@@ -109,9 +101,7 @@ async def save_billing(
 
     pref.billing_email = data.get("billing_email", pref.billing_email)
     pref.billing_address = data.get("billing_address", pref.billing_address)
-    pref.auto_recharge = data.get(
-        "auto_recharge", pref.auto_recharge if pref.auto_recharge is not None else False
-    )
+    pref.auto_recharge = data.get("auto_recharge", pref.auto_recharge if pref.auto_recharge is not None else False)
 
     recharge_amount = data.get("recharge_amount")
     if recharge_amount:
@@ -125,9 +115,7 @@ async def save_billing(
 
 
 @router.post("/logout-all")
-async def logout_all(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def logout_all(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """
     Logout all devices by clearing refresh token.
     In a more advanced setup, implementing token versions would be better.

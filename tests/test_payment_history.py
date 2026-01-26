@@ -48,17 +48,13 @@ def test_refund_request_requires_auth(client):
 
 def test_refund_request_requires_payment_id(client, auth_headers):
     """Refund request should require payment_id."""
-    response = client.post(
-        "/api/billing/refund", json={"reason": "Test reason"}, headers=auth_headers
-    )
+    response = client.post("/api/billing/refund", json={"reason": "Test reason"}, headers=auth_headers)
     assert response.status_code in [400, 422]
 
 
 def test_refund_request_requires_reason(client, auth_headers):
     """Refund request should require reason."""
-    response = client.post(
-        "/api/billing/refund", json={"payment_id": "test_payment"}, headers=auth_headers
-    )
+    response = client.post("/api/billing/refund", json={"payment_id": "test_payment"}, headers=auth_headers)
     assert response.status_code in [400, 422]
 
 

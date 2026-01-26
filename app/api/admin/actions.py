@@ -52,9 +52,7 @@ async def cancel_verification(
     db: Session = Depends(get_db),
 ):
     """Cancel a pending verification"""
-    verification = (
-        db.query(Verification).filter(Verification.id == verification_id).first()
-    )
+    verification = db.query(Verification).filter(Verification.id == verification_id).first()
     if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
@@ -84,20 +82,14 @@ async def list_users(
             "credits": float(user.credits or 0),
             "tier": user.tier or "freemium",
             "created_at": user.created_at.isoformat() if user.created_at else "",
-            "last_login": (
-                user.last_login.isoformat()
-                if hasattr(user, "last_login") and user.last_login
-                else ""
-            ),
+            "last_login": (user.last_login.isoformat() if hasattr(user, "last_login") and user.last_login else ""),
         }
         for user in users
     ]
 
 
 @router.post("/export/verifications")
-async def export_verifications(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def export_verifications(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Export verification data"""
     verifications = db.query(Verification).all()
 
@@ -109,9 +101,7 @@ async def export_verifications(
 
 
 @router.post("/export/users")
-async def export_users(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def export_users(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Export user data"""
     users = db.query(User).all()
 

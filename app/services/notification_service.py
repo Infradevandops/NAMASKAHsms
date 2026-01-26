@@ -51,17 +51,12 @@ class NotificationService:
         # Create notification
         # Create notification
         # Note: Model does not support 'data' field currently
-        notification = Notification(
-            user_id=user_id, type=notification_type, title=title, message=message
-        )
+        notification = Notification(user_id=user_id, type=notification_type, title=title, message=message)
 
         self.db.add(notification)
         self.db.commit()
 
-        logger.info(
-            f"Notification created: User={user_id}, Type={notification_type}, "
-            f"Title={title}"
-        )
+        logger.info(f"Notification created: User={user_id}, Type={notification_type}, " f"Title={title}")
 
         return notification
 
@@ -98,12 +93,7 @@ class NotificationService:
         total = query.count()
 
         # Get notifications
-        notifications = (
-            query.order_by(desc(Notification.created_at))
-            .offset(skip)
-            .limit(min(limit, 100))
-            .all()
-        )
+        notifications = query.order_by(desc(Notification.created_at)).offset(skip).limit(min(limit, 100)).all()
 
         logger.info(
             f"Retrieved {len(notifications)} notifications for user {user_id} "
@@ -248,9 +238,7 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         # Delete all notifications
-        count = (
-            self.db.query(Notification).filter(Notification.user_id == user_id).delete()
-        )
+        count = self.db.query(Notification).filter(Notification.user_id == user_id).delete()
 
         self.db.commit()
 
@@ -276,9 +264,7 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         count = (
-            self.db.query(Notification)
-            .filter(Notification.user_id == user_id, Notification.is_read.is_(False))
-            .count()
+            self.db.query(Notification).filter(Notification.user_id == user_id, Notification.is_read.is_(False)).count()
         )
 
         logger.info(f"Unread notification count for user {user_id}: {count}")
@@ -299,9 +285,7 @@ class NotificationService:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         count = (
-            self.db.query(Notification)
-            .filter(Notification.created_at < cutoff_date)
-            .delete(synchronize_session=False)
+            self.db.query(Notification).filter(Notification.created_at < cutoff_date).delete(synchronize_session=False)
         )
 
         self.db.commit()

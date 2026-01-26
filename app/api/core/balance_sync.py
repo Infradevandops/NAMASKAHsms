@@ -52,9 +52,7 @@ class BalanceSyncService:
             if api_balance is not None and abs(db_balance - api_balance) > 0.01:
                 user.credits = api_balance
                 self.db.commit()
-                logger.info(
-                    f"Updated admin user {user.id} balance from {db_balance} to {api_balance}"
-                )
+                logger.info(f"Updated admin user {user.id} balance from {db_balance} to {api_balance}")
                 db_balance = api_balance
 
             return {
@@ -68,9 +66,7 @@ class BalanceSyncService:
 
         except Exception as e:
             logger.error(f"Balance sync failed for user {user.id}: {e}")
-            raise HTTPException(
-                status_code=500, detail=f"Balance sync failed: {str(e)}"
-            )
+            raise HTTPException(status_code=500, detail=f"Balance sync failed: {str(e)}")
 
     async def get_textverified_balance(self) -> float:
         """
@@ -89,9 +85,7 @@ class BalanceSyncService:
         """
         try:
             pending_transactions = (
-                self.db.query(Transaction)
-                .filter(Transaction.user_id == user_id, Transaction.status == "pending")
-                .all()
+                self.db.query(Transaction).filter(Transaction.user_id == user_id, Transaction.status == "pending").all()
             )
 
             return sum(abs(t.amount) for t in pending_transactions if t.amount < 0)
@@ -101,9 +95,7 @@ class BalanceSyncService:
 
 
 @router.get("/sync")
-async def sync_balance(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
+async def sync_balance(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)) -> Dict[str, Any]:
     """
     Sync user balance with real-time data
     """

@@ -19,23 +19,17 @@ class SuccessResponse(BaseModel):
     message: str
 
 
-async def require_admin(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user_id
 
 
-async def require_moderator_or_admin(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def require_moderator_or_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or (not user.is_admin and not user.is_moderator):
-        raise HTTPException(
-            status_code=403, detail="Moderator or admin access required"
-        )
+        raise HTTPException(status_code=403, detail="Moderator or admin access required")
     return user_id
 
 
@@ -50,9 +44,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/users")
-async def list_users(
-    user_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def list_users(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """List all users (admin only)."""
     users = db.query(User).all()
     return {
@@ -71,9 +63,7 @@ async def list_users(
 
 
 @router.post("/users/{user_id}/promote-moderator")
-async def promote_to_moderator(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def promote_to_moderator(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Promote user to moderator (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -85,9 +75,7 @@ async def promote_to_moderator(
 
 
 @router.post("/users/{user_id}/promote-admin")
-async def promote_to_admin(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def promote_to_admin(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Promote user to admin (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -99,9 +87,7 @@ async def promote_to_admin(
 
 
 @router.post("/users/{user_id}/demote")
-async def demote_user(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def demote_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Demote user to regular user (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -114,9 +100,7 @@ async def demote_user(
 
 
 @router.get("/stats")
-async def get_stats(
-    user_id: str = Depends(require_moderator_or_admin), db: Session = Depends(get_db)
-):
+async def get_stats(user_id: str = Depends(require_moderator_or_admin), db: Session = Depends(get_db)):
     """Get system statistics (moderator or admin)."""
     total_users = db.query(User).count()
     admin_users = db.query(User).filter(User.is_admin).count()
@@ -149,24 +133,18 @@ async def set_user_tier(
 
     valid_tiers = ["freemium", "payg", "pro", "custom"]
     if request.tier not in valid_tiers:
-        raise HTTPException(
-            status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}"
-        )
+        raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
 
     old_tier = user.subscription_tier or "payg"
     user.subscription_tier = request.tier
 
     if request.tier != "payg":
-        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(
-            days=request.duration_days
-        )
+        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
     else:
         user.tier_expires_at = None
 
     db.commit()
-    logger.info(
-        f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}"
-    )
+    logger.info(f"Admin {admin_id} changed user {user_id} tier from {old_tier} to {request.tier}")
 
     return {
         "success": True,
@@ -178,9 +156,7 @@ async def set_user_tier(
 
 
 @router.get("/users/{user_id}/tier")
-async def get_user_tier(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_user_tier(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Get user's current tier info (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:

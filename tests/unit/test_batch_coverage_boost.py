@@ -109,9 +109,7 @@ class TestAuthServiceCore:
 
     def test_user_authentication_nonexistent(self, db_session):
         """Test authentication with non-existent user."""
-        user = (
-            db_session.query(User).filter(User.email == "nonexistent@test.com").first()
-        )
+        user = db_session.query(User).filter(User.email == "nonexistent@test.com").first()
         assert user is None
 
 
@@ -250,11 +248,7 @@ class TestTransactionServiceCore:
         db_session.commit()
 
         # Verify
-        saved_tx = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .first()
-        )
+        saved_tx = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).first()
         assert saved_tx is not None
         assert saved_tx.amount == 10.0
         assert saved_tx.type == "credit"
@@ -275,11 +269,7 @@ class TestTransactionServiceCore:
         db_session.commit()
 
         # Retrieve
-        txs = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .all()
-        )
+        txs = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).all()
 
         assert len(txs) >= 3
 
@@ -299,18 +289,12 @@ class TestTransactionServiceCore:
         db_session.add(tx1)
 
         # Deduct
-        tx2 = Transaction(
-            user_id=regular_user.id, amount=-20.0, type="debit", description="Deduct"
-        )
+        tx2 = Transaction(user_id=regular_user.id, amount=-20.0, type="debit", description="Deduct")
         db_session.add(tx2)
         db_session.commit()
 
         # Calculate
-        txs = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .all()
-        )
+        txs = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).all()
 
         total = sum(tx.amount for tx in txs)
         assert total == 30.0  # 50 - 20
@@ -332,9 +316,7 @@ class TestWebhookServiceExtended:
         queue = WebhookQueue(redis_client)
 
         # Enqueue
-        msg_id = await queue.enqueue(
-            webhook_id="wh_test", event="test.event", data={"test": "data"}
-        )
+        msg_id = await queue.enqueue(webhook_id="wh_test", event="test.event", data={"test": "data"})
 
         assert msg_id is not None
 
@@ -346,9 +328,7 @@ class TestWebhookServiceExtended:
         queue = WebhookQueue(redis_client)
 
         # Enqueue with retry
-        msg_id = await queue.enqueue(
-            webhook_id="wh_retry", event="retry.event", data={"retry": True}
-        )
+        msg_id = await queue.enqueue(webhook_id="wh_retry", event="retry.event", data={"retry": True})
 
         assert msg_id is not None
 

@@ -99,8 +99,7 @@ try:
 
     checks = {
         "purchaseVerification function": "async function purchaseVerification()" in js,
-        "idempotency_key generation": "idempotency_key" in js
-        and "crypto.randomUUID" in js,
+        "idempotency_key generation": "idempotency_key" in js and "crypto.randomUUID" in js,
         "startPolling function": "function startPolling(" in js,
         "API endpoint correct": "'/api/v1/verify/create'" in js,
         "Error handling": "catch (error)" in js or "catch(error)" in js,
@@ -244,9 +243,7 @@ try:
     from app.api.verification.consolidated_verification import create_safe_error_detail
 
     # Test error sanitization
-    test_error = Exception(
-        "Error with sensitive data: password=secret123 api_key=xyz789"
-    )
+    test_error = Exception("Error with sensitive data: password=secret123 api_key=xyz789")
     safe = create_safe_error_detail(test_error)
 
     if len(safe) <= 100:
@@ -316,14 +313,11 @@ except Exception as e:
 print("\n🧪 TEST 10: Critical User Flows")
 try:
     flows = {
-        "Service selection": "selectService"
-        in open("static/js/verification.js").read(),
-        "Verification purchase": "purchaseVerification"
-        in open("static/js/verification.js").read(),
+        "Service selection": "selectService" in open("static/js/verification.js").read(),
+        "Verification purchase": "purchaseVerification" in open("static/js/verification.js").read(),
         "Status polling": "startPolling" in open("static/js/verification.js").read(),
         "Code copy": "copyCode" in open("static/js/verification.js").read(),
-        "Cancellation": "cancelVerification"
-        in open("static/js/verification.js").read(),
+        "Cancellation": "cancelVerification" in open("static/js/verification.js").read(),
         "Reset form": "resetForm" in open("static/js/verification.js").read(),
     }
 

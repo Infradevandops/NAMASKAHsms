@@ -42,14 +42,9 @@ async def get_payment_history(
     """
     try:
         payment_service = PaymentService(db)
-        history = payment_service.get_payment_history(
-            user_id=user_id, status=status_filter, skip=skip, limit=limit
-        )
+        history = payment_service.get_payment_history(user_id=user_id, status=status_filter, skip=skip, limit=limit)
 
-        logger.info(
-            f"Retrieved payment history for user {user_id}: "
-            f"{len(history['payments'])} payments"
-        )
+        logger.info(f"Retrieved payment history for user {user_id}: " f"{len(history['payments'])} payments")
 
         return history
 
@@ -65,9 +60,7 @@ async def get_payment_history(
 
 
 @router.get("/summary")
-async def get_payment_summary(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_payment_summary(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get payment summary for user.
 
     Returns:
@@ -127,9 +120,7 @@ async def refund_payment(
             raise HTTPException(status_code=403, detail="Admin access required")
 
         payment_service = PaymentService(db)
-        result = payment_service.refund_payment(
-            reference=reference, user_id=user_id, reason=reason
-        )
+        result = payment_service.refund_payment(reference=reference, user_id=user_id, reason=reason)
 
         logger.info(f"Refunded payment: {reference}")
 
@@ -174,9 +165,7 @@ async def get_payment_details(
 
         # Get payment log
         payment_log = (
-            db.query(PaymentLog)
-            .filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id)
-            .first()
+            db.query(PaymentLog).filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id).first()
         )
 
         if not payment_log:
@@ -192,9 +181,7 @@ async def get_payment_details(
             "status": payment_log.status,
             "credited": payment_log.credited,
             "payment_method": payment_log.payment_method,
-            "created_at": (
-                payment_log.created_at.isoformat() if payment_log.created_at else None
-            ),
+            "created_at": (payment_log.created_at.isoformat() if payment_log.created_at else None),
             "webhook_received": payment_log.webhook_received,
             "email": payment_log.email,
         }
@@ -233,9 +220,7 @@ async def initiate_payment_v2(
     """
     try:
         payment_service = PaymentService(db)
-        result = payment_service.initiate_payment(
-            user_id=user_id, amount_usd=amount_usd, description=description
-        )
+        result = payment_service.initiate_payment(user_id=user_id, amount_usd=amount_usd, description=description)
 
         logger.info(f"Initiated payment for user {user_id}: ${amount_usd}")
 
@@ -274,9 +259,7 @@ async def verify_payment_v2(
     """
     try:
         payment_service = PaymentService(db)
-        result = await payment_service.verify_payment(
-            reference=reference, user_id=user_id
-        )
+        result = await payment_service.verify_payment(reference=reference, user_id=user_id)
 
         logger.info(f"Verified payment: {reference}")
 

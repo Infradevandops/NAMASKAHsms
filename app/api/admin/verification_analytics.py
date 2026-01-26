@@ -43,16 +43,12 @@ async def get_all_verifications(
         query = query.filter(Verification.status == status)
 
     if search_user:
-        query = query.filter(
-            (User.email.ilike(f"%{search_user}%")) | (User.id == search_user)
-        )
+        query = query.filter((User.email.ilike(f"%{search_user}%")) | (User.id == search_user))
 
     total = query.count()
 
     # Use joinedload to fetch related data in single query
-    verifications = (
-        query.options(joinedload(Verification.user)).limit(limit).offset(offset).all()
-    )
+    verifications = query.options(joinedload(Verification.user)).limit(limit).offset(offset).all()
 
     results = []
     for v in verifications:
@@ -76,24 +72,16 @@ async def get_all_verifications(
 
 
 @router.get("/stats")
-async def get_verification_stats(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_verification_stats(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get verification statistics - CACHED"""
     verify_admin(user_id, db)
 
     # Optimized aggregation queries
     stats = db.query(
         func.count(Verification.id).label("total"),
-        func.sum(func.case((Verification.status == "completed", 1), else_=0)).label(
-            "completed"
-        ),
-        func.sum(func.case((Verification.status == "pending", 1), else_=0)).label(
-            "pending"
-        ),
-        func.sum(func.case((Verification.status == "failed", 1), else_=0)).label(
-            "failed"
-        ),
+        func.sum(func.case((Verification.status == "completed", 1), else_=0)).label("completed"),
+        func.sum(func.case((Verification.status == "pending", 1), else_=0)).label("pending"),
+        func.sum(func.case((Verification.status == "failed", 1), else_=0)).label("failed"),
         func.sum(Verification.cost).label("revenue"),
     ).first()
 
@@ -211,13 +199,9 @@ async def export_verifications(
     query = db.query(Verification).order_by(desc(Verification.created_at))
 
     if start_date:
-        query = query.filter(
-            Verification.created_at >= datetime.fromisoformat(start_date)
-        )
+        query = query.filter(Verification.created_at >= datetime.fromisoformat(start_date))
     if end_date:
-        query = query.filter(
-            Verification.created_at <= datetime.fromisoformat(end_date)
-        )
+        query = query.filter(Verification.created_at <= datetime.fromisoformat(end_date))
 
     verifications = query.all()
 

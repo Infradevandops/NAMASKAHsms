@@ -84,9 +84,7 @@ def get_tier_display_name(tier: str) -> str:
 
 
 def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None):
-    logger.warning(
-        f"Tier access denied: user={user_id}, current={current_tier}, required={required_tier}"
-    )
+    logger.warning(f"Tier access denied: user={user_id}, current={current_tier}, required={required_tier}")
 
     raise HTTPException(
         status_code=402,

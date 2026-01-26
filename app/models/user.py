@@ -23,17 +23,13 @@ class User(BaseModel):
     reset_token_expires = Column(DateTime)
 
     # Subscription tier (Task: Versioning)
-    subscription_tier = Column(
-        String(20), default="freemium", nullable=False, index=True
-    )
+    subscription_tier = Column(String(20), default="freemium", nullable=False, index=True)
     tier_upgraded_at = Column(DateTime)  # When user last upgraded
     tier_expires_at = Column(DateTime)  # For subscription expiration
 
     # Pricing enforcement fields
     bonus_sms_balance = Column(Float, default=0.0, nullable=False)  # Freemium bonus SMS
-    monthly_quota_used = Column(
-        Float, default=0.0, nullable=False
-    )  # Current month usage
+    monthly_quota_used = Column(Float, default=0.0, nullable=False)  # Current month usage
     monthly_quota_reset_date = Column(DateTime, nullable=True)  # Last reset date
 
     referral_code = Column(String, unique=True, index=True)
@@ -79,14 +75,10 @@ class User(BaseModel):
     notifications = relationship("Notification", back_populates="user")
     balance_transactions = relationship("BalanceTransaction", back_populates="user")
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
-    enterprise_account = relationship(
-        "EnterpriseAccount", back_populates="user", uselist=False
-    )
+    enterprise_account = relationship("EnterpriseAccount", back_populates="user", uselist=False)
     revenue_shares = relationship("RevenueShare", back_populates="partner")
     payout_requests = relationship("PayoutRequest", back_populates="affiliate")
-    reseller_account = relationship(
-        "ResellerAccount", back_populates="user", uselist=False
-    )
+    reseller_account = relationship("ResellerAccount", back_populates="user", uselist=False)
     partner_features = relationship("PartnerFeature", back_populates="partner")
 
 

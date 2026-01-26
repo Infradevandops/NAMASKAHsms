@@ -56,9 +56,7 @@ class CircuitBreaker:
 
         if self.failure_count >= self.failure_threshold:
             self.state = "open"
-            logger.error(
-                f"Circuit breaker OPEN - {self.failure_count} failures detected"
-            )
+            logger.error(f"Circuit breaker OPEN - {self.failure_count} failures detected")
 
 
 # Global circuit breaker for TextVerified API

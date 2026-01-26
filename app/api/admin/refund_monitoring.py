@@ -48,9 +48,7 @@ async def monitor_refunds(
     # Check which ones don't have refunds
     missing_refunds = []
     for v in failed_verifications:
-        has_refund = any(
-            r.user_id == v.user_id and v.id in r.description for r in refunds
-        )
+        has_refund = any(r.user_id == v.user_id and v.id in r.description for r in refunds)
         if not has_refund:
             missing_refunds.append(
                 {
@@ -60,10 +58,7 @@ async def monitor_refunds(
                     "cost": v.cost,
                     "status": v.status,
                     "created_at": v.created_at.isoformat(),
-                    "age_minutes": (
-                        datetime.now(timezone.utc) - v.created_at
-                    ).total_seconds()
-                    / 60,
+                    "age_minutes": (datetime.now(timezone.utc) - v.created_at).total_seconds() / 60,
                 }
             )
 
@@ -119,9 +114,7 @@ async def process_missing_refunds(
     from app.services.auto_refund_service import AutoRefundService
 
     refund_service = AutoRefundService(db)
-    result = refund_service.reconcile_unrefunded_verifications(
-        days_back=minutes // 1440 or 1, dry_run=dry_run
-    )
+    result = refund_service.reconcile_unrefunded_verifications(days_back=minutes // 1440 or 1, dry_run=dry_run)
 
     return {
         "dry_run": dry_run,
@@ -150,9 +143,7 @@ async def refund_stats(
             func.count(Transaction.id).label("count"),
             func.sum(Transaction.amount).label("total"),
         )
-        .filter(
-            Transaction.type == "verification_refund", Transaction.created_at >= cutoff
-        )
+        .filter(Transaction.type == "verification_refund", Transaction.created_at >= cutoff)
         .group_by(func.date(Transaction.created_at))
         .order_by(desc(func.date(Transaction.created_at)))
         .all()
@@ -171,13 +162,8 @@ async def refund_stats(
 
     return {
         "period_days": days,
-        "daily_refunds": [
-            {"date": str(d.date), "count": d.count, "total": float(d.total)}
-            for d in daily_stats
-        ],
-        "failure_breakdown": [
-            {"status": f.status, "count": f.count} for f in failure_stats
-        ],
+        "daily_refunds": [{"date": str(d.date), "count": d.count, "total": float(d.total)} for d in daily_stats],
+        "failure_breakdown": [{"status": f.status, "count": f.count} for f in failure_stats],
         "total_refunds": sum(d.count for d in daily_stats),
         "total_amount": sum(d.total for d in daily_stats),
     }

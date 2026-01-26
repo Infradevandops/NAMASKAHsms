@@ -58,9 +58,7 @@ class PerformanceMonitor:
         }
         self.metrics_collector = MetricsCollector()
 
-    async def track_request(
-        self, endpoint: str, method: str, status_code: int, duration: float
-    ):
+    async def track_request(self, endpoint: str, method: str, status_code: int, duration: float):
         """Track individual request metrics."""
         tags = {"endpoint": endpoint, "method": method, "status": str(status_code)}
 
@@ -78,24 +76,19 @@ class PerformanceMonitor:
 
         # Calculate response time percentiles
         response_times = [m.value for m in metrics if m.name == "requests.duration"]
-        p95_response_time = (
-            self._calculate_percentile(response_times, 95) if response_times else 0
-        )
+        p95_response_time = self._calculate_percentile(response_times, 95) if response_times else 0
 
         # Calculate error rate
         total_requests = len([m for m in metrics if m.name == "requests.total"])
         error_requests = len([m for m in metrics if m.name == "requests.errors"])
-        error_rate = (
-            (error_requests / total_requests * 100) if total_requests > 0 else 0
-        )
+        error_rate = (error_requests / total_requests * 100) if total_requests > 0 else 0
 
         # Check compliance
         compliance = {
             "response_time_p95": {
                 "value": p95_response_time,
                 "threshold": self.sla_thresholds["response_time_p95"],
-                "compliant": p95_response_time
-                <= self.sla_thresholds["response_time_p95"],
+                "compliant": p95_response_time <= self.sla_thresholds["response_time_p95"],
             },
             "error_rate": {
                 "value": error_rate,
@@ -162,11 +155,7 @@ class ErrorTracker:
             return True
 
         # Alert on high error rate
-        recent_errors = [
-            e
-            for e in self.errors
-            if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 300
-        ]
+        recent_errors = [e for e in self.errors if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 300]
 
         return len(recent_errors) >= self.alert_thresholds["error_rate_5min"]
 
@@ -174,9 +163,7 @@ class ErrorTracker:
     async def _send_alert(error_data: Dict):
         """Send error alert."""
         # In production, integrate with alerting system (PagerDuty, Slack, etc.)
-        print(
-            f"ALERT: {error_data['severity'].upper()} error - {error_data['message']}"
-        )
+        print(f"ALERT: {error_data['severity'].upper()} error - {error_data['message']}")
 
 
 class DashboardMetrics:
@@ -192,23 +179,15 @@ class DashboardMetrics:
 
         # Recent error count
         recent_errors = [
-            e
-            for e in self.error_tracker.errors
-            if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 3600
+            e for e in self.error_tracker.errors if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 3600
         ]
 
         return {
             "timestamp": datetime.now(timezone.utc).isoformat(),
             "sla_compliance": sla_compliance,
             "error_count_1h": len(recent_errors),
-            "critical_errors_1h": len(
-                [e for e in recent_errors if e["severity"] == "critical"]
-            ),
-            "system_status": (
-                "healthy"
-                if all(sla["compliant"] for sla in sla_compliance.values())
-                else "degraded"
-            ),
+            "critical_errors_1h": len([e for e in recent_errors if e["severity"] == "critical"]),
+            "system_status": ("healthy" if all(sla["compliant"] for sla in sla_compliance.values()) else "degraded"),
         }
 
     @staticmethod
@@ -249,9 +228,7 @@ class CanaryAnalyzer:
         for metric, canary_value in canary_metrics.items():
             if metric in self.baseline_metrics:
                 baseline_value = self.baseline_metrics[metric]
-                change_percent = (
-                    (canary_value - baseline_value) / baseline_value
-                ) * 100
+                change_percent = ((canary_value - baseline_value) / baseline_value) * 100
 
                 analysis["metrics_comparison"][metric] = {
                     "baseline": baseline_value,

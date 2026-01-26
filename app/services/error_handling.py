@@ -52,18 +52,13 @@ def retry_with_backoff(config: Optional[RetryConfig] = None):
                     if attempt < config.max_retries - 1:
                         delay = config.get_delay(attempt)
                         logger.warning(
-                            f"Attempt {attempt + 1} failed for {func.__name__}, "
-                            f"retrying in {delay}s: {str(e)}"
+                            f"Attempt {attempt + 1} failed for {func.__name__}, " f"retrying in {delay}s: {str(e)}"
                         )
                         await asyncio.sleep(delay)
                     else:
-                        logger.error(
-                            f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}"
-                        )
+                        logger.error(f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}")
 
-            raise last_exception or Exception(
-                f"Failed after {config.max_retries} attempts"
-            )
+            raise last_exception or Exception(f"Failed after {config.max_retries} attempts")
 
         @wraps(func)
         def sync_wrapper(*args, **kwargs) -> Any:
@@ -77,18 +72,13 @@ def retry_with_backoff(config: Optional[RetryConfig] = None):
                     if attempt < config.max_retries - 1:
                         delay = config.get_delay(attempt)
                         logger.warning(
-                            f"Attempt {attempt + 1} failed for {func.__name__}, "
-                            f"retrying in {delay}s: {str(e)}"
+                            f"Attempt {attempt + 1} failed for {func.__name__}, " f"retrying in {delay}s: {str(e)}"
                         )
                         asyncio.run(asyncio.sleep(delay))
                     else:
-                        logger.error(
-                            f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}"
-                        )
+                        logger.error(f"All {config.max_retries} attempts failed for {func.__name__}: {str(e)}")
 
-            raise last_exception or Exception(
-                f"Failed after {config.max_retries} attempts"
-            )
+            raise last_exception or Exception(f"Failed after {config.max_retries} attempts")
 
         # Return async wrapper if function is async
         if asyncio.iscoroutinefunction(func):
@@ -113,9 +103,7 @@ class APIErrorHandler:
     @staticmethod
     def get_user_message(status_code: int, error: str = "") -> str:
         """Get user-friendly error message."""
-        message = APIErrorHandler.ERROR_MESSAGES.get(
-            status_code, "An error occurred. Please try again."
-        )
+        message = APIErrorHandler.ERROR_MESSAGES.get(status_code, "An error occurred. Please try again.")
         if error:
             message = f"{message} ({error})"
         return message

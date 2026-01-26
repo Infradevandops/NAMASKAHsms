@@ -35,23 +35,17 @@ class PresetResponse(PresetCreate):
 
 
 @router.get("/", response_model=List[PresetResponse])
-async def get_presets(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_presets(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get all saved presets for the current user."""
     # Note: We don't strictly enforce tier on GET so even if downgraded they can see (but maybe not use/edit)
     # But for now, let's enforce PRO to verify consistency
     tier_manager = TierManager(db)
-    if not tier_manager.check_feature_access(
-        user_id, "isp_filtering"
-    ):  # Proxy for pro features
+    if not tier_manager.check_feature_access(user_id, "isp_filtering"):  # Proxy for pro features
         # Or just check tier directly
         pass
         # We allow listing for now
 
-    presets = (
-        db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).all()
-    )
+    presets = db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).all()
     return presets
 
 
@@ -64,11 +58,7 @@ async def create_preset(
     """Create a new verification preset."""
 
     # Check limit (e.g. 10 presets)
-    count = (
-        db.query(VerificationPreset)
-        .filter(VerificationPreset.user_id == user_id)
-        .count()
-    )
+    count = db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).count()
     if count >= 10:
         raise HTTPException(status_code=400, detail="Maximum of 10 presets allowed")
 
@@ -98,9 +88,7 @@ async def delete_preset(
     """Delete a preset."""
     preset = (
         db.query(VerificationPreset)
-        .filter(
-            VerificationPreset.id == preset_id, VerificationPreset.user_id == user_id
-        )
+        .filter(VerificationPreset.id == preset_id, VerificationPreset.user_id == user_id)
         .first()
     )
 

@@ -10,9 +10,7 @@ router = APIRouter(prefix="/admin/analytics", tags=["admin-analytics"])
 
 
 @router.get("/overview")
-async def get_analytics_overview(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_analytics_overview(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get dashboard overview metrics"""
     service = AnalyticsService(db)
     overview = await service.get_overview()
@@ -34,9 +32,7 @@ async def get_timeseries(
 
 
 @router.get("/services")
-async def get_services_stats(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_services_stats(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get services breakdown"""
     service = AnalyticsService(db)
     return await service.get_services_stats()

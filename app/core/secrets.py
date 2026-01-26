@@ -55,9 +55,7 @@ class SecretsManager:
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_upper = key.upper()
-        return any(
-            sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS
-        )
+        return any(sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS)
 
     @staticmethod
     def mask_secret(value: str, visible_chars: int = 4) -> str:
@@ -109,9 +107,7 @@ class SecretsManager:
             "placeholder",
         ]
         value_lower = value.lower()
-        return (
-            any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
-        )
+        return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
 
     @staticmethod
     def generate_secret_key() -> str:
@@ -188,7 +184,5 @@ class SecretsManager:
             "environment": environment,
             "issues": issues,
             "warnings": warnings,
-            "secrets_count": len(
-                [k for k in os.environ if SecretsManager.is_sensitive_key(k)]
-            ),
+            "secrets_count": len([k for k in os.environ if SecretsManager.is_sensitive_key(k)]),
         }

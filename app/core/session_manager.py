@@ -61,9 +61,7 @@ def get_session(db, refresh_token: str):
 
 def invalidate_session(db, refresh_token: str):
     """Invalidate session."""
-    session = (
-        db.query(UserSession).filter(UserSession.refresh_token == refresh_token).first()
-    )
+    session = db.query(UserSession).filter(UserSession.refresh_token == refresh_token).first()
     if session:
         session.is_active = False
         db.commit()
@@ -71,7 +69,5 @@ def invalidate_session(db, refresh_token: str):
 
 def invalidate_all_sessions(db, user_id: str):
     """Invalidate all sessions for user."""
-    db.query(UserSession).filter(UserSession.user_id == user_id).update(
-        {"is_active": False}
-    )
+    db.query(UserSession).filter(UserSession.user_id == user_id).update({"is_active": False})
     db.commit()

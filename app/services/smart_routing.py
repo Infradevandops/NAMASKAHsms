@@ -32,9 +32,7 @@ class SmartRouter:
         # Return provider with highest score
         return max(scores, key=scores.get)
 
-    async def _get_provider_stats(
-        self, provider: str, service: str, country: str
-    ) -> Dict:
+    async def _get_provider_stats(self, provider: str, service: str, country: str) -> Dict:
         """Get provider performance statistics."""
         db = next(get_db())
 
@@ -45,9 +43,7 @@ class SmartRouter:
             db.query(
                 func.count(Verification.id).label("total"),
                 func.avg(Verification.cost).label("avg_cost"),
-                func.sum(case((Verification.status == "completed", 1), else_=0)).label(
-                    "success_count"
-                ),
+                func.sum(case((Verification.status == "completed", 1), else_=0)).label("success_count"),
             )
             .filter(
                 Verification.provider == provider,

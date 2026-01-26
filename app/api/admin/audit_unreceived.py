@@ -88,9 +88,7 @@ async def get_unreceived_verifications(
             "status": v.status,
             "cost": float(v.cost),
             "created_at": v.created_at.isoformat(),
-            "minutes_elapsed": int(
-                (datetime.now(timezone.utc) - v.created_at).total_seconds() / 60
-            ),
+            "minutes_elapsed": int((datetime.now(timezone.utc) - v.created_at).total_seconds() / 60),
         }
         for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
     ]
@@ -174,9 +172,7 @@ async def get_refund_candidates(
                     "created_at": v.created_at.isoformat(),
                     "phone_number": v.phone_number,
                     "refund_reason": (
-                        "Timeout - No SMS received"
-                        if v.status == "pending"
-                        else f"Failed - Status: {v.status}"
+                        "Timeout - No SMS received" if v.status == "pending" else f"Failed - Status: {v.status}"
                     ),
                 }
             )

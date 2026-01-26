@@ -22,9 +22,7 @@ class UserSettingsUpdate(BaseModel):
 
 
 @router.get("/settings")
-async def get_user_settings(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def get_user_settings(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get user settings."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -32,13 +30,9 @@ async def get_user_settings(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
-        prefs = (
-            db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
-        )
+        prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
         if not prefs:
-            prefs = UserPreference(
-                user_id=user_id, email_notifications=True, sms_alerts=False
-            )
+            prefs = UserPreference(user_id=user_id, email_notifications=True, sms_alerts=False)
             db.add(prefs)
             db.commit()
             db.refresh(prefs)
@@ -67,9 +61,7 @@ async def update_user_settings(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
-        prefs = (
-            db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
-        )
+        prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
         if not prefs:
             prefs = UserPreference(user_id=user_id)
             db.add(prefs)

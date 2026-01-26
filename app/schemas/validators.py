@@ -14,9 +14,7 @@ def validate_phone_number(phone: str) -> str:
 
     # Check if it starts with + and has 10 - 15 digits
     if not re.match(r"^\+\d{10,15}$", cleaned):
-        raise ValueError(
-            "Invalid phone number format. Use international format: +1234567890"
-        )
+        raise ValueError("Invalid phone number format. Use international format: +1234567890")
 
     return cleaned
 
@@ -31,16 +29,12 @@ def validate_service_name(service: str) -> str:
 
     # Check for valid characters (alphanumeric, underscore, hyphen)
     if not re.match(r"^[a - z0-9_-]+$", cleaned):
-        raise ValueError(
-            "Service name can only contain letters, numbers, underscores, and hyphens"
-        )
+        raise ValueError("Service name can only contain letters, numbers, underscores, and hyphens")
 
     return cleaned
 
 
-def validate_currency_amount(
-    amount: float, min_amount: float = 0.01, max_amount: float = 100000.0
-) -> float:
+def validate_currency_amount(amount: float, min_amount: float = 0.01, max_amount: float = 100000.0) -> float:
     """Validate currency amount."""
     if amount < min_amount:
         raise ValueError(f"Amount must be at least {min_amount}")
@@ -153,9 +147,7 @@ def validate_carrier_name(carrier: str) -> str:
     ]
 
     if cleaned not in supported_carriers:
-        raise ValueError(
-            f'Unsupported carrier. Supported: {", ".join(supported_carriers)}'
-        )
+        raise ValueError(f'Unsupported carrier. Supported: {", ".join(supported_carriers)}')
 
     return cleaned
 
@@ -233,9 +225,7 @@ def validate_pagination_params(page: int, size: int) -> tuple:
     return page, size
 
 
-def create_pagination_response(
-    items: List[Any], total: int, page: int, size: int
-) -> Dict[str, Any]:
+def create_pagination_response(items: List[Any], total: int, page: int, size: int) -> Dict[str, Any]:
     """Create standardized pagination response."""
     pages = (total + size - 1) // size  # Ceiling division
 
@@ -359,9 +349,7 @@ def validate_non_negative_number(value: float, field_name: str = "value") -> flo
     return float(value)
 
 
-def validate_string_length(
-    value: str, min_length: int = 1, max_length: int = 255, field_name: str = "value"
-) -> str:
+def validate_string_length(value: str, min_length: int = 1, max_length: int = 255, field_name: str = "value") -> str:
     """Validate string length with bounds."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
@@ -377,9 +365,7 @@ def validate_string_length(
     return value
 
 
-def validate_enum_value(
-    value: str, allowed_values: List[str], field_name: str = "value"
-) -> str:
+def validate_enum_value(value: str, allowed_values: List[str], field_name: str = "value") -> str:
     """Validate that value is in allowed list."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
@@ -495,9 +481,7 @@ def validate_credit_amount(amount: float) -> float:
     return round(amount, 2)
 
 
-def validate_query_parameters(
-    page: Optional[int] = None, limit: Optional[int] = None
-) -> tuple:
+def validate_query_parameters(page: Optional[int] = None, limit: Optional[int] = None) -> tuple:
     """Validate pagination query parameters."""
     # Validate page
     if page is None:
@@ -520,9 +504,7 @@ def validate_query_parameters(
     return page, limit
 
 
-def validate_search_query(
-    query: str, min_length: int = 1, max_length: int = 255
-) -> str:
+def validate_search_query(query: str, min_length: int = 1, max_length: int = 255) -> str:
     """Validate search query."""
     if not query:
         raise ValueError("Search query cannot be empty")

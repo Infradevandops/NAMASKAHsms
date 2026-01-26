@@ -14,9 +14,7 @@ class TestPaymentService:
             return PaymentService(db_session)
 
     @patch("app.services.payment_service.paystack_service")
-    async def test_initiate_payment_success(
-        self, mock_paystack, payment_service, regular_user, db_session
-    ):
+    async def test_initiate_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # Setup mock
         mock_paystack.enabled = True
         mock_paystack.initialize_payment = AsyncMock(
@@ -34,11 +32,7 @@ class TestPaymentService:
         assert "reference" in result
 
         # Verify PaymentLog created
-        log = (
-            db_session.query(PaymentLog)
-            .filter(PaymentLog.reference == result["reference"])
-            .first()
-        )
+        log = db_session.query(PaymentLog).filter(PaymentLog.reference == result["reference"]).first()
         assert log is not None
         assert log.user_id == regular_user.id
         assert log.amount_usd == amount_usd
@@ -49,9 +43,7 @@ class TestPaymentService:
             await payment_service.initiate_payment(regular_user.id, -5.0)
 
     @patch("app.services.payment_service.paystack_service")
-    async def test_verify_payment_success(
-        self, mock_paystack, payment_service, regular_user, db_session
-    ):
+    async def test_verify_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a pending payment log
         reference = "ref_123"
         log = PaymentLog(
@@ -89,9 +81,7 @@ class TestPaymentService:
         db_session.refresh(regular_user)
         assert regular_user.credits == 20.0  # 10 initial + 10 added
 
-    async def test_handle_charge_success_webhook(
-        self, payment_service, regular_user, db_session
-    ):
+    async def test_handle_charge_success_webhook(self, payment_service, regular_user, db_session):
         # 1. Setup pending payment
         reference = "ref_webhook"
         log = PaymentLog(
@@ -122,9 +112,7 @@ class TestPaymentService:
         db_session.refresh(regular_user)
         assert regular_user.credits == 30.0  # 10 initial + 20 added
 
-    async def test_handle_charge_failed_webhook(
-        self, payment_service, regular_user, db_session
-    ):
+    async def test_handle_charge_failed_webhook(self, payment_service, regular_user, db_session):
         reference = "ref_fail"
         log = PaymentLog(
             user_id=regular_user.id,
@@ -175,9 +163,7 @@ class TestPaymentService:
         assert summary["total_paid"] >= 10.0
 
     @patch("app.services.payment_service.paystack_service")
-    async def test_refund_payment_success(
-        self, mock_paystack, payment_service, regular_user, db_session
-    ):
+    async def test_refund_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a successful payment
         regular_user.credits = 10.0
         log = PaymentLog(
@@ -193,9 +179,7 @@ class TestPaymentService:
         db_session.commit()
 
         # 2. Mock Paystack refund
-        mock_paystack.refund_transaction = AsyncMock(
-            return_value={"status": True, "data": {"status": "processed"}}
-        )
+        mock_paystack.refund_transaction = AsyncMock(return_value={"status": True, "data": {"status": "processed"}})
 
         # 3. Request refund
         result = payment_service.refund_payment(log.reference, regular_user.id)

@@ -70,14 +70,10 @@ class TestSecurityComplete:
         # Create expired token
         expire = datetime.now(timezone.utc) - timedelta(hours=1)
         token_data = {"sub": "user123", "exp": expire}
-        token = jwt.encode(
-            token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
-        )
+        token = jwt.encode(token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
         with pytest.raises(jwt.ExpiredSignatureError):
-            jwt.decode(
-                token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
-            )
+            jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
 
     def test_jwt_token_tampering_detection(self):
         """Test JWT detects tampering."""
@@ -91,9 +87,7 @@ class TestSecurityComplete:
         tampered = token[:-10] + "tampered00"
 
         with pytest.raises((jwt.InvalidSignatureError, jwt.DecodeError)):
-            jwt.decode(
-                tampered, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
-            )
+            jwt.decode(tampered, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
 
     def test_jwt_algorithm_security(self):
         """Test JWT uses secure algorithm."""

@@ -25,9 +25,7 @@ class AutoRefundService:
         self.db = db
         self.credit_service = CreditService(db)
 
-    def process_verification_refund(
-        self, verification_id: str, reason: str
-    ) -> Optional[dict]:
+    def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
         """Process automatic refund for a failed verification.
 
         Args:
@@ -37,11 +35,7 @@ class AutoRefundService:
         Returns:
             Refund details or None if already refunded
         """
-        verification = (
-            self.db.query(Verification)
-            .filter(Verification.id == verification_id)
-            .first()
-        )
+        verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
         if not verification:
             logger.error(f"Verification {verification_id} not found")
@@ -59,16 +53,12 @@ class AutoRefundService:
         )
 
         if existing_refund:
-            logger.info(
-                f"Verification {verification_id} already refunded: {existing_refund.id}"
-            )
+            logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
             return None
 
         # Only refund if status is timeout, cancelled, or failed
         if verification.status not in ["timeout", "cancelled", "failed"]:
-            logger.warning(
-                f"Cannot refund verification {verification_id} with status: {verification.status}"
-            )
+            logger.warning(f"Cannot refund verification {verification_id} with status: {verification.status}")
             return None
 
         # Get user
@@ -145,9 +135,7 @@ class AutoRefundService:
             )
             return None
 
-    def reconcile_unrefunded_verifications(
-        self, days_back: int = 30, dry_run: bool = True
-    ) -> dict:
+    def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
         """Scan for unrefunded failed verifications and process refunds.
 
         Args:
@@ -210,9 +198,7 @@ class AutoRefundService:
 
             if not dry_run:
                 # Process refund
-                result = self.process_verification_refund(
-                    verification.id, verification.status
-                )
+                result = self.process_verification_refund(verification.id, verification.status)
                 if result:
                     report["refunded_now"] += 1
                     report["total_amount_refunded"] += result["refund_amount"]

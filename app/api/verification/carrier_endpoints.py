@@ -32,14 +32,12 @@ async def get_available_carriers(
 
         # Get unique carriers from past verifications
         from sqlalchemy import case
-        
+
         carriers_query = (
             db.query(
                 Verification.operator,
                 func.count(Verification.id).label("total"),
-                func.sum(
-                    case([(Verification.status == "completed", 1)], else_=0)
-                ).label("completed"),
+                func.sum(case([(Verification.status == "completed", 1)], else_=0)).label("completed"),
             )
             .filter(
                 Verification.country == country,
@@ -217,9 +215,7 @@ async def get_available_area_codes(
 
         if not codes or len(codes) == 0:
             logger.error("TextVerified API returned empty or None for area codes")
-            raise Exception(
-                f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})"
-            )
+            raise Exception(f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})")
 
         # Enhance with city/state data and success rates
         enhanced = []
@@ -228,11 +224,7 @@ async def get_available_area_codes(
 
             # Try to find city/state from static map
             city_data = next(
-                (
-                    ac
-                    for ac in STATIC_FALLBACK_AREA_CODES
-                    if ac["area_code"] == area_code_str
-                ),
+                (ac for ac in STATIC_FALLBACK_AREA_CODES if ac["area_code"] == area_code_str),
                 {"city": "Unknown", "state": country.upper()},
             )
 
@@ -268,15 +260,11 @@ async def get_available_area_codes(
         # Cache for 5 minutes
         await cache.set(cache_key, result, ttl=300)
 
-        logger.info(
-            f"Retrieved {len(enhanced)} area codes from TextVerified API for {country}"
-        )
+        logger.info(f"Retrieved {len(enhanced)} area codes from TextVerified API for {country}")
         return result
 
     except Exception as e:
-        logger.error(
-            f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True
-        )
+        logger.error(f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True)
         logger.error("Exception type: %s", type(e).__name__)
         logger.error("Full traceback will be in logs")
 

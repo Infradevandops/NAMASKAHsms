@@ -134,9 +134,5 @@ class TestBlacklistBulkImport:
         valid_pattern = r"^\+?[0-9]{10,15}$"
 
         test_numbers = ["+1234567890", "invalid", "+0987654321"]
-        valid_count = sum(
-            1
-            for n in test_numbers
-            if re.match(valid_pattern, n.replace("-", "").replace(" ", ""))
-        )
+        valid_count = sum(1 for n in test_numbers if re.match(valid_pattern, n.replace("-", "").replace(" ", "")))
         assert valid_count == 2

@@ -92,14 +92,10 @@ async def get_available_services():
         raise
     except Exception as e:
         logger.error(f"Services fetch error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch services from TextVerified API"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch services from TextVerified API")
 
 
-@router.post(
-    "/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
 async def create_verification(
     verification_data: VerificationCreate,
     user_id: str = Depends(get_current_user_id),
@@ -117,15 +113,12 @@ async def create_verification(
                 .filter(
                     Verification.user_id == user_id,
                     Verification.idempotency_key == verification_data.idempotency_key,
-                    Verification.created_at
-                    > datetime.now(timezone.utc) - timedelta(minutes=5),
+                    Verification.created_at > datetime.now(timezone.utc) - timedelta(minutes=5),
                 )
                 .first()
             )
             if existing:
-                logger.info(
-                    f"Returning cached verification for idempotency key: {verification_data.idempotency_key}"
-                )
+                logger.info(f"Returning cached verification for idempotency key: {verification_data.idempotency_key}")
                 return {
                     "id": existing.id,
                     "service_name": existing.service_name,
@@ -181,9 +174,7 @@ async def create_verification(
                     f"🔔 NOTIFICATION SYSTEM ACTIVE - Transaction created: User={user_id}, Amount=-${base_cost}, Balance: ${old_balance:.2f} → ${current_user.credits:.2f}"
                 )
             except Exception as notif_error:
-                logger.error(
-                    f"Failed to create transaction/notification: {notif_error}"
-                )
+                logger.error(f"Failed to create transaction/notification: {notif_error}")
                 # Don't fail the verification, just log
 
             db.commit()
@@ -231,9 +222,7 @@ async def create_verification(
             has_filters = verification_data.area_code or verification_data.carrier
 
             if is_turbo and has_filters:
-                logger.warning(
-                    f"Verification failed with filters for user {user_id}. Attempting fallback. Error: {e}"
-                )
+                logger.warning(f"Verification failed with filters for user {user_id}. Attempting fallback. Error: {e}")
                 try:
                     # Retry without filters
                     result = await tv_service.create_verification(
@@ -280,9 +269,7 @@ async def create_verification(
             dispatcher = NotificationDispatcher(db)
             dispatcher.on_verification_created(verification)
         except Exception as notif_error:
-            logger.error(
-                f"Failed to dispatch verification created notification: {notif_error}"
-            )
+            logger.error(f"Failed to dispatch verification created notification: {notif_error}")
         return {
             "id": verification.id,
             "service_name": verification.service_name,
@@ -308,9 +295,7 @@ async def create_verification(
 async def get_verification_status(verification_id: str, db: Session = Depends(get_db)):
     """Get verification status."""
     try:
-        verification = (
-            db.query(Verification).filter(Verification.id == verification_id).first()
-        )
+        verification = db.query(Verification).filter(Verification.id == verification_id).first()
 
         if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
@@ -323,19 +308,13 @@ async def get_verification_status(verification_id: str, db: Session = Depends(ge
             "status": verification.status,
             "cost": verification.cost,
             "created_at": verification.created_at.isoformat(),
-            "completed_at": (
-                verification.completed_at.isoformat()
-                if verification.completed_at
-                else None
-            ),
+            "completed_at": (verification.completed_at.isoformat() if verification.completed_at else None),
         }
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Status fetch error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch verification status"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch verification status")
 
 
 @router.get("/history", response_model=VerificationHistoryResponse)
@@ -353,12 +332,7 @@ def get_verification_history(
         total_count = query.count()
 
         # Apply pagination and sorting
-        verifications = (
-            query.order_by(Verification.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-            .all()
-        )
+        verifications = query.order_by(Verification.created_at.desc()).offset(offset).limit(limit).all()
 
         response_list = []
         for v in verifications:
@@ -385,9 +359,7 @@ def get_verification_history(
         )
     except Exception as e:
         logger.error(f"History fetch error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to fetch verification history"
-        )
+        raise HTTPException(status_code=500, detail="Failed to fetch verification history")
 
 
 @router.get("/{verification_id}/status")
@@ -399,9 +371,7 @@ async def get_verification_status_polling(
     """Get verification status for polling."""
     try:
         verification = (
-            db.query(Verification)
-            .filter(Verification.id == verification_id, Verification.user_id == user_id)
-            .first()
+            db.query(Verification).filter(Verification.id == verification_id, Verification.user_id == user_id).first()
         )
 
         if not verification:
@@ -421,9 +391,7 @@ async def get_verification_status_polling(
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
                     db.commit()
-                    logger.info(
-                        f"SMS received for verification {verification_id}: {sms_result['sms_code']}"
-                    )
+                    logger.info(f"SMS received for verification {verification_id}: {sms_result['sms_code']}")
 
                     # Send SMS received notification
                     try:
@@ -440,9 +408,7 @@ async def get_verification_status_polling(
                         )
                         db.commit()
                     except Exception as notif_error:
-                        logger.error(
-                            f"Failed to send SMS received notification: {notif_error}"
-                        )
+                        logger.error(f"Failed to send SMS received notification: {notif_error}")
             except Exception as e:
                 logger.warning(f"SMS check failed for {verification_id}: {e}")
 
@@ -454,19 +420,13 @@ async def get_verification_status_polling(
             "sms_text": verification.sms_text,
             "cost": verification.cost,
             "created_at": verification.created_at.isoformat(),
-            "completed_at": (
-                verification.completed_at.isoformat()
-                if verification.completed_at
-                else None
-            ),
+            "completed_at": (verification.completed_at.isoformat() if verification.completed_at else None),
         }
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Status check error: {str(e)}")
-        raise HTTPException(
-            status_code=500, detail="Failed to check verification status"
-        )
+        raise HTTPException(status_code=500, detail="Failed to check verification status")
 
 
 @router.delete("/{verification_id}", response_model=SuccessResponse)
@@ -478,9 +438,7 @@ async def cancel_verification(
     """Cancel verification and release number."""
     try:
         verification = (
-            db.query(Verification)
-            .filter(Verification.id == verification_id, Verification.user_id == user_id)
-            .first()
+            db.query(Verification).filter(Verification.id == verification_id, Verification.user_id == user_id).first()
         )
 
         if not verification:

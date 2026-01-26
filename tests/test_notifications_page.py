@@ -77,7 +77,5 @@ class TestNotificationTypes:
     def test_get_notifications_params(self, client, auth_headers):
         """Should be able to call notifications with various types."""
         for ntype in ["system", "payment", "verification"]:
-            response = client.get(
-                f"/api/notifications?type={ntype}", headers=auth_headers
-            )
+            response = client.get(f"/api/notifications?type={ntype}", headers=auth_headers)
             assert response.status_code == 200

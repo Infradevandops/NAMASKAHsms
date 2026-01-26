@@ -52,9 +52,7 @@ class VoicePollingService:
         """Poll pending voice verifications with retry logic"""
         with get_db_session() as db:
             try:
-                timeout_threshold = datetime.now() - timedelta(
-                    minutes=settings.voice_polling_timeout_minutes
-                )
+                timeout_threshold = datetime.now() - timedelta(minutes=settings.voice_polling_timeout_minutes)
                 pending = (
                     db.query(Verification)
                     .filter(
@@ -78,9 +76,7 @@ class VoicePollingService:
             result = None
             for attempt in range(settings.voice_max_retry_attempts):
                 try:
-                    result = self.tv_service.client.verifications.get(
-                        verification.activation_id
-                    )
+                    result = self.tv_service.client.verifications.get(verification.activation_id)
                     break
                 except Exception as e:
                     if attempt == settings.voice_max_retry_attempts - 1:
@@ -108,15 +104,11 @@ class VoicePollingService:
                         type="verification_complete",
                     )
                 except Exception as notif_error:
-                    logger.warning(
-                        f"Notification failed for voice verification {verification.id}: {notif_error}"
-                    )
+                    logger.warning(f"Notification failed for voice verification {verification.id}: {notif_error}")
 
                 logger.info(f"Voice code received: {verification.id}")
 
-            elif (datetime.now() - verification.created_at).seconds > (
-                settings.voice_polling_timeout_minutes * 60
-            ):
+            elif (datetime.now() - verification.created_at).seconds > (settings.voice_polling_timeout_minutes * 60):
                 verification.status = "failed"
                 db.commit()
 
@@ -129,9 +121,7 @@ class VoicePollingService:
                         type="verification_failed",
                     )
                 except Exception as notif_error:
-                    logger.warning(
-                        f"Notification failed for voice timeout {verification.id}: {notif_error}"
-                    )
+                    logger.warning(f"Notification failed for voice timeout {verification.id}: {notif_error}")
 
                 logger.warning(f"Voice verification timeout: {verification.id}")
 

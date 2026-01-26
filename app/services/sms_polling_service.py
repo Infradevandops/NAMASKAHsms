@@ -28,9 +28,7 @@ class SMSPollingService:
         if verification_id in self.polling_tasks:
             return
 
-        task = asyncio.create_task(
-            self._poll_verification(verification_id, phone_number)
-        )
+        task = asyncio.create_task(self._poll_verification(verification_id, phone_number))
         self.polling_tasks[verification_id] = task
         logger.info(f"Started polling for verification {verification_id}")
 
@@ -44,42 +42,28 @@ class SMSPollingService:
     async def _poll_verification(self, verification_id: str, phone_number: str):
         """Poll TextVerified for SMS updates."""
         initial_interval = settings.sms_polling_initial_interval_seconds
-        max_attempts = int(
-            (settings.sms_polling_max_minutes * 60) / max(1, initial_interval)
-        )
+        max_attempts = int((settings.sms_polling_max_minutes * 60) / max(1, initial_interval))
         attempt = 0
 
         while attempt < max_attempts:
             db = None
             try:
                 db = SessionLocal()
-                verification = (
-                    db.query(Verification)
-                    .filter(Verification.id == verification_id)
-                    .first()
-                )
+                verification = db.query(Verification).filter(Verification.id == verification_id).first()
 
                 if not verification or verification.status != "pending":
-                    logger.info(
-                        f"Verification {verification_id} no longer pending, stopping poll"
-                    )
+                    logger.info(f"Verification {verification_id} no longer pending, stopping poll")
                     break
 
                 # Use activation_id (TextVerified's ID) not our internal verification_id
                 if not verification.activation_id:
-                    logger.warning(
-                        f"No activation_id for verification {verification_id}, stopping poll"
-                    )
+                    logger.warning(f"No activation_id for verification {verification_id}, stopping poll")
                     break
 
                 try:
-                    sms_data = await self.textverified.check_sms(
-                        verification.activation_id
-                    )
+                    sms_data = await self.textverified.check_sms(verification.activation_id)
                 except Exception as e:
-                    logger.warning(
-                        f"TextVerified check failed for {verification.activation_id}: {str(e)}"
-                    )
+                    logger.warning(f"TextVerified check failed for {verification.activation_id}: {str(e)}")
                     await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                     attempt += 1
                     continue
@@ -88,36 +72,24 @@ class SMSPollingService:
                     verification.status = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
                     latest_sms = (
-                        sms_data["messages"][-1]
-                        if isinstance(sms_data["messages"], list)
-                        else sms_data["messages"]
+                        sms_data["messages"][-1] if isinstance(sms_data["messages"], list) else sms_data["messages"]
                     )
                     if hasattr(verification, "sms_text"):
                         verification.sms_text = (
-                            latest_sms
-                            if isinstance(latest_sms, str)
-                            else latest_sms.get("text", "")
+                            latest_sms if isinstance(latest_sms, str) else latest_sms.get("text", "")
                         )
                     if hasattr(verification, "sms_code"):
-                        text = (
-                            latest_sms
-                            if isinstance(latest_sms, str)
-                            else latest_sms.get("text", "")
-                        )
+                        text = latest_sms if isinstance(latest_sms, str) else latest_sms.get("text", "")
                         matches = re.findall(r"\b(\d{4,8})\b", text)
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
 
                     # PHASE 2: Record successful verification for success rate tracking
                     try:
-                        logger.info(
-                            f"Recording successful verification for {verification.service_name}"
-                        )
+                        logger.info(f"Recording successful verification for {verification.service_name}")
                         # Note: We track by operator (carrier) and area_code fields on verification
                     except Exception as tracking_error:
-                        logger.warning(
-                            f"Failed to record success tracking: {tracking_error}"
-                        )
+                        logger.warning(f"Failed to record success tracking: {tracking_error}")
 
                     # Notification: SMS Code Received (Task 2.4 Enhanced)
                     try:
@@ -135,27 +107,19 @@ class SMSPollingService:
 
                     # PHASE 2: Record failed verification for success rate tracking
                     try:
-                        logger.info(
-                            f"Recording failed verification (timeout) for {verification.service_name}"
-                        )
+                        logger.info(f"Recording failed verification (timeout) for {verification.service_name}")
                         # Note: We track by operator (carrier) and area_code fields on verification
                     except Exception as tracking_error:
-                        logger.warning(
-                            f"Failed to record failure tracking: {tracking_error}"
-                        )
+                        logger.warning(f"Failed to record failure tracking: {tracking_error}")
 
                     # CRITICAL FIX: Auto-refund for timeout
                     try:
                         from app.services.auto_refund_service import AutoRefundService
 
                         refund_service = AutoRefundService(db)
-                        refund_result = refund_service.process_verification_refund(
-                            verification_id, "timeout"
-                        )
+                        refund_result = refund_service.process_verification_refund(verification_id, "timeout")
                         if refund_result:
-                            logger.info(
-                                f"Auto-refund processed for timeout: ${refund_result['refund_amount']:.2f}"
-                            )
+                            logger.info(f"Auto-refund processed for timeout: ${refund_result['refund_amount']:.2f}")
                     except Exception as refund_error:
                         logger.error(
                             f"Failed to process auto-refund for {verification_id}: {refund_error}",
@@ -186,9 +150,7 @@ class SMSPollingService:
                 attempt += 1
 
                 # Progress Update (Task 2.3)
-                if (
-                    attempt == 4
-                ):  # After ~2 minutes (assuming 30s interval for later or initial)
+                if attempt == 4:  # After ~2 minutes (assuming 30s interval for later or initial)
                     try:
                         notif_service = NotificationService(db)
                         notif_service.create_notification(
@@ -204,15 +166,11 @@ class SMSPollingService:
                 logger.info(f"Polling cancelled for verification {verification_id}")
                 break
             except ExternalServiceError as e:
-                logger.warning(
-                    f"TextVerified polling error for {verification_id}: {str(e)}"
-                )
+                logger.warning(f"TextVerified polling error for {verification_id}: {str(e)}")
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                 attempt += 1
             except Exception as e:
-                logger.error(
-                    f"Unexpected polling error for {verification_id}: {str(e)}"
-                )
+                logger.error(f"Unexpected polling error for {verification_id}: {str(e)}")
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
                 attempt += 1
             finally:

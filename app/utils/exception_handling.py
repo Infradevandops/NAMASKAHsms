@@ -70,9 +70,7 @@ def handle_database_exceptions(func):
             return func(*args, **kwargs)
         except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
-            raise ValidationError(
-                "Data integrity constraint violated", {"original_error": str(e)}
-            )
+            raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
         except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
@@ -97,9 +95,7 @@ def handle_aws_exceptions(service_name: str):
             except ClientError as e:
                 error_code = e.response.get("Error", {}).get("Code", "Unknown")
                 error_message = e.response.get("Error", {}).get("Message", str(e))
-                logger.error(
-                    f"AWS {service_name} client error in {func.__name__}: {error_code} - {error_message}"
-                )
+                logger.error(f"AWS {service_name} client error in {func.__name__}: {error_code} - {error_message}")
 
                 if error_code in ["AccessDenied", "UnauthorizedOperation"]:
                     raise AuthorizationError(
@@ -152,9 +148,7 @@ def handle_encryption_exceptions(func):
                 {"original_error": str(e)},
             )
         except ValueError as e:
-            if "Invalid" in str(e) and (
-                "key" in str(e).lower() or "token" in str(e).lower()
-            ):
+            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
                 raise EncryptionError(
                     "Invalid encryption key or \
@@ -175,9 +169,7 @@ def safe_int_conversion(value: str, default: int = 0, field_name: str = "value")
         return default
 
 
-def safe_json_parse(
-    json_str: str, default: dict = None, field_name: str = "data"
-) -> dict:
+def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
     """Safely parse JSON string with specific error handling."""
     import json
 
@@ -199,9 +191,7 @@ def handle_http_client_exceptions(service_name: str):
             try:
                 return func(*args, **kwargs)
             except ConnectionError as e:
-                logger.error(
-                    f"Connection error to {service_name} in {func.__name__}: {e}"
-                )
+                logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Failed to connect to {service_name}",
@@ -216,18 +206,14 @@ def handle_http_client_exceptions(service_name: str):
                 )
             except Exception as e:
                 if "timeout" in str(e).lower():
-                    logger.error(
-                        f"Timeout error to {service_name} in {func.__name__}: {e}"
-                    )
+                    logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
                 elif "connection" in str(e).lower():
-                    logger.error(
-                        f"Connection error to {service_name} in {func.__name__}: {e}"
-                    )
+                    logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Connection error to {service_name}",

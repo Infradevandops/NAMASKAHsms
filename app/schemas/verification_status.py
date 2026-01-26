@@ -27,13 +27,9 @@ class VerificationStatusResponse(BaseModel):
     phone_number: str = Field(..., description="Phone number for verification")
 
     # SMS details
-    sms_code: Optional[str] = Field(
-        None, description="SMS verification code (if received)"
-    )
+    sms_code: Optional[str] = Field(None, description="SMS verification code (if received)")
     sms_text: Optional[str] = Field(None, description="Full SMS message text")
-    sms_received_at: Optional[datetime] = Field(
-        None, description="Timestamp when SMS was received"
-    )
+    sms_received_at: Optional[datetime] = Field(None, description="Timestamp when SMS was received")
 
     # Service details
     service: str = Field(..., description="Service name")
@@ -42,12 +38,8 @@ class VerificationStatusResponse(BaseModel):
 
     # Timestamps
     created_at: datetime = Field(..., description="Verification creation timestamp")
-    completed_at: Optional[datetime] = Field(
-        None, description="Verification completion timestamp"
-    )
-    expires_at: Optional[datetime] = Field(
-        None, description="Verification expiration timestamp"
-    )
+    completed_at: Optional[datetime] = Field(None, description="Verification completion timestamp")
+    expires_at: Optional[datetime] = Field(None, description="Verification expiration timestamp")
 
     # Metadata
     activation_id: Optional[str] = Field(None, description="Provider activation ID")

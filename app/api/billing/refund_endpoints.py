@@ -56,9 +56,7 @@ async def initiate_refund(
             "status": refund.status,
             "amount": refund.amount,
             "reason": refund.reason,
-            "initiated_at": (
-                refund.initiated_at.isoformat() if refund.initiated_at else None
-            ),
+            "initiated_at": (refund.initiated_at.isoformat() if refund.initiated_at else None),
         }
 
     except ValueError as e:
@@ -130,9 +128,7 @@ async def get_refund_history(
     """
     try:
         refund_service = RefundService(db)
-        result = refund_service.get_refund_history(
-            user_id=user_id, skip=skip, limit=limit
-        )
+        result = refund_service.get_refund_history(user_id=user_id, skip=skip, limit=limit)
 
         logger.info(f"Retrieved {len(result['refunds'])} refunds for user {user_id}")
 

@@ -31,7 +31,5 @@ class SMSGateway:
     async def _send_webhook(self, to_number: str, message: str) -> dict:
         """Send SMS via webhook to external service."""
         async with httpx.AsyncClient() as client:
-            await client.post(
-                "YOUR_SMS_WEBHOOK_URL", json={"to": to_number, "message": message}
-            )
+            await client.post("YOUR_SMS_WEBHOOK_URL", json={"to": to_number, "message": message})
             return {"status": "sent", "provider": "webhook"}

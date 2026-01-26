@@ -7,9 +7,7 @@ class TestVerification:
     def test_purchase_verification(self, client, admin_user, admin_token):
         token = admin_token(admin_user.id, admin_user.email)
 
-        with patch(
-            "app.api.verification.purchase_endpoints.TextVerifiedService"
-        ) as MockService:
+        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as MockService:
             mock_instance = MockService.return_value
             mock_instance.enabled = True
 

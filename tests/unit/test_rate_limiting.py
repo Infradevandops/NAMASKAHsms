@@ -37,9 +37,7 @@ async def test_unified_rate_limiter():
     mock_request.headers = {}
 
     # Test bucket checking
-    allowed, retry_after, info = await limiter.check_rate_limit(
-        mock_request, "user_123"
-    )
+    allowed, retry_after, info = await limiter.check_rate_limit(mock_request, "user_123")
     assert allowed is True
     # We allow some keys to be missing if default path is used
     assert isinstance(info, dict)

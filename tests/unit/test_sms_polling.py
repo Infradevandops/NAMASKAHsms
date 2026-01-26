@@ -69,9 +69,7 @@ def mock_verification(db_session):
 
 
 @pytest.mark.asyncio
-async def test_poll_verification_success(
-    db_session, polling_service, mock_settings, mock_verification
-):
+async def test_poll_verification_success(db_session, polling_service, mock_settings, mock_verification):
     """Test polling successfully receiving an SMS."""
     # Mock TextVerified response sequence: Pending -> Success
     polling_service.textverified.check_sms.side_effect = [
@@ -87,14 +85,10 @@ async def test_poll_verification_success(
     session_mock.query = db_session.query
     session_mock.add = db_session.add
 
-    with patch(
-        "app.services.sms_polling_service.SessionLocal", return_value=session_mock
-    ):
+    with patch("app.services.sms_polling_service.SessionLocal", return_value=session_mock):
         # We also need to mock NotificationService to avoid errors or just let it fail silently (it has try/except)
         # But to be clean, let's mock it.
-        with patch(
-            "app.services.sms_polling_service.NotificationService"
-        ) as MockNotify:
+        with patch("app.services.sms_polling_service.NotificationService") as MockNotify:
 
             # RUN
             await polling_service._poll_verification(mock_verification.id, "1234567890")
@@ -107,9 +101,7 @@ async def test_poll_verification_success(
 
 
 @pytest.mark.asyncio
-async def test_poll_verification_timeout(
-    db_session, polling_service, mock_settings, mock_verification
-):
+async def test_poll_verification_timeout(db_session, polling_service, mock_settings, mock_verification):
     """Test polling handling a timeout response."""
     polling_service.textverified.check_sms.return_value = SAMPLE_TIMEOUT_RESPONSE
 
@@ -118,9 +110,7 @@ async def test_poll_verification_timeout(
     session_mock.commit = MagicMock(side_effect=db_session.commit)
     session_mock.query = db_session.query
 
-    with patch(
-        "app.services.sms_polling_service.SessionLocal", return_value=session_mock
-    ):
+    with patch("app.services.sms_polling_service.SessionLocal", return_value=session_mock):
         await polling_service._poll_verification(mock_verification.id, "1234567890")
 
         db_session.refresh(mock_verification)
@@ -128,9 +118,7 @@ async def test_poll_verification_timeout(
 
 
 @pytest.mark.asyncio
-async def test_poll_stops_if_status_changes(
-    db_session, polling_service, mock_settings, mock_verification
-):
+async def test_poll_stops_if_status_changes(db_session, polling_service, mock_settings, mock_verification):
     """Test polling stops if verification status changes externally (e.g. cancelled)."""
     # Change status to cancelled
     mock_verification.status = "cancelled"
@@ -140,9 +128,7 @@ async def test_poll_stops_if_status_changes(
     session_mock.close = MagicMock()
     session_mock.query = db_session.query
 
-    with patch(
-        "app.services.sms_polling_service.SessionLocal", return_value=session_mock
-    ):
+    with patch("app.services.sms_polling_service.SessionLocal", return_value=session_mock):
         await polling_service._poll_verification(mock_verification.id, "1234567890")
 
     # Should have stopped immediately without calling check_sms
@@ -153,9 +139,7 @@ async def test_poll_stops_if_status_changes(
 async def test_start_polling_creates_task(polling_service):
     """Test start_polling adds a task to dictionary."""
     # We mock _poll_verification to avoid running the loop
-    with patch.object(
-        polling_service, "_poll_verification", new_callable=AsyncMock
-    ) as mock_poll:
+    with patch.object(polling_service, "_poll_verification", new_callable=AsyncMock) as mock_poll:
         await polling_service.start_polling("v1", "123")
 
         assert "v1" in polling_service.polling_tasks
@@ -189,15 +173,11 @@ async def test_stop_polling_cancels_task(polling_service):
 
 
 @pytest.mark.asyncio
-async def test_background_service_flow(
-    db_session, polling_service, mock_settings, mock_verification
-):
+async def test_background_service_flow(db_session, polling_service, mock_settings, mock_verification):
     """Test background service picks up pending verifications."""
 
     # Mock start_polling to verify it gets called
-    with patch.object(
-        polling_service, "start_polling", new_callable=AsyncMock
-    ) as mock_start:
+    with patch.object(polling_service, "start_polling", new_callable=AsyncMock) as mock_start:
 
         # Run service for a brief moment
         polling_service.is_running = True
@@ -222,6 +202,4 @@ async def test_background_service_flow(
                     pass  # End of loop
 
         # Verify it found the pending verification and tried to start polling
-        mock_start.assert_called_with(
-            mock_verification.id, mock_verification.phone_number
-        )
+        mock_start.assert_called_with(mock_verification.id, mock_verification.phone_number)

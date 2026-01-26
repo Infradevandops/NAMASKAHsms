@@ -56,11 +56,7 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Query transactions for user
-        txs = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .all()
-        )
+        txs = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).all()
 
         assert len(txs) >= 1
         assert any(t.amount == 50.0 for t in txs)
@@ -81,11 +77,7 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Query
-        found = (
-            db_session.query(PaymentLog)
-            .filter(PaymentLog.reference == "test_ref_123")
-            .first()
-        )
+        found = db_session.query(PaymentLog).filter(PaymentLog.reference == "test_ref_123").first()
 
         assert found is not None
         assert found.amount_usd == 100.0
@@ -161,11 +153,7 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Verify
-        count = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .count()
-        )
+        count = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).count()
 
         assert count >= 10
 
@@ -185,9 +173,7 @@ class TestDatabaseIntegration:
         # Query with filter and order
         credits = (
             db_session.query(Transaction)
-            .filter(
-                Transaction.user_id == regular_user.id, Transaction.type == "credit"
-            )
+            .filter(Transaction.user_id == regular_user.id, Transaction.type == "credit")
             .order_by(Transaction.amount.desc())
             .all()
         )
@@ -220,9 +206,7 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Add related transaction
-        tx = Transaction(
-            user_id=user.id, amount=10.0, type="credit", description="Test"
-        )
+        tx = Transaction(user_id=user.id, amount=10.0, type="credit", description="Test")
         db_session.add(tx)
         db_session.commit()
 
@@ -233,9 +217,7 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Check if transaction still exists (depends on cascade config)
-        tx_exists = (
-            db_session.query(Transaction).filter(Transaction.user_id == user_id).first()
-        )
+        tx_exists = db_session.query(Transaction).filter(Transaction.user_id == user_id).first()
 
         # This test documents the current behavior
         # Adjust assertion based on actual cascade configuration
@@ -255,9 +237,7 @@ class TestDatabaseIntegration:
         user1.credits = 100.0
 
         # Before commit, query should see uncommitted changes
-        found = (
-            db_session.query(User).filter(User.email == "isolation1@test.com").first()
-        )
+        found = db_session.query(User).filter(User.email == "isolation1@test.com").first()
         assert found.credits == 100.0
 
         db_session.commit()
@@ -294,21 +274,9 @@ class TestDatabaseIntegration:
         db_session.commit()
 
         # Paginate
-        page_1 = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .limit(10)
-            .offset(0)
-            .all()
-        )
+        page_1 = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).limit(10).offset(0).all()
 
-        page_2 = (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .limit(10)
-            .offset(10)
-            .all()
-        )
+        page_2 = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).limit(10).offset(10).all()
 
         assert len(page_1) == 10
         assert len(page_2) >= 10

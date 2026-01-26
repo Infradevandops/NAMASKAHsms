@@ -103,11 +103,7 @@ async def get_usa_area_codes():
         for code_data in raw_codes:
             # Extract code and name (handle different possible fields)
             area_code = code_data.get("code") or code_data.get("area_code")
-            name = (
-                code_data.get("name")
-                or code_data.get("region")
-                or code_data.get("state")
-            )
+            name = code_data.get("name") or code_data.get("region") or code_data.get("state")
 
             # Skip if code or name is missing/null
             if not area_code or not name:
@@ -173,9 +169,7 @@ async def get_country_services(country: str):
 
         integration = TextVerifiedService()
         # Fetch services specific to the requested country
-        services = await integration.get_services_list(
-            country=country_code, force_refresh=True
-        )
+        services = await integration.get_services_list(country=country_code, force_refresh=True)
 
         result = {
             "success": True,
@@ -189,9 +183,5 @@ async def get_country_services(country: str):
         return result
 
     except Exception as e:
-        logger.error(
-            f"Failed to get services from TextVerified for {country}: {str(e)}"
-        )
-        raise HTTPException(
-            status_code=500, detail=f"Failed to load services for {country}"
-        )
+        logger.error(f"Failed to get services from TextVerified for {country}: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load services for {country}")

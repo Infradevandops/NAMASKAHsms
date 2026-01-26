@@ -12,9 +12,7 @@ class TestAPIKeyService:
 
         # Based on previous tests, PAYG/freemium might have limits.
         # But here valid code:
-        assert (
-            service.can_create_key(regular_user.id) is False or True
-        )  # Depends on tier
+        assert service.can_create_key(regular_user.id) is False or True  # Depends on tier
         # Actually better to set explicit tier
         regular_user.subscription_tier = "free"
         db_session.commit()
@@ -45,9 +43,7 @@ class TestAPIKeyService:
         assert api_key.name == "Test Key"
 
         # Count in DB
-        count = (
-            db_session.query(APIKey).filter(APIKey.user_id == regular_user.id).count()
-        )
+        count = db_session.query(APIKey).filter(APIKey.user_id == regular_user.id).count()
         assert count == 1
         assert service.get_remaining_keys(regular_user.id) == 9
 

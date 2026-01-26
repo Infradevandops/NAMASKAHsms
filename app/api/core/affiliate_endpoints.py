@@ -23,15 +23,11 @@ require_payg = require_tier("payg")
 
 
 @router.get("/programs")
-async def get_available_programs(
-    user_id: str = Depends(require_payg), db: Session = Depends(get_db)
-) -> Dict:
+async def get_available_programs(user_id: str = Depends(require_payg), db: Session = Depends(get_db)) -> Dict:
     """Get available affiliate programs."""
     logger.info(f"Affiliate programs requested by user_id: {user_id}")
     result = await affiliate_service.get_available_programs(db)
-    logger.debug(
-        f"Retrieved {len(result.get('programs', []))} affiliate programs for user {user_id}"
-    )
+    logger.debug(f"Retrieved {len(result.get('programs', []))} affiliate programs for user {user_id}")
     return result
 
 
@@ -57,32 +53,24 @@ async def apply_for_affiliate(
         logger.info(f"Affiliate application created successfully for user {user_id}")
         return result
     except ValueError as e:
-        logger.warning(
-            f"Affiliate application validation failed for user {user_id}: {str(e)}"
-        )
+        logger.warning(f"Affiliate application validation failed for user {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/applications")
-async def get_my_applications(
-    user_id: str = Depends(require_payg), db: Session = Depends(get_db)
-) -> List[Dict]:
+async def get_my_applications(user_id: str = Depends(require_payg), db: Session = Depends(get_db)) -> List[Dict]:
     """Get user's affiliate applications."""
     logger.info(f"Affiliate applications requested by user_id: {user_id}")
 
     applications = (
         db.query(AffiliateApplication)
-        .filter(
-            AffiliateApplication.email.isnot(None)
-        )  # Placeholder - would filter by user
+        .filter(AffiliateApplication.email.isnot(None))  # Placeholder - would filter by user
         .order_by(AffiliateApplication.created_at.desc())
         .limit(10)
         .all()
     )
 
-    logger.debug(
-        f"Retrieved {len(applications)} affiliate applications for user {user_id}"
-    )
+    logger.debug(f"Retrieved {len(applications)} affiliate applications for user {user_id}")
 
     return [
         {
@@ -96,9 +84,7 @@ async def get_my_applications(
 
 
 @router.get("/stats")
-async def get_affiliate_stats(
-    user_id: str = Depends(require_payg), db: Session = Depends(get_db)
-) -> Dict:
+async def get_affiliate_stats(user_id: str = Depends(require_payg), db: Session = Depends(get_db)) -> Dict:
     """Get affiliate statistics for current user."""
     logger.debug(f"Affiliate stats requested by user_id: {user_id}")
 

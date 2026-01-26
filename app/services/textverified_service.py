@@ -22,9 +22,7 @@ class TextVerifiedService:
 
     def __init__(self):
         # Load credentials from environment variables
-        self.api_key = (
-            os.getenv("TEXTVERIFIED_API_KEY") or settings.textverified_api_key
-        )
+        self.api_key = os.getenv("TEXTVERIFIED_API_KEY") or settings.textverified_api_key
         self.api_username = os.getenv("TEXTVERIFIED_EMAIL") or getattr(
             settings, "textverified_email", "huff_06psalm@icloud.com"
         )
@@ -48,9 +46,7 @@ class TextVerifiedService:
 
         if self.enabled:
             try:
-                self.client = textverified.TextVerified(
-                    api_key=self.api_key, api_username=self.api_username
-                )
+                self.client = textverified.TextVerified(api_key=self.api_key, api_username=self.api_username)
                 logger.info("TextVerified client initialized successfully")
             except Exception as e:
                 logger.error(f"TextVerified client initialization failed: {e}")
@@ -90,9 +86,7 @@ class TextVerifiedService:
 
         try:
             # Attempt to validate credentials by creating client
-            _ = textverified.TextVerified(
-                api_key=self.api_key, api_username=self.api_username
-            )
+            _ = textverified.TextVerified(api_key=self.api_key, api_username=self.api_username)
             logger.info("TextVerified credentials validated successfully")
             return True
         except Exception as e:
@@ -140,9 +134,7 @@ class TextVerifiedService:
                 self._circuit_breaker_reset_time = None
                 return True
             else:
-                logger.warning(
-                    "Circuit breaker is OPEN - blocking requests to prevent cascading failures"
-                )
+                logger.warning("Circuit breaker is OPEN - blocking requests to prevent cascading failures")
                 return False
         return True
 
@@ -150,9 +142,7 @@ class TextVerifiedService:
         """Record a failure and potentially open circuit breaker."""
         self._circuit_breaker_failures += 1
         if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
-            self._circuit_breaker_reset_time = (
-                time.time() + self._circuit_breaker_timeout
-            )
+            self._circuit_breaker_reset_time = time.time() + self._circuit_breaker_timeout
             logger.error(
                 f"Circuit breaker OPENED after {self._circuit_breaker_failures} failures. Will retry in {self._circuit_breaker_timeout}s"
             )
@@ -234,9 +224,7 @@ class TextVerifiedService:
             logger.error(f"TextVerified balance error: {str(e)}")
             raise
 
-    async def _retry_with_backoff(
-        self, func, max_retries: int = 3, initial_delay: float = 1.0
-    ):
+    async def _retry_with_backoff(self, func, max_retries: int = 3, initial_delay: float = 1.0):
         """Retry a function with exponential backoff.
 
         Args:
@@ -274,13 +262,9 @@ class TextVerifiedService:
 
                 if attempt < max_retries:
                     if is_connection_error:
-                        logger.warning(
-                            f"Connection error on attempt {attempt + 1}, retrying in {delay}s: {error_msg}"
-                        )
+                        logger.warning(f"Connection error on attempt {attempt + 1}, retrying in {delay}s: {error_msg}")
                     else:
-                        logger.warning(
-                            f"Attempt {attempt + 1} failed, retrying in {delay}s: {error_msg}"
-                        )
+                        logger.warning(f"Attempt {attempt + 1} failed, retrying in {delay}s: {error_msg}")
                     await asyncio.sleep(delay)
                     delay *= 2  # Exponential backoff
                 else:
@@ -423,9 +407,7 @@ class TextVerifiedService:
                 "currency": "USD",
             }
 
-    async def get_services_list(
-        self, country: str = "US", force_refresh: bool = False
-    ) -> list:
+    async def get_services_list(self, country: str = "US", force_refresh: bool = False) -> list:
         """Get list of available services from TextVerified API.
 
         Args:
@@ -470,11 +452,7 @@ class TextVerifiedService:
             seen = set()
             for service in services_data:
                 # Extract service_name from Service object
-                service_name = (
-                    service.service_name
-                    if hasattr(service, "service_name")
-                    else str(service)
-                )
+                service_name = service.service_name if hasattr(service, "service_name") else str(service)
 
                 # Skip duplicates
                 if service_name in seen:
@@ -491,9 +469,7 @@ class TextVerifiedService:
                     }
                 )
 
-            logger.info(
-                f"Retrieved {len(formatted_services)} services from TextVerified API"
-            )
+            logger.info(f"Retrieved {len(formatted_services)} services from TextVerified API")
             return formatted_services
 
         except Exception as e:
@@ -695,9 +671,7 @@ class TextVerifiedService:
                 return []
 
             # TextVerified SDK v2 uses services.area_codes()
-            if hasattr(self.client, "services") and hasattr(
-                self.client.services, "area_codes"
-            ):
+            if hasattr(self.client, "services") and hasattr(self.client.services, "area_codes"):
                 # Note: The SDK method doesn't seem to take service_name in its call but in the API it might.
                 # However, the SDK's area_codes() method uses /api/pub/v2/area-codes
                 codes = self.client.services.area_codes()

@@ -19,9 +19,7 @@ logger = logging.getLogger(__name__)
 security = HTTPBearer(auto_error=False)
 
 
-def get_token_from_request(
-    request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)
-) -> str:
+def get_token_from_request(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
     """Extract token from Authorization header or cookies."""
     if credentials:
         return credentials.credentials
@@ -50,54 +48,38 @@ def get_current_user_id(
         user_id = payload.get("user_id")
         if not user_id:
             logger.warning("Token missing user_id")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
         return user_id
     except jwt.InvalidTokenError as e:
         logger.warning(f"Token decode failed: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token"
-        )
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token")
 
 
-def get_current_user(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current user object from database."""
     from app.models.user import User
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     return user
 
 
-def get_admin_user_id(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-) -> str:
+def get_admin_user_id(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)) -> str:
     """Get admin user ID (requires admin role)."""
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user_id
 
 
-def get_current_admin_user(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_current_admin_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current admin user object (requires admin role)."""
 
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
     return user
 
 
@@ -134,9 +116,7 @@ def require_tier(required_tier: str) -> Callable:
         HTTPException: 402 Payment Required if user's tier is insufficient
     """
 
-    def tier_dependency(
-        user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-    ) -> str:
+    def tier_dependency(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)) -> str:
         """Validate user tier and return user_id if authorized."""
         user_tier = get_user_tier(user_id, db)
 

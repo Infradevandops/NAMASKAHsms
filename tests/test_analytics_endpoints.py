@@ -18,9 +18,7 @@ class TestAnalyticsSummaryEndpoint:
     def test_analytics_summary_returns_correct_fields(self, client, regular_user):
         """Test that /api/analytics/summary returns all required fields."""
         token = create_test_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -43,9 +41,7 @@ class TestAnalyticsSummaryEndpoint:
     def test_analytics_summary_with_no_verifications(self, client, regular_user):
         """Test analytics summary when user has no verifications."""
         token = create_test_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -74,9 +70,7 @@ class TestAnalyticsSummaryEndpoint:
         db.commit()
 
         token = create_test_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -86,14 +80,10 @@ class TestAnalyticsSummaryEndpoint:
         # Success rate is returned as decimal (0.7) not percentage (70.0)
         assert data["success_rate"] == 0.7
 
-    def test_analytics_summary_counts_monthly_verifications(
-        self, client, regular_user, db
-    ):
+    def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, db):
         """Test that monthly verifications are counted correctly."""
         # Create verifications in current month
-        current_month = datetime.now(timezone.utc).replace(
-            day=1, hour=0, minute=0, second=0, microsecond=0
-        )
+        current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         for i in range(5):
             verification = Verification(
@@ -125,9 +115,7 @@ class TestAnalyticsSummaryEndpoint:
         db.commit()
 
         token = create_test_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -159,9 +147,7 @@ class TestAnalyticsSummaryEndpoint:
 
         for tier in tiers_to_test:
             token = create_test_token(f"analytics_{tier}", f"analytics_{tier}@test.com")
-            response = client.get(
-                "/api/analytics/summary", headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
             data = response.json()
             assert "total_verifications" in data
@@ -300,9 +286,7 @@ class TestDashboardActivityEndpoint:
         assert data[1]["id"] == "order_test_1"
         assert data[2]["id"] == "order_test_2"
 
-    def test_activity_recent_only_returns_user_activities(
-        self, client, regular_user, db
-    ):
+    def test_activity_recent_only_returns_user_activities(self, client, regular_user, db):
         """Test that activity endpoint only returns current user's activities."""
         # Create verification for regular user
         verification1 = Verification(

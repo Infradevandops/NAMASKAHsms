@@ -62,9 +62,7 @@ async def get_verification_pricing(
         area_code_markup = 0.10 if area_code and area_code != "any" else 0
         carrier_markup = 0.15 if carrier and carrier != "any" else 0
 
-        total_price = (
-            provider_cost * (1 + margin_percent) + area_code_markup + carrier_markup
-        )
+        total_price = provider_cost * (1 + margin_percent) + area_code_markup + carrier_markup
 
         return {
             "success": True,
@@ -77,12 +75,8 @@ async def get_verification_pricing(
             "currency": "USD",
             "tier_info": {
                 "current_tier": tier_manager.get_user_tier(user_id),
-                "area_code_available": tier_manager.check_feature_access(
-                    user_id, "area_code_selection"
-                ),
-                "isp_filtering_available": tier_manager.check_feature_access(
-                    user_id, "isp_filtering"
-                ),
+                "area_code_available": tier_manager.check_feature_access(user_id, "area_code_selection"),
+                "isp_filtering_available": tier_manager.check_feature_access(user_id, "isp_filtering"),
             },
         }
 

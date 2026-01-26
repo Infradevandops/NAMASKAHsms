@@ -73,17 +73,11 @@ class DocumentService:
             },
         }
 
-    async def upload_document(
-        self, file: UploadFile, document_type: str, kyc_profile_id: str
-    ) -> KYCDocument:
+    async def upload_document(self, file: UploadFile, document_type: str, kyc_profile_id: str) -> KYCDocument:
         """Upload and process KYC document."""
         try:
             # Validate KYC profile exists
-            kyc_profile = (
-                self.db.query(KYCProfile)
-                .filter(KYCProfile.id == kyc_profile_id)
-                .first()
-            )
+            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
             if not kyc_profile:
                 raise HTTPException(status_code=404, detail="KYC profile not found")
 
@@ -147,9 +141,7 @@ class DocumentService:
         """Validate uploaded file."""
         # Check document type
         if document_type not in self.document_requirements:
-            raise HTTPException(
-                status_code=400, detail=f"Invalid document type: {document_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Invalid document type: {document_type}")
 
         requirements = self.document_requirements[document_type]
 
@@ -182,9 +174,7 @@ class DocumentService:
         """Generate SHA - 256 hash of file content."""
         return hashlib.sha256(content).hexdigest()
 
-    async def _process_image(
-        self, file_path: Path, document_type: str
-    ) -> Dict[str, Any]:
+    async def _process_image(self, file_path: Path, document_type: str) -> Dict[str, Any]:
         """Process image and extract metadata."""
         try:
             extracted_data = {}
@@ -196,8 +186,7 @@ class DocumentService:
                         "format": img.format,
                         "mode": img.mode,
                         "size": img.size,
-                        "has_transparency": img.mode in ("RGBA", "LA")
-                        or "transparency" in img.info,
+                        "has_transparency": img.mode in ("RGBA", "LA") or "transparency" in img.info,
                     }
 
                 # EXIF data (if available)
@@ -211,19 +200,13 @@ class DocumentService:
                     }
 
                     # Image quality assessment
-                    extracted_data["quality_assessment"] = self._assess_image_quality(
-                        img
-                    )
+                    extracted_data["quality_assessment"] = self._assess_image_quality(img)
 
                     # Document - specific processing
                     if document_type in ["passport", "license", "id_card"]:
-                        extracted_data["document_analysis"] = (
-                            await self._analyze_id_document(img)
-                        )
+                        extracted_data["document_analysis"] = await self._analyze_id_document(img)
                     elif document_type == "selfie":
-                        extracted_data["face_analysis"] = await self._analyze_selfie(
-                            img
-                        )
+                        extracted_data["face_analysis"] = await self._analyze_selfie(img)
             else:
                 extracted_data["error"] = "Image processing unavailable"
 
@@ -399,8 +382,7 @@ class DocumentService:
                 .filter(
                     KYCDocument.id == document_id,
                     KYCProfile.user_id == user_id,
-                    KYCProfile.status
-                    != "verified",  # Can't delete from verified profiles
+                    KYCProfile.status != "verified",  # Can't delete from verified profiles
                 )
                 .first()
             )

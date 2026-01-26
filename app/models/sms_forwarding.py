@@ -12,9 +12,7 @@ class SMSForwarding(Base):
 
     __tablename__ = "sms_forwarding"
 
-    id = Column(
-        String(36), primary_key=True, default=lambda: str(__import__("uuid").uuid4())
-    )
+    id = Column(String(36), primary_key=True, default=lambda: str(__import__("uuid").uuid4()))
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
     rental_id = Column(String(36), ForeignKey("rentals.id"), nullable=True)
 
@@ -29,6 +27,4 @@ class SMSForwarding(Base):
     telegram_enabled = Column(Boolean, default=False)
 
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(
-        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
-    )
+    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)

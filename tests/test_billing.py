@@ -11,9 +11,7 @@ class TestBilling:
 
     def test_get_balance(self, client, regular_user, user_token):
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/user/balance", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/user/balance", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert "credits" in data

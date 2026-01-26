@@ -79,23 +79,17 @@ class TestCurrentTierEndpoint:
     def test_current_tier_returns_user_tier(self, client, regular_user, user_token):
         """Test that /api/tiers/current returns the user's current tier."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
         assert data["current_tier"] == "freemium"
         assert data["tier_name"] == "Freemium"
 
-    def test_current_tier_returns_all_required_fields(
-        self, client, regular_user, user_token
-    ):
+    def test_current_tier_returns_all_required_fields(self, client, regular_user, user_token):
         """Test that /api/tiers/current returns all required fields."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -114,9 +108,7 @@ class TestCurrentTierEndpoint:
 
         assert all(field in data for field in required_fields)
 
-    def test_current_tier_quota_calculations(
-        self, client, regular_user, user_token, db
-    ):
+    def test_current_tier_quota_calculations(self, client, regular_user, user_token, db):
         """Test that quota calculations are correct."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -124,9 +116,7 @@ class TestCurrentTierEndpoint:
         regular_user.monthly_quota_used = 5.0
         db.commit()
 
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -153,9 +143,7 @@ class TestCurrentTierEndpoint:
             db.add(verification)
         db.commit()
 
-        response = client.get(
-            "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
         data = response.json()
@@ -187,9 +175,7 @@ class TestCurrentTierEndpoint:
 
         for tier in tiers_to_test:
             token = user_token(f"user_{tier}", f"{tier}@test.com")
-            response = client.get(
-                "/api/tiers/current", headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
             data = response.json()
             assert data["current_tier"] == tier
@@ -198,9 +184,7 @@ class TestCurrentTierEndpoint:
 class TestUpgradeTierEndpoint:
     """Tests for POST /api/tiers/upgrade endpoint."""
 
-    def test_upgrade_tier_validates_hierarchy(
-        self, client, regular_user, user_token, db
-    ):
+    def test_upgrade_tier_validates_hierarchy(self, client, regular_user, user_token, db):
         """Test that upgrade validates tier hierarchy."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -261,9 +245,7 @@ class TestUpgradeTierEndpoint:
         """Test that upgrade requires target_tier parameter."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.post(
-            "/api/tiers/upgrade", json={}, headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.post("/api/tiers/upgrade", json={}, headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 400
 
     def test_upgrade_tier_requires_authentication(self, client):
@@ -293,9 +275,7 @@ class TestDowngradeTierEndpoint:
 
         token = user_token("pro_user", "pro@test.com")
 
-        response = client.post(
-            "/api/tiers/downgrade", headers={"Authorization": f"Bearer {token}"}
-        )
+        response = client.post("/api/tiers/downgrade", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
@@ -326,9 +306,7 @@ class TestDowngradeTierEndpoint:
 
         for tier in tiers_to_test:
             token = user_token(f"downgrade_{tier}", f"downgrade_{tier}@test.com")
-            response = client.post(
-                "/api/tiers/downgrade", headers={"Authorization": f"Bearer {token}"}
-            )
+            response = client.post("/api/tiers/downgrade", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
             data = response.json()
             assert data["new_tier"] == "freemium"

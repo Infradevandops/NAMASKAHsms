@@ -39,9 +39,7 @@ class TestWebhookServiceComplete:
         queue = WebhookQueue(redis_client)
 
         # Enqueue first
-        await queue.enqueue(
-            webhook_id="wh_dequeue", event="test.event", data={"test": "data"}
-        )
+        await queue.enqueue(webhook_id="wh_dequeue", event="test.event", data={"test": "data"})
 
         # Dequeue
         messages = await queue.dequeue(count=1)
@@ -55,9 +53,7 @@ class TestWebhookServiceComplete:
         queue = WebhookQueue(redis_client)
 
         # Enqueue with retry
-        msg_id = await queue.enqueue(
-            webhook_id="wh_retry", event="retry.test", data={"retry_count": 0}
-        )
+        msg_id = await queue.enqueue(webhook_id="wh_retry", event="retry.test", data={"retry_count": 0})
 
         assert msg_id is not None
 
@@ -71,9 +67,7 @@ class TestWebhookServiceComplete:
 
         # Simulate failed deliveries
         for i in range(max_retries + 1):
-            msg_id = await queue.enqueue(
-                webhook_id=f"wh_dlq_{i}", event="dlq.test", data={"attempt": i}
-            )
+            msg_id = await queue.enqueue(webhook_id=f"wh_dlq_{i}", event="dlq.test", data={"attempt": i})
 
         # After max retries, should go to DLQ
         assert msg_id is not None
@@ -123,9 +117,7 @@ class TestWebhookServiceComplete:
         secret = "webhook_secret"
         payload = '{"event":"test"}'
 
-        signature = hmac.new(
-            secret.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+        signature = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         assert signature is not None
         assert len(signature) == 64  # SHA256 hex digest
@@ -139,9 +131,7 @@ class TestWebhookServiceComplete:
         payload = '{"event":"test"}'
 
         # Generate signature
-        expected = hmac.new(
-            secret.encode(), payload.encode(), hashlib.sha256
-        ).hexdigest()
+        expected = hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
         # Validate
         received = expected  # In real scenario, from header
@@ -162,9 +152,7 @@ class TestWebhookServiceComplete:
         db_session.add(webhook)
         db_session.commit()
 
-        saved = (
-            db_session.query(Webhook).filter(Webhook.user_id == regular_user.id).first()
-        )
+        saved = db_session.query(Webhook).filter(Webhook.user_id == regular_user.id).first()
 
         assert saved is not None
         assert saved.url == "https://example.com/webhook"
@@ -234,9 +222,7 @@ class TestWebhookServiceComplete:
         test_event = "payment.success"
 
         # Simple wildcard matching
-        matches = any(
-            event.replace(".*", "") in test_event for event in events if ".*" in event
-        )
+        matches = any(event.replace(".*", "") in test_event for event in events if ".*" in event)
 
         assert matches is True
 
@@ -251,9 +237,7 @@ class TestWebhookServiceComplete:
 
         # Track delivery attempt
         webhook_id = "wh_track_123"
-        msg_id = await queue.enqueue(
-            webhook_id=webhook_id, event="track.test", data={"tracked": True}
-        )
+        msg_id = await queue.enqueue(webhook_id=webhook_id, event="track.test", data={"tracked": True})
 
         assert msg_id is not None
 
@@ -323,9 +307,7 @@ class TestWebhookServiceComplete:
         # Enqueue multiple webhooks
         batch_size = 5
         for i in range(batch_size):
-            await queue.enqueue(
-                webhook_id=f"wh_batch_{i}", event="batch.test", data={"index": i}
-            )
+            await queue.enqueue(webhook_id=f"wh_batch_{i}", event="batch.test", data={"index": i})
 
         # Process batch
         messages = await queue.dequeue(count=batch_size)
@@ -379,9 +361,7 @@ class TestWebhookServiceComplete:
 
         service = WebhookService()
 
-        wh_id = await service.register(
-            "user123", "https://example.com/hook", ["test.event"]
-        )
+        wh_id = await service.register("user123", "https://example.com/hook", ["test.event"])
         assert wh_id.startswith("wh_user123_")
 
         hooks = await service.get_webhooks("user123")
@@ -397,17 +377,13 @@ class TestWebhookServiceComplete:
         service = WebhookService()
         mock_post.return_value = Mock(status_code=200)
 
-        wh_id = await service.register(
-            "user123", "https://example.com/hook", ["test.event"]
-        )
+        wh_id = await service.register("user123", "https://example.com/hook", ["test.event"])
         await service.deliver(wh_id, "test.event", {"foo": "bar"}, "secret")
 
         assert mock_post.called
         # Check header
         args, kwargs = mock_post.call_args
-        assert "X-Webhook-Signature" in str(
-            kwargs["headers"]
-        ) or "X - Webhook-Signature" in str(kwargs["headers"])
+        assert "X-Webhook-Signature" in str(kwargs["headers"]) or "X - Webhook-Signature" in str(kwargs["headers"])
 
 
 if __name__ == "__main__":

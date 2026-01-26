@@ -45,9 +45,7 @@ async def textverified_health() -> Dict[str, Any]:
             "credentials" in health_status.get("error", "").lower()
             or "not configured" in health_status.get("error", "").lower()
         ):
-            logger.warning(
-                f"Health check failed - invalid credentials: {health_status.get('error')}"
-            )
+            logger.warning(f"Health check failed - invalid credentials: {health_status.get('error')}")
             raise HTTPException(
                 status_code=401,
                 detail={
@@ -57,16 +55,12 @@ async def textverified_health() -> Dict[str, Any]:
                 },
             )
         else:
-            logger.error(
-                f"Health check failed - service unavailable: {health_status.get('error')}"
-            )
+            logger.error(f"Health check failed - service unavailable: {health_status.get('error')}")
             raise HTTPException(
                 status_code=503,
                 detail={
                     "error": "TextVerified service unavailable",
-                    "details": health_status.get(
-                        "error", "TextVerified service unavailable"
-                    ),
+                    "details": health_status.get("error", "TextVerified service unavailable"),
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
@@ -104,9 +98,7 @@ async def get_balance() -> Dict[str, Any]:
         logger.info("Balance endpoint called")
         service = TextVerifiedService()
         balance_data = await service.get_balance()
-        logger.info(
-            f"Balance retrieved: {balance_data['balance']} {balance_data['currency']}"
-        )
+        logger.info(f"Balance retrieved: {balance_data['balance']} {balance_data['currency']}")
         return balance_data
     except Exception as e:
         logger.error(f"Balance endpoint error: {str(e)}")

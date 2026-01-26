@@ -33,11 +33,7 @@ class APIKeyService:
         if limit == -1:
             return True
 
-        current_count = (
-            self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
-            .count()
-        )
+        current_count = self.db.query(APIKey).filter(APIKey.user_id == user_id, APIKey.is_active.is_(True)).count()
 
         return current_count < limit
 
@@ -56,11 +52,7 @@ class APIKeyService:
         if limit == -1:
             return 999
 
-        current_count = (
-            self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
-            .count()
-        )
+        current_count = self.db.query(APIKey).filter(APIKey.user_id == user_id, APIKey.is_active.is_(True)).count()
 
         return max(0, limit - current_count)
 
@@ -78,8 +70,7 @@ class APIKeyService:
             user_id=user_id,
             key_hash=key_hash,
             key_preview=key_preview,
-            name=name
-            or f"Key {len(self.db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
+            name=name or f"Key {len(self.db.query(APIKey).filter(APIKey.user_id == user_id).all()) + 1}",
             is_active=True,
         )
         self.db.add(api_key)
@@ -88,9 +79,7 @@ class APIKeyService:
 
         return raw_key, api_key
 
-    def get_user_keys(
-        self, user_id: str, include_inactive: bool = False
-    ) -> list[APIKey]:
+    def get_user_keys(self, user_id: str, include_inactive: bool = False) -> list[APIKey]:
         """Get all API keys for a user."""
         query = self.db.query(APIKey).filter(APIKey.user_id == user_id)
         if not include_inactive:
@@ -99,11 +88,7 @@ class APIKeyService:
 
     def revoke_api_key(self, key_id: str, user_id: str) -> bool:
         """Revoke an API key."""
-        api_key = (
-            self.db.query(APIKey)
-            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
-            .first()
-        )
+        api_key = self.db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
         if not api_key:
             return False
 

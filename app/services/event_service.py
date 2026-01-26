@@ -14,9 +14,7 @@ class EventService:
     def __init__(self):
         self.events = []
 
-    async def track_event(
-        self, user_id: str, event_type: str, properties: Dict[str, Any] = None
-    ):
+    async def track_event(self, user_id: str, event_type: str, properties: Dict[str, Any] = None):
         """Track user event."""
         event = {
             "timestamp": datetime.utcnow().isoformat(),

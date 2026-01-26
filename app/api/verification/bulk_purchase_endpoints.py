@@ -60,18 +60,14 @@ async def create_bulk_purchase(
 
     # Validate quantity
     if request.quantity < 5:
-        logger.warning(
-            f"Bulk purchase validation failed for user {user_id}: quantity too low ({request.quantity})"
-        )
+        logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too low ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Bulk purchase requires minimum 5 numbers",
         )
 
     if request.quantity > 100:
-        logger.warning(
-            f"Bulk purchase validation failed for user {user_id}: quantity too high ({request.quantity})"
-        )
+        logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too high ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Maximum 100 numbers per bulk purchase",
@@ -81,15 +77,11 @@ async def create_bulk_purchase(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         logger.error(f"User not found for bulk purchase: {user_id}")
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Calculate cost (placeholder - would use pricing calculator)
     cost_per_number = 0.50  # Base cost
-    bulk_discount = (
-        0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
-    )
+    bulk_discount = 0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
     discounted_cost = cost_per_number * (1 - bulk_discount)
     total_cost = discounted_cost * request.quantity
 
@@ -128,9 +120,7 @@ async def get_bulk_purchase_status(
     bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
 ) -> Dict:
     """Get status of a bulk purchase order."""
-    logger.debug(
-        f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}"
-    )
+    logger.debug(f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}")
 
     # Placeholder - would query actual bulk order
     return {
@@ -143,9 +133,7 @@ async def get_bulk_purchase_status(
 
 
 @router.get("/")
-async def list_bulk_purchases(
-    user_id: str = Depends(require_pro), db: Session = Depends(get_db)
-) -> List[Dict]:
+async def list_bulk_purchases(user_id: str = Depends(require_pro), db: Session = Depends(get_db)) -> List[Dict]:
     """List all bulk purchases for the current user."""
     logger.debug(f"Bulk purchases list requested by user_id: {user_id}")
 
@@ -158,9 +146,7 @@ async def cancel_bulk_purchase(
     bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
 ) -> Dict:
     """Cancel a pending bulk purchase order."""
-    logger.info(
-        f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}"
-    )
+    logger.info(f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}")
 
     # Placeholder - would cancel actual bulk order
     return {

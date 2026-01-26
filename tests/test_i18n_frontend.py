@@ -43,36 +43,28 @@ class TestPreferencesAPI:
 
     def test_update_language_preference(self, client, test_user, auth_headers):
         """Test updating language preference."""
-        response = client.put(
-            "/api/user/preferences", json={"language": "es"}, headers=auth_headers
-        )
+        response = client.put("/api/user/preferences", json={"language": "es"}, headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["language"] == "es"
 
     def test_update_currency_preference(self, client, test_user, auth_headers):
         """Test updating currency preference."""
-        response = client.put(
-            "/api/user/preferences", json={"currency": "EUR"}, headers=auth_headers
-        )
+        response = client.put("/api/user/preferences", json={"currency": "EUR"}, headers=auth_headers)
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["currency"] == "EUR"
 
     def test_invalid_language(self, client, test_user, auth_headers):
         """Test invalid language code."""
-        response = client.put(
-            "/api/user/preferences", json={"language": "invalid"}, headers=auth_headers
-        )
+        response = client.put("/api/user/preferences", json={"language": "invalid"}, headers=auth_headers)
         assert response.status_code == 400
 
     def test_all_supported_languages(self, client, test_user, auth_headers):
         """Test all supported languages."""
         languages = ["en", "es", "fr", "de", "pt", "zh", "ja", "ar", "hi", "yo"]
         for lang in languages:
-            response = client.put(
-                "/api/user/preferences", json={"language": lang}, headers=auth_headers
-            )
+            response = client.put("/api/user/preferences", json={"language": lang}, headers=auth_headers)
             assert response.status_code == 200
             assert response.json()["data"]["language"] == lang
 

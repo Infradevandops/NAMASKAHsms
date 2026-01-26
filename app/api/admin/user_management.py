@@ -14,9 +14,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/users", tags=["Admin User Management"])
 
 
-async def require_admin(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -36,9 +34,7 @@ async def search_users(
     try:
         search_term = f"%{query}%"
 
-        users_query = db.query(User).filter(
-            (User.email.ilike(search_term)) | (User.id.ilike(search_term))
-        )
+        users_query = db.query(User).filter((User.email.ilike(search_term)) | (User.id.ilike(search_term)))
 
         total = users_query.count()
         users = users_query.limit(limit).offset(offset).all()
@@ -57,11 +53,7 @@ async def search_users(
                     "is_banned": getattr(u, "is_banned", False),
                     "credits": float(u.credits or 0),
                     "created_at": u.created_at.isoformat() if u.created_at else None,
-                    "last_login": (
-                        u.last_login.isoformat()
-                        if hasattr(u, "last_login") and u.last_login
-                        else None
-                    ),
+                    "last_login": (u.last_login.isoformat() if hasattr(u, "last_login") and u.last_login else None),
                 }
                 for u in users
             ],
@@ -100,11 +92,7 @@ async def get_user_activity(
             "email": user.email,
             "tier": user.subscription_tier or "freemium",
             "created_at": user.created_at.isoformat() if user.created_at else None,
-            "last_login": (
-                user.last_login.isoformat()
-                if hasattr(user, "last_login") and user.last_login
-                else None
-            ),
+            "last_login": (user.last_login.isoformat() if hasattr(user, "last_login") and user.last_login else None),
             "total_verifications": len(verifications),
             "recent_verifications": [
                 {
@@ -155,9 +143,7 @@ async def suspend_user(
             "success": True,
             "message": f"User {user_id} suspended",
             "user_id": user_id,
-            "suspended_at": (
-                user.suspended_at.isoformat() if hasattr(user, "suspended_at") else None
-            ),
+            "suspended_at": (user.suspended_at.isoformat() if hasattr(user, "suspended_at") else None),
             "reason": reason,
         }
     except HTTPException:
@@ -169,9 +155,7 @@ async def suspend_user(
 
 
 @router.post("/{user_id}/unsuspend")
-async def unsuspend_user(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def unsuspend_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Unsuspend a user account."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
@@ -231,9 +215,7 @@ async def ban_user(
             "success": True,
             "message": f"User {user_id} banned",
             "user_id": user_id,
-            "banned_at": (
-                user.banned_at.isoformat() if hasattr(user, "banned_at") else None
-            ),
+            "banned_at": (user.banned_at.isoformat() if hasattr(user, "banned_at") else None),
             "reason": reason,
         }
     except HTTPException:
@@ -245,9 +227,7 @@ async def ban_user(
 
 
 @router.post("/{user_id}/unban")
-async def unban_user(
-    user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def unban_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Unban a user account."""
     try:
         user = db.query(User).filter(User.id == user_id).first()

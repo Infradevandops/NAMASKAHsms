@@ -55,9 +55,7 @@ async def cancel_verification(
             tv_service = TextVerifiedService()
             try:
                 await tv_service.cancel_activation(verification.activation_id)
-                logger.info(
-                    f"Cancelled TextVerified activation: {verification.activation_id}"
-                )
+                logger.info(f"Cancelled TextVerified activation: {verification.activation_id}")
             except Exception as tv_error:
                 logger.warning(f"TextVerified cancellation failed: {tv_error}")
 
@@ -67,14 +65,11 @@ async def cancel_verification(
 
         # Process automatic refund
         refund_service = AutoRefundService(db)
-        refund_result = refund_service.process_verification_refund(
-            verification_id, "cancelled"
-        )
+        refund_result = refund_service.process_verification_refund(verification_id, "cancelled")
 
         if refund_result:
             logger.info(
-                f"Verification {verification_id} cancelled with refund: "
-                f"${refund_result['refund_amount']:.2f}"
+                f"Verification {verification_id} cancelled with refund: " f"${refund_result['refund_amount']:.2f}"
             )
 
             # Send notification (Task 1.1)
@@ -99,9 +94,7 @@ async def cancel_verification(
                 "new_balance": refund_result["new_balance"],
             }
         else:
-            logger.warning(
-                f"Refund failed for cancelled verification {verification_id}"
-            )
+            logger.warning(f"Refund failed for cancelled verification {verification_id}")
             return {
                 "success": True,
                 "message": "Verification cancelled (refund pending)",

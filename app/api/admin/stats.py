@@ -12,9 +12,7 @@ router = APIRouter(prefix="/admin", tags=["admin-stats"])
 
 
 @router.get("/stats")
-async def get_admin_stats(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_admin_stats(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get admin dashboard statistics"""
 
     try:
@@ -32,38 +30,23 @@ async def get_admin_stats(
 
         try:
             success_verifications = (
-                db.query(func.count(Verification.id))
-                .filter(Verification.status == "completed")
-                .scalar()
-                or 0
+                db.query(func.count(Verification.id)).filter(Verification.status == "completed").scalar() or 0
             )
         except Exception:
             success_verifications = 0
 
         try:
             pending_verifications = (
-                db.query(func.count(Verification.id))
-                .filter(Verification.status == "pending")
-                .scalar()
-                or 0
+                db.query(func.count(Verification.id)).filter(Verification.status == "pending").scalar() or 0
             )
         except Exception:
             pending_verifications = 0
 
-        success_rate = (
-            (success_verifications / total_verifications * 100)
-            if total_verifications > 0
-            else 0
-        )
+        success_rate = (success_verifications / total_verifications * 100) if total_verifications > 0 else 0
 
         # Get revenue with error handling
         try:
-            total_revenue = (
-                db.query(func.sum(Transaction.amount))
-                .filter(Transaction.type == "credit")
-                .scalar()
-                or 0
-            )
+            total_revenue = db.query(func.sum(Transaction.amount)).filter(Transaction.type == "credit").scalar() or 0
         except Exception:
             total_revenue = 0
 
@@ -93,9 +76,7 @@ async def get_admin_stats(
 
 
 @router.get("/verification-history/recent")
-async def get_recent_verifications(
-    current_user: User = Depends(require_admin), db: Session = Depends(get_db)
-):
+async def get_recent_verifications(current_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get recent verification history with user details"""
 
     # Join verifications with users to get user details

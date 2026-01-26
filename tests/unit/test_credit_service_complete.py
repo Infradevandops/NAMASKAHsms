@@ -23,12 +23,7 @@ class TestCreditServiceComplete:
         result = service.add_credits(regular_user.id, amount, "Test credit")
 
         assert result["new_balance"] == initial_balance + amount
-        assert (
-            db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id)
-            .count()
-            == 1
-        )
+        assert db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).count() == 1
 
     def test_deduct_credits_success(self, db_session, regular_user):
         """Test successful credit deduction."""
@@ -72,16 +67,12 @@ class TestCreditServiceComplete:
         # Check transaction records (one for each user)
         reg_trans = (
             db_session.query(Transaction)
-            .filter(
-                Transaction.user_id == regular_user.id, Transaction.type == "transfer"
-            )
+            .filter(Transaction.user_id == regular_user.id, Transaction.type == "transfer")
             .first()
         )
         admin_trans = (
             db_session.query(Transaction)
-            .filter(
-                Transaction.user_id == admin_user.id, Transaction.type == "transfer"
-            )
+            .filter(Transaction.user_id == admin_user.id, Transaction.type == "transfer")
             .first()
         )
 

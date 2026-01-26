@@ -43,11 +43,7 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Only paystack payment method is supported")
         return v
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"amount_usd": 20.0, "payment_method": "paystack"}
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"amount_usd": 20.0, "payment_method": "paystack"}}}
 
 
 class PaymentInitializeResponse(BaseModel):
@@ -82,9 +78,7 @@ class PaymentVerify(BaseModel):
 
     reference: str = Field(..., description="Payment reference to verify")
 
-    model_config = {
-        "json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}
-    }
+    model_config = {"json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}}
 
 
 class PaymentVerifyResponse(BaseModel):
@@ -181,9 +175,7 @@ class RefundRequest(BaseModel):
     """Schema for refund request."""
 
     transaction_id: str = Field(..., description="Transaction ID to refund")
-    amount: Optional[float] = Field(
-        None, gt=0, description="Partial refund amount (optional)"
-    )
+    amount: Optional[float] = Field(None, gt=0, description="Partial refund amount (optional)")
     reason: str = Field(..., description="Refund reason")
 
     @field_validator("amount", mode="before")
@@ -233,11 +225,7 @@ class WalletBalanceResponse(BaseModel):
     credits_usd: float = Field(..., description="Credits value in USD")
     free_verifications: float = Field(..., description="Free verifications remaining")
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}}}
 
 
 class CryptoWalletResponse(BaseModel):

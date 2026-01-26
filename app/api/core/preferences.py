@@ -19,20 +19,12 @@ class UpdatePreferencesRequest(BaseModel):
 
 
 @router.get("", response_model=SuccessResponse)
-async def get_preferences(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-):
+async def get_preferences(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     """Get user language and currency preferences."""
-    prefs = (
-        db.query(UserPreference)
-        .filter(UserPreference.user_id == current_user.id)
-        .first()
-    )
+    prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
     if not prefs:
-        return SuccessResponse(
-            message="Default preferences", data={"language": "en", "currency": "USD"}
-        )
+        return SuccessResponse(message="Default preferences", data={"language": "en", "currency": "USD"})
 
     return SuccessResponse(
         message="User preferences",
@@ -79,11 +71,7 @@ async def update_preferences(
         )
 
     # Get or create preferences
-    prefs = (
-        db.query(UserPreference)
-        .filter(UserPreference.user_id == current_user.id)
-        .first()
-    )
+    prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
     if not prefs:
         prefs = UserPreference(user_id=current_user.id)

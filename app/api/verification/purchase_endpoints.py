@@ -41,15 +41,11 @@ async def request_verification(
     # Validate request
     if not request.service or len(request.service.strip()) == 0:
         logger.warning("Empty service name provided")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Service name is required"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Service name is required")
 
     if not request.country or len(request.country.strip()) == 0:
         logger.warning("Empty country code provided")
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required")
 
     # SAFETY: Check for duplicate request using idempotency key from header or request body
     final_idempotency_key = idempotency_key or request.idempotency_key
@@ -60,9 +56,7 @@ async def request_verification(
             cache_key = f"idempotency:{user_id}:{final_idempotency_key}"
             cached_response = redis.get(cache_key)
             if cached_response:
-                logger.info(
-                    f"Returning cached response for idempotency key: {final_idempotency_key}"
-                )
+                logger.info(f"Returning cached response for idempotency key: {final_idempotency_key}")
                 return json.loads(cached_response)
         except Exception as cache_error:
             logger.warning(f"Redis cache check failed: {cache_error}")
@@ -103,9 +97,7 @@ async def request_verification(
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             logger.error(f"User {user_id} not found")
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
-            )
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
         # TIER VALIDATION: Check tier access for carrier and area code selection
         area_code = request.area_codes[0] if request.area_codes else None
@@ -157,22 +149,16 @@ async def request_verification(
         )
 
         # Check user has sufficient credits BEFORE calling API
-        logger.info(
-            f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}"
-        )
+        logger.info(f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}")
         if user.credits < sms_cost:
-            logger.warning(
-                f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}"
-            )
+            logger.warning(f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}")
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail=f"Insufficient credits. Available: ${user.credits:.2f}, Required: ${sms_cost:.2f}",
             )
 
         # CRITICAL FIX: Call TextVerified API FIRST (before deducting credits)
-        logger.info(
-            f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
-        )
+        logger.info(f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}")
 
         # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
@@ -228,9 +214,7 @@ async def request_verification(
             old_balance = user.credits
             user.credits -= actual_cost
             new_balance = user.credits
-            logger.info(
-                f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}"
-            )
+            logger.info(f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}")
 
         except Exception as api_error:
             # CRITICAL: Rollback if TextVerified API fails
@@ -244,13 +228,9 @@ async def request_verification(
             if textverified_result and textverified_result.get("id"):
                 try:
                     await tv_service.cancel_verification(textverified_result["id"])
-                    logger.info(
-                        f"Cancelled TextVerified number: {textverified_result['id']}"
-                    )
+                    logger.info(f"Cancelled TextVerified number: {textverified_result['id']}")
                 except Exception as cancel_error:
-                    logger.error(
-                        f"Failed to cancel TextVerified number: {cancel_error}"
-                    )
+                    logger.error(f"Failed to cancel TextVerified number: {cancel_error}")
 
             # Notification: Verification Failed (Task 1.3)
             try:
@@ -287,9 +267,7 @@ async def request_verification(
 
         # CRITICAL: Commit transaction (all or nothing)
         db.commit()
-        logger.info(
-            f"Transaction committed successfully for verification {verification.id}"
-        )
+        logger.info(f"Transaction committed successfully for verification {verification.id}")
 
         # Build response
         response = {
@@ -368,9 +346,7 @@ async def request_verification(
 
     except HTTPException as http_err:
         db.rollback()
-        logger.warning(
-            f"HTTP exception in verification request: {http_err.status_code} - {http_err.detail}"
-        )
+        logger.warning(f"HTTP exception in verification request: {http_err.status_code} - {http_err.detail}")
         raise
     except ValueError as e:
         db.rollback()
@@ -395,9 +371,7 @@ async def request_verification(
         )
     except Exception as e:
         db.rollback()
-        logger.error(
-            f"Unexpected error in verification request: {str(e)}", exc_info=True
-        )
+        logger.error(f"Unexpected error in verification request: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again or contact support.",

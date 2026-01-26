@@ -65,9 +65,7 @@ class TestNotificationServiceComplete:
 
         service.delete_notification(notif.id, regular_user.id)
 
-        count = (
-            db_session.query(Notification).filter(Notification.id == notif.id).count()
-        )
+        count = db_session.query(Notification).filter(Notification.id == notif.id).count()
         assert count == 0
 
     def test_get_unread_count(self, db_session, regular_user):

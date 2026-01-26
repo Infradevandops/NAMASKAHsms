@@ -35,9 +35,7 @@ class WebhookService:
         """Sign webhook payload."""
         return hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
-    async def deliver(
-        self, webhook_id: str, event: str, data: Dict[str, Any], secret: str
-    ):
+    async def deliver(self, webhook_id: str, event: str, data: Dict[str, Any], secret: str):
         """Deliver webhook event."""
         if webhook_id not in self.webhooks:
             return
@@ -69,11 +67,7 @@ class WebhookService:
 
     async def get_webhooks(self, user_id: str) -> list:
         """Get user webhooks."""
-        return [
-            {"id": wh_id, **wh}
-            for wh_id, wh in self.webhooks.items()
-            if user_id in wh_id
-        ]
+        return [{"id": wh_id, **wh} for wh_id, wh in self.webhooks.items() if user_id in wh_id]
 
 
 webhook_service = WebhookService()

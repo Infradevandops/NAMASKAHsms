@@ -24,9 +24,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])
 
 
-@router.post(
-    "/profile", response_model=KYCProfileResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/profile", response_model=KYCProfileResponse, status_code=status.HTTP_201_CREATED)
 async def create_kyc_profile(
     profile_data: KYCProfileCreate,
     user_id: str = Depends(get_current_user_id),
@@ -35,9 +33,7 @@ async def create_kyc_profile(
     """Submit KYC profile for verification."""
     try:
         # Check if profile already exists
-        existing_profile = (
-            db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-        )
+        existing_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
         if existing_profile:
             raise HTTPException(status_code=400, detail="KYC profile already exists")
 
@@ -56,9 +52,7 @@ async def create_kyc_profile(
 
 
 @router.get("/profile", response_model=KYCProfileResponse)
-def get_kyc_profile(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_kyc_profile(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get current user's KYC profile."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
@@ -109,9 +103,7 @@ async def upload_kyc_document(
         # Get KYC profile
         kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
         if not kyc_profile:
-            raise HTTPException(
-                status_code=404, detail="KYC profile not found. Create profile first."
-            )
+            raise HTTPException(status_code=404, detail="KYC profile not found. Create profile first.")
 
         document_service = get_document_service(db)
 
@@ -135,26 +127,20 @@ async def upload_kyc_document(
 
 
 @router.get("/documents", response_model=List[KYCDocumentResponse])
-def get_kyc_documents(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_kyc_documents(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get user's uploaded KYC documents."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
     if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
-    documents = (
-        db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
-    )
+    documents = db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
 
     return [KYCDocumentResponse.from_orm(doc) for doc in documents]
 
 
 @router.post("/submit")
-async def submit_kyc_for_review(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+async def submit_kyc_for_review(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Submit KYC profile for admin review."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
@@ -175,9 +161,7 @@ async def submit_kyc_for_review(
 
 
 @router.get("/limits")
-def get_kyc_limits(
-    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
-):
+def get_kyc_limits(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get user's current KYC limits."""
     kyc_service = get_kyc_service(db)
     limits = kyc_service.get_user_limits(user_id)
@@ -201,9 +185,7 @@ def get_pending_kyc_reviews(
     db: Session = Depends(get_db),
 ):
     """Get all pending KYC reviews (admin only)."""
-    pending_profiles = (
-        db.query(KYCProfile).filter(KYCProfile.status == "pending").limit(limit).all()
-    )
+    pending_profiles = db.query(KYCProfile).filter(KYCProfile.status == "pending").limit(limit).all()
 
     return [KYCProfileResponse.from_orm(profile) for profile in pending_profiles]
 
@@ -238,22 +220,14 @@ async def admin_verify_kyc(
 
 
 @router.get("/admin/stats", response_model=KYCStatsResponse)
-def get_kyc_statistics(
-    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
-):
+def get_kyc_statistics(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
     """Get KYC statistics (admin only)."""
 
     # Basic stats
     total_profiles = db.query(KYCProfile).count()
-    verified_profiles = (
-        db.query(KYCProfile).filter(KYCProfile.status == "verified").count()
-    )
-    pending_profiles = (
-        db.query(KYCProfile).filter(KYCProfile.status == "pending").count()
-    )
-    rejected_profiles = (
-        db.query(KYCProfile).filter(KYCProfile.status == "rejected").count()
-    )
+    verified_profiles = db.query(KYCProfile).filter(KYCProfile.status == "verified").count()
+    pending_profiles = db.query(KYCProfile).filter(KYCProfile.status == "pending").count()
+    rejected_profiles = db.query(KYCProfile).filter(KYCProfile.status == "rejected").count()
 
     # Verification levels
     level_stats = (
@@ -268,9 +242,7 @@ def get_kyc_statistics(
         verified_profiles=verified_profiles,
         pending_profiles=pending_profiles,
         rejected_profiles=rejected_profiles,
-        verification_rate=(
-            verified_profiles / total_profiles * 100 if total_profiles > 0 else 0
-        ),
+        verification_rate=(verified_profiles / total_profiles * 100 if total_profiles > 0 else 0),
         level_distribution={level: count for level, count in level_stats},
     )
 
@@ -283,10 +255,7 @@ def get_kyc_audit_trail(
 ):
     """Get KYC audit trail for user (admin only)."""
     audit_logs = (
-        db.query(KYCAuditLog)
-        .filter(KYCAuditLog.user_id == user_id)
-        .order_by(KYCAuditLog.created_at.desc())
-        .all()
+        db.query(KYCAuditLog).filter(KYCAuditLog.user_id == user_id).order_by(KYCAuditLog.created_at.desc()).all()
     )
 
     return [

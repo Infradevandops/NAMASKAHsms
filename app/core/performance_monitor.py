@@ -8,13 +8,9 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
-request_duration = Histogram(
-    "request_duration_seconds", "Request duration in seconds", ["method", "endpoint"]
-)
+request_duration = Histogram("request_duration_seconds", "Request duration in seconds", ["method", "endpoint"])
 
-db_query_duration = Histogram(
-    "db_query_duration_seconds", "Database query duration in seconds", ["query_type"]
-)
+db_query_duration = Histogram("db_query_duration_seconds", "Database query duration in seconds", ["query_type"])
 
 cache_hits = Counter("cache_hits_total", "Total cache hits", ["cache_type"])
 
@@ -40,9 +36,7 @@ class PerformanceMonitor:
                 finally:
                     try:
                         duration = time.time() - start
-                        request_duration.labels(
-                            method=method, endpoint=endpoint
-                        ).observe(duration)
+                        request_duration.labels(method=method, endpoint=endpoint).observe(duration)
                     except Exception as e:
                         logger.error(f"Error recording metrics: {e}")
 

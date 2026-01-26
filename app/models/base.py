@@ -15,9 +15,7 @@ class BaseModel(Base):
     __abstract__ = True
 
     id = Column(String, primary_key=True)
-    created_at = Column(
-        DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
-    )
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=False)
     updated_at = Column(DateTime, onupdate=lambda: datetime.now(timezone.utc))
     # deleted_at = Column(DateTime, nullable=True)
     # is_deleted = Column(Boolean, default=False, nullable=False)
@@ -29,9 +27,7 @@ class BaseModel(Base):
 
     def to_dict(self):
         """Convert model instance to dictionary."""
-        return {
-            column.name: getattr(self, column.name) for column in self.__table__.columns
-        }
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
     def update_timestamp(self):
         """Update the updated_at timestamp."""

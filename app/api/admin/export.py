@@ -26,13 +26,9 @@ async def export_verifications(
     query = db.query(Verification)
 
     if start_date:
-        query = query.filter(
-            Verification.created_at >= datetime.fromisoformat(start_date)
-        )
+        query = query.filter(Verification.created_at >= datetime.fromisoformat(start_date))
     if end_date:
-        query = query.filter(
-            Verification.created_at <= datetime.fromisoformat(end_date)
-        )
+        query = query.filter(Verification.created_at <= datetime.fromisoformat(end_date))
 
     verifications = query.order_by(Verification.created_at.desc()).all()
 
@@ -73,9 +69,7 @@ async def export_verifications(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={
-            "Content-Disposition": f"attachment; filename=verifications_{date.today()}.csv"
-        },
+        headers={"Content-Disposition": f"attachment; filename=verifications_{date.today()}.csv"},
     )
 
 
@@ -97,9 +91,7 @@ async def export_users(
     users = query.order_by(User.created_at.desc()).all()
 
     output = StringIO()
-    writer = csv.DictWriter(
-        output, fieldnames=["id", "email", "tier", "credits", "is_admin", "created_at"]
-    )
+    writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "credits", "is_admin", "created_at"])
     writer.writeheader()
 
     for u in users:
@@ -118,9 +110,7 @@ async def export_users(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={
-            "Content-Disposition": f"attachment; filename=users_{date.today()}.csv"
-        },
+        headers={"Content-Disposition": f"attachment; filename=users_{date.today()}.csv"},
     )
 
 
@@ -135,9 +125,7 @@ async def export_revenue(
     query = db.query(Transaction).filter(Transaction.type == "credit")
 
     if start_date:
-        query = query.filter(
-            Transaction.created_at >= datetime.fromisoformat(start_date)
-        )
+        query = query.filter(Transaction.created_at >= datetime.fromisoformat(start_date))
     if end_date:
         query = query.filter(Transaction.created_at <= datetime.fromisoformat(end_date))
 
@@ -166,7 +154,5 @@ async def export_revenue(
     return StreamingResponse(
         iter([output.getvalue()]),
         media_type="text/csv",
-        headers={
-            "Content-Disposition": f"attachment; filename=revenue_{date.today()}.csv"
-        },
+        headers={"Content-Disposition": f"attachment; filename=revenue_{date.today()}.csv"},
     )
