@@ -91,10 +91,10 @@ jobs:
           pip install black==24.3.0 flake8 mypy isort pylint
       
       - name: Run Black
-        run: black --check app/ tests/
+        run: black --check app/ tests/ --line-length=120
       
       - name: Run isort
-        run: isort --check-only app/ tests/
+        run: isort --check-only app/ tests/ --line-length=120
       
       - name: Run Flake8
         run: flake8 app/ --max-line-length=120 --extend-ignore=E203,W503,E501,F821,C901
