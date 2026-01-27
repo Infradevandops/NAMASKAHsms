@@ -23,7 +23,7 @@ class NotificationCenterModal {
 
     async loadUnreadCount() {
         try {
-            const response = await fetch('/api/notifications');
+            const response = await fetch('/api/notifications/unread-count');
             const data = await response.json();
             const unreadCount = data.unread_count || 0;
             const badge = document.getElementById('notification-bell-badge');

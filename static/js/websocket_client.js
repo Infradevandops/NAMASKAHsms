@@ -254,6 +254,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (window.toast) {
                 window.toast.show(message.title, 'info');
             }
+            
+            // Update notification badge
+            if (window.notificationCenterModal) {
+                window.notificationCenterModal.loadUnreadCount();
+            }
         });
 
         // Listen for activity messages
