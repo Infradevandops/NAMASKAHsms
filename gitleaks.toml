@@ -7,10 +7,13 @@ paths = [
     '''app/services/api_key_service.py''',
     '''scripts/security_scan.py''',
     '''requirements.*\.txt''',
-    '''.env.example'''
+    '''.env.example''',
+    '''.github/workflows/ci.yml'''
 ]
 regexes = [
     '''sk_live_[a-zA-Z0-9]{24,128}''',
     '''sk_test_[a-zA-Z0-9]{24,128}''',
-    '''nsk_[a-zA-Z0-9]{24,128}'''
+    '''nsk_[a-zA-Z0-9]{24,128}''',
+    '''test_password_for_ci_only''',
+    '''test_secret_key_for_testing'''
 ]

@@ -14,6 +14,7 @@ jobs:
   test:
     name: Test Suite
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         python-version: ['3.9', '3.11']
@@ -70,6 +71,7 @@ jobs:
   lint:
     name: Code Quality
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       
@@ -106,6 +108,7 @@ jobs:
   security:
     name: Security Scan
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       
@@ -140,14 +143,19 @@ jobs:
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    env:
+      TESTING: 1
+      DATABASE_URL: postgresql://test_user:test_password_for_ci_only@localhost:5432/test_db
+      REDIS_URL: redis://localhost:6379
     services:
       postgres:
         image: postgres:15
         env:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
+          POSTGRES_PASSWORD: test_password_for_ci_only
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -186,9 +194,13 @@ jobs:
 
   e2e-smoke:
     name: E2E Smoke Tests
-    needs: [test, lint]
+    needs: [test, lint, security]
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    env:
+      TESTING: 1
+      DATABASE_URL: sqlite:///./test.db
     steps:
       - uses: actions/checkout@v4
       
@@ -214,6 +226,7 @@ jobs:
   secrets-scan:
     name: Secrets Detection
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -232,6 +245,7 @@ jobs:
   migration-test:
     name: Database Migration Test
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     services:
       postgres:
@@ -239,14 +253,15 @@ jobs:
         env:
           POSTGRES_DB: migration_test
           POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_pass
+          POSTGRES_PASSWORD: test_password_for_ci_only
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
         ports:
           - 5432:5432
     env:
-      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/migration_test
+      TESTING: 1
+      DATABASE_URL: postgresql://test_user:test_password_for_ci_only@localhost:5432/migration_test
     steps:
       - uses: actions/checkout@v4
       
@@ -270,6 +285,7 @@ jobs:
   container-scan:
     name: Container Security
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
@@ -295,7 +311,11 @@ jobs:
   performance:
     name: Performance Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    env:
+      TESTING: 1
+      DATABASE_URL: sqlite:///./test.db
     steps:
       - uses: actions/checkout@v4
       
@@ -330,7 +350,11 @@ jobs:
   contract-tests:
     name: API Contract Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: github.event_name == 'push' || github.event_name == 'pull_request'
+    env:
+      TESTING: 1
+      DATABASE_URL: sqlite:///./test.db
     steps:
       - uses: actions/checkout@v4
       

@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "002_add_idempotency_key"
-down_revision = "pricing_templates_v1"
+down_revision = "001_pricing_enforcement"
 branch_labels = None
 depends_on = None
 
