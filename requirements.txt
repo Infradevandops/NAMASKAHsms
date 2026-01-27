@@ -47,3 +47,4 @@ sendgrid==6.10.0  # For SendGrid
 # Note: FastAPI 0.115.4 uses Starlette ~0.41.0 which includes security fixes
 Pillow==11.1.0
 fakeredis==2.23.0
+zipp>=3.19.1 # not directly required, pinned by Snyk to avoid a vulnerability
