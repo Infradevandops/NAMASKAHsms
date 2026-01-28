@@ -172,10 +172,6 @@ jobs:
           --health-retries 3
         ports:
           - 6379:6379
-    env:
-      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
-      REDIS_URL: redis://localhost:6379
-      TESTING: 1
     steps:
       - uses: actions/checkout@v4
       
