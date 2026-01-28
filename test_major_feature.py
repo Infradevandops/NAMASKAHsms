@@ -6,11 +6,13 @@ Run this to verify the implementation is effective
 
 import asyncio
 import sys
+import pytest
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.services.textverified_service import TextVerifiedService
 from app.services.availability_service import AvailabilityService
 
+@pytest.mark.asyncio
 async def test_textverified_api():
     """Test 1: TextVerified API Integration"""
     print("\n" + "="*60)

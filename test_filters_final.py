@@ -4,6 +4,7 @@
 import asyncio
 import sys
 import os
+import pytest
 
 # Add app to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from app.services.textverified_service import TextVerifiedService
 
 
+@pytest.mark.asyncio
 async def test_filters():
     """Test that filters are properly sent to TextVerified API."""
     

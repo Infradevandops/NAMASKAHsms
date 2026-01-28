@@ -79,7 +79,7 @@ def auth_token(client, db: Session):
         email="test@example.com",
         phone_number="+1234567890",
         password_hash="hashed_password",
-        is_verified=True,
+        email_verified=True,
         credits=100.0,
     )
     db.add(test_user)

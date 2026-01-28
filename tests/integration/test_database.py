@@ -50,15 +50,17 @@ def test_create_verification(db: Session, test_user_id: str):
 
 
 @pytest.mark.integration
-def test_query_user_verifications(db: Session, test_user_id: str):
+def test_query_user_verifications(db: Session):
     """Test querying user verifications."""
+    test_user_id = "test-user-query"
+    
     # Create test user
     user = User(
         id=test_user_id,
         email="test@example.com",
         phone_number="+1234567890",
         password_hash="hashed",
-        is_verified=True,
+        email_verified=True,
         credits=100.0,
     )
     db.add(user)
