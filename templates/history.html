@@ -84,12 +84,27 @@
                     emptyState.style.display = 'block';
                 }
             } else {
-                console.error('API Error:', await res.text());
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history</td></tr>';
+                const errorText = await res.text();
+                console.error(`API Error ${res.status}:`, errorText);
+                
+                // Handle specific error codes
+                if (res.status === 401) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                let errorMsg = 'Failed to load history';
+                if (res.status === 403) {
+                    errorMsg = 'Permission denied';
+                } else if (res.status === 500) {
+                    errorMsg = 'Server error - please try again later';
+                }
+                
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">${errorMsg} (Error ${res.status})</td></tr>`;
             }
         } catch (error) {
             console.error('Failed to load history:', error);
-            document.getElementById('history-body').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history</td></tr>';
+            document.getElementById('history-body').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history: ' + error.message + '</td></tr>';
         }
     }
 

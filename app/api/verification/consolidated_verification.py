@@ -326,13 +326,17 @@ def get_verification_history(
 ):
     """Get verification history."""
     try:
+        logger.info(f"Fetching verification history for user {user_id}, limit={limit}, offset={offset}")
+        
         query = db.query(Verification).filter(Verification.user_id == user_id)
 
         # Get total count before pagination
         total_count = query.count()
+        logger.info(f"Total verifications for user {user_id}: {total_count}")
 
         # Apply pagination and sorting
         verifications = query.order_by(Verification.created_at.desc()).offset(offset).limit(limit).all()
+        logger.info(f"Retrieved {len(verifications)} verifications after pagination")
 
         response_list = []
         for v in verifications:
@@ -353,12 +357,13 @@ def get_verification_history(
                 )
             )
 
+        logger.info(f"Successfully built response with {len(response_list)} items")
         return VerificationHistoryResponse(
             verifications=response_list,
             total_count=total_count,
         )
     except Exception as e:
-        logger.error(f"History fetch error: {str(e)}")
+        logger.error(f"History fetch error for user {user_id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to fetch verification history")
 
 
