@@ -1,180 +1,175 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Namaskah SMS API v2
-  description: Enhanced SMS verification API with improved rate limiting and error handling
-  version: 2.0.0
+  title: Namaskah SMS API
+  version: 2.5.0
+  description: Modular SMS Verification Service
   contact:
     name: Namaskah Support
-    email: support@namaskah.app
     url: https://namaskah.app
+  license:
+    name: MIT
 
 servers:
-  - url: https://namaskah.app/api/v2
-    description: Production server
-  - url: http://localhost:8000/api/v2
-    description: Development server
-
-security:
-  - BearerAuth: []
+  - url: https://namaskah.app/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Development
 
 paths:
-  /verify:
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /verify/services:
+    get:
+      summary: Get available services
+      tags:
+        - Verification
+      responses:
+        '200':
+          description: List of available services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  services:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+
+  /verify/history:
+    get:
+      summary: Get verification history
+      tags:
+        - Verification
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Verification history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Verification'
+                  total_count:
+                    type: integer
+        '401':
+          description: Unauthorized
+
+  /verify/create:
     post:
-      summary: Create SMS/Voice Verification
-      description: Create a new verification with enhanced options and delivery estimates
+      summary: Create new verification
+      tags:
+        - Verification
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/VerificationRequest'
+              $ref: '#/components/schemas/VerificationCreate'
       responses:
-        '200':
-          description: Verification created successfully
+        '201':
+          description: Verification created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VerificationResponse'
-        '400':
-          description: Invalid request
+                $ref: '#/components/schemas/Verification'
         '401':
           description: Unauthorized
         '402':
           description: Insufficient credits
-        '429':
-          description: Rate limit exceeded
-          headers:
-            X-RateLimit-Limit:
-              schema:
-                type: integer
-            X-RateLimit-Remaining:
-              schema:
-                type: integer
-            X-RateLimit-Reset:
-              schema:
-                type: integer
-            Retry-After:
-              schema:
-                type: integer
-
-  /verify/{verification_id}:
-    get:
-      summary: Get Verification Status
-      description: Retrieve verification details with enhanced status information
-      parameters:
-        - name: verification_id
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Verification details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/VerificationDetails'
-
-  /account/usage:
-    get:
-      summary: Get Usage Statistics
-      description: Retrieve detailed usage statistics and rate limit information
-      responses:
-        '200':
-          description: Usage statistics
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UsageStats'
 
 components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
   schemas:
-    VerificationRequest:
+    Verification:
+      type: object
+      properties:
+        id:
+          type: string
+        service_name:
+          type: string
+        phone_number:
+          type: string
+        capability:
+          type: string
+          enum: [sms, voice]
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+        cost:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        sms_code:
+          type: string
+          nullable: true
+        carrier:
+          type: string
+          nullable: true
+
+    VerificationCreate:
       type: object
       required:
         - service_name
       properties:
         service_name:
           type: string
-          description: Service identifier (e.g., 'whatsapp', 'telegram')
-          example: whatsapp
+        country:
+          type: string
+          default: US
         capability:
           type: string
-          enum: [sms, voice]
           default: sms
-          description: Verification method
-        webhook_url:
+        area_code:
           type: string
-          format: uri
-          description: Optional webhook URL for notifications
-        priority:
-          type: boolean
-          default: false
-          description: Priority processing (premium feature)
+          nullable: true
+        carrier:
+          type: string
+          nullable: true
 
-    VerificationResponse:
-      type: object
-      properties:
-        id:
-          type: string
-          description: Unique verification ID
-        phone_number:
-          type: string
-          description: Assigned phone number
-        status:
-          type: string
-          enum: [pending, completed, failed, cancelled]
-        cost:
-          type: number
-          format: float
-          description: Cost in Namaskah credits
-        estimated_delivery:
-          type: integer
-          description: Estimated delivery time in seconds
-
-    VerificationDetails:
-      type: object
-      properties:
-        id:
-          type: string
-        status:
-          type: string
-        phone_number:
-          type: string
-        messages:
-          type: array
-          items:
-            type: string
-        created_at:
-          type: string
-          format: date-time
-        delivery_attempts:
-          type: integer
-
-    UsageStats:
-      type: object
-      properties:
-        current_period:
-          type: object
-          properties:
-            requests:
-              type: integer
-            limit:
-              type: integer
-            reset_at:
-              type: integer
-        monthly_usage:
-          type: object
-          properties:
-            verifications:
-              type: integer
-            success_rate:
-              type: number
-            avg_delivery_time:
-              type: integer
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

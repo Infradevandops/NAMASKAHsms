@@ -1,49 +1,51 @@
-"""
-Locust Load Testing Configuration
-"""
-
-import json
+"""Load testing with Locust."""
 
 from locust import HttpUser, between, task
 
 
-class NamaskahUser(HttpUser):
+class VerificationUser(HttpUser):
+    """Simulates a user performing verification operations."""
+
     wait_time = between(1, 3)
 
     def on_start(self):
-        """Login before starting tasks."""
-        response = self.client.post(
-            "/api/auth/login",
-            json={"email": "test@example.com", "password": "test_password"},
-        )
-        if response.status_code == 200:
-            self.token = response.json().get("access_token")
-        else:
-            self.token = None
+        """Called when a Locust user starts executing those tasks."""
+        # Login or get token
+        self.token = "test-token"
+        self.headers = {"Authorization": f"Bearer {self.token}"}
 
     @task(3)
-    def view_homepage(self):
-        """Load homepage."""
-        self.client.get("/")
+    def get_services(self):
+        """Get available services."""
+        self.client.get("/api/v1/verify/services", headers=self.headers)
 
     @task(2)
-    def check_health(self):
-        """Check health endpoint."""
+    def get_history(self):
+        """Get verification history."""
+        self.client.get("/api/v1/verify/history?limit=50", headers=self.headers)
+
+    @task(1)
+    def health_check(self):
+        """Check API health."""
         self.client.get("/health")
 
-    @task(2)
-    def view_dashboard(self):
-        """View dashboard (authenticated)."""
-        if self.token:
-            headers = {"Authorization": f"Bearer {self.token}"}
-            self.client.get("/dashboard", headers=headers)
+
+class AdminUser(HttpUser):
+    """Simulates an admin user."""
+
+    wait_time = between(2, 5)
+
+    def on_start(self):
+        """Called when a Locust user starts executing those tasks."""
+        self.token = "admin-token"
+        self.headers = {"Authorization": f"Bearer {self.token}"}
 
     @task(1)
-    def api_diagnostics(self):
-        """Check diagnostics."""
-        self.client.get("/api/diagnostics")
+    def get_dashboard(self):
+        """Get admin dashboard."""
+        self.client.get("/api/v1/admin/dashboard", headers=self.headers)
 
     @task(1)
-    def list_countries(self):
-        """List available countries."""
-        self.client.get("/api/countries")
+    def get_analytics(self):
+        """Get analytics."""
+        self.client.get("/api/v1/admin/analytics", headers=self.headers)
