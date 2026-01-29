@@ -12,10 +12,9 @@ from app.models.balance_transaction import BalanceTransaction
 class TestWalletEndpoints:
     """Test wallet and billing endpoints comprehensively."""
 
-    def test_get_balance_success(self, client, regular_user):
+    def test_get_balance_success(self, authenticated_regular_client, regular_user):
         """Test getting user balance."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/wallet/balance")
+        response = authenticated_regular_client.get("/api/v1/wallet/balance")
 
         assert response.status_code == 200
         data = response.json()
@@ -26,7 +25,7 @@ class TestWalletEndpoints:
         response = client.get("/api/v1/wallet/balance")
         assert response.status_code in [401, 403, 422]
 
-    def test_get_transactions_success(self, client, regular_user, db):
+    def test_get_transactions_success(self, authenticated_regular_client, regular_user, db):
         """Test getting transaction history."""
         # Create some transactions
         for i in range(3):
@@ -40,14 +39,13 @@ class TestWalletEndpoints:
             db.add(transaction)
         db.commit()
 
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/wallet/transactions")
+        response = authenticated_regular_client.get("/api/v1/wallet/transactions")
 
         assert response.status_code == 200
         data = response.json()
         assert "transactions" in data or isinstance(data, list)
 
-    def test_get_transactions_pagination(self, client, regular_user, db):
+    def test_get_transactions_pagination(self, authenticated_regular_client, regular_user, db):
         """Test transaction history pagination."""
         # Create 10 transactions
         for i in range(10):
@@ -61,48 +59,41 @@ class TestWalletEndpoints:
             db.add(transaction)
         db.commit()
 
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/wallet/transactions?limit=5&offset=0")
+        response = authenticated_regular_client.get("/api/v1/wallet/transactions?limit=5&offset=0")
 
         assert response.status_code == 200
 
-    def test_get_transactions_empty(self, client, regular_user):
+    def test_get_transactions_empty(self, authenticated_regular_client):
         """Test getting transactions when none exist."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/wallet/transactions")
+        response = authenticated_regular_client.get("/api/v1/wallet/transactions")
 
         assert response.status_code == 200
 
-    def test_add_credits_success(self, client, regular_user, db):
+    def test_add_credits_success(self, authenticated_regular_client, regular_user, db):
         """Test adding credits to wallet."""
-        initial_balance = regular_user.credits
-
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/wallet/add-credits",
-                json={"amount": 10.0}
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits",
+            json={"amount": 10.0}
+        )
 
         # May require payment processing
         assert response.status_code in [200, 201, 202, 400, 402]
 
-    def test_add_credits_invalid_amount(self, client, regular_user):
+    def test_add_credits_invalid_amount(self, authenticated_regular_client):
         """Test adding invalid credit amount."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/wallet/add-credits",
-                json={"amount": -10.0}
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits",
+            json={"amount": -10.0}
+        )
 
         assert response.status_code in [400, 422]
 
-    def test_add_credits_zero_amount(self, client, regular_user):
+    def test_add_credits_zero_amount(self, authenticated_regular_client):
         """Test adding zero credits."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/wallet/add-credits",
-                json={"amount": 0.0}
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits",
+            json={"amount": 0.0}
+        )
 
         assert response.status_code in [400, 422]
 
@@ -110,23 +101,21 @@ class TestWalletEndpoints:
 class TestCreditEndpoints:
     """Test credit management endpoints."""
 
-    def test_get_credit_balance(self, client, regular_user):
+    def test_get_credit_balance(self, authenticated_regular_client):
         """Test getting credit balance."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/billing/credits/balance")
+        response = authenticated_regular_client.get("/api/v1/billing/credits/balance")
 
         assert response.status_code == 200
 
-    def test_purchase_credits_success(self, client, regular_user):
+    def test_purchase_credits_success(self, authenticated_regular_client):
         """Test purchasing credits."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/billing/credits/purchase",
-                json={
-                    "amount": 20.0,
-                    "payment_method": "card"
-                }
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/billing/credits/purchase",
+            json={
+                "amount": 20.0,
+                "payment_method": "card"
+            }
+        )
 
         # May require payment setup
         assert response.status_code in [200, 201, 202, 400, 402]
@@ -142,28 +131,25 @@ class TestCreditEndpoints:
 class TestPaymentEndpoints:
     """Test payment endpoints."""
 
-    def test_create_payment_intent(self, client, regular_user):
+    def test_create_payment_intent(self, authenticated_regular_client):
         """Test creating payment intent."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/billing/payments/intent",
-                json={"amount": 10.0}
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/billing/payments/intent",
+            json={"amount": 10.0}
+        )
 
         # May require payment provider setup
         assert response.status_code in [200, 201, 400, 402, 503]
 
-    def test_get_payment_methods(self, client, regular_user):
+    def test_get_payment_methods(self, authenticated_regular_client):
         """Test getting payment methods."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/billing/payments/methods")
+        response = authenticated_regular_client.get("/api/v1/billing/payments/methods")
 
         assert response.status_code in [200, 404]
 
-    def test_get_payment_history(self, client, regular_user):
+    def test_get_payment_history(self, authenticated_regular_client):
         """Test getting payment history."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/billing/payments/history")
+        response = authenticated_regular_client.get("/api/v1/billing/payments/history")
 
         assert response.status_code == 200
 
@@ -197,7 +183,7 @@ class TestPricingEndpoints:
 class TestRefundEndpoints:
     """Test refund endpoints."""
 
-    def test_request_refund(self, client, regular_user, db):
+    def test_request_refund(self, authenticated_regular_client, regular_user, db):
         """Test requesting refund."""
         # Create a transaction
         transaction = Transaction(
@@ -210,27 +196,24 @@ class TestRefundEndpoints:
         db.add(transaction)
         db.commit()
 
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/billing/refunds/request",
-                json={
-                    "transaction_id": transaction.id,
-                    "reason": "Service not received"
-                }
-            )
+        response = authenticated_regular_client.post(
+            "/api/v1/billing/refunds/request",
+            json={
+                "transaction_id": transaction.id,
+                "reason": "Service not received"
+            }
+        )
 
         assert response.status_code in [200, 201, 400, 404]
 
-    def test_get_refund_status(self, client, regular_user):
+    def test_get_refund_status(self, authenticated_regular_client):
         """Test getting refund status."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/billing/refunds/test-refund-id")
+        response = authenticated_regular_client.get("/api/v1/billing/refunds/test-refund-id")
 
         assert response.status_code in [200, 404]
 
-    def test_list_refunds(self, client, regular_user):
+    def test_list_refunds(self, authenticated_regular_client):
         """Test listing refunds."""
-        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.get("/api/v1/billing/refunds")
+        response = authenticated_regular_client.get("/api/v1/billing/refunds")
 
         assert response.status_code == 200
