@@ -229,3 +229,91 @@ def redis_client():
     from unittest.mock import MagicMock
 
     return MagicMock()
+
+
+@pytest.fixture
+def auth_token(test_user):
+    """Generate a valid JWT token for test user."""
+    from app.core.security_config import create_access_token
+    
+    return create_access_token(data={"sub": str(test_user.id)})
+
+
+@pytest.fixture
+def authenticated_client(client, db, test_user):
+    """Create an authenticated test client."""
+    from app.core.dependencies import get_current_user_id
+    from app.core.database import get_db
+    
+    def override_get_db():
+        yield db
+    
+    def override_get_current_user_id():
+        return str(test_user.id)
+    
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+    
+    yield client
+    
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_regular_client(client, db, regular_user):
+    """Create an authenticated test client for regular user."""
+    from app.core.dependencies import get_current_user_id
+    from app.core.database import get_db
+    
+    def override_get_db():
+        yield db
+    
+    def override_get_current_user_id():
+        return str(regular_user.id)
+    
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+    
+    yield client
+    
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_pro_client(client, db, pro_user):
+    """Create an authenticated test client for pro user."""
+    from app.core.dependencies import get_current_user_id
+    from app.core.database import get_db
+    
+    def override_get_db():
+        yield db
+    
+    def override_get_current_user_id():
+        return str(pro_user.id)
+    
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+    
+    yield client
+    
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def authenticated_admin_client(client, db, admin_user):
+    """Create an authenticated test client for admin user."""
+    from app.core.dependencies import get_current_user_id
+    from app.core.database import get_db
+    
+    def override_get_db():
+        yield db
+    
+    def override_get_current_user_id():
+        return str(admin_user.id)
+    
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+    
+    yield client
+    
+    app.dependency_overrides.clear()
