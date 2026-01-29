@@ -91,7 +91,7 @@ class TestActivityService:
             title="Verification Started",
             description="SMS verification for Telegram",
             resource_id="verify-123",
-            activity_data={"service": "telegram", "cost": 0.05},
+            metadata={"service": "telegram", "cost": 0.05},
         )
 
         assert activity.id is not None

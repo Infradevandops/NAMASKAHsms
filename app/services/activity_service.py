@@ -70,7 +70,7 @@ class ActivityService:
             status=status,
             title=title,
             description=description,
-            metadata=metadata,
+            activity_data=metadata,  # Map metadata to activity_data
             ip_address=ip_address,
             user_agent=user_agent,
         )
