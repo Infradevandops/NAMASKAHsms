@@ -44,7 +44,7 @@ class TestActivityModel:
             status="completed",
             title="Verification Started",
             description="SMS verification initiated",
-            metadata={"service": "telegram", "cost": 0.05},
+            activity_data={"service": "telegram", "cost": 0.05},
         )
         db.add(activity)
         db.commit()
@@ -65,7 +65,7 @@ class TestActivityModel:
             status="completed",
             title="Payment Received",
             description="Credit added to account",
-            metadata={"amount": 50.0, "method": "paystack"},
+            activity_data={"amount": 50.0, "method": "paystack"},
         )
         db.add(activity)
         db.commit()
@@ -75,7 +75,7 @@ class TestActivityModel:
         assert activity_dict["id"] == activity.id
         assert activity_dict["activity_type"] == "payment"
         assert activity_dict["title"] == "Payment Received"
-        assert activity_dict["metadata"]["amount"] == 50.0
+        assert activity_dict["activity_data"]["amount"] == 50.0
 
 
 class TestActivityService:
@@ -91,7 +91,7 @@ class TestActivityService:
             title="Verification Started",
             description="SMS verification for Telegram",
             resource_id="verify-123",
-            metadata={"service": "telegram", "cost": 0.05},
+            activity_data={"service": "telegram", "cost": 0.05},
         )
 
         assert activity.id is not None
