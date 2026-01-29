@@ -1,11 +1,12 @@
 """Pytest configuration and fixtures for all tests."""
 
+from typing import Generator
+
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.models.base import Base
-
 
 # Test database setup
 TEST_DATABASE_URL = "sqlite:///./test.db"
@@ -27,7 +28,7 @@ def db_engine():
 
 
 @pytest.fixture
-def db(db_engine):
+def db(db_engine) -> Generator[Session, None, None]:
     """Create test database session."""
     connection = db_engine.connect()
     transaction = connection.begin()

@@ -327,7 +327,7 @@ def get_verification_history(
     """Get verification history."""
     try:
         logger.info(f"Fetching verification history for user {user_id}, limit={limit}, offset={offset}")
-        
+
         query = db.query(Verification).filter(Verification.user_id == user_id)
 
         # Get total count before pagination
