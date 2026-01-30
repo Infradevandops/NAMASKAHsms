@@ -317,3 +317,15 @@ def authenticated_admin_client(client, db, admin_user):
     yield client
     
     app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def auth_headers():
+    """Create authorization headers for a given user ID."""
+    from app.utils.security import create_access_token
+    
+    def _auth_headers(user_id: str):
+        token = create_access_token(data={"sub": str(user_id)})
+        return {"Authorization": f"Bearer {token}"}
+    
+    return _auth_headers
