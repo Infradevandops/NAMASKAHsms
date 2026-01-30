@@ -228,7 +228,19 @@ def redis_client():
     """Create a mock Redis client."""
     from unittest.mock import MagicMock
 
-    return MagicMock()
+    mock_redis = MagicMock()
+    # Mock xadd to return a message ID
+    mock_redis.xadd.return_value = b"1234567890-0"
+    # Mock xread to return messages
+    mock_redis.xread.return_value = [
+        [
+            b"webhook_queue",
+            [
+                (b"1234567890-0", {b"webhook_id": b"test", b"event": b"test.event", b"data": b'{"test": "data"}'}),
+            ],
+        ]
+    ]
+    return mock_redis
 
 
 @pytest.fixture
