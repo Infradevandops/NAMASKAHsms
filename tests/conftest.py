@@ -93,10 +93,11 @@ def test_user(db: Session):
 def regular_user(db: Session):
     """Create a regular freemium user."""
     from app.models.user import User
+    from app.utils.security import hash_password
 
     user = User(
         email="regular@example.com",
-        password_hash="hashed_password",
+        password_hash=hash_password("password123"),  # Hash the password properly
         is_active=True,
         subscription_tier="freemium",
         credits=10.0,
