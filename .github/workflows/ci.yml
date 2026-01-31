@@ -48,7 +48,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=23 -v
+          pytest tests/unit/ --cov=app --cov-branch --cov-report=xml --cov-report=html --cov-report=term-missing:skip-covered --cov-fail-under=40 -v
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -103,7 +103,121 @@ jobs:
       
       - name: Run Mypy
         run: mypy app/ --ignore-missing-imports
-        continue-on-error: true
+
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    env:
+      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+      REDIS_URL: redis://localhost:6379/0
+      TESTING: 1
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-integration-${{ hashFiles('**/requirements*.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-integration-
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-test.txt
+      
+      - name: Run integration tests
+        run: |
+          if [ -d "tests/integration" ]; then
+            pytest tests/integration/ -v --maxfail=1 --tb=short
+          else
+            echo "⚠️ Integration tests directory not found - skipping"
+            echo "Create tests/integration/ directory and add tests"
+          fi
+
+  migration-test:
+    name: Database Migration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    env:
+      DATABASE_URL: postgresql://test_user:test_pass@localhost:5432/test_db
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install alembic
+      
+      - name: Test forward migration
+        run: |
+          echo "Testing upgrade to head..."
+          alembic upgrade head
+      
+      - name: Test rollback
+        run: |
+          echo "Testing downgrade..."
+          alembic downgrade -1
+      
+      - name: Test idempotency
+        run: |
+          echo "Testing idempotency..."
+          alembic upgrade head
+          alembic upgrade head
 
   security:
     name: Security Scan
@@ -122,18 +236,15 @@ jobs:
           pip install safety bandit pip-audit
       
       - name: Run Safety check
-        run: safety check -r requirements.txt
-        continue-on-error: true
+        run: safety check -r requirements.txt --exit-code 1 || echo "⚠️ Safety check found vulnerabilities"
       
       - name: Run Bandit security scan
         run: |
           bandit -r app/ -f json -o bandit-report.json --exit-zero
           bandit -r app/ -ll
-        continue-on-error: true
       
       - name: Run pip-audit
-        run: pip-audit -r requirements.txt --strict
-        continue-on-error: true
+        run: pip-audit -r requirements.txt --strict || echo "⚠️ pip-audit found vulnerabilities"
       
       - name: Upload security reports
         uses: actions/upload-artifact@v4
@@ -143,9 +254,57 @@ jobs:
           path: bandit-report.json
           retention-days: 30
 
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build Docker image
+        run: docker build -t namaskah:${{ github.sha }} .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'namaskah:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'HIGH,CRITICAL'
+          exit-code: '1'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results as artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trivy-results
+          path: trivy-results.sarif
+          retention-days: 30
+
+  secrets-scan:
+    name: Secrets Scanning
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_CONFIG: gitleaks.toml
+
   deploy-production:
     name: Deploy to Production
-    needs: [test, lint, security]
+    needs: [test, lint, integration, migration-test, security, container-scan, secrets-scan]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment:

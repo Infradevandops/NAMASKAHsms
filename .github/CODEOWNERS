@@ -1,0 +1,55 @@
+# Code Owners for Namaskah SMS Platform
+# These owners will be automatically requested for review when someone opens a pull request
+
+# Default owners for everything in the repo
+* @team-leads
+
+# CI/CD and GitHub workflows
+/.github/ @devops-team
+/.github/workflows/ @devops-team
+
+# Core application code
+/app/ @backend-team
+/app/api/ @backend-team @api-team
+/app/core/ @backend-team @senior-devs
+/app/models/ @backend-team @database-team
+/app/services/ @backend-team
+
+# Security-sensitive files
+/app/core/security*.py @security-team @senior-devs
+/app/core/auth*.py @security-team @backend-team
+/app/middleware/security*.py @security-team
+
+# Database migrations
+/alembic/ @database-team @backend-team
+alembic.ini @database-team
+
+# Configuration files
+*.yml @devops-team
+*.yaml @devops-team
+Dockerfile* @devops-team
+docker-compose*.yml @devops-team
+
+# Documentation
+/docs/ @tech-writers @team-leads
+README.md @team-leads
+*.md @tech-writers
+
+# Tests
+/tests/ @qa-team @backend-team
+/tests/unit/ @backend-team
+/tests/integration/ @qa-team @backend-team
+/tests/e2e/ @qa-team
+
+# Scripts
+/scripts/ @devops-team @backend-team
+
+# Dependencies
+requirements*.txt @devops-team @security-team
+package*.json @frontend-team
+pyproject.toml @backend-team
+
+# Security and compliance
+.secrets.baseline @security-team
+gitleaks.toml @security-team
+.bandit @security-team
