@@ -23,7 +23,7 @@ redis==5.0.1
 structlog==23.2.0
 pytest==7.4.3
 pytest-cov==4.1.0
-pytest-asyncio==0.21.1
+pytest-asyncio==1.2.0
 httpx==0.25.2
 textverified==0.1.0a1
 cryptography>=41.0.0,<45.0.0
