@@ -1,11 +1,12 @@
 """Comprehensive tests for verification endpoints."""
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models.verification import Verification
+import pytest
+
 from app.models.user import User
+from app.models.verification import Verification
 
 
 class TestVerificationEndpoints:
@@ -16,12 +17,9 @@ class TestVerificationEndpoints:
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
-            mock_instance.get_services = AsyncMock(return_value={
-                "services": [
-                    {"name": "telegram", "price": 0.50},
-                    {"name": "whatsapp", "price": 0.75}
-                ]
-            })
+            mock_instance.get_services = AsyncMock(
+                return_value={"services": [{"name": "telegram", "price": 0.50}, {"name": "whatsapp", "price": 0.75}]}
+            )
             mock_tv.return_value = mock_instance
 
             response = client.get("/api/v1/verify/services")
@@ -48,20 +46,13 @@ class TestVerificationEndpoints:
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
-            mock_instance.create_verification = AsyncMock(return_value={
-                "id": "tv-123",
-                "phone_number": "+12025551234",
-                "cost": 0.50
-            })
+            mock_instance.create_verification = AsyncMock(
+                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+            )
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms"
-                }
+                "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
             )
 
         assert response.status_code == 201
@@ -78,12 +69,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create",
-            json={
-                "service_name": "telegram",
-                "country": "US",
-                "capability": "sms"
-            }
+            "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
         )
 
         assert response.status_code == 402
@@ -100,20 +86,13 @@ class TestVerificationEndpoints:
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
-            mock_instance.create_verification = AsyncMock(return_value={
-                "id": "tv-123",
-                "phone_number": "+12025551234",
-                "cost": 0.50
-            })
+            mock_instance.create_verification = AsyncMock(
+                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+            )
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms"
-                }
+                "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
             )
 
         assert response.status_code == 201
@@ -123,11 +102,7 @@ class TestVerificationEndpoints:
     def test_create_verification_missing_service_name(self, authenticated_regular_client):
         """Test verification creation without service name."""
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create",
-            json={
-                "country": "US",
-                "capability": "sms"
-            }
+            "/api/v1/verify/create", json={"country": "US", "capability": "sms"}
         )
 
         assert response.status_code == 422  # Validation error
@@ -143,19 +118,14 @@ class TestVerificationEndpoints:
             capability="sms",
             country="US",
             idempotency_key="test-key-123",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
         db.add(verification)
         db.commit()
 
         response = authenticated_regular_client.post(
             "/api/v1/verify/create",
-            json={
-                "service_name": "telegram",
-                "country": "US",
-                "capability": "sms",
-                "idempotency_key": "test-key-123"
-            }
+            json={"service_name": "telegram", "country": "US", "capability": "sms", "idempotency_key": "test-key-123"},
         )
 
         assert response.status_code == 201
@@ -166,31 +136,24 @@ class TestVerificationEndpoints:
         """Test verification creation with area code selection."""
         from app.core.dependencies import get_current_user_id
         from main import app
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-        
+
         try:
             with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
                 mock_instance = MagicMock()
                 mock_instance.enabled = True
-                mock_instance.create_verification = AsyncMock(return_value={
-                    "id": "tv-123",
-                    "phone_number": "+12025551234",
-                    "cost": 0.50
-                })
+                mock_instance.create_verification = AsyncMock(
+                    return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+                )
                 mock_tv.return_value = mock_instance
 
                 response = client.post(
                     "/api/v1/verify/create",
-                    json={
-                        "service_name": "telegram",
-                        "country": "US",
-                        "capability": "sms",
-                        "area_code": "202"
-                    }
+                    json={"service_name": "telegram", "country": "US", "capability": "sms", "area_code": "202"},
                 )
 
             # PayG tier should have area code selection, but tier check might fail
@@ -203,12 +166,7 @@ class TestVerificationEndpoints:
         """Test area code selection requires PayG tier."""
         response = authenticated_regular_client.post(
             "/api/v1/verify/create",
-            json={
-                "service_name": "telegram",
-                "country": "US",
-                "capability": "sms",
-                "area_code": "202"
-            }
+            json={"service_name": "telegram", "country": "US", "capability": "sms", "area_code": "202"},
         )
 
         assert response.status_code in [402, 403]
@@ -218,21 +176,14 @@ class TestVerificationEndpoints:
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
-            mock_instance.create_verification = AsyncMock(return_value={
-                "id": "tv-123",
-                "phone_number": "+12025551234",
-                "cost": 0.50
-            })
+            mock_instance.create_verification = AsyncMock(
+                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+            )
             mock_tv.return_value = mock_instance
 
             response = authenticated_pro_client.post(
                 "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms",
-                    "carrier": "verizon"
-                }
+                json={"service_name": "telegram", "country": "US", "capability": "sms", "carrier": "verizon"},
             )
 
         # Pro tier should have carrier filtering, but tier check might fail
@@ -243,21 +194,16 @@ class TestVerificationEndpoints:
         """Test carrier filtering requires Pro tier."""
         from app.core.dependencies import get_current_user_id
         from main import app
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-        
+
         try:
             response = client.post(
                 "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms",
-                    "carrier": "verizon"
-                }
+                json={"service_name": "telegram", "country": "US", "capability": "sms", "carrier": "verizon"},
             )
 
             assert response.status_code in [402, 403]
@@ -273,7 +219,7 @@ class TestVerificationEndpoints:
             status="pending",
             cost=0.50,
             capability="sms",
-            country="US"
+            country="US",
         )
         db.add(verification)
         db.commit()
@@ -300,7 +246,7 @@ class TestVerificationEndpoints:
                 status="completed",
                 cost=0.50,
                 capability="sms",
-                country="US"
+                country="US",
             )
             db.add(verification)
         db.commit()
@@ -325,7 +271,7 @@ class TestVerificationEndpoints:
                 status="completed",
                 cost=0.50,
                 capability="sms",
-                country="US"
+                country="US",
             )
             db.add(verification)
         db.commit()
@@ -360,7 +306,7 @@ class TestVerificationEndpoints:
             cost=0.50,
             capability="sms",
             country="US",
-            activation_id="tv-123"
+            activation_id="tv-123",
         )
         db.add(verification)
         db.commit()
@@ -387,17 +333,14 @@ class TestVerificationEndpoints:
             cost=0.50,
             capability="sms",
             country="US",
-            activation_id="tv-123"
+            activation_id="tv-123",
         )
         db.add(verification)
         db.commit()
 
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
-            mock_instance.get_sms = AsyncMock(return_value={
-                "sms_code": "123456",
-                "sms_text": "Your code is 123456"
-            })
+            mock_instance.get_sms = AsyncMock(return_value={"sms_code": "123456", "sms_text": "Your code is 123456"})
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.get(f"/api/v1/verify/{verification.id}/status")
@@ -423,7 +366,7 @@ class TestVerificationEndpoints:
             cost=0.50,
             capability="sms",
             country="US",
-            activation_id="tv-123"
+            activation_id="tv-123",
         )
         db.add(verification)
         db.commit()
@@ -455,7 +398,7 @@ class TestVerificationEndpoints:
             cost=0.50,
             capability="sms",
             country="US",
-            sms_code="123456"
+            sms_code="123456",
         )
         db.add(verification)
         db.commit()
@@ -474,12 +417,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms"
-                }
+                "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
             )
 
         assert response.status_code == 503
@@ -488,20 +426,15 @@ class TestVerificationEndpoints:
         """Test verification creation with non-existent user."""
         from app.core.dependencies import get_current_user_id
         from main import app
-        
+
         def override_get_current_user_id():
             return "nonexistent-user"
-        
+
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-        
+
         try:
             response = client.post(
-                "/api/v1/verify/create",
-                json={
-                    "service_name": "telegram",
-                    "country": "US",
-                    "capability": "sms"
-                }
+                "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
             )
 
             assert response.status_code == 404

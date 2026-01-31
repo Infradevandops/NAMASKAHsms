@@ -1,7 +1,8 @@
 """Comprehensive tests for middleware."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi import Request, Response
 from starlette.datastructures import Headers
 
@@ -14,6 +15,7 @@ class TestCSRFMiddleware:
         # CSRF tokens are generated automatically by middleware
         # Testing the middleware class exists
         from app.middleware.csrf_middleware import CSRFMiddleware
+
         assert CSRFMiddleware is not None
 
     def test_csrf_token_validation_success(self):
@@ -21,6 +23,7 @@ class TestCSRFMiddleware:
         # CSRF validation happens in middleware dispatch
         # Testing the middleware class exists
         from app.middleware.csrf_middleware import CSRFMiddleware
+
         assert CSRFMiddleware.CSRF_HEADER == "X-CSRF-Token"
 
     def test_csrf_token_validation_failure(self):
@@ -28,6 +31,7 @@ class TestCSRFMiddleware:
         # CSRF validation happens in middleware dispatch
         # Testing the middleware class exists
         from app.middleware.csrf_middleware import CSRFMiddleware
+
         assert CSRFMiddleware.CSRF_COOKIE == "csrf_token"
 
     def test_csrf_exempt_routes(self):
@@ -42,7 +46,7 @@ class TestSecurityMiddleware:
     def test_security_headers_added(self, client):
         """Test security headers are added to responses."""
         response = client.get("/api/v1/auth/google/config")
-        
+
         # Check for security headers
         headers = response.headers
         # Headers may or may not be present depending on middleware config
@@ -71,7 +75,7 @@ class TestRateLimitingMiddleware:
         """Test request allowed when under rate limit."""
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             response = client.get("/api/v1/auth/me")
-        
+
         assert response.status_code in [200, 401, 403, 422]
 
     def test_rate_limit_exceeded(self):
@@ -166,7 +170,7 @@ class TestTierValidationMiddleware:
     def test_tier_validation_success(self, authenticated_pro_client):
         """Test tier validation passes for authorized user."""
         response = authenticated_pro_client.get("/api/v1/auth/me")
-        
+
         assert response.status_code in [200, 401]
 
     def test_tier_validation_failure(self, client, regular_user):

@@ -1,8 +1,9 @@
 """Comprehensive tests for WebSocket functionality."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 import json
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 
 class TestWebSocketManager:
@@ -11,17 +12,19 @@ class TestWebSocketManager:
     def test_connection_manager_initialization(self):
         """Test WebSocket manager initialization."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
         assert manager is not None
 
     def test_connect_websocket(self):
         """Test connecting WebSocket client."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
-        
+
         mock_websocket = MagicMock()
         user_id = "user123"
-        
+
         # Should not raise exception
         try:
             manager.connect(mock_websocket, user_id)
@@ -32,11 +35,12 @@ class TestWebSocketManager:
     def test_disconnect_websocket(self):
         """Test disconnecting WebSocket client."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
-        
+
         mock_websocket = MagicMock()
         user_id = "user123"
-        
+
         try:
             manager.connect(mock_websocket, user_id)
             manager.disconnect(mock_websocket, user_id)
@@ -47,10 +51,11 @@ class TestWebSocketManager:
     def test_broadcast_message(self):
         """Test broadcasting message to all connections."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
-        
+
         message = {"type": "notification", "data": "test"}
-        
+
         try:
             manager.broadcast(json.dumps(message))
             assert True
@@ -60,11 +65,12 @@ class TestWebSocketManager:
     def test_send_personal_message(self):
         """Test sending message to specific user."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
-        
+
         user_id = "user123"
         message = {"type": "notification", "data": "test"}
-        
+
         try:
             manager.send_personal_message(json.dumps(message), user_id)
             assert True
@@ -96,14 +102,11 @@ class TestWebSocketNotifications:
     def test_notification_broadcast(self):
         """Test broadcasting notification via WebSocket."""
         from app.websocket.manager import ConnectionManager
+
         manager = ConnectionManager()
-        
-        notification = {
-            "type": "notification",
-            "title": "Test",
-            "message": "Test message"
-        }
-        
+
+        notification = {"type": "notification", "title": "Test", "message": "Test message"}
+
         try:
             manager.broadcast(json.dumps(notification))
             assert True

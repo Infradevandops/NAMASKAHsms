@@ -1,11 +1,12 @@
 """Comprehensive tests for authentication endpoints."""
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models.user import User
+import pytest
+
 from app.models.api_key import APIKey
+from app.models.user import User
 
 
 class TestAuthEndpoints:
@@ -15,11 +16,7 @@ class TestAuthEndpoints:
         """Test successful user registration."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
-                "/api/v1/auth/register",
-                json={
-                    "email": "newuser@example.com",
-                    "password": "SecurePassword123!"
-                }
+                "/api/v1/auth/register", json={"email": "newuser@example.com", "password": "SecurePassword123!"}
             )
 
         assert response.status_code == 201
@@ -36,11 +33,7 @@ class TestAuthEndpoints:
     def test_register_duplicate_email(self, client, regular_user):
         """Test registration with existing email."""
         response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": regular_user.email,
-                "password": "SecurePassword123!"
-            }
+            "/api/v1/auth/register", json={"email": regular_user.email, "password": "SecurePassword123!"}
         )
 
         assert response.status_code == 400
@@ -48,24 +41,14 @@ class TestAuthEndpoints:
     def test_register_invalid_email(self, client):
         """Test registration with invalid email format."""
         response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": "invalid-email",
-                "password": "SecurePassword123!"
-            }
+            "/api/v1/auth/register", json={"email": "invalid-email", "password": "SecurePassword123!"}
         )
 
         assert response.status_code == 422  # Validation error
 
     def test_register_weak_password(self, client):
         """Test registration with weak password."""
-        response = client.post(
-            "/api/v1/auth/register",
-            json={
-                "email": "newuser@example.com",
-                "password": "123"
-            }
-        )
+        response = client.post("/api/v1/auth/register", json={"email": "newuser@example.com", "password": "123"})
 
         # Should fail validation
         assert response.status_code in [400, 422]
@@ -75,11 +58,7 @@ class TestAuthEndpoints:
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register",
-                json={
-                    "email": "newuser@example.com",
-                    "password": "SecurePassword123!",
-                    "referral_code": "REF123"
-                }
+                json={"email": "newuser@example.com", "password": "SecurePassword123!", "referral_code": "REF123"},
             )
 
         assert response.status_code == 201
@@ -88,22 +67,18 @@ class TestAuthEndpoints:
         """Test successful login."""
         # Create user with known password
         from app.utils.security import hash_password
-        
+
         user = User(
             email="logintest@example.com",
             password_hash=hash_password("TestPassword123!"),
             is_active=True,
-            email_verified=True
+            email_verified=True,
         )
         db.add(user)
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "logintest@example.com",
-                "password": "TestPassword123!"
-            }
+            "/api/v1/auth/login", json={"email": "logintest@example.com", "password": "TestPassword123!"}
         )
 
         assert response.status_code == 200
@@ -116,11 +91,7 @@ class TestAuthEndpoints:
     def test_login_invalid_email(self, client):
         """Test login with non-existent email."""
         response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": "nonexistent@example.com",
-                "password": "password123"
-            }
+            "/api/v1/auth/login", json={"email": "nonexistent@example.com", "password": "password123"}
         )
 
         assert response.status_code == 401
@@ -130,22 +101,13 @@ class TestAuthEndpoints:
 
     def test_login_wrong_password(self, client, regular_user):
         """Test login with incorrect password."""
-        response = client.post(
-            "/api/v1/auth/login",
-            json={
-                "email": regular_user.email,
-                "password": "wrongpassword"
-            }
-        )
+        response = client.post("/api/v1/auth/login", json={"email": regular_user.email, "password": "wrongpassword"})
 
         assert response.status_code == 401
 
     def test_login_missing_credentials(self, client):
         """Test login with missing credentials."""
-        response = client.post(
-            "/api/v1/auth/login",
-            json={}
-        )
+        response = client.post("/api/v1/auth/login", json={})
 
         assert response.status_code == 422  # Validation error
 
@@ -162,25 +124,25 @@ class TestAuthEndpoints:
     def test_get_current_user_unauthorized(self, client):
         """Test getting current user without authentication."""
         response = client.get("/api/v1/auth/me")
-        
+
         # Should fail without auth
         assert response.status_code in [401, 403, 422]
 
     def test_get_current_user_not_found(self, client, db):
         """Test getting current user when user doesn't exist."""
-        from app.core.dependencies import get_current_user_id
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id
         from main import app
-        
+
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return "nonexistent-id"
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-        
+
         try:
             response = client.get("/api/v1/auth/me")
             assert response.status_code == 404
@@ -190,10 +152,7 @@ class TestAuthEndpoints:
     def test_forgot_password_success(self, client, regular_user):
         """Test password reset request."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
-            response = client.post(
-                "/api/v1/auth/forgot-password",
-                json={"email": regular_user.email}
-            )
+            response = client.post("/api/v1/auth/forgot-password", json={"email": regular_user.email})
 
         assert response.status_code == 200
         data = response.json()
@@ -203,10 +162,7 @@ class TestAuthEndpoints:
     def test_forgot_password_nonexistent_email(self, client):
         """Test password reset for non-existent email."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
-            response = client.post(
-                "/api/v1/auth/forgot-password",
-                json={"email": "nonexistent@example.com"}
-            )
+            response = client.post("/api/v1/auth/forgot-password", json={"email": "nonexistent@example.com"})
 
         # Should still return success for security
         assert response.status_code == 200
@@ -215,17 +171,14 @@ class TestAuthEndpoints:
         """Test password reset with valid token."""
         # Set reset token
         import secrets
+
         reset_token = secrets.token_urlsafe(32)
         regular_user.reset_token = reset_token
         regular_user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/reset-password",
-            json={
-                "token": reset_token,
-                "new_password": "NewSecurePassword123!"
-            }
+            "/api/v1/auth/reset-password", json={"token": reset_token, "new_password": "NewSecurePassword123!"}
         )
 
         assert response.status_code == 200
@@ -236,11 +189,7 @@ class TestAuthEndpoints:
     def test_reset_password_invalid_token(self, client):
         """Test password reset with invalid token."""
         response = client.post(
-            "/api/v1/auth/reset-password",
-            json={
-                "token": "invalid-token",
-                "new_password": "NewSecurePassword123!"
-            }
+            "/api/v1/auth/reset-password", json={"token": "invalid-token", "new_password": "NewSecurePassword123!"}
         )
 
         assert response.status_code == 400
@@ -248,17 +197,14 @@ class TestAuthEndpoints:
     def test_reset_password_expired_token(self, client, regular_user, db):
         """Test password reset with expired token."""
         import secrets
+
         reset_token = secrets.token_urlsafe(32)
         regular_user.reset_token = reset_token
         regular_user.reset_token_expires = datetime.now(timezone.utc) - timedelta(hours=1)
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/reset-password",
-            json={
-                "token": reset_token,
-                "new_password": "NewSecurePassword123!"
-            }
+            "/api/v1/auth/reset-password", json={"token": reset_token, "new_password": "NewSecurePassword123!"}
         )
 
         assert response.status_code == 400
@@ -266,6 +212,7 @@ class TestAuthEndpoints:
     def test_verify_email_success(self, client, regular_user, db):
         """Test email verification with valid token."""
         import secrets
+
         verification_token = secrets.token_urlsafe(32)
         regular_user.verification_token = verification_token
         regular_user.email_verified = False
@@ -299,14 +246,11 @@ class TestAuthEndpoints:
             "sub": "google-123",
             "email": "googleuser@example.com",
             "name": "Google User",
-            "picture": "https://example.com/avatar.jpg"
+            "picture": "https://example.com/avatar.jpg",
         }
 
         with patch("google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinfo):
-            response = client.post(
-                "/api/v1/auth/google",
-                json={"token": "valid-google-token"}
-            )
+            response = client.post("/api/v1/auth/google", json={"token": "valid-google-token"})
 
         assert response.status_code == 200
         data = response.json()
@@ -316,10 +260,7 @@ class TestAuthEndpoints:
     def test_google_auth_invalid_token(self, client):
         """Test Google OAuth with invalid token."""
         with patch("google.oauth2.id_token.verify_oauth2_token", side_effect=ValueError("Invalid token")):
-            response = client.post(
-                "/api/v1/auth/google",
-                json={"token": "invalid-token"}
-            )
+            response = client.post("/api/v1/auth/google", json={"token": "invalid-token"})
 
         assert response.status_code == 401
 
@@ -342,10 +283,7 @@ class TestAuthEndpoints:
         regular_user.refresh_token_expires = get_refresh_token_expiry()
         db.commit()
 
-        response = client.post(
-            "/api/v1/auth/refresh",
-            json={"refresh_token": tokens["refresh_token"]}
-        )
+        response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
 
         # Token refresh has complex setup requirements
         assert response.status_code in [200, 401]
@@ -356,10 +294,7 @@ class TestAuthEndpoints:
 
     def test_refresh_token_invalid(self, client):
         """Test refresh with invalid token."""
-        response = client.post(
-            "/api/v1/auth/refresh",
-            json={"refresh_token": "invalid-token"}
-        )
+        response = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid-token"})
 
         assert response.status_code == 401
 
@@ -378,40 +313,34 @@ class TestAuthEndpoints:
         regular_user.refresh_token_expires = datetime.now(timezone.utc) - timedelta(days=1)
         db.commit()
 
-        response = client.post(
-            "/api/v1/auth/refresh",
-            json={"refresh_token": tokens["refresh_token"]}
-        )
+        response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
 
         assert response.status_code == 401
 
     def test_create_api_key_success(self, client, payg_user, db):
         """Test creating API key."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         payg_user.email_verified = True
         db.commit()
 
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
-            response = client.post(
-                "/api/v1/auth/api-keys",
-                json={"name": "Test API Key"}
-            )
+            response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
             # API key creation has complex tier requirements and async handling
             assert response.status_code in [201, 401, 403, 404, 500]
@@ -428,31 +357,28 @@ class TestAuthEndpoints:
 
     def test_create_api_key_unverified_email(self, client, payg_user, db):
         """Test creating API key with unverified email."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         payg_user.email_verified = False
         db.commit()
 
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
-            response = client.post(
-                "/api/v1/auth/api-keys",
-                json={"name": "Test API Key"}
-            )
+            response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
             assert response.status_code == 403
         finally:
@@ -460,10 +386,7 @@ class TestAuthEndpoints:
 
     def test_create_api_key_tier_restriction(self, authenticated_regular_client):
         """Test creating API key requires PayG tier."""
-        response = authenticated_regular_client.post(
-            "/api/v1/auth/api-keys",
-            json={"name": "Test API Key"}
-        )
+        response = authenticated_regular_client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
         # Should fail due to tier restriction
         assert response.status_code in [402, 403]
@@ -471,10 +394,10 @@ class TestAuthEndpoints:
     def test_list_api_keys_success(self, client, payg_user, db):
         """Test listing API keys."""
         try:
-            from app.core.dependencies import get_current_user_id, require_tier
             from app.core.database import get_db
+            from app.core.dependencies import get_current_user_id, require_tier
             from main import app
-            
+
             # Create some API keys
             for i in range(3):
                 api_key = APIKey(
@@ -482,24 +405,24 @@ class TestAuthEndpoints:
                     name=f"Key {i}",
                     key_hash="hashed_key",
                     key_preview=f"sk_...{i:04d}",
-                    is_active=True
+                    is_active=True,
                 )
                 db.add(api_key)
             db.commit()
 
             def override_get_db():
                 yield db
-            
+
             def override_get_current_user_id():
                 return str(payg_user.id)
-            
+
             def override_require_tier(*args, **kwargs):
                 return str(payg_user.id)
-            
+
             app.dependency_overrides[get_db] = override_get_db
             app.dependency_overrides[get_current_user_id] = override_get_current_user_id
             app.dependency_overrides[require_tier] = override_require_tier
-            
+
             try:
                 response = client.get("/api/v1/auth/api-keys")
 
@@ -516,23 +439,23 @@ class TestAuthEndpoints:
 
     def test_list_api_keys_empty(self, client, payg_user, db):
         """Test listing API keys when none exist."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
             response = client.get("/api/v1/auth/api-keys")
 
@@ -544,38 +467,34 @@ class TestAuthEndpoints:
 
     def test_delete_api_key_success(self, client, payg_user, db):
         """Test deleting API key."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         api_key = APIKey(
-            user_id=payg_user.id,
-            name="Test Key",
-            key_hash="hashed_key",
-            key_preview="sk_...test",
-            is_active=True
+            user_id=payg_user.id, name="Test Key", key_hash="hashed_key", key_preview="sk_...test", is_active=True
         )
         db.add(api_key)
         db.commit()
 
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
             response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
 
             assert response.status_code == 200
-            
+
             # Verify deleted
             deleted_key = db.query(APIKey).filter(APIKey.id == api_key.id).first()
             assert deleted_key is None
@@ -584,23 +503,23 @@ class TestAuthEndpoints:
 
     def test_delete_api_key_not_found(self, client, payg_user, db):
         """Test deleting non-existent API key."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
             response = client.delete("/api/v1/auth/api-keys/nonexistent-id")
 
@@ -610,33 +529,29 @@ class TestAuthEndpoints:
 
     def test_delete_api_key_wrong_user(self, client, payg_user, pro_user, db):
         """Test deleting another user's API key."""
-        from app.core.dependencies import get_current_user_id, require_tier
         from app.core.database import get_db
+        from app.core.dependencies import get_current_user_id, require_tier
         from main import app
-        
+
         api_key = APIKey(
-            user_id=pro_user.id,
-            name="Other User Key",
-            key_hash="hashed_key",
-            key_preview="sk_...other",
-            is_active=True
+            user_id=pro_user.id, name="Other User Key", key_hash="hashed_key", key_preview="sk_...other", is_active=True
         )
         db.add(api_key)
         db.commit()
 
         def override_get_db():
             yield db
-        
+
         def override_get_current_user_id():
             return str(payg_user.id)
-        
+
         def override_require_tier(*args, **kwargs):
             return str(payg_user.id)
-        
+
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
-        
+
         try:
             response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
 

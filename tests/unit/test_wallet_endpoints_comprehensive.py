@@ -1,12 +1,13 @@
 """Comprehensive tests for wallet/billing endpoints."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.models.user import User
-from app.models.transaction import Transaction
+import pytest
+
 from app.models.balance_transaction import BalanceTransaction
+from app.models.transaction import Transaction
+from app.models.user import User
 
 
 class TestWalletEndpoints:
@@ -34,7 +35,7 @@ class TestWalletEndpoints:
                 amount=10.0 * (i + 1),
                 type="credit_purchase",
                 description=f"Test transaction {i}",
-                status="completed"
+                status="completed",
             )
             db.add(transaction)
         db.commit()
@@ -54,7 +55,7 @@ class TestWalletEndpoints:
                 amount=5.0,
                 type="credit_purchase",
                 description=f"Transaction {i}",
-                status="completed"
+                status="completed",
             )
             db.add(transaction)
         db.commit()
@@ -71,29 +72,20 @@ class TestWalletEndpoints:
 
     def test_add_credits_success(self, authenticated_regular_client, regular_user, db):
         """Test adding credits to wallet."""
-        response = authenticated_regular_client.post(
-            "/api/v1/wallet/add-credits",
-            json={"amount": 10.0}
-        )
+        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": 10.0})
 
         # Endpoint may not exist yet
         assert response.status_code in [200, 201, 202, 400, 402, 404]
 
     def test_add_credits_invalid_amount(self, authenticated_regular_client):
         """Test adding invalid credit amount."""
-        response = authenticated_regular_client.post(
-            "/api/v1/wallet/add-credits",
-            json={"amount": -10.0}
-        )
+        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": -10.0})
 
         assert response.status_code in [400, 404, 422]
 
     def test_add_credits_zero_amount(self, authenticated_regular_client):
         """Test adding zero credits."""
-        response = authenticated_regular_client.post(
-            "/api/v1/wallet/add-credits",
-            json={"amount": 0.0}
-        )
+        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": 0.0})
 
         assert response.status_code in [400, 404, 422]
 
@@ -110,11 +102,7 @@ class TestCreditEndpoints:
     def test_purchase_credits_success(self, authenticated_regular_client):
         """Test purchasing credits."""
         response = authenticated_regular_client.post(
-            "/api/v1/billing/credits/purchase",
-            json={
-                "amount": 20.0,
-                "payment_method": "card"
-            }
+            "/api/v1/billing/credits/purchase", json={"amount": 20.0, "payment_method": "card"}
         )
 
         # Endpoint may not exist yet
@@ -123,7 +111,7 @@ class TestCreditEndpoints:
     def test_get_credit_packages(self, client):
         """Test getting available credit packages."""
         response = client.get("/api/v1/billing/credits/packages")
-        
+
         # Endpoint may or may not exist
         assert response.status_code in [200, 404]
 
@@ -133,10 +121,7 @@ class TestPaymentEndpoints:
 
     def test_create_payment_intent(self, authenticated_regular_client):
         """Test creating payment intent."""
-        response = authenticated_regular_client.post(
-            "/api/v1/billing/payments/intent",
-            json={"amount": 10.0}
-        )
+        response = authenticated_regular_client.post("/api/v1/billing/payments/intent", json={"amount": 10.0})
 
         # Endpoint may not exist yet
         assert response.status_code in [200, 201, 400, 402, 404, 503]
@@ -170,12 +155,7 @@ class TestPricingEndpoints:
     def test_calculate_cost(self, client):
         """Test cost calculation."""
         response = client.post(
-            "/api/v1/billing/pricing/calculate",
-            json={
-                "service": "telegram",
-                "country": "US",
-                "quantity": 1
-            }
+            "/api/v1/billing/pricing/calculate", json={"service": "telegram", "country": "US", "quantity": 1}
         )
         assert response.status_code in [200, 404, 422]
 
@@ -187,21 +167,13 @@ class TestRefundEndpoints:
         """Test requesting refund."""
         # Create a transaction
         transaction = Transaction(
-            user_id=regular_user.id,
-            amount=10.0,
-            type="sms_purchase",
-            description="Test purchase",
-            status="completed"
+            user_id=regular_user.id, amount=10.0, type="sms_purchase", description="Test purchase", status="completed"
         )
         db.add(transaction)
         db.commit()
 
         response = authenticated_regular_client.post(
-            "/api/v1/billing/refunds/request",
-            json={
-                "transaction_id": transaction.id,
-                "reason": "Service not received"
-            }
+            "/api/v1/billing/refunds/request", json={"transaction_id": transaction.id, "reason": "Service not received"}
         )
 
         assert response.status_code in [200, 201, 400, 404]

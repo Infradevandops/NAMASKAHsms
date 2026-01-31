@@ -1,12 +1,13 @@
 """Comprehensive tests for admin endpoints."""
 
-import pytest
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
+from app.models.subscription_tier import SubscriptionTier
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.subscription_tier import SubscriptionTier
 
 
 class TestAdminUserManagement:
@@ -50,10 +51,7 @@ class TestAdminUserManagement:
 
     def test_update_user_tier(self, authenticated_admin_client, regular_user, db):
         """Test updating user tier."""
-        response = authenticated_admin_client.patch(
-            f"/api/v1/admin/users/{regular_user.id}/tier",
-            json={"tier": "pro"}
-        )
+        response = authenticated_admin_client.patch(f"/api/v1/admin/users/{regular_user.id}/tier", json={"tier": "pro"})
 
         assert response.status_code in [200, 404]
 
@@ -62,8 +60,7 @@ class TestAdminUserManagement:
         initial_credits = regular_user.credits
 
         response = authenticated_admin_client.patch(
-            f"/api/v1/admin/users/{regular_user.id}/credits",
-            json={"amount": 50.0, "reason": "Admin adjustment"}
+            f"/api/v1/admin/users/{regular_user.id}/credits", json={"amount": 50.0, "reason": "Admin adjustment"}
         )
 
         assert response.status_code in [200, 404]
@@ -71,8 +68,7 @@ class TestAdminUserManagement:
     def test_suspend_user(self, authenticated_admin_client, regular_user, db):
         """Test suspending user account."""
         response = authenticated_admin_client.post(
-            f"/api/v1/admin/users/{regular_user.id}/suspend",
-            json={"reason": "Terms violation"}
+            f"/api/v1/admin/users/{regular_user.id}/suspend", json={"reason": "Terms violation"}
         )
 
         # Endpoint may expect reason as query param, not body
@@ -124,7 +120,7 @@ class TestAdminVerificationManagement:
             status="completed",
             cost=0.50,
             capability="sms",
-            country="US"
+            country="US",
         )
         db.add(verification)
         db.commit()
@@ -142,7 +138,7 @@ class TestAdminVerificationManagement:
             status="pending",
             cost=0.50,
             capability="sms",
-            country="US"
+            country="US",
         )
         db.add(verification)
         db.commit()
@@ -160,14 +156,13 @@ class TestAdminVerificationManagement:
             status="completed",
             cost=0.50,
             capability="sms",
-            country="US"
+            country="US",
         )
         db.add(verification)
         db.commit()
 
         response = authenticated_admin_client.post(
-            f"/api/v1/admin/verifications/{verification.id}/refund",
-            json={"reason": "Service issue"}
+            f"/api/v1/admin/verifications/{verification.id}/refund", json={"reason": "Service issue"}
         )
 
         assert response.status_code in [200, 404]
@@ -244,21 +239,15 @@ class TestAdminTierManagement:
                 "name": "custom",
                 "display_name": "Custom Tier",
                 "price": 99.99,
-                "features": {
-                    "api_access": True,
-                    "area_code_selection": True
-                }
-            }
+                "features": {"api_access": True, "area_code_selection": True},
+            },
         )
 
         assert response.status_code in [200, 201, 404]
 
     def test_update_tier(self, authenticated_admin_client):
         """Test updating tier."""
-        response = authenticated_admin_client.patch(
-            "/api/v1/admin/tiers/pro",
-            json={"price": 29.99}
-        )
+        response = authenticated_admin_client.patch("/api/v1/admin/tiers/pro", json={"price": 29.99})
 
         assert response.status_code in [200, 404]
 
@@ -310,11 +299,7 @@ class TestAdminActions:
         """Test broadcasting notification to all users."""
         response = authenticated_admin_client.post(
             "/api/v1/admin/actions/broadcast",
-            json={
-                "title": "System Maintenance",
-                "message": "Scheduled maintenance tonight",
-                "type": "info"
-            }
+            json={"title": "System Maintenance", "message": "Scheduled maintenance tonight", "type": "info"},
         )
 
         assert response.status_code in [200, 404]
@@ -323,11 +308,7 @@ class TestAdminActions:
         """Test bulk credit adjustment."""
         response = authenticated_admin_client.post(
             "/api/v1/admin/actions/bulk-credits",
-            json={
-                "user_ids": ["user1", "user2"],
-                "amount": 10.0,
-                "reason": "Promotion"
-            }
+            json={"user_ids": ["user1", "user2"], "amount": 10.0, "reason": "Promotion"},
         )
 
         assert response.status_code in [200, 404]
@@ -335,8 +316,7 @@ class TestAdminActions:
     def test_generate_report(self, authenticated_admin_client):
         """Test generating system report."""
         response = authenticated_admin_client.post(
-            "/api/v1/admin/actions/generate-report",
-            json={"type": "monthly", "month": "2024-01"}
+            "/api/v1/admin/actions/generate-report", json={"type": "monthly", "month": "2024-01"}
         )
 
         assert response.status_code in [200, 202, 404]

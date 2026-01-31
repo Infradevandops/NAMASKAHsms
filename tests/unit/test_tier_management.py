@@ -37,7 +37,7 @@ class TestTierManagement:
         # Accept either True (if tier config loaded) or False (if not)
         result = tier_manager.check_feature_access(regular_user.id, "api_access")
         assert result in [True, False]
-        
+
         priority_result = tier_manager.check_feature_access(regular_user.id, "priority_routing")
         assert priority_result in [True, False]
 
@@ -75,7 +75,7 @@ class TestTierManagement:
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can_create is False
         # Accept either "limit reached" or "not available" message
-        assert ("limit reached" in msg or "not available" in msg)
+        assert "limit reached" in msg or "not available" in msg
 
     def test_upgrade_tier_success(self, tier_manager, regular_user):
         success = tier_manager.upgrade_tier(regular_user.id, "pro")

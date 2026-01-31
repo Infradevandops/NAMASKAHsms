@@ -1,7 +1,8 @@
 """Comprehensive error handling tests."""
 
-import pytest
 from unittest.mock import MagicMock, patch
+
+import pytest
 from fastapi import HTTPException
 
 
@@ -10,37 +11,25 @@ class TestValidationErrors:
 
     def test_invalid_email_format(self, client):
         """Test invalid email format handling."""
-        response = client.post(
-            "/api/v1/auth/register",
-            json={"email": "invalid-email", "password": "password123"}
-        )
+        response = client.post("/api/v1/auth/register", json={"email": "invalid-email", "password": "password123"})
         assert response.status_code == 422
 
     def test_missing_required_field(self, client):
         """Test missing required field handling."""
-        response = client.post(
-            "/api/v1/auth/register",
-            json={"email": "test@example.com"}  # Missing password
-        )
+        response = client.post("/api/v1/auth/register", json={"email": "test@example.com"})  # Missing password
         assert response.status_code == 422
 
     def test_invalid_data_type(self, client, regular_user):
         """Test invalid data type handling."""
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/wallet/add-credits",
-                json={"amount": "not-a-number"}
-            )
+            response = client.post("/api/v1/wallet/add-credits", json={"amount": "not-a-number"})
         # Endpoint may not exist yet
         assert response.status_code in [400, 404, 422]
 
     def test_negative_amount(self, client, regular_user):
         """Test negative amount validation."""
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/wallet/add-credits",
-                json={"amount": -10.0}
-            )
+            response = client.post("/api/v1/wallet/add-credits", json={"amount": -10.0})
         # Endpoint may not exist yet
         assert response.status_code in [400, 404, 422]
 
@@ -55,10 +44,7 @@ class TestAuthenticationErrors:
 
     def test_invalid_token(self, client):
         """Test invalid authentication token."""
-        response = client.get(
-            "/api/v1/auth/me",
-            headers={"Authorization": "Bearer invalid-token"}
-        )
+        response = client.get("/api/v1/auth/me", headers={"Authorization": "Bearer invalid-token"})
         assert response.status_code in [401, 403, 422]
 
     def test_expired_token(self, client):
@@ -68,10 +54,7 @@ class TestAuthenticationErrors:
 
     def test_wrong_credentials(self, client):
         """Test wrong login credentials."""
-        response = client.post(
-            "/api/v1/auth/login",
-            json={"email": "test@example.com", "password": "wrongpassword"}
-        )
+        response = client.post("/api/v1/auth/login", json={"email": "test@example.com", "password": "wrongpassword"})
         assert response.status_code == 401
 
 
@@ -92,7 +75,7 @@ class TestAuthorizationErrors:
     def test_access_other_user_data(self, client, regular_user, pro_user, db):
         """Test accessing another user's data."""
         from app.models.verification import Verification
-        
+
         verification = Verification(
             user_id=pro_user.id,
             service_name="telegram",
@@ -100,14 +83,14 @@ class TestAuthorizationErrors:
             status="completed",
             cost=0.50,
             capability="sms",
-            country="US"
+            country="US",
         )
         db.add(verification)
         db.commit()
 
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             response = client.get(f"/api/v1/verify/{verification.id}")
-        
+
         # Authorization may not be enforced yet, accept 200 as well
         assert response.status_code in [200, 403, 404, 422]
 
@@ -143,19 +126,13 @@ class TestBusinessLogicErrors:
         db.commit()
 
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post(
-                "/api/v1/verify/create",
-                json={"service_name": "telegram", "country": "US"}
-            )
+            response = client.post("/api/v1/verify/create", json={"service_name": "telegram", "country": "US"})
         # May return 401 (auth), 402 (payment required), or 404 (endpoint not found)
         assert response.status_code in [401, 402, 404]
 
     def test_duplicate_registration(self, client, regular_user):
         """Test duplicate email registration."""
-        response = client.post(
-            "/api/v1/auth/register",
-            json={"email": regular_user.email, "password": "password123"}
-        )
+        response = client.post("/api/v1/auth/register", json={"email": regular_user.email, "password": "password123"})
         # May return 400, 409 (conflict), or 422 (validation error)
         assert response.status_code in [400, 409, 422]
 
@@ -176,10 +153,7 @@ class TestExternalServiceErrors:
             mock_tv.return_value = mock_instance
 
             with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-                response = client.post(
-                    "/api/v1/verify/create",
-                    json={"service_name": "telegram", "country": "US"}
-                )
+                response = client.post("/api/v1/verify/create", json={"service_name": "telegram", "country": "US"})
             # May return 401 (auth), 404 (endpoint not found), or 503 (service unavailable)
             assert response.status_code in [401, 404, 503]
 
@@ -205,7 +179,7 @@ class TestDatabaseErrors:
     def test_transaction_rollback(self, db):
         """Test transaction rollback on error."""
         from app.models.user import User
-        
+
         try:
             user = User(email="test@example.com", password_hash="hash")
             db.add(user)
@@ -214,7 +188,7 @@ class TestDatabaseErrors:
             raise Exception("Test error")
         except:
             db.rollback()
-        
+
         # User should not be in database
         assert True
 
@@ -262,19 +236,13 @@ class TestBoundaryConditions:
 
     def test_empty_string_input(self, client):
         """Test empty string input."""
-        response = client.post(
-            "/api/v1/auth/register",
-            json={"email": "", "password": "password123"}
-        )
+        response = client.post("/api/v1/auth/register", json={"email": "", "password": "password123"})
         assert response.status_code == 422
 
     def test_very_long_string_input(self, client):
         """Test very long string input."""
         long_email = "a" * 1000 + "@example.com"
-        response = client.post(
-            "/api/v1/auth/register",
-            json={"email": long_email, "password": "password123"}
-        )
+        response = client.post("/api/v1/auth/register", json={"email": long_email, "password": "password123"})
         assert response.status_code in [400, 422]
 
     def test_null_value_handling(self):

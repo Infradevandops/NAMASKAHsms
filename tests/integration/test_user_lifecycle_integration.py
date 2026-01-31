@@ -1,7 +1,8 @@
 """Integration tests for complete user lifecycle."""
 
-import pytest
 from unittest.mock import AsyncMock, patch
+
+import pytest
 
 
 class TestUserRegistrationFlow:
@@ -12,14 +13,13 @@ class TestUserRegistrationFlow:
         # 1. Register user
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
-                "/api/v1/auth/register",
-                json={"email": "newuser@example.com", "password": "SecurePass123!"}
+                "/api/v1/auth/register", json={"email": "newuser@example.com", "password": "SecurePass123!"}
             )
-        
+
         assert response.status_code == 201
         data = response.json()
         assert "access_token" in data
-        
+
         # 2. Verify email (would normally use token from email)
         # 3. Login
         # 4. Access protected resource
@@ -30,13 +30,9 @@ class TestUserRegistrationFlow:
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register",
-                json={
-                    "email": "referred@example.com",
-                    "password": "SecurePass123!",
-                    "referral_code": "REF123"
-                }
+                json={"email": "referred@example.com", "password": "SecurePass123!", "referral_code": "REF123"},
             )
-        
+
         assert response.status_code == 201
 
 
@@ -48,23 +44,20 @@ class TestVerificationFlow:
         # 1. Check balance
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             balance_response = client.get("/api/v1/wallet/balance")
-        
+
         # 2. Purchase verification
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = mock_tv.return_value
             mock_instance.enabled = True
-            mock_instance.create_verification = AsyncMock(return_value={
-                "id": "tv-123",
-                "phone_number": "+12025551234",
-                "cost": 0.50
-            })
-            
+            mock_instance.create_verification = AsyncMock(
+                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+            )
+
             with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
                 verify_response = client.post(
-                    "/api/v1/verify/create",
-                    json={"service_name": "telegram", "country": "US"}
+                    "/api/v1/verify/create", json={"service_name": "telegram", "country": "US"}
                 )
-        
+
         # 3. Poll for status
         # 4. Get SMS code
         # 5. Complete verification
@@ -104,24 +97,20 @@ class TestNotificationFlow:
     def test_notification_delivery_flow(self, client, regular_user, db):
         """Test notification creation and delivery."""
         from app.models.notification import Notification
-        
+
         # 1. Create notification
         notification = Notification(
-            user_id=regular_user.id,
-            notification_type="info",
-            title="Test",
-            message="Test message",
-            is_read=False
+            user_id=regular_user.id, notification_type="info", title="Test", message="Test message", is_read=False
         )
         db.add(notification)
         db.commit()
-        
+
         # 2. Get notifications
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             response = client.get("/api/v1/notifications")
-        
+
         assert response.status_code == 200
-        
+
         # 3. Mark as read
         # 4. Delete notification
         assert True
@@ -135,7 +124,7 @@ class TestAdminWorkflow:
         # 1. List users
         with patch("app.core.dependencies.get_current_user_id", return_value=admin_user.id):
             list_response = client.get("/api/v1/admin/users")
-        
+
         # 2. View user details
         # 3. Update user tier
         # 4. Suspend user
@@ -158,15 +147,12 @@ class TestAPIKeyWorkflow:
         """Test complete API key lifecycle."""
         payg_user.email_verified = True
         db.commit()
-        
+
         # 1. Create API key
         with patch("app.core.dependencies.get_current_user_id", return_value=payg_user.id):
             with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
-                create_response = client.post(
-                    "/api/v1/auth/api-keys",
-                    json={"name": "Test Key"}
-                )
-        
+                create_response = client.post("/api/v1/auth/api-keys", json={"name": "Test Key"})
+
         # 2. List API keys
         # 3. Use API key
         # 4. Delete API key

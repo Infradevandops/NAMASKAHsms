@@ -1,8 +1,9 @@
 """Comprehensive tests for notification endpoints."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
@@ -20,7 +21,7 @@ class TestNotificationEndpoints:
                 type="info",
                 title=f"Test Notification {i}",
                 message=f"Test message {i}",
-                is_read=False
+                is_read=False,
             )
             db.add(notification)
         db.commit()
@@ -36,11 +37,7 @@ class TestNotificationEndpoints:
         # Create 10 notifications
         for i in range(10):
             notification = Notification(
-                user_id=regular_user.id,
-                type="info",
-                title=f"Notification {i}",
-                message=f"Message {i}",
-                is_read=False
+                user_id=regular_user.id, type="info", title=f"Notification {i}", message=f"Message {i}", is_read=False
             )
             db.add(notification)
         db.commit()
@@ -58,7 +55,7 @@ class TestNotificationEndpoints:
                 type="info",
                 title=f"Notification {i}",
                 message=f"Message {i}",
-                is_read=(i % 2 == 0)
+                is_read=(i % 2 == 0),
             )
             db.add(notification)
         db.commit()
@@ -76,11 +73,7 @@ class TestNotificationEndpoints:
     def test_mark_notification_as_read(self, authenticated_regular_client, regular_user, db):
         """Test marking notification as read."""
         notification = Notification(
-            user_id=regular_user.id,
-            type="info",
-            title="Test",
-            message="Test message",
-            is_read=False
+            user_id=regular_user.id, type="info", title="Test", message="Test message", is_read=False
         )
         db.add(notification)
         db.commit()
@@ -102,11 +95,7 @@ class TestNotificationEndpoints:
         # Create unread notifications
         for i in range(3):
             notification = Notification(
-                user_id=regular_user.id,
-                type="info",
-                title=f"Notification {i}",
-                message=f"Message {i}",
-                is_read=False
+                user_id=regular_user.id, type="info", title=f"Notification {i}", message=f"Message {i}", is_read=False
             )
             db.add(notification)
         db.commit()
@@ -118,11 +107,7 @@ class TestNotificationEndpoints:
     def test_delete_notification(self, authenticated_regular_client, regular_user, db):
         """Test deleting notification."""
         notification = Notification(
-            user_id=regular_user.id,
-            type="info",
-            title="Test",
-            message="Test message",
-            is_read=False
+            user_id=regular_user.id, type="info", title="Test", message="Test message", is_read=False
         )
         db.add(notification)
         db.commit()
@@ -146,7 +131,7 @@ class TestNotificationEndpoints:
                 type="info",
                 title=f"Notification {i}",
                 message=f"Message {i}",
-                is_read=(i < 2)  # First 2 are read, last 3 unread
+                is_read=(i < 2),  # First 2 are read, last 3 unread
             )
             db.add(notification)
         db.commit()
@@ -160,11 +145,7 @@ class TestNotificationEndpoints:
     def test_get_notification_by_id(self, authenticated_regular_client, regular_user, db):
         """Test getting specific notification."""
         notification = Notification(
-            user_id=regular_user.id,
-            type="info",
-            title="Test",
-            message="Test message",
-            is_read=False
+            user_id=regular_user.id, type="info", title="Test", message="Test message", is_read=False
         )
         db.add(notification)
         db.commit()
@@ -183,11 +164,7 @@ class TestNotificationEndpoints:
     def test_get_notification_wrong_user(self, authenticated_regular_client, pro_user, db):
         """Test accessing another user's notification."""
         notification = Notification(
-            user_id=pro_user.id,
-            type="info",
-            title="Test",
-            message="Test message",
-            is_read=False
+            user_id=pro_user.id, type="info", title="Test", message="Test message", is_read=False
         )
         db.add(notification)
         db.commit()
@@ -210,12 +187,7 @@ class TestNotificationPreferenceEndpoints:
     def test_update_preferences_success(self, authenticated_regular_client):
         """Test updating notification preferences."""
         response = authenticated_regular_client.put(
-            "/api/notifications/preferences",
-            json={
-                "email_enabled": True,
-                "push_enabled": False,
-                "sms_enabled": False
-            }
+            "/api/notifications/preferences", json={"email_enabled": True, "push_enabled": False, "sms_enabled": False}
         )
 
         assert response.status_code in [200, 404, 405]
@@ -223,8 +195,7 @@ class TestNotificationPreferenceEndpoints:
     def test_update_preference_by_type(self, authenticated_regular_client):
         """Test updating specific notification type preference."""
         response = authenticated_regular_client.patch(
-            "/api/notifications/preferences/sms_received",
-            json={"enabled": True}
+            "/api/notifications/preferences/sms_received", json={"enabled": True}
         )
 
         assert response.status_code in [200, 404]
@@ -254,11 +225,7 @@ class TestNotificationChannelEndpoints:
     def test_register_device_token(self, authenticated_regular_client):
         """Test registering device token for push notifications."""
         response = authenticated_regular_client.post(
-            "/api/notifications/devices",
-            json={
-                "token": "test-device-token",
-                "platform": "ios"
-            }
+            "/api/notifications/devices", json={"token": "test-device-token", "platform": "ios"}
         )
 
         assert response.status_code in [200, 201, 404, 405]
