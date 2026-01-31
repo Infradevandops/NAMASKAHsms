@@ -7,6 +7,9 @@ black==24.3.0
 flake8==7.0.0
 mypy==1.8.0
 isort==5.13.2
+safety==3.0.1
+bandit==1.7.6
+pip-audit==2.6.1
 fakeredis[lua]==2.23.0
 typing_extensions>=4.6.0
 async-timeout>=4.0.3; python_version < "3.11"
