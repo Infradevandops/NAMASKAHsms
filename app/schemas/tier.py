@@ -46,7 +46,7 @@ class TiersListResponse(BaseModel):
 
     @field_validator("tiers")
     @classmethod
-def validate_tiers_count(cls, v):
+    def validate_tiers_count(cls, v):
         """Validate that we have exactly 4 tiers."""
 
 
@@ -72,7 +72,7 @@ class CurrentTierResponse(BaseModel):
 
     @field_validator("current_tier")
     @classmethod
-def validate_tier(cls, v):
+    def validate_tier(cls, v):
 
         """Validate tier is one of the allowed values."""
         allowed_tiers = {"freemium", "payg", "pro", "custom"}
@@ -111,7 +111,7 @@ class DashboardActivity(BaseModel):
 
     @field_validator("status")
     @classmethod
-def validate_status(cls, v):
+    def validate_status(cls, v):
 
         """Validate status is one of the allowed values."""
         allowed_statuses = {"pending", "completed", "failed", "expired", "processing"}

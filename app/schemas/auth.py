@@ -46,8 +46,8 @@ class UserCreate(BaseModel):
     def validate_referral_code_field(cls, v):
         if v:
             v = v.strip().upper()
-            if len(v) != 6 or not v.isalnum():
-                raise ValueError("Referral code must be 6 alphanumeric characters")
+        if len(v) != 6 or not v.isalnum():
+            raise ValueError("Referral code must be 6 alphanumeric characters")
         return v
 
     model_config = {

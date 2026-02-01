@@ -73,7 +73,7 @@ class CurrentTierResponse(BaseModel):
     features: CurrentTierFeaturesSchema
 
     @validator("current_tier")
-def validate_tier_value(cls, v):
+    def validate_tier_value(cls, v):
         """Ensure tier is a valid value."""
         valid_tiers = {"freemium", "payg", "pro", "custom"}
 
@@ -101,7 +101,7 @@ class AnalyticsSummaryResponse(BaseModel):
     last_updated: str
 
     @validator("success_rate")
-def validate_success_rate(cls, v):
+    def validate_success_rate(cls, v):
 
         """Ensure success rate is between 0 and 1."""
 if v < 0 or v > 1:

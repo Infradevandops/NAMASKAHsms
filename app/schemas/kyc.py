@@ -36,11 +36,9 @@ class KYCProfileCreate(BaseModel):
 
     @field_validator("phone_number")
     @classmethod
-def validate_phone(cls, v):
-
-
+    def validate_phone(cls, v):
         # Basic phone validation
-if not re.match(r"^\+?[1 - 9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
+        if not re.match(r"^\+?[1-9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
             raise ValueError("Invalid phone number format")
         return v
 
