@@ -6,12 +6,12 @@ import psutil
 
 class AutoScaler:
 
-def __init__(self, cpu_threshold: float = 80.0, memory_threshold: float = 85.0):
+    def __init__(self, cpu_threshold: float = 80.0, memory_threshold: float = 85.0):
 
         self.cpu_threshold = cpu_threshold
         self.memory_threshold = memory_threshold
 
-def get_system_metrics(self) -> Dict[str, Any]:
+    def get_system_metrics(self) -> Dict[str, Any]:
 
         """Get current system metrics."""
         return {
@@ -21,13 +21,13 @@ def get_system_metrics(self) -> Dict[str, Any]:
             "active_connections": len(psutil.net_connections()),
         }
 
-def should_scale_up(self) -> bool:
+    def should_scale_up(self) -> bool:
 
         """Check if system should scale up."""
         metrics = self.get_system_metrics()
         return metrics["cpu_percent"] > self.cpu_threshold or metrics["memory_percent"] > self.memory_threshold
 
-def should_scale_down(self) -> bool:
+    def should_scale_down(self) -> bool:
 
         """Check if system can scale down."""
         metrics = self.get_system_metrics()

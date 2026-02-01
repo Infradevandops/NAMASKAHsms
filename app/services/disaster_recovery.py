@@ -8,7 +8,7 @@ class DisasterRecoveryService:
 
     """Disaster recovery and business continuity management."""
 
-def __init__(self):
+    def __init__(self):
 
         self.backup_locations = {
             "primary": "s3://namaskah - backups-us - east",
@@ -123,4 +123,4 @@ def __init__(self):
 
 
 # Global disaster recovery service
-disaster_recovery = DisasterRecoveryService()
+        disaster_recovery = DisasterRecoveryService()

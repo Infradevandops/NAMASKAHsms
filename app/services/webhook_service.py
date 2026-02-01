@@ -15,7 +15,7 @@ class WebhookService:
 
     """Manages webhook registration and delivery."""
 
-def __init__(self):
+    def __init__(self):
 
         self.webhooks = {}
         self.timeout = 10
@@ -32,24 +32,24 @@ def __init__(self):
         logger.info(f"Webhook registered: {webhook_id}")
         return webhook_id
 
-def _sign_payload(self, payload: str, secret: str) -> str:
+    def _sign_payload(self, payload: str, secret: str) -> str:
 
         """Sign webhook payload."""
         return hmac.new(secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
 
     async def deliver(self, webhook_id: str, event: str, data: Dict[str, Any], secret: str):
         """Deliver webhook event."""
-if webhook_id not in self.webhooks:
+        if webhook_id not in self.webhooks:
             return
 
         webhook = self.webhooks[webhook_id]
-if event not in webhook["events"] or not webhook["active"]:
+        if event not in webhook["events"] or not webhook["active"]:
             return
 
         payload = json.dumps({"event": event, "data": data})
         signature = self._sign_payload(payload, secret)
 
-try:
+        try:
             async with httpx.AsyncClient() as client:
                 await client.post(
                     webhook["url"],
@@ -61,10 +61,10 @@ try:
                     timeout=self.timeout,
                 )
                 webhook["retries"] = 0
-except Exception as e:
+        except Exception as e:
             logger.error(f"Webhook delivery failed: {e}")
             webhook["retries"] += 1
-if webhook["retries"] > 3:
+        if webhook["retries"] > 3:
                 webhook["active"] = False
 
     async def get_webhooks(self, user_id: str) -> list:
@@ -72,4 +72,4 @@ if webhook["retries"] > 3:
         return [{"id": wh_id, **wh} for wh_id, wh in self.webhooks.items() if user_id in wh_id]
 
 
-webhook_service = WebhookService()
+        webhook_service = WebhookService()

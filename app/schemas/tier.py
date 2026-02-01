@@ -36,15 +36,15 @@ class TierInfo(BaseModel):
 
 
 class TierListResponse(BaseModel):
-    """Response schema for tier list endpoint."""
+        """Response schema for tier list endpoint."""
 
-    tiers: List[TierInfo] = Field(..., description="List of available tiers")
-    current_tier: str = Field(..., description="User's current tier")
-    can_upgrade: bool = Field(..., description="Whether user can upgrade")
-    can_downgrade: bool = Field(..., description="Whether user can downgrade")
+        tiers: List[TierInfo] = Field(..., description="List of available tiers")
+        current_tier: str = Field(..., description="User's current tier")
+        can_upgrade: bool = Field(..., description="Whether user can upgrade")
+        can_downgrade: bool = Field(..., description="Whether user can downgrade")
 
-    @field_validator("tiers")
-    @classmethod
+        @field_validator("tiers")
+        @classmethod
     def validate_tiers_count(cls, v):
         """Ensure we have all 4 tiers."""
         if len(v) < 4:
@@ -53,24 +53,24 @@ class TierListResponse(BaseModel):
 
 
 class CurrentTierFeaturesSchema(BaseModel):
-    """Schema for current tier features response."""
+        """Schema for current tier features response."""
 
-    tier: str = Field(..., description="Current tier name")
-    features: TierFeatures = Field(..., description="Current tier features")
-    usage: dict = Field(..., description="Current usage statistics")
-    limits: dict = Field(..., description="Current tier limits")
+        tier: str = Field(..., description="Current tier name")
+        features: TierFeatures = Field(..., description="Current tier features")
+        usage: dict = Field(..., description="Current usage statistics")
+        limits: dict = Field(..., description="Current tier limits")
 
 
 class TierUpgradeRequest(BaseModel):
-    """Schema for tier upgrade requests."""
+        """Schema for tier upgrade requests."""
 
-    target_tier: str = Field(..., description="Target tier to upgrade to")
-    payment_method: Optional[str] = Field(
+        target_tier: str = Field(..., description="Target tier to upgrade to")
+        payment_method: Optional[str] = Field(
         default="paystack", description="Payment method"
-    )
+        )
 
-    @field_validator("target_tier")
-    @classmethod
+        @field_validator("target_tier")
+        @classmethod
     def validate_tier_value(cls, v):
         """Validate target tier is upgradeable."""
         allowed_tiers = {"payg", "pro", "custom"}
@@ -80,11 +80,11 @@ class TierUpgradeRequest(BaseModel):
 
 
 class TierUpgradeResponse(BaseModel):
-    """Schema for tier upgrade response."""
+        """Schema for tier upgrade response."""
 
-    success: bool = Field(..., description="Whether upgrade was successful")
-    new_tier: str = Field(..., description="New tier after upgrade")
-    payment_url: Optional[str] = Field(
+        success: bool = Field(..., description="Whether upgrade was successful")
+        new_tier: str = Field(..., description="New tier after upgrade")
+        payment_url: Optional[str] = Field(
         None, description="Payment URL if payment required"
-    )
-    message: str = Field(..., description="Success or error message")
+        )
+        message: str = Field(..., description="Success or error message")

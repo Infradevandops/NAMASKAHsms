@@ -18,12 +18,12 @@ class ActivityService:
 
     """Service for managing user activities."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         """Initialize activity service with database session."""
         self.db = db
 
-def log_activity(
+    def log_activity(
 
         self,
         user_id: str,
@@ -37,7 +37,7 @@ def log_activity(
         metadata: Optional[Dict[str, Any]] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-    ) -> Activity:
+        ) -> Activity:
         """Log a user activity.
 
         Args:
@@ -61,7 +61,7 @@ def log_activity(
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Create activity
@@ -89,7 +89,7 @@ if not user:
 
         return activity
 
-def get_user_activities(
+    def get_user_activities(
 
         self,
         user_id: str,
@@ -98,7 +98,7 @@ def get_user_activities(
         status: Optional[str] = None,
         skip: int = 0,
         limit: int = 20,
-    ) -> Dict[str, Any]:
+        ) -> Dict[str, Any]:
         """Get activities for user with filtering.
 
         Args:
@@ -117,20 +117,20 @@ def get_user_activities(
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Build query
         query = self.db.query(Activity).filter(Activity.user_id == user_id)
 
         # Apply filters
-if activity_type:
+        if activity_type:
             query = query.filter(Activity.activity_type == activity_type)
 
-if resource_type:
+        if resource_type:
             query = query.filter(Activity.resource_type == resource_type)
 
-if status:
+        if status:
             query = query.filter(Activity.status == status)
 
         # Get total count
@@ -151,7 +151,7 @@ if status:
             "activities": [a.to_dict() for a in activities],
         }
 
-def get_activity_by_id(self, user_id: str, activity_id: str) -> Optional[Activity]:
+    def get_activity_by_id(self, user_id: str, activity_id: str) -> Optional[Activity]:
 
         """Get activity by ID for user.
 
@@ -167,19 +167,19 @@ def get_activity_by_id(self, user_id: str, activity_id: str) -> Optional[Activit
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         activity = self.db.query(Activity).filter(Activity.id == activity_id, Activity.user_id == user_id).first()
 
-if activity:
+        if activity:
             logger.info(f"Retrieved activity {activity_id} for user {user_id}")
-else:
+        else:
             logger.warning(f"Activity {activity_id} not found for user {user_id}")
 
         return activity
 
-def get_activities_by_resource(self, user_id: str, resource_type: str, resource_id: str) -> List[Activity]:
+    def get_activities_by_resource(self, user_id: str, resource_type: str, resource_id: str) -> List[Activity]:
 
         """Get all activities for a specific resource.
 
@@ -196,7 +196,7 @@ def get_activities_by_resource(self, user_id: str, resource_type: str, resource_
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         activities = (
@@ -216,7 +216,7 @@ if not user:
 
         return activities
 
-def get_activity_summary(self, user_id: str, days: int = 30) -> Dict[str, Any]:
+    def get_activity_summary(self, user_id: str, days: int = 30) -> Dict[str, Any]:
 
         """Get activity summary for user.
 
@@ -232,7 +232,7 @@ def get_activity_summary(self, user_id: str, days: int = 30) -> Dict[str, Any]:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Calculate date threshold
@@ -250,7 +250,7 @@ if not user:
             "by_resource": {},
         }
 
-for activity in activities:
+        for activity in activities:
             # Count by type
             summary["by_type"][activity.activity_type] = summary["by_type"].get(activity.activity_type, 0) + 1
 
@@ -264,7 +264,7 @@ for activity in activities:
 
         return summary
 
-def cleanup_old_activities(self, days: int = 90) -> int:
+    def cleanup_old_activities(self, days: int = 90) -> int:
 
         """Delete activities older than specified days.
 

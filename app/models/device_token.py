@@ -20,7 +20,7 @@ class DeviceToken(BaseModel):
     # Relationship
     user = relationship("User", back_populates="device_tokens")
 
-def to_dict(self):
+    def to_dict(self):
 
         """Convert to dictionary."""
         return {

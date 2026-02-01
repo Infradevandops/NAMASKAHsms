@@ -72,55 +72,55 @@ class SecurityConfig:
     }
 
     @staticmethod
-def is_sensitive_key(key: str) -> bool:
+    def is_sensitive_key(key: str) -> bool:
 
         """Check if a key contains sensitive information."""
         key_lower = key.lower()
         return any(pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS)
 
-    @staticmethod
-def sanitize_data(data: Any) -> Any:
+        @staticmethod
+    def sanitize_data(data: Any) -> Any:
 
         """Recursively sanitize sensitive data."""
-if isinstance(data, dict):
+        if isinstance(data, dict):
             sanitized = {}
-for key, value in data.items():
-if SecurityConfig.is_sensitive_key(key):
+        for key, value in data.items():
+        if SecurityConfig.is_sensitive_key(key):
                     sanitized[key] = "[REDACTED]"
-elif isinstance(value, (dict, list)):
+        elif isinstance(value, (dict, list)):
                     sanitized[key] = SecurityConfig.sanitize_data(value)
-else:
+        else:
                     sanitized[key] = value
-            return sanitized
-elif isinstance(data, list):
-            return [SecurityConfig.sanitize_data(item) for item in data]
-else:
-            return data
+        return sanitized
+        elif isinstance(data, list):
+        return [SecurityConfig.sanitize_data(item) for item in data]
+        else:
+        return data
 
-    @staticmethod
-def validate_host(host: str) -> bool:
+        @staticmethod
+    def validate_host(host: str) -> bool:
 
         """Validate if host is allowed."""
         settings = get_settings()
-if settings.environment == "development":
-            return True  # Allow all hosts in development
+        if settings.environment == "development":
+        return True  # Allow all hosts in development
 
         return host in SecurityConfig.ALLOWED_HOSTS
 
-    @staticmethod
-def generate_secure_token(length: int = 32) -> str:
+        @staticmethod
+    def generate_secure_token(length: int = 32) -> str:
 
         """Generate a cryptographically secure token."""
         return secrets.token_urlsafe(length)
 
-    @staticmethod
-def validate_input_length(value: str, max_length: int = 1000) -> bool:
+        @staticmethod
+    def validate_input_length(value: str, max_length: int = 1000) -> bool:
 
         """Validate input length to prevent DoS attacks."""
         return len(value) <= max_length
 
-    @staticmethod
-def get_safe_filename(filename: str) -> str:
+        @staticmethod
+    def get_safe_filename(filename: str) -> str:
 
         """Get a safe filename by removing dangerous characters."""
 
@@ -129,8 +129,8 @@ def get_safe_filename(filename: str) -> str:
         # Limit length
         return safe_name[:100]
 
-    @staticmethod
-def validate_sql_identifier(identifier: str) -> bool:
+        @staticmethod
+    def validate_sql_identifier(identifier: str) -> bool:
 
         """Validate SQL identifier to prevent injection."""
 
@@ -140,34 +140,34 @@ def validate_sql_identifier(identifier: str) -> bool:
 
 class RateLimitConfig:
 
-    """Rate limiting configuration."""
+        """Rate limiting configuration."""
 
     # Default rate limits (requests per minute)
-    DEFAULT_LIMITS = {
+        DEFAULT_LIMITS = {
         "auth": 5,  # Login/register attempts
         "verification": 10,  # SMS verification requests
         "api": 60,  # General API calls
         "webhook": 100,  # Webhook deliveries
-    }
+        }
 
     # Burst limits (maximum requests in short period)
-    BURST_LIMITS = {"auth": 10, "verification": 20, "api": 120, "webhook": 200}
+        BURST_LIMITS = {"auth": 10, "verification": 20, "api": 120, "webhook": 200}
 
     # Lockout durations (minutes)
-    LOCKOUT_DURATIONS = {
+        LOCKOUT_DURATIONS = {
         "auth": 15,  # 15 minutes for failed auth
         "verification": 5,  # 5 minutes for verification spam
         "api": 1,  # 1 minute for API abuse
         "webhook": 1,  # 1 minute for webhook spam
-    }
+        }
 
 
 class AuditConfig:
 
-    """Audit logging configuration."""
+        """Audit logging configuration."""
 
     # Events that require audit logging
-    AUDIT_EVENTS = [
+        AUDIT_EVENTS = [
         "user_login",
         "user_logout",
         "user_register",
@@ -180,25 +180,25 @@ class AuditConfig:
         "webhook_create",
         "webhook_delete",
         "settings_change",
-    ]
+        ]
 
     # Sensitive operations that require enhanced logging
-    SENSITIVE_OPERATIONS = [
+        SENSITIVE_OPERATIONS = [
         "admin_login",
         "user_delete",
         "payment_refund",
         "api_key_regenerate",
         "webhook_secret_change",
-    ]
+        ]
 
-    @staticmethod
-def should_audit(operation: str) -> bool:
+        @staticmethod
+    def should_audit(operation: str) -> bool:
 
         """Check if operation should be audited."""
         return operation in AuditConfig.AUDIT_EVENTS
 
-    @staticmethod
-def is_sensitive_operation(operation: str) -> bool:
+        @staticmethod
+    def is_sensitive_operation(operation: str) -> bool:
 
         """Check if operation is sensitive and needs enhanced logging."""
         return operation in AuditConfig.SENSITIVE_OPERATIONS

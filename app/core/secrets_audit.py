@@ -26,12 +26,12 @@ class SecretsAudit:
 
     """Audit logging for secrets operations."""
 
-def __init__(self):
+    def __init__(self):
 
         self.audit_logger = logging.getLogger("secrets_audit")
         self.audit_logger.setLevel(logging.INFO)
 
-def log_action(
+    def log_action(
 
         self,
         action: AuditAction,
@@ -41,7 +41,7 @@ def log_action(
         status: str = "success",
         error: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ):
+        ):
         """Log secrets operation for audit trail."""
         audit_entry = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -56,14 +56,14 @@ def log_action(
 
         self.audit_logger.info(json.dumps(audit_entry))
 
-def log_get(
+    def log_get(
 
         self,
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
         cached: bool = False,
-    ):
+        ):
         """Log secret retrieval."""
         self.log_action(
             action=AuditAction.GET,
@@ -73,14 +73,14 @@ def log_get(
             metadata={"cached": cached},
         )
 
-def log_set(
+    def log_set(
 
         self,
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
         created: bool = False,
-    ):
+        ):
         """Log secret creation or update."""
         self.log_action(
             action=AuditAction.SET,
@@ -90,14 +90,14 @@ def log_set(
             metadata={"created": created},
         )
 
-def log_delete(
+    def log_delete(
 
         self,
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
         recovery_window_days: int = 7,
-    ):
+        ):
         """Log secret deletion."""
         self.log_action(
             action=AuditAction.DELETE,
@@ -107,13 +107,13 @@ def log_delete(
             metadata={"recovery_window_days": recovery_window_days},
         )
 
-def log_rotate(
+    def log_rotate(
 
         self,
         secret_name: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
-    ):
+        ):
         """Log secret rotation."""
         self.log_action(
             action=AuditAction.ROTATE,
@@ -122,7 +122,7 @@ def log_rotate(
             ip_address=ip_address,
         )
 
-def log_error(
+    def log_error(
 
         self,
         action: AuditAction,
@@ -130,7 +130,7 @@ def log_error(
         error: str,
         user_id: Optional[str] = None,
         ip_address: Optional[str] = None,
-    ):
+        ):
         """Log failed secrets operation."""
         self.log_action(
             action=action,
@@ -143,15 +143,15 @@ def log_error(
 
 
 # Global audit instance
-_audit: Optional[SecretsAudit] = None
+        _audit: Optional[SecretsAudit] = None
 
 
-def get_audit() -> SecretsAudit:
+    def get_audit() -> SecretsAudit:
 
-    """Get or create global audit instance."""
-    global _audit
+        """Get or create global audit instance."""
+        global _audit
 
-if _audit is None:
+        if _audit is None:
         _audit = SecretsAudit()
 
-    return _audit
+        return _audit

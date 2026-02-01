@@ -8,7 +8,7 @@ class ComplianceService:
 
     """SOC 2 compliance management and audit tracking."""
 
-def __init__(self):
+    def __init__(self):
 
         self.soc2_controls = {
             "CC1": "Control Environment",
@@ -27,7 +27,7 @@ def __init__(self):
         controls_status = {}
 
         # Assess each SOC 2 control
-for control_id, control_name in self.soc2_controls.items():
+        for control_id, control_name in self.soc2_controls.items():
             controls_status[control_id] = await self._assess_control(control_id)
 
         # Calculate overall compliance score
@@ -115,4 +115,4 @@ for control_id, control_name in self.soc2_controls.items():
 
 
 # Global compliance service
-compliance_service = ComplianceService()
+        compliance_service = ComplianceService()

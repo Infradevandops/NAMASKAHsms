@@ -9,7 +9,7 @@ class TelegramService:
 
     """Telegram Bot API service."""
 
-def __init__(self):
+    def __init__(self):
 
         self.bot_token = settings.telegram_bot_token
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
@@ -26,7 +26,7 @@ def __init__(self):
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload)
-            return response.json()
+        return response.json()
 
     async def set_webhook(self, webhook_url: str) -> Dict:
         """Set webhook for receiving updates."""
@@ -36,4 +36,4 @@ def __init__(self):
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload)
-            return response.json()
+        return response.json()

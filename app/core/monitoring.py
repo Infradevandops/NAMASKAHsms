@@ -21,35 +21,35 @@ class MetricsCollector:
 
     """Application performance metrics collector."""
 
-def __init__(self):
+    def __init__(self):
 
         self.metrics = []
         self.counters = {}
         self.gauges = {}
 
-def increment(self, name: str, value: float = 1.0, tags: Dict[str, str] = None):
+    def increment(self, name: str, value: float = 1.0, tags: Dict[str, str] = None):
 
         """Increment counter metric."""
         self.counters[name] = self.counters.get(name, 0) + value
         self.metrics.append(Metric(name, value, tags=tags or {}))
 
-def gauge(self, name: str, value: float, tags: Dict[str, str] = None):
+    def gauge(self, name: str, value: float, tags: Dict[str, str] = None):
 
         """Set gauge metric."""
         self.gauges[name] = value
         self.metrics.append(Metric(name, value, tags=tags or {}))
 
-def timer(self, name: str, duration: float, tags: Dict[str, str] = None):
+    def timer(self, name: str, duration: float, tags: Dict[str, str] = None):
 
         """Record timing metric."""
         self.metrics.append(Metric(f"{name}.duration", duration, tags=tags or {}))
 
-def get_metrics(self) -> List[Metric]:
+    def get_metrics(self) -> List[Metric]:
 
         """Get all collected metrics."""
         return self.metrics.copy()
 
-def clear_metrics(self):
+    def clear_metrics(self):
 
         """Clear collected metrics."""
         self.metrics.clear()
@@ -57,9 +57,9 @@ def clear_metrics(self):
 
 class PerformanceMonitor:
 
-    """Performance monitoring and SLA tracking."""
+        """Performance monitoring and SLA tracking."""
 
-def __init__(self):
+    def __init__(self):
 
         self.sla_thresholds = {
             "response_time_p95": 2000,  # 2 seconds
@@ -77,7 +77,7 @@ def __init__(self):
         self.metrics_collector.timer("requests.duration", duration, tags=tags)
 
         # Track errors
-if status_code >= 400:
+        if status_code >= 400:
             self.metrics_collector.increment("requests.errors", tags=tags)
 
     async def check_sla_compliance(self) -> Dict[str, Any]:
@@ -109,12 +109,12 @@ if status_code >= 400:
 
         return compliance
 
-    @staticmethod
-def _calculate_percentile(values: List[float], percentile: int) -> float:
+        @staticmethod
+    def _calculate_percentile(values: List[float], percentile: int) -> float:
 
         """Calculate percentile value."""
-if not values:
-            return 0
+        if not values:
+        return 0
 
         sorted_values = sorted(values)
         index = int(len(sorted_values) * percentile / 100)
@@ -123,9 +123,9 @@ if not values:
 
 class ErrorTracker:
 
-    """Error tracking and alerting system."""
+        """Error tracking and alerting system."""
 
-def __init__(self):
+    def __init__(self):
 
         self.errors = []
         self.alert_thresholds = {
@@ -133,7 +133,7 @@ def __init__(self):
             "critical_error_rate": 5,  # 5 critical errors
         }
 
-def track_error(self, error: Exception, context: Dict[str, Any] = None):
+    def track_error(self, error: Exception, context: Dict[str, Any] = None):
 
         """Track application error."""
         error_data = {
@@ -147,35 +147,35 @@ def track_error(self, error: Exception, context: Dict[str, Any] = None):
         self.errors.append(error_data)
 
         # Check for alert conditions
-if self._should_alert(error_data):
+        if self._should_alert(error_data):
             asyncio.create_task(self._send_alert(error_data))
 
-    @staticmethod
-def _determine_severity(error: Exception) -> str:
+        @staticmethod
+    def _determine_severity(error: Exception) -> str:
 
         """Determine error severity."""
         critical_errors = ["DatabaseError", "PaymentError", "ExternalServiceError"]
 
-if type(error).__name__ in critical_errors:
-            return "critical"
-elif "timeout" in str(error).lower():
-            return "warning"
-else:
-            return "info"
+        if type(error).__name__ in critical_errors:
+        return "critical"
+        elif "timeout" in str(error).lower():
+        return "warning"
+        else:
+        return "info"
 
-def _should_alert(self, error_data: Dict) -> bool:
+    def _should_alert(self, error_data: Dict) -> bool:
 
         """Check if error should trigger alert."""
         # Alert on critical errors
-if error_data["severity"] == "critical":
-            return True
+        if error_data["severity"] == "critical":
+        return True
 
         # Alert on high error rate
         recent_errors = [e for e in self.errors if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 300]
 
         return len(recent_errors) >= self.alert_thresholds["error_rate_5min"]
 
-    @staticmethod
+        @staticmethod
     async def _send_alert(error_data: Dict):
         """Send error alert."""
         # In production, integrate with alerting system (PagerDuty, Slack, etc.)
@@ -184,9 +184,9 @@ if error_data["severity"] == "critical":
 
 class DashboardMetrics:
 
-    """Real - time dashboard metrics."""
+        """Real - time dashboard metrics."""
 
-def __init__(self):
+    def __init__(self):
 
         self.performance_monitor = PerformanceMonitor()
         self.error_tracker = ErrorTracker()
@@ -208,7 +208,7 @@ def __init__(self):
             "system_status": ("healthy" if all(sla["compliant"] for sla in sla_compliance.values()) else "degraded"),
         }
 
-    @staticmethod
+        @staticmethod
     async def get_business_metrics() -> Dict[str, Any]:
         """Get business metrics."""
         # In production, fetch from database
@@ -223,19 +223,19 @@ def __init__(self):
 
 class CanaryAnalyzer:
 
-    """Automated canary deployment analysis."""
+        """Automated canary deployment analysis."""
 
-def __init__(self):
+    def __init__(self):
 
         self.baseline_metrics = {}
         self.canary_metrics = {}
 
-def set_baseline(self, metrics: Dict[str, float]):
+    def set_baseline(self, metrics: Dict[str, float]):
 
         """Set baseline metrics for comparison."""
         self.baseline_metrics = metrics.copy()
 
-def analyze_canary(self, canary_metrics: Dict[str, float]) -> Dict[str, Any]:
+    def analyze_canary(self, canary_metrics: Dict[str, float]) -> Dict[str, Any]:
 
         """Analyze canary deployment metrics."""
         self.canary_metrics = canary_metrics.copy()
@@ -247,8 +247,8 @@ def analyze_canary(self, canary_metrics: Dict[str, float]) -> Dict[str, Any]:
         }
 
         # Compare key metrics
-for metric, canary_value in canary_metrics.items():
-if metric in self.baseline_metrics:
+        for metric, canary_value in canary_metrics.items():
+        if metric in self.baseline_metrics:
                 baseline_value = self.baseline_metrics[metric]
                 change_percent = ((canary_value - baseline_value) / baseline_value) * 100
 
@@ -259,10 +259,10 @@ if metric in self.baseline_metrics:
                 }
 
                 # Check for significant degradation
-if metric == "error_rate" and change_percent > 50:
+        if metric == "error_rate" and change_percent > 50:
                     analysis["recommendation"] = "rollback"
                     analysis["confidence"] = 0.9
-elif metric == "response_time" and change_percent > 25:
+        elif metric == "response_time" and change_percent > 25:
                     analysis["recommendation"] = "rollback"
                     analysis["confidence"] = 0.85
 
@@ -270,8 +270,8 @@ elif metric == "response_time" and change_percent > 25:
 
 
 # Global monitoring instances
-metrics_collector = MetricsCollector()
-performance_monitor = PerformanceMonitor()
-error_tracker = ErrorTracker()
-dashboard_metrics = DashboardMetrics()
-canary_analyzer = CanaryAnalyzer()
+        metrics_collector = MetricsCollector()
+        performance_monitor = PerformanceMonitor()
+        error_tracker = ErrorTracker()
+        dashboard_metrics = DashboardMetrics()
+        canary_analyzer = CanaryAnalyzer()

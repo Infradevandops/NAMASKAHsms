@@ -11,7 +11,7 @@ class SmartRouter:
 
     """AI - powered SMS provider routing."""
 
-def __init__(self):
+    def __init__(self):
 
         self.provider_stats = {}
         self.routing_rules = {
@@ -25,7 +25,7 @@ def __init__(self):
         providers = ["5sim", "sms_activate", "getsms", "textverified"]
         scores = {}
 
-for provider in providers:
+        for provider in providers:
             stats = await self._get_provider_stats(provider, service, country)
             scores[provider] = self._calculate_score(stats)
 
@@ -64,7 +64,7 @@ for provider in providers:
             "reliability": min(success_rate + (total / 100), 1.0),
         }
 
-def _calculate_score(self, stats: Dict) -> float:
+    def _calculate_score(self, stats: Dict) -> float:
 
         """Calculate provider score using weighted metrics."""
         cost_score = 1 / max(stats["avg_cost"], 0.1)  # Lower cost = higher score
@@ -79,4 +79,4 @@ def _calculate_score(self, stats: Dict) -> float:
 
 
 # Global router instance
-smart_router = SmartRouter()
+        smart_router = SmartRouter()

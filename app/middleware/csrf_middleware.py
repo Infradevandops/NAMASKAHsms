@@ -16,11 +16,11 @@ class CSRFMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next) -> Response:
         # Skip CSRF for public endpoints
-if self._is_public_endpoint(request.url.path):
-            return await call_next(request)
+        if self._is_public_endpoint(request.url.path):
+        return await call_next(request)
 
         # Generate CSRF token for GET requests
-if request.method in self.SAFE_METHODS:
+        if request.method in self.SAFE_METHODS:
             response = await call_next(request)
             csrf_token = secrets.token_urlsafe(32)
             response.set_cookie(
@@ -32,22 +32,22 @@ if request.method in self.SAFE_METHODS:
                 max_age=3600,
             )
             response.headers["X-CSRF-Token"] = csrf_token
-            return response
+        return response
 
         # Validate CSRF token for state-changing requests
-if request.method in {"POST", "PUT", "DELETE", "PATCH"}:
+        if request.method in {"POST", "PUT", "DELETE", "PATCH"}:
             token_from_header = request.headers.get(self.CSRF_HEADER)
             token_from_cookie = request.cookies.get(self.CSRF_COOKIE)
 
-if not token_from_header or not token_from_cookie:
+        if not token_from_header or not token_from_cookie:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing")
 
-if token_from_header != token_from_cookie:
+        if token_from_header != token_from_cookie:
                 raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid")
 
         return await call_next(request)
 
-def _is_public_endpoint(self, path: str) -> bool:
+    def _is_public_endpoint(self, path: str) -> bool:
 
         """Check if endpoint is public (no CSRF required)."""
         public_paths = [

@@ -6,14 +6,14 @@ class TestQuotaServiceComplete:
 
     """Comprehensive tests for QuotaService."""
 
-def test_get_monthly_usage_empty(self, db_session, regular_user):
+    def test_get_monthly_usage_empty(self, db_session, regular_user):
 
         """Test getting usage for user with no history."""
         usage = QuotaService.get_monthly_usage(db_session, regular_user.id)
         assert usage["quota_used"] == 0.0
         assert usage["overage_used"] == 0.0
 
-def test_add_quota_usage(self, db_session, regular_user):
+    def test_add_quota_usage(self, db_session, regular_user):
 
         """Test adding quota usage."""
         QuotaService.add_quota_usage(db_session, regular_user.id, 5.0)
@@ -26,7 +26,7 @@ def test_add_quota_usage(self, db_session, regular_user):
         usage = QuotaService.get_monthly_usage(db_session, regular_user.id)
         assert usage["quota_used"] == 7.5
 
-def test_calculate_overage(self, db_session, regular_user):
+    def test_calculate_overage(self, db_session, regular_user):
 
         """Test overage calculation."""
         # Upgrade to pro (quota 15 USD, overage rate 0.30)
@@ -46,7 +46,7 @@ def test_calculate_overage(self, db_session, regular_user):
         overage = QuotaService.calculate_overage(db_session, regular_user.id, 2.0)
         assert abs(overage - 0.30) < 0.001
 
-def test_get_overage_rate(self, db_session, regular_user):
+    def test_get_overage_rate(self, db_session, regular_user):
 
         """Test getting overage rate."""
         regular_user.subscription_tier = "pro"

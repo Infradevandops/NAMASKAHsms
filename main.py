@@ -1,4 +1,7 @@
 """
+Namaskah SMS - Optimized Application Factory
+"""
+
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -35,9 +38,6 @@ import jwt
 from app.models.base import Base
 import uvicorn
 
-Namaskah SMS - Optimized Application Factory
-"""
-
 
 # Import modular routers
 
@@ -51,10 +51,9 @@ def get_optional_user_id(
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[str]:
     """Get user ID from token if provided, otherwise return None."""
-if not credentials:
+    if not credentials:
         return None
-try:
-
+    try:
         settings = get_settings()
         payload = jwt.decode(
             credentials.credentials,
@@ -62,7 +61,7 @@ try:
             algorithms=[settings.jwt_algorithm],
         )
         return payload.get("user_id")
-except Exception:
+    except Exception:
         return None
 
 
@@ -119,9 +118,9 @@ def create_app() -> FastAPI:
     async def fix_mime_types(request: Request, call_next):
         response = await call_next(request)
         path = request.url.path
-if path.endswith(".css"):
+        if path.endswith(".css"):
             response.headers["content-type"] = "text/css; charset=utf-8"
-elif path.endswith(".js"):
+        elif path.endswith(".js"):
             response.headers["content-type"] = "application/javascript; charset=utf-8"
         return response
 
@@ -131,9 +130,9 @@ elif path.endswith(".js"):
     fastapi_app.add_middleware(RequestLoggingMiddleware)
 
     # ============== STATIC FILES ==============
-if STATIC_DIR.exists():
+    if STATIC_DIR.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
-else:
+    else:
         STATIC_DIR.mkdir(parents=True, exist_ok=True)
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
 
@@ -177,7 +176,7 @@ else:
             "templates": {
                 "count": (
                     len(list(TEMPLATES_DIR.glob("*.html")))
-if TEMPLATES_DIR.exists()
+                    if TEMPLATES_DIR.exists()
                     else 0
                 )
             },

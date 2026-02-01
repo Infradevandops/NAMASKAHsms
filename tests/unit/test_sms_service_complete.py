@@ -19,31 +19,31 @@ class TestSMSServiceComplete:
 
     # ==================== Pricing & Cost Calculation ====================
 
-def test_sms_base_cost_freemium(self):
+    def test_sms_base_cost_freemium(self):
 
         """Test base SMS cost for freemium tier."""
         config = TIER_CONFIG["freemium"]
         assert config["base_sms_cost"] == 2.50
 
-def test_sms_base_cost_payg(self):
+    def test_sms_base_cost_payg(self):
 
         """Test base SMS cost for PAYG tier."""
         config = TIER_CONFIG["payg"]
         assert config["base_sms_cost"] == 2.50
 
-def test_sms_base_cost_pro(self):
+    def test_sms_base_cost_pro(self):
 
         """Test base SMS cost for pro tier."""
         config = TIER_CONFIG["pro"]
         assert config["base_sms_cost"] == 2.50
 
-def test_sms_base_cost_custom(self):
+    def test_sms_base_cost_custom(self):
 
         """Test base SMS cost for custom tier."""
         config = TIER_CONFIG["custom"]
         assert config["base_sms_cost"] == 2.50
 
-def test_filter_charges_calculation(self):
+    def test_filter_charges_calculation(self):
 
         """Test filter charges for advanced features."""
         # State filter: 0.25
@@ -54,7 +54,7 @@ def test_filter_charges_calculation(self):
 
         assert total_filter_charge == 0.75
 
-def test_total_cost_with_filters(self):
+    def test_total_cost_with_filters(self):
 
         """Test total cost including filters."""
         base_cost = 2.50
@@ -65,7 +65,7 @@ def test_total_cost_with_filters(self):
 
     # ==================== Balance Management ====================
 
-def test_sufficient_balance_check(self, db_session):
+    def test_sufficient_balance_check(self, db_session):
 
         """Test sufficient balance validation."""
         user = User(
@@ -80,7 +80,7 @@ def test_sufficient_balance_check(self, db_session):
         sms_cost = 2.50
         assert user.credits >= sms_cost
 
-def test_insufficient_balance_check(self, db_session):
+    def test_insufficient_balance_check(self, db_session):
 
         """Test insufficient balance detection."""
         user = User(
@@ -95,7 +95,7 @@ def test_insufficient_balance_check(self, db_session):
         sms_cost = 2.50
         assert user.credits < sms_cost
 
-def test_balance_deduction(self, db_session, regular_user):
+    def test_balance_deduction(self, db_session, regular_user):
 
         """Test balance deduction after SMS purchase."""
         initial_balance = regular_user.credits
@@ -107,14 +107,14 @@ def test_balance_deduction(self, db_session, regular_user):
         db_session.refresh(regular_user)
         assert regular_user.credits == initial_balance - cost
 
-def test_balance_deduction_multiple_sms(self, db_session, regular_user):
+    def test_balance_deduction_multiple_sms(self, db_session, regular_user):
 
         """Test balance deduction for multiple SMS."""
         initial_balance = regular_user.credits
         cost_per_sms = 2.50
         sms_count = 3
 
-for _ in range(sms_count):
+        for _ in range(sms_count):
             regular_user.credits -= cost_per_sms
 
         db_session.commit()
@@ -125,7 +125,7 @@ for _ in range(sms_count):
 
     # ==================== Verification Records ====================
 
-def test_verification_creation(self, db_session, regular_user):
+    def test_verification_creation(self, db_session, regular_user):
 
         """Test creating verification record."""
         verification = Verification(
@@ -146,7 +146,7 @@ def test_verification_creation(self, db_session, regular_user):
         assert saved is not None
         assert saved.status == "pending"
 
-def test_verification_status_transitions(self, db_session, regular_user):
+    def test_verification_status_transitions(self, db_session, regular_user):
 
         """Test verification status transitions."""
         verification = Verification(
@@ -169,7 +169,7 @@ def test_verification_status_transitions(self, db_session, regular_user):
         db_session.refresh(verification)
         assert verification.status == "completed"
 
-def test_verification_with_code(self, db_session, regular_user):
+    def test_verification_with_code(self, db_session, regular_user):
 
         """Test verification with received code."""
         verification = Verification(
@@ -196,7 +196,7 @@ def test_verification_with_code(self, db_session, regular_user):
 
     # ==================== Service Selection ====================
 
-def test_supported_services(self):
+    def test_supported_services(self):
 
         """Test list of supported services."""
         supported = [
@@ -213,39 +213,39 @@ def test_supported_services(self):
         assert "telegram" in supported
         assert "whatsapp" in supported
 
-def test_country_selection(self):
+    def test_country_selection(self):
 
         """Test country code validation."""
         valid_countries = ["US", "UK", "CA", "AU", "DE", "FR"]
 
-for country in valid_countries:
+        for country in valid_countries:
             assert len(country) == 2
             assert country.isupper()
 
     # ==================== Tier-Based Features ====================
 
-def test_freemium_no_filters(self):
+    def test_freemium_no_filters(self):
 
         """Test freemium tier cannot use filters."""
         config = TIER_CONFIG["freemium"]
         assert config["has_area_code_selection"] is False
         assert config["has_isp_filtering"] is False
 
-def test_payg_has_filters(self):
+    def test_payg_has_filters(self):
 
         """Test PAYG tier has filter access."""
         config = TIER_CONFIG["payg"]
         assert config["has_area_code_selection"] is True
         assert config["has_isp_filtering"] is True
 
-def test_pro_has_filters(self):
+    def test_pro_has_filters(self):
 
         """Test Pro tier has filter access."""
         config = TIER_CONFIG["pro"]
         assert config["has_area_code_selection"] is True
         assert config["has_isp_filtering"] is True
 
-def test_custom_has_filters(self):
+    def test_custom_has_filters(self):
 
         """Test Custom tier has filter access."""
         config = TIER_CONFIG["custom"]
@@ -254,8 +254,8 @@ def test_custom_has_filters(self):
 
     # ==================== Provider Integration ====================
 
-    @patch("app.services.textverified_service.TextVerifiedService")
-def test_textverified_number_purchase(self, mock_service):
+        @patch("app.services.textverified_service.TextVerifiedService")
+    def test_textverified_number_purchase(self, mock_service):
 
         """Test purchasing number from TextVerified."""
         mock_instance = mock_service.return_value
@@ -270,8 +270,8 @@ def test_textverified_number_purchase(self, mock_service):
 
         assert mock_instance.enabled is True
 
-    @patch("app.services.textverified_service.TextVerifiedService")
-def test_textverified_code_retrieval(self, mock_service):
+        @patch("app.services.textverified_service.TextVerifiedService")
+    def test_textverified_code_retrieval(self, mock_service):
 
         """Test retrieving code from TextVerified."""
         mock_instance = mock_service.return_value
@@ -282,36 +282,36 @@ def test_textverified_code_retrieval(self, mock_service):
 
     # ==================== Error Handling ====================
 
-def test_provider_unavailable_handling(self):
+    def test_provider_unavailable_handling(self):
 
         """Test handling when provider is unavailable."""
         provider_available = False
 
-if not provider_available:
+        if not provider_available:
             # Should raise appropriate error
             assert provider_available is False
 
-def test_invalid_service_name(self):
+    def test_invalid_service_name(self):
 
         """Test handling invalid service name."""
         invalid_services = ["", "invalid_service", "123"]
 
-for service in invalid_services:
+        for service in invalid_services:
             # Validation would happen at API layer
             assert service not in ["telegram", "whatsapp"]
 
-def test_invalid_country_code(self):
+    def test_invalid_country_code(self):
 
         """Test handling invalid country code."""
         invalid_countries = ["", "USA", "1", "XX"]
 
-for country in invalid_countries:
+        for country in invalid_countries:
             # Validation would happen at API layer
             assert len(country) != 2 or not country.isupper() or country == "XX"
 
     # ==================== Quota Management ====================
 
-def test_quota_tracking_pro_tier(self, db_session):
+    def test_quota_tracking_pro_tier(self, db_session):
 
         """Test quota tracking for pro tier."""
 
@@ -327,7 +327,7 @@ def test_quota_tracking_pro_tier(self, db_session):
         usage = QuotaService.get_monthly_usage(db_session, pro_user.id)
         assert usage["quota_limit"] == 15.0
 
-def test_quota_usage_increment(self, db_session):
+    def test_quota_usage_increment(self, db_session):
 
         """Test incrementing quota usage."""
 
@@ -346,7 +346,7 @@ def test_quota_usage_increment(self, db_session):
         usage = QuotaService.get_monthly_usage(db_session, pro_user.id)
         assert usage["quota_used"] == 2.50
 
-def test_overage_calculation(self, db_session):
+    def test_overage_calculation(self, db_session):
 
         """Test overage charge calculation."""
 
@@ -368,7 +368,7 @@ def test_overage_calculation(self, db_session):
 
     # ==================== Transaction Logging ====================
 
-def test_sms_purchase_transaction_log(self, db_session, regular_user):
+    def test_sms_purchase_transaction_log(self, db_session, regular_user):
 
         """Test transaction logging for SMS purchase."""
 
@@ -391,5 +391,5 @@ def test_sms_purchase_transaction_log(self, db_session, regular_user):
         assert saved.amount == -2.50
 
 
-if __name__ == "__main__":
-    print("SMS Service tests: 30 comprehensive tests created")
+        if __name__ == "__main__":
+        print("SMS Service tests: 30 comprehensive tests created")

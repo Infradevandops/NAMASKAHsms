@@ -21,45 +21,45 @@ class PerformanceMonitor:
     """Monitor performance metrics."""
 
     @staticmethod
-def track_request(method: str, endpoint: str):
+    def track_request(method: str, endpoint: str):
 
         """Decorator to track request duration."""
 
-def decorator(func):
+    def decorator(func):
 
-            async def wrapper(*args, **kwargs):
+    async def wrapper(*args, **kwargs):
                 start = time.time()
-try:
+        try:
                     result = await func(*args, **kwargs)
-                    return result
-except Exception as e:
+        return result
+        except Exception as e:
                     logger.error(f"Request error on {method} {endpoint}: {e}")
                     raise
-finally:
-try:
+        finally:
+        try:
                         duration = time.time() - start
                         request_duration.labels(method=method, endpoint=endpoint).observe(duration)
-except Exception as e:
+        except Exception as e:
                         logger.error(f"Error recording metrics: {e}")
 
-            return wrapper
+        return wrapper
 
         return decorator
 
-    @staticmethod
-def track_cache_hit(cache_type: str):
+        @staticmethod
+    def track_cache_hit(cache_type: str):
 
         """Track cache hit."""
-try:
+        try:
             cache_hits.labels(cache_type=cache_type).inc()
-except Exception as e:
+        except Exception as e:
             logger.error(f"Error tracking cache hit: {e}")
 
-    @staticmethod
-def track_cache_miss(cache_type: str):
+        @staticmethod
+    def track_cache_miss(cache_type: str):
 
         """Track cache miss."""
-try:
+        try:
             cache_misses.labels(cache_type=cache_type).inc()
-except Exception as e:
+        except Exception as e:
             logger.error(f"Error tracking cache miss: {e}")

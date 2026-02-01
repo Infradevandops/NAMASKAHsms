@@ -59,7 +59,7 @@ except Exception as e:
     sms_task = None
     voice_task = None
 
-    async def _run_sms_service_supervisor():
+async def _run_sms_service_supervisor():
         sms_logger = get_logger("sms-supervisor")
 while True:
 try:
@@ -79,7 +79,7 @@ except Exception as e:
                 sms_logger.error(f"SMS supervisor error: {e}")
                 await asyncio.sleep(5)
 
-    async def _run_voice_service_supervisor():
+async def _run_voice_service_supervisor():
         voice_logger = get_logger("voice-supervisor")
 while True:
 try:

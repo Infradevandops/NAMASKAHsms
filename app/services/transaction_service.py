@@ -11,7 +11,7 @@ class TransactionService:
     """Log transactions for audit trail."""
 
     @staticmethod
-def log_sms_purchase(
+    def log_sms_purchase(
 
         db: Session,
         user_id: str,
@@ -19,9 +19,9 @@ def log_sms_purchase(
         tier: str,
         service: str = None,
         filters: dict = None,
-    ) -> str:
+        ) -> str:
         """Log SMS purchase transaction."""
-if not filters:
+        if not filters:
             filters = {}
 
         transaction = Transaction(
@@ -39,8 +39,8 @@ if not filters:
         db.commit()
         return transaction.id
 
-    @staticmethod
-def log_api_key_creation(db: Session, user_id: str, key_id: str) -> str:
+        @staticmethod
+    def log_api_key_creation(db: Session, user_id: str, key_id: str) -> str:
 
         """Log API key creation."""
         transaction = Transaction(
@@ -57,8 +57,8 @@ def log_api_key_creation(db: Session, user_id: str, key_id: str) -> str:
         db.commit()
         return transaction.id
 
-    @staticmethod
-def log_filter_charge(db: Session, user_id: str, cost: float, filter_type: str, tier: str) -> str:
+        @staticmethod
+    def log_filter_charge(db: Session, user_id: str, cost: float, filter_type: str, tier: str) -> str:
 
         """Log filter charge."""
         transaction = Transaction(
@@ -75,8 +75,8 @@ def log_filter_charge(db: Session, user_id: str, cost: float, filter_type: str, 
         db.commit()
         return transaction.id
 
-    @staticmethod
-def log_overage_charge(db: Session, user_id: str, cost: float, tier: str) -> str:
+        @staticmethod
+    def log_overage_charge(db: Session, user_id: str, cost: float, tier: str) -> str:
 
         """Log overage charge."""
         transaction = Transaction(

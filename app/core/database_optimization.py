@@ -52,7 +52,7 @@ class QueryOptimizer:
     """Query optimization utilities."""
 
     @staticmethod
-def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50):
+    def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50):
 
         """Optimized query for user verifications."""
         return (
@@ -63,8 +63,8 @@ def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50)
             .all()
         )
 
-    @staticmethod
-def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
+        @staticmethod
+    def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
 
         """Optimized query for user transactions."""
         return (
@@ -75,8 +75,8 @@ def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
             .all()
         )
 
-    @staticmethod
-def get_verification_stats_optimized(db: Session, user_id: str):
+        @staticmethod
+    def get_verification_stats_optimized(db: Session, user_id: str):
 
         """Optimized query for verification statistics using ORM."""
 
@@ -92,16 +92,16 @@ def get_verification_stats_optimized(db: Session, user_id: str):
         )
 
 
-def configure_connection_pool():
+    def configure_connection_pool():
 
-    """Configure database connection pooling."""
+        """Configure database connection pooling."""
     # Connection pool is configured in engine creation
     # This function documents the recommended settings
-    pool_settings = {
+        pool_settings = {
         "pool_size": 20,
         "max_overflow": 30,
         "pool_timeout": 30,
         "pool_recycle": 3600,
         "pool_pre_ping": True,
-    }
-    return pool_settings
+        }
+        return pool_settings

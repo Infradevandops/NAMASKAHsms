@@ -17,12 +17,12 @@ class NotificationService:
 
     """Service for managing notifications."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         """Initialize notification service with database session."""
         self.db = db
 
-def create_notification(
+    def create_notification(
 
         self,
         user_id: str,
@@ -30,7 +30,7 @@ def create_notification(
         title: str,
         message: str,
         data: Optional[Dict[str, Any]] = None,
-    ) -> Notification:
+        ) -> Notification:
         """Create a new notification.
 
         Args:
@@ -48,7 +48,7 @@ def create_notification(
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Create notification
@@ -63,10 +63,10 @@ if not user:
 
         return notification
 
-def get_notifications(
+    def get_notifications(
 
         self, user_id: str, unread_only: bool = False, skip: int = 0, limit: int = 20
-    ) -> Dict[str, Any]:
+        ) -> Dict[str, Any]:
         """Get notifications for user.
 
         Args:
@@ -83,14 +83,14 @@ def get_notifications(
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Build query
         query = self.db.query(Notification).filter(Notification.user_id == user_id)
 
         # Filter unread if requested
-if unread_only:
+        if unread_only:
             query = query.filter(Notification.is_read.is_(False))
 
         # Get total count
@@ -118,11 +118,11 @@ if unread_only:
                     "is_read": n.is_read,
                     "created_at": n.created_at.isoformat() if n.created_at else None,
                 }
-for n in notifications
+        for n in notifications
             ],
         }
 
-def get_notification(self, notification_id: str, user_id: str) -> Notification:
+    def get_notification(self, notification_id: str, user_id: str) -> Notification:
 
         """Get a specific notification.
 
@@ -142,14 +142,14 @@ def get_notification(self, notification_id: str, user_id: str) -> Notification:
             .first()
         )
 
-if not notification:
+        if not notification:
             raise ValueError(f"Notification {notification_id} not found")
 
         logger.info(f"Retrieved notification: {notification_id}")
 
         return notification
 
-def mark_as_read(self, notification_id: str, user_id: str) -> Notification:
+    def mark_as_read(self, notification_id: str, user_id: str) -> Notification:
 
         """Mark notification as read.
 
@@ -174,7 +174,7 @@ def mark_as_read(self, notification_id: str, user_id: str) -> Notification:
 
         return notification
 
-def mark_all_as_read(self, user_id: str) -> int:
+    def mark_all_as_read(self, user_id: str) -> int:
 
         """Mark all notifications as read for user.
 
@@ -189,7 +189,7 @@ def mark_all_as_read(self, user_id: str) -> int:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Update all unread notifications
@@ -205,7 +205,7 @@ if not user:
 
         return count
 
-def delete_notification(self, notification_id: str, user_id: str) -> bool:
+    def delete_notification(self, notification_id: str, user_id: str) -> bool:
 
         """Delete a notification.
 
@@ -228,7 +228,7 @@ def delete_notification(self, notification_id: str, user_id: str) -> bool:
 
         return True
 
-def delete_all_notifications(self, user_id: str) -> int:
+    def delete_all_notifications(self, user_id: str) -> int:
 
         """Delete all notifications for user.
 
@@ -243,7 +243,7 @@ def delete_all_notifications(self, user_id: str) -> int:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Delete all notifications
@@ -255,7 +255,7 @@ if not user:
 
         return count
 
-def get_unread_count(self, user_id: str) -> int:
+    def get_unread_count(self, user_id: str) -> int:
 
         """Get count of unread notifications for user.
 
@@ -270,7 +270,7 @@ def get_unread_count(self, user_id: str) -> int:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         count = (
@@ -281,7 +281,7 @@ if not user:
 
         return count
 
-def cleanup_old_notifications(self, days: int = 30) -> int:
+    def cleanup_old_notifications(self, days: int = 30) -> int:
 
         """Delete notifications older than specified days.
 
@@ -311,14 +311,14 @@ def cleanup_old_notifications(self, days: int = 30) -> int:
         body: str,
         template: str = None,
         data: dict = None,
-    ) -> bool:
+        ) -> bool:
         """Send an email notification."""
         logger.info(f"Sending email to {to_email}. Subject: {subject}")
         # In a real app, this would use an email backend (SES, SendGrid, SMTP)
         # For now, we simulate success
         return True
 
-def get_unread_count(self, user_id: str) -> int:
+    def get_unread_count(self, user_id: str) -> int:
 
         """Get unread notification count for user.
 
@@ -333,7 +333,7 @@ def get_unread_count(self, user_id: str) -> int:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Count unread notifications

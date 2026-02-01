@@ -18,7 +18,7 @@ class ServiceStatus(Enum):
     UNHEALTHY = "unhealthy"
 
 
-@dataclass
+    @dataclass
 class HealthCheck:
 
     service: str
@@ -32,7 +32,7 @@ class HealthMonitor:
 
     """Monitor health of external services."""
 
-def __init__(self):
+    def __init__(self):
 
         self.checks: Dict[str, HealthCheck] = {}
         self.check_interval = 60  # 1 minute
@@ -53,11 +53,11 @@ def __init__(self):
         healthy_count = sum(1 for check in checks.values() if check.status == ServiceStatus.HEALTHY)
         total_count = len(checks)
 
-if healthy_count == total_count:
+        if healthy_count == total_count:
             overall_status = ServiceStatus.HEALTHY
-elif healthy_count > 0:
+        elif healthy_count > 0:
             overall_status = ServiceStatus.DEGRADED
-else:
+        else:
             overall_status = ServiceStatus.UNHEALTHY
 
         return {
@@ -70,7 +70,7 @@ else:
                     "last_check": check.last_check,
                     "error": check.error,
                 }
-for name, check in checks.items()
+        for name, check in checks.items()
             },
             "summary": {
                 "healthy": healthy_count,
@@ -84,15 +84,15 @@ for name, check in checks.items()
         self.running = True
         logger.info("Health monitoring started")
 
-while self.running:
-try:
+        while self.running:
+        try:
                 await self.check_all_services()
                 await asyncio.sleep(self.check_interval)
-except Exception as e:
+        except Exception as e:
                 logger.error("Health monitoring error: %s", e)
                 await asyncio.sleep(self.check_interval)
 
-def stop_monitoring(self):
+    def stop_monitoring(self):
 
         """Stop health monitoring."""
         self.running = False
@@ -100,4 +100,4 @@ def stop_monitoring(self):
 
 
 # Global health monitor instance
-health_monitor = HealthMonitor()
+        health_monitor = HealthMonitor()

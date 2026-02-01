@@ -22,17 +22,17 @@ class UserSettingsUpdate(BaseModel):
     sms_alerts: bool = False
 
 
-@router.get("/settings")
-async def get_user_settings(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get user settings."""
-try:
+    @router.get("/settings")
+    async def get_user_settings(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Get user settings."""
+        try:
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
         prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
-if not prefs:
+        if not prefs:
             prefs = UserPreference(user_id=user_id, email_notifications=True, sms_alerts=False)
             db.add(prefs)
             db.commit()
@@ -42,28 +42,28 @@ if not prefs:
             "email_notifications": prefs.email_notifications,
             "sms_alerts": prefs.sms_alerts,
         }
-except HTTPException:
+        except HTTPException:
         raise
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get settings: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve settings")
 
 
-@router.put("/settings")
-async def update_user_settings(
-    settings: UserSettingsUpdate,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Update user settings."""
-try:
+        @router.put("/settings")
+    async def update_user_settings(
+        settings: UserSettingsUpdate,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Update user settings."""
+        try:
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preferences
         prefs = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
-if not prefs:
+        if not prefs:
             prefs = UserPreference(user_id=user_id)
             db.add(prefs)
 
@@ -83,9 +83,9 @@ if not prefs:
                 "sms_alerts": prefs.sms_alerts,
             },
         }
-except HTTPException:
+        except HTTPException:
         raise
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to update settings: {str(e)}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to update settings")

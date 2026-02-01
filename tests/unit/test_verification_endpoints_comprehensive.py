@@ -15,10 +15,10 @@ class TestVerificationEndpoints:
 
     """Test verification endpoints comprehensively."""
 
-def test_get_available_services_success(self, client):
+    def test_get_available_services_success(self, client):
 
         """Test getting available services."""
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.get_services = AsyncMock(
@@ -33,10 +33,10 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             assert "services" in data
             assert data["total"] == 2
 
-def test_get_available_services_unavailable(self, client):
+    def test_get_available_services_unavailable(self, client):
 
         """Test getting services when TextVerified is unavailable."""
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = False
             mock_tv.return_value = mock_instance
@@ -46,10 +46,10 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             data = response.json()
             assert "detail" in data or "message" in data or "error" in data
 
-def test_create_verification_success(self, authenticated_regular_client, regular_user, db):
+    def test_create_verification_success(self, authenticated_regular_client, regular_user, db):
 
         """Test successful verification creation."""
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
@@ -68,7 +68,7 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         assert data["phone_number"] == "+12025551234"
         assert data["status"] == "pending"
 
-def test_create_verification_insufficient_credits(self, authenticated_regular_client, regular_user, db):
+    def test_create_verification_insufficient_credits(self, authenticated_regular_client, regular_user, db):
 
         """Test verification creation with insufficient credits."""
         regular_user.credits = 0.0
@@ -84,14 +84,14 @@ def test_create_verification_insufficient_credits(self, authenticated_regular_cl
         error_msg = (data.get("detail") or data.get("message") or "").lower()
         assert "insufficient" in error_msg or "credit" in error_msg
 
-def test_create_verification_with_free_verifications(self, authenticated_regular_client, regular_user, db):
+    def test_create_verification_with_free_verifications(self, authenticated_regular_client, regular_user, db):
 
         """Test verification creation using free verifications."""
         regular_user.free_verifications = 5
         regular_user.credits = 0.0
         db.commit()
 
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
@@ -107,7 +107,7 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         db.refresh(regular_user)
         assert regular_user.free_verifications == 4
 
-def test_create_verification_missing_service_name(self, authenticated_regular_client):
+    def test_create_verification_missing_service_name(self, authenticated_regular_client):
 
         """Test verification creation without service name."""
         response = authenticated_regular_client.post(
@@ -116,7 +116,7 @@ def test_create_verification_missing_service_name(self, authenticated_regular_cl
 
         assert response.status_code == 422  # Validation error
 
-def test_create_verification_idempotency(self, authenticated_regular_client, regular_user, db):
+    def test_create_verification_idempotency(self, authenticated_regular_client, regular_user, db):
 
         """Test idempotency key prevents duplicate verifications."""
         verification = Verification(
@@ -142,18 +142,18 @@ def test_create_verification_idempotency(self, authenticated_regular_client, reg
         data = response.json()
         assert data["id"] == verification.id
 
-def test_create_verification_with_area_code(self, client, payg_user, db):
+    def test_create_verification_with_area_code(self, client, payg_user, db):
 
         """Test verification creation with area code selection."""
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
-try:
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        try:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
                 mock_instance = MagicMock()
                 mock_instance.enabled = True
                 mock_instance.create_verification = AsyncMock(
@@ -169,10 +169,10 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             # PayG tier should have area code selection, but tier check might fail
             # Accept either success or tier restriction
             assert response.status_code in [201, 402, 403]
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_create_verification_area_code_tier_restriction(self, authenticated_regular_client):
+    def test_create_verification_area_code_tier_restriction(self, authenticated_regular_client):
 
         """Test area code selection requires PayG tier."""
         response = authenticated_regular_client.post(
@@ -182,10 +182,10 @@ def test_create_verification_area_code_tier_restriction(self, authenticated_regu
 
         assert response.status_code in [402, 403]
 
-def test_create_verification_with_carrier(self, authenticated_pro_client, db):
+    def test_create_verification_with_carrier(self, authenticated_pro_client, db):
 
         """Test verification creation with carrier filtering."""
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
@@ -202,27 +202,27 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         # Accept either success or tier restriction
         assert response.status_code in [201, 402, 403]
 
-def test_create_verification_carrier_tier_restriction(self, client, payg_user):
+    def test_create_verification_carrier_tier_restriction(self, client, payg_user):
 
         """Test carrier filtering requires Pro tier."""
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
-try:
+        try:
             response = client.post(
                 "/api/v1/verify/create",
                 json={"service_name": "telegram", "country": "US", "capability": "sms", "carrier": "verizon"},
             )
 
             assert response.status_code in [402, 403]
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_get_verification_status_success(self, client, regular_user, db):
+    def test_get_verification_status_success(self, client, regular_user, db):
 
         """Test getting verification status."""
         verification = Verification(
@@ -244,16 +244,16 @@ def test_get_verification_status_success(self, client, regular_user, db):
         assert data["status"] == "pending"
         assert data["phone_number"] == "+12025551234"
 
-def test_get_verification_status_not_found(self, client):
+    def test_get_verification_status_not_found(self, client):
 
         """Test getting status for non-existent verification."""
         response = client.get("/api/v1/verify/nonexistent-id")
         assert response.status_code == 404
 
-def test_get_verification_history_success(self, authenticated_regular_client, regular_user, db):
+    def test_get_verification_history_success(self, authenticated_regular_client, regular_user, db):
 
         """Test getting verification history."""
-for i in range(3):
+        for i in range(3):
             verification = Verification(
                 user_id=regular_user.id,
                 service_name=f"service{i}",
@@ -270,16 +270,16 @@ for i in range(3):
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert "verifications" in data
             assert data["total_count"] == 3
             assert len(data["verifications"]) == 3
 
-def test_get_verification_history_pagination(self, authenticated_regular_client, regular_user, db):
+    def test_get_verification_history_pagination(self, authenticated_regular_client, regular_user, db):
 
         """Test verification history pagination."""
-for i in range(10):
+        for i in range(10):
             verification = Verification(
                 user_id=regular_user.id,
                 service_name=f"service{i}",
@@ -296,24 +296,24 @@ for i in range(10):
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert len(data["verifications"]) == 5
             assert data["total_count"] == 10
 
-def test_get_verification_history_empty(self, authenticated_regular_client):
+    def test_get_verification_history_empty(self, authenticated_regular_client):
 
         """Test getting history when no verifications exist."""
         response = authenticated_regular_client.get("/api/v1/verify/history")
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["total_count"] == 0
             assert len(data["verifications"]) == 0
 
-def test_get_verification_status_polling_pending(self, authenticated_regular_client, regular_user, db):
+    def test_get_verification_status_polling_pending(self, authenticated_regular_client, regular_user, db):
 
         """Test polling for pending verification."""
         verification = Verification(
@@ -329,7 +329,7 @@ def test_get_verification_status_polling_pending(self, authenticated_regular_cli
         db.add(verification)
         db.commit()
 
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.get_sms = AsyncMock(return_value=None)
             mock_tv.return_value = mock_instance
@@ -341,7 +341,7 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         assert data["status"] == "pending"
         assert data["sms_code"] is None
 
-def test_get_verification_status_polling_completed(self, authenticated_regular_client, regular_user, db):
+    def test_get_verification_status_polling_completed(self, authenticated_regular_client, regular_user, db):
 
         """Test polling when SMS is received."""
         verification = Verification(
@@ -357,7 +357,7 @@ def test_get_verification_status_polling_completed(self, authenticated_regular_c
         db.add(verification)
         db.commit()
 
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.get_sms = AsyncMock(return_value={"sms_code": "123456", "sms_text": "Your code is 123456"})
             mock_tv.return_value = mock_instance
@@ -369,14 +369,14 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         assert data["status"] == "completed"
         assert data["sms_code"] == "123456"
 
-def test_get_verification_status_polling_not_found(self, authenticated_regular_client):
+    def test_get_verification_status_polling_not_found(self, authenticated_regular_client):
 
         """Test polling for non-existent verification."""
         response = authenticated_regular_client.get("/api/v1/verify/nonexistent-id/status")
 
         assert response.status_code == 404
 
-def test_cancel_verification_success(self, authenticated_regular_client, regular_user, db):
+    def test_cancel_verification_success(self, authenticated_regular_client, regular_user, db):
 
         """Test canceling verification."""
         verification = Verification(
@@ -392,7 +392,7 @@ def test_cancel_verification_success(self, authenticated_regular_client, regular
         db.add(verification)
         db.commit()
 
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.cancel_number = AsyncMock()
             mock_tv.return_value = mock_instance
@@ -403,14 +403,14 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
         db.refresh(verification)
         assert verification.status == "cancelled"
 
-def test_cancel_verification_not_found(self, authenticated_regular_client):
+    def test_cancel_verification_not_found(self, authenticated_regular_client):
 
         """Test canceling non-existent verification."""
         response = authenticated_regular_client.delete("/api/v1/verify/nonexistent-id")
 
         assert response.status_code == 404
 
-def test_cancel_verification_already_completed(self, authenticated_regular_client, regular_user, db):
+    def test_cancel_verification_already_completed(self, authenticated_regular_client, regular_user, db):
 
         """Test canceling already completed verification."""
         verification = Verification(
@@ -432,10 +432,10 @@ def test_cancel_verification_already_completed(self, authenticated_regular_clien
         db.refresh(verification)
         assert verification.status == "cancelled"
 
-def test_create_verification_service_unavailable(self, authenticated_regular_client):
+    def test_create_verification_service_unavailable(self, authenticated_regular_client):
 
         """Test verification creation when service is unavailable."""
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = False
             mock_tv.return_value = mock_instance
@@ -446,21 +446,21 @@ with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
 
         assert response.status_code == 503
 
-def test_create_verification_user_not_found(self, client, db):
+    def test_create_verification_user_not_found(self, client, db):
 
         """Test verification creation with non-existent user."""
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return "nonexistent-user"
+        return "nonexistent-user"
 
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
-try:
+        try:
             response = client.post(
                 "/api/v1/verify/create", json={"service_name": "telegram", "country": "US", "capability": "sms"}
             )
 
             assert response.status_code == 404
-finally:
+        finally:
             app.dependency_overrides.clear()

@@ -19,7 +19,7 @@ class SecurityHardening:
 
     """Comprehensive security hardening utilities"""
 
-def __init__(self):
+    def __init__(self):
 
         self.csrf_tokens = {}
         self.rate_limits = {}
@@ -31,65 +31,65 @@ def __init__(self):
             r"vbscript:",
         ]
 
-def sanitize_input(self, input_data: Any) -> str:
+    def sanitize_input(self, input_data: Any) -> str:
 
         """Sanitize user input to prevent XSS and injection attacks"""
-if not isinstance(input_data, str):
-            return str(input_data)
+        if not isinstance(input_data, str):
+        return str(input_data)
 
         # HTML escape
         sanitized = html.escape(input_data)
 
         # Remove dangerous patterns
-for pattern in self.blocked_patterns:
+        for pattern in self.blocked_patterns:
             sanitized = re.sub(pattern, "", sanitized, flags=re.IGNORECASE)
 
         return sanitized.strip()
 
-def validate_service_name(self, service_name: str) -> bool:
+    def validate_service_name(self, service_name: str) -> bool:
 
         """Validate service name format"""
-if not isinstance(service_name, str):
-            return False
+        if not isinstance(service_name, str):
+        return False
 
         # Allow only alphanumeric, hyphens, underscores
         pattern = r"^[a - zA-Z0 - 9_-]+$"
         return bool(re.match(pattern, service_name)) and len(service_name) <= 50
 
-def validate_email(self, email: str) -> bool:
+    def validate_email(self, email: str) -> bool:
 
         """Validate email format"""
-if not isinstance(email, str):
-            return False
+        if not isinstance(email, str):
+        return False
 
         pattern = r"^[a - zA-Z0 - 9._%+-]+@[a - zA-Z0 - 9.-]+\.[a - zA-Z]{2,}$"
         return bool(re.match(pattern, email)) and len(email) <= 254
 
-def generate_csrf_token(self, user_id: str) -> str:
+    def generate_csrf_token(self, user_id: str) -> str:
 
         """Generate CSRF token for user"""
         token = secrets.token_urlsafe(32)
         self.csrf_tokens[user_id] = token
         return token
 
-def validate_csrf_token(self, user_id: str, token: str) -> bool:
+    def validate_csrf_token(self, user_id: str, token: str) -> bool:
 
         """Validate CSRF token"""
         stored_token = self.csrf_tokens.get(user_id)
-if not stored_token or not token:
-            return False
+        if not stored_token or not token:
+        return False
 
         # Constant - time comparison
         return secrets.compare_digest(stored_token, token)
 
-def check_rate_limit(self, identifier: str, max_requests: int = 10, window_seconds: int = 60) -> bool:
+    def check_rate_limit(self, identifier: str, max_requests: int = 10, window_seconds: int = 60) -> bool:
 
         """Check if request is within rate limit"""
 
         current_time = time.time()
         window_start = current_time - window_seconds
 
-if identifier not in self.rate_limits:
+        if identifier not in self.rate_limits:
             self.rate_limits[identifier] = []
 
         # Remove old requests
@@ -98,14 +98,14 @@ if identifier not in self.rate_limits:
         ]
 
         # Check limit
-if len(self.rate_limits[identifier]) >= max_requests:
-            return False
+        if len(self.rate_limits[identifier]) >= max_requests:
+        return False
 
         # Add current request
         self.rate_limits[identifier].append(current_time)
         return True
 
-def get_security_headers(self) -> Dict[str, str]:
+    def get_security_headers(self) -> Dict[str, str]:
 
         """Get security headers for responses"""
         return {
@@ -126,10 +126,10 @@ def get_security_headers(self) -> Dict[str, str]:
             "Permissions - Policy": "geolocation=(), microphone=(), camera=()",
         }
 
-def validate_request_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_request_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
 
         """Validate and sanitize request data"""
-if not isinstance(data, dict):
+        if not isinstance(data, dict):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid request data format",
@@ -137,31 +137,31 @@ if not isinstance(data, dict):
 
         sanitized_data = {}
 
-for key, value in data.items():
+        for key, value in data.items():
             # Sanitize key
             safe_key = self.sanitize_input(key)
 
             # Sanitize value based on type
-if isinstance(value, str):
+        if isinstance(value, str):
                 safe_value = self.sanitize_input(value)
-elif isinstance(value, (int, float, bool)):
+        elif isinstance(value, (int, float, bool)):
                 safe_value = value
-elif isinstance(value, list):
+        elif isinstance(value, list):
                 safe_value = [self.sanitize_input(str(item)) for item in value]
-else:
+        else:
                 safe_value = self.sanitize_input(str(value))
 
             sanitized_data[safe_key] = safe_value
 
         return sanitized_data
 
-def log_security_event(
+    def log_security_event(
 
         self,
         event_type: str,
         details: Dict[str, Any],
         request: Optional[Request] = None,
-    ):
+        ):
         """Log security events for monitoring"""
         log_data = {
             "event_type": event_type,
@@ -169,7 +169,7 @@ def log_security_event(
             "details": details,
         }
 
-if request:
+        if request:
             log_data.update(
                 {
                     "client_ip": request.client.host if request.client else "unknown",
@@ -183,62 +183,62 @@ if request:
 
 
 # Global security instance
-security_hardening = SecurityHardening()
+        security_hardening = SecurityHardening()
 
 
-def secure_response(data: Any, headers: Optional[Dict[str, str]] = None) -> JSONResponse:
+    def secure_response(data: Any, headers: Optional[Dict[str, str]] = None) -> JSONResponse:
 
-    """Create secure JSON response with security headers"""
-    response_headers = security_hardening.get_security_headers()
+        """Create secure JSON response with security headers"""
+        response_headers = security_hardening.get_security_headers()
 
-if headers:
+        if headers:
         response_headers.update(headers)
 
-    return JSONResponse(content=data, headers=response_headers)
+        return JSONResponse(content=data, headers=response_headers)
 
 
-def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str, Any]:
+    def validate_and_sanitize_service_data(service_data: Dict[str, Any]) -> Dict[str, Any]:
 
-    """Validate and sanitize service - related data"""
-    required_fields = ["service"]
+        """Validate and sanitize service - related data"""
+        required_fields = ["service"]
 
     # Check required fields
-for field in required_fields:
-if field not in service_data:
+        for field in required_fields:
+        if field not in service_data:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail=f"Missing required field: {field}",
             )
 
     # Validate service name
-    service_name = service_data.get("service", "")
-if not security_hardening.validate_service_name(service_name):
+        service_name = service_data.get("service", "")
+        if not security_hardening.validate_service_name(service_name):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid service name format",
         )
 
     # Validate capability
-    capability = service_data.get("capability", "sms")
-if capability not in ["sms", "voice"]:
+        capability = service_data.get("capability", "sms")
+        if capability not in ["sms", "voice"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid capability. Must be 'sms' or 'voice'",
         )
 
     # Validate country code
-    country = service_data.get("country", "US")
-if not re.match(r"^[A - Z]{2}$", country):
+        country = service_data.get("country", "US")
+        if not re.match(r"^[A - Z]{2}$", country):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid country code format",
         )
 
-    return {
+        return {
         "service": security_hardening.sanitize_input(service_name).lower(),
         "capability": capability,
         "country": country,
-    }
+        }
 
 
 # Middleware for automatic security hardening
@@ -246,14 +246,14 @@ if not re.match(r"^[A - Z]{2}$", country):
 
 class SecurityMiddleware:
 
-    """Middleware to apply security hardening automatically"""
+        """Middleware to apply security hardening automatically"""
 
-def __init__(self, app):
+    def __init__(self, app):
 
         self.app = app
 
     async def __call__(self, scope, receive, send):
-if scope["type"] == "http":
+        if scope["type"] == "http":
             # Basic security headers checks can go here if needed per request
             pass
 

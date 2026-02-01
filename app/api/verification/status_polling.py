@@ -22,7 +22,7 @@ router = APIRouter(prefix="/verification", tags=["verification-status"])
 
 class VerificationStatusService:
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         self.db = db
         self.textverified = TextVerifiedService()
@@ -31,16 +31,16 @@ def __init__(self, db: Session):
         """
         Poll verification status from TextVerified API
         """
-try:
+        try:
             # Get verification from database
             verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
-if not verification:
+        if not verification:
                 raise HTTPException(status_code=404, detail="Verification not found")
 
             # Skip polling if already completed
-if verification.status in ["completed", "failed", "cancelled"]:
-                return {
+        if verification.status in ["completed", "failed", "cancelled"]:
+        return {
                     "id": verification.id,
                     "status": verification.status,
                     "phone_number": verification.phone_number,
@@ -50,8 +50,8 @@ if verification.status in ["completed", "failed", "cancelled"]:
                 }
 
             # Poll TextVerified API for status update
-if verification.activation_id:
-try:
+        if verification.activation_id:
+        try:
                     tv_status = await self.textverified.get_verification_status(verification.activation_id)
 
                     # Update database with new status
@@ -64,15 +64,15 @@ try:
                     self.db.commit()
 
                     # Log status change
-if old_status != verification.status:
+        if old_status != verification.status:
                         logger.info(
                             f"Verification {verification_id} status changed: {old_status} -> {verification.status}"
                         )
 
-except Exception as e:
+        except Exception as e:
                     logger.error(f"TextVerified API polling failed for {verification_id}: {e}")
 
-            return {
+        return {
                 "id": verification.id,
                 "status": verification.status,
                 "phone_number": verification.phone_number,
@@ -83,7 +83,7 @@ except Exception as e:
                 "updated_at": (verification.updated_at.isoformat() if verification.updated_at else None),
             }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Status polling failed: {str(e)}")
 
@@ -91,7 +91,7 @@ except Exception as e:
         """
         Poll status for all pending verifications for a user
         """
-try:
+        try:
             # Get all pending verifications for user
             pending_verifications = (
                 self.db.query(Verification)
@@ -103,11 +103,11 @@ try:
             )
 
             results = []
-for verification in pending_verifications:
-try:
+        for verification in pending_verifications:
+        try:
                     status_data = await self.poll_verification_status(verification.id)
                     results.append(status_data)
-except Exception as e:
+        except Exception as e:
                     logger.error(f"Failed to poll verification {verification.id}: {e}")
                     # Include current status even if polling failed
                     results.append(
@@ -119,79 +119,79 @@ except Exception as e:
                         }
                     )
 
-            return results
+        return results
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"User verification polling failed for {user_id}: {e}")
             raise HTTPException(status_code=500, detail=f"User verification polling failed: {str(e)}")
 
 
-@router.get("/status/{verification_id}")
-async def get_verification_status(
-    verification_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> Dict[str, Any]:
-    """
-    Get real-time verification status with polling
-    """
-    status_service = VerificationStatusService(db)
+        @router.get("/status/{verification_id}")
+    async def get_verification_status(
+        verification_id: str,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        ) -> Dict[str, Any]:
+        """
+        Get real-time verification status with polling
+        """
+        status_service = VerificationStatusService(db)
 
     # Verify user owns this verification
-    verification = (
+        verification = (
         db.query(Verification)
         .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
         .first()
-    )
+        )
 
-if not verification:
+        if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
-    return await status_service.poll_verification_status(verification_id)
+        return await status_service.poll_verification_status(verification_id)
 
 
-@router.get("/status-updates")
-async def get_status_updates(
-    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
-) -> Dict[str, Any]:
-    """
-    Get status updates for all user's pending verifications
-    """
-    status_service = VerificationStatusService(db)
-    updates = await status_service.poll_user_verifications(current_user.id)
+        @router.get("/status-updates")
+    async def get_status_updates(
+        current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+        ) -> Dict[str, Any]:
+        """
+        Get status updates for all user's pending verifications
+        """
+        status_service = VerificationStatusService(db)
+        updates = await status_service.poll_user_verifications(current_user.id)
 
-    return {
+        return {
         "updates": updates,
         "count": len(updates),
         "timestamp": datetime.utcnow().isoformat(),
-    }
+        }
 
 
-@router.post("/refresh-status/{verification_id}")
-async def force_status_refresh(
-    verification_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-) -> Dict[str, Any]:
-    """
-    Force refresh verification status from TextVerified API
-    """
-    status_service = VerificationStatusService(db)
+        @router.post("/refresh-status/{verification_id}")
+    async def force_status_refresh(
+        verification_id: str,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        ) -> Dict[str, Any]:
+        """
+        Force refresh verification status from TextVerified API
+        """
+        status_service = VerificationStatusService(db)
 
     # Verify user owns this verification
-    verification = (
+        verification = (
         db.query(Verification)
         .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
         .first()
-    )
+        )
 
-if not verification:
+        if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
-    result = await status_service.poll_verification_status(verification_id)
+        result = await status_service.poll_verification_status(verification_id)
 
-    return {
+        return {
         "message": "Status refreshed successfully",
         "data": result,
         "refreshed_at": datetime.utcnow().isoformat(),
-    }
+        }

@@ -10,11 +10,11 @@ from app.utils.performance import async_cache
 
 class BusinessIntelligenceService:
 
-def __init__(self, db: AsyncSession):
+    def __init__(self, db: AsyncSession):
 
         self.db = db
 
-    @async_cache(ttl=3600)
+        @async_cache(ttl=3600)
     async def get_revenue_metrics(self, days: int = 30) -> Dict[str, Any]:
         """Get revenue tracking metrics."""
         start_date = datetime.utcnow() - timedelta(days=days)
@@ -35,7 +35,7 @@ def __init__(self, db: AsyncSession):
             "period_days": days,
         }
 
-    @async_cache(ttl=1800)
+        @async_cache(ttl=1800)
     async def get_user_segmentation(self) -> Dict[str, Any]:
         """Get user segmentation data."""
         # Active users (last 30 days)
@@ -58,7 +58,7 @@ def __init__(self, db: AsyncSession):
             "user_retention_rate": round((active_users / max(high_value_users, 1)) * 100, 2),
         }
 
-    @async_cache(ttl=7200)
+        @async_cache(ttl=7200)
     async def get_predictive_analytics(self) -> Dict[str, Any]:
         """Get predictive analytics data."""
         # Revenue trend (last 7 days vs previous 7 days)
@@ -76,7 +76,7 @@ def __init__(self, db: AsyncSession):
         previous_revenue = previous_result.scalar() or 0
 
         growth_rate = 0
-if previous_revenue > 0:
+        if previous_revenue > 0:
             growth_rate = ((current_revenue - previous_revenue) / previous_revenue) * 100
 
         return {

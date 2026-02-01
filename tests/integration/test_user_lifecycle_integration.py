@@ -8,11 +8,11 @@ class TestUserRegistrationFlow:
 
     """Test complete user registration flow."""
 
-def test_complete_registration_flow(self, client, db):
+    def test_complete_registration_flow(self, client, db):
 
         """Test complete user registration and verification."""
         # 1. Register user
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register", json={"email": "newuser@example.com", "password": "SecurePass123!"}
             )
@@ -26,10 +26,10 @@ with patch("app.services.notification_service.NotificationService.send_email", n
         # 4. Access protected resource
         assert True
 
-def test_registration_with_referral(self, client, regular_user):
+    def test_registration_with_referral(self, client, regular_user):
 
         """Test registration with referral code."""
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register",
                 json={"email": "referred@example.com", "password": "SecurePass123!", "referral_code": "REF123"},
@@ -40,24 +40,24 @@ with patch("app.services.notification_service.NotificationService.send_email", n
 
 class TestVerificationFlow:
 
-    """Test complete verification flow."""
+        """Test complete verification flow."""
 
-def test_complete_verification_flow(self, client, regular_user, db):
+    def test_complete_verification_flow(self, client, regular_user, db):
 
         """Test complete SMS verification flow."""
         # 1. Check balance
-with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
+        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             client.get("/api/v1/wallet/balance")
 
         # 2. Purchase verification
-with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = mock_tv.return_value
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
                 return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
             )
 
-with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
+        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
                 verify_response = client.post(
                     "/api/v1/verify/create", json={"service_name": "telegram", "country": "US"}
                 )
@@ -67,7 +67,7 @@ with patch("app.core.dependencies.get_current_user_id", return_value=regular_use
         # 5. Complete verification
         assert True
 
-def test_verification_with_refund(self, client, regular_user, db):
+    def test_verification_with_refund(self, client, regular_user, db):
 
         """Test verification with refund flow."""
         # 1. Purchase verification
@@ -78,9 +78,9 @@ def test_verification_with_refund(self, client, regular_user, db):
 
 class TestPaymentFlow:
 
-    """Test complete payment flow."""
+        """Test complete payment flow."""
 
-def test_credit_purchase_flow(self, client, regular_user):
+    def test_credit_purchase_flow(self, client, regular_user):
 
         """Test complete credit purchase flow."""
         # 1. View pricing
@@ -89,7 +89,7 @@ def test_credit_purchase_flow(self, client, regular_user):
         # 4. Verify credits added
         assert True
 
-def test_subscription_upgrade_flow(self, client, regular_user):
+    def test_subscription_upgrade_flow(self, client, regular_user):
 
         """Test subscription tier upgrade flow."""
         # 1. View tiers
@@ -101,9 +101,9 @@ def test_subscription_upgrade_flow(self, client, regular_user):
 
 class TestNotificationFlow:
 
-    """Test complete notification flow."""
+        """Test complete notification flow."""
 
-def test_notification_delivery_flow(self, client, regular_user, db):
+    def test_notification_delivery_flow(self, client, regular_user, db):
 
         """Test notification creation and delivery."""
 
@@ -115,7 +115,7 @@ def test_notification_delivery_flow(self, client, regular_user, db):
         db.commit()
 
         # 2. Get notifications
-with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
+        with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
             response = client.get("/api/v1/notifications")
 
         assert response.status_code == 200
@@ -127,13 +127,13 @@ with patch("app.core.dependencies.get_current_user_id", return_value=regular_use
 
 class TestAdminWorkflow:
 
-    """Test admin workflow integration."""
+        """Test admin workflow integration."""
 
-def test_user_management_workflow(self, client, admin_user, regular_user):
+    def test_user_management_workflow(self, client, admin_user, regular_user):
 
         """Test admin user management workflow."""
         # 1. List users
-with patch("app.core.dependencies.get_current_user_id", return_value=admin_user.id):
+        with patch("app.core.dependencies.get_current_user_id", return_value=admin_user.id):
             client.get("/api/v1/admin/users")
 
         # 2. View user details
@@ -142,7 +142,7 @@ with patch("app.core.dependencies.get_current_user_id", return_value=admin_user.
         # 5. Unsuspend user
         assert True
 
-def test_analytics_workflow(self, client, admin_user):
+    def test_analytics_workflow(self, client, admin_user):
 
         """Test admin analytics workflow."""
         # 1. View dashboard
@@ -154,17 +154,17 @@ def test_analytics_workflow(self, client, admin_user):
 
 class TestAPIKeyWorkflow:
 
-    """Test API key workflow."""
+        """Test API key workflow."""
 
-def test_api_key_lifecycle(self, client, payg_user, db):
+    def test_api_key_lifecycle(self, client, payg_user, db):
 
         """Test complete API key lifecycle."""
         payg_user.email_verified = True
         db.commit()
 
         # 1. Create API key
-with patch("app.core.dependencies.get_current_user_id", return_value=payg_user.id):
-with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
+        with patch("app.core.dependencies.get_current_user_id", return_value=payg_user.id):
+        with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
                 create_response = client.post("/api/v1/auth/api-keys", json={"name": "Test Key"})
 
         # 2. List API keys
@@ -175,9 +175,9 @@ with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
 
 class TestErrorRecoveryFlow:
 
-    """Test error recovery flows."""
+        """Test error recovery flows."""
 
-def test_payment_failure_recovery(self):
+    def test_payment_failure_recovery(self):
 
         """Test recovery from payment failure."""
         # 1. Attempt payment
@@ -186,7 +186,7 @@ def test_payment_failure_recovery(self):
         # 4. Success
         assert True
 
-def test_verification_timeout_recovery(self):
+    def test_verification_timeout_recovery(self):
 
         """Test recovery from verification timeout."""
         # 1. Start verification
@@ -198,15 +198,15 @@ def test_verification_timeout_recovery(self):
 
 class TestConcurrentOperations:
 
-    """Test concurrent operation handling."""
+        """Test concurrent operation handling."""
 
-def test_concurrent_credit_deductions(self):
+    def test_concurrent_credit_deductions(self):
 
         """Test concurrent credit deductions."""
         # Multiple verifications at same time
         assert True
 
-def test_concurrent_tier_upgrades(self):
+    def test_concurrent_tier_upgrades(self):
 
         """Test concurrent tier upgrade attempts."""
         assert True

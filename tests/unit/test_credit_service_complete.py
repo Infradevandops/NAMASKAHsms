@@ -9,14 +9,14 @@ class TestCreditServiceComplete:
 
     """Comprehensive tests for CreditService."""
 
-def test_get_balance(self, db_session, regular_user):
+    def test_get_balance(self, db_session, regular_user):
 
         """Test getting user balance."""
         service = CreditService(db_session)
         balance = service.get_balance(regular_user.id)
         assert balance == regular_user.credits
 
-def test_add_credits(self, db_session, regular_user):
+    def test_add_credits(self, db_session, regular_user):
 
         """Test adding credits."""
         service = CreditService(db_session)
@@ -28,7 +28,7 @@ def test_add_credits(self, db_session, regular_user):
         assert result["new_balance"] == initial_balance + amount
         assert db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).count() == 1
 
-def test_deduct_credits_success(self, db_session, regular_user):
+    def test_deduct_credits_success(self, db_session, regular_user):
 
         """Test successful credit deduction."""
         service = CreditService(db_session)
@@ -42,7 +42,7 @@ def test_deduct_credits_success(self, db_session, regular_user):
 
         assert result["new_balance"] == initial_balance - amount
 
-def test_deduct_credits_insufficient(self, db_session, regular_user):
+    def test_deduct_credits_insufficient(self, db_session, regular_user):
 
         """Test deduction fails with insufficient credits."""
         service = CreditService(db_session)
@@ -50,10 +50,10 @@ def test_deduct_credits_insufficient(self, db_session, regular_user):
         regular_user.credits = 10.0
         db_session.commit()
 
-with pytest.raises(InsufficientCreditsError):
+        with pytest.raises(InsufficientCreditsError):
             service.deduct_credits(regular_user.id, 20.0)
 
-def test_transfer_credits(self, db_session, regular_user, admin_user):
+    def test_transfer_credits(self, db_session, regular_user, admin_user):
 
         """Test transferring credits between users."""
         service = CreditService(db_session)
@@ -85,7 +85,7 @@ def test_transfer_credits(self, db_session, regular_user, admin_user):
         assert reg_trans.amount == -amount
         assert admin_trans.amount == amount
 
-def test_get_transaction_history(self, db_session, regular_user):
+    def test_get_transaction_history(self, db_session, regular_user):
 
         """Test retrieving transaction history."""
         service = CreditService(db_session)

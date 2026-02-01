@@ -34,7 +34,7 @@ class TestActivityModel:
 
     """Test Activity model."""
 
-def test_create_activity(self, db: Session, test_user):
+    def test_create_activity(self, db: Session, test_user):
 
         """Test creating an activity."""
         activity = Activity(
@@ -56,7 +56,7 @@ def test_create_activity(self, db: Session, test_user):
         assert activity.activity_type == "verification"
         assert activity.status == "completed"
 
-def test_activity_to_dict(self, db: Session, test_user):
+    def test_activity_to_dict(self, db: Session, test_user):
 
         """Test converting activity to dictionary."""
         activity = Activity(
@@ -83,9 +83,9 @@ def test_activity_to_dict(self, db: Session, test_user):
 
 class TestActivityService:
 
-    """Test ActivityService."""
+        """Test ActivityService."""
 
-def test_log_activity(self, activity_service, test_user):
+    def test_log_activity(self, activity_service, test_user):
 
         """Test logging an activity."""
         activity = activity_service.log_activity(
@@ -104,10 +104,10 @@ def test_log_activity(self, activity_service, test_user):
         assert activity.activity_type == "verification"
         assert activity.title == "Verification Started"
 
-def test_log_activity_user_not_found(self, activity_service):
+    def test_log_activity_user_not_found(self, activity_service):
 
         """Test logging activity for non-existent user."""
-with pytest.raises(ValueError, match="User .* not found"):
+        with pytest.raises(ValueError, match="User .* not found"):
             activity_service.log_activity(
                 user_id="non-existent-user",
                 activity_type="verification",
@@ -116,11 +116,11 @@ with pytest.raises(ValueError, match="User .* not found"):
                 title="Test",
             )
 
-def test_get_user_activities(self, db: Session, activity_service, test_user):
+    def test_get_user_activities(self, db: Session, activity_service, test_user):
 
         """Test retrieving user activities."""
         # Create multiple activities
-for i in range(5):
+        for i in range(5):
             activity_service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification" if i % 2 == 0 else "payment",
@@ -137,7 +137,7 @@ for i in range(5):
         assert result["skip"] == 0
         assert result["limit"] == 20
 
-def test_get_user_activities_with_filters(self, db: Session, activity_service, test_user):
+    def test_get_user_activities_with_filters(self, db: Session, activity_service, test_user):
 
         """Test retrieving activities with filters."""
         # Create activities of different types
@@ -176,11 +176,11 @@ def test_get_user_activities_with_filters(self, db: Session, activity_service, t
         result = activity_service.get_user_activities(test_user.id, resource_type="payment")
         assert result["total"] == 1
 
-def test_get_user_activities_pagination(self, db: Session, activity_service, test_user):
+    def test_get_user_activities_pagination(self, db: Session, activity_service, test_user):
 
         """Test pagination of activities."""
         # Create 25 activities
-for i in range(25):
+        for i in range(25):
             activity_service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification",
@@ -202,7 +202,7 @@ for i in range(25):
         result = activity_service.get_user_activities(test_user.id, skip=20, limit=10)
         assert len(result["activities"]) == 5
 
-def test_get_activity_by_id(self, db: Session, activity_service, test_user):
+    def test_get_activity_by_id(self, db: Session, activity_service, test_user):
 
         """Test retrieving activity by ID."""
         activity = activity_service.log_activity(
@@ -219,19 +219,19 @@ def test_get_activity_by_id(self, db: Session, activity_service, test_user):
         assert retrieved.id == activity.id
         assert retrieved.title == "Test Activity"
 
-def test_get_activity_by_id_not_found(self, activity_service, test_user):
+    def test_get_activity_by_id_not_found(self, activity_service, test_user):
 
         """Test retrieving non-existent activity."""
         retrieved = activity_service.get_activity_by_id(test_user.id, "non-existent-id")
         assert retrieved is None
 
-def test_get_activities_by_resource(self, db: Session, activity_service, test_user):
+    def test_get_activities_by_resource(self, db: Session, activity_service, test_user):
 
         """Test retrieving activities for a specific resource."""
         resource_id = "verify-123"
 
         # Create activities for same resource
-for i in range(3):
+        for i in range(3):
             activity_service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification",
@@ -256,7 +256,7 @@ for i in range(3):
         assert len(activities) == 3
         assert all(a.resource_id == resource_id for a in activities)
 
-def test_get_activity_summary(self, db: Session, activity_service, test_user):
+    def test_get_activity_summary(self, db: Session, activity_service, test_user):
 
         """Test getting activity summary."""
         # Create activities of different types and statuses
@@ -305,7 +305,7 @@ def test_get_activity_summary(self, db: Session, activity_service, test_user):
         assert summary["by_resource"]["payment"] == 1
         assert summary["by_resource"]["user"] == 1
 
-def test_cleanup_old_activities(self, db: Session, activity_service, test_user):
+    def test_cleanup_old_activities(self, db: Session, activity_service, test_user):
 
         """Test cleaning up old activities."""
         # Create recent activity
@@ -343,14 +343,14 @@ def test_cleanup_old_activities(self, db: Session, activity_service, test_user):
 
 class TestActivityEndpoints:
 
-    """Test Activity API endpoints."""
+        """Test Activity API endpoints."""
 
-def test_get_activities_endpoint(self, client, test_user, db: Session):
+    def test_get_activities_endpoint(self, client, test_user, db: Session):
 
         """Test GET /api/activities endpoint."""
         # Create test activities
         service = ActivityService(db)
-for i in range(3):
+        for i in range(3):
             service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification",
@@ -360,19 +360,19 @@ for i in range(3):
             )
 
         # Mock authentication
-with client:
+        with client:
             response = client.get(
                 "/api/activities",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["total"] == 3
             assert len(data["activities"]) == 3
 
-def test_get_activity_by_id_endpoint(self, client, test_user, db: Session):
+    def test_get_activity_by_id_endpoint(self, client, test_user, db: Session):
 
         """Test GET /api/activities/{activity_id} endpoint."""
         service = ActivityService(db)
@@ -384,23 +384,23 @@ def test_get_activity_by_id_endpoint(self, client, test_user, db: Session):
             title="Test Activity",
         )
 
-with client:
+        with client:
             response = client.get(
                 f"/api/activities/{activity.id}",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["id"] == activity.id
             assert data["title"] == "Test Activity"
 
-def test_get_activity_summary_endpoint(self, client, test_user, db: Session):
+    def test_get_activity_summary_endpoint(self, client, test_user, db: Session):
 
         """Test GET /api/activities/summary/overview endpoint."""
         service = ActivityService(db)
-for i in range(5):
+        for i in range(5):
             service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification" if i % 2 == 0 else "payment",
@@ -409,25 +409,25 @@ for i in range(5):
                 title=f"Activity {i}",
             )
 
-with client:
+        with client:
             response = client.get(
                 "/api/activities/summary/overview",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["total_activities"] == 5
             assert "by_type" in data
             assert "by_status" in data
             assert "by_resource" in data
 
-def test_export_activities_json(self, client, test_user, db: Session):
+    def test_export_activities_json(self, client, test_user, db: Session):
 
         """Test exporting activities as JSON."""
         service = ActivityService(db)
-for i in range(3):
+        for i in range(3):
             service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification",
@@ -436,24 +436,24 @@ for i in range(3):
                 title=f"Activity {i}",
             )
 
-with client:
+        with client:
             response = client.post(
                 "/api/activities/export?format=json",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["format"] == "json"
             assert data["count"] == 3
             assert len(data["data"]) == 3
 
-def test_export_activities_csv(self, client, test_user, db: Session):
+    def test_export_activities_csv(self, client, test_user, db: Session):
 
         """Test exporting activities as CSV."""
         service = ActivityService(db)
-for i in range(3):
+        for i in range(3):
             service.log_activity(
                 user_id=test_user.id,
                 activity_type="verification",
@@ -462,14 +462,14 @@ for i in range(3):
                 title=f"Activity {i}",
             )
 
-with client:
+        with client:
             response = client.post(
                 "/api/activities/export?format=csv",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert data["format"] == "csv"
             assert data["count"] == 3

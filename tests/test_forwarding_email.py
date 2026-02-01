@@ -21,7 +21,7 @@ class TestForwardingEmail:
             "is_test": False,
         }
 
-with patch("app.api.core.forwarding.email_service") as mock_email:
+        with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock()
@@ -31,7 +31,7 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
             assert result is True
             mock_email._send_smtp.assert_called_once()
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_send_forwarding_email_test_message(self):
         """Should send test message with warning banner."""
         sms_data = {
@@ -42,7 +42,7 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
             "is_test": True,
         }
 
-with patch("app.api.core.forwarding.email_service") as mock_email:
+        with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock()
@@ -51,7 +51,7 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
 
             assert result is True
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_send_forwarding_email_service_disabled(self):
         """Should return False when email service is disabled."""
         sms_data = {
@@ -61,14 +61,14 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-with patch("app.api.core.forwarding.email_service") as mock_email:
+        with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = False
 
             result = await _send_forwarding_email("user@example.com", sms_data)
 
             assert result is False
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_send_forwarding_email_smtp_failure(self):
         """Should handle SMTP failure gracefully."""
         sms_data = {
@@ -78,7 +78,7 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-with patch("app.api.core.forwarding.email_service") as mock_email:
+        with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock(side_effect=Exception("SMTP error"))
@@ -87,7 +87,7 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
 
             assert result is False
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_send_forwarding_email_html_content(self):
         """Should generate proper HTML email content."""
         sms_data = {
@@ -97,13 +97,13 @@ with patch("app.api.core.forwarding.email_service") as mock_email:
             "timestamp": "2026-01-13T12:00:00Z",
         }
 
-with patch("app.api.core.forwarding.email_service") as mock_email:
+        with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
 
             captured_message = None
 
-def capture_smtp(email, message):
+    def capture_smtp(email, message):
 
                 nonlocal captured_message
                 captured_message = message

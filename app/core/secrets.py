@@ -54,20 +54,20 @@ class SecretsManager:
             raise ValueError(f"Required secret {key} not found")
         return value
 
-    @staticmethod
+        @staticmethod
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_upper = key.upper()
         return any(sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS)
 
-    @staticmethod
+        @staticmethod
     def mask_secret(value: str, visible_chars: int = 4) -> str:
         """Mask sensitive values for logging."""
         if len(value) <= visible_chars * 2:
-            return "*" * len(value)
+        return "*" * len(value)
         return f"{value[:visible_chars]}{'*' * (len(value) - visible_chars * 2)}{value[-visible_chars:]}"
 
-    @staticmethod
+        @staticmethod
     def validate_required_secrets(environment: str = None) -> None:
         """Validate all required secrets are present for the environment."""
         if not environment:
@@ -80,9 +80,9 @@ class SecretsManager:
         for key in required_secrets:
             value = os.getenv(key)
             logger.info(f"Checking {key}: {'FOUND' if value else 'MISSING'}")
-            if not value:
+        if not value:
                 # Auto - generate certain keys if missing
-                if key in ["SECRET_KEY", "JWT_SECRET_KEY"]:
+        if key in ["SECRET_KEY", "JWT_SECRET_KEY"]:
                     generated_key = SecretsManager.generate_secret_key()
                     os.environ[key] = generated_key
                     logger.warning(f"Generated {key} for {environment} environment")
@@ -94,7 +94,7 @@ class SecretsManager:
         if missing:
             raise ValueError(f"Missing required secrets for {environment}: {missing}")
 
-    @staticmethod
+        @staticmethod
     def is_weak_secret(value: str) -> bool:
         """Check if a secret appears to be weak or default."""
         weak_patterns = [
@@ -112,12 +112,12 @@ class SecretsManager:
         value_lower = value.lower()
         return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
 
-    @staticmethod
+        @staticmethod
     def generate_secret_key() -> str:
         """Generate secure 256 - bit secret key."""
         return secrets.token_urlsafe(32)
 
-    @staticmethod
+        @staticmethod
     def generate_all_keys() -> Dict[str, str]:
         """Generate all required keys for a new environment."""
         return {
@@ -125,7 +125,7 @@ class SecretsManager:
             "JWT_SECRET_KEY": SecretsManager.generate_secret_key(),
         }
 
-    @staticmethod
+        @staticmethod
     def create_env_file(environment: str, output_path: str = None) -> str:
         """Create a new environment file with generated secrets."""
         if not output_path:
@@ -155,7 +155,7 @@ class SecretsManager:
         safe_path.write_text(env_content)
         return str(safe_path)
 
-    @staticmethod
+        @staticmethod
     def audit_environment() -> Dict[str, any]:
         """Audit current environment for security issues."""
         issues = []
@@ -168,7 +168,7 @@ class SecretsManager:
 
         for key in required_secrets:
             value = os.getenv(key)
-            if not value:
+        if not value:
                 issues.append(f"Missing required secret: {key}")
             elif SecretsManager.is_weak_secret(value):
                 warnings.append(f"Weak secret detected: {key}")
@@ -177,9 +177,9 @@ class SecretsManager:
         if environment == "production":
             paystack_key = os.getenv("PAYSTACK_SECRET_KEY", "")
             base_url = os.getenv("BASE_URL", "")
-            if "test" in paystack_key.lower():
+        if "test" in paystack_key.lower():
                 warnings.append("Test Paystack key detected in production")
-            if "localhost" in base_url:
+        if "localhost" in base_url:
                 warnings.append("Localhost URL detected in production")
 
         return {

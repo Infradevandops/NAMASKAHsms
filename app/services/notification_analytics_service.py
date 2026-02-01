@@ -15,7 +15,7 @@ class NotificationAnalyticsService:
 
     """Service for tracking and analyzing notification metrics."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         """Initialize notification analytics service.
 
@@ -24,7 +24,7 @@ def __init__(self, db: Session):
         """
         self.db = db
 
-def track_notification_sent(
+    def track_notification_sent(
 
         self,
         notification_id: str,
@@ -32,7 +32,7 @@ def track_notification_sent(
         notification_type: str,
         delivery_method: str,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> NotificationAnalytics:
+        ) -> NotificationAnalytics:
         """Track notification sent event.
 
         Args:
@@ -45,7 +45,7 @@ def track_notification_sent(
         Returns:
             NotificationAnalytics record
         """
-try:
+        try:
             analytics = NotificationAnalytics(
                 notification_id=notification_id,
                 user_id=user_id,
@@ -64,19 +64,19 @@ try:
                 f"user_id={user_id}, method={delivery_method}"
             )
 
-            return analytics
+        return analytics
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to track notification sent: {e}")
             raise
 
-def track_notification_delivered(
+    def track_notification_delivered(
 
         self,
         notification_id: str,
         user_id: str,
         delivery_method: str,
-    ) -> bool:
+        ) -> bool:
         """Track notification delivered event.
 
         Args:
@@ -87,7 +87,7 @@ def track_notification_delivered(
         Returns:
             True if tracking successful, False otherwise
         """
-try:
+        try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -100,19 +100,19 @@ try:
                 .first()
             )
 
-if not analytics:
+        if not analytics:
                 logger.warning(
                     f"Analytics record not found for notification {notification_id}, "
                     f"user {user_id}, method {delivery_method}"
                 )
-                return False
+        return False
 
             now = datetime.now(timezone.utc)
             analytics.status = "delivered"
             analytics.delivered_at = now.isoformat()
 
             # Calculate delivery time
-if analytics.sent_at:
+        if analytics.sent_at:
                 sent_time = datetime.fromisoformat(analytics.sent_at)
                 analytics.delivery_time_ms = int((now - sent_time).total_seconds() * 1000)
 
@@ -123,18 +123,18 @@ if analytics.sent_at:
                 f"delivery_time_ms={analytics.delivery_time_ms}"
             )
 
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to track notification delivered: {e}")
-            return False
+        return False
 
-def track_notification_read(
+    def track_notification_read(
 
         self,
         notification_id: str,
         user_id: str,
-    ) -> bool:
+        ) -> bool:
         """Track notification read event.
 
         Args:
@@ -144,7 +144,7 @@ def track_notification_read(
         Returns:
             True if tracking successful, False otherwise
         """
-try:
+        try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -156,16 +156,16 @@ try:
                 .first()
             )
 
-if not analytics:
+        if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
-                return False
+        return False
 
             now = datetime.now(timezone.utc)
             analytics.status = "read"
             analytics.read_at = now.isoformat()
 
             # Calculate read time
-if analytics.delivered_at:
+        if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
                 analytics.read_time_ms = int((now - delivered_time).total_seconds() * 1000)
 
@@ -176,18 +176,18 @@ if analytics.delivered_at:
                 f"read_time_ms={analytics.read_time_ms}"
             )
 
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to track notification read: {e}")
-            return False
+        return False
 
-def track_notification_clicked(
+    def track_notification_clicked(
 
         self,
         notification_id: str,
         user_id: str,
-    ) -> bool:
+        ) -> bool:
         """Track notification clicked event.
 
         Args:
@@ -197,7 +197,7 @@ def track_notification_clicked(
         Returns:
             True if tracking successful, False otherwise
         """
-try:
+        try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -209,16 +209,16 @@ try:
                 .first()
             )
 
-if not analytics:
+        if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
-                return False
+        return False
 
             now = datetime.now(timezone.utc)
             analytics.status = "clicked"
             analytics.clicked_at = now.isoformat()
 
             # Calculate click time
-if analytics.delivered_at:
+        if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
                 analytics.click_time_ms = int((now - delivered_time).total_seconds() * 1000)
 
@@ -229,20 +229,20 @@ if analytics.delivered_at:
                 f"click_time_ms={analytics.click_time_ms}"
             )
 
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to track notification clicked: {e}")
-            return False
+        return False
 
-def track_notification_failed(
+    def track_notification_failed(
 
         self,
         notification_id: str,
         user_id: str,
         delivery_method: str,
         reason: str,
-    ) -> bool:
+        ) -> bool:
         """Track notification failed event.
 
         Args:
@@ -254,7 +254,7 @@ def track_notification_failed(
         Returns:
             True if tracking successful, False otherwise
         """
-try:
+        try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -267,9 +267,9 @@ try:
                 .first()
             )
 
-if not analytics:
+        if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
-                return False
+        return False
 
             analytics.status = "failed"
             analytics.failed_at = datetime.now(timezone.utc).isoformat()
@@ -283,19 +283,19 @@ if not analytics:
                 f"reason={reason}, retry_count={analytics.retry_count}"
             )
 
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to track notification failed: {e}")
-            return False
+        return False
 
-def get_delivery_metrics(
+    def get_delivery_metrics(
 
         self,
         user_id: Optional[str] = None,
         notification_type: Optional[str] = None,
         days: int = 30,
-    ) -> Dict[str, Any]:
+        ) -> Dict[str, Any]:
         """Get notification delivery metrics.
 
         Args:
@@ -306,15 +306,15 @@ def get_delivery_metrics(
         Returns:
             Dictionary with delivery metrics
         """
-try:
+        try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-if user_id:
+        if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
-if notification_type:
+        if notification_type:
                 query = query.filter(NotificationAnalytics.notification_type == notification_type)
 
             analytics = query.all()
@@ -347,7 +347,7 @@ if notification_type:
                 f"read_rate={read_rate:.2f}%, click_rate={click_rate:.2f}%"
             )
 
-            return {
+        return {
                 "total_notifications": total,
                 "sent": sent,
                 "delivered": delivered,
@@ -363,16 +363,16 @@ if notification_type:
                 "avg_click_time_ms": round(avg_click_time, 2),
             }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get delivery metrics: {e}")
-            return {}
+        return {}
 
-def get_metrics_by_type(
+    def get_metrics_by_type(
 
         self,
         user_id: Optional[str] = None,
         days: int = 30,
-    ) -> Dict[str, Dict[str, Any]]:
+        ) -> Dict[str, Dict[str, Any]]:
         """Get metrics grouped by notification type.
 
         Args:
@@ -382,26 +382,26 @@ def get_metrics_by_type(
         Returns:
             Dictionary with metrics by type
         """
-try:
+        try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-if user_id:
+        if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by type
             by_type = {}
-for a in analytics:
-if a.notification_type not in by_type:
+        for a in analytics:
+        if a.notification_type not in by_type:
                     by_type[a.notification_type] = []
                 by_type[a.notification_type].append(a)
 
             # Calculate metrics for each type
             result = {}
-for notification_type, records in by_type.items():
+        for notification_type, records in by_type.items():
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
                 read = len([r for r in records if r.status in ["read", "clicked"]])
@@ -421,18 +421,18 @@ for notification_type, records in by_type.items():
 
             logger.info(f"Metrics by type calculated: {len(result)} types")
 
-            return result
+        return result
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get metrics by type: {e}")
-            return {}
+        return {}
 
-def get_metrics_by_method(
+    def get_metrics_by_method(
 
         self,
         user_id: Optional[str] = None,
         days: int = 30,
-    ) -> Dict[str, Dict[str, Any]]:
+        ) -> Dict[str, Dict[str, Any]]:
         """Get metrics grouped by delivery method.
 
         Args:
@@ -442,26 +442,26 @@ def get_metrics_by_method(
         Returns:
             Dictionary with metrics by method
         """
-try:
+        try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-if user_id:
+        if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by method
             by_method = {}
-for a in analytics:
-if a.delivery_method not in by_method:
+        for a in analytics:
+        if a.delivery_method not in by_method:
                     by_method[a.delivery_method] = []
                 by_method[a.delivery_method].append(a)
 
             # Calculate metrics for each method
             result = {}
-for method, records in by_method.items():
+        for method, records in by_method.items():
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
                 read = len([r for r in records if r.status in ["read", "clicked"]])
@@ -481,19 +481,19 @@ for method, records in by_method.items():
 
             logger.info(f"Metrics by method calculated: {len(result)} methods")
 
-            return result
+        return result
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get metrics by method: {e}")
-            return {}
+        return {}
 
-def get_timeline_metrics(
+    def get_timeline_metrics(
 
         self,
         user_id: Optional[str] = None,
         days: int = 30,
         interval: str = "day",
-    ) -> List[Dict[str, Any]]:
+        ) -> List[Dict[str, Any]]:
         """Get metrics over time.
 
         Args:
@@ -504,31 +504,31 @@ def get_timeline_metrics(
         Returns:
             List of metrics by time period
         """
-try:
+        try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-if user_id:
+        if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by time period
             by_period = {}
-for a in analytics:
-if interval == "day":
+        for a in analytics:
+        if interval == "day":
                     period = a.created_at.date().isoformat()
-else:  # hour
+        else:  # hour
                     period = a.created_at.replace(minute=0, second=0, microsecond=0).isoformat()
 
-if period not in by_period:
+        if period not in by_period:
                     by_period[period] = []
                 by_period[period].append(a)
 
             # Calculate metrics for each period
             result = []
-for period in sorted(by_period.keys()):
+        for period in sorted(by_period.keys()):
                 records = by_period[period]
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
@@ -552,8 +552,8 @@ for period in sorted(by_period.keys()):
 
             logger.info(f"Timeline metrics calculated: {len(result)} periods")
 
-            return result
+        return result
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get timeline metrics: {e}")
-            return []
+        return []

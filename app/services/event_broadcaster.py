@@ -15,7 +15,7 @@ class EventBroadcaster:
 
     """Service for broadcasting events to connected users via WebSocket."""
 
-def __init__(self, db: Optional[Session] = None):
+    def __init__(self, db: Optional[Session] = None):
 
         """Initialize event broadcaster.
 
@@ -28,7 +28,7 @@ def __init__(self, db: Optional[Session] = None):
         self,
         user_id: str,
         notification: Notification,
-    ) -> bool:
+        ) -> bool:
         """Broadcast notification to user via WebSocket.
 
         Args:
@@ -38,7 +38,7 @@ def __init__(self, db: Optional[Session] = None):
         Returns:
             True if broadcast successful, False otherwise
         """
-try:
+        try:
             message = {
                 "type": "notification",
                 "channel": "notifications",
@@ -53,16 +53,16 @@ try:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-if success:
+        if success:
                 logger.info(f"Notification broadcasted to user {user_id} via WebSocket")
-else:
+        else:
                 logger.debug(f"User {user_id} not connected, notification not broadcasted")
 
-            return success
+        return success
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast notification: {e}")
-            return False
+        return False
 
     async def broadcast_activity(
         self,
@@ -71,7 +71,7 @@ except Exception as e:
         title: str,
         description: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> bool:
+        ) -> bool:
         """Broadcast activity event to user via WebSocket.
 
         Args:
@@ -84,7 +84,7 @@ except Exception as e:
         Returns:
             True if broadcast successful, False otherwise
         """
-try:
+        try:
             message = {
                 "type": "activity",
                 "channel": "activities",
@@ -97,16 +97,16 @@ try:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-if success:
+        if success:
                 logger.info(f"Activity broadcasted to user {user_id} via WebSocket")
-else:
+        else:
                 logger.debug(f"User {user_id} not connected, activity not broadcasted")
 
-            return success
+        return success
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast activity: {e}")
-            return False
+        return False
 
     async def broadcast_payment_event(
         self,
@@ -116,7 +116,7 @@ except Exception as e:
         reference: str,
         status: str,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> bool:
+        ) -> bool:
         """Broadcast payment event to user via WebSocket.
 
         Args:
@@ -130,7 +130,7 @@ except Exception as e:
         Returns:
             True if broadcast successful, False otherwise
         """
-try:
+        try:
             message = {
                 "type": "payment",
                 "channel": "payments",
@@ -144,16 +144,16 @@ try:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-if success:
+        if success:
                 logger.info(f"Payment event broadcasted to user {user_id} via WebSocket")
-else:
+        else:
                 logger.debug(f"User {user_id} not connected, payment event not broadcasted")
 
-            return success
+        return success
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast payment event: {e}")
-            return False
+        return False
 
     async def broadcast_verification_event(
         self,
@@ -163,7 +163,7 @@ except Exception as e:
         verification_id: str,
         status: str,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> bool:
+        ) -> bool:
         """Broadcast verification event to user via WebSocket.
 
         Args:
@@ -177,7 +177,7 @@ except Exception as e:
         Returns:
             True if broadcast successful, False otherwise
         """
-try:
+        try:
             message = {
                 "type": "verification",
                 "channel": "notifications",
@@ -191,16 +191,16 @@ try:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-if success:
+        if success:
                 logger.info(f"Verification event broadcasted to user {user_id} via WebSocket")
-else:
+        else:
                 logger.debug(f"User {user_id} not connected, verification event not broadcasted")
 
-            return success
+        return success
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast verification event: {e}")
-            return False
+        return False
 
     async def broadcast_to_channel(
         self,
@@ -209,7 +209,7 @@ except Exception as e:
         title: str,
         content: str,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> int:
+        ) -> int:
         """Broadcast message to all users on a channel.
 
         Args:
@@ -222,7 +222,7 @@ except Exception as e:
         Returns:
             Number of users message was sent to
         """
-try:
+        try:
             message = {
                 "type": message_type,
                 "channel": channel,
@@ -236,32 +236,32 @@ try:
 
             logger.info(f"Channel broadcast sent to {recipients} users on channel {channel}")
 
-            return recipients
+        return recipients
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast to channel: {e}")
-            return 0
+        return 0
 
-def get_connection_stats(self) -> Dict[str, Any]:
+    def get_connection_stats(self) -> Dict[str, Any]:
 
         """Get WebSocket connection statistics.
 
         Returns:
             Dictionary with connection stats
         """
-try:
+        try:
             active_connections = connection_manager.get_active_connections_count()
             active_users = connection_manager.get_active_users()
 
-            return {
+        return {
                 "active_connections": active_connections,
                 "active_users": len(active_users),
                 "user_ids": active_users,
             }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get connection stats: {e}")
-            return {
+        return {
                 "active_connections": 0,
                 "active_users": 0,
                 "user_ids": [],
@@ -269,4 +269,4 @@ except Exception as e:
 
 
 # Global event broadcaster instance
-event_broadcaster = EventBroadcaster()
+        event_broadcaster = EventBroadcaster()

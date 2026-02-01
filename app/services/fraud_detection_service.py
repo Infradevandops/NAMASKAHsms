@@ -11,7 +11,7 @@ class FraudDetectionService:
 
     """Detects fraudulent verification attempts."""
 
-def __init__(self):
+    def __init__(self):
 
         self.model = None
         self.threshold = 0.7
@@ -33,16 +33,16 @@ def __init__(self):
         logger.info(f"Fraud score: {score:.2f} for {user_id}")
         return score, is_fraud
 
-def _calculate_score(self, features: Dict[str, Any]) -> float:
+    def _calculate_score(self, features: Dict[str, Any]) -> float:
 
         """Calculate fraud score."""
         score = 0.0
 
         # Placeholder scoring logic
         # In production: use trained ML model
-if features["country"] in ["high_risk_country"]:
+        if features["country"] in ["high_risk_country"]:
             score += 0.3
-if features["service"] in ["high_risk_service"]:
+        if features["service"] in ["high_risk_service"]:
             score += 0.2
 
         return min(score, 1.0)
@@ -52,4 +52,4 @@ if features["service"] in ["high_risk_service"]:
         return {"accuracy": 0.95, "precision": 0.92, "recall": 0.88, "f1_score": 0.90}
 
 
-fraud_detection_service = FraudDetectionService()
+        fraud_detection_service = FraudDetectionService()

@@ -30,18 +30,18 @@ class TransactionHistoryResponse:
     """Response model for transaction history."""
 
 
-@router.get("/balance")
-async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get current credit balance for user.
+    @router.get("/balance")
+    async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Get current credit balance for user.
 
-    Returns:
+        Returns:
         - credits: Current credit balance
         - free_verifications: Free verifications remaining
         - currency: Currency code (USD)
-    """
-try:
+        """
+        try:
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             logger.error(f"User {user_id} not found")
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -52,9 +52,9 @@ if not user:
             "free_verifications": float(user.free_verifications or 0.0),
             "currency": "USD",
         }
-except HTTPException:
+        except HTTPException:
         raise
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get balance for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -62,31 +62,31 @@ except Exception as e:
         )
 
 
-@router.get("/credits/history")
-async def get_credit_history(
-    user_id: str = Depends(get_current_user_id),
-    transaction_type: Optional[str] = Query(
+        @router.get("/credits/history")
+    async def get_credit_history(
+        user_id: str = Depends(get_current_user_id),
+        transaction_type: Optional[str] = Query(
         None,
         description="Filter by type: credit, debit, bonus, refund, transfer, admin_reset",
-    ),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
-    db: Session = Depends(get_db),
-):
-    """Get credit transaction history for user.
+        ),
+        skip: int = Query(0, ge=0, description="Number of records to skip"),
+        limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
+        db: Session = Depends(get_db),
+        ):
+        """Get credit transaction history for user.
 
-    Query Parameters:
+        Query Parameters:
         - transaction_type: Filter by transaction type
         - skip: Number of records to skip (pagination)
         - limit: Number of records to return (max 100)
 
-    Returns:
+        Returns:
         - total: Total number of transactions
         - skip: Number of records skipped
         - limit: Number of records returned
         - transactions: List of transactions with details
-    """
-try:
+        """
+        try:
         credit_service = CreditService(db)
         history = credit_service.get_transaction_history(
             user_id=user_id, transaction_type=transaction_type, skip=skip, limit=limit
@@ -96,10 +96,10 @@ try:
 
         return history
 
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get credit history for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -107,19 +107,19 @@ except Exception as e:
         )
 
 
-@router.get("/credits/summary")
-async def get_credit_summary(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get credit transaction summary for user.
+        @router.get("/credits/summary")
+    async def get_credit_summary(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+        """Get credit transaction summary for user.
 
-    Returns:
+        Returns:
         - current_balance: Current credit balance
         - total_credits_added: Total credits added
         - total_credits_deducted: Total credits deducted
         - total_bonuses: Total bonuses received
         - total_refunds: Total refunds received
         - transaction_count: Total number of transactions
-    """
-try:
+        """
+        try:
         credit_service = CreditService(db)
         summary = credit_service.get_transaction_summary(user_id)
 
@@ -127,10 +127,10 @@ try:
 
         return summary
 
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get credit summary for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -138,29 +138,29 @@ except Exception as e:
         )
 
 
-@router.post("/credits/add")
-async def add_credits(
-    amount: float = Query(..., gt=0, description="Amount to add"),
-    description: str = Query("Manual credit addition", description="Transaction description"),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Add credits to user account (admin endpoint).
+        @router.post("/credits/add")
+    async def add_credits(
+        amount: float = Query(..., gt=0, description="Amount to add"),
+        description: str = Query("Manual credit addition", description="Transaction description"),
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Add credits to user account (admin endpoint).
 
-    Query Parameters:
+        Query Parameters:
         - amount: Amount to add (must be positive)
         - description: Transaction description
 
-    Returns:
+        Returns:
         - amount_added: Amount added
         - old_balance: Previous balance
         - new_balance: New balance
         - timestamp: Transaction timestamp
-    """
-try:
+        """
+        try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-if not user or not user.is_admin:
+        if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to add credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -176,12 +176,12 @@ if not user or not user.is_admin:
 
         return result
 
-except HTTPException:
+        except HTTPException:
         raise
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to add credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -189,29 +189,29 @@ except Exception as e:
         )
 
 
-@router.post("/credits/deduct")
-async def deduct_credits(
-    amount: float = Query(..., gt=0, description="Amount to deduct"),
-    description: str = Query("Service charge", description="Transaction description"),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Deduct credits from user account (admin endpoint).
+        @router.post("/credits/deduct")
+    async def deduct_credits(
+        amount: float = Query(..., gt=0, description="Amount to deduct"),
+        description: str = Query("Service charge", description="Transaction description"),
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Deduct credits from user account (admin endpoint).
 
-    Query Parameters:
+        Query Parameters:
         - amount: Amount to deduct (must be positive)
         - description: Transaction description
 
-    Returns:
+        Returns:
         - amount_deducted: Amount deducted
         - old_balance: Previous balance
         - new_balance: New balance
         - timestamp: Transaction timestamp
-    """
-try:
+        """
+        try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-if not user or not user.is_admin:
+        if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to deduct credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -227,15 +227,15 @@ if not user or not user.is_admin:
 
         return result
 
-except HTTPException:
+        except HTTPException:
         raise
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except InsufficientCreditsError as e:
+        except InsufficientCreditsError as e:
         logger.warning(f"Insufficient credits: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to deduct credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -243,38 +243,38 @@ except Exception as e:
         )
 
 
-@router.post("/credits/transfer")
-async def transfer_credits(
-    to_user_id: str = Query(..., description="Destination user ID"),
-    amount: float = Query(..., gt=0, description="Amount to transfer"),
-    description: str = Query("Credit transfer", description="Transfer description"),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Transfer credits from one user to another (admin endpoint).
+        @router.post("/credits/transfer")
+    async def transfer_credits(
+        to_user_id: str = Query(..., description="Destination user ID"),
+        amount: float = Query(..., gt=0, description="Amount to transfer"),
+        description: str = Query("Credit transfer", description="Transfer description"),
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Transfer credits from one user to another (admin endpoint).
 
-    Query Parameters:
+        Query Parameters:
         - to_user_id: Destination user ID
         - amount: Amount to transfer (must be positive)
         - description: Transfer description
 
-    Returns:
+        Returns:
         - from_user_id: Source user ID
         - to_user_id: Destination user ID
         - amount: Amount transferred
         - from_user_new_balance: Source user new balance
         - to_user_new_balance: Destination user new balance
         - timestamp: Transfer timestamp
-    """
-try:
+        """
+        try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-if not user or not user.is_admin:
+        if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to transfer credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
         # Prevent self-transfer
-if user_id == to_user_id:
+        if user_id == to_user_id:
             raise ValueError("Cannot transfer credits to yoursel")
 
         credit_service = CreditService(db)
@@ -289,15 +289,15 @@ if user_id == to_user_id:
 
         return result
 
-except HTTPException:
+        except HTTPException:
         raise
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except InsufficientCreditsError as e:
+        except InsufficientCreditsError as e:
         logger.warning(f"Insufficient credits: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to transfer credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -305,27 +305,27 @@ except Exception as e:
         )
 
 
-@router.post("/credits/reset")
-async def reset_credits(
-    new_amount: float = Query(0.0, ge=0, description="New credit amount"),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Reset user credits (admin only).
+        @router.post("/credits/reset")
+    async def reset_credits(
+        new_amount: float = Query(0.0, ge=0, description="New credit amount"),
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Reset user credits (admin only).
 
-    Query Parameters:
+        Query Parameters:
         - new_amount: New credit amount (default 0)
 
-    Returns:
+        Returns:
         - user_id: User ID
         - old_balance: Previous balance
         - new_balance: New balance
         - timestamp: Reset timestamp
-    """
-try:
+        """
+        try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-if not user or not user.is_admin:
+        if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to reset credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -336,12 +336,12 @@ if not user or not user.is_admin:
 
         return result
 
-except HTTPException:
+        except HTTPException:
         raise
-except ValueError as e:
+        except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to reset credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

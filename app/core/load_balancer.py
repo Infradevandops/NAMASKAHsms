@@ -7,7 +7,7 @@ from typing import Any, Callable, List
 
 class LoadBalancer:
 
-def __init__(self, workers: List[Callable]):
+    def __init__(self, workers: List[Callable]):
 
         self.workers = workers
         self.current = 0

@@ -51,7 +51,7 @@ async def test_send_alert_exception(service):
     # Mock _send_email_alert to raise exception
     original_method = service._send_email_alert
 
-    async def mock_fail(alert):
+async def mock_fail(alert):
         raise ValueError("Simulated failure")
 
     service._send_email_alert = mock_fail

@@ -157,7 +157,7 @@ async def test_stop_polling_cancels_task(polling_service):
     """Test stop_polling removes and cancels task."""
 
     # Create a dummy task
-    async def dummy_task():
+async def dummy_task():
         await asyncio.sleep(1)
 
     task = asyncio.create_task(dummy_task())
@@ -187,7 +187,7 @@ with patch.object(polling_service, "start_polling", new_callable=AsyncMock) as m
 
         # We need to run start_background_service but kill it after one iteration
         # Easy way: mock sleep to raise an exception or change is_running
-        async def stop_after_one_loop(*args):
+async def stop_after_one_loop(*args):
             polling_service.is_running = False
 
 with patch("asyncio.sleep", side_effect=stop_after_one_loop):

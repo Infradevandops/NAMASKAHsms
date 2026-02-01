@@ -21,7 +21,7 @@ class MobileNotificationService:
 
     """Service for sending push notifications to mobile devices."""
 
-def __init__(self, db: Optional[Session] = None):
+    def __init__(self, db: Optional[Session] = None):
 
         """Initialize mobile notification service.
 
@@ -37,11 +37,11 @@ def __init__(self, db: Optional[Session] = None):
         self.apns_enabled = bool(self.apns_key_id and self.apns_team_id and self.apns_bundle_id)
         self.db = db
 
-if self.fcm_enabled:
+        if self.fcm_enabled:
             logger.info("FCM push notification service initialized")
-if self.apns_enabled:
+        if self.apns_enabled:
             logger.info("APNs push notification service initialized")
-if not self.fcm_enabled and not self.apns_enabled:
+        if not self.fcm_enabled and not self.apns_enabled:
             logger.warning("No push notification services configured")
 
     async def send_push_notification(
@@ -50,7 +50,7 @@ if not self.fcm_enabled and not self.apns_enabled:
         notification: Notification,
         device_tokens: List[str],
         platform: str = "both",
-    ) -> Dict[str, Any]:
+        ) -> Dict[str, Any]:
         """Send push notification to user's devices.
 
         Args:
@@ -64,23 +64,23 @@ if not self.fcm_enabled and not self.apns_enabled:
         """
         results = {"ios": {"sent": 0, "failed": 0}, "android": {"sent": 0, "failed": 0}}
 
-if not device_tokens:
+        if not device_tokens:
             logger.debug(f"No device tokens for user {user_id}")
-            return results
+        return results
 
-try:
-if platform in ("android", "both") and self.fcm_enabled:
+        try:
+        if platform in ("android", "both") and self.fcm_enabled:
                 android_tokens = [t for t in device_tokens if t.startswith("android_")]
-if android_tokens:
+        if android_tokens:
                     fcm_result = await self._send_fcm_notification(
                         notification=notification,
                         device_tokens=android_tokens,
                     )
                     results["android"] = fcm_result
 
-if platform in ("ios", "both") and self.apns_enabled:
+        if platform in ("ios", "both") and self.apns_enabled:
                 ios_tokens = [t for t in device_tokens if t.startswith("ios_")]
-if ios_tokens:
+        if ios_tokens:
                     apns_result = await self._send_apns_notification(
                         notification=notification,
                         device_tokens=ios_tokens,
@@ -93,7 +93,7 @@ if ios_tokens:
                 f"iOS {results['ios']['sent']}/{len([t for t in device_tokens if t.startswith('ios_')])}"
             )
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send push notifications for user {user_id}: {str(e)}")
 
         return results
@@ -102,7 +102,7 @@ except Exception as e:
         self,
         notification: Notification,
         device_tokens: List[str],
-    ) -> Dict[str, int]:
+        ) -> Dict[str, int]:
         """Send notification via Firebase Cloud Messaging.
 
         Args:
@@ -114,10 +114,10 @@ except Exception as e:
         """
         result = {"sent": 0, "failed": 0}
 
-if not self.fcm_enabled or not device_tokens:
-            return result
+        if not self.fcm_enabled or not device_tokens:
+        return result
 
-try:
+        try:
             fcm_url = "https://fcm.googleapis.com/fcm/send"
             headers = {
                 "Authorization": f"key={self.fcm_api_key}",
@@ -143,19 +143,19 @@ try:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(fcm_url, json=payload, headers=headers, timeout=10) as response:
-if response.status == 200:
+        if response.status == 200:
                         data = await response.json()
                         result["sent"] = data.get("success", 0)
                         result["failed"] = data.get("failure", 0)
                         logger.info(f"FCM notification sent: {result['sent']} success, {result['failed']} failed")
-else:
+        else:
                         logger.error(f"FCM API error: {response.status}")
                         result["failed"] = len(device_tokens)
 
-except asyncio.TimeoutError:
+        except asyncio.TimeoutError:
             logger.error("FCM request timeout")
             result["failed"] = len(device_tokens)
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send FCM notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
@@ -165,7 +165,7 @@ except Exception as e:
         self,
         notification: Notification,
         device_tokens: List[str],
-    ) -> Dict[str, int]:
+        ) -> Dict[str, int]:
         """Send notification via Apple Push Notification service.
 
         Args:
@@ -177,10 +177,10 @@ except Exception as e:
         """
         result = {"sent": 0, "failed": 0}
 
-if not self.apns_enabled or not device_tokens:
-            return result
+        if not self.apns_enabled or not device_tokens:
+        return result
 
-try:
+        try:
             # APNs requires HTTP/2 and certificate-based authentication
             # This is a placeholder for the actual implementation
             # In production, use a library like aioapns or aiohttp with HTTP/2 support
@@ -188,7 +188,7 @@ try:
             logger.info(f"APNs notification prepared for {len(device_tokens)} devices")
             result["sent"] = len(device_tokens)
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send APNs notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
@@ -200,7 +200,7 @@ except Exception as e:
         device_token: str,
         platform: str,
         device_name: Optional[str] = None,
-    ) -> bool:
+        ) -> bool:
         """Register device token for push notifications.
 
         Args:
@@ -212,11 +212,11 @@ except Exception as e:
         Returns:
             True if registration successful, False otherwise
         """
-if not self.db:
+        if not self.db:
             logger.warning("Database session not available for device token registration")
-            return False
+        return False
 
-try:
+        try:
 
             # Check if token already exists
             existing = (
@@ -228,11 +228,11 @@ try:
                 .first()
             )
 
-if existing:
+        if existing:
                 existing.platform = platform
                 existing.device_name = device_name
                 existing.is_active = True
-else:
+        else:
                 token = DeviceToken(
                     user_id=user_id,
                     device_token=device_token,
@@ -244,18 +244,18 @@ else:
 
             self.db.commit()
             logger.info(f"Device token registered for user {user_id} ({platform})")
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to register device token: {str(e)}")
             self.db.rollback()
-            return False
+        return False
 
     async def unregister_device_token(
         self,
         user_id: str,
         device_token: str,
-    ) -> bool:
+        ) -> bool:
         """Unregister device token.
 
         Args:
@@ -265,11 +265,11 @@ except Exception as e:
         Returns:
             True if unregistration successful, False otherwise
         """
-if not self.db:
+        if not self.db:
             logger.warning("Database session not available for device token unregistration")
-            return False
+        return False
 
-try:
+        try:
 
             token = (
                 self.db.query(DeviceToken)
@@ -280,24 +280,24 @@ try:
                 .first()
             )
 
-if token:
+        if token:
                 token.is_active = False
                 self.db.commit()
                 logger.info(f"Device token unregistered for user {user_id}")
-                return True
+        return True
 
-            return False
+        return False
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to unregister device token: {str(e)}")
             self.db.rollback()
-            return False
+        return False
 
     async def get_user_device_tokens(
         self,
         user_id: str,
         platform: Optional[str] = None,
-    ) -> List[str]:
+        ) -> List[str]:
         """Get active device tokens for user.
 
         Args:
@@ -307,26 +307,26 @@ except Exception as e:
         Returns:
             List of active device tokens
         """
-if not self.db:
+        if not self.db:
             logger.warning("Database session not available for getting device tokens")
-            return []
+        return []
 
-try:
+        try:
 
             query = self.db.query(DeviceToken).filter_by(
                 user_id=user_id,
                 is_active=True,
             )
 
-if platform:
+        if platform:
                 query = query.filter_by(platform=platform)
 
             tokens = query.all()
-            return [t.device_token for t in tokens]
+        return [t.device_token for t in tokens]
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get device tokens for user {user_id}: {str(e)}")
-            return []
+        return []
 
     async def cleanup_inactive_tokens(self, days: int = 30) -> int:
         """Clean up inactive device tokens.
@@ -337,11 +337,11 @@ except Exception as e:
         Returns:
             Number of tokens cleaned up
         """
-if not self.db:
+        if not self.db:
             logger.warning("Database session not available for cleanup")
-            return 0
+        return 0
 
-try:
+        try:
 
 
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
@@ -357,9 +357,9 @@ try:
 
             self.db.commit()
             logger.info(f"Cleaned up {deleted} inactive device tokens")
-            return deleted
+        return deleted
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to cleanup inactive tokens: {str(e)}")
             self.db.rollback()
-            return 0
+        return 0

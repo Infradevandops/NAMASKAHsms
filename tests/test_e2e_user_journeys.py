@@ -24,7 +24,7 @@ class TestFreemiumUserJourney:
 
     """Test freemium user trying to access paid features."""
 
-def test_freemium_user_gets_402_on_api_access(self, client: TestClient, db: Session):
+    def test_freemium_user_gets_402_on_api_access(self, client: TestClient, db: Session):
 
         """Freemium user tries to access API endpoint and gets 402."""
         # Create freemium user
@@ -57,7 +57,7 @@ def test_freemium_user_gets_402_on_api_access(self, client: TestClient, db: Sess
         )
         assert has_tier_info
 
-def test_freemium_user_can_view_dashboard(self, client: TestClient, db: Session):
+    def test_freemium_user_can_view_dashboard(self, client: TestClient, db: Session):
 
         """Freemium user can access dashboard."""
         user = User(
@@ -81,7 +81,7 @@ def test_freemium_user_can_view_dashboard(self, client: TestClient, db: Session)
         data = response.json()
         assert data["current_tier"] == "freemium"
 
-def test_freemium_user_sees_upgrade_options(self, client: TestClient, db: Session):
+    def test_freemium_user_sees_upgrade_options(self, client: TestClient, db: Session):
 
         """Freemium user can see available tiers for upgrade."""
         user = User(
@@ -110,9 +110,9 @@ def test_freemium_user_sees_upgrade_options(self, client: TestClient, db: Sessio
 
 class TestTierUpgradeJourney:
 
-    """Test user upgrading from one tier to another."""
+        """Test user upgrading from one tier to another."""
 
-def test_payg_user_can_access_api_keys(self, client: TestClient, db: Session):
+    def test_payg_user_can_access_api_keys(self, client: TestClient, db: Session):
 
         """PayG user can access API keys endpoint."""
         user = User(
@@ -134,7 +134,7 @@ def test_payg_user_can_access_api_keys(self, client: TestClient, db: Session):
         response = client.get("/api/auth/api-keys", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 200
 
-def test_payg_user_gets_402_on_pro_features(self, client: TestClient, db: Session):
+    def test_payg_user_gets_402_on_pro_features(self, client: TestClient, db: Session):
 
         """PayG user cannot access Pro-only features."""
         user = User(
@@ -157,7 +157,7 @@ def test_payg_user_gets_402_on_pro_features(self, client: TestClient, db: Sessio
         # Should get 402 or 404 (endpoint may not exist)
         assert response.status_code in [402, 404]
 
-def test_pro_user_can_access_all_features(self, client: TestClient, db: Session):
+    def test_pro_user_can_access_all_features(self, client: TestClient, db: Session):
 
         """Pro user can access all standard features."""
         user = User(
@@ -188,9 +188,9 @@ def test_pro_user_can_access_all_features(self, client: TestClient, db: Session)
 
 class TestTierDowngradeJourney:
 
-    """Test user downgrading tiers."""
+        """Test user downgrading tiers."""
 
-def test_downgrade_to_freemium(self, client: TestClient, db: Session):
+    def test_downgrade_to_freemium(self, client: TestClient, db: Session):
 
         """User can downgrade to freemium."""
         user = User(
@@ -218,7 +218,7 @@ def test_downgrade_to_freemium(self, client: TestClient, db: Session):
         data = response.json()
         assert data["current_tier"] == "freemium"
 
-def test_downgraded_user_loses_api_access(self, client: TestClient, db: Session):
+    def test_downgraded_user_loses_api_access(self, client: TestClient, db: Session):
 
         """After downgrade, user loses access to paid features."""
         user = User(
@@ -251,21 +251,21 @@ def test_downgraded_user_loses_api_access(self, client: TestClient, db: Session)
 
 class TestErrorScenarios:
 
-    """Test error handling scenarios."""
+        """Test error handling scenarios."""
 
-def test_unauthenticated_request_returns_401(self, client: TestClient):
+    def test_unauthenticated_request_returns_401(self, client: TestClient):
 
         """Unauthenticated requests return 401."""
         response = client.get("/api/v1/tiers/current")
         assert response.status_code == 401
 
-def test_invalid_token_returns_401(self, client: TestClient):
+    def test_invalid_token_returns_401(self, client: TestClient):
 
         """Invalid token returns 401."""
         response = client.get("/api/v1/tiers/current", headers={"Authorization": "Bearer invalid_token"})
         assert response.status_code == 401
 
-def test_expired_token_returns_401(self, client: TestClient):
+    def test_expired_token_returns_401(self, client: TestClient):
 
         """Expired token returns 401."""
 
@@ -284,7 +284,7 @@ def test_expired_token_returns_401(self, client: TestClient):
         )
         assert response.status_code == 401
 
-def test_nonexistent_user_returns_404(self, client: TestClient):
+    def test_nonexistent_user_returns_404(self, client: TestClient):
 
         """Request for nonexistent user returns appropriate error."""
         token = create_test_token("nonexistent_user_id", "nonexistent@test.com")
@@ -296,9 +296,9 @@ def test_nonexistent_user_returns_404(self, client: TestClient):
 
 class TestCustomTierJourney:
 
-    """Test custom/enterprise tier users."""
+        """Test custom/enterprise tier users."""
 
-def test_custom_user_has_full_access(self, client: TestClient, db: Session):
+    def test_custom_user_has_full_access(self, client: TestClient, db: Session):
 
         """Custom tier user has access to all features."""
         user = User(
@@ -333,9 +333,9 @@ def test_custom_user_has_full_access(self, client: TestClient, db: Session):
 
 class TestKYCJourney:
 
-    """Test KYC verification flow."""
+        """Test KYC verification flow."""
 
-def test_complete_kyc_flow(self, client: TestClient, db: Session):
+    def test_complete_kyc_flow(self, client: TestClient, db: Session):
 
         """Standard user submits KYC profile, admin verifies it, limits increase."""
         # 1. Create User
@@ -443,9 +443,9 @@ def test_complete_kyc_flow(self, client: TestClient, db: Session):
 
 class TestResellerJourney:
 
-    """Test Reseller/Bulk Purchase flow."""
+        """Test Reseller/Bulk Purchase flow."""
 
-def test_bulk_purchase_flow(self, client: TestClient, db: Session):
+    def test_bulk_purchase_flow(self, client: TestClient, db: Session):
 
         """Pro user can make bulk purchases."""
         # 1. Create Pro User with credits

@@ -40,10 +40,10 @@ class TestAuthEndpoints:
 
     """Test authentication endpoints comprehensively."""
 
-def test_register_success(self, client, db):
+    def test_register_success(self, client, db):
 
         """Test successful user registration."""
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register", json={"email": "newuser@example.com", "password": "SecurePassword123!"}
             )
@@ -59,7 +59,7 @@ with patch("app.services.notification_service.NotificationService.send_email", n
         assert user is not None
         assert user.email_verified is False
 
-def test_register_duplicate_email(self, client, regular_user):
+    def test_register_duplicate_email(self, client, regular_user):
 
         """Test registration with existing email."""
         response = client.post(
@@ -68,7 +68,7 @@ def test_register_duplicate_email(self, client, regular_user):
 
         assert response.status_code == 400
 
-def test_register_invalid_email(self, client):
+    def test_register_invalid_email(self, client):
 
         """Test registration with invalid email format."""
         response = client.post(
@@ -77,7 +77,7 @@ def test_register_invalid_email(self, client):
 
         assert response.status_code == 422  # Validation error
 
-def test_register_weak_password(self, client):
+    def test_register_weak_password(self, client):
 
         """Test registration with weak password."""
         response = client.post("/api/v1/auth/register", json={"email": "newuser@example.com", "password": "123"})
@@ -85,10 +85,10 @@ def test_register_weak_password(self, client):
         # Should fail validation
         assert response.status_code in [400, 422]
 
-def test_register_with_referral_code(self, client, db):
+    def test_register_with_referral_code(self, client, db):
 
         """Test registration with referral code."""
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register",
                 json={"email": "newuser@example.com", "password": "SecurePassword123!", "referral_code": "REF123"},
@@ -96,7 +96,7 @@ with patch("app.services.notification_service.NotificationService.send_email", n
 
         assert response.status_code == 201
 
-def test_login_success(self, client, db):
+    def test_login_success(self, client, db):
 
         """Test successful login."""
         # Create user with known password
@@ -121,7 +121,7 @@ def test_login_success(self, client, db):
         assert data["token_type"] == "bearer"
         assert "user" in data
 
-def test_login_invalid_email(self, client):
+    def test_login_invalid_email(self, client):
 
         """Test login with non-existent email."""
         response = client.post(
@@ -133,21 +133,21 @@ def test_login_invalid_email(self, client):
         error_msg = (data.get("detail") or data.get("message") or "").lower()
         assert "invalid" in error_msg or "credentials" in error_msg
 
-def test_login_wrong_password(self, client, regular_user):
+    def test_login_wrong_password(self, client, regular_user):
 
         """Test login with incorrect password."""
         response = client.post("/api/v1/auth/login", json={"email": regular_user.email, "password": "wrongpassword"})
 
         assert response.status_code == 401
 
-def test_login_missing_credentials(self, client):
+    def test_login_missing_credentials(self, client):
 
         """Test login with missing credentials."""
         response = client.post("/api/v1/auth/login", json={})
 
         assert response.status_code == 422  # Validation error
 
-def test_get_current_user_success(self, authenticated_regular_client, regular_user):
+    def test_get_current_user_success(self, authenticated_regular_client, regular_user):
 
         """Test getting current user information."""
         response = authenticated_regular_client.get("/api/v1/auth/me")
@@ -158,7 +158,7 @@ def test_get_current_user_success(self, authenticated_regular_client, regular_us
         assert "credits" in data
         assert "free_verifications" in data
 
-def test_get_current_user_unauthorized(self, client):
+    def test_get_current_user_unauthorized(self, client):
 
         """Test getting current user without authentication."""
         response = client.get("/api/v1/auth/me")
@@ -166,31 +166,31 @@ def test_get_current_user_unauthorized(self, client):
         # Should fail without auth
         assert response.status_code in [401, 403, 422]
 
-def test_get_current_user_not_found(self, client, db):
+    def test_get_current_user_not_found(self, client, db):
 
         """Test getting current user when user doesn't exist."""
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return "nonexistent-id"
+        return "nonexistent-id"
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
-try:
+        try:
             response = client.get("/api/v1/auth/me")
             assert response.status_code == 404
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_forgot_password_success(self, client, regular_user):
+    def test_forgot_password_success(self, client, regular_user):
 
         """Test password reset request."""
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post("/api/v1/auth/forgot-password", json={"email": regular_user.email})
 
         assert response.status_code == 200
@@ -198,16 +198,16 @@ with patch("app.services.notification_service.NotificationService.send_email", n
         msg = (data.get("message") or data.get("detail") or "").lower()
         assert "sent" in msg or "success" in msg
 
-def test_forgot_password_nonexistent_email(self, client):
+    def test_forgot_password_nonexistent_email(self, client):
 
         """Test password reset for non-existent email."""
-with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
+        with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post("/api/v1/auth/forgot-password", json={"email": "nonexistent@example.com"})
 
         # Should still return success for security
         assert response.status_code == 200
 
-def test_reset_password_success(self, client, regular_user, db):
+    def test_reset_password_success(self, client, regular_user, db):
 
         """Test password reset with valid token."""
         # Set reset token
@@ -226,7 +226,7 @@ def test_reset_password_success(self, client, regular_user, db):
         msg = (data.get("message") or data.get("detail") or "").lower()
         assert "success" in msg or "reset" in msg
 
-def test_reset_password_invalid_token(self, client):
+    def test_reset_password_invalid_token(self, client):
 
         """Test password reset with invalid token."""
         response = client.post(
@@ -235,7 +235,7 @@ def test_reset_password_invalid_token(self, client):
 
         assert response.status_code == 400
 
-def test_reset_password_expired_token(self, client, regular_user, db):
+    def test_reset_password_expired_token(self, client, regular_user, db):
 
         """Test password reset with expired token."""
 
@@ -250,7 +250,7 @@ def test_reset_password_expired_token(self, client, regular_user, db):
 
         assert response.status_code == 400
 
-def test_verify_email_success(self, client, regular_user, db):
+    def test_verify_email_success(self, client, regular_user, db):
 
         """Test email verification with valid token."""
 
@@ -266,14 +266,14 @@ def test_verify_email_success(self, client, regular_user, db):
         assert regular_user.email_verified is True
         assert regular_user.verification_token is None
 
-def test_verify_email_invalid_token(self, client):
+    def test_verify_email_invalid_token(self, client):
 
         """Test email verification with invalid token."""
         response = client.get("/api/v1/auth/verify-email?token=invalid-token")
 
         assert response.status_code == 400
 
-def test_google_auth_config(self, client):
+    def test_google_auth_config(self, client):
 
         """Test getting Google OAuth configuration."""
         response = client.get("/api/v1/auth/google/config")
@@ -283,7 +283,7 @@ def test_google_auth_config(self, client):
         assert "client_id" in data
         assert "features" in data
 
-def test_google_auth_success(self, client, db):
+    def test_google_auth_success(self, client, db):
 
         """Test Google OAuth authentication."""
         mock_idinfo = {
@@ -293,7 +293,7 @@ def test_google_auth_success(self, client, db):
             "picture": "https://example.com/avatar.jpg",
         }
 
-with patch("google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinfo):
+        with patch("google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinfo):
             response = client.post("/api/v1/auth/google", json={"token": "valid-google-token"})
 
         assert response.status_code == 200
@@ -301,15 +301,15 @@ with patch("google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinf
         assert "access_token" in data
         assert data["user"]["email"] == "googleuser@example.com"
 
-def test_google_auth_invalid_token(self, client):
+    def test_google_auth_invalid_token(self, client):
 
         """Test Google OAuth with invalid token."""
-with patch("google.oauth2.id_token.verify_oauth2_token", side_effect=ValueError("Invalid token")):
+        with patch("google.oauth2.id_token.verify_oauth2_token", side_effect=ValueError("Invalid token")):
             response = client.post("/api/v1/auth/google", json={"token": "invalid-token"})
 
         assert response.status_code == 401
 
-def test_logout_success(self, authenticated_regular_client):
+    def test_logout_success(self, authenticated_regular_client):
 
         """Test user logout."""
         response = authenticated_regular_client.post("/api/v1/auth/logout")
@@ -319,7 +319,7 @@ def test_logout_success(self, authenticated_regular_client):
         msg = (data.get("message") or data.get("detail") or "").lower()
         assert "success" in msg or "logout" in msg
 
-def test_refresh_token_success(self, client, regular_user, db):
+    def test_refresh_token_success(self, client, regular_user, db):
 
         """Test refreshing access token."""
 
@@ -333,26 +333,26 @@ def test_refresh_token_success(self, client, regular_user, db):
 
         # Token refresh has complex setup requirements
         assert response.status_code in [200, 401]
-if response.status_code == 200:
+        if response.status_code == 200:
             data = response.json()
             assert "access_token" in data
             assert "refresh_token" in data
 
-def test_refresh_token_invalid(self, client):
+    def test_refresh_token_invalid(self, client):
 
         """Test refresh with invalid token."""
         response = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid-token"})
 
         assert response.status_code == 401
 
-def test_refresh_token_missing(self, client):
+    def test_refresh_token_missing(self, client):
 
         """Test refresh without token."""
         response = client.post("/api/v1/auth/refresh", json={})
 
         assert response.status_code == 401
 
-def test_refresh_token_expired(self, client, regular_user, db):
+    def test_refresh_token_expired(self, client, regular_user, db):
 
         """Test refresh with expired token."""
 
@@ -365,76 +365,76 @@ def test_refresh_token_expired(self, client, regular_user, db):
 
         assert response.status_code == 401
 
-def test_create_api_key_success(self, client, payg_user, db):
+    def test_create_api_key_success(self, client, payg_user, db):
 
         """Test creating API key."""
 
         payg_user.email_verified = True
         db.commit()
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
             # API key creation has complex tier requirements and async handling
             assert response.status_code in [201, 401, 403, 404, 500]
-if response.status_code == 201:
+        if response.status_code == 201:
                 data = response.json()
                 assert "key" in data
                 assert data["name"] == "Test API Key"
                 assert data["is_active"] is True
-except Exception:
+        except Exception:
             # Test setup has async issues, accept as passing
             pass
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_create_api_key_unverified_email(self, client, payg_user, db):
+    def test_create_api_key_unverified_email(self, client, payg_user, db):
 
         """Test creating API key with unverified email."""
 
         payg_user.email_verified = False
         db.commit()
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
             assert response.status_code == 403
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_create_api_key_tier_restriction(self, authenticated_regular_client):
+    def test_create_api_key_tier_restriction(self, authenticated_regular_client):
 
         """Test creating API key requires PayG tier."""
         response = authenticated_regular_client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
@@ -442,13 +442,13 @@ def test_create_api_key_tier_restriction(self, authenticated_regular_client):
         # Should fail due to tier restriction
         assert response.status_code in [402, 403]
 
-def test_list_api_keys_success(self, client, payg_user, db):
+    def test_list_api_keys_success(self, client, payg_user, db):
 
         """Test listing API keys."""
-try:
+        try:
 
             # Create some API keys
-for i in range(3):
+        for i in range(3):
                 api_key = APIKey(
                     user_id=payg_user.id,
                     name=f"Key {i}",
@@ -459,66 +459,66 @@ for i in range(3):
                 db.add(api_key)
             db.commit()
 
-def override_get_db():
+    def override_get_db():
 
                 yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-                return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-                return str(payg_user.id)
+        return str(payg_user.id)
 
             app.dependency_overrides[get_db] = override_get_db
             app.dependency_overrides[get_current_user_id] = override_get_current_user_id
             app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
                 response = client.get("/api/v1/auth/api-keys")
 
                 # API key listing has complex tier requirements and async handling
                 assert response.status_code in [200, 401, 403, 404, 500]
-if response.status_code == 200:
+        if response.status_code == 200:
                     data = response.json()
                     assert len(data) == 3
-finally:
+        finally:
                 app.dependency_overrides.clear()
-except Exception:
+        except Exception:
             # Test setup has async issues, accept as passing
             pass
 
-def test_list_api_keys_empty(self, client, payg_user, db):
+    def test_list_api_keys_empty(self, client, payg_user, db):
 
         """Test listing API keys when none exist."""
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.get("/api/v1/auth/api-keys")
 
             assert response.status_code == 200
             data = response.json()
             assert len(data) == 0
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_delete_api_key_success(self, client, payg_user, db):
+    def test_delete_api_key_success(self, client, payg_user, db):
 
         """Test deleting API key."""
 
@@ -528,23 +528,23 @@ def test_delete_api_key_success(self, client, payg_user, db):
         db.add(api_key)
         db.commit()
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
 
             assert response.status_code == 200
@@ -552,37 +552,37 @@ try:
             # Verify deleted
             deleted_key = db.query(APIKey).filter(APIKey.id == api_key.id).first()
             assert deleted_key is None
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_delete_api_key_not_found(self, client, payg_user, db):
+    def test_delete_api_key_not_found(self, client, payg_user, db):
 
         """Test deleting non-existent API key."""
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.delete("/api/v1/auth/api-keys/nonexistent-id")
 
             assert response.status_code == 404
-finally:
+        finally:
             app.dependency_overrides.clear()
 
-def test_delete_api_key_wrong_user(self, client, payg_user, pro_user, db):
+    def test_delete_api_key_wrong_user(self, client, payg_user, pro_user, db):
 
         """Test deleting another user's API key."""
 
@@ -592,25 +592,25 @@ def test_delete_api_key_wrong_user(self, client, payg_user, pro_user, db):
         db.add(api_key)
         db.commit()
 
-def override_get_db():
+    def override_get_db():
 
             yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
-def override_require_tier(*args, **kwargs):
+    def override_require_tier(*args, **kwargs):
 
-            return str(payg_user.id)
+        return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
         app.dependency_overrides[require_tier] = override_require_tier
 
-try:
+        try:
             response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
 
             assert response.status_code == 404
-finally:
+        finally:
             app.dependency_overrides.clear()

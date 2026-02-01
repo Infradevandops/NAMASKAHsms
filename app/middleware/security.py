@@ -13,7 +13,7 @@ from app.services.auth import AuthService
 
 class NamaskahException(Exception):
 
-def __init__(self, error_code, message):
+    def __init__(self, error_code, message):
 
         self.error_code = error_code
         super().__init__(message)
@@ -21,9 +21,9 @@ def __init__(self, error_code, message):
 
 class JWTAuthMiddleware(BaseHTTPMiddleware):
 
-    """JWT authentication middleware for protected endpoints."""
+        """JWT authentication middleware for protected endpoints."""
 
-def __init__(self, app, exclude_paths: Optional[List[str]] = None):
+    def __init__(self, app, exclude_paths: Optional[List[str]] = None):
 
         super().__init__(app)
         self.exclude_paths = exclude_paths or [
@@ -58,13 +58,13 @@ def __init__(self, app, exclude_paths: Optional[List[str]] = None):
     async def dispatch(self, request: Request, call_next):
         """Process request with JWT authentication."""
         # Skip authentication for excluded paths
-if any(request.url.path.startswith(path) for path in self.exclude_paths):
-            return await call_next(request)
+        if any(request.url.path.startswith(path) for path in self.exclude_paths):
+        return await call_next(request)
 
         # Extract authorization header
         auth_header = request.headers.get("authorization")
-if not auth_header or not auth_header.startswith("Bearer "):
-            return JSONResponse(
+        if not auth_header or not auth_header.startswith("Bearer "):
+        return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={
                     "error": "Authentication required",
@@ -76,13 +76,13 @@ if not auth_header or not auth_header.startswith("Bearer "):
 
         # Validate token and get user
         db = SessionLocal()
-try:
+        try:
 
             auth_service = AuthService(db)
             user = auth_service.get_user_from_token(token)
 
-if not user:
-                return JSONResponse(
+        if not user:
+        return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     content={
                         "error": "Invalid token",
@@ -90,8 +90,8 @@ if not user:
                     },
                 )
 
-if not user.is_active:
-                return JSONResponse(
+        if not user.is_active:
+        return JSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={
                         "error": "Account disabled",
@@ -103,12 +103,12 @@ if not user.is_active:
             request.state.user = user
             request.state.user_id = user.id
 
-except Exception as e:
-            return JSONResponse(
+        except Exception as e:
+        return JSONResponse(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 content={"error": "Authentication failed", "message": str(e)},
             )
-finally:
+        finally:
             db.close()
 
         return await call_next(request)
@@ -116,9 +116,9 @@ finally:
 
 class APIKeyAuthMiddleware(BaseHTTPMiddleware):
 
-    """API key authentication middleware for programmatic access."""
+        """API key authentication middleware for programmatic access."""
 
-def __init__(self, app, api_key_header: str = "X-API-Key"):
+    def __init__(self, app, api_key_header: str = "X-API-Key"):
 
         super().__init__(app)
         self.api_key_header = api_key_header
@@ -126,28 +126,28 @@ def __init__(self, app, api_key_header: str = "X-API-Key"):
     async def dispatch(self, request: Request, call_next):
         """Process request with API key authentication."""
         # Only check API key if no JWT token is present
-if hasattr(request.state, "user"):
-            return await call_next(request)
+        if hasattr(request.state, "user"):
+        return await call_next(request)
 
         api_key = request.headers.get(self.api_key_header)
-if not api_key:
-            return await call_next(request)
+        if not api_key:
+        return await call_next(request)
 
         # Validate API key
         db = SessionLocal()
-try:
+        try:
 
             auth_service = AuthService(db)
             user = auth_service.verify_api_key(api_key)
 
-if user:
+        if user:
                 request.state.user = user
                 request.state.user_id = user.id
                 request.state.auth_method = "api_key"
 
-except (ValueError, KeyError, AttributeError):
+        except (ValueError, KeyError, AttributeError):
             pass  # Continue without authentication
-finally:
+        finally:
             db.close()
 
         return await call_next(request)
@@ -155,9 +155,9 @@ finally:
 
 class AdminRoleMiddleware(BaseHTTPMiddleware):
 
-    """Admin role verification middleware."""
+        """Admin role verification middleware."""
 
-def __init__(self, app, admin_paths: Optional[List[str]] = None):
+    def __init__(self, app, admin_paths: Optional[List[str]] = None):
 
         super().__init__(app)
         self.admin_paths = admin_paths or ["/admin"]
@@ -167,10 +167,10 @@ def __init__(self, app, admin_paths: Optional[List[str]] = None):
         # Check if this is an admin path
         is_admin_path = any(request.url.path.startswith(path) for path in self.admin_paths)
 
-if is_admin_path:
+        if is_admin_path:
             # Ensure user is authenticated
-if not hasattr(request.state, "user"):
-                return JSONResponse(
+        if not hasattr(request.state, "user"):
+        return JSONResponse(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     content={
                         "error": "Authentication required",
@@ -179,8 +179,8 @@ if not hasattr(request.state, "user"):
                 )
 
             # Check admin role
-if not request.state.user.is_admin:
-                return JSONResponse(
+        if not request.state.user.is_admin:
+        return JSONResponse(
                     status_code=status.HTTP_403_FORBIDDEN,
                     content={
                         "error": "Admin access required",
@@ -193,9 +193,9 @@ if not request.state.user.is_admin:
 
 class CORSMiddleware(BaseHTTPMiddleware):
 
-    """CORS middleware with proper origin validation."""
+        """CORS middleware with proper origin validation."""
 
-def __init__(
+    def __init__(
 
         self,
         app,
@@ -203,7 +203,7 @@ def __init__(
         allowed_methods: Optional[List[str]] = None,
         allowed_headers: Optional[List[str]] = None,
         allow_credentials: bool = True,
-    ):
+        ):
         super().__init__(app)
         self.allowed_origins = allowed_origins or ["*"]
         self.allowed_methods = allowed_methods or [
@@ -230,13 +230,13 @@ def __init__(
         origin = request.headers.get("origin")
 
         # Handle preflight requests
-if request.method == "OPTIONS":
+        if request.method == "OPTIONS":
             response = JSONResponse(content={})
-else:
+        else:
             response = await call_next(request)
 
         # Set CORS headers
-if origin and (
+        if origin and (
             "*" in self.allowed_origins
             or origin in self.allowed_origins
             or (settings.environment == "development" and ("localhost" in origin or "127.0.0.1" in origin))
@@ -246,7 +246,7 @@ if origin and (
         response.headers["Access-Control-Allow-Methods"] = ", ".join(self.allowed_methods)
         response.headers["Access-Control-Allow-Headers"] = ", ".join(self.allowed_headers)
 
-if self.allow_credentials:
+        if self.allow_credentials:
             response.headers["Access-Control-Allow-Credentials"] = "true"
 
         # Security headers
@@ -255,7 +255,7 @@ if self.allow_credentials:
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
-if settings.environment == "production":
+        if settings.environment == "production":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         return response
@@ -263,7 +263,7 @@ if settings.environment == "production":
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
-    """Security headers middleware."""
+        """Security headers middleware."""
 
     async def dispatch(self, request: Request, call_next):
         """Add security headers to all responses."""
@@ -289,7 +289,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
         # HSTS for production
-if settings.environment == "production":
+        if settings.environment == "production":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
         return response

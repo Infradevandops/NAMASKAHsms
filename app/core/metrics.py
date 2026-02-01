@@ -45,14 +45,14 @@ class MetricsCollector:
 
     """Centralized metrics collection and management."""
 
-def __init__(self):
+    def __init__(self):
 
         self.start_time = time.time()
         self.request_stats = defaultdict(lambda: {"count": 0, "total_time": 0})
         self.error_stats = Counter()
         self.business_stats = Counter()
 
-def record_request(self, method: str, endpoint: str, status_code: int, duration: float):
+    def record_request(self, method: str, endpoint: str, status_code: int, duration: float):
 
         """Record HTTP request metrics."""
         # Prometheus metrics
@@ -72,7 +72,7 @@ def record_request(self, method: str, endpoint: str, status_code: int, duration:
             duration_ms=duration * 1000,
         )
 
-def record_error(self, error_type: str, severity: str = "medium"):
+    def record_error(self, error_type: str, severity: str = "medium"):
 
         """Record error metrics."""
         ERROR_COUNT.labels(error_type=error_type, severity=severity).inc()
@@ -80,7 +80,7 @@ def record_error(self, error_type: str, severity: str = "medium"):
 
         logger.info("Error recorded", error_type=error_type, severity=severity)
 
-def record_business_event(self, event_type: str, status: str = "success"):
+    def record_business_event(self, event_type: str, status: str = "success"):
 
         """Record business event metrics."""
         BUSINESS_EVENTS.labels(event_type=event_type, status=status).inc()
@@ -88,11 +88,11 @@ def record_business_event(self, event_type: str, status: str = "success"):
 
         logger.info("Business event recorded", event_type=event_type, status=status)
 
-    @staticmethod
-def update_system_metrics():
+        @staticmethod
+    def update_system_metrics():
 
         """Update system resource metrics."""
-try:
+        try:
             # CPU usage
             cpu_percent = psutil.cpu_percent(interval=1)
             SYSTEM_CPU.set(cpu_percent)
@@ -112,11 +112,11 @@ try:
                 disk_percent=disk.percent,
             )
 
-except Exception as e:
+        except Exception as e:
             logger.error("Failed to update system metrics", error=str(e))
             # Continue execution instead of raising
 
-def get_application_metrics(self) -> Dict[str, Any]:
+    def get_application_metrics(self) -> Dict[str, Any]:
 
         """Get application - specific metrics."""
         uptime = time.time() - self.start_time
@@ -124,7 +124,7 @@ def get_application_metrics(self) -> Dict[str, Any]:
         # Calculate request statistics
         total_requests = sum(stats["count"] for stats in self.request_stats.values())
         avg_response_time = 0
-if total_requests > 0:
+        if total_requests > 0:
             total_time = sum(stats["total_time"] for stats in self.request_stats.values())
             avg_response_time = total_time / total_requests
 
@@ -137,10 +137,10 @@ if total_requests > 0:
             "requests_per_second": total_requests / uptime if uptime > 0 else 0,
         }
 
-def get_health_score(self) -> Dict[str, Any]:
+    def get_health_score(self) -> Dict[str, Any]:
 
         """Calculate overall health score."""
-try:
+        try:
             # Get system metrics
             cpu_percent = psutil.cpu_percent()
             memory_percent = psutil.virtual_memory().percent
@@ -150,41 +150,41 @@ try:
             health_score = 100
 
             # Deduct points for high resource usage
-if cpu_percent > 80:
+        if cpu_percent > 80:
                 health_score -= 20
-elif cpu_percent > 60:
+        elif cpu_percent > 60:
                 health_score -= 10
 
-if memory_percent > 85:
+        if memory_percent > 85:
                 health_score -= 20
-elif memory_percent > 70:
+        elif memory_percent > 70:
                 health_score -= 10
 
-if disk_percent > 90:
+        if disk_percent > 90:
                 health_score -= 15
-elif disk_percent > 80:
+        elif disk_percent > 80:
                 health_score -= 5
 
             # Deduct points for errors
             app_metrics = self.get_application_metrics()
             error_rate = 0
-if app_metrics["total_requests"] > 0:
+        if app_metrics["total_requests"] > 0:
                 error_rate = app_metrics["error_count"] / app_metrics["total_requests"]
 
-if error_rate > 0.05:  # 5% error rate
+        if error_rate > 0.05:  # 5% error rate
                 health_score -= 25
-elif error_rate > 0.01:  # 1% error rate
+        elif error_rate > 0.01:  # 1% error rate
                 health_score -= 10
 
             # Deduct points for slow response times
-if app_metrics["average_response_time"] > 2.0:
+        if app_metrics["average_response_time"] > 2.0:
                 health_score -= 15
-elif app_metrics["average_response_time"] > 1.0:
+        elif app_metrics["average_response_time"] > 1.0:
                 health_score -= 5
 
             health_score = max(0, health_score)
 
-            return {
+        return {
                 "health_score": health_score,
                 "status": ("healthy" if health_score >= 80 else "degraded" if health_score >= 60 else "unhealthy"),
                 "factors": {
@@ -196,25 +196,25 @@ elif app_metrics["average_response_time"] > 1.0:
                 },
             }
 
-except Exception as e:
+        except Exception as e:
             logger.error("Failed to calculate health score", error=str(e))
-            return {"health_score": 0, "status": "unknown", "error": str(e)}
+        return {"health_score": 0, "status": "unknown", "error": str(e)}
 
 
 # Global metrics collector instance
-metrics_collector = MetricsCollector()
+        metrics_collector = MetricsCollector()
 
 
 class MetricsMiddleware:
 
-    """Middleware to collect request metrics."""
+        """Middleware to collect request metrics."""
 
-def __init__(self, app):
+    def __init__(self, app):
 
         self.app = app
 
     async def __call__(self, scope, receive, send):
-if scope["type"] != "http":
+        if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
 
@@ -227,8 +227,8 @@ if scope["type"] != "http":
         # Normalize endpoint for metrics (remove IDs, etc.)
         normalized_path = MetricsMiddleware._normalize_path(path)
 
-        async def send_wrapper(message):
-if message["type"] == "http.response.start":
+    async def send_wrapper(message):
+        if message["type"] == "http.response.start":
                 # Record metrics when response starts
                 duration = time.time() - start_time
                 status_code = message["status"]
@@ -240,18 +240,18 @@ if message["type"] == "http.response.start":
 
             await send(message)
 
-try:
+        try:
             await self.app(scope, receive, send_wrapper)
-except Exception as e:
+        except Exception as e:
             # Record error
             metrics_collector.record_error(type(e).__name__, "high")
             raise
-finally:
+        finally:
             # Decrease active connections
             ACTIVE_CONNECTIONS.dec()
 
-    @staticmethod
-def _normalize_path(path: str) -> str:
+        @staticmethod
+    def _normalize_path(path: str) -> str:
 
         """Normalize path for metrics grouping."""
         # Replace UUIDs and IDs with placeholders
@@ -272,50 +272,50 @@ def _normalize_path(path: str) -> str:
         return path
 
 
-def get_prometheus_metrics() -> str:
+    def get_prometheus_metrics() -> str:
 
-    """Get Prometheus - formatted metrics."""
+        """Get Prometheus - formatted metrics."""
     # Update system metrics before generating output
-    metrics_collector.update_system_metrics()
+        metrics_collector.update_system_metrics()
 
-    return generate_latest()
-
-
-def get_metrics_content_type() -> str:
-
-    """Get Prometheus metrics content type."""
-    return CONTENT_TYPE_LATEST
+        return generate_latest()
 
 
-async def record_business_event(event_type: str, status: str = "success", **kwargs):
-    """Record a business event with additional context."""
-    metrics_collector.record_business_event(event_type, status)
+    def get_metrics_content_type() -> str:
+
+        """Get Prometheus metrics content type."""
+        return CONTENT_TYPE_LATEST
+
+
+    async def record_business_event(event_type: str, status: str = "success", **kwargs):
+        """Record a business event with additional context."""
+        metrics_collector.record_business_event(event_type, status)
 
     # Log business event for analytics
 
-    business_logger = get_logger("business")
-    log_business_event(business_logger, event_type, {"status": status, **kwargs})
+        business_logger = get_logger("business")
+        log_business_event(business_logger, event_type, {"status": status, **kwargs})
 
 
-async def record_performance_metric(operation: str, duration: float, **kwargs):
-    """Record performance metrics."""
+    async def record_performance_metric(operation: str, duration: float, **kwargs):
+        """Record performance metrics."""
     # Create operation - specific histogram if needed
-    operation_histogram = Histogram("operation_duration_seconds", "Operation duration in seconds", ["operation"])
+        operation_histogram = Histogram("operation_duration_seconds", "Operation duration in seconds", ["operation"])
 
-    operation_histogram.labels(operation=operation).observe(duration)
+        operation_histogram.labels(operation=operation).observe(duration)
 
     # Log performance
 
-    performance_logger = get_logger("performance")
-    log_performance(performance_logger, operation, duration, kwargs)
+        performance_logger = get_logger("performance")
+        log_performance(performance_logger, operation, duration, kwargs)
 
 
 class DatabaseMetrics:
 
-    """Database - specific metrics collection."""
+        """Database - specific metrics collection."""
 
-    @staticmethod
-def record_query(query_type: str, duration: float, success: bool = True):
+        @staticmethod
+    def record_query(query_type: str, duration: float, success: bool = True):
 
         """Record database query metrics."""
         query_histogram = Histogram(
@@ -327,11 +327,11 @@ def record_query(query_type: str, duration: float, success: bool = True):
         status = "success" if success else "error"
         query_histogram.labels(query_type=query_type, status=status).observe(duration)
 
-if not success:
+        if not success:
             metrics_collector.record_error("database_query", "medium")
 
-    @staticmethod
-def update_connection_count(active_connections: int):
+        @staticmethod
+    def update_connection_count(active_connections: int):
 
         """Update database connection count."""
         DATABASE_CONNECTIONS.set(active_connections)
@@ -339,9 +339,9 @@ def update_connection_count(active_connections: int):
 
 class CacheMetrics:
 
-    """Cache - specific metrics collection."""
+        """Cache - specific metrics collection."""
 
-def __init__(self):
+    def __init__(self):
 
         self.hit_counter = PrometheusCounter("cache_hits_total", "Cache hits")
         self.miss_counter = PrometheusCounter("cache_misses_total", "Cache misses")
@@ -351,33 +351,33 @@ def __init__(self):
             ["operation"],
         )
 
-def record_hit(self):
+    def record_hit(self):
 
         """Record cache hit."""
         self.hit_counter.inc()
 
-def record_miss(self):
+    def record_miss(self):
 
         """Record cache miss."""
         self.miss_counter.inc()
 
-def record_operation(self, operation: str, duration: float):
+    def record_operation(self, operation: str, duration: float):
 
         """Record cache operation."""
         self.operation_histogram.labels(operation=operation).observe(duration)
 
 
 # Global cache metrics instance
-cache_metrics = CacheMetrics()
+        cache_metrics = CacheMetrics()
 
 
-def get_application_info() -> Dict[str, Any]:
+    def get_application_info() -> Dict[str, Any]:
 
-    """Get application information for metrics."""
-    return {
+        """Get application information for metrics."""
+        return {
         "name": settings.app_name,
         "version": settings.app_version,
         "environment": settings.environment,
         "start_time": metrics_collector.start_time,
         "uptime": time.time() - metrics_collector.start_time,
-    }
+        }

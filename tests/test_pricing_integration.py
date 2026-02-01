@@ -45,7 +45,7 @@ class TestPricingEnforcementFlow:
 
     """Test complete pricing enforcement flow."""
 
-def test_freemium_purchase_flow(self, db: Session, users: dict):
+    def test_freemium_purchase_flow(self, db: Session, users: dict):
 
         """Test freemium user purchase flow."""
         user = users["freemium"]
@@ -64,7 +64,7 @@ def test_freemium_purchase_flow(self, db: Session, users: dict):
         user = db.query(User).filter(User.id == user.id).first()
         assert user.bonus_sms_balance == 8.0
 
-def test_payg_with_filters_flow(self, db: Session, users: dict):
+    def test_payg_with_filters_flow(self, db: Session, users: dict):
 
         """Test PAYG user with filters."""
         user = users["payg"]
@@ -82,7 +82,7 @@ def test_payg_with_filters_flow(self, db: Session, users: dict):
         tx_id = TransactionService.log_sms_purchase(db, user.id, cost_info["total_cost"], "payg", "telegram", filters)
         assert tx_id is not None
 
-def test_pro_quota_tracking_flow(self, db: Session, users: dict):
+    def test_pro_quota_tracking_flow(self, db: Session, users: dict):
 
         """Test Pro user quota tracking."""
         user = users["pro"]
@@ -100,7 +100,7 @@ def test_pro_quota_tracking_flow(self, db: Session, users: dict):
         assert quota_info["quota_used"] == 10.0
         assert quota_info["remaining"] == 5.0
 
-def test_pro_overage_calculation_flow(self, db: Session, users: dict):
+    def test_pro_overage_calculation_flow(self, db: Session, users: dict):
 
         """Test Pro user overage calculation."""
         user = users["pro"]
@@ -112,7 +112,7 @@ def test_pro_overage_calculation_flow(self, db: Session, users: dict):
         overage = QuotaService.calculate_overage(db, user.id, 2.50)
         assert overage == pytest.approx(0.45, rel=1e-2)  # (14 + 2.50 - 15) * 0.30
 
-def test_custom_api_key_limit_flow(self, db: Session, users: dict):
+    def test_custom_api_key_limit_flow(self, db: Session, users: dict):
 
         """Test Custom user API key creation."""
         user = users["custom"]
@@ -129,17 +129,17 @@ def test_custom_api_key_limit_flow(self, db: Session, users: dict):
         raw_key, api_key = service.generate_api_key(user.id, name="Test Key")
         assert api_key.name == "Test Key"
 
-def test_freemium_cannot_use_filters_flow(self, db: Session, users: dict):
+    def test_freemium_cannot_use_filters_flow(self, db: Session, users: dict):
 
         """Test freemium cannot use filters."""
         user = users["freemium"]
         filters = {"state": True}
 
         # Should raise error
-with pytest.raises(ValueError, match="Filters not available"):
+        with pytest.raises(ValueError, match="Filters not available"):
             PricingCalculator.calculate_sms_cost(db, user.id, filters)
 
-def test_complete_transaction_flow(self, db: Session, users: dict):
+    def test_complete_transaction_flow(self, db: Session, users: dict):
 
         """Test complete transaction from purchase to logging."""
         user = users["pro"]

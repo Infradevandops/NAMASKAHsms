@@ -6,7 +6,7 @@ from app.services.api_key_service import APIKeyService
 
 class TestAPIKeyService:
 
-def test_can_create_key_freemium(self, db_session, regular_user):
+    def test_can_create_key_freemium(self, db_session, regular_user):
 
         service = APIKeyService(db_session)
         # Freemium has limit 0 (or 2 depending on config, but assuming config seeded)
@@ -26,7 +26,7 @@ def test_can_create_key_freemium(self, db_session, regular_user):
         assert service.can_create_key(regular_user.id) is False
         assert service.get_remaining_keys(regular_user.id) == 0
 
-def test_can_create_key_pro(self, db_session, regular_user):
+    def test_can_create_key_pro(self, db_session, regular_user):
 
         service = APIKeyService(db_session)
         # Upgrade to pro
@@ -36,7 +36,7 @@ def test_can_create_key_pro(self, db_session, regular_user):
         assert service.can_create_key(regular_user.id) is True
         assert service.get_remaining_keys(regular_user.id) == 10
 
-def test_create_key_success(self, db_session, regular_user):
+    def test_create_key_success(self, db_session, regular_user):
 
         service = APIKeyService(db_session)
         regular_user.subscription_tier = "pro"
@@ -51,23 +51,23 @@ def test_create_key_success(self, db_session, regular_user):
         assert count == 1
         assert service.get_remaining_keys(regular_user.id) == 9
 
-def test_create_key_limit_reached(self, db_session, regular_user):
+    def test_create_key_limit_reached(self, db_session, regular_user):
 
         service = APIKeyService(db_session)
         regular_user.subscription_tier = "pro"
         db_session.commit()
 
         # Create 10 keys
-for i in range(10):
+        for i in range(10):
             service.generate_api_key(regular_user.id, name=f"Key {i}")
 
         assert service.can_create_key(regular_user.id) is False
         assert service.get_remaining_keys(regular_user.id) == 0
 
-with pytest.raises(ValueError, match="API key limit reached"):
+        with pytest.raises(ValueError, match="API key limit reached"):
             service.generate_api_key(regular_user.id)
 
-def test_custom_tier_unlimited(self, db_session, regular_user):
+    def test_custom_tier_unlimited(self, db_session, regular_user):
 
         service = APIKeyService(db_session)
         regular_user.subscription_tier = "custom"

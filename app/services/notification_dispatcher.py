@@ -14,15 +14,15 @@ class NotificationDispatcher:
 
     """Centralized notification creation for all events."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         self.db = db
         self.notification_service = NotificationService(db)
 
-def on_verification_created(self, verification) -> bool:
+    def on_verification_created(self, verification) -> bool:
 
         """Notification when verification is created."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=verification.user_id,
                 notification_type="verification_initiated",
@@ -35,15 +35,15 @@ try:
             self._broadcast_notification(verification.user_id, notification)
 
             logger.info(f"Created verification_initiated notification for {verification.user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create verification_initiated notification: {e}")
-            return False
+        return False
 
-def on_sms_received(self, verification) -> bool:
+    def on_sms_received(self, verification) -> bool:
 
         """Notification when SMS code is received."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=verification.user_id,
                 notification_type="sms_received",
@@ -56,15 +56,15 @@ try:
             self._broadcast_notification(verification.user_id, notification)
 
             logger.info(f"Created sms_received notification for {verification.user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create sms_received notification: {e}")
-            return False
+        return False
 
-def on_verification_failed(self, verification, reason: str) -> bool:
+    def on_verification_failed(self, verification, reason: str) -> bool:
 
         """Notification when verification fails."""
-try:
+        try:
             self.notification_service.create_notification(
                 user_id=verification.user_id,
                 notification_type="verification_failed",
@@ -73,15 +73,15 @@ try:
                 link="/verify",
             )
             logger.info(f"Created verification_failed notification for {verification.user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create verification_failed notification: {e}")
-            return False
+        return False
 
-def on_credit_deducted(self, user_id: str, amount: float, service: str) -> bool:
+    def on_credit_deducted(self, user_id: str, amount: float, service: str) -> bool:
 
         """Notification when credits are deducted."""
-try:
+        try:
             self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="credit_deducted",
@@ -90,15 +90,15 @@ try:
                 link="/wallet",
             )
             logger.info(f"Created credit_deducted notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create credit_deducted notification: {e}")
-            return False
+        return False
 
-def on_refund_issued(self, user_id: str, amount: float, reason: str) -> bool:
+    def on_refund_issued(self, user_id: str, amount: float, reason: str) -> bool:
 
         """Notification when refund is issued."""
-try:
+        try:
             self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_issued",
@@ -107,15 +107,15 @@ try:
                 link="/wallet",
             )
             logger.info(f"Created refund_issued notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_issued notification: {e}")
-            return False
+        return False
 
-def on_balance_low(self, user_id: str, current_balance: float) -> bool:
+    def on_balance_low(self, user_id: str, current_balance: float) -> bool:
 
         """Notification when balance is low."""
-try:
+        try:
             self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="balance_low",
@@ -124,15 +124,15 @@ try:
                 link="/wallet",
             )
             logger.info(f"Created balance_low notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create balance_low notification: {e}")
-            return False
+        return False
 
-def on_refund_initiated(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
+    def on_refund_initiated(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
 
         """Notification when refund is initiated."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_initiated",
@@ -142,15 +142,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_initiated notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_initiated notification: {e}")
-            return False
+        return False
 
-def on_refund_processing(self, user_id: str, amount: float, reference: str) -> bool:
+    def on_refund_processing(self, user_id: str, amount: float, reference: str) -> bool:
 
         """Notification when refund is being processed."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_processing",
@@ -160,15 +160,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_processing notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_processing notification: {e}")
-            return False
+        return False
 
-def on_refund_completed(self, user_id: str, amount: float, reference: str, new_balance: float) -> bool:
+    def on_refund_completed(self, user_id: str, amount: float, reference: str, new_balance: float) -> bool:
 
         """Notification when refund is completed."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_completed",
@@ -178,15 +178,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_completed notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_completed notification: {e}")
-            return False
+        return False
 
-def on_refund_failed(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
+    def on_refund_failed(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
 
         """Notification when refund fails."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_failed",
@@ -196,15 +196,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_failed notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_failed notification: {e}")
-            return False
+        return False
 
-def on_refund_cancelled(self, user_id: str, amount: float, reference: str) -> bool:
+    def on_refund_cancelled(self, user_id: str, amount: float, reference: str) -> bool:
 
         """Notification when refund is cancelled."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_cancelled",
@@ -214,15 +214,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_cancelled notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create refund_cancelled notification: {e}")
-            return False
+        return False
 
-def on_credits_added(self, user_id: str, amount: float, reason: str, new_balance: float) -> bool:
+    def on_credits_added(self, user_id: str, amount: float, reason: str, new_balance: float) -> bool:
 
         """Notification when credits are added."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="credits_added",
@@ -232,15 +232,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created credits_added notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create credits_added notification: {e}")
-            return False
+        return False
 
-def on_credits_deducted_enhanced(self, user_id: str, amount: float, reason: str, new_balance: float, verification_id: str = None) -> bool:
+    def on_credits_deducted_enhanced(self, user_id: str, amount: float, reason: str, new_balance: float, verification_id: str = None) -> bool:
 
         """Enhanced notification when credits are deducted with more details."""
-try:
+        try:
             link = f"/verify?id={verification_id}" if verification_id else "/wallet"
             notification = self.notification_service.create_notification(
                 user_id=user_id,
@@ -251,15 +251,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created credits_deducted notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create credits_deducted notification: {e}")
-            return False
+        return False
 
-def on_payment_initiated(self, user_id: str, amount: float, reference: str) -> bool:
+    def on_payment_initiated(self, user_id: str, amount: float, reference: str) -> bool:
 
         """Notification when payment is initiated."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="payment_initiated",
@@ -269,15 +269,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created payment_initiated notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create payment_initiated notification: {e}")
-            return False
+        return False
 
-def on_payment_completed(self, user_id: str, amount: float, credits_added: float, reference: str, new_balance: float) -> bool:
+    def on_payment_completed(self, user_id: str, amount: float, credits_added: float, reference: str, new_balance: float) -> bool:
 
         """Notification when payment is completed."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="payment_completed",
@@ -287,15 +287,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created payment_completed notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create payment_completed notification: {e}")
-            return False
+        return False
 
-def on_payment_failed(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
+    def on_payment_failed(self, user_id: str, amount: float, reason: str, reference: str) -> bool:
 
         """Notification when payment fails."""
-try:
+        try:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="payment_failed",
@@ -305,15 +305,15 @@ try:
             )
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created payment_failed notification for {user_id}")
-            return True
-except Exception as e:
+        return True
+        except Exception as e:
             logger.error(f"Failed to create payment_failed notification: {e}")
-            return False
+        return False
 
-def _broadcast_notification(self, user_id: str, notification) -> None:
+    def _broadcast_notification(self, user_id: str, notification) -> None:
 
         """Broadcast notification via WebSocket."""
-try:
+        try:
 
             message = {
                 "type": "notification",
@@ -322,13 +322,13 @@ try:
             }
 
             # Try to broadcast if event loop is running
-try:
+        try:
                 loop = asyncio.get_running_loop()
                 loop.create_task(connection_manager.broadcast_to_user(user_id, message))
                 logger.debug(f"Scheduled broadcast of notification {notification.id} to user {user_id}")
-except RuntimeError:
+        except RuntimeError:
                 # No event loop running, skip WebSocket broadcast
                 logger.debug(f"No event loop running, skipping WebSocket broadcast for notification {notification.id}")
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to broadcast notification: {e}")

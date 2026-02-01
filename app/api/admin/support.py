@@ -41,17 +41,17 @@ class SupportTicketResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-@router.post("/tickets", response_model=SuccessResponse)
-async def create_support_ticket(
-    ticket_data: SupportTicketCreate,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Create a new support ticket."""
-try:
+    @router.post("/tickets", response_model=SuccessResponse)
+    async def create_support_ticket(
+        ticket_data: SupportTicketCreate,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Create a new support ticket."""
+        try:
         # Get user information
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Create support ticket
@@ -82,70 +82,70 @@ if not user:
             },
         )
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to create support ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create support ticket")
 
 
-@router.get("/tickets", response_model=List[SupportTicketResponse])
-async def get_user_tickets(
-    user_id: str = Depends(get_current_user_id),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    limit: int = Query(20, le=100, description="Number of tickets to return"),
-    db: Session = Depends(get_db),
-):
-    """Get user's support tickets."""
-try:
+        @router.get("/tickets", response_model=List[SupportTicketResponse])
+    async def get_user_tickets(
+        user_id: str = Depends(get_current_user_id),
+        status: Optional[str] = Query(None, description="Filter by status"),
+        limit: int = Query(20, le=100, description="Number of tickets to return"),
+        db: Session = Depends(get_db),
+        ):
+        """Get user's support tickets."""
+        try:
         query = db.query(SupportTicket).filter(SupportTicket.user_id == user_id)
 
-if status:
+        if status:
             query = query.filter(SupportTicket.status == status)
 
         tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get user tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
-@router.get("/tickets/{ticket_id}", response_model=SupportTicketResponse)
-async def get_ticket_details(
-    ticket_id: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Get specific ticket details."""
-try:
+        @router.get("/tickets/{ticket_id}", response_model=SupportTicketResponse)
+    async def get_ticket_details(
+        ticket_id: str,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Get specific ticket details."""
+        try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
-if not ticket:
+        if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
         return SupportTicketResponse.from_orm(ticket)
 
-except HTTPException:
+        except HTTPException:
         pass
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get ticket details: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get ticket details")
 
 
-@router.post("/tickets/{ticket_id}/close", response_model=SuccessResponse)
-async def close_ticket(
-    ticket_id: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Close a support ticket."""
-try:
+        @router.post("/tickets/{ticket_id}/close", response_model=SuccessResponse)
+    async def close_ticket(
+        ticket_id: str,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Close a support ticket."""
+        try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
-if not ticket:
+        if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
-if ticket.status == "closed":
+        if ticket.status == "closed":
             raise HTTPException(status_code=400, detail="Ticket is already closed")
 
         ticket.status = "closed"
@@ -157,17 +157,17 @@ if ticket.status == "closed":
             data={"ticket_id": ticket_id, "status": "closed"},
         )
 
-except HTTPException:
+        except HTTPException:
         pass
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to close ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to close ticket")
 
 
-@router.get("/faq")
-async def get_faq():
-    """Get frequently asked questions."""
-try:
+        @router.get("/faq")
+    async def get_faq():
+        """Get frequently asked questions."""
+        try:
         faq_items = [
             {
                 "id": "1",
@@ -176,7 +176,7 @@ try:
                 "answer": (
                     "Most SMS verifications complete within 30 - 60 seconds. "
                     "Voice verifications may take 1 - 2 minutes depending on the service and \
-    country."
+        country."
                 ),
                 "helpful_count": 45,
             },
@@ -197,7 +197,7 @@ try:
                 "question": "How much do verifications cost?",
                 "answer": (
                     "Verification costs vary by service and \
-    country, typically ranging from $0.40 to $1.50. "
+        country, typically ranging from $0.40 to $1.50. "
                     "Voice verifications cost an additional $0.30. You can see exact pricing when selecting a service."
                 ),
                 "helpful_count": 52,
@@ -240,38 +240,38 @@ try:
 
         return {"faq": faq_items}
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get FAQ: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get FAQ")
 
 
-@router.post("/faq/{faq_id}/helpful", response_model=SuccessResponse)
-async def mark_faq_helpful(
-    faq_id: str,
-    helpful: bool = Body(..., description="Whether the FAQ was helpful"),
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Mark FAQ item as helpful or not helpful."""
-try:
+        @router.post("/faq/{faq_id}/helpful", response_model=SuccessResponse)
+    async def mark_faq_helpful(
+        faq_id: str,
+        helpful: bool = Body(..., description="Whether the FAQ was helpful"),
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Mark FAQ item as helpful or not helpful."""
+        try:
         # In a real implementation, you'd track this in the database
         return SuccessResponse(message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful})
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to record FAQ feedback: %s", e)
         raise HTTPException(status_code=500, detail="Failed to record feedback")
 
 
-@router.get("/categories")
-async def get_support_categories():
-    """Get available support categories."""
-try:
+        @router.get("/categories")
+    async def get_support_categories():
+        """Get available support categories."""
+        try:
         categories = [
             {
                 "id": "technical",
                 "name": "Technical Issue",
                 "description": "Problems with verifications, website, or \
-    app functionality",
+        app functionality",
                 "icon": "🔧",
             },
             {
@@ -308,15 +308,15 @@ try:
 
         return {"categories": categories}
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get support categories: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get categories")
 
 
-@router.get("/status")
-async def get_support_status():
-    """Get current support system status."""
-try:
+        @router.get("/status")
+    async def get_support_status():
+        """Get current support system status."""
+        try:
         return {
             "status": "operational",
             "average_response_time": "4 hours",
@@ -325,7 +325,7 @@ try:
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get support status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support status")
 
@@ -333,47 +333,47 @@ except Exception as e:
 # Admin endpoints for support management
 
 
-@router.get("/admin/tickets", response_model=List[SupportTicketResponse])
-async def get_all_tickets(
-    admin_id: str = Depends(get_admin_user_id),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    priority: Optional[str] = Query(None, description="Filter by priority"),
-    category: Optional[str] = Query(None, description="Filter by category"),
-    limit: int = Query(50, le=200, description="Number of tickets to return"),
-    db: Session = Depends(get_db),
-):
-    """Get all support tickets (admin only)."""
-try:
+        @router.get("/admin/tickets", response_model=List[SupportTicketResponse])
+    async def get_all_tickets(
+        admin_id: str = Depends(get_admin_user_id),
+        status: Optional[str] = Query(None, description="Filter by status"),
+        priority: Optional[str] = Query(None, description="Filter by priority"),
+        category: Optional[str] = Query(None, description="Filter by category"),
+        limit: int = Query(50, le=200, description="Number of tickets to return"),
+        db: Session = Depends(get_db),
+        ):
+        """Get all support tickets (admin only)."""
+        try:
         query = db.query(SupportTicket)
 
-if status:
+        if status:
             query = query.filter(SupportTicket.status == status)
-if priority:
+        if priority:
             query = query.filter(SupportTicket.priority == priority)
-if category:
+        if category:
             query = query.filter(SupportTicket.category == category)
 
         tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get all tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
-@router.post("/admin/tickets/{ticket_id}/respond", response_model=SuccessResponse)
-async def respond_to_ticket(
-    ticket_id: str,
-    response: str = Body(..., description="Admin response"),
-    admin_id: str = Depends(get_admin_user_id),
-    db: Session = Depends(get_db),
-):
-    """Respond to a support ticket (admin only)."""
-try:
+        @router.post("/admin/tickets/{ticket_id}/respond", response_model=SuccessResponse)
+    async def respond_to_ticket(
+        ticket_id: str,
+        response: str = Body(..., description="Admin response"),
+        admin_id: str = Depends(get_admin_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Respond to a support ticket (admin only)."""
+        try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
 
-if not ticket:
+        if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
         ticket.admin_response = response
@@ -389,17 +389,17 @@ if not ticket:
             data={"ticket_id": ticket_id, "status": "resolved"},
         )
 
-except HTTPException:
+        except HTTPException:
         pass
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to respond to ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to respond to ticket")
 
 
-@router.get("/admin/stats")
-async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
-    """Get support statistics (admin only)."""
-try:
+        @router.get("/admin/stats")
+    async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+        """Get support statistics (admin only)."""
+        try:
         total_tickets = db.query(SupportTicket).count()
         open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
         resolved_tickets = db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
@@ -416,6 +416,6 @@ try:
             "resolution_rate": (round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0),
         }
 
-except Exception as e:
+        except Exception as e:
         logger.error("Failed to get support stats: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support stats")

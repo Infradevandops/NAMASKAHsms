@@ -23,7 +23,7 @@ async def test_retry_with_backoff_success():
     mock_func = AsyncMock(return_value="success")
 
     @retry_with_backoff()
-    async def decorated():
+async def decorated():
         return await mock_func()
 
     result = await decorated()
@@ -37,7 +37,7 @@ async def test_retry_with_backoff_retries():
     mock_func = AsyncMock(side_effect=[httpx.HTTPError("Fail"), httpx.ReadTimeout("Timeout"), "Success"])
 
     @retry_with_backoff(RetryConfig(max_retries=3, initial_delay=0.01))
-    async def decorated():
+async def decorated():
         return await mock_func()
 
     result = await decorated()
@@ -50,7 +50,7 @@ async def test_retry_with_backoff_fail_max():
     mock_func = AsyncMock(side_effect=httpx.HTTPError("Always fail"))
 
     @retry_with_backoff(RetryConfig(max_retries=2, initial_delay=0.01))
-    async def decorated():
+async def decorated():
         return await mock_func()
 
 with pytest.raises(httpx.HTTPError):

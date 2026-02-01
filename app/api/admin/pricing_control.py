@@ -34,13 +34,13 @@ class TierCreate(BaseModel):
     display_order: int
 
 
-@router.get("/templates")
-async def get_pricing_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
-    """Get all pricing templates with their tiers"""
-    templates = db.query(PricingTemplate).all()
+    @router.get("/templates")
+    async def get_pricing_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        """Get all pricing templates with their tiers"""
+        templates = db.query(PricingTemplate).all()
 
-    result = []
-for template in templates:
+        result = []
+        for template in templates:
         tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
         result.append(
             {
@@ -64,30 +64,30 @@ for template in templates:
                         "api_keys_limit": tier.api_keys_limit,
                         "display_order": tier.display_order,
                     }
-for tier in sorted(tiers, key=lambda x: x.display_order or 0)
+        for tier in sorted(tiers, key=lambda x: x.display_order or 0)
                 ],
             }
         )
 
-    return {"success": True, "templates": result, "total": len(result)}
+        return {"success": True, "templates": result, "total": len(result)}
 
 
-@router.post("/templates")
-async def create_pricing_template(
-    template_data: TemplateCreate,
-    tiers: List[TierCreate],
-    admin_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
-):
-    """Create new pricing template with tiers"""
+        @router.post("/templates")
+    async def create_pricing_template(
+        template_data: TemplateCreate,
+        tiers: List[TierCreate],
+        admin_user: User = Depends(require_admin),
+        db: Session = Depends(get_db),
+        ):
+        """Create new pricing template with tiers"""
 
     # Check if template name already exists
-    existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data.name).first()
-if existing:
+        existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data.name).first()
+        if existing:
         raise HTTPException(status_code=400, detail="Template name already exists")
 
     # Create template
-    template = PricingTemplate(
+        template = PricingTemplate(
         name=template_data.name,
         description=template_data.description,
         region=template_data.region,
@@ -96,12 +96,12 @@ if existing:
         effective_date=template_data.effective_date,
         expires_at=template_data.expires_at,
         is_active=False,  # New templates start inactive
-    )
-    db.add(template)
-    db.flush()  # Get the ID
+        )
+        db.add(template)
+        db.flush()  # Get the ID
 
     # Create tiers
-for tier_data in tiers:
+        for tier_data in tiers:
         tier = TierPricing(
             template_id=template.id,
             tier_name=tier_data.tier_name,
@@ -115,94 +115,94 @@ for tier_data in tiers:
         db.add(tier)
 
     # Log creation
-    history = PricingHistory(
+        history = PricingHistory(
         template_id=template.id,
         action="created",
         changed_by=admin_user.id,
         notes=f"Template '{template.name}' created with {len(tiers)} tiers",
-    )
-    db.add(history)
+        )
+        db.add(history)
 
-    db.commit()
+        db.commit()
 
-    return {
+        return {
         "success": True,
         "template_id": template.id,
         "message": "Template created successfully",
-    }
+        }
 
 
-@router.post("/templates/{template_id}/activate")
-async def activate_template(
-    template_id: int,
-    admin_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
-):
-    """Activate a pricing template (deactivates others)"""
+        @router.post("/templates/{template_id}/activate")
+    async def activate_template(
+        template_id: int,
+        admin_user: User = Depends(require_admin),
+        db: Session = Depends(get_db),
+        ):
+        """Activate a pricing template (deactivates others)"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-if not template:
+        template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+        if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
     # Deactivate all other templates
-    db.query(PricingTemplate).update({"is_active": False})
+        db.query(PricingTemplate).update({"is_active": False})
 
     # Activate selected template
-    template.is_active = True
+        template.is_active = True
 
     # Log activation
-    history = PricingHistory(
+        history = PricingHistory(
         template_id=template.id,
         action="activated",
         changed_by=admin_user.id,
         notes=f"Template '{template.name}' activated",
-    )
-    db.add(history)
+        )
+        db.add(history)
 
-    db.commit()
+        db.commit()
 
-    return {"success": True, "message": f"Template '{template.name}' activated"}
+        return {"success": True, "message": f"Template '{template.name}' activated"}
 
 
-@router.post("/templates/{template_id}/deactivate")
-async def deactivate_template(
-    template_id: int,
-    admin_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
-):
-    """Deactivate a pricing template"""
+        @router.post("/templates/{template_id}/deactivate")
+    async def deactivate_template(
+        template_id: int,
+        admin_user: User = Depends(require_admin),
+        db: Session = Depends(get_db),
+        ):
+        """Deactivate a pricing template"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-if not template:
+        template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
+        if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
-    template.is_active = False
+        template.is_active = False
 
     # Log deactivation
-    history = PricingHistory(
+        history = PricingHistory(
         template_id=template.id,
         action="deactivated",
         changed_by=admin_user.id,
         notes=f"Template '{template.name}' deactivated",
-    )
-    db.add(history)
+        )
+        db.add(history)
 
-    db.commit()
+        db.commit()
 
-    return {"success": True, "message": f"Template '{template.name}' deactivated"}
+        return {"success": True, "message": f"Template '{template.name}' deactivated"}
 
 
-@router.get("/templates/active")
-async def get_active_template(db: Session = Depends(get_db)):
-    """Get currently active pricing template"""
+        @router.get("/templates/active")
+    async def get_active_template(db: Session = Depends(get_db)):
+        """Get currently active pricing template"""
 
-    template = db.query(PricingTemplate).filter(PricingTemplate.is_active).first()
-if not template:
+        template = db.query(PricingTemplate).filter(PricingTemplate.is_active).first()
+        if not template:
         return {"active_template": None}
 
-    tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
+        tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
 
-    return {
+        return {
         "active_template": {
             "id": template.id,
             "name": template.name,
@@ -218,28 +218,28 @@ if not template:
                     "features": tier.features or [],
                     "api_keys_limit": tier.api_keys_limit,
                 }
-for tier in sorted(tiers, key=lambda x: x.display_order or 0)
+        for tier in sorted(tiers, key=lambda x: x.display_order or 0)
             ],
         }
-    }
+        }
 
 
-@router.get("/templates/{template_id}/history")
-async def get_template_history(
-    template_id: int,
-    admin_user: User = Depends(require_admin),
-    db: Session = Depends(get_db),
-):
-    """Get pricing template change history"""
+        @router.get("/templates/{template_id}/history")
+    async def get_template_history(
+        template_id: int,
+        admin_user: User = Depends(require_admin),
+        db: Session = Depends(get_db),
+        ):
+        """Get pricing template change history"""
 
-    history = (
+        history = (
         db.query(PricingHistory)
         .filter(PricingHistory.template_id == template_id)
         .order_by(PricingHistory.changed_at.desc())
         .all()
-    )
+        )
 
-    return {
+        return {
         "history": [
             {
                 "action": h.action,
@@ -247,16 +247,16 @@ async def get_template_history(
                 "changed_at": h.changed_at.isoformat() if h.changed_at else None,
                 "notes": h.notes,
             }
-for h in history
+        for h in history
         ]
-    }
+        }
 
 
-@router.post("/quick-templates")
-async def create_quick_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
-    """Create standard, promotional, and holiday templates"""
+        @router.post("/quick-templates")
+    async def create_quick_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
+        """Create standard, promotional, and holiday templates"""
 
-    templates_data = [
+        templates_data = [
         {
             "name": "Standard Pricing",
             "description": "Regular pricing for normal operations",
@@ -391,14 +391,14 @@ async def create_quick_templates(admin_user: User = Depends(require_admin), db: 
                 },
             ],
         },
-    ]
+        ]
 
-    created_templates = []
+        created_templates = []
 
-for template_data in templates_data:
+        for template_data in templates_data:
         # Check if template already exists
         existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data["name"]).first()
-if existing:
+        if existing:
             continue
 
         # Create template
@@ -414,7 +414,7 @@ if existing:
         db.flush()
 
         # Create tiers
-for tier_data in template_data["tiers"]:
+        for tier_data in template_data["tiers"]:
             tier = TierPricing(
                 template_id=template.id,
                 tier_name=tier_data["tier_name"],
@@ -429,10 +429,10 @@ for tier_data in template_data["tiers"]:
 
         created_templates.append(template.name)
 
-    db.commit()
+        db.commit()
 
-    return {
+        return {
         "success": True,
         "created_templates": created_templates,
         "message": f"Created {len(created_templates)} pricing templates",
-    }
+        }

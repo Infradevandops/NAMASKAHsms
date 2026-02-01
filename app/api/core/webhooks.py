@@ -43,16 +43,16 @@ class WebhookResponse(BaseModel):
     last_failure: Optional[str] = None
 
 
-@router.get("", response_model=SuccessResponse)
-async def list_webhooks(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    _=Depends(require_payg),
-):
-    """List all webhooks for the current user."""
-    webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
+    @router.get("", response_model=SuccessResponse)
+    async def list_webhooks(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        _=Depends(require_payg),
+        ):
+        """List all webhooks for the current user."""
+        webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
 
-    return SuccessResponse(
+        return SuccessResponse(
         message="Webhooks retrieved successfully",
         data=[
             {
@@ -65,68 +65,68 @@ async def list_webhooks(
                 "last_success": w.last_success.isoformat() if w.last_success else None,
                 "last_failure": w.last_failure.isoformat() if w.last_failure else None,
             }
-for w in webhooks
+        for w in webhooks
         ],
-    )
+        )
 
 
-@router.post("", response_model=SuccessResponse)
-async def create_webhook(
-    request: WebhookCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    _=Depends(require_payg),
-):
-    """Create a new webhook."""
-    webhook = Webhook(
+        @router.post("", response_model=SuccessResponse)
+    async def create_webhook(
+        request: WebhookCreate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        _=Depends(require_payg),
+        ):
+        """Create a new webhook."""
+        webhook = Webhook(
         user_id=current_user.id,
         name=request.name,
         url=str(request.url),
         events=",".join(request.events),
         secret=secrets.token_hex(16),
         is_active=True,
-    )
-    db.add(webhook)
-    db.commit()
-    db.refresh(webhook)
+        )
+        db.add(webhook)
+        db.commit()
+        db.refresh(webhook)
 
-    return SuccessResponse(
+        return SuccessResponse(
         message="Webhook created successfully",
         data={"id": webhook.id, "secret": webhook.secret},
-    )
+        )
 
 
-@router.delete("/{webhook_id}", response_model=SuccessResponse)
-async def delete_webhook(
-    webhook_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    _=Depends(require_payg),
-):
-    """Delete a webhook."""
-    webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
+        @router.delete("/{webhook_id}", response_model=SuccessResponse)
+    async def delete_webhook(
+        webhook_id: str,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        _=Depends(require_payg),
+        ):
+        """Delete a webhook."""
+        webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
-if not webhook:
+        if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")
 
-    db.delete(webhook)
-    db.commit()
+        db.delete(webhook)
+        db.commit()
 
-    return SuccessResponse(message="Webhook deleted successfully")
+        return SuccessResponse(message="Webhook deleted successfully")
 
 
-@router.post("/{webhook_id}/test", response_model=SuccessResponse)
-async def test_webhook(
-    webhook_id: str,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-    _=Depends(require_payg),
-):
-    """Send a test ping to the webhook."""
-    webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
+        @router.post("/{webhook_id}/test", response_model=SuccessResponse)
+    async def test_webhook(
+        webhook_id: str,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+        _=Depends(require_payg),
+        ):
+        """Send a test ping to the webhook."""
+        webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
-if not webhook:
+        if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")
 
     # In a real app, this would trigger an async task to ping the URL
-    return SuccessResponse(message=f"Test ping sent to {webhook.url}")
+        return SuccessResponse(message=f"Test ping sent to {webhook.url}")

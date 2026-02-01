@@ -93,7 +93,7 @@ class ErrorResponse(BaseModel):
 
 # Validation utilities
 
-__all__ = [
+    __all__ = [
     # Authentication
     "UserCreate",
     "UserUpdate",
@@ -161,4 +161,4 @@ __all__ = [
     "sanitize_input",
     "validate_pagination_params",
     "create_pagination_response",
-]
+    ]

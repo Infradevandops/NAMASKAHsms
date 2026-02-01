@@ -13,16 +13,16 @@ class WhiteLabelService:
         """Get white - label config by domain."""
         db = next(get_db())
 
-try:
+        try:
             config = (
                 db.query(WhiteLabelConfig).filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active).first()
             )
-except Exception:
+        except Exception:
             # Table doesn't exist, return None
-            return None
+        return None
 
-if not config:
-            return None
+        if not config:
+        return None
 
         return {
             "company_name": config.company_name,
@@ -58,4 +58,4 @@ if not config:
 
 
 # Global service instance
-whitelabel_service = WhiteLabelService()
+        whitelabel_service = WhiteLabelService()

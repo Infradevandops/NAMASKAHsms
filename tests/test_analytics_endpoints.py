@@ -15,7 +15,7 @@ class TestAnalyticsSummaryEndpoint:
 
     """Tests for GET /api/analytics/summary endpoint."""
 
-def test_analytics_summary_returns_correct_fields(self, client, regular_user):
+    def test_analytics_summary_returns_correct_fields(self, client, regular_user):
 
         """Test that /api/analytics/summary returns all required fields."""
         token = create_test_token(regular_user.id, regular_user.email)
@@ -39,7 +39,7 @@ def test_analytics_summary_returns_correct_fields(self, client, regular_user):
 
         assert all(field in data for field in required_fields)
 
-def test_analytics_summary_with_no_verifications(self, client, regular_user):
+    def test_analytics_summary_with_no_verifications(self, client, regular_user):
 
         """Test analytics summary when user has no verifications."""
         token = create_test_token(regular_user.id, regular_user.email)
@@ -52,11 +52,11 @@ def test_analytics_summary_with_no_verifications(self, client, regular_user):
         assert data["success_rate"] == 0
         assert data["total_spent"] == 0
 
-def test_analytics_summary_calculates_success_rate(self, client, regular_user, db):
+    def test_analytics_summary_calculates_success_rate(self, client, regular_user, db):
 
         """Test that success rate is calculated correctly."""
         # Create verifications with different statuses
-for i in range(10):
+        for i in range(10):
             status = "completed" if i < 7 else "failed"
             verification = Verification(
                 id=f"verify_{i}",
@@ -83,13 +83,13 @@ for i in range(10):
         # Success rate is returned as decimal (0.7) not percentage (70.0)
         assert data["success_rate"] == 0.7
 
-def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, db):
+    def test_analytics_summary_counts_monthly_verifications(self, client, regular_user, db):
 
         """Test that monthly verifications are counted correctly."""
         # Create verifications in current month
         current_month = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
-for i in range(5):
+        for i in range(5):
             verification = Verification(
                 id=f"monthly_{i}",
                 user_id=regular_user.id,
@@ -125,18 +125,18 @@ for i in range(5):
         data = response.json()
         assert data["monthly_verifications"] == 5
 
-def test_analytics_summary_requires_authentication(self, client):
+    def test_analytics_summary_requires_authentication(self, client):
 
         """Test that analytics summary requires authentication."""
         response = client.get("/api/analytics/summary")
         assert response.status_code == 401
 
-def test_analytics_summary_with_different_user_tiers(self, client, db):
+    def test_analytics_summary_with_different_user_tiers(self, client, db):
 
         """Test analytics summary with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
 
-for tier in tiers_to_test:
+        for tier in tiers_to_test:
             user = User(
                 id=f"analytics_{tier}",
                 email=f"analytics_{tier}@test.com",
@@ -151,7 +151,7 @@ for tier in tiers_to_test:
             db.add(user)
         db.commit()
 
-for tier in tiers_to_test:
+        for tier in tiers_to_test:
             token = create_test_token(f"analytics_{tier}", f"analytics_{tier}@test.com")
             response = client.get("/api/analytics/summary", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
@@ -161,9 +161,9 @@ for tier in tiers_to_test:
 
 class TestDashboardActivityEndpoint:
 
-    """Tests for GET /api/dashboard/activity/recent endpoint."""
+        """Tests for GET /api/dashboard/activity/recent endpoint."""
 
-def test_activity_recent_returns_array(self, client, regular_user):
+    def test_activity_recent_returns_array(self, client, regular_user):
 
         """Test that /api/dashboard/activity/recent returns an array."""
         token = create_test_token(regular_user.id, regular_user.email)
@@ -176,11 +176,11 @@ def test_activity_recent_returns_array(self, client, regular_user):
         data = response.json()
         assert isinstance(data, list)
 
-def test_activity_recent_returns_activities(self, client, regular_user, db):
+    def test_activity_recent_returns_activities(self, client, regular_user, db):
 
         """Test that activity endpoint returns recent activities."""
         # Create some verifications
-for i in range(5):
+        for i in range(5):
             verification = Verification(
                 id=f"activity_{i}",
                 user_id=regular_user.id,
@@ -205,7 +205,7 @@ for i in range(5):
         data = response.json()
         assert len(data) == 5
 
-def test_activity_recent_includes_required_fields(self, client, regular_user, db):
+    def test_activity_recent_includes_required_fields(self, client, regular_user, db):
 
         """Test that each activity includes required fields."""
         verification = Verification(
@@ -236,11 +236,11 @@ def test_activity_recent_includes_required_fields(self, client, regular_user, db
         required_fields = {"id", "service_name", "phone_number", "status", "created_at"}
         assert all(field in activity for field in required_fields)
 
-def test_activity_recent_limits_to_ten(self, client, regular_user, db):
+    def test_activity_recent_limits_to_ten(self, client, regular_user, db):
 
         """Test that activity endpoint limits results to 10."""
         # Create 15 verifications
-for i in range(15):
+        for i in range(15):
             verification = Verification(
                 id=f"limit_test_{i}",
                 user_id=regular_user.id,
@@ -265,12 +265,12 @@ for i in range(15):
         data = response.json()
         assert len(data) == 10
 
-def test_activity_recent_orders_by_created_at(self, client, regular_user, db):
+    def test_activity_recent_orders_by_created_at(self, client, regular_user, db):
 
         """Test that activities are ordered by created_at descending."""
         # Create verifications with specific timestamps
         base_time = datetime.now(timezone.utc)
-for i in range(3):
+        for i in range(3):
             verification = Verification(
                 id=f"order_test_{i}",
                 user_id=regular_user.id,
@@ -298,7 +298,7 @@ for i in range(3):
         assert data[1]["id"] == "order_test_1"
         assert data[2]["id"] == "order_test_2"
 
-def test_activity_recent_only_returns_user_activities(self, client, regular_user, db):
+    def test_activity_recent_only_returns_user_activities(self, client, regular_user, db):
 
         """Test that activity endpoint only returns current user's activities."""
         # Create verification for regular user
@@ -356,18 +356,18 @@ def test_activity_recent_only_returns_user_activities(self, client, regular_user
         assert len(data) == 1
         assert data[0]["id"] == "user1_activity"
 
-def test_activity_recent_requires_authentication(self, client):
+    def test_activity_recent_requires_authentication(self, client):
 
         """Test that activity endpoint requires authentication."""
         response = client.get("/api/dashboard/activity/recent")
         assert response.status_code == 401
 
-def test_activity_recent_with_different_user_tiers(self, client, db):
+    def test_activity_recent_with_different_user_tiers(self, client, db):
 
         """Test activity endpoint with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
 
-for tier in tiers_to_test:
+        for tier in tiers_to_test:
             user = User(
                 id=f"activity_{tier}",
                 email=f"activity_{tier}@test.com",
@@ -382,7 +382,7 @@ for tier in tiers_to_test:
             db.add(user)
         db.commit()
 
-for tier in tiers_to_test:
+        for tier in tiers_to_test:
             token = create_test_token(f"activity_{tier}", f"activity_{tier}@test.com")
             response = client.get(
                 "/api/dashboard/activity/recent",

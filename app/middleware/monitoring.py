@@ -15,7 +15,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
         """Process request and track metrics."""
         start_time = time.time()
 
-try:
+        try:
             response = await call_next(request)
 
             # Calculate duration
@@ -32,12 +32,12 @@ try:
             # Add monitoring headers
             response.headers["X - Response-Time"] = str(duration)
 
-            return response
+        return response
 
-except (HTTPException, StarletteHTTPException):
+        except (HTTPException, StarletteHTTPException):
             # Don't track HTTP exceptions as errors - they're expected
             raise
-except NamaskahException as e:
+        except NamaskahException as e:
             # Track application - specific errors
             error_tracker.track_error(
                 e,
@@ -50,7 +50,7 @@ except NamaskahException as e:
                 },
             )
             raise
-except Exception as e:
+        except Exception as e:
             # Track unexpected errors
             error_tracker.track_error(
                 e,

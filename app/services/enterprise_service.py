@@ -15,8 +15,8 @@ class EnterpriseService:
 
         account = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
-if not account:
-            return None
+        if not account:
+        return None
 
         return {
             "tier_name": account.tier.name,
@@ -35,15 +35,15 @@ if not account:
 
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
-if not tier:
+        if not tier:
             raise ValueError(f"Tier {tier_name} not found")
 
         # Check if account already exists
         existing = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
-if existing:
+        if existing:
             existing.tier_id = tier.id
-else:
+        else:
             account = EnterpriseAccount(user_id=user_id, tier_id=tier.id)
             db.add(account)
 
@@ -56,8 +56,8 @@ else:
 
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
-if not tier:
-            return {"compliant": True}
+        if not tier:
+        return {"compliant": True}
 
         compliant = response_time <= tier.max_response_time
 
@@ -70,4 +70,4 @@ if not tier:
 
 
 # Global service instance
-enterprise_service = EnterpriseService()
+        enterprise_service = EnterpriseService()

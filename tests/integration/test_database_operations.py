@@ -14,7 +14,7 @@ class TestDatabaseIntegration:
 
     """Database integration tests."""
 
-def test_user_crud_operations(self, db_session):
+    def test_user_crud_operations(self, db_session):
 
         """Test Create, Read, Update, Delete for User."""
         # Create
@@ -44,7 +44,7 @@ def test_user_crud_operations(self, db_session):
         deleted = db_session.query(User).filter(User.email == "crud@test.com").first()
         assert deleted is None
 
-def test_transaction_user_relationship(self, db_session, regular_user):
+    def test_transaction_user_relationship(self, db_session, regular_user):
 
         """Test relationship between User and Transaction."""
         tx = Transaction(
@@ -62,7 +62,7 @@ def test_transaction_user_relationship(self, db_session, regular_user):
         assert len(txs) >= 1
         assert any(t.amount == 50.0 for t in txs)
 
-def test_payment_log_creation_and_query(self, db_session, regular_user):
+    def test_payment_log_creation_and_query(self, db_session, regular_user):
 
         """Test PaymentLog creation and querying."""
         log = PaymentLog(
@@ -85,7 +85,7 @@ def test_payment_log_creation_and_query(self, db_session, regular_user):
         assert found.amount_usd == 100.0
         assert found.status == "success"
 
-def test_verification_record_lifecycle(self, db_session, regular_user):
+    def test_verification_record_lifecycle(self, db_session, regular_user):
 
         """Test Verification record lifecycle."""
         verification = Verification(
@@ -109,7 +109,7 @@ def test_verification_record_lifecycle(self, db_session, regular_user):
         db_session.refresh(verification)
         assert verification.status == "completed"
 
-def test_database_transaction_rollback(self, db_session):
+    def test_database_transaction_rollback(self, db_session):
 
         """Test database transaction rollback."""
         user = User(
@@ -127,7 +127,7 @@ def test_database_transaction_rollback(self, db_session):
         found = db_session.query(User).filter(User.email == "rollback@test.com").first()
         assert found is None
 
-def test_concurrent_user_updates(self, db_session, regular_user):
+    def test_concurrent_user_updates(self, db_session, regular_user):
 
         """Test concurrent updates to same user."""
         initial_credits = regular_user.credits
@@ -142,7 +142,7 @@ def test_concurrent_user_updates(self, db_session, regular_user):
         db_session.refresh(regular_user)
         assert regular_user.credits == initial_credits + 30.0
 
-def test_bulk_insert_performance(self, db_session, regular_user):
+    def test_bulk_insert_performance(self, db_session, regular_user):
 
         """Test bulk insert of transactions."""
         transactions = [
@@ -152,7 +152,7 @@ def test_bulk_insert_performance(self, db_session, regular_user):
                 type="credit",
                 description=f"Bulk {i}",
             )
-for i in range(10)
+        for i in range(10)
         ]
 
         db_session.bulk_save_objects(transactions)
@@ -163,11 +163,11 @@ for i in range(10)
 
         assert count >= 10
 
-def test_query_filtering_and_ordering(self, db_session, regular_user):
+    def test_query_filtering_and_ordering(self, db_session, regular_user):
 
         """Test complex queries with filtering and ordering."""
         # Create test data
-for i in range(5):
+        for i in range(5):
             tx = Transaction(
                 user_id=regular_user.id,
                 amount=float(i * 10),
@@ -187,10 +187,10 @@ for i in range(5):
 
         assert len(credits) >= 3
         # Should be ordered descending
-if len(credits) >= 2:
+        if len(credits) >= 2:
             assert credits[0].amount >= credits[1].amount
 
-def test_database_constraint_enforcement(self, db_session):
+    def test_database_constraint_enforcement(self, db_session):
 
         """Test database constraints."""
         # Try to create user without required fields
@@ -198,12 +198,12 @@ def test_database_constraint_enforcement(self, db_session):
         db_session.add(user)
 
         # Should raise error due to missing email
-with pytest.raises(Exception):
+        with pytest.raises(Exception):
             db_session.commit()
 
         db_session.rollback()
 
-def test_cascade_delete_behavior(self, db_session):
+    def test_cascade_delete_behavior(self, db_session):
 
         """Test cascade delete if configured."""
         user = User(
@@ -232,7 +232,7 @@ def test_cascade_delete_behavior(self, db_session):
         # Adjust assertion based on actual cascade configuration
         assert tx_exists is None or tx_exists is not None
 
-def test_database_session_isolation(self, db_session):
+    def test_database_session_isolation(self, db_session):
 
         """Test database session isolation."""
         user1 = User(
@@ -252,7 +252,7 @@ def test_database_session_isolation(self, db_session):
 
         db_session.commit()
 
-def test_optimistic_locking_scenario(self, db_session, regular_user):
+    def test_optimistic_locking_scenario(self, db_session, regular_user):
 
         """Test optimistic locking scenario."""
         # Get initial state
@@ -271,11 +271,11 @@ def test_optimistic_locking_scenario(self, db_session, regular_user):
         db_session.refresh(regular_user)
         assert regular_user.credits == initial_credits + 75.0
 
-def test_query_pagination(self, db_session, regular_user):
+    def test_query_pagination(self, db_session, regular_user):
 
         """Test query pagination."""
         # Create many transactions
-for i in range(20):
+        for i in range(20):
             tx = Transaction(
                 user_id=regular_user.id,
                 amount=float(i),
@@ -299,5 +299,5 @@ for i in range(20):
         assert len(page_1_ids.intersection(page_2_ids)) == 0
 
 
-if __name__ == "__main__":
-    print("Integration tests created: 15 database operation tests")
+        if __name__ == "__main__":
+        print("Integration tests created: 15 database operation tests")

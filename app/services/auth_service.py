@@ -9,8 +9,6 @@ from app.models.api_key import APIKey
 from app.models.user import User
 from app.services.base import BaseService
 from app.utils.security import (
-import traceback
-
     create_access_token,
     generate_api_key,
     generate_secure_id,
@@ -18,22 +16,23 @@ import traceback
     verify_password,
     verify_token,
 )
+import traceback
 
 
 class AuthService(BaseService[User]):
 
     """Authentication service for user operations."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         super().__init__(User, db)
 
-def register_user(self, email: str, password: str, referral_code: Optional[str] = None) -> User:
+    def register_user(self, email: str, password: str, referral_code: Optional[str] = None) -> User:
 
         """Register a new user account."""
         # Check if user exists
         existing = self.db.query(User).filter(User.email == email).first()
-if existing:
+        if existing:
             raise ValidationError("Email already registered")
 
         # Create user
@@ -44,75 +43,75 @@ if existing:
         }
 
         # Handle referral
-if referral_code:
+        if referral_code:
             referrer = self.db.query(User).filter(User.referral_code == referral_code).first()
-if referrer:
+        if referrer:
                 user_data["referred_by"] = referrer.id
                 user_data["free_verifications"] = 2.0  # Bonus for being referred
 
         return self.create(**user_data)
 
-def authenticate_user(self, email: str, password: str) -> Optional[User]:
+    def authenticate_user(self, email: str, password: str) -> Optional[User]:
 
         """Authenticate user with email and password."""
-try:
+        try:
             print("[AUTH] Querying user: {}".format(email))
             user = self.db.query(User).filter(User.email == email).first()
             print("[AUTH] User found: {}".format(user is not None))
-if not user:
+        if not user:
                 print("[AUTH] User not found")
-                return None
+        return None
 
             # Handle users without password hash (OAuth users)
-if not user.password_hash:
+        if not user.password_hash:
                 print("[AUTH] No password hash")
-                return None
+        return None
 
             # Verify password with proper error handling
             print("[AUTH] Verifying password, hash starts with: {}".format(user.password_hash[:30]))
             verified = verify_password(password, user.password_hash)
             print("[AUTH] Password verified: {}".format(verified))
-if not verified:
+        if not verified:
                 print("[AUTH] Password verification failed")
-                return None
+        return None
 
             print("[AUTH] Authentication successful")
-            return user
-except Exception as e:
+        return user
+        except Exception as e:
             # Log authentication error but don't expose details
             print("[AUTH] Exception: {}".format(e))
 
             traceback.print_exc()
-            return None
+        return None
 
-    @staticmethod
-def create_user_token(user: User, expires_hours: int = 24 * 30) -> str:
+        @staticmethod
+    def create_user_token(user: User, expires_hours: int = 24 * 30) -> str:
 
         """Create JWT token for user."""
         data = {"user_id": user.id, "email": user.email}
         expires_delta = timedelta(hours=expires_hours)
         return create_access_token(data, expires_delta)
 
-    @staticmethod
-def verify_user_token(token: str) -> Optional[Dict[str, Any]]:
+        @staticmethod
+    def verify_user_token(token: str) -> Optional[Dict[str, Any]]:
 
         """Verify JWT token and return payload."""
         return verify_token(token)
 
-def get_user_from_token(self, token: str) -> Optional[User]:
+    def get_user_from_token(self, token: str) -> Optional[User]:
 
         """Get user from JWT token."""
         payload = self.verify_user_token(token)
-if not payload:
-            return None
+        if not payload:
+        return None
 
         user_id = payload.get("user_id")
-if not user_id:
-            return None
+        if not user_id:
+        return None
 
         return self.get_by_id(user_id)
 
-def create_api_key(self, user_id: str, name: str) -> APIKey:
+    def create_api_key(self, user_id: str, name: str) -> APIKey:
 
         """Create API key for user."""
         raw_key = f"nsk_{generate_api_key()}"
@@ -126,71 +125,71 @@ def create_api_key(self, user_id: str, name: str) -> APIKey:
         api_key.raw_key = raw_key
         return api_key
 
-def verify_api_key(self, key: str) -> Optional[User]:
+    def verify_api_key(self, key: str) -> Optional[User]:
 
         """Verify API key and return associated user."""
         api_keys = self.db.query(APIKey).filter(APIKey.is_active.is_(True)).all()
 
-for api_key in api_keys:
-if verify_password(key, api_key.key_hash):
-                return self.get_by_id(api_key.user_id)
+        for api_key in api_keys:
+        if verify_password(key, api_key.key_hash):
+        return self.get_by_id(api_key.user_id)
 
         return None
 
-def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
+    def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
 
         """Deactivate API key for user."""
         api_key = self.db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
 
-if not api_key:
-            return False
+        if not api_key:
+        return False
 
         self.db.delete(api_key)
         self.db.commit()
         return True
 
-def get_user_api_keys(self, user_id: str) -> list[APIKey]:
+    def get_user_api_keys(self, user_id: str) -> list[APIKey]:
 
         """Get all API keys for user."""
         return self.db.query(APIKey).filter(APIKey.user_id == user_id).all()
 
-def update_password(self, user_id: str, new_password: str) -> bool:
+    def update_password(self, user_id: str, new_password: str) -> bool:
 
         """Update user password."""
         user = self.get_by_id(user_id)
-if not user:
-            return False
+        if not user:
+        return False
 
         user.password_hash = hash_password(new_password)
         user.update_timestamp()
         self.db.commit()
         return True
 
-def verify_admin_access(self, user_id: str) -> bool:
+    def verify_admin_access(self, user_id: str) -> bool:
 
         """Verify user has admin access."""
         user = self.get_by_id(user_id)
         return user is not None and user.is_admin
 
-def create_or_get_google_user(self, google_id: str, email: str, name: str = None, avatar_url: str = None) -> User:
+    def create_or_get_google_user(self, google_id: str, email: str, name: str = None, avatar_url: str = None) -> User:
 
         """Create or get user from Google OAuth."""
         # Check if user exists by Google ID
         user = self.db.query(User).filter(User.google_id == google_id).first()
-if user:
-            return user
+        if user:
+        return user
 
         # Check if user exists by email
         user = self.db.query(User).filter(User.email == email).first()
-if user:
+        if user:
             # Link Google account to existing user
             user.google_id = google_id
             user.provider = "google"
             user.email_verified = True
-if avatar_url:
+        if avatar_url:
                 user.avatar_url = avatar_url
             self.db.commit()
-            return user
+        return user
 
         # Create new Google user
         user_data = {
@@ -202,17 +201,17 @@ if avatar_url:
             "free_verifications": 2.0,  # Bonus for Google signup
         }
 
-if avatar_url:
+        if avatar_url:
             user_data["avatar_url"] = avatar_url
 
         return self.create(**user_data)
 
-def reset_password_request(self, email: str) -> Optional[str]:
+    def reset_password_request(self, email: str) -> Optional[str]:
 
         """Generate password reset token for user."""
         user = self.db.query(User).filter(User.email == email).first()
-if not user:
-            return None
+        if not user:
+        return None
 
         # Generate reset token
         reset_token = generate_secure_id("rst", 32)
@@ -224,22 +223,22 @@ if not user:
         self.db.commit()
         return reset_token
 
-def reset_password(self, token: str, new_password: str) -> bool:
+    def reset_password(self, token: str, new_password: str) -> bool:
 
         """Reset password using token."""
         user = self.db.query(User).filter(User.reset_token == token).first()
 
-if not user or not user.reset_token_expires:
-            return False
+        if not user or not user.reset_token_expires:
+        return False
 
         # Check if token is expired
         now = datetime.now(timezone.utc)
         expires = user.reset_token_expires
-if expires.tzinfo is None:
+        if expires.tzinfo is None:
             expires = expires.replace(tzinfo=timezone.utc)
 
-if now > expires:
-            return False
+        if now > expires:
+        return False
 
         # Update password and clear reset token
         user.password_hash = hash_password(new_password)
@@ -249,13 +248,13 @@ if now > expires:
         self.db.commit()
         return True
 
-def verify_email(self, token: str) -> bool:
+    def verify_email(self, token: str) -> bool:
 
         """Verify email using verification token."""
         user = self.db.query(User).filter(User.verification_token == token).first()
 
-if not user:
-            return False
+        if not user:
+        return False
 
         user.email_verified = True
         user.verification_token = None
@@ -264,7 +263,7 @@ if not user:
         return True
 
 
-def get_auth_service(db: Session) -> AuthService:
+    def get_auth_service(db: Session) -> AuthService:
 
-    """Get authentication service instance."""
-    return AuthService(db)
+        """Get authentication service instance."""
+        return AuthService(db)

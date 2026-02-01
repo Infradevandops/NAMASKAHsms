@@ -12,7 +12,7 @@ class CommissionEngine:
 
     """Advanced commission calculation and revenue sharing engine."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         self.db = db
 
@@ -22,18 +22,18 @@ def __init__(self, db: Session):
         transaction_amount: float,
         transaction_id: str,
         service_type: str = "sms",
-    ) -> Dict:
+        ) -> Dict:
         """Calculate commission for a transaction."""
 
         # Get partner details
         partner = self.db.query(User).filter(User.id == partner_id).first()
-if not partner or not partner.is_affiliate:
-            return {"error": "Invalid partner"}
+        if not partner or not partner.is_affiliate:
+        return {"error": "Invalid partner"}
 
         # Get partner's commission tier
         tier = await self._get_partner_tier(partner_id)
-if not tier:
-            return {"error": "No commission tier found"}
+        if not tier:
+        return {"error": "No commission tier found"}
 
         # Calculate base commission
         base_commission = transaction_amount * tier["base_rate"]
@@ -80,9 +80,9 @@ if not tier:
             .all()
         )
 
-for tier in tiers:
-if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
-                return {
+        for tier in tiers:
+        if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
+        return {
                     "name": tier.name,
                     "base_rate": tier.base_rate,
                     "bonus_rate": tier.bonus_rate,
@@ -94,8 +94,8 @@ if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
 
     async def _calculate_bonus(self, partner_id: int, tier: Dict, transaction_amount: float) -> float:
         """Calculate performance - based bonus."""
-if tier.get("bonus_rate", 0) == 0:
-            return 0.0
+        if tier.get("bonus_rate", 0) == 0:
+        return 0.0
 
         # Monthly volume bonus
         monthly_volume = await self._get_monthly_volume(partner_id)
@@ -107,8 +107,8 @@ if tier.get("bonus_rate", 0) == 0:
         }
 
         bonus_rate = 0.0
-for threshold, rate in sorted(bonus_thresholds.items(), reverse=True):
-if monthly_volume >= threshold:
+        for threshold, rate in sorted(bonus_thresholds.items(), reverse=True):
+        if monthly_volume >= threshold:
                 bonus_rate = rate
                 break
 
@@ -130,8 +130,8 @@ if monthly_volume >= threshold:
     async def _get_partner_referrals(self, partner_id: int) -> int:
         """Get partner's total referral count."""
         partner = self.db.query(User).filter(User.id == partner_id).first()
-if not partner or not partner.referral_code:
-            return 0
+        if not partner or not partner.referral_code:
+        return 0
 
         result = self.db.query(User).filter(User.referred_by == partner.referral_code).count()
 
@@ -161,7 +161,7 @@ if not partner or not partner.referral_code:
         processed_count = 0
         total_amount = 0.0
 
-for share in pending_shares:
+        for share in pending_shares:
             # Update partner's earnings
             partner = share.partner
             partner.referral_earnings += share.commission_amount
@@ -179,10 +179,10 @@ for share in pending_shares:
 
 
 # Global service instance
-commission_engine = None
+        commission_engine = None
 
 
-def get_commission_engine(db: Session) -> CommissionEngine:
+    def get_commission_engine(db: Session) -> CommissionEngine:
 
-    """Get commission engine instance."""
-    return CommissionEngine(db)
+        """Get commission engine instance."""
+        return CommissionEngine(db)

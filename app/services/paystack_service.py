@@ -15,7 +15,7 @@ class PaystackService:
 
     """Service for Paystack payment processing."""
 
-def __init__(self):
+    def __init__(self):
 
         settings = get_settings()
         self.secret_key = settings.paystack_secret_key
@@ -23,9 +23,9 @@ def __init__(self):
         self.base_url = "https://api.paystack.co"
         self.enabled = bool(self.secret_key and self.public_key)
 
-if self.enabled:
+        if self.enabled:
             logger.info("Paystack service initialized")
-else:
+        else:
             logger.warning("Paystack not configured")
 
     async def initialize_payment(
@@ -34,7 +34,7 @@ else:
         amount_kobo: int,
         reference: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        ) -> Dict[str, Any]:
         """Initialize a payment transaction.
 
         Args:
@@ -46,20 +46,20 @@ else:
         Returns:
             Dictionary with authorization_url and access_code
         """
-if not self.enabled:
+        if not self.enabled:
             raise Exception("Paystack not configured")
 
-try:
+        try:
             async with httpx.AsyncClient() as client:
                 payload = {
                     "email": email,
                     "amount": amount_kobo,
                 }
 
-if reference:
+        if reference:
                     payload["reference"] = reference
 
-if metadata:
+        if metadata:
                     payload["metadata"] = metadata
 
                 response = await client.post(
@@ -71,7 +71,7 @@ if metadata:
                 response.raise_for_status()
                 data = response.json()
 
-if not data.get("status"):
+        if not data.get("status"):
                     raise Exception(f"Paystack error: {data.get('message')}")
 
                 result = data.get("data", {})
@@ -79,13 +79,13 @@ if not data.get("status"):
                     f"Payment initialized for {email}: " f"Amount={amount_kobo}, Reference={result.get('reference')}"
                 )
 
-                return {
+        return {
                     "authorization_url": result.get("authorization_url"),
                     "access_code": result.get("access_code"),
                     "reference": result.get("reference"),
                 }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to initialize payment: {str(e)}")
             raise
 
@@ -98,10 +98,10 @@ except Exception as e:
         Returns:
             Dictionary with payment details
         """
-if not self.enabled:
+        if not self.enabled:
             raise Exception("Paystack not configured")
 
-try:
+        try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{self.base_url}/transaction/verify/{reference}",
@@ -111,7 +111,7 @@ try:
                 response.raise_for_status()
                 data = response.json()
 
-if not data.get("status"):
+        if not data.get("status"):
                     raise Exception(f"Paystack error: {data.get('message')}")
 
                 result = data.get("data", {})
@@ -120,7 +120,7 @@ if not data.get("status"):
                     f"Status={result.get('status')}, Amount={result.get('amount')}"
                 )
 
-                return {
+        return {
                     "status": result.get("status"),
                     "reference": result.get("reference"),
                     "amount": result.get("amount"),
@@ -129,11 +129,11 @@ if not data.get("status"):
                     "authorization": result.get("authorization", {}),
                 }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to verify payment: {str(e)}")
             raise
 
-def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
+    def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
 
         """Verify webhook signature from Paystack.
 
@@ -144,17 +144,17 @@ def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
         Returns:
             True if signature is valid, False otherwise
         """
-try:
+        try:
             hash_object = hmac.new(
                 self.secret_key.encode(),
                 payload,
                 hashlib.sha512,
             )
             computed_signature = hash_object.hexdigest()
-            return computed_signature == signature
-except Exception as e:
+        return computed_signature == signature
+        except Exception as e:
             logger.error(f"Webhook signature verification failed: {str(e)}")
-            return False
+        return False
 
     async def get_transaction(self, transaction_id: int) -> Dict[str, Any]:
         """Get transaction details by ID.
@@ -165,10 +165,10 @@ except Exception as e:
         Returns:
             Dictionary with transaction details
         """
-if not self.enabled:
+        if not self.enabled:
             raise Exception("Paystack not configured")
 
-try:
+        try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{self.base_url}/transaction/{transaction_id}",
@@ -178,12 +178,12 @@ try:
                 response.raise_for_status()
                 data = response.json()
 
-if not data.get("status"):
+        if not data.get("status"):
                     raise Exception(f"Paystack error: {data.get('message')}")
 
-                return data.get("data", {})
+        return data.get("data", {})
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get transaction: {str(e)}")
             raise
 
@@ -193,10 +193,10 @@ except Exception as e:
         Returns:
             Dictionary with balance information
         """
-if not self.enabled:
+        if not self.enabled:
             raise Exception("Paystack not configured")
 
-try:
+        try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(
                     f"{self.base_url}/balance",
@@ -206,22 +206,22 @@ try:
                 response.raise_for_status()
                 data = response.json()
 
-if not data.get("status"):
+        if not data.get("status"):
                     raise Exception(f"Paystack error: {data.get('message')}")
 
                 result = data.get("data", [])
                 logger.info(f"Account balance retrieved: {result}")
 
-                return {
+        return {
                     "balance": result[0].get("balance") if result else 0,
                     "currency": "NGN",
                 }
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to get balance: {str(e)}")
             raise
 
-def _get_headers(self) -> Dict[str, str]:
+    def _get_headers(self) -> Dict[str, str]:
 
         """Get request headers for Paystack API.
 
@@ -235,4 +235,4 @@ def _get_headers(self) -> Dict[str, str]:
 
 
 # Global instance
-paystack_service = PaystackService()
+        paystack_service = PaystackService()

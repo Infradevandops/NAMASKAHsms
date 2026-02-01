@@ -63,7 +63,7 @@ class TestResellerService:
     """Test reseller service functionality."""
 
     @pytest.fixture
-def reseller_user(self, db_session):
+    def reseller_user(self, db_session):
 
         """Create a parent user who will be the reseller."""
         user = User(
@@ -76,12 +76,12 @@ def reseller_user(self, db_session):
         db_session.commit()
         return user
 
-    @pytest.fixture
-def reseller_service(self, db_session):
+        @pytest.fixture
+    def reseller_service(self, db_session):
 
         return ResellerService(db_session)
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_create_reseller_account_success(self, db_session, reseller_service, reseller_user):
         """Test creating a reseller account."""
         result = await reseller_service.create_reseller_account(reseller_user.id, tier="gold")
@@ -94,7 +94,7 @@ def reseller_service(self, db_session):
         assert account is not None
         assert account.credit_limit == 25000.0
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_create_reseller_account_duplicate(self, db_session, reseller_service, reseller_user):
         """Test ensuring 1:1 user-reseller relationship."""
         await reseller_service.create_reseller_account(reseller_user.id)
@@ -104,7 +104,7 @@ def reseller_service(self, db_session):
         assert "error" in result
         assert result["error"] == "User already has reseller account"
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_create_sub_account(self, db_session, reseller_service, reseller_user):
         """Test creating a sub-account."""
         # Setup reseller
@@ -126,7 +126,7 @@ def reseller_service(self, db_session):
         assert sub.credits == 50.0
         assert sub.reseller_id == reseller_id
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_create_sub_account_email_exists(self, db_session, reseller_service, reseller_user):
         """Test sub-account unique email constraint."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
@@ -138,7 +138,7 @@ def reseller_service(self, db_session):
         assert "error" in result
         assert result["error"] == "Email already exists"
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_allocate_credits_success(self, db_session, reseller_service, reseller_user):
         """Test transferring credits from reseller to sub-account."""
         # Reseller has 1000 credits
@@ -166,7 +166,7 @@ def reseller_service(self, db_session):
         assert tx.amount == 100.0
         assert tx.transaction_type == "credit"
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_allocate_credits_insufficient_funds(self, db_session, reseller_service, reseller_user):
         """Test error when reseller has insufficient funds."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
@@ -181,7 +181,7 @@ def reseller_service(self, db_session):
         assert "error" in result
         assert result["error"] == "Insufficient reseller credits"
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_bulk_credit_topup(self, db_session, reseller_service, reseller_user):
         """Test bulk credit operations."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
@@ -189,7 +189,7 @@ def reseller_service(self, db_session):
 
         # Create 3 sub-accounts
         subs = []
-for i in range(3):
+        for i in range(3):
             r = await reseller_service.create_sub_account(reseller_id, f"Sub {i}", f"sub{i}@example.com")
             subs.append(r["sub_account_id"])
 
@@ -209,7 +209,7 @@ for i in range(3):
         assert op.status == "completed"
         assert op.total_accounts == 3
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_get_usage_report(self, db_session, reseller_service, reseller_user):
         """Test analytics report generation."""
         res = await reseller_service.create_reseller_account(reseller_user.id)

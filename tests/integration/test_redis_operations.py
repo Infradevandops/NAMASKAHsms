@@ -12,7 +12,7 @@ class TestRedisIntegration:
 
     """Redis integration tests."""
 
-def test_redis_basic_set_get(self, redis_client):
+    def test_redis_basic_set_get(self, redis_client):
 
         """Test basic Redis set and get operations."""
         key = "test:key"
@@ -28,7 +28,7 @@ def test_redis_basic_set_get(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_expiry(self, redis_client):
+    def test_redis_expiry(self, redis_client):
 
         """Test Redis key expiry."""
         key = "test:expiry"
@@ -47,7 +47,7 @@ def test_redis_expiry(self, redis_client):
         # Should be gone
         assert redis_client.get(key) is None
 
-def test_redis_increment(self, redis_client):
+    def test_redis_increment(self, redis_client):
 
         """Test Redis increment operations."""
         key = "test:counter"
@@ -66,7 +66,7 @@ def test_redis_increment(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_hash_operations(self, redis_client):
+    def test_redis_hash_operations(self, redis_client):
 
         """Test Redis hash operations."""
         key = "test:hash"
@@ -85,7 +85,7 @@ def test_redis_hash_operations(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_list_operations(self, redis_client):
+    def test_redis_list_operations(self, redis_client):
 
         """Test Redis list operations."""
         key = "test:list"
@@ -106,7 +106,7 @@ def test_redis_list_operations(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_set_operations(self, redis_client):
+    def test_redis_set_operations(self, redis_client):
 
         """Test Redis set operations."""
         key = "test:set"
@@ -127,7 +127,7 @@ def test_redis_set_operations(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_sorted_set(self, redis_client):
+    def test_redis_sorted_set(self, redis_client):
 
         """Test Redis sorted set operations."""
         key = "test:zset"
@@ -146,7 +146,7 @@ def test_redis_sorted_set(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_pipeline(self, redis_client):
+    def test_redis_pipeline(self, redis_client):
 
         """Test Redis pipeline for batch operations."""
         pipe = redis_client.pipeline()
@@ -166,7 +166,7 @@ def test_redis_pipeline(self, redis_client):
         # Cleanup
         redis_client.delete("test:pipe1", "test:pipe2", "test:pipe3")
 
-def test_redis_transaction(self, redis_client):
+    def test_redis_transaction(self, redis_client):
 
         """Test Redis transaction with WATCH."""
         key = "test:transaction"
@@ -190,7 +190,7 @@ def test_redis_transaction(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_key_pattern_matching(self, redis_client):
+    def test_redis_key_pattern_matching(self, redis_client):
 
         """Test Redis key pattern matching."""
         # Create test keys
@@ -203,11 +203,11 @@ def test_redis_key_pattern_matching(self, redis_client):
         assert len(keys) >= 2
 
         # Cleanup
-for key in keys:
+        for key in keys:
             redis_client.delete(key)
         redis_client.delete("test:other:1")
 
-def test_redis_exists_check(self, redis_client):
+    def test_redis_exists_check(self, redis_client):
 
         """Test Redis key existence check."""
         key = "test:exists"
@@ -224,13 +224,13 @@ def test_redis_exists_check(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-def test_redis_delete_multiple_keys(self, redis_client):
+    def test_redis_delete_multiple_keys(self, redis_client):
 
         """Test deleting multiple keys at once."""
         keys = ["test:del:1", "test:del:2", "test:del:3"]
 
         # Create keys
-for key in keys:
+        for key in keys:
             redis_client.set(key, "value")
 
         # Delete all
@@ -238,10 +238,10 @@ for key in keys:
         assert deleted_count == 3
 
         # Verify deleted
-for key in keys:
+        for key in keys:
             assert redis_client.exists(key) == 0
 
-def test_redis_ttl_check(self, redis_client):
+    def test_redis_ttl_check(self, redis_client):
 
         """Test checking TTL of keys."""
         key = "test:ttl"
@@ -256,14 +256,14 @@ def test_redis_ttl_check(self, redis_client):
         # Cleanup
         redis_client.delete(key)
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_redis_concurrent_access(self, redis_client):
         """Test concurrent Redis access."""
         key = "test:concurrent"
         redis_client.set(key, 0)
 
-        async def increment():
-for _ in range(10):
+    async def increment():
+        for _ in range(10):
                 redis_client.incr(key)
 
         # Run concurrent increments
@@ -277,5 +277,5 @@ for _ in range(10):
         redis_client.delete(key)
 
 
-if __name__ == "__main__":
-    print("Redis integration tests created: 15 tests")
+        if __name__ == "__main__":
+        print("Redis integration tests created: 15 tests")

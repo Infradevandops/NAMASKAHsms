@@ -8,12 +8,12 @@ from app.services.payment_service import PaymentService
 
 class TestPaymentService:
     @pytest.fixture
-def payment_service(self, db_session, redis_client):
+    def payment_service(self, db_session, redis_client):
 
-with patch("redis.Redis.from_url", return_value=redis_client):
-            return PaymentService(db_session)
+        with patch("redis.Redis.from_url", return_value=redis_client):
+        return PaymentService(db_session)
 
-    @patch("app.services.payment_service.paystack_service")
+        @patch("app.services.payment_service.paystack_service")
     async def test_initiate_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # Setup mock
         mock_paystack.enabled = True
@@ -39,10 +39,10 @@ with patch("redis.Redis.from_url", return_value=redis_client):
         assert log.status == "pending"
 
     async def test_initiate_payment_invalid_amount(self, payment_service, regular_user):
-with pytest.raises(ValueError, match="Amount must be positive"):
+        with pytest.raises(ValueError, match="Amount must be positive"):
             await payment_service.initiate_payment(regular_user.id, -5.0)
 
-    @patch("app.services.payment_service.paystack_service")
+        @patch("app.services.payment_service.paystack_service")
     async def test_verify_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a pending payment log
         reference = "ref_123"
@@ -134,7 +134,7 @@ with pytest.raises(ValueError, match="Amount must be positive"):
         assert log.status == "failed"
         assert log.webhook_received is True
 
-def test_get_payment_history(self, payment_service, regular_user, db_session):
+    def test_get_payment_history(self, payment_service, regular_user, db_session):
 
         log = PaymentLog(
             user_id=regular_user.id,
@@ -150,7 +150,7 @@ def test_get_payment_history(self, payment_service, regular_user, db_session):
         assert len(history["payments"]) >= 1
         assert history["payments"][0]["reference"] == "ref_hist"
 
-def test_get_payment_summary(self, payment_service, regular_user, db_session):
+    def test_get_payment_summary(self, payment_service, regular_user, db_session):
         # Add a success log
         db_session.add(
             PaymentLog(
@@ -167,7 +167,7 @@ def test_get_payment_summary(self, payment_service, regular_user, db_session):
         assert summary["total_payments"] >= 1
         assert summary["total_paid"] >= 10.0
 
-    @patch("app.services.payment_service.paystack_service")
+        @patch("app.services.payment_service.paystack_service")
     async def test_refund_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a successful payment
         regular_user.credits = 10.0

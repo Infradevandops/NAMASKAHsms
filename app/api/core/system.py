@@ -29,68 +29,68 @@ class ServiceStatusSummary(BaseModel):
     last_updated: datetime
 
 
-def check_system_health(db):
+    def check_system_health(db):
 
-    return {"database": "connected"}
-
-
-def check_database_health(db):
-
-    return {"status": "healthy"}
+        return {"database": "connected"}
 
 
-@router.get("/health")
-async def health_check(db: Session = Depends(get_db)):
-    """Health check endpoint."""
-    return {
+    def check_database_health(db):
+
+        return {"status": "healthy"}
+
+
+        @router.get("/health")
+    async def health_check(db: Session = Depends(get_db)):
+        """Health check endpoint."""
+        return {
         "status": "healthy",
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "version": "2.4.0",
         "environment": settings.environment,
-    }
+        }
 
 
-@router.get("/health/readiness")
-async def readiness_check(db: Session = Depends(get_db)):
-    """Kubernetes readiness probe."""
-    return JSONResponse(status_code=200, content={"ready": True})
+        @router.get("/health/readiness")
+    async def readiness_check(db: Session = Depends(get_db)):
+        """Kubernetes readiness probe."""
+        return JSONResponse(status_code=200, content={"ready": True})
 
 
-@router.get("/health/liveness")
-async def liveness_check():
-    """Kubernetes liveness probe."""
-    return JSONResponse(status_code=200, content={"alive": True})
+        @router.get("/health/liveness")
+    async def liveness_check():
+        """Kubernetes liveness probe."""
+        return JSONResponse(status_code=200, content={"alive": True})
 
 
-@router.get("/status", response_model=ServiceStatusSummary)
-def get_service_status(db: Session = Depends(get_db)):
+        @router.get("/status", response_model=ServiceStatusSummary)
+    def get_service_status(db: Session = Depends(get_db)):
 
-    """Get service status."""
-    return ServiceStatusSummary(
+        """Get service status."""
+        return ServiceStatusSummary(
         overall_status="operational",
         services=[],
         stats={"operational": 1, "degraded": 0, "down": 0},
         last_updated=datetime.now(timezone.utc),
-    )
+        )
 
 
-@router.get("/info")
-def get_system_info():
+        @router.get("/info")
+    def get_system_info():
 
-    """Get system information."""
-    return {
+        """Get system information."""
+        return {
         "service_name": "Namaskah SMS",
         "version": "2.4.0",
         "environment": settings.environment,
-    }
+        }
 
 
-@router.get("/config")
-def get_public_config():
+        @router.get("/config")
+    def get_public_config():
 
-    """Get public configuration."""
-    return {
+        """Get public configuration."""
+        return {
         "supported_services": ["telegram", "whatsapp", "discord"],
         "payment_methods": ["paystack"],
         "currencies": ["NGN"],
-    }
+        }

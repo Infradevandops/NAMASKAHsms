@@ -80,7 +80,7 @@ class TestVerificationHistory:
 
     """Test verification history endpoints."""
 
-def test_list_verifications_success(self, client: TestClient, test_admin_user, verification_data, db: Session):
+    def test_list_verifications_success(self, client: TestClient, test_admin_user, verification_data, db: Session):
 
         """Test listing verifications."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -91,10 +91,10 @@ def test_list_verifications_success(self, client: TestClient, test_admin_user, v
         assert len(data["verifications"]) == 5
         assert data["verifications"][0]["status"] in ["completed", "failed"]
 
-def test_list_verifications_filter_by_status(
+    def test_list_verifications_filter_by_status(
 
         self, client: TestClient, test_admin_user, verification_data, db: Session
-    ):
+        ):
         """Test filtering verifications by status."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
@@ -106,10 +106,10 @@ def test_list_verifications_filter_by_status(
         assert data["total"] == 3
         assert all(v["status"] == "completed" for v in data["verifications"])
 
-def test_list_verifications_filter_by_country(
+    def test_list_verifications_filter_by_country(
 
         self, client: TestClient, test_admin_user, verification_data, db: Session
-    ):
+        ):
         """Test filtering verifications by country."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
@@ -120,7 +120,7 @@ def test_list_verifications_filter_by_country(
         data = response.json()
         assert all(v["country"] == "US" for v in data["verifications"])
 
-def test_get_verification_detail(self, client: TestClient, test_admin_user, verification_data, db: Session):
+    def test_get_verification_detail(self, client: TestClient, test_admin_user, verification_data, db: Session):
 
         """Test getting verification details."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -134,7 +134,7 @@ def test_get_verification_detail(self, client: TestClient, test_admin_user, veri
         assert data["id"] == verify_id
         assert data["status"] == "completed"
 
-def test_get_verification_not_found(self, client: TestClient, test_admin_user, db: Session):
+    def test_get_verification_not_found(self, client: TestClient, test_admin_user, db: Session):
 
         """Test getting non-existent verification."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -147,7 +147,7 @@ def test_get_verification_not_found(self, client: TestClient, test_admin_user, d
             200,
         ]  # Some implementations might return empty list or 404
 
-def test_verification_analytics(self, client: TestClient, test_admin_user, verification_data, db: Session):
+    def test_verification_analytics(self, client: TestClient, test_admin_user, verification_data, db: Session):
 
         """Test verification analytics endpoint."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -159,7 +159,7 @@ def test_verification_analytics(self, client: TestClient, test_admin_user, verif
         data = response.json()
         assert data["total_verifications"] == 5
 
-def test_export_verifications(self, client: TestClient, test_admin_user, verification_data, db: Session):
+    def test_export_verifications(self, client: TestClient, test_admin_user, verification_data, db: Session):
 
         """Test exporting verifications as CSV."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -169,7 +169,7 @@ def test_export_verifications(self, client: TestClient, test_admin_user, verific
         )
         assert response.status_code in [200, 201]
 
-def test_verification_unauthorized(self, client: TestClient, test_regular_user, db: Session):
+    def test_verification_unauthorized(self, client: TestClient, test_regular_user, db: Session):
 
         """Test verification endpoints require admin."""
         token = create_token(test_regular_user.id, test_regular_user.email)
@@ -179,9 +179,9 @@ def test_verification_unauthorized(self, client: TestClient, test_regular_user, 
 
 class TestUserManagement:
 
-    """Test user management endpoints."""
+        """Test user management endpoints."""
 
-def test_search_users_by_email(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
+    def test_search_users_by_email(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
 
         """Test searching users by email."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -191,7 +191,7 @@ def test_search_users_by_email(self, client: TestClient, test_admin_user, test_r
         )
         assert response.status_code == 200
 
-def test_get_user_activity(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
+    def test_get_user_activity(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
 
         """Test getting user activity."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -201,7 +201,7 @@ def test_get_user_activity(self, client: TestClient, test_admin_user, test_regul
         )
         assert response.status_code == 200
 
-def test_suspend_user(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
+    def test_suspend_user(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
 
         """Test suspending a user."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -211,7 +211,7 @@ def test_suspend_user(self, client: TestClient, test_admin_user, test_regular_us
         )
         assert response.status_code == 200
 
-def test_unsuspend_user(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
+    def test_unsuspend_user(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
 
         """Test unsuspending a user."""
         # First suspend
@@ -228,7 +228,7 @@ def test_unsuspend_user(self, client: TestClient, test_admin_user, test_regular_
         db.refresh(test_regular_user)
         assert test_regular_user.is_suspended is False
 
-def test_user_management_unauthorized(self, client: TestClient, test_regular_user, db: Session):
+    def test_user_management_unauthorized(self, client: TestClient, test_regular_user, db: Session):
 
         """Test user management requires admin."""
         token = create_token(test_regular_user.id, test_regular_user.email)
@@ -241,9 +241,9 @@ def test_user_management_unauthorized(self, client: TestClient, test_regular_use
 
 class TestAuditCompliance:
 
-    """Test audit and compliance endpoints."""
+        """Test audit and compliance endpoints."""
 
-def test_get_audit_logs(self, client: TestClient, test_admin_user, db: Session):
+    def test_get_audit_logs(self, client: TestClient, test_admin_user, db: Session):
 
         """Test getting audit logs."""
         token = create_token(test_admin_user.id, test_admin_user.email)
@@ -253,7 +253,7 @@ def test_get_audit_logs(self, client: TestClient, test_admin_user, db: Session):
         )
         assert response.status_code == 200
 
-def test_compliance_unauthorized(self, client: TestClient, test_regular_user, db: Session):
+    def test_compliance_unauthorized(self, client: TestClient, test_regular_user, db: Session):
 
         """Test compliance endpoints require admin."""
         token = create_token(test_regular_user.id, test_regular_user.email)

@@ -7,7 +7,7 @@ class TestNotificationServiceComplete:
 
     """Comprehensive tests for NotificationService."""
 
-def test_create_notification(self, db_session, regular_user):
+    def test_create_notification(self, db_session, regular_user):
 
         """Test creating a notification."""
         service = NotificationService(db_session)
@@ -22,13 +22,13 @@ def test_create_notification(self, db_session, regular_user):
         assert notif.user_id == regular_user.id
         assert notif.is_read is False
 
-def test_get_notifications(self, db_session, regular_user):
+    def test_get_notifications(self, db_session, regular_user):
 
         """Test retrieving notifications."""
         service = NotificationService(db_session)
 
         # Create a few notifications
-for i in range(5):
+        for i in range(5):
             service.create_notification(
                 user_id=regular_user.id,
                 notification_type="test",
@@ -40,7 +40,7 @@ for i in range(5):
         assert result["total"] == 5
         assert len(result["notifications"]) == 5
 
-def test_mark_as_read(self, db_session, regular_user):
+    def test_mark_as_read(self, db_session, regular_user):
 
         """Test marking a notification as read."""
         service = NotificationService(db_session)
@@ -56,7 +56,7 @@ def test_mark_as_read(self, db_session, regular_user):
         db_session.refresh(notif)
         assert notif.is_read is True
 
-def test_delete_notification(self, db_session, regular_user):
+    def test_delete_notification(self, db_session, regular_user):
 
         """Test deleting a notification."""
         service = NotificationService(db_session)
@@ -72,7 +72,7 @@ def test_delete_notification(self, db_session, regular_user):
         count = db_session.query(Notification).filter(Notification.id == notif.id).count()
         assert count == 0
 
-def test_get_unread_count(self, db_session, regular_user):
+    def test_get_unread_count(self, db_session, regular_user):
 
         """Test unread count calculation."""
         service = NotificationService(db_session)

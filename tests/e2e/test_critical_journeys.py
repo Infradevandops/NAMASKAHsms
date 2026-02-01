@@ -15,7 +15,7 @@ class TestCriticalUserJourneys:
 
     """E2E tests for critical user journeys."""
 
-def test_complete_user_registration_journey(self, client, db_session):
+    def test_complete_user_registration_journey(self, client, db_session):
 
         """Test complete user registration flow."""
         # Step 1: Register new user
@@ -31,7 +31,7 @@ def test_complete_user_registration_journey(self, client, db_session):
         # Should succeed or return appropriate error
         assert response.status_code in [200, 201, 400, 422]
 
-def test_user_login_and_dashboard_access(self, client, regular_user, user_token):
+    def test_user_login_and_dashboard_access(self, client, regular_user, user_token):
 
         """Test login and accessing dashboard."""
         token = user_token(regular_user.id, regular_user.email)
@@ -42,8 +42,8 @@ def test_user_login_and_dashboard_access(self, client, regular_user, user_token)
         # Should succeed or redirect
         assert response.status_code in [200, 302, 401]
 
-    @patch("app.services.payment_service.paystack_service")
-def test_credit_purchase_journey(self, mock_paystack, client, regular_user, user_token, db_session):
+        @patch("app.services.payment_service.paystack_service")
+    def test_credit_purchase_journey(self, mock_paystack, client, regular_user, user_token, db_session):
 
         """Test complete credit purchase flow."""
         token = user_token(regular_user.id, regular_user.email)
@@ -67,7 +67,7 @@ def test_credit_purchase_journey(self, mock_paystack, client, regular_user, user
         # Should succeed or return error
         assert response.status_code in [200, 201, 400, 401, 422]
 
-def test_tier_upgrade_journey(self, client, regular_user, user_token, db_session):
+    def test_tier_upgrade_journey(self, client, regular_user, user_token, db_session):
 
         """Test upgrading subscription tier."""
         token = user_token(regular_user.id, regular_user.email)
@@ -82,7 +82,7 @@ def test_tier_upgrade_journey(self, client, regular_user, user_token, db_session
         # Should succeed or return error
         assert response.status_code in [200, 201, 400, 401, 402, 422]
 
-def test_sms_verification_purchase_journey(self, client, regular_user, user_token, db_session):
+    def test_sms_verification_purchase_journey(self, client, regular_user, user_token, db_session):
 
         """Test purchasing SMS verification."""
         # Give user enough credits
@@ -101,7 +101,7 @@ def test_sms_verification_purchase_journey(self, client, regular_user, user_toke
         # Should succeed or return error
         assert response.status_code in [200, 201, 400, 401, 402, 422, 503]
 
-def test_api_key_generation_journey(self, client, db_session):
+    def test_api_key_generation_journey(self, client, db_session):
 
         """Test API key generation for pro users."""
         # Create pro user
@@ -119,7 +119,7 @@ def test_api_key_generation_journey(self, client, db_session):
         # This is a simplified version
         assert pro_user.subscription_tier == "pro"
 
-def test_payment_webhook_processing_journey(self, client, regular_user, db_session):
+    def test_payment_webhook_processing_journey(self, client, regular_user, db_session):
 
         """Test webhook processing after payment."""
 
@@ -151,7 +151,7 @@ def test_payment_webhook_processing_journey(self, client, regular_user, db_sessi
         # Should process or return error
         assert response.status_code in [200, 400, 401, 422]
 
-def test_user_profile_update_journey(self, client, regular_user, user_token):
+    def test_user_profile_update_journey(self, client, regular_user, user_token):
 
         """Test updating user profile."""
         token = user_token(regular_user.id, regular_user.email)
@@ -166,12 +166,12 @@ def test_user_profile_update_journey(self, client, regular_user, user_token):
         # Should succeed or return error
         assert response.status_code in [200, 400, 401, 422]
 
-def test_transaction_history_retrieval_journey(self, client, regular_user, user_token, db_session):
+    def test_transaction_history_retrieval_journey(self, client, regular_user, user_token, db_session):
 
         """Test retrieving transaction history."""
 
         # Create some transactions
-for i in range(3):
+        for i in range(3):
             tx = Transaction(
                 user_id=regular_user.id,
                 amount=10.0 * (i + 1),
@@ -189,7 +189,7 @@ for i in range(3):
         # Should succeed
         assert response.status_code in [200, 401]
 
-def test_quota_usage_tracking_journey(self, client, db_session):
+    def test_quota_usage_tracking_journey(self, client, db_session):
 
         """Test quota usage tracking for pro users."""
         # Create pro user
@@ -210,5 +210,5 @@ def test_quota_usage_tracking_journey(self, client, db_session):
         assert usage["quota_used"] == 0.0  # No usage yet
 
 
-if __name__ == "__main__":
-    print("E2E tests created: 10 critical user journeys")
+        if __name__ == "__main__":
+        print("E2E tests created: 10 critical user journeys")

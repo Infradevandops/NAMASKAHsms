@@ -17,7 +17,7 @@ class AffiliateService:
         program_options: List[str],
         message: Optional[str],
         db: Session,
-    ) -> Dict:
+        ) -> Dict:
         """Create new affiliate application."""
 
         # Check for existing application
@@ -30,7 +30,7 @@ class AffiliateService:
             .first()
         )
 
-if existing:
+        if existing:
             raise ValueError("You already have a pending application")
 
         application = AffiliateApplication(
@@ -106,20 +106,20 @@ if existing:
                 "created_at": app.created_at,
                 "updated_at": app.updated_at,
             }
-for app in applications
+        for app in applications
         ]
 
     async def update_application_status(
         self, application_id: int, status: str, admin_notes: Optional[str], db: Session
-    ) -> Dict:
+        ) -> Dict:
         """Update affiliate application status."""
         application = db.query(AffiliateApplication).filter(AffiliateApplication.id == application_id).first()
 
-if not application:
+        if not application:
             raise ValueError("Application not found")
 
         application.status = status
-if admin_notes:
+        if admin_notes:
             application.admin_notes = admin_notes
         application.updated_at = datetime.utcnow()
 
@@ -129,4 +129,4 @@ if admin_notes:
 
 
 # Global service instance
-affiliate_service = AffiliateService()
+        affiliate_service = AffiliateService()

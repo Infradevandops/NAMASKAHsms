@@ -24,14 +24,14 @@ class AppException(Exception):
 
     """Base application exception."""
 
-def __init__(
+    def __init__(
 
         self,
         message: str,
         code: ErrorCode = ErrorCode.INTERNAL_ERROR,
         details: Optional[list] = None,
         status_code: Optional[int] = None,
-    ):
+        ):
         self.message = message
         self.code = code
         self.details = details or []
@@ -41,9 +41,9 @@ def __init__(
 
 class ValidationException(AppException):
 
-    """Validation error exception."""
+        """Validation error exception."""
 
-def __init__(self, message: str, details: Optional[list] = None):
+    def __init__(self, message: str, details: Optional[list] = None):
 
         super().__init__(
             message=message,
@@ -55,72 +55,72 @@ def __init__(self, message: str, details: Optional[list] = None):
 
 class AuthenticationException(AppException):
 
-    """Authentication error exception."""
+        """Authentication error exception."""
 
-def __init__(self, message: str = "Authentication failed"):
+    def __init__(self, message: str = "Authentication failed"):
 
         super().__init__(message=message, code=ErrorCode.UNAUTHORIZED, status_code=401)
 
 
 class AuthorizationException(AppException):
 
-    """Authorization error exception."""
+        """Authorization error exception."""
 
-def __init__(self, message: str = "Insufficient permissions"):
+    def __init__(self, message: str = "Insufficient permissions"):
 
         super().__init__(message=message, code=ErrorCode.FORBIDDEN, status_code=403)
 
 
 class ResourceNotFoundException(AppException):
 
-    """Resource not found exception."""
+        """Resource not found exception."""
 
-def __init__(self, resource: str = "Resource"):
+    def __init__(self, resource: str = "Resource"):
 
         super().__init__(message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404)
 
 
 class ConflictException(AppException):
 
-    """Conflict exception."""
+        """Conflict exception."""
 
-def __init__(self, message: str = "Resource already exists"):
+    def __init__(self, message: str = "Resource already exists"):
 
         super().__init__(message=message, code=ErrorCode.CONFLICT, status_code=409)
 
 
 class RateLimitException(AppException):
 
-    """Rate limit exceeded exception."""
+        """Rate limit exceeded exception."""
 
-def __init__(self, message: str = "Too many requests"):
+    def __init__(self, message: str = "Too many requests"):
 
         super().__init__(message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429)
 
 
 class InsufficientCreditsException(AppException):
 
-    """Insufficient credits exception."""
+        """Insufficient credits exception."""
 
-def __init__(self, message: str = "Insufficient credits"):
+    def __init__(self, message: str = "Insufficient credits"):
 
         super().__init__(message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402)
 
 
 class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
-    """Middleware for handling exceptions and converting to standardized responses."""
+        """Middleware for handling exceptions and converting to standardized responses."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
         """Handle exceptions in request processing."""
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
-try:
+        try:
             response = await call_next(request)
-            return response
+        return response
 
-except ValidationError as e:
+        except ValidationError as e:
             """Handle Pydantic validation errors."""
             logger.warning(
                 f"Validation error in {request.method} {request.url.path}",
@@ -128,7 +128,7 @@ except ValidationError as e:
             )
 
             details = []
-for error in e.errors():
+        for error in e.errors():
                 details.append(
                     {
                         "field": ".".join(str(x) for x in error.get("loc", [])),
@@ -145,9 +145,9 @@ for error in e.errors():
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=400, content=error_response.dict())
+        return JSONResponse(status_code=400, content=error_response.dict())
 
-except AppException as e:
+        except AppException as e:
             """Handle application exceptions."""
             logger.warning(
                 f"Application error in {request.method} {request.url.path}: {e.message}",
@@ -162,9 +162,9 @@ except AppException as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=e.status_code, content=error_response.dict())
+        return JSONResponse(status_code=e.status_code, content=error_response.dict())
 
-except SQLAlchemyError as e:
+        except SQLAlchemyError as e:
             """Handle database errors."""
             logger.error(
                 f"Database error in {request.method} {request.url.path}",
@@ -179,9 +179,9 @@ except SQLAlchemyError as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=500, content=error_response.dict())
+        return JSONResponse(status_code=500, content=error_response.dict())
 
-except ValueError as e:
+        except ValueError as e:
             """Handle value errors."""
             logger.warning(
                 f"Value error in {request.method} {request.url.path}: {str(e)}",
@@ -195,9 +195,9 @@ except ValueError as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=400, content=error_response.dict())
+        return JSONResponse(status_code=400, content=error_response.dict())
 
-except KeyError as e:
+        except KeyError as e:
             """Handle missing key errors."""
             logger.warning(
                 f"Missing key error in {request.method} {request.url.path}: {str(e)}",
@@ -211,9 +211,9 @@ except KeyError as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=400, content=error_response.dict())
+        return JSONResponse(status_code=400, content=error_response.dict())
 
-except AttributeError as e:
+        except AttributeError as e:
             """Handle attribute errors."""
             logger.error(
                 f"Attribute error in {request.method} {request.url.path}: {str(e)}",
@@ -228,9 +228,9 @@ except AttributeError as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=500, content=error_response.dict())
+        return JSONResponse(status_code=500, content=error_response.dict())
 
-except TypeError as e:
+        except TypeError as e:
             """Handle type errors."""
             logger.error(
                 f"Type error in {request.method} {request.url.path}: {str(e)}",
@@ -245,9 +245,9 @@ except TypeError as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=400, content=error_response.dict())
+        return JSONResponse(status_code=400, content=error_response.dict())
 
-except Exception as e:
+        except Exception as e:
             """Handle all other exceptions."""
             logger.error(
                 f"Unhandled exception in {request.method} {request.url.path}: {str(e)}",
@@ -265,14 +265,14 @@ except Exception as e:
                 request_id=request_id,
             )
 
-            return JSONResponse(status_code=500, content=error_response.dict())
+        return JSONResponse(status_code=500, content=error_response.dict())
 
 
-def setup_exception_handlers(app):
+    def setup_exception_handlers(app):
 
-    """Setup exception handlers for FastAPI app."""
+        """Setup exception handlers for FastAPI app."""
 
-    @app.exception_handler(AppException)
+        @app.exception_handler(AppException)
     async def app_exception_handler(request: Request, exc: AppException):
         """Handle application exceptions."""
         request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
@@ -287,13 +287,13 @@ def setup_exception_handlers(app):
 
         return JSONResponse(status_code=exc.status_code, content=error_response.dict())
 
-    @app.exception_handler(ValidationError)
+        @app.exception_handler(ValidationError)
     async def validation_exception_handler(request: Request, exc: ValidationError):
         """Handle Pydantic validation errors."""
         request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
         details = []
-for error in exc.errors():
+        for error in exc.errors():
             details.append(
                 {
                     "field": ".".join(str(x) for x in error.get("loc", [])),
@@ -312,7 +312,7 @@ for error in exc.errors():
 
         return JSONResponse(status_code=400, content=error_response.dict())
 
-    @app.exception_handler(Exception)
+        @app.exception_handler(Exception)
     async def general_exception_handler(request: Request, exc: Exception):
         """Handle all other exceptions."""
         request_id = getattr(request.state, "request_id", str(uuid.uuid4()))

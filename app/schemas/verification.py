@@ -45,126 +45,126 @@ class VerificationRequest(BaseModel):
         }
         return country_map.get(v.lower(), v.upper())
 
-    @field_validator("service", mode="before")
-    @classmethod
+        @field_validator("service", mode="before")
+        @classmethod
     def normalize_service(cls, v):
         """Normalize service names to lowercase."""
         return v.lower().strip()
 
 
 class VerificationResponse(BaseModel):
-    """Response after purchasing verification."""
+        """Response after purchasing verification."""
 
-    verification_id: str
-    phone_number: str
-    service: str
-    country: str
-    cost: float
-    status: str
-    activation_id: str
+        verification_id: str
+        phone_number: str
+        service: str
+        country: str
+        cost: float
+        status: str
+        activation_id: str
 
 
 class VerificationDetail(BaseModel):
-    """Detailed verification information."""
+        """Detailed verification information."""
 
-    id: str
-    phone_number: str
-    service: str
-    country: str
-    status: str
-    sms_code: Optional[str] = None
-    sms_text: Optional[str] = None
-    cost: float
-    created_at: datetime
-    completed_at: Optional[datetime] = None
-    sms_received_at: Optional[datetime] = None
+        id: str
+        phone_number: str
+        service: str
+        country: str
+        status: str
+        sms_code: Optional[str] = None
+        sms_text: Optional[str] = None
+        cost: float
+        created_at: datetime
+        completed_at: Optional[datetime] = None
+        sms_received_at: Optional[datetime] = None
 
 
 class VerificationHistory(BaseModel):
-    """Verification history item."""
+        """Verification history item."""
 
-    id: str
-    phone_number: str
-    service: str
-    country: str
-    status: str
-    cost: float
-    created_at: datetime
-    completed_at: Optional[datetime] = None
+        id: str
+        phone_number: str
+        service: str
+        country: str
+        status: str
+        cost: float
+        created_at: datetime
+        completed_at: Optional[datetime] = None
 
 
 class VerificationHistoryResponse(BaseModel):
-    """Verification history response."""
+        """Verification history response."""
 
-    total: int
-    skip: int
-    limit: int
-    verifications: list[VerificationHistory]
+        total: int
+        skip: int
+        limit: int
+        verifications: list[VerificationHistory]
 
 
 class ReleaseResponse(BaseModel):
-    """Response after releasing verification."""
+        """Response after releasing verification."""
 
-    success: bool
-    message: str
-    verification_id: str
-    status: str
+        success: bool
+        message: str
+        verification_id: str
+        status: str
 
 
 class NumberRentalRequest(BaseModel):
-    """Request to rent a phone number."""
+        """Request to rent a phone number."""
 
-    service: str = Field(..., description="Service name")
-    country: str = Field(default="US", description="Country code")
-    duration_days: int = Field(default=30, description="Rental duration in days")
-    renewable: bool = Field(default=False, description="Whether rental is renewable")
+        service: str = Field(..., description="Service name")
+        country: str = Field(default="US", description="Country code")
+        duration_days: int = Field(default=30, description="Rental duration in days")
+        renewable: bool = Field(default=False, description="Whether rental is renewable")
 
 
 class NumberRentalResponse(BaseModel):
-    """Response after renting a number."""
+        """Response after renting a number."""
 
-    rental_id: str
-    phone_number: str
-    service: str
-    country: str
-    cost: float
-    duration_days: int
-    expires_at: datetime
-    renewable: bool
+        rental_id: str
+        phone_number: str
+        service: str
+        country: str
+        cost: float
+        duration_days: int
+        expires_at: datetime
+        renewable: bool
 
 
 class ExtendRentalRequest(BaseModel):
-    """Request to extend a rental."""
+        """Request to extend a rental."""
 
-    rental_id: str = Field(..., description="Rental ID to extend")
-    duration_days: int = Field(default=30, description="Additional duration in days")
+        rental_id: str = Field(..., description="Rental ID to extend")
+        duration_days: int = Field(default=30, description="Additional duration in days")
 
 
 class RetryVerificationRequest(BaseModel):
-    """Request to retry verification."""
+        """Request to retry verification."""
 
-    verification_id: str = Field(..., description="Verification ID to retry")
+        verification_id: str = Field(..., description="Verification ID to retry")
 
 
 class ServicePriceResponse(BaseModel):
-    """Service pricing information."""
+        """Service pricing information."""
 
-    service: str
-    country: str
-    price: float
-    currency: str
+        service: str
+        country: str
+        price: float
+        currency: str
 
 
 class VerificationCreate(BaseModel):
-    """Create verification request."""
+        """Create verification request."""
 
-    service: str
-    country: str = "US"
-    capability: str = "sms"
+        service: str
+        country: str = "US"
+        capability: str = "sms"
 
 
 class MessageResponse(BaseModel):
-    """Generic message response."""
+        """Generic message response."""
 
-    message: str
-    success: bool = True
+        message: str
+        success: bool = True

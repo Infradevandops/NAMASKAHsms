@@ -32,15 +32,15 @@ class KYCProfileCreate(BaseModel):
             raise ValueError("Invalid date of birth")
         return v
 
-    @field_validator("phone_number")
-    @classmethod
+        @field_validator("phone_number")
+        @classmethod
     def validate_phone(cls, v):
         # Basic phone validation
         if not re.match(r"^\+?[1-9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
             raise ValueError("Invalid phone number format")
         return v
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "full_name": "John Doe",
@@ -55,31 +55,31 @@ class KYCProfileCreate(BaseModel):
                 "country": "US",
             }
         }
-    }
+        }
 
 
 class KYCProfileResponse(BaseModel):
-    """Schema for KYC profile response."""
+        """Schema for KYC profile response."""
 
-    id: str
-    user_id: str
-    status: str
-    verification_level: str
-    full_name: Optional[str]
-    phone_number: Optional[str]
-    date_of_birth: Optional[date]
-    nationality: Optional[str]
-    country: Optional[str]
-    risk_score: float
-    aml_status: str
-    pep_status: bool
-    submitted_at: Optional[datetime]
-    verified_at: Optional[datetime]
-    rejected_at: Optional[datetime]
-    rejection_reason: Optional[str]
-    created_at: datetime
+        id: str
+        user_id: str
+        status: str
+        verification_level: str
+        full_name: Optional[str]
+        phone_number: Optional[str]
+        date_of_birth: Optional[date]
+        nationality: Optional[str]
+        country: Optional[str]
+        risk_score: float
+        aml_status: str
+        pep_status: bool
+        submitted_at: Optional[datetime]
+        verified_at: Optional[datetime]
+        rejected_at: Optional[datetime]
+        rejection_reason: Optional[str]
+        created_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -100,21 +100,21 @@ class KYCProfileResponse(BaseModel):
                 "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class KYCDocumentResponse(BaseModel):
-    """Schema for KYC document response."""
+        """Schema for KYC document response."""
 
-    id: str
-    document_type: str
-    verification_status: str
-    confidence_score: float
-    file_name: Optional[str]
-    file_size: Optional[float]
-    uploaded_at: datetime
+        id: str
+        document_type: str
+        verification_status: str
+        confidence_score: float
+        file_name: Optional[str]
+        file_size: Optional[float]
+        uploaded_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -127,19 +127,19 @@ class KYCDocumentResponse(BaseModel):
                 "uploaded_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class KYCVerificationDecision(BaseModel):
-    """Schema for admin KYC verification decision."""
+        """Schema for admin KYC verification decision."""
 
-    decision: str = Field(..., pattern="^(approved|rejected)$")
-    verification_level: Optional[str] = Field(
+        decision: str = Field(..., pattern="^(approved|rejected)$")
+        verification_level: Optional[str] = Field(
         "basic", pattern="^(basic|enhanced|premium)$"
-    )
-    notes: Optional[str] = Field(None, max_length=1000)
+        )
+        notes: Optional[str] = Field(None, max_length=1000)
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "decision": "approved",
@@ -147,21 +147,21 @@ class KYCVerificationDecision(BaseModel):
                 "notes": "All documents verified successfully",
             }
         }
-    }
+        }
 
 
 class KYCLimitsResponse(BaseModel):
-    """Schema for KYC limits response."""
+        """Schema for KYC limits response."""
 
-    verification_level: str
-    daily_limit: float
-    monthly_limit: float
-    annual_limit: float
-    allowed_services: List[str]
-    max_transaction_amount: Optional[float]
-    current_usage: Dict[str, float]
+        verification_level: str
+        daily_limit: float
+        monthly_limit: float
+        annual_limit: float
+        allowed_services: List[str]
+        max_transaction_amount: Optional[float]
+        current_usage: Dict[str, float]
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "verification_level": "enhanced",
@@ -173,22 +173,22 @@ class KYCLimitsResponse(BaseModel):
                 "current_usage": {"daily": 150.0, "monthly": 800.0, "annual": 2500.0},
             }
         }
-    }
+        }
 
 
 class AMLScreeningResponse(BaseModel):
-    """Schema for AML screening response."""
+        """Schema for AML screening response."""
 
-    id: str
-    screening_type: str
-    status: str
-    match_score: float
-    matches_found: List[Dict[str, Any]]
-    reviewed_by: Optional[str]
-    review_decision: Optional[str]
-    created_at: datetime
+        id: str
+        screening_type: str
+        status: str
+        match_score: float
+        matches_found: List[Dict[str, Any]]
+        reviewed_by: Optional[str]
+        review_decision: Optional[str]
+        created_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -202,20 +202,20 @@ class AMLScreeningResponse(BaseModel):
                 "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class KYCStatsResponse(BaseModel):
-    """Schema for KYC statistics response."""
+        """Schema for KYC statistics response."""
 
-    total_profiles: int
-    verified_profiles: int
-    pending_profiles: int
-    rejected_profiles: int
-    verification_rate: float
-    level_distribution: Dict[str, int]
+        total_profiles: int
+        verified_profiles: int
+        pending_profiles: int
+        rejected_profiles: int
+        verification_rate: float
+        level_distribution: Dict[str, int]
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "total_profiles": 1000,
@@ -226,37 +226,37 @@ class KYCStatsResponse(BaseModel):
                 "level_distribution": {"basic": 500, "enhanced": 300, "premium": 50},
             }
         }
-    }
+        }
 
 
 class BiometricVerificationRequest(BaseModel):
-    """Schema for biometric verification request."""
+        """Schema for biometric verification request."""
 
-    verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
-    reference_document_id: Optional[str] = None
+        verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
+        reference_document_id: Optional[str] = None
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "verification_type": "face_match",
                 "reference_document_id": "doc_1642680000000",
             }
         }
-    }
+        }
 
 
 class BiometricVerificationResponse(BaseModel):
-    """Schema for biometric verification response."""
+        """Schema for biometric verification response."""
 
-    id: str
-    verification_type: str
-    verification_result: str
-    match_score: Optional[float]
-    liveness_score: Optional[float]
-    confidence_level: str
-    created_at: datetime
+        id: str
+        verification_type: str
+        verification_result: str
+        match_score: Optional[float]
+        liveness_score: Optional[float]
+        confidence_level: str
+        created_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -269,23 +269,23 @@ class BiometricVerificationResponse(BaseModel):
                 "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class KYCAuditLogResponse(BaseModel):
-    """Schema for KYC audit log response."""
+        """Schema for KYC audit log response."""
 
-    id: str
-    user_id: str
-    action: str
-    old_status: Optional[str]
-    new_status: Optional[str]
-    admin_id: Optional[str]
-    reason: Optional[str]
-    ip_address: Optional[str]
-    created_at: datetime
+        id: str
+        user_id: str
+        action: str
+        old_status: Optional[str]
+        new_status: Optional[str]
+        admin_id: Optional[str]
+        reason: Optional[str]
+        ip_address: Optional[str]
+        created_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -300,22 +300,22 @@ class KYCAuditLogResponse(BaseModel):
                 "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class DocumentUploadResponse(BaseModel):
-    """Schema for document upload response."""
+        """Schema for document upload response."""
 
-    id: str
-    document_type: str
-    status: str
-    file_name: str
-    file_size: float
-    upload_url: Optional[str]
-    processing_status: str
-    uploaded_at: datetime
+        id: str
+        document_type: str
+        status: str
+        file_name: str
+        file_size: float
+        upload_url: Optional[str]
+        processing_status: str
+        uploaded_at: datetime
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "id": "doc_1642680000000",
@@ -328,23 +328,23 @@ class DocumentUploadResponse(BaseModel):
                 "uploaded_at": "2024 - 01-20T10:00:00Z",
             }
         }
-    }
+        }
 
 
 class KYCComplianceReport(BaseModel):
-    """Schema for KYC compliance report."""
+        """Schema for KYC compliance report."""
 
-    report_id: str
-    report_type: str
-    period_start: date
-    period_end: date
-    total_verifications: int
-    compliance_rate: float
-    risk_distribution: Dict[str, int]
-    aml_alerts: int
-    generated_at: datetime
+        report_id: str
+        report_type: str
+        period_start: date
+        period_end: date
+        total_verifications: int
+        compliance_rate: float
+        risk_distribution: Dict[str, int]
+        aml_alerts: int
+        generated_at: datetime
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "report_id": "report_1642680000000",
@@ -358,4 +358,4 @@ class KYCComplianceReport(BaseModel):
                 "generated_at": "2024 - 02-01T00:00:00Z",
             }
         }
-    }
+        }

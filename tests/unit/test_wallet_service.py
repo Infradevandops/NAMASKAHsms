@@ -13,7 +13,7 @@ class TestWalletSMSCostCalculations:
 
     """Test SMS cost calculation logic using PricingCalculator."""
 
-def test_calculate_sms_cost_payg_base(self, db_session):
+    def test_calculate_sms_cost_payg_base(self, db_session):
 
         """Base SMS cost for PAYG: $2.50."""
         user = User(email="payg@example.com", subscription_tier="payg", credits=10.0)
@@ -25,7 +25,7 @@ def test_calculate_sms_cost_payg_base(self, db_session):
         assert result["filter_charges"] == 0.0
         assert result["total_cost"] == 2.50
 
-def test_calculate_sms_cost_payg_location_filter(self, db_session):
+    def test_calculate_sms_cost_payg_location_filter(self, db_session):
 
         """Location filter: +$0.25 for PAYG."""
         user = User(email="payg_loc@example.com", subscription_tier="payg", credits=10.0)
@@ -37,7 +37,7 @@ def test_calculate_sms_cost_payg_location_filter(self, db_session):
         assert result["filter_charges"] == 0.25
         assert result["total_cost"] == 2.50 + 0.25
 
-def test_calculate_sms_cost_payg_isp_filter(self, db_session):
+    def test_calculate_sms_cost_payg_isp_filter(self, db_session):
 
         """ISP filter: +$0.50 for PAYG."""
         user = User(email="payg_isp@example.com", subscription_tier="payg", credits=10.0)
@@ -48,7 +48,7 @@ def test_calculate_sms_cost_payg_isp_filter(self, db_session):
         assert result["filter_charges"] == 0.50
         assert result["total_cost"] == 2.50 + 0.50
 
-def test_calculate_sms_cost_payg_all_filters(self, db_session):
+    def test_calculate_sms_cost_payg_all_filters(self, db_session):
 
         """All filters: +$0.75 for PAYG."""
         user = User(email="payg_all@example.com", subscription_tier="payg", credits=10.0)
@@ -59,7 +59,7 @@ def test_calculate_sms_cost_payg_all_filters(self, db_session):
         assert result["filter_charges"] == 0.75
         assert result["total_cost"] == 2.50 + 0.75
 
-def test_calculate_sms_cost_pro_tier_filters_included(self, db_session):
+    def test_calculate_sms_cost_pro_tier_filters_included(self, db_session):
 
         """Pro tier: Filters included (no extra charge)."""
         user = User(email="pro@example.com", subscription_tier="pro", credits=50.0)
@@ -73,9 +73,9 @@ def test_calculate_sms_cost_pro_tier_filters_included(self, db_session):
 
 class TestWalletTransactions:
 
-    """Test transaction recording via CreditService."""
+        """Test transaction recording via CreditService."""
 
-def test_add_credits_transaction(self, db_session):
+    def test_add_credits_transaction(self, db_session):
 
         """Test adding credits records a transaction."""
         user = User(email="test_add@example.com", subscription_tier="freemium", credits=0)
@@ -96,7 +96,7 @@ def test_add_credits_transaction(self, db_session):
         assert tx.amount == 20.0
         assert tx.description == "Paystack deposit"
 
-def test_deduct_credits_transaction(self, db_session):
+    def test_deduct_credits_transaction(self, db_session):
 
         """Test deducting credits records a transaction."""
         user = User(email="test_deduct@example.com", subscription_tier="freemium", credits=10.0)
@@ -116,7 +116,7 @@ def test_deduct_credits_transaction(self, db_session):
         assert tx.type == "debit"
         assert tx.amount == -2.50
 
-def test_transaction_history_pagination(self, db_session):
+    def test_transaction_history_pagination(self, db_session):
 
         """Test transaction history pagination."""
         user = User(email="test_page@example.com", subscription_tier="freemium", credits=100.0)
@@ -124,7 +124,7 @@ def test_transaction_history_pagination(self, db_session):
         db_session.commit()
 
         # Create 25 transactions
-for i in range(25):
+        for i in range(25):
             tx = Transaction(user_id=user.id, type="credit", amount=10.0, description=f"Deposit {i}")
             db_session.add(tx)
         db_session.commit()
@@ -144,9 +144,9 @@ for i in range(25):
 
 class TestWalletBalanceOperations:
 
-    """Test wallet balance operations via CreditService."""
+        """Test wallet balance operations via CreditService."""
 
-def test_deduct_credits_sufficient_balance(self, db_session):
+    def test_deduct_credits_sufficient_balance(self, db_session):
 
         """User has $10, deduct $5."""
         user = User(email="balance_ok@example.com", subscription_tier="freemium", credits=10.0)
@@ -159,7 +159,7 @@ def test_deduct_credits_sufficient_balance(self, db_session):
         db_session.refresh(user)
         assert user.credits == 5.0
 
-def test_deduct_credits_insufficient_balance(self, db_session):
+    def test_deduct_credits_insufficient_balance(self, db_session):
 
         """User has $3, try to deduct $5."""
         user = User(email="balance_low@example.com", subscription_tier="freemium", credits=3.0)
@@ -169,10 +169,10 @@ def test_deduct_credits_insufficient_balance(self, db_session):
         credit_service = CreditService(db_session)
 
 
-with pytest.raises(InsufficientCreditsError):
+        with pytest.raises(InsufficientCreditsError):
             credit_service.deduct_credits(user.id, 5.0)
 
-def test_validate_balance_freemium_bonus(self, db_session):
+    def test_validate_balance_freemium_bonus(self, db_session):
 
         """Test validate_balance for freemium with bonus SMS."""
         user = User(
@@ -192,9 +192,9 @@ def test_validate_balance_freemium_bonus(self, db_session):
 
 class TestCreditServiceTransfer:
 
-    """Test credit transfer functionality."""
+        """Test credit transfer functionality."""
 
-def test_transfer_credits_success(self, db_session):
+    def test_transfer_credits_success(self, db_session):
 
         """Test successful transfer between users."""
         sender = User(email="sender@example.com", subscription_tier="pro", credits=100.0)
@@ -227,7 +227,7 @@ def test_transfer_credits_success(self, db_session):
         assert txs_sender[0].amount == -50.0
         assert txs_recipient[0].amount == 50.0
 
-def test_transfer_credits_insufficient_funds(self, db_session):
+    def test_transfer_credits_insufficient_funds(self, db_session):
 
         """Test transfer fails with insufficient funds."""
         sender = User(email="poor_sender@example.com", subscription_tier="freemium", credits=10.0)
@@ -238,10 +238,10 @@ def test_transfer_credits_insufficient_funds(self, db_session):
 
         credit_service = CreditService(db_session)
 
-with pytest.raises(InsufficientCreditsError):
+        with pytest.raises(InsufficientCreditsError):
             credit_service.transfer_credits(sender.id, recipient.id, 50.0)
 
-def test_transfer_credits_self_transfer(self, db_session):
+    def test_transfer_credits_self_transfer(self, db_session):
         # Logic doesn't explicitly forbid self-transfer in service but it's a good edge case.
         # Assuming logic allows it or behaves neutrally.
         pass
@@ -249,9 +249,9 @@ def test_transfer_credits_self_transfer(self, db_session):
 
 class TestCreditServiceAdmin:
 
-    """Test admin credit operations."""
+        """Test admin credit operations."""
 
-def test_reset_credits(self, db_session):
+    def test_reset_credits(self, db_session):
 
         """Test admin reset credits."""
         user = User(email="reset_target@example.com", subscription_tier="freemium", credits=50.0)
@@ -274,7 +274,7 @@ def test_reset_credits(self, db_session):
         assert tx is not None
         assert tx.amount == 50.0  # 100 - 50
 
-def test_get_transaction_summary(self, db_session):
+    def test_get_transaction_summary(self, db_session):
 
         """Test transaction summary generation."""
         user = User(email="summary_user@example.com", subscription_tier="freemium", credits=0.0)

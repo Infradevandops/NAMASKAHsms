@@ -11,7 +11,7 @@ def async_cache(ttl: int = 300):
 
 def decorator(func):
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+async def wrapper(*args, **kwargs):
             cache_key = f"{func.__name__}:{hash(str(args) + str(kwargs))}"
 
             # Try to get from cache

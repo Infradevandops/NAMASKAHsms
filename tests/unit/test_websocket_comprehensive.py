@@ -14,14 +14,14 @@ class TestWebSocketManager:
 
     """Test WebSocket connection manager."""
 
-def test_connection_manager_initialization(self):
+    def test_connection_manager_initialization(self):
 
         """Test WebSocket manager initialization."""
 
         manager = ConnectionManager()
         assert manager is not None
 
-def test_connect_websocket(self):
+    def test_connect_websocket(self):
 
         """Test connecting WebSocket client."""
 
@@ -31,13 +31,13 @@ def test_connect_websocket(self):
         user_id = "user123"
 
         # Should not raise exception
-try:
+        try:
             manager.connect(mock_websocket, user_id)
             assert True
-except Exception:
+        except Exception:
             assert True  # May not be implemented
 
-def test_disconnect_websocket(self):
+    def test_disconnect_websocket(self):
 
         """Test disconnecting WebSocket client."""
 
@@ -46,14 +46,14 @@ def test_disconnect_websocket(self):
         mock_websocket = MagicMock()
         user_id = "user123"
 
-try:
+        try:
             manager.connect(mock_websocket, user_id)
             manager.disconnect(mock_websocket, user_id)
             assert True
-except Exception:
+        except Exception:
             assert True
 
-def test_broadcast_message(self):
+    def test_broadcast_message(self):
 
         """Test broadcasting message to all connections."""
 
@@ -61,13 +61,13 @@ def test_broadcast_message(self):
 
         message = {"type": "notification", "data": "test"}
 
-try:
+        try:
             manager.broadcast(json.dumps(message))
             assert True
-except Exception:
+        except Exception:
             assert True
 
-def test_send_personal_message(self):
+    def test_send_personal_message(self):
 
         """Test sending message to specific user."""
 
@@ -76,30 +76,30 @@ def test_send_personal_message(self):
         user_id = "user123"
         message = {"type": "notification", "data": "test"}
 
-try:
+        try:
             manager.send_personal_message(json.dumps(message), user_id)
             assert True
-except Exception:
+        except Exception:
             assert True
 
 
 class TestWebSocketEndpoints:
 
-    """Test WebSocket endpoints."""
+        """Test WebSocket endpoints."""
 
-def test_websocket_connection_endpoint(self, client):
+    def test_websocket_connection_endpoint(self, client):
 
         """Test WebSocket connection endpoint exists."""
         # WebSocket endpoints use different protocol
         assert True  # Placeholder
 
-def test_websocket_authentication(self):
+    def test_websocket_authentication(self):
 
         """Test WebSocket authentication."""
         # Should require valid token
         assert True  # Placeholder
 
-def test_websocket_message_handling(self):
+    def test_websocket_message_handling(self):
 
         """Test WebSocket message handling."""
         assert True  # Placeholder
@@ -107,9 +107,9 @@ def test_websocket_message_handling(self):
 
 class TestWebSocketNotifications:
 
-    """Test WebSocket notification delivery."""
+        """Test WebSocket notification delivery."""
 
-def test_notification_broadcast(self):
+    def test_notification_broadcast(self):
 
         """Test broadcasting notification via WebSocket."""
 
@@ -117,18 +117,18 @@ def test_notification_broadcast(self):
 
         notification = {"type": "notification", "title": "Test", "message": "Test message"}
 
-try:
+        try:
             manager.broadcast(json.dumps(notification))
             assert True
-except Exception:
+        except Exception:
             assert True
 
-def test_user_specific_notification(self):
+    def test_user_specific_notification(self):
 
         """Test sending notification to specific user."""
         assert True  # Placeholder
 
-def test_notification_queue(self):
+    def test_notification_queue(self):
 
         """Test notification queuing for offline users."""
         assert True  # Placeholder
@@ -136,19 +136,19 @@ def test_notification_queue(self):
 
 class TestWebSocketChannels:
 
-    """Test WebSocket channel subscriptions."""
+        """Test WebSocket channel subscriptions."""
 
-def test_subscribe_to_channel(self):
+    def test_subscribe_to_channel(self):
 
         """Test subscribing to WebSocket channel."""
         assert True  # Placeholder
 
-def test_unsubscribe_from_channel(self):
+    def test_unsubscribe_from_channel(self):
 
         """Test unsubscribing from WebSocket channel."""
         assert True  # Placeholder
 
-def test_channel_message_delivery(self):
+    def test_channel_message_delivery(self):
 
         """Test message delivery to channel subscribers."""
         assert True  # Placeholder
@@ -156,19 +156,19 @@ def test_channel_message_delivery(self):
 
 class TestWebSocketSecurity:
 
-    """Test WebSocket security."""
+        """Test WebSocket security."""
 
-def test_websocket_rate_limiting(self):
+    def test_websocket_rate_limiting(self):
 
         """Test rate limiting for WebSocket messages."""
         assert True  # Placeholder
 
-def test_websocket_message_validation(self):
+    def test_websocket_message_validation(self):
 
         """Test WebSocket message validation."""
         assert True  # Placeholder
 
-def test_websocket_xss_protection(self):
+    def test_websocket_xss_protection(self):
 
         """Test XSS protection in WebSocket messages."""
         assert True  # Placeholder
@@ -176,19 +176,19 @@ def test_websocket_xss_protection(self):
 
 class TestWebSocketReconnection:
 
-    """Test WebSocket reconnection handling."""
+        """Test WebSocket reconnection handling."""
 
-def test_automatic_reconnection(self):
+    def test_automatic_reconnection(self):
 
         """Test automatic reconnection after disconnect."""
         assert True  # Placeholder
 
-def test_message_replay_after_reconnect(self):
+    def test_message_replay_after_reconnect(self):
 
         """Test message replay after reconnection."""
         assert True  # Placeholder
 
-def test_connection_state_recovery(self):
+    def test_connection_state_recovery(self):
 
         """Test connection state recovery."""
         assert True  # Placeholder

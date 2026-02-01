@@ -11,7 +11,7 @@ class TestEnsureAdminUser:
 
     @patch("app.core.startup.SessionLocal")
     @patch("app.core.startup.hash_password")
-def test_admin_user_created_when_not_exists(self, mock_hash, mock_session):
+    def test_admin_user_created_when_not_exists(self, mock_hash, mock_session):
 
         """Test admin user is created when it doesn't exist."""
         # Setup
@@ -20,7 +20,7 @@ def test_admin_user_created_when_not_exists(self, mock_hash, mock_session):
         mock_db.query.return_value.filter.return_value.first.return_value = None
         mock_hash.return_value = "hashed_password"
 
-with patch.dict(os.environ, {"ADMIN_EMAIL": "test@admin.com", "ADMIN_PASSWORD": "testpass"}):
+        with patch.dict(os.environ, {"ADMIN_EMAIL": "test@admin.com", "ADMIN_PASSWORD": "testpass"}):
             # Execute
             ensure_admin_user()
 
@@ -28,10 +28,10 @@ with patch.dict(os.environ, {"ADMIN_EMAIL": "test@admin.com", "ADMIN_PASSWORD": 
             mock_db.add.assert_called_once()
             mock_db.commit.assert_called_once()
 
-    @patch("app.core.startup.SessionLocal")
-    @patch("app.core.startup.hash_password")
-    @patch("app.utils.security.verify_password")
-def test_admin_user_updated_when_exists(self, mock_verify, mock_hash, mock_session):
+        @patch("app.core.startup.SessionLocal")
+        @patch("app.core.startup.hash_password")
+        @patch("app.utils.security.verify_password")
+    def test_admin_user_updated_when_exists(self, mock_verify, mock_hash, mock_session):
 
         """Test admin user password is updated when user exists."""
         # Setup
@@ -47,7 +47,7 @@ def test_admin_user_updated_when_exists(self, mock_verify, mock_hash, mock_sessi
         mock_hash.return_value = "new_hashed_password"
         mock_verify.return_value = True
 
-with patch.dict(
+        with patch.dict(
             os.environ,
             {"ADMIN_EMAIL": "admin@test.com", "ADMIN_PASSWORD": "newpassword"},
         ):
@@ -65,15 +65,15 @@ with patch.dict(
             assert existing_admin.is_banned is False
             mock_db.commit.assert_called_once()
 
-    @patch("app.core.startup.SessionLocal")
-def test_admin_user_skipped_when_no_password(self, mock_session):
+        @patch("app.core.startup.SessionLocal")
+    def test_admin_user_skipped_when_no_password(self, mock_session):
 
         """Test admin user creation is skipped when ADMIN_PASSWORD not set."""
         # Setup
         mock_db = MagicMock()
         mock_session.return_value = mock_db
 
-with patch.dict(os.environ, {"ADMIN_EMAIL": "admin@test.com"}, clear=True):
+        with patch.dict(os.environ, {"ADMIN_EMAIL": "admin@test.com"}, clear=True):
             # Execute
             ensure_admin_user()
 
@@ -81,10 +81,10 @@ with patch.dict(os.environ, {"ADMIN_EMAIL": "admin@test.com"}, clear=True):
             mock_db.add.assert_not_called()
             mock_db.commit.assert_not_called()
 
-    @patch("app.core.startup.SessionLocal")
-    @patch("app.core.startup.hash_password")
-    @patch("app.utils.security.verify_password")
-def test_admin_password_verification_after_update(self, mock_verify, mock_hash, mock_session):
+        @patch("app.core.startup.SessionLocal")
+        @patch("app.core.startup.hash_password")
+        @patch("app.utils.security.verify_password")
+    def test_admin_password_verification_after_update(self, mock_verify, mock_hash, mock_session):
 
         """Test password verification is performed after update."""
         # Setup
@@ -97,7 +97,7 @@ def test_admin_password_verification_after_update(self, mock_verify, mock_hash, 
         mock_hash.return_value = "new_hash"
         mock_verify.return_value = True
 
-with patch.dict(os.environ, {"ADMIN_PASSWORD": "testpass", "ADMIN_EMAIL": "admin@test.com"}):
+        with patch.dict(os.environ, {"ADMIN_PASSWORD": "testpass", "ADMIN_EMAIL": "admin@test.com"}):
             # Execute
             ensure_admin_user()
 

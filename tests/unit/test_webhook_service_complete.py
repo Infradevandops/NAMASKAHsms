@@ -46,7 +46,7 @@ class TestWebhookServiceComplete:
         assert msg_id is not None
         assert isinstance(msg_id, (str, bytes))
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_dequeue_success(self, redis_client):
         """Test successful webhook dequeue."""
 
@@ -59,7 +59,7 @@ class TestWebhookServiceComplete:
         messages = await queue.dequeue(count=1)
         assert len(messages) == 1
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_retry_mechanism(self, redis_client):
         """Test webhook retry logic."""
 
@@ -70,7 +70,7 @@ class TestWebhookServiceComplete:
 
         assert msg_id is not None
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_max_retries_dlq(self, redis_client):
         """Test webhook moves to DLQ after max retries."""
 
@@ -78,7 +78,7 @@ class TestWebhookServiceComplete:
         max_retries = 3
 
         # Simulate failed deliveries
-for i in range(max_retries + 1):
+        for i in range(max_retries + 1):
             msg_id = await queue.enqueue(webhook_id=f"wh_dlq_{i}", event="dlq.test", data={"attempt": i})
 
         # After max retries, should go to DLQ
@@ -86,8 +86,8 @@ for i in range(max_retries + 1):
 
     # ==================== Webhook Delivery ====================
 
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient.post")
+        @pytest.mark.asyncio
+        @patch("httpx.AsyncClient.post")
     async def test_webhook_delivery_success(self, mock_post):
         """Test successful webhook delivery."""
         mock_post.return_value = Mock(status_code=200, text="OK")
@@ -99,8 +99,8 @@ for i in range(max_retries + 1):
         # Would call delivery service here
         assert url.startswith("https://")
 
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient.post")
+        @pytest.mark.asyncio
+        @patch("httpx.AsyncClient.post")
     async def test_webhook_delivery_failure(self, mock_post):
         """Test webhook delivery failure."""
         mock_post.side_effect = Exception("Connection failed")
@@ -111,7 +111,7 @@ for i in range(max_retries + 1):
         # Should handle exception gracefully
         assert url.startswith("https://")
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_timeout_handling(self):
         """Test webhook delivery timeout."""
         timeout_seconds = 30
@@ -121,7 +121,7 @@ for i in range(max_retries + 1):
 
     # ==================== Webhook Signature ====================
 
-def test_webhook_signature_generation(self):
+    def test_webhook_signature_generation(self):
 
         """Test webhook signature generation."""
 
@@ -133,7 +133,7 @@ def test_webhook_signature_generation(self):
         assert signature is not None
         assert len(signature) == 64  # SHA256 hex digest
 
-def test_webhook_signature_validation(self):
+    def test_webhook_signature_validation(self):
 
         """Test webhook signature validation."""
 
@@ -149,7 +149,7 @@ def test_webhook_signature_validation(self):
 
     # ==================== Webhook Registration ====================
 
-def test_webhook_registration(self, db_session, regular_user):
+    def test_webhook_registration(self, db_session, regular_user):
 
         """Test webhook registration."""
 
@@ -167,7 +167,7 @@ def test_webhook_registration(self, db_session, regular_user):
         assert saved is not None
         assert saved.url == "https://example.com/webhook"
 
-def test_webhook_update(self, db_session, regular_user):
+    def test_webhook_update(self, db_session, regular_user):
 
         """Test webhook update."""
 
@@ -187,7 +187,7 @@ def test_webhook_update(self, db_session, regular_user):
         db_session.refresh(webhook)
         assert webhook.url == "https://newurl.com/webhook"
 
-def test_webhook_deactivation(self, db_session, regular_user):
+    def test_webhook_deactivation(self, db_session, regular_user):
 
         """Test webhook deactivation."""
 
@@ -209,7 +209,7 @@ def test_webhook_deactivation(self, db_session, regular_user):
 
     # ==================== Event Filtering ====================
 
-def test_webhook_event_filtering(self, db_session, regular_user):
+    def test_webhook_event_filtering(self, db_session, regular_user):
 
         """Test webhook event filtering."""
 
@@ -226,7 +226,7 @@ def test_webhook_event_filtering(self, db_session, regular_user):
         assert "payment.success" in webhook.events
         assert "verification.complete" not in webhook.events
 
-def test_webhook_wildcard_events(self):
+    def test_webhook_wildcard_events(self):
 
         """Test webhook wildcard event matching."""
         events = ["payment.*", "verification.*"]
@@ -239,7 +239,7 @@ def test_webhook_wildcard_events(self):
 
     # ==================== Delivery Tracking ====================
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_delivery_tracking(self, redis_client):
         """Test webhook delivery tracking."""
 
@@ -251,7 +251,7 @@ def test_webhook_wildcard_events(self):
 
         assert msg_id is not None
 
-def test_webhook_delivery_history(self, db_session, regular_user):
+    def test_webhook_delivery_history(self, db_session, regular_user):
 
         """Test webhook delivery history."""
 
@@ -269,45 +269,45 @@ def test_webhook_delivery_history(self, db_session, regular_user):
 
     # ==================== Error Handling ====================
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_invalid_url(self):
         """Test handling of invalid webhook URL."""
         invalid_urls = ["not-a-url", "ftp://example.com", "javascript:alert(1)", ""]
 
-for url in invalid_urls:
+        for url in invalid_urls:
             # URL validation would happen at API layer
             assert not url.startswith("https://")
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_network_error_retry(self):
         """Test retry on network errors."""
         max_retries = 3
         current_attempt = 0
 
         # Simulate retry logic
-while current_attempt < max_retries:
+        while current_attempt < max_retries:
             current_attempt += 1
 
         assert current_attempt == max_retries
 
     # ==================== Rate Limiting ====================
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_rate_limiting(self):
         """Test webhook delivery rate limiting."""
         max_per_minute = 60
         current_count = 0
 
         # Simulate rate limiting
-for _ in range(10):
-if current_count < max_per_minute:
+        for _ in range(10):
+        if current_count < max_per_minute:
                 current_count += 1
 
         assert current_count <= max_per_minute
 
     # ==================== Batch Processing ====================
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_batch_processing(self, redis_client):
         """Test batch webhook processing."""
 
@@ -315,7 +315,7 @@ if current_count < max_per_minute:
 
         # Enqueue multiple webhooks
         batch_size = 5
-for i in range(batch_size):
+        for i in range(batch_size):
             await queue.enqueue(webhook_id=f"wh_batch_{i}", event="batch.test", data={"index": i})
 
         # Process batch
@@ -324,7 +324,7 @@ for i in range(batch_size):
 
     # ==================== Webhook Metrics ====================
 
-def test_webhook_success_rate_tracking(self):
+    def test_webhook_success_rate_tracking(self):
 
         """Test webhook success rate tracking."""
         total_deliveries = 100
@@ -333,7 +333,7 @@ def test_webhook_success_rate_tracking(self):
         success_rate = (successful_deliveries / total_deliveries) * 100
         assert success_rate == 95.0
 
-def test_webhook_average_response_time(self):
+    def test_webhook_average_response_time(self):
 
         """Test webhook response time tracking."""
         response_times = [100, 150, 200, 120, 180]  # milliseconds
@@ -343,7 +343,7 @@ def test_webhook_average_response_time(self):
 
     # ==================== Webhook Security ====================
 
-def test_webhook_url_validation(self):
+    def test_webhook_url_validation(self):
 
         """Test webhook URL security validation."""
         valid_urls = [
@@ -351,11 +351,11 @@ def test_webhook_url_validation(self):
             "https://api.example.com/webhooks/receive",
         ]
 
-for url in valid_urls:
+        for url in valid_urls:
             assert url.startswith("https://")
             assert "://" in url
 
-def test_webhook_payload_size_limit(self):
+    def test_webhook_payload_size_limit(self):
 
         """Test webhook payload size limits."""
         max_payload_size = 1024 * 1024  # 1MB
@@ -367,7 +367,7 @@ def test_webhook_payload_size_limit(self):
 
     # ==================== Webhook Service ====================
 
-    @pytest.mark.asyncio
+        @pytest.mark.asyncio
     async def test_webhook_service_registration(self):
         """Test WebhookService registration."""
 
@@ -380,8 +380,8 @@ def test_webhook_payload_size_limit(self):
         assert len(hooks) == 1
         assert hooks[0]["url"] == "https://example.com/hook"
 
-    @pytest.mark.asyncio
-    @patch("httpx.AsyncClient.post")
+        @pytest.mark.asyncio
+        @patch("httpx.AsyncClient.post")
     async def test_webhook_service_delivery(self, mock_post):
         """Test WebhookService delivery logic."""
 
@@ -397,5 +397,5 @@ def test_webhook_payload_size_limit(self):
         assert "X-Webhook-Signature" in str(kwargs["headers"]) or "X - Webhook-Signature" in str(kwargs["headers"])
 
 
-if __name__ == "__main__":
-    print("Webhook Service tests: 30 comprehensive tests created")
+        if __name__ == "__main__":
+        print("Webhook Service tests: 30 comprehensive tests created")

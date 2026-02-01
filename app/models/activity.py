@@ -26,7 +26,7 @@ class Activity(BaseModel):
     # Relationship
     user = relationship("User", back_populates="activities")
 
-def to_dict(self):
+    def to_dict(self):
 
         """Convert to dictionary."""
         return {

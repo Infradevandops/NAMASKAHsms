@@ -88,13 +88,13 @@ class SQLSafetyValidator:
     """Validator for SQL safety in queries."""
 
     @staticmethod
-def validate_string_input(value: str, max_length: int = 1000) -> str:
+    def validate_string_input(value: str, max_length: int = 1000) -> str:
 
         """Validate and sanitize string input."""
-if not isinstance(value, str):
+        if not isinstance(value, str):
             raise ValueError("Input must be string")
 
-if len(value) > max_length:
+        if len(value) > max_length:
             raise ValueError(f"Input exceeds maximum length of {max_length}")
 
         # Remove null bytes
@@ -102,27 +102,27 @@ if len(value) > max_length:
 
         return value
 
-    @staticmethod
-def validate_numeric_input(value: Any, min_val: int = None, max_val: int = None) -> int:
+        @staticmethod
+    def validate_numeric_input(value: Any, min_val: int = None, max_val: int = None) -> int:
 
         """Validate numeric input."""
-try:
+        try:
             num = int(value)
-except (ValueError, TypeError):
+        except (ValueError, TypeError):
             raise ValueError("Input must be numeric")
 
-if min_val is not None and num < min_val:
+        if min_val is not None and num < min_val:
             raise ValueError(f"Value must be >= {min_val}")
 
-if max_val is not None and num > max_val:
+        if max_val is not None and num > max_val:
             raise ValueError(f"Value must be <= {max_val}")
 
         return num
 
-    @staticmethod
-def validate_email(email: str) -> str:
+        @staticmethod
+    def validate_email(email: str) -> str:
 
         """Validate email format."""
-if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
+        if not re.match(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", email):
             raise ValueError("Invalid email format")
         return email.lower()

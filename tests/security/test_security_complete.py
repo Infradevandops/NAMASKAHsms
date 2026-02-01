@@ -30,7 +30,7 @@ class TestSecurityComplete:
 
     # ==================== Password Security ====================
 
-def test_password_hashing_strength(self):
+    def test_password_hashing_strength(self):
 
         """Test password hashing uses strong algorithm."""
         password = "TestPassword123!"
@@ -40,7 +40,7 @@ def test_password_hashing_strength(self):
         assert hashed.startswith("$2")
         assert len(hashed) >= 60  # Bcrypt hashes are 60+ chars
 
-def test_password_hash_uniqueness(self):
+    def test_password_hash_uniqueness(self):
 
         """Test same password generates different hashes."""
         password = "SamePassword123!"
@@ -51,7 +51,7 @@ def test_password_hash_uniqueness(self):
         # Hashes should be different due to salt
         assert hash1 != hash2
 
-def test_password_verification_timing_attack_resistance(self):
+    def test_password_verification_timing_attack_resistance(self):
 
         """Test password verification is timing-attack resistant."""
         password = "SecurePass123!"
@@ -61,23 +61,23 @@ def test_password_verification_timing_attack_resistance(self):
         assert verify_password(password, hashed) is True
         assert verify_password("WrongPass", hashed) is False
 
-def test_password_minimum_complexity(self):
+    def test_password_minimum_complexity(self):
 
         """Test password complexity requirements."""
         weak_passwords = ["123", "pass", "abc"]
         strong_passwords = ["SecurePass123!", "MyP@ssw0rd!", "C0mpl3x!Pass"]
 
-for pwd in weak_passwords:
+        for pwd in weak_passwords:
             assert len(pwd) < 8
 
-for pwd in strong_passwords:
+        for pwd in strong_passwords:
             assert len(pwd) >= 8
             assert any(c.isupper() for c in pwd)
             assert any(c.isdigit() for c in pwd)
 
     # ==================== JWT Security ====================
 
-def test_jwt_token_expiration(self):
+    def test_jwt_token_expiration(self):
 
         """Test JWT tokens expire correctly."""
 
@@ -88,10 +88,10 @@ def test_jwt_token_expiration(self):
         token_data = {"sub": "user123", "exp": expire}
         token = jwt.encode(token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
-with pytest.raises(jwt.ExpiredSignatureError):
+        with pytest.raises(jwt.ExpiredSignatureError):
             jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
 
-def test_jwt_token_tampering_detection(self):
+    def test_jwt_token_tampering_detection(self):
 
         """Test JWT detects tampering."""
 
@@ -102,10 +102,10 @@ def test_jwt_token_tampering_detection(self):
         # Tamper with token
         tampered = token[:-10] + "tampered00"
 
-with pytest.raises((jwt.InvalidSignatureError, jwt.DecodeError)):
+        with pytest.raises((jwt.InvalidSignatureError, jwt.DecodeError)):
             jwt.decode(tampered, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
 
-def test_jwt_algorithm_security(self):
+    def test_jwt_algorithm_security(self):
 
         """Test JWT uses secure algorithm."""
 
@@ -114,7 +114,7 @@ def test_jwt_algorithm_security(self):
         # Should use HS256 or better
         assert settings.jwt_algorithm in ["HS256", "RS256", "ES256"]
 
-def test_jwt_secret_key_strength(self):
+    def test_jwt_secret_key_strength(self):
 
         """Test JWT secret key is strong."""
 
@@ -125,7 +125,7 @@ def test_jwt_secret_key_strength(self):
 
     # ==================== SQL Injection Prevention ====================
 
-def test_sql_injection_prevention_parameterized_queries(self, db_session):
+    def test_sql_injection_prevention_parameterized_queries(self, db_session):
 
         """Test SQL injection prevention via parameterized queries."""
         # SQLAlchemy uses parameterized queries by default
@@ -135,7 +135,7 @@ def test_sql_injection_prevention_parameterized_queries(self, db_session):
         user = db_session.query(User).filter(User.email == malicious_email).first()
         assert user is None  # No user found, table not dropped
 
-def test_sql_injection_prevention_orm(self, db_session):
+    def test_sql_injection_prevention_orm(self, db_session):
 
         """Test ORM prevents SQL injection."""
         # Using ORM filters is safe
@@ -146,7 +146,7 @@ def test_sql_injection_prevention_orm(self, db_session):
 
     # ==================== XSS Prevention ====================
 
-def test_xss_prevention_html_escaping(self):
+    def test_xss_prevention_html_escaping(self):
 
         """Test XSS prevention through HTML escaping."""
         malicious_input = "<script>alert('XSS')</script>"
@@ -158,7 +158,7 @@ def test_xss_prevention_html_escaping(self):
         assert "&lt;script&gt;" in safe_output
         assert "<script>" not in safe_output
 
-def test_xss_prevention_json_encoding(self):
+    def test_xss_prevention_json_encoding(self):
 
         """Test XSS prevention in JSON responses."""
 
@@ -170,7 +170,7 @@ def test_xss_prevention_json_encoding(self):
 
     # ==================== CSRF Protection ====================
 
-def test_csrf_token_generation(self):
+    def test_csrf_token_generation(self):
 
         """Test CSRF token generation."""
 
@@ -179,7 +179,7 @@ def test_csrf_token_generation(self):
         assert len(csrf_token) >= 32
         assert csrf_token.isalnum() or "-" in csrf_token or "_" in csrf_token
 
-def test_csrf_token_validation(self):
+    def test_csrf_token_validation(self):
 
         """Test CSRF token validation."""
 
@@ -193,22 +193,22 @@ def test_csrf_token_validation(self):
 
     # ==================== Rate Limiting ====================
 
-def test_rate_limiting_enforcement(self):
+    def test_rate_limiting_enforcement(self):
 
         """Test rate limiting prevents abuse."""
         max_requests = 60
         current_requests = 0
 
         # Simulate requests
-for _ in range(100):
-if current_requests < max_requests:
+        for _ in range(100):
+        if current_requests < max_requests:
                 current_requests += 1
-else:
+        else:
                 break  # Rate limit hit
 
         assert current_requests == max_requests
 
-def test_rate_limiting_per_user(self):
+    def test_rate_limiting_per_user(self):
 
         """Test per-user rate limiting."""
         user_limits = {
@@ -225,7 +225,7 @@ def test_rate_limiting_per_user(self):
 
     # ==================== Input Validation ====================
 
-def test_email_validation(self):
+    def test_email_validation(self):
 
         """Test email validation."""
         valid_emails = ["user@example.com", "test.user@domain.co.uk"]
@@ -234,13 +234,13 @@ def test_email_validation(self):
 
         email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
-for email in valid_emails:
+        for email in valid_emails:
             assert re.match(email_pattern, email)
 
-for email in invalid_emails:
+        for email in invalid_emails:
             assert not re.match(email_pattern, email)
 
-def test_input_length_validation(self):
+    def test_input_length_validation(self):
 
         """Test input length limits."""
         max_length = 255
@@ -253,7 +253,7 @@ def test_input_length_validation(self):
 
     # ==================== Session Security ====================
 
-def test_session_token_randomness(self):
+    def test_session_token_randomness(self):
 
         """Test session tokens are random."""
 
@@ -262,7 +262,7 @@ def test_session_token_randomness(self):
 
         assert token1 != token2
 
-def test_session_expiration(self):
+    def test_session_expiration(self):
 
         """Test session expiration."""
 
@@ -274,7 +274,7 @@ def test_session_expiration(self):
 
     # ==================== API Key Security ====================
 
-def test_api_key_format(self):
+    def test_api_key_format(self):
 
         """Test API key format."""
 
@@ -283,7 +283,7 @@ def test_api_key_format(self):
         assert api_key.startswith("sk_test_")
         assert len(api_key) > 40
 
-def test_api_key_hashing(self):
+    def test_api_key_hashing(self):
 
         """Test API keys are hashed for storage."""
 
@@ -295,7 +295,7 @@ def test_api_key_hashing(self):
 
     # ==================== HTTPS Enforcement ====================
 
-def test_https_redirect(self):
+    def test_https_redirect(self):
 
         """Test HTTP requests redirect to HTTPS."""
         http_url = "http://example.com/api"
@@ -304,7 +304,7 @@ def test_https_redirect(self):
         # In production, should redirect
         assert https_url.startswith("https://")
 
-def test_secure_cookie_flags(self):
+    def test_secure_cookie_flags(self):
 
         """Test cookies have secure flags."""
         cookie_flags = {"secure": True, "httponly": True, "samesite": "strict"}
@@ -314,7 +314,7 @@ def test_secure_cookie_flags(self):
 
     # ==================== Data Encryption ====================
 
-def test_sensitive_data_encryption(self):
+    def test_sensitive_data_encryption(self):
 
         """Test sensitive data is encrypted."""
 
@@ -331,7 +331,7 @@ def test_sensitive_data_encryption(self):
 
     # ==================== Security Headers ====================
 
-def test_security_headers_present(self):
+    def test_security_headers_present(self):
 
         """Test security headers are set."""
         security_headers = {
@@ -346,7 +346,7 @@ def test_security_headers_present(self):
 
     # ==================== Audit Logging ====================
 
-def test_security_event_logging(self):
+    def test_security_event_logging(self):
 
         """Test security events are logged."""
         security_event = {
@@ -360,21 +360,21 @@ def test_security_event_logging(self):
         assert security_event["event_type"] == "login_attempt"
         assert security_event["timestamp"] is not None
 
-def test_failed_login_tracking(self):
+    def test_failed_login_tracking(self):
 
         """Test failed login attempts are tracked."""
         failed_attempts = 0
         max_attempts = 5
 
         # Simulate failed logins
-for _ in range(3):
+        for _ in range(3):
             failed_attempts += 1
 
         assert failed_attempts < max_attempts
 
     # ==================== Access Control ====================
 
-def test_role_based_access_control(self, db_session, regular_user, admin_user):
+    def test_role_based_access_control(self, db_session, regular_user, admin_user):
 
         """Test RBAC enforcement."""
         assert regular_user.is_admin is False
@@ -383,7 +383,7 @@ def test_role_based_access_control(self, db_session, regular_user, admin_user):
         # Regular user should not have admin access
         assert not regular_user.is_admin
 
-def test_resource_ownership_validation(self, db_session, regular_user):
+    def test_resource_ownership_validation(self, db_session, regular_user):
 
         """Test users can only access their own resources."""
         user_id = regular_user.id
@@ -392,5 +392,5 @@ def test_resource_ownership_validation(self, db_session, regular_user):
         assert user_id == regular_user.id
 
 
-if __name__ == "__main__":
-    print("Security tests: 35 comprehensive tests created")
+        if __name__ == "__main__":
+        print("Security tests: 35 comprehensive tests created")

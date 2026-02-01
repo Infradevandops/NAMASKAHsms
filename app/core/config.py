@@ -127,8 +127,8 @@ class Settings(BaseSettings):
             raise ValueError("Secret keys must be at least 32 characters long")
         return value
 
-    @field_validator("database_url")
-    @classmethod
+        @field_validator("database_url")
+        @classmethod
     def validate_database_url(cls, value, info=None):
         """Validate database URL format."""
         if not value:
@@ -137,13 +137,13 @@ class Settings(BaseSettings):
         # Check for production database requirements
         if info and hasattr(info, "data"):
             environment = info.data.get("environment", "development")
-            if value.startswith("sqlite://") and environment == "production":
-                raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
+        if value.startswith("sqlite://") and environment == "production":
+            raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
 
         return value
 
-    @field_validator("base_url")
-    @classmethod
+        @field_validator("base_url")
+        @classmethod
     def validate_base_url(cls, value):
         """Validate base URL format."""
         if not value.startswith(("http://", "https://")):
@@ -167,8 +167,8 @@ class Settings(BaseSettings):
         missing_settings = []
         for attr, env_var in required_production_settings:
             value = getattr(self, attr)
-            if not value or value in ["your-", "change - me", "placeholder"]:
-                missing_settings.append(env_var)
+        if not value or value in ["your-", "change - me", "placeholder"]:
+            missing_settings.append(env_var)
 
         if missing_settings:
             raise ValueError(
@@ -185,34 +185,33 @@ class Settings(BaseSettings):
         # Note: Host binding validation removed for cloud deployment compatibility
         # Cloud platforms and containers handle networking securely at the infrastructure level
 
-    model_config = {
-        "env_file": [
-            ".env.local",  # Highest priority (local overrides)
-            ".env",  # Main environment file
-            ".env.development",  # Fallback for development
-        ],
-        "case_sensitive": False,
-        "extra": "ignore",
-    }
+        model_config = {
+            "env_file": [
+                ".env.local",  # Highest priority (local overrides)
+                ".env",  # Main environment file
+                ".env.development",  # Fallback for development
+            ],
+            "case_sensitive": False,
+            "extra": "ignore",
+        }
 
-
-@lru_cache()
-def get_settings() -> Settings:
-    """Get cached settings instance with validation."""
-    settings_instance = Settings()
+        @lru_cache()
+    def get_settings() -> Settings:
+        """Get cached settings instance with validation."""
+        settings_instance = Settings()
 
     # Validate secrets on startup (production only)
-    if settings_instance.environment == "production":
+        if settings_instance.environment == "production":
         try:
             SecretsManager.validate_required_secrets(settings_instance.environment)
         except Exception:
             pass
 
     # Validate production configuration
-    settings_instance.validate_production_config()
+        settings_instance.validate_production_config()
 
-    return settings_instance
+        return settings_instance
 
 
 # Legacy settings instance for backward compatibility
-settings = get_settings()
+        settings = get_settings()

@@ -7,7 +7,7 @@ class TestAuthServiceComplete:
 
     """Complete auth service test suite using actual AuthService implementation."""
 
-def test_register_user_success(self, db_session):
+    def test_register_user_success(self, db_session):
 
         """Test successful user registration."""
         service = AuthService(db_session)
@@ -20,7 +20,7 @@ def test_register_user_success(self, db_session):
         assert user.email == email
         assert verify_password(password, user.password_hash)
 
-def test_authenticate_user_success(self, db_session, regular_user):
+    def test_authenticate_user_success(self, db_session, regular_user):
 
         """Test successful authentication."""
         service = AuthService(db_session)
@@ -29,14 +29,14 @@ def test_authenticate_user_success(self, db_session, regular_user):
         assert user is not None
         assert user.id == regular_user.id
 
-def test_authenticate_user_wrong_password(self, db_session, regular_user):
+    def test_authenticate_user_wrong_password(self, db_session, regular_user):
 
         """Test authentication with wrong password."""
         service = AuthService(db_session)
         user = service.authenticate_user(regular_user.email, "wrongpassword")
         assert user is None
 
-def test_api_key_management(self, db_session, regular_user):
+    def test_api_key_management(self, db_session, regular_user):
 
         """Test API key operations."""
         service = AuthService(db_session)
@@ -57,7 +57,7 @@ def test_api_key_management(self, db_session, regular_user):
         # Verify failure
         assert service.verify_api_key(api_key.raw_key) is None
 
-def test_password_reset_flow(self, db_session, regular_user):
+    def test_password_reset_flow(self, db_session, regular_user):
 
         """Test password reset flow."""
         service = AuthService(db_session)
@@ -71,7 +71,7 @@ def test_password_reset_flow(self, db_session, regular_user):
 
         assert service.authenticate_user(regular_user.email, new_pwd) is not None
 
-def test_google_oauth(self, db_session):
+    def test_google_oauth(self, db_session):
 
         """Test Google OAuth user creation."""
         service = AuthService(db_session)
@@ -91,7 +91,7 @@ def test_google_oauth(self, db_session):
         assert linked_user.id == existing_user.id
         assert linked_user.google_id == google_id_2
 
-def test_verify_email(self, db_session):
+    def test_verify_email(self, db_session):
 
         """Test email verification."""
         service = AuthService(db_session)

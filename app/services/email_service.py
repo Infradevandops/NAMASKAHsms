@@ -17,7 +17,7 @@ class EmailService:
 
     """Service for sending emails."""
 
-def __init__(self):
+    def __init__(self):
 
         """Initialize email service with SMTP configuration."""
         settings = get_settings()
@@ -28,9 +28,9 @@ def __init__(self):
         self.from_email = settings.from_email
         self.enabled = bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
-if self.enabled:
+        if self.enabled:
             logger.info("Email service initialized")
-else:
+        else:
             logger.warning("Email service not configured")
 
     async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
@@ -43,11 +43,11 @@ else:
         Returns:
             True if email sent successfully, False otherwise
         """
-if not self.enabled:
+        if not self.enabled:
             logger.warning("Email service not configured, skipping receipt email")
-            return False
+        return False
 
-try:
+        try:
             subject = "Payment Receipt - Namaskah SMS"
 
             # Create HTML email body
@@ -57,11 +57,11 @@ try:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Payment receipt sent to {user_email}")
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send payment receipt: {str(e)}")
-            return False
+        return False
 
     async def send_payment_failed_alert(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
         """Send payment failed alert email.
@@ -73,11 +73,11 @@ except Exception as e:
         Returns:
             True if email sent successfully, False otherwise
         """
-if not self.enabled:
+        if not self.enabled:
             logger.warning("Email service not configured, skipping failed alert email")
-            return False
+        return False
 
-try:
+        try:
             subject = "Payment Failed - Namaskah SMS"
 
             # Create HTML email body
@@ -87,11 +87,11 @@ try:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Payment failed alert sent to {user_email}")
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send payment failed alert: {str(e)}")
-            return False
+        return False
 
     async def send_refund_notification(self, user_email: str, refund_details: Dict[str, Any]) -> bool:
         """Send refund notification email.
@@ -103,11 +103,11 @@ except Exception as e:
         Returns:
             True if email sent successfully, False otherwise
         """
-if not self.enabled:
+        if not self.enabled:
             logger.warning("Email service not configured, skipping refund email")
-            return False
+        return False
 
-try:
+        try:
             subject = "Refund Processed - Namaskah SMS"
 
             # Create HTML email body
@@ -117,11 +117,11 @@ try:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Refund notification sent to {user_email}")
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send refund notification: {str(e)}")
-            return False
+        return False
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         """Send email via SMTP.
@@ -134,7 +134,7 @@ except Exception as e:
         Returns:
             True if email sent successfully, False otherwise
         """
-try:
+        try:
             # Create message
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
@@ -149,13 +149,13 @@ try:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
 
-            return True
+        return True
 
-except Exception as e:
+        except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
-            return False
+        return False
 
-def _send_smtp(self, to_email: str, message: str) -> None:
+    def _send_smtp(self, to_email: str, message: str) -> None:
 
         """Send email via SMTP (blocking operation).
 
@@ -163,16 +163,16 @@ def _send_smtp(self, to_email: str, message: str) -> None:
             to_email: Recipient email address
             message: Email message
         """
-try:
-with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+        try:
+        with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.sendmail(self.from_email, to_email, message)
-except Exception as e:
+        except Exception as e:
             logger.error(f"SMTP error: {str(e)}")
             raise
 
-def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
+    def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
 
         """Create HTML for payment receipt email.
 
@@ -233,7 +233,7 @@ def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
         </html>
         """
 
-def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
+    def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
 
         """Create HTML for payment failed alert email.
 
@@ -295,7 +295,7 @@ def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
         </html>
         """
 
-def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
+    def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
 
         """Create HTML for refund notification email.
 
@@ -358,4 +358,4 @@ def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
 
 
 # Global instance
-email_service = EmailService()
+        email_service = EmailService()

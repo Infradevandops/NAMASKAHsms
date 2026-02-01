@@ -9,12 +9,12 @@ from app.services.sms_gateway import SMSGateway
 
 class TestSMSLogic:
     @pytest.fixture
-def smart_router(self):
+    def smart_router(self):
 
         return SmartRouter()
 
-    @pytest.fixture
-def sms_gateway(self):
+        @pytest.fixture
+    def sms_gateway(self):
 
         return SMSGateway()
 
@@ -60,7 +60,7 @@ def sms_gateway(self):
         # 5sim should have higher score due to lower cost (1/0.5=2) and higher success rate (1.0 vs 0.0)
         assert provider == "5sim"
 
-def test_calculate_score(self, smart_router):
+    def test_calculate_score(self, smart_router):
 
         stats_good = {"success_rate": 0.9, "avg_cost": 0.5, "reliability": 0.9}
         stats_bad = {"success_rate": 0.2, "avg_cost": 2.0, "reliability": 0.2}
@@ -70,7 +70,7 @@ def test_calculate_score(self, smart_router):
 
         assert score_good > score_bad
 
-    @patch("httpx.AsyncClient.post")
+        @patch("httpx.AsyncClient.post")
     async def test_sms_gateway_provider_switch(self, mock_post, sms_gateway):
         # Test twilio (default)
         res = await sms_gateway.send_sms("+123456789", "Hello")

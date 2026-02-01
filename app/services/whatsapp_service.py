@@ -9,7 +9,7 @@ class WhatsAppService:
 
     """WhatsApp Business API service."""
 
-def __init__(self):
+    def __init__(self):
 
         self.base_url = "https://graph.facebook.com/v18.0"
         self.phone_number_id = settings.whatsapp_phone_number_id
@@ -42,11 +42,11 @@ def __init__(self):
 
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=headers)
-            return response.json()
+        return response.json()
 
     async def verify_webhook(self, token: str, challenge: str) -> Optional[str]:
         """Verify WhatsApp webhook."""
         verify_token = settings.whatsapp_verify_token
-if token == verify_token:
-            return challenge
+        if token == verify_token:
+        return challenge
         return None

@@ -159,7 +159,7 @@ async def test_retry_backoff_connection_error(service):
     # Test internal helper directly
     fail_mock = MagicMock(side_effect=[Exception("Connection error"), "Success"])
 
-    async def task():
+async def task():
         val = fail_mock()
 if isinstance(val, Exception):
             raise val

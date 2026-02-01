@@ -26,13 +26,13 @@ class NumberBlacklist(BaseModel):
     expires_at = Column(DateTime, nullable=False)
 
     @property
-def is_expired(self) -> bool:
+    def is_expired(self) -> bool:
 
         """Check if blacklist entry is expired."""
         return datetime.now(timezone.utc) > self.expires_at
 
-    @classmethod
-def create_blacklist_entry(
+        @classmethod
+    def create_blacklist_entry(
 
         cls,
         user_id: str,
@@ -42,7 +42,7 @@ def create_blacklist_entry(
         reason: str = "failed_verification",
         is_manual: bool = False,
         days: int = 30,
-    ):
+        ):
         """Create a new blacklist entry."""
         return cls(
             user_id=user_id,

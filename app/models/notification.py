@@ -22,7 +22,7 @@ class Notification(BaseModel):
     # Relationship
     user = relationship("User", back_populates="notifications")
 
-def to_dict(self):
+    def to_dict(self):
 
         """Convert to dictionary."""
         return {

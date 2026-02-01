@@ -7,7 +7,7 @@ class CDNService:
 
     """CDN management for global content delivery."""
 
-def __init__(self):
+    def __init__(self):
 
         self.cdn_endpoints = {
             "cloudflare": "https://cdn.namaskah.app",
@@ -16,13 +16,13 @@ def __init__(self):
         }
         self.primary_cdn = "cloudflare"
 
-def get_asset_url(self, asset_path: str, region: str = None) -> str:
+    def get_asset_url(self, asset_path: str, region: str = None) -> str:
 
         """Get optimized CDN URL for asset."""
         base_url = self.cdn_endpoints[self.primary_cdn]
 
         # Add region - specific optimization
-if region:
+        if region:
             region_prefix = {
                 "us - east": "us",
                 "us - west": "us",
@@ -30,11 +30,11 @@ if region:
                 "asia - pacific": "ap",
             }.get(region, "global")
 
-            return f"{base_url}/{region_prefix}/{asset_path}"
+        return f"{base_url}/{region_prefix}/{asset_path}"
 
         return f"{base_url}/{asset_path}"
 
-def get_cdn_config(self) -> Dict:
+    def get_cdn_config(self) -> Dict:
 
         """Get CDN configuration for frontend."""
         return {
@@ -48,4 +48,4 @@ def get_cdn_config(self) -> Dict:
 
 
 # Global CDN service instance
-cdn_service = CDNService()
+        cdn_service = CDNService()

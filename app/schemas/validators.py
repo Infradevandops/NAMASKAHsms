@@ -187,87 +187,87 @@ class ValidationMixin:
     @classmethod
     def validate_phone(cls, v):
         if v:
-            return validate_phone_number(v)
+        return validate_phone_number(v)
         return v
 
-    @field_validator("service_name", mode="before")
-    @classmethod
+        @field_validator("service_name", mode="before")
+        @classmethod
     def validate_service(cls, v):
         if v:
-            return validate_service_name(v)
+        return validate_service_name(v)
         return v
 
-    @field_validator("referral_code", mode="before")
-    @classmethod
+        @field_validator("referral_code", mode="before")
+        @classmethod
     def validate_referral(cls, v):
         if v:
-            return validate_referral_code(v)
+        return validate_referral_code(v)
         return v
 
-    @field_validator("area_code", mode="before")
-    @classmethod
+        @field_validator("area_code", mode="before")
+        @classmethod
     def validate_area(cls, v):
         if v:
-            return validate_area_code(v)
+        return validate_area_code(v)
         return v
 
-    @field_validator("carrier", mode="before")
-    @classmethod
+        @field_validator("carrier", mode="before")
+        @classmethod
     def validate_carrier(cls, v):
         if v:
-            return validate_carrier_name(v)
+        return validate_carrier_name(v)
         return v
 
 
-def sanitize_input(text: str) -> str:
-    """Sanitize text input for security."""
-    if not text:
+    def sanitize_input(text: str) -> str:
+        """Sanitize text input for security."""
+        if not text:
         return ""
 
     # Remove dangerous patterns
-    dangerous_patterns = [
+        dangerous_patterns = [
         r"<script[^>]*>.*?</script>",
         r"javascript:",
         r"on\w+\s*=",
         r"<iframe[^>]*>.*?</iframe>",
         r"<object[^>]*>.*?</object>",
         r"<embed[^>]*>.*?</embed>",
-    ]
+        ]
 
-    cleaned = text
+        cleaned = text
 
-    for pattern in dangerous_patterns:
+        for pattern in dangerous_patterns:
         cleaned = re.sub(pattern, "", cleaned, flags=re.IGNORECASE | re.DOTALL)
 
     # Remove potentially dangerous characters
-    dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
-    for char in dangerous_chars:
+        dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
+        for char in dangerous_chars:
         if char in cleaned:
             cleaned = cleaned.replace(char, "")
 
-    return cleaned.strip()
+        return cleaned.strip()
 
 
-def validate_pagination_params(page: int, per_page: int) -> tuple[int, int]:
-    """Validate pagination parameters."""
-    if page < 1:
+    def validate_pagination_params(page: int, per_page: int) -> tuple[int, int]:
+        """Validate pagination parameters."""
+        if page < 1:
         page = 1
 
-    if per_page < 1:
+        if per_page < 1:
         per_page = 10
-    elif per_page > 100:
+        elif per_page > 100:
         per_page = 100
 
-    return page, per_page
+        return page, per_page
 
 
-def create_pagination_response(
-    items: List[Any], page: int, per_page: int, total: int
-) -> Dict[str, Any]:
-    """Create standardized pagination response."""
-    total_pages = (total + per_page - 1) // per_page
+    def create_pagination_response(
+        items: List[Any], page: int, per_page: int, total: int
+        ) -> Dict[str, Any]:
+        """Create standardized pagination response."""
+        total_pages = (total + per_page - 1) // per_page
 
-    return {
+        return {
         "items": items,
         "pagination": {
             "page": page,
@@ -277,34 +277,34 @@ def create_pagination_response(
             "has_next": page < total_pages,
             "has_prev": page > 1,
         },
-    }
+        }
 
 
-def validate_search_query(query: str) -> str:
-    """Validate search query for security."""
-    if not query:
+    def validate_search_query(query: str) -> str:
+        """Validate search query for security."""
+        if not query:
         raise ValueError("Search query cannot be empty")
 
-    query = query.strip()
+        query = query.strip()
 
-    if len(query) < 2:
+        if len(query) < 2:
         raise ValueError("Search query must be at least 2 characters")
 
-    if len(query) > 100:
+        if len(query) > 100:
         raise ValueError("Search query cannot exceed 100 characters")
 
     # Remove potentially dangerous characters
-    dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
-    for char in dangerous_chars:
+        dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
+        for char in dangerous_chars:
         if char in query:
             raise ValueError(f"Search query contains invalid character: {char}")
 
-    return query
+        return query
 
 
-def validate_date_range(date_from: str, date_to: str) -> Dict[str, Any]:
-    """Validate date range format (ISO format)."""
-    try:
+    def validate_date_range(date_from: str, date_to: str) -> Dict[str, Any]:
+        """Validate date range format (ISO format)."""
+        try:
         start_date = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
         end_date = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
 
@@ -316,5 +316,5 @@ def validate_date_range(date_from: str, date_to: str) -> Dict[str, Any]:
             "end_date": end_date,
             "days_diff": (end_date - start_date).days,
         }
-    except ValueError:
+        except ValueError:
         return {"is_valid": False, "start_date": None, "end_date": None, "days_diff": 0}

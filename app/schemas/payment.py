@@ -21,13 +21,13 @@ class AddCreditsRequest(BaseModel):
 
 
 class PaymentInitialize(BaseModel):
-    """Schema for payment initialization."""
+        """Schema for payment initialization."""
 
-    amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
-    payment_method: str = Field(default="paystack", description="Payment method")
+        amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
+        payment_method: str = Field(default="paystack", description="Payment method")
 
-    @field_validator("amount_usd", mode="before")
-    @classmethod
+        @field_validator("amount_usd", mode="before")
+        @classmethod
     def validate_amount(cls, v):
         if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
@@ -35,30 +35,30 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
-    @field_validator("payment_method", mode="before")
-    @classmethod
+        @field_validator("payment_method", mode="before")
+        @classmethod
     def validate_payment_method(cls, v):
         if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
         return v
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {"amount_usd": 20.0, "payment_method": "paystack"}
         }
-    }
+        }
 
 
 class PaymentInitializeResponse(BaseModel):
-    """Schema for payment initialization response."""
+        """Schema for payment initialization response."""
 
-    success: bool
-    authorization_url: str = Field(..., description="Paystack checkout URL")
-    access_code: str = Field(..., description="Paystack access code")
-    reference: str = Field(..., description="Payment reference")
-    payment_details: Dict[str, Any] = Field(..., description="Payment breakdown")
+        success: bool
+        authorization_url: str = Field(..., description="Paystack checkout URL")
+        access_code: str = Field(..., description="Paystack access code")
+        reference: str = Field(..., description="Payment reference")
+        payment_details: Dict[str, Any] = Field(..., description="Payment breakdown")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "success": True,
@@ -73,29 +73,29 @@ class PaymentInitializeResponse(BaseModel):
                 },
             }
         }
-    }
+        }
 
 
 class PaymentVerify(BaseModel):
-    """Schema for payment verification."""
+        """Schema for payment verification."""
 
-    reference: str = Field(..., description="Payment reference to verify")
+        reference: str = Field(..., description="Payment reference to verify")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}
-    }
+        }
 
 
 class PaymentVerifyResponse(BaseModel):
-    """Schema for payment verification response."""
+        """Schema for payment verification response."""
 
-    status: str = Field(..., description="Payment status")
-    amount_credited: float = Field(..., description="Amount credited to wallet")
-    new_balance: float = Field(..., description="New wallet balance")
-    reference: str = Field(..., description="Payment reference")
-    message: str = Field(..., description="Status message")
+        status: str = Field(..., description="Payment status")
+        amount_credited: float = Field(..., description="Amount credited to wallet")
+        new_balance: float = Field(..., description="New wallet balance")
+        reference: str = Field(..., description="Payment reference")
+        message: str = Field(..., description="Status message")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "status": "success",
@@ -105,16 +105,16 @@ class PaymentVerifyResponse(BaseModel):
                 "message": "Payment verified and credited successfully",
             }
         }
-    }
+        }
 
 
 class WebhookPayload(BaseModel):
-    """Schema for Paystack webhook payload."""
+        """Schema for Paystack webhook payload."""
 
-    event: str = Field(..., description="Webhook event type")
-    data: Dict[str, Any] = Field(..., description="Webhook data")
+        event: str = Field(..., description="Webhook event type")
+        data: Dict[str, Any] = Field(..., description="Webhook data")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "event": "charge.success",
@@ -126,19 +126,19 @@ class WebhookPayload(BaseModel):
                 },
             }
         }
-    }
+        }
 
 
 class TransactionResponse(BaseModel):
-    """Schema for transaction response."""
+        """Schema for transaction response."""
 
-    id: str
-    amount: float
-    type: str = Field(..., description="Transaction type: credit or debit")
-    description: str
-    created_at: datetime
+        id: str
+        amount: float
+        type: str = Field(..., description="Transaction type: credit or debit")
+        description: str
+        created_at: datetime
 
-    model_config = {
+        model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
@@ -149,16 +149,16 @@ class TransactionResponse(BaseModel):
                 "created_at": "2024 - 01-20T10:00:00Z",
             }
         },
-    }
+        }
 
 
 class TransactionHistoryResponse(BaseModel):
-    """Schema for transaction history."""
+        """Schema for transaction history."""
 
-    transactions: List[TransactionResponse]
-    total_count: int
+        transactions: List[TransactionResponse]
+        total_count: int
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "transactions": [
@@ -173,26 +173,26 @@ class TransactionHistoryResponse(BaseModel):
                 "total_count": 1,
             }
         }
-    }
+        }
 
 
 class RefundRequest(BaseModel):
-    """Schema for refund request."""
+        """Schema for refund request."""
 
-    transaction_id: str = Field(..., description="Transaction ID to refund")
-    amount: Optional[float] = Field(
+        transaction_id: str = Field(..., description="Transaction ID to refund")
+        amount: Optional[float] = Field(
         None, gt=0, description="Partial refund amount (optional)"
-    )
-    reason: str = Field(..., description="Refund reason")
+        )
+        reason: str = Field(..., description="Refund reason")
 
-    @field_validator("amount", mode="before")
-    @classmethod
+        @field_validator("amount", mode="before")
+        @classmethod
     def validate_amount(cls, v):
         if v is not None and v <= 0:
             raise ValueError("Refund amount must be positive")
         return v
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "transaction_id": "transaction_1642680000000",
@@ -200,19 +200,19 @@ class RefundRequest(BaseModel):
                 "reason": "Service not delivered",
             }
         }
-    }
+        }
 
 
 class RefundResponse(BaseModel):
-    """Schema for refund response."""
+        """Schema for refund response."""
 
-    success: bool
-    refund_id: str
-    amount_refunded: float
-    status: str
-    message: str
+        success: bool
+        refund_id: str
+        amount_refunded: float
+        status: str
+        message: str
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "success": True,
@@ -222,53 +222,53 @@ class RefundResponse(BaseModel):
                 "message": "Refund initiated successfully",
             }
         }
-    }
+        }
 
 
 class WalletBalanceResponse(BaseModel):
-    """Schema for wallet balance response."""
+        """Schema for wallet balance response."""
 
-    credits: float = Field(..., description="Current Namaskah credits")
-    credits_usd: float = Field(..., description="Credits value in USD")
-    free_verifications: float = Field(..., description="Free verifications remaining")
+        credits: float = Field(..., description="Current Namaskah credits")
+        credits_usd: float = Field(..., description="Credits value in USD")
+        free_verifications: float = Field(..., description="Free verifications remaining")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}
         }
-    }
+        }
 
 
 class CryptoWalletResponse(BaseModel):
-    """Schema for crypto wallet configuration."""
+        """Schema for crypto wallet configuration."""
 
-    btc_address: Optional[str] = Field(None, description="Bitcoin address")
-    eth_address: Optional[str] = Field(None, description="Ethereum address")
-    sol_address: Optional[str] = Field(None, description="Solana address")
-    ltc_address: Optional[str] = Field(None, description="Litecoin address")
+        btc_address: Optional[str] = Field(None, description="Bitcoin address")
+        eth_address: Optional[str] = Field(None, description="Ethereum address")
+        sol_address: Optional[str] = Field(None, description="Solana address")
+        ltc_address: Optional[str] = Field(None, description="Litecoin address")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "btc_address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
                 "eth_address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
             }
         }
-    }
+        }
 
 
 class SubscriptionPlan(BaseModel):
-    """Schema for subscription plan."""
+        """Schema for subscription plan."""
 
-    id: str
-    name: str
-    price: float = Field(..., description="Monthly price in Namaskah credits")
-    price_usd: float = Field(..., description="Monthly price in USD")
-    discount: str = Field(..., description="Discount percentage")
-    free_verifications: int = Field(..., description="Free verifications per month")
-    features: List[str] = Field(..., description="Plan features")
+        id: str
+        name: str
+        price: float = Field(..., description="Monthly price in Namaskah credits")
+        price_usd: float = Field(..., description="Monthly price in USD")
+        discount: str = Field(..., description="Discount percentage")
+        free_verifications: int = Field(..., description="Free verifications per month")
+        features: List[str] = Field(..., description="Plan features")
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "id": "pro",
@@ -284,36 +284,36 @@ class SubscriptionPlan(BaseModel):
                 ],
             }
         }
-    }
+        }
 
 
 class SubscriptionRequest(BaseModel):
-    """Schema for subscription request."""
+        """Schema for subscription request."""
 
-    plan_id: str = Field(..., description="Plan ID to subscribe to")
+        plan_id: str = Field(..., description="Plan ID to subscribe to")
 
-    @field_validator("plan_id", mode="before")
-    @classmethod
+        @field_validator("plan_id", mode="before")
+        @classmethod
     def validate_plan_id(cls, v):
         if v not in ["pro", "turbo"]:
             raise ValueError("Plan ID must be pro or turbo")
         return v
 
-    model_config = {"json_schema_extra": {"example": {"plan_id": "pro"}}}
+        model_config = {"json_schema_extra": {"example": {"plan_id": "pro"}}}
 
 
 class SubscriptionResponse(BaseModel):
-    """Schema for subscription response."""
+        """Schema for subscription response."""
 
-    plan: str
-    name: str
-    status: str
-    price: float
-    discount: str
-    expires_at: Optional[str]
-    features: Dict[str, Any]
+        plan: str
+        name: str
+        status: str
+        price: float
+        discount: str
+        expires_at: Optional[str]
+        features: Dict[str, Any]
 
-    model_config = {
+        model_config = {
         "json_schema_extra": {
             "example": {
                 "plan": "pro",
@@ -325,4 +325,4 @@ class SubscriptionResponse(BaseModel):
                 "features": {"discount": 0.20, "free_verifications": 5},
             }
         }
-    }
+        }

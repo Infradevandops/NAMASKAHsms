@@ -49,66 +49,66 @@ class FunctionBreaker:
     """Helper class to break down large functions into smaller components."""
 
     @staticmethod
-def extract_error_handling(main_func: Callable, error_handler: Callable):
+    def extract_error_handling(main_func: Callable, error_handler: Callable):
 
         """Extract error handling from main function."""
 
         @wraps(main_func)
-def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
 
-try:
-                return main_func(*args, **kwargs)
-except Exception as e:
-                return error_handler(e, *args, **kwargs)
+        try:
+        return main_func(*args, **kwargs)
+        except Exception as e:
+        return error_handler(e, *args, **kwargs)
 
         return wrapper
 
-    @staticmethod
-def extract_response_formatting(main_func: Callable, formatter: Callable):
+        @staticmethod
+    def extract_response_formatting(main_func: Callable, formatter: Callable):
 
         """Extract response formatting from main function."""
 
         @wraps(main_func)
-def wrapper(*args, **kwargs):
+    def wrapper(*args, **kwargs):
 
             result = main_func(*args, **kwargs)
-            return formatter(result)
+        return formatter(result)
 
         return wrapper
 
-    @staticmethod
-def create_pipeline(*functions):
+        @staticmethod
+    def create_pipeline(*functions):
 
         """Create a pipeline of functions."""
 
-def pipeline(data):
+    def pipeline(data):
 
-for func in functions:
+        for func in functions:
                 data = func(data)
-            return data
+        return data
 
         return pipeline
 
 
-def split_function_by_concerns(func_dict: Dict[str, Callable]) -> Callable:
+    def split_function_by_concerns(func_dict: Dict[str, Callable]) -> Callable:
 
-    """Split function into multiple concerns and combine them."""
+        """Split function into multiple concerns and combine them."""
 
-def combined_function(*args, **kwargs):
+    def combined_function(*args, **kwargs):
 
         context = {"args": args, "kwargs": kwargs}
 
         # Execute functions in order
-for name, func in func_dict.items():
-try:
+        for name, func in func_dict.items():
+        try:
                 result = func(context)
-if name == "main":
-                    return result
+        if name == "main":
+        return result
                 context[name] = result
-except Exception as e:
+        except Exception as e:
                 logger.error(f"Error in {name}: {e}")
                 raise
 
         return context.get("main")
 
-    return combined_function
+        return combined_function

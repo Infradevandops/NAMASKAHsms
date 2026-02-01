@@ -22,33 +22,33 @@ class UserSession(Base):
     is_active = Column(Boolean, default=True)
 
 
-def create_session(
+    def create_session(
 
-    db,
-    user_id: str,
-    ip_address: str,
-    user_agent: str,
-    refresh_token: str,
-    expires_days: int = 30,
-):
-    """Create new user session."""
-    session = UserSession(
+        db,
+        user_id: str,
+        ip_address: str,
+        user_agent: str,
+        refresh_token: str,
+        expires_days: int = 30,
+        ):
+        """Create new user session."""
+        session = UserSession(
         id=str(uuid.uuid4()),
         user_id=user_id,
         refresh_token=refresh_token,
         ip_address=ip_address,
         user_agent=user_agent,
         expires_at=datetime.now(timezone.utc) + timedelta(days=expires_days),
-    )
-    db.add(session)
-    db.commit()
-    return session
+        )
+        db.add(session)
+        db.commit()
+        return session
 
 
-def get_session(db, refresh_token: str):
+    def get_session(db, refresh_token: str):
 
-    """Get active session by refresh token."""
-    session = (
+        """Get active session by refresh token."""
+        session = (
         db.query(UserSession)
         .filter(
             UserSession.refresh_token == refresh_token,
@@ -56,21 +56,21 @@ def get_session(db, refresh_token: str):
             UserSession.expires_at > datetime.utcnow(),
         )
         .first()
-    )
-    return session
+        )
+        return session
 
 
-def invalidate_session(db, refresh_token: str):
+    def invalidate_session(db, refresh_token: str):
 
-    """Invalidate session."""
-    session = db.query(UserSession).filter(UserSession.refresh_token == refresh_token).first()
-if session:
+        """Invalidate session."""
+        session = db.query(UserSession).filter(UserSession.refresh_token == refresh_token).first()
+        if session:
         session.is_active = False
         db.commit()
 
 
-def invalidate_all_sessions(db, user_id: str):
+    def invalidate_all_sessions(db, user_id: str):
 
-    """Invalidate all sessions for user."""
-    db.query(UserSession).filter(UserSession.user_id == user_id).update({"is_active": False})
-    db.commit()
+        """Invalidate all sessions for user."""
+        db.query(UserSession).filter(UserSession.user_id == user_id).update({"is_active": False})
+        db.commit()

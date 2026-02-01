@@ -12,12 +12,12 @@ def setup_logging():
     handlers = [logging.StreamHandler(sys.stdout)]
 
     # Only create file handler in development (not on Render/production)
-if os.environ.get("RENDER") is None:
-try:
+    if os.environ.get("RENDER") is None:
+        try:
             log_dir = Path("logs")
             log_dir.mkdir(exist_ok=True)
             handlers.append(logging.FileHandler(log_dir / "app.log"))
-except (PermissionError, OSError):
+        except (PermissionError, OSError):
             # Can't create logs directory, use stdout only
             pass
 

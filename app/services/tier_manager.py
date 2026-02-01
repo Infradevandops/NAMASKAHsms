@@ -17,33 +17,33 @@ class TierManager:
 
     """Manages user tier validation and feature access."""
 
-def __init__(self, db: Session):
+    def __init__(self, db: Session):
 
         self.db = db
 
-def get_user_tier(self, user_id: str) -> str:
+    def get_user_tier(self, user_id: str) -> str:
 
         """Get user's current subscription tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
-            return "freemium"  # Default to freemium for non-existent users
+        if not user:
+        return "freemium"  # Default to freemium for non-existent users
 
         # Check if paid tier has expired
-if user.subscription_tier in ["pro", "custom"]:
+        if user.subscription_tier in ["pro", "custom"]:
             expires = user.tier_expires_at
-if expires:
-if expires.tzinfo is None:
+        if expires:
+        if expires.tzinfo is None:
                     expires = expires.replace(tzinfo=timezone.utc)
 
-if expires < datetime.now(timezone.utc):
+        if expires < datetime.now(timezone.utc):
                     logger.warning(f"User {user_id} tier expired, downgrading to freemium")
                     user.subscription_tier = "freemium"
                     self.db.commit()
-                    return "freemium"
+        return "freemium"
 
         return user.subscription_tier or "freemium"
 
-def check_feature_access(self, user_id: str, feature: str) -> bool:
+    def check_feature_access(self, user_id: str, feature: str) -> bool:
 
         """Check if user has access to a specific feature."""
         tier = self.get_user_tier(user_id)
@@ -60,7 +60,7 @@ def check_feature_access(self, user_id: str, feature: str) -> bool:
 
         return feature_map.get(feature, False)
 
-def get_tier_limits(self, user_id: str) -> dict:
+    def get_tier_limits(self, user_id: str) -> dict:
 
         """Get all limits for user's current tier."""
         tier = self.get_user_tier(user_id)
@@ -77,15 +77,15 @@ def get_tier_limits(self, user_id: str) -> dict:
             "rate_limit_per_hour": config["rate_limit_per_hour"],
         }
 
-def can_create_api_key(self, user_id: str) -> tuple[bool, Optional[str]]:
+    def can_create_api_key(self, user_id: str) -> tuple[bool, Optional[str]]:
 
         """Check if user can create another API key."""
 
         tier = self.get_user_tier(user_id)
         config = TierConfig.get_tier_config(tier, self.db)
 
-if not config["has_api_access"]:
-            return (
+        if not config["has_api_access"]:
+        return (
                 False,
                 "API access not available on Freemium tier. Upgrade to Starter or Turbo.",
             )
@@ -96,50 +96,50 @@ if not config["has_api_access"]:
         api_key_limit = config["api_key_limit"]
 
         # -1 means unlimited
-if api_key_limit == -1:
-            return True, None
+        if api_key_limit == -1:
+        return True, None
 
-if existing_keys >= api_key_limit:
-            return (
+        if existing_keys >= api_key_limit:
+        return (
                 False,
                 f"API key limit reached ({api_key_limit} keys for {tier.title()} tier)",
             )
 
         return True, None
 
-def upgrade_tier(self, user_id: str, new_tier: str) -> bool:
+    def upgrade_tier(self, user_id: str, new_tier: str) -> bool:
 
         """Upgrade user to a new tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
-if not user:
-            return False
+        if not user:
+        return False
 
-if new_tier not in ["freemium", "payg", "pro", "custom"]:
+        if new_tier not in ["freemium", "payg", "pro", "custom"]:
             logger.error(f"Invalid tier: {new_tier}")
-            return False
+        return False
 
         old_tier = user.subscription_tier
         user.subscription_tier = new_tier
         user.tier_upgraded_at = datetime.now(timezone.utc)
 
         # Set expiration for paid tiers (monthly)
-if new_tier in ["pro", "custom"]:
+        if new_tier in ["pro", "custom"]:
 
             user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
-else:
+        else:
             user.tier_expires_at = None
 
         self.db.commit()
         logger.info(f"User {user_id} upgraded from {old_tier} to {new_tier}")
         return True
 
-def downgrade_tier(self, user_id: str, new_tier: str = "freemium") -> bool:
+    def downgrade_tier(self, user_id: str, new_tier: str = "freemium") -> bool:
 
         """Downgrade user tier."""
         return self.upgrade_tier(user_id, new_tier)
 
 
-def get_tier_manager(db: Session) -> TierManager:
+    def get_tier_manager(db: Session) -> TierManager:
 
-    """Dependency injection for TierManager."""
-    return TierManager(db)
+        """Dependency injection for TierManager."""
+        return TierManager(db)

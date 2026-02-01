@@ -23,26 +23,26 @@ class InitiateRefundRequest(BaseModel):
     reason: str = Field(..., description="Refund reason")
 
 
-@router.post("/refund")
-async def initiate_refund(
-    request: InitiateRefundRequest,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Initiate a refund request.
+    @router.post("/refund")
+    async def initiate_refund(
+        request: InitiateRefundRequest,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Initiate a refund request.
 
-    Args:
+        Args:
         request: Refund request with payment_id and reason
 
-    Returns:
+        Returns:
         Refund details with reference
 
-    Raises:
+        Raises:
         400: Invalid request
         404: Payment not found
         500: Internal server error
-    """
-try:
+        """
+        try:
         refund_service = RefundService(db)
         refund = refund_service.initiate_refund(
             user_id=user_id,
@@ -61,10 +61,10 @@ try:
             "initiated_at": (refund.initiated_at.isoformat() if refund.initiated_at else None),
         }
 
-except ValueError as e:
+        except ValueError as e:
         logger.warning(f"Refund validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to initiate refund: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -72,25 +72,25 @@ except Exception as e:
         )
 
 
-@router.get("/refund/{reference}")
-async def get_refund_status(
-    reference: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Get refund status.
+        @router.get("/refund/{reference}")
+    async def get_refund_status(
+        reference: str,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Get refund status.
 
-    Args:
+        Args:
         reference: Refund reference
 
-    Returns:
+        Returns:
         Refund details
 
-    Raises:
+        Raises:
         404: Refund not found
         500: Internal server error
-    """
-try:
+        """
+        try:
         refund_service = RefundService(db)
         result = refund_service.verify_refund(reference)
 
@@ -98,10 +98,10 @@ try:
 
         return result
 
-except ValueError as e:
+        except ValueError as e:
         logger.warning(f"Refund not found: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get refund status: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -109,26 +109,26 @@ except Exception as e:
         )
 
 
-@router.get("/refunds")
-async def get_refund_history(
-    user_id: str = Depends(get_current_user_id),
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
-    db: Session = Depends(get_db),
-):
-    """Get refund history for user.
+        @router.get("/refunds")
+    async def get_refund_history(
+        user_id: str = Depends(get_current_user_id),
+        skip: int = Query(0, ge=0, description="Number of records to skip"),
+        limit: int = Query(20, ge=1, le=100, description="Number of records to return"),
+        db: Session = Depends(get_db),
+        ):
+        """Get refund history for user.
 
-    Query Parameters:
+        Query Parameters:
         - skip: Number of records to skip (pagination)
         - limit: Number of records to return (max 100)
 
-    Returns:
+        Returns:
         - total: Total number of refunds
         - skip: Number of records skipped
         - limit: Number of records returned
         - refunds: List of refunds
-    """
-try:
+        """
+        try:
         refund_service = RefundService(db)
         result = refund_service.get_refund_history(user_id=user_id, skip=skip, limit=limit)
 
@@ -136,10 +136,10 @@ try:
 
         return result
 
-except ValueError as e:
+        except ValueError as e:
         logger.warning(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to get refund history: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -147,26 +147,26 @@ except Exception as e:
         )
 
 
-@router.post("/refund/{reference}/cancel")
-async def cancel_refund(
-    reference: str,
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Cancel a pending refund.
+        @router.post("/refund/{reference}/cancel")
+    async def cancel_refund(
+        reference: str,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db),
+        ):
+        """Cancel a pending refund.
 
-    Args:
+        Args:
         reference: Refund reference
 
-    Returns:
+        Returns:
         Cancellation confirmation
 
-    Raises:
+        Raises:
         400: Cannot cancel refund
         404: Refund not found
         500: Internal server error
-    """
-try:
+        """
+        try:
         refund_service = RefundService(db)
         refund = refund_service.cancel_refund(reference, user_id)
 
@@ -178,13 +178,13 @@ try:
             "message": "Refund cancelled successfully",
         }
 
-except ValueError as e:
+        except ValueError as e:
         logger.warning(f"Refund cancellation error: {str(e)}")
-if "not found" in str(e).lower():
+        if "not found" in str(e).lower():
             raise HTTPException(status_code=404, detail=str(e))
-else:
+        else:
             raise HTTPException(status_code=400, detail=str(e))
-except Exception as e:
+        except Exception as e:
         logger.error(f"Failed to cancel refund: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

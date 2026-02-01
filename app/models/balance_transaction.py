@@ -20,7 +20,7 @@ class BalanceTransaction(BaseModel):
     # Relationship
     user = relationship("User", back_populates="balance_transactions")
 
-def to_dict(self):
+    def to_dict(self):
 
         """Convert to dictionary."""
         return {

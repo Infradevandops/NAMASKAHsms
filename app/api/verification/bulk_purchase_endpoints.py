@@ -45,29 +45,29 @@ class BulkPurchaseResponse(BaseModel):
     created_at: datetime
 
 
-@router.post("/", response_model=BulkPurchaseResponse)
-async def create_bulk_purchase(
-    request: BulkPurchaseRequest,
-    user_id: str = Depends(require_pro),
-    db: Session = Depends(get_db),
-) -> BulkPurchaseResponse:
-    """Create a bulk purchase order.
+    @router.post("/", response_model=BulkPurchaseResponse)
+    async def create_bulk_purchase(
+        request: BulkPurchaseRequest,
+        user_id: str = Depends(require_pro),
+        db: Session = Depends(get_db),
+        ) -> BulkPurchaseResponse:
+        """Create a bulk purchase order.
 
-    Requires Pro tier or higher.
-    """
-    logger.info(
+        Requires Pro tier or higher.
+        """
+        logger.info(
         f"Bulk purchase requested by user_id: {user_id}, service: {request.service}, quantity: {request.quantity}"
-    )
+        )
 
     # Validate quantity
-if request.quantity < 5:
+        if request.quantity < 5:
         logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too low ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Bulk purchase requires minimum 5 numbers",
         )
 
-if request.quantity > 100:
+        if request.quantity > 100:
         logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too high ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -75,19 +75,19 @@ if request.quantity > 100:
         )
 
     # Get user
-    user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
         logger.error(f"User not found for bulk purchase: {user_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
     # Calculate cost (placeholder - would use pricing calculator)
-    cost_per_number = 0.50  # Base cost
-    bulk_discount = 0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
-    discounted_cost = cost_per_number * (1 - bulk_discount)
-    total_cost = discounted_cost * request.quantity
+        cost_per_number = 0.50  # Base cost
+        bulk_discount = 0.10 if request.quantity >= 10 else 0.05 if request.quantity >= 5 else 0
+        discounted_cost = cost_per_number * (1 - bulk_discount)
+        total_cost = discounted_cost * request.quantity
 
     # Check credits
-if user.credits < total_cost:
+        if user.credits < total_cost:
         logger.warning(
             f"Bulk purchase denied for user {user_id}: insufficient credits "
             f"(required: ${total_cost:.2f}, available: ${user.credits:.2f})"
@@ -98,14 +98,14 @@ if user.credits < total_cost:
         )
 
     # Create bulk order (placeholder - would create actual verifications)
-    bulk_id = f"bulk_{uuid.uuid4().hex[:12]}"
+        bulk_id = f"bulk_{uuid.uuid4().hex[:12]}"
 
-    logger.info(
+        logger.info(
         f"Bulk purchase created successfully: bulk_id={bulk_id}, user_id={user_id}, "
         f"quantity={request.quantity}, total_cost=${total_cost:.2f}"
-    )
+        )
 
-    return BulkPurchaseResponse(
+        return BulkPurchaseResponse(
         bulk_id=bulk_id,
         service=request.service,
         country=request.country,
@@ -113,45 +113,45 @@ if user.credits < total_cost:
         total_cost=total_cost,
         status="pending",
         created_at=datetime.now(timezone.utc),
-    )
+        )
 
 
-@router.get("/{bulk_id}")
-async def get_bulk_purchase_status(
-    bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
-) -> Dict:
-    """Get status of a bulk purchase order."""
-    logger.debug(f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}")
+        @router.get("/{bulk_id}")
+    async def get_bulk_purchase_status(
+        bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
+        ) -> Dict:
+        """Get status of a bulk purchase order."""
+        logger.debug(f"Bulk purchase status requested by user_id: {user_id}, bulk_id: {bulk_id}")
 
     # Placeholder - would query actual bulk order
-    return {
+        return {
         "bulk_id": bulk_id,
         "status": "pending",
         "numbers_ready": 0,
         "numbers_total": 0,
         "message": "Bulk purchase feature coming soon",
-    }
+        }
 
 
-@router.get("/")
-async def list_bulk_purchases(user_id: str = Depends(require_pro), db: Session = Depends(get_db)) -> List[Dict]:
-    """List all bulk purchases for the current user."""
-    logger.debug(f"Bulk purchases list requested by user_id: {user_id}")
+        @router.get("/")
+    async def list_bulk_purchases(user_id: str = Depends(require_pro), db: Session = Depends(get_db)) -> List[Dict]:
+        """List all bulk purchases for the current user."""
+        logger.debug(f"Bulk purchases list requested by user_id: {user_id}")
 
     # Placeholder - would query actual bulk orders
-    return []
+        return []
 
 
-@router.delete("/{bulk_id}")
-async def cancel_bulk_purchase(
-    bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
-) -> Dict:
-    """Cancel a pending bulk purchase order."""
-    logger.info(f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}")
+        @router.delete("/{bulk_id}")
+    async def cancel_bulk_purchase(
+        bulk_id: str, user_id: str = Depends(require_pro), db: Session = Depends(get_db)
+        ) -> Dict:
+        """Cancel a pending bulk purchase order."""
+        logger.info(f"Bulk purchase cancellation requested by user_id: {user_id}, bulk_id: {bulk_id}")
 
     # Placeholder - would cancel actual bulk order
-    return {
+        return {
         "success": True,
         "message": f"Bulk purchase {bulk_id} cancelled",
         "refunded_amount": 0.0,
-    }
+        }

@@ -111,7 +111,7 @@ def require_tier(required_tier: str) -> Callable:
         HTTPException: 402 Payment Required if user's tier is insufficient
     """
 
-    def tier_dependency(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)) -> str:
+def tier_dependency(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)) -> str:
         """Validate user tier and return user_id if authorized."""
         user_tier = get_user_tier(user_id, db)
 

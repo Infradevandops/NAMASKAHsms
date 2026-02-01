@@ -12,7 +12,7 @@ class AuditService:
 
     """Audit logging for GDPR compliance."""
 
-def __init__(self):
+    def __init__(self):
 
         self.audit_log = []
 
@@ -46,4 +46,4 @@ def __init__(self):
         logger.info(f"User data deleted: {user_id}")
 
 
-audit_service = AuditService()
+        audit_service = AuditService()
