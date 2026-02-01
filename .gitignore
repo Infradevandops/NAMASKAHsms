@@ -254,3 +254,39 @@ test_output.txt
 screenshots/
 images/test/
 Screenshot*.png
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+
+# Node modules (if any)
+node_modules/
+
+# Test artifacts
+.pytest_cache/
+htmlcov/
+.coverage
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
