@@ -70,9 +70,52 @@ async def get_analytics_summary(
         failed_verifications = len([v for v in verifications if v.status == "failed"])
         pending_verifications = len([v for v in verifications if v.status in ["pending", "processing"]])
 
-        # Calculate success rate
-        success_rate = (successful_verifications / total_verifications * 100) if total_verifications > 0 else 0.0
+        # Calculate success rate (as decimal, not percentage)
+        success_rate = (successful_verifications / total_verifications) if total_verifications > 0 else 0.0
 
+        # Calculate monthly verifications (current month)
+        current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        monthly_verifications_query = db.query(Verification).filter(
+            and_(
+                Verification.user_id == current_user.id,
+                Verification.created_at >= current_month_start,
+            )
+        )
+        monthly_verifications = monthly_verifications_query.count()
+        
+        # Calculate monthly spent (current month)
+        monthly_spent_transactions = (
+            db.query(func.sum(Transaction.amount))
+            .filter(
+                and_(
+                    Transaction.user_id == current_user.id,
+                    Transaction.amount < 0,
+                    Transaction.created_at >= current_month_start,
+                )
+            )
+            .scalar()
+            or 0
+        )
+        monthly_spent = abs(monthly_spent_transactions)
+
+        # Get recent activity (last 10 verifications)
+        recent_activity = []
+        recent_verifications = (
+            db.query(Verification)
+            .filter(Verification.user_id == current_user.id)
+            .order_by(Verification.created_at.desc())
+            .limit(10)
+            .all()
+        )
+        
+        for v in recent_verifications:
+            recent_activity.append({
+                "id": v.id,
+                "service_name": v.service_name,
+                "phone_number": v.phone_number,
+                "status": v.status,
+                "created_at": v.created_at.isoformat(),
+            })
         # Calculate total spent in period
         spent_transactions = (
             db.query(func.sum(Transaction.amount))
@@ -155,6 +198,9 @@ async def get_analytics_summary(
             "total_spent": total_spent,
             "revenue": total_spent,
             "average_cost": avg_cost,
+            "monthly_verifications": monthly_verifications,
+            "monthly_spent": monthly_spent,
+            "recent_activity": recent_activity,
             "daily_verifications": daily_verifications,
             "top_services": top_services[:10],
             "spending_by_service": spending_by_service[:10],

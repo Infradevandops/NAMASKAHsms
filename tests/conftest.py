@@ -1,9 +1,11 @@
 """Pytest configuration and fixtures for all tests."""
 
 import os
+from datetime import datetime, timedelta, timezone
 from typing import Generator
 from unittest.mock import MagicMock, patch
 
+import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -12,9 +14,12 @@ from sqlalchemy.orm import Session, sessionmaker
 # Set testing mode before importing app
 os.environ["TESTING"] = "1"
 
+from app.core.config import get_settings
 from app.core.database import get_db
 from app.models.base import Base
 from main import app
+
+settings = get_settings()
 
 # Test database setup
 TEST_DATABASE_URL = "sqlite:///./test.db"
@@ -342,3 +347,18 @@ def auth_headers():
         return {"Authorization": f"Bearer {token}"}
 
     return _auth_headers
+
+def create_test_token(user_id: str, email: str = "test@test.com") -> str:
+    """Create a JWT token for testing."""
+    payload = {
+        "user_id": user_id,
+        "email": email,
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+    }
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+@pytest.fixture
+def user_token():
+    """Fixture to create JWT tokens for testing."""
+    return create_test_token
