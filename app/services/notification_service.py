@@ -307,3 +307,30 @@ class NotificationService:
         # In a real app, this would use an email backend (SES, SendGrid, SMTP)
         # For now, we simulate success
         return True
+    def get_unread_count(self, user_id: str) -> int:
+        """Get unread notification count for user.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            Number of unread notifications
+
+        Raises:
+            ValueError: If user not found
+        """
+        # Verify user exists
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError(f"User {user_id} not found")
+
+        # Count unread notifications
+        count = (
+            self.db.query(Notification)
+            .filter(Notification.user_id == user_id, Notification.is_read.is_(False))
+            .count()
+        )
+
+        logger.info(f"User {user_id} has {count} unread notifications")
+
+        return count

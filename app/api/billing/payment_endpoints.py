@@ -14,7 +14,7 @@ from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
 from app.schemas.payment import CryptoWalletResponse
 from app.services.email_service import email_service
-from app.services.notification_service import NotificationService
+from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.paystack_service import paystack_service
 
 logger = get_logger(__name__)
@@ -116,6 +116,15 @@ async def initialize_payment(
             )
             db.add(payment_log)
             db.commit()
+            
+            # CRITICAL: Notify user that payment was initiated
+            notification_dispatcher = NotificationDispatcher(db)
+            notification_dispatcher.on_payment_initiated(
+                user_id=user_id,
+                amount=amount_usd,
+                reference=reference
+            )
+            
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to create payment log: {str(e)}")
@@ -358,20 +367,15 @@ async def paystack_webhook(
                 except Exception as e:
                     logger.warning(f"Failed to send receipt email: {str(e)}")
 
-                # Create in-app notification
+                # CRITICAL: Create in-app notification using dispatcher
                 try:
-                    notification_service = NotificationService(db)
-                    notification_service.create_notification(
+                    notification_dispatcher = NotificationDispatcher(db)
+                    notification_dispatcher.on_payment_completed(
                         user_id=payment_log.user_id,
-                        notification_type="payment_success",
-                        title="Payment Successful",
-                        message=f"Your payment of ${payment_log.amount_usd} has been processed successfully. {credits_to_add} credits added to your account.",
-                        data={
-                            "reference": reference,
-                            "amount_usd": payment_log.amount_usd,
-                            "credits_added": credits_to_add,
-                            "new_balance": user.credits,
-                        },
+                        amount=payment_log.amount_usd,
+                        credits_added=credits_to_add,
+                        reference=reference,
+                        new_balance=user.credits
                     )
                 except Exception as e:
                     logger.warning(f"Failed to create notification: {str(e)}")
@@ -421,17 +425,12 @@ async def paystack_webhook(
 
                         # Create in-app notification
                         try:
-                            notification_service = NotificationService(db)
-                            notification_service.create_notification(
+                            notification_dispatcher = NotificationDispatcher(db)
+                            notification_dispatcher.on_payment_failed(
                                 user_id=payment_log.user_id,
-                                notification_type="payment_failed",
-                                title="Payment Failed",
-                                message=f"Your payment of ${payment_log.amount_usd} could not be processed. Reason: {reason}",
-                                data={
-                                    "reference": reference,
-                                    "amount_usd": payment_log.amount_usd,
-                                    "reason": reason,
-                                },
+                                amount=payment_log.amount_usd,
+                                reason=reason,
+                                reference=reference
                             )
                         except Exception as e:
                             logger.warning(f"Failed to create notification: {str(e)}")

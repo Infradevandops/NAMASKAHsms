@@ -105,10 +105,10 @@ async def get_notification(
             "type": notification.type,
             "title": notification.title,
             "message": notification.message,
-            "data": notification.data,
-            "read": notification.read,
+            "link": notification.link,
+            "icon": notification.icon,
+            "is_read": notification.is_read,
             "created_at": (notification.created_at.isoformat() if notification.created_at else None),
-            "read_at": (notification.read_at.isoformat() if notification.read_at else None),
         }
 
     except ValueError as e:
@@ -144,8 +144,8 @@ async def mark_as_read(
 
         return {
             "id": notification.id,
-            "read": notification.read,
-            "read_at": (notification.read_at.isoformat() if notification.read_at else None),
+            "is_read": notification.is_read,
+            "updated_at": notification.updated_at.isoformat() if notification.updated_at else None,
         }
 
     except ValueError as e:
@@ -241,4 +241,32 @@ async def delete_all_notifications(user_id: str = Depends(get_current_user_id), 
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete notifications",
+        )
+
+@router.get("/unread-count")
+async def get_unread_count(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get unread notification count for user.
+
+    Returns:
+        - count: Number of unread notifications
+    """
+    try:
+        notification_service = NotificationService(db)
+        count = notification_service.get_unread_count(user_id)
+
+        logger.info(f"Retrieved unread count {count} for user {user_id}")
+
+        return {"count": count}
+
+    except ValueError as e:
+        logger.error(f"Validation error: {str(e)}")
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to get unread count: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to get unread count"
         )

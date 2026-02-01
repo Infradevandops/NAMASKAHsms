@@ -94,18 +94,16 @@ class AutoRefundService:
                 f"Reason={reason}, Balance: ${old_balance:.2f} → ${new_balance:.2f}"
             )
 
-            # Send notification - CRITICAL: Must succeed
+            # CRITICAL: Send notification using dispatcher for real-time updates
             try:
-                from app.services.notification_service import NotificationService
+                from app.services.notification_dispatcher import NotificationDispatcher
 
-                notif_service = NotificationService(self.db)
-                notif_service.create_notification(
+                notification_dispatcher = NotificationDispatcher(self.db)
+                notification_dispatcher.on_refund_completed(
                     user_id=verification.user_id,
-                    notification_type="instant_refund",
-                    title="💰 Instant Refund",
-                    message=f"${refund_amount:.2f} refunded for {verification.service_name} ({reason}). Balance: ${new_balance:.2f}",
-                    link="/wallet",
-                    icon="money_back",
+                    amount=refund_amount,
+                    reference=f"auto-refund-{verification_id}",
+                    new_balance=new_balance
                 )
                 self.db.commit()
                 logger.info(f"✓ Refund notification sent to {verification.user_id}")

@@ -15,7 +15,7 @@ from app.middleware.tier_validation import validate_tier_access
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
-from app.services.notification_service import NotificationService
+from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -216,6 +216,16 @@ async def request_verification(
             new_balance = user.credits
             logger.info(f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}")
 
+            # CRITICAL: Notify user of credit deduction immediately
+            notification_dispatcher = NotificationDispatcher(db)
+            notification_dispatcher.on_credits_deducted_enhanced(
+                user_id=user_id,
+                amount=actual_cost,
+                reason=f"SMS verification for {request.service}",
+                new_balance=new_balance,
+                verification_id=verification.id
+            )
+
         except Exception as api_error:
             # CRITICAL: Rollback if TextVerified API fails
             db.rollback()
@@ -234,12 +244,13 @@ async def request_verification(
 
             # Notification: Verification Failed (Task 1.3)
             try:
-                notif_service = NotificationService(db)
-                notif_service.create_notification(
-                    user_id=user_id,
-                    notification_type="verification_failed",
-                    title="⚠️ Verification Failed",
-                    message=f"SMS service temporarily unavailable for {request.service}. Your credits were not charged.",
+                notification_dispatcher = NotificationDispatcher(db)
+                notification_dispatcher.on_verification_failed(
+                    verification=type('obj', (object,), {
+                        'user_id': user_id,
+                        'service_name': request.service
+                    })(),
+                    reason="SMS service temporarily unavailable"
                 )
             except Exception:
                 pass

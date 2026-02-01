@@ -10,6 +10,7 @@ from app.core.exceptions import InsufficientCreditsError
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
+from app.services.notification_dispatcher import NotificationDispatcher
 
 logger = get_logger(__name__)
 
@@ -20,6 +21,7 @@ class CreditService:
     def __init__(self, db: Session):
         """Initialize credit service with database session."""
         self.db = db
+        self.notification_dispatcher = NotificationDispatcher(db)
 
     def get_balance(self, user_id: str) -> float:
         """Get current credit balance for user.
@@ -86,6 +88,14 @@ class CreditService:
         self.db.commit()
 
         new_balance = float(user.credits)
+
+        # CRITICAL: Notify user of credit addition
+        self.notification_dispatcher.on_credits_added(
+            user_id=user_id,
+            amount=amount,
+            reason=description,
+            new_balance=new_balance
+        )
 
         logger.info(
             f"Added {amount} credits to user {user_id}. "
@@ -158,6 +168,14 @@ class CreditService:
         self.db.commit()
 
         new_balance = float(user.credits)
+
+        # CRITICAL: Notify user of credit deduction
+        self.notification_dispatcher.on_credits_deducted_enhanced(
+            user_id=user_id,
+            amount=amount,
+            reason=description,
+            new_balance=new_balance
+        )
 
         logger.info(
             f"Deducted {amount} credits from user {user_id}. "

@@ -94,22 +94,33 @@ class NotificationSystem {
                 return;
             }
 
-            const response = await fetch('/api/notifications', {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Cache-Control': 'no-cache'
-                }
-            });
+            // Fetch notifications and unread count in parallel
+            const [notificationsResponse, countResponse] = await Promise.all([
+                fetch('/api/notifications', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache'
+                    }
+                }),
+                fetch('/api/notifications/unread-count', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Cache-Control': 'no-cache'
+                    }
+                })
+            ]);
 
-            if (!response.ok) {
-                throw new Error(`API error: ${response.status}`);
+            if (!notificationsResponse.ok || !countResponse.ok) {
+                throw new Error(`API error: ${notificationsResponse.status} / ${countResponse.status}`);
             }
 
-            const data = await response.json();
-            const notifications = data.notifications || [];
+            const notificationsData = await notificationsResponse.json();
+            const countData = await countResponse.json();
             
-            // Update unread count
-            this.unreadCount = notifications.filter(n => !n.is_read).length;
+            const notifications = notificationsData.notifications || [];
+            
+            // Use backend count as source of truth
+            this.unreadCount = countData.count || 0;
             this.updateNotificationBadge();
             
             // Update dropdown content

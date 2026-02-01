@@ -10,6 +10,7 @@ from app.core.logging import get_logger
 from app.models.refund import Refund
 from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
+from app.services.notification_dispatcher import NotificationDispatcher
 
 logger = get_logger(__name__)
 
@@ -21,6 +22,7 @@ class RefundService:
         """Initialize refund service with database session."""
         self.db = db
         self.refund_window_days = 30  # Refunds allowed within 30 days
+        self.notification_dispatcher = NotificationDispatcher(db)
 
     def initiate_refund(self, user_id: str, payment_id: str, reason: str, initiated_by: str = "user") -> Refund:
         """Initiate a refund request.
@@ -84,6 +86,14 @@ class RefundService:
 
         self.db.add(refund)
         self.db.commit()
+
+        # CRITICAL: Notify user immediately
+        self.notification_dispatcher.on_refund_initiated(
+            user_id=user_id,
+            amount=payment_log.amount_usd,
+            reason=reason,
+            reference=reference
+        )
 
         logger.info(
             f"Refund initiated: Reference={reference}, User={user_id}, "
