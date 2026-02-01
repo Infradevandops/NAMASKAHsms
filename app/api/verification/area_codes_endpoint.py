@@ -1,7 +1,6 @@
 """Area codes endpoint for verification system."""
 
 from fastapi import APIRouter, Query
-from typing import Dict, List
 
 router = APIRouter(prefix="/api", tags=["Area Codes"])
 
@@ -9,16 +8,16 @@ router = APIRouter(prefix="/api", tags=["Area Codes"])
 @router.get("/area-codes")
 async def get_area_codes(country: str = Query("US", description="Country code")):
     """Get available area codes for a country.
-    
+
     Currently supports US area codes only.
     """
     if country.upper() != "US":
         return {"area_codes": [], "total": 0, "message": "Only US area codes supported"}
-    
+
     # Common US area codes
     us_area_codes = {
         "212": "New York, NY",
-        "213": "Los Angeles, CA", 
+        "213": "Los Angeles, CA",
         "214": "Dallas, TX",
         "215": "Philadelphia, PA",
         "216": "Cleveland, OH",
@@ -308,13 +307,13 @@ async def get_area_codes(country: str = Query("US", description="Country code"))
         "985": "Hammond, LA",
         "989": "Saginaw, MI"
     }
-    
+
     # Convert to list format expected by frontend
     area_codes_list = [
         {"code": code, "location": location}
         for code, location in us_area_codes.items()
     ]
-    
+
     return {
         "area_codes": area_codes_list,
         "total": len(area_codes_list),

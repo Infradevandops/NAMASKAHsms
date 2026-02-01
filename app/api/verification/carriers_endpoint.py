@@ -1,7 +1,6 @@
 """Carriers endpoint for verification system."""
 
 from fastapi import APIRouter
-from typing import Dict, List
 
 router = APIRouter(prefix="/api/verification", tags=["Carriers"])
 
@@ -9,7 +8,7 @@ router = APIRouter(prefix="/api/verification", tags=["Carriers"])
 @router.get("/carriers/{country}")
 async def get_carriers(country: str):
     """Get available carriers for a country.
-    
+
     Currently supports US carriers only.
     """
     if country.upper() != "US":
@@ -30,7 +29,7 @@ async def get_carriers(country: str):
         {
             "code": "att",
             "name": "AT&T",
-            "display_name": "AT&T Wireless", 
+            "display_name": "AT&T Wireless",
             "type": "major",
             "coverage": "nationwide",
             "reliability": 92,
@@ -41,7 +40,7 @@ async def get_carriers(country: str):
             "code": "tmobile",
             "name": "T-Mobile",
             "display_name": "T-Mobile US",
-            "type": "major", 
+            "type": "major",
             "coverage": "nationwide",
             "reliability": 90,
             "premium": 0.03,
@@ -181,14 +180,14 @@ async def get_carriers(country: str):
     
     # Sort by reliability (most reliable first)
     us_carriers.sort(key=lambda x: x["reliability"], reverse=True)
-    
+
     return {
         "carriers": us_carriers,
         "total": len(us_carriers),
         "country": country.upper(),
         "types": {
             "major": [c for c in us_carriers if c["type"] == "major"],
-            "regional": [c for c in us_carriers if c["type"] == "regional"], 
+            "regional": [c for c in us_carriers if c["type"] == "regional"],
             "mvno": [c for c in us_carriers if c["type"] == "mvno"]
         }
     }

@@ -1,7 +1,7 @@
 """Services endpoint for verification system."""
 
 from fastapi import APIRouter, Query
-from typing import Dict, List, Optional
+from typing import Optional
 
 router = APIRouter(prefix="/api/countries", tags=["Services"])
 
@@ -12,7 +12,7 @@ async def get_services(
     areaCode: Optional[str] = Query(None, description="Area code filter")
 ):
     """Get available services for a country and optional area code.
-    
+
     Currently supports US services only.
     """
     if country.upper() != "USA" and country.upper() != "US":
@@ -30,7 +30,7 @@ async def get_services(
         },
         {
             "name": "telegram",
-            "display_name": "Telegram", 
+            "display_name": "Telegram",
             "category": "messaging",
             "popularity": 85,
             "base_price": 0.12,
@@ -55,7 +55,7 @@ async def get_services(
         {
             "name": "facebook",
             "display_name": "Facebook",
-            "category": "social", 
+            "category": "social",
             "popularity": 85,
             "base_price": 0.22,
             "description": "Social networking platform"
@@ -232,7 +232,7 @@ async def get_services(
     
     # Sort by popularity (most popular first)
     services.sort(key=lambda x: x["popularity"], reverse=True)
-    
+
     return {
         "services": services,
         "total": len(services),
