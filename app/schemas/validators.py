@@ -28,7 +28,6 @@ def validate_service_name(service: str) -> str:
     # Convert to lowercase and remove extra spaces
     cleaned = service.lower().strip()
 
-
     # Check for valid characters (alphanumeric, underscore, hyphen)
     if not re.match(r"^[a - z0-9_-]+$", cleaned):
         raise ValueError("Service name can only contain letters, numbers, underscores, and hyphens")
@@ -36,8 +35,10 @@ def validate_service_name(service: str) -> str:
     return cleaned
 
 
-def validate_currency_amount(amount: float, min_amount: float = 0.01, max_amount: float = 100000.0) -> float:
-
+def validate_currency_amount(
+        amount: float,
+        min_amount: float = 0.01,
+        max_amount: float = 100000.0) -> float:
     """Validate currency amount."""
     if amount < min_amount:
         raise ValueError(f"Amount must be at least {min_amount}")
@@ -50,7 +51,6 @@ def validate_currency_amount(amount: float, min_amount: float = 0.01, max_amount
 
 
 def validate_referral_code(code: str) -> str:
-
     """Validate referral code format."""
     if not code:
         return code
@@ -66,7 +66,6 @@ def validate_referral_code(code: str) -> str:
 
 
 def validate_api_key_name(name: str) -> str:
-
     """Validate API key name."""
     if not name or len(name.strip()) == 0:
         raise ValueError("API key name cannot be empty")
@@ -80,7 +79,6 @@ def validate_api_key_name(name: str) -> str:
 
 
 def validate_webhook_url(url: str) -> str:
-
     """Validate webhook URL."""
     if not url or len(url.strip()) == 0:
         raise ValueError("Webhook URL cannot be empty")
@@ -105,7 +103,6 @@ def validate_webhook_url(url: str) -> str:
 
 
 def validate_duration_hours(hours: float) -> float:
-
     """Validate rental duration in hours."""
     if hours <= 0:
         raise ValueError("Duration must be positive")
@@ -118,7 +115,6 @@ def validate_duration_hours(hours: float) -> float:
 
 
 def validate_area_code(code: str) -> str:
-
     """Validate area code format."""
     if not code:
         return code
@@ -134,7 +130,6 @@ def validate_area_code(code: str) -> str:
 
 
 def validate_carrier_name(carrier: str) -> str:
-
     """Validate carrier name."""
     if not carrier:
         return carrier
@@ -162,52 +157,45 @@ def validate_carrier_name(carrier: str) -> str:
 
 
 class ValidationMixin:
-
     """Mixin class with common validators for Pydantic models."""
 
     @field_validator("phone_number", mode="before")
     @classmethod
-def validate_phone(cls, v):
-
-    if v:
+    def validate_phone(cls, v):
+        if v:
             return validate_phone_number(v)
         return v
 
     @field_validator("service_name", mode="before")
     @classmethod
-def validate_service(cls, v):
-
-    if v:
+    def validate_service(cls, v):
+        if v:
             return validate_service_name(v)
         return v
 
     @field_validator("referral_code", mode="before")
     @classmethod
-def validate_referral(cls, v):
-
-    if v:
+    def validate_referral(cls, v):
+        if v:
             return validate_referral_code(v)
         return v
 
     @field_validator("area_code", mode="before")
     @classmethod
-def validate_area(cls, v):
-
-    if v:
+    def validate_area(cls, v):
+        if v:
             return validate_area_code(v)
         return v
 
     @field_validator("carrier", mode="before")
     @classmethod
-def validate_carrier(cls, v):
-
-    if v:
+    def validate_carrier(cls, v):
+        if v:
             return validate_carrier_name(v)
         return v
 
 
 def sanitize_input(text: str) -> str:
-
     """Sanitize text input for security."""
     if not text:
         return ""
@@ -230,7 +218,6 @@ def sanitize_input(text: str) -> str:
 
 
 def validate_pagination_params(page: int, size: int) -> tuple:
-
     """Validate pagination parameters."""
     page = max(page, 1)
 
@@ -242,8 +229,8 @@ def validate_pagination_params(page: int, size: int) -> tuple:
     return page, size
 
 
-def create_pagination_response(items: List[Any], total: int, page: int, size: int) -> Dict[str, Any]:
-
+def create_pagination_response(
+        items: List[Any], total: int, page: int, size: int) -> Dict[str, Any]:
     """Create standardized pagination response."""
     pages = (total + size - 1) // size  # Ceiling division
 
@@ -257,14 +244,12 @@ def create_pagination_response(items: List[Any], total: int, page: int, size: in
         "has_prev": page > 1,
     }
 
-
     # ============================================================================
     # ENHANCED VALIDATORS WITH COMPREHENSIVE ERROR HANDLING
     # ============================================================================
 
 
 def validate_email(email: str) -> str:
-
     """Validate email format with comprehensive checks."""
     if not email:
         raise ValueError("Email cannot be empty")
@@ -291,7 +276,6 @@ def validate_email(email: str) -> str:
 
 
 def validate_password_strength(password: str) -> str:
-
     """Validate password strength with detailed requirements."""
     if not password:
         raise ValueError("Password cannot be empty")
@@ -322,7 +306,6 @@ def validate_password_strength(password: str) -> str:
 
 
 def validate_country_code(code: str) -> str:
-
     """Validate country code format."""
     if not code:
         raise ValueError("Country code cannot be empty")
@@ -331,19 +314,18 @@ def validate_country_code(code: str) -> str:
 
     # Accept 2-letter ISO codes or country names
     if len(code) == 2:
-    if not re.match(r"^[A-Z]{2}$", code):
+        if not re.match(r"^[A-Z]{2}$", code):
             raise ValueError("Invalid country code format")
     else:
         # Accept country names (lowercase)
         code = code.lower()
-    if not re.match(r"^[a-z]{2,}$", code):
+        if not re.match(r"^[a-z]{2,}$", code):
             raise ValueError("Invalid country format")
 
     return code
 
 
 def validate_positive_number(value: float, field_name: str = "value") -> float:
-
     """Validate that a number is positive."""
     if value is None:
         raise ValueError(f"{field_name} cannot be None")
@@ -358,7 +340,6 @@ def validate_positive_number(value: float, field_name: str = "value") -> float:
 
 
 def validate_non_negative_number(value: float, field_name: str = "value") -> float:
-
     """Validate that a number is non-negative."""
     if value is None:
         raise ValueError(f"{field_name} cannot be None")
@@ -372,8 +353,11 @@ def validate_non_negative_number(value: float, field_name: str = "value") -> flo
     return float(value)
 
 
-def validate_string_length(value: str, min_length: int = 1, max_length: int = 255, field_name: str = "value") -> str:
-
+def validate_string_length(
+        value: str,
+        min_length: int = 1,
+        max_length: int = 255,
+        field_name: str = "value") -> str:
     """Validate string length with bounds."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
@@ -390,7 +374,6 @@ def validate_string_length(value: str, min_length: int = 1, max_length: int = 25
 
 
 def validate_enum_value(value: str, allowed_values: List[str], field_name: str = "value") -> str:
-
     """Validate that value is in allowed list."""
     if not value:
         raise ValueError(f"{field_name} cannot be empty")
@@ -404,7 +387,6 @@ def validate_enum_value(value: str, allowed_values: List[str], field_name: str =
 
 
 def validate_date_format(date_str: str, format_str: str = "%Y-%m-%d") -> datetime:
-
     """Validate date format."""
     if not date_str:
         raise ValueError("Date cannot be empty")
@@ -416,7 +398,6 @@ def validate_date_format(date_str: str, format_str: str = "%Y-%m-%d") -> datetim
 
 
 def validate_url(url: str) -> str:
-
     """Validate URL format."""
     if not url:
         raise ValueError("URL cannot be empty")
@@ -444,7 +425,6 @@ def validate_url(url: str) -> str:
 
 
 def validate_uuid(value: str) -> str:
-
     """Validate UUID format."""
     if not value:
         raise ValueError("UUID cannot be empty")
@@ -457,11 +437,9 @@ def validate_uuid(value: str) -> str:
 
 
 def validate_json_string(value: str) -> dict:
-
     """Validate and parse JSON string."""
     if not value:
         raise ValueError("JSON string cannot be empty")
-
 
     try:
         return json.loads(value)
@@ -470,7 +448,6 @@ def validate_json_string(value: str) -> dict:
 
 
 def validate_ip_address(ip: str) -> str:
-
     """Validate IP address format (IPv4 or IPv6)."""
     if not ip:
         raise ValueError("IP address cannot be empty")
@@ -482,7 +459,7 @@ def validate_ip_address(ip: str) -> str:
     if re.match(ipv4_pattern, ip):
         parts = ip.split(".")
     if all(0 <= int(part) <= 255 for part in parts):
-            return ip
+        return ip
 
     # IPv6 validation (simplified)
     ipv6_pattern = r"^([0-9a-fA-F]{0,4}:){2,7}[0-9a-fA-F]{0,4}$"
@@ -493,7 +470,6 @@ def validate_ip_address(ip: str) -> str:
 
 
 def validate_credit_amount(amount: float) -> float:
-
     """Validate credit amount for transactions."""
     if amount is None:
         raise ValueError("Amount cannot be None")
@@ -512,7 +488,6 @@ def validate_credit_amount(amount: float) -> float:
 
 
 def validate_query_parameters(page: Optional[int] = None, limit: Optional[int] = None) -> tuple:
-
     """Validate pagination query parameters."""
     # Validate page
     if page is None:
@@ -536,7 +511,6 @@ def validate_query_parameters(page: Optional[int] = None, limit: Optional[int] =
 
 
 def validate_search_query(query: str, min_length: int = 1, max_length: int = 255) -> str:
-
     """Validate search query."""
     if not query:
         raise ValueError("Search query cannot be empty")
@@ -553,13 +527,12 @@ def validate_search_query(query: str, min_length: int = 1, max_length: int = 255
     dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
     for char in dangerous_chars:
     if char in query:
-            raise ValueError(f"Search query contains invalid character: {char}")
+        raise ValueError(f"Search query contains invalid character: {char}")
 
     return query
 
 
 def validate_date_range(date_from: str, date_to: str) -> Dict[str, Any]:
-
     """Validate date range format (ISO format)."""
     try:
         start_date = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
