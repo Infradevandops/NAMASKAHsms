@@ -1,13 +1,11 @@
 """Verification request/response schemas."""
 
-
 from datetime import datetime
 from typing import Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
 class VerificationRequest(BaseModel):
-
     """Request to purchase SMS verification."""
 
     service: str = Field(..., description="Service name (telegram, whatsapp, etc)")
@@ -16,7 +14,8 @@ class VerificationRequest(BaseModel):
     area_codes: Optional[list[str]] = Field(default=None, description="Preferred area codes")
     carriers: Optional[list[str]] = Field(default=None, description="Preferred carriers")
     idempotency_key: Optional[str] = Field(
-        default=None, description="Idempotency key to prevent duplicate charges")
+        default=None, description="Idempotency key to prevent duplicate charges"
+    )
 
     @field_validator("country", mode="before")
     @classmethod
@@ -50,7 +49,6 @@ class VerificationRequest(BaseModel):
 
 
 class VerificationResponse(BaseModel):
-
     """Response after purchasing verification."""
 
     verification_id: str
@@ -63,7 +61,6 @@ class VerificationResponse(BaseModel):
 
 
 class VerificationDetail(BaseModel):
-
     """Detailed verification information."""
 
     id: str
@@ -80,7 +77,6 @@ class VerificationDetail(BaseModel):
 
 
 class VerificationHistory(BaseModel):
-
     """Verification history item."""
 
     id: str
@@ -94,7 +90,6 @@ class VerificationHistory(BaseModel):
 
 
 class VerificationHistoryResponse(BaseModel):
-
     """Verification history response."""
 
     total: int
@@ -104,7 +99,6 @@ class VerificationHistoryResponse(BaseModel):
 
 
 class ReleaseResponse(BaseModel):
-
     """Response after releasing verification."""
 
     success: bool
@@ -114,7 +108,6 @@ class ReleaseResponse(BaseModel):
 
 
 class NumberRentalRequest(BaseModel):
-
     """Request to rent a phone number."""
 
     service: str = Field(..., description="Service name")
@@ -124,7 +117,6 @@ class NumberRentalRequest(BaseModel):
 
 
 class NumberRentalResponse(BaseModel):
-
     """Response after renting a number."""
 
     rental_id: str
@@ -138,7 +130,6 @@ class NumberRentalResponse(BaseModel):
 
 
 class ExtendRentalRequest(BaseModel):
-
     """Request to extend a rental."""
 
     rental_id: str = Field(..., description="Rental ID to extend")
@@ -146,14 +137,12 @@ class ExtendRentalRequest(BaseModel):
 
 
 class RetryVerificationRequest(BaseModel):
-
     """Request to retry verification."""
 
     verification_id: str = Field(..., description="Verification ID to retry")
 
 
 class ServicePriceResponse(BaseModel):
-
     """Service pricing information."""
 
     service: str
@@ -163,7 +152,6 @@ class ServicePriceResponse(BaseModel):
 
 
 class VerificationCreate(BaseModel):
-
     """Create verification request."""
 
     service: str
@@ -172,7 +160,6 @@ class VerificationCreate(BaseModel):
 
 
 class MessageResponse(BaseModel):
-
     """Generic message response."""
 
     message: str

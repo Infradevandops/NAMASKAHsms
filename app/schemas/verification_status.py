@@ -1,13 +1,12 @@
 """Verification status response schemas for enterprise-grade API."""
 
-
 from datetime import datetime
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
 
-class VerificationStatus(str, Enum):
 
+class VerificationStatus(str, Enum):
     """Verification status enumeration."""
 
     PENDING = "pending"
@@ -19,7 +18,6 @@ class VerificationStatus(str, Enum):
 
 
 class VerificationStatusResponse(BaseModel):
-
     """Enterprise-grade verification status response."""
 
     # Core fields
@@ -75,7 +73,6 @@ class VerificationStatusResponse(BaseModel):
 
 
 class VerificationRequestResponse(BaseModel):
-
     """Response after creating verification request."""
 
     success: bool = Field(..., description="Whether request was successful")
