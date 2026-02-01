@@ -17,7 +17,7 @@ async def get_services(
     """
     if country.upper() != "USA" and country.upper() != "US":
         return {"services": [], "total": 0, "message": "Only US services supported"}
-    
+
     # Popular services that work with SMS verification
     services = [
         {
@@ -229,7 +229,7 @@ async def get_services(
             "description": "Hotel booking service"
         }
     ]
-    
+
     # Sort by popularity (most popular first)
     services.sort(key=lambda x: x["popularity"], reverse=True)
 

@@ -13,7 +13,7 @@ async def get_carriers(country: str):
     """
     if country.upper() != "US":
         return {"carriers": [], "total": 0, "message": "Only US carriers supported"}
-    
+
     # Major US carriers
     us_carriers = [
         {
@@ -51,7 +51,7 @@ async def get_carriers(country: str):
             "name": "Sprint",
             "display_name": "Sprint (T-Mobile)",
             "type": "major",
-            "coverage": "nationwide", 
+            "coverage": "nationwide",
             "reliability": 85,
             "premium": 0.02,
             "description": "Now part of T-Mobile network"
@@ -177,7 +177,7 @@ async def get_carriers(country: str):
             "description": "Google's wireless service"
         }
     ]
-    
+
     # Sort by reliability (most reliable first)
     us_carriers.sort(key=lambda x: x["reliability"], reverse=True)
 
