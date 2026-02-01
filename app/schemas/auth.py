@@ -3,8 +3,8 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
-
+from pydantic import EmailStr
+from app.core.pydantic_compat import BaseModel, Field, field_validator
 from app.schemas.validators import validate_email, validate_password_strength
 
 

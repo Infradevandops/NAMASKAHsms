@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import field_validator
+from app.core.pydantic_compat import field_validator
 
 
 def validate_phone_number(phone: str) -> str:

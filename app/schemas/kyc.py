@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_validator
+from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
 class KYCProfileCreate(BaseModel):
