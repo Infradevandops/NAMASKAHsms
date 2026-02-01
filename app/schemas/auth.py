@@ -1,6 +1,5 @@
 """Authentication request/response schemas."""
 
-
 from datetime import datetime
 from typing import Optional
 from pydantic import EmailStr
@@ -9,7 +8,6 @@ from app.schemas.validators import validate_email, validate_password_strength
 
 
 class RegisterRequest(BaseModel):
-
     """Schema for user registration request."""
 
     email: EmailStr = Field(..., description="Valid email address")
@@ -17,14 +15,14 @@ class RegisterRequest(BaseModel):
 
 
 class UserCreate(BaseModel):
-
     """Schema for user registration."""
 
     email: EmailStr = Field(..., description="Valid email address")
-    password: str = Field(...,
-                          min_length=8,
-                          description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)",
-                          )
+    password: str = Field(
+        ...,
+        min_length=8,
+        description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)",
+    )
     referral_code: Optional[str] = Field(None, description="Optional referral code")
 
     @field_validator("email", mode="before")
@@ -62,7 +60,6 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
-
     """Schema for user profile updates."""
 
     email: Optional[EmailStr] = Field(None, description="New email address")
@@ -77,7 +74,6 @@ class UserUpdate(BaseModel):
 
 
 class UserResponse(BaseModel):
-
     """Schema for user data in responses."""
 
     id: str
@@ -109,7 +105,6 @@ class UserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
-
     """Schema for user login."""
 
     email: str = Field(..., description="User email address")
@@ -117,13 +112,12 @@ class LoginRequest(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "example": {
-                "email": "user@example.com",
-                "password": "securepassword123"}}}
+            "example": {"email": "user@example.com", "password": "securepassword123"}
+        }
+    }
 
 
 class TokenResponse(BaseModel):
-
     """Schema for JWT token response."""
 
     access_token: str = Field(..., description="JWT access token")
@@ -151,7 +145,6 @@ class TokenResponse(BaseModel):
 
 
 class APIKeyCreate(BaseModel):
-
     """Schema for API key creation."""
 
     name: str = Field(..., min_length=1, max_length=100, description="API key name")
@@ -160,7 +153,6 @@ class APIKeyCreate(BaseModel):
 
 
 class APIKeyResponse(BaseModel):
-
     """Schema for API key response."""
 
     id: str
@@ -188,7 +180,6 @@ class APIKeyResponse(BaseModel):
 
 
 class APIKeyListResponse(BaseModel):
-
     """Schema for API key list (without actual key)."""
 
     id: str
@@ -215,7 +206,6 @@ class APIKeyListResponse(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
-
     """Schema for password reset request."""
 
     email: EmailStr = Field(..., description="Email address for password reset")
@@ -224,7 +214,6 @@ class PasswordResetRequest(BaseModel):
 
 
 class PasswordResetConfirm(BaseModel):
-
     """Schema for password reset confirmation."""
 
     token: str = Field(..., min_length=1, description="Password reset token")
@@ -255,14 +244,12 @@ class PasswordResetConfirm(BaseModel):
 
 
 class EmailVerificationRequest(BaseModel):
-
     """Schema for email verification resend."""
 
     email: EmailStr = Field(..., description="Email address to verify")
 
 
 class GoogleAuthRequest(BaseModel):
-
     """Schema for Google OAuth authentication."""
 
     token: str = Field(..., description="Google OAuth token")

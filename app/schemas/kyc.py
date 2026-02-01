@@ -1,6 +1,5 @@
 """KYC request/response schemas."""
 
-
 from datetime import date, datetime
 from typing import Any, Dict, List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
@@ -8,7 +7,6 @@ import re
 
 
 class KYCProfileCreate(BaseModel):
-
     """Schema for creating KYC profile."""
 
     full_name: str = Field(..., min_length=2, max_length=100)
@@ -61,7 +59,6 @@ class KYCProfileCreate(BaseModel):
 
 
 class KYCProfileResponse(BaseModel):
-
     """Schema for KYC profile response."""
 
     id: str
@@ -107,7 +104,6 @@ class KYCProfileResponse(BaseModel):
 
 
 class KYCDocumentResponse(BaseModel):
-
     """Schema for KYC document response."""
 
     id: str
@@ -135,7 +131,6 @@ class KYCDocumentResponse(BaseModel):
 
 
 class KYCVerificationDecision(BaseModel):
-
     """Schema for admin KYC verification decision."""
 
     decision: str = Field(..., pattern="^(approved|rejected)$")
@@ -154,7 +149,6 @@ class KYCVerificationDecision(BaseModel):
 
 
 class KYCLimitsResponse(BaseModel):
-
     """Schema for KYC limits response."""
 
     verification_level: str
@@ -181,7 +175,6 @@ class KYCLimitsResponse(BaseModel):
 
 
 class AMLScreeningResponse(BaseModel):
-
     """Schema for AML screening response."""
 
     id: str
@@ -211,7 +204,6 @@ class AMLScreeningResponse(BaseModel):
 
 
 class KYCStatsResponse(BaseModel):
-
     """Schema for KYC statistics response."""
 
     total_profiles: int
@@ -236,7 +228,6 @@ class KYCStatsResponse(BaseModel):
 
 
 class BiometricVerificationRequest(BaseModel):
-
     """Schema for biometric verification request."""
 
     verification_type: str = Field(..., pattern="^(face_match|liveness|voice)$")
@@ -253,7 +244,6 @@ class BiometricVerificationRequest(BaseModel):
 
 
 class BiometricVerificationResponse(BaseModel):
-
     """Schema for biometric verification response."""
 
     id: str
@@ -281,7 +271,6 @@ class BiometricVerificationResponse(BaseModel):
 
 
 class KYCAuditLogResponse(BaseModel):
-
     """Schema for KYC audit log response."""
 
     id: str
@@ -313,7 +302,6 @@ class KYCAuditLogResponse(BaseModel):
 
 
 class DocumentUploadResponse(BaseModel):
-
     """Schema for document upload response."""
 
     id: str
@@ -342,7 +330,6 @@ class DocumentUploadResponse(BaseModel):
 
 
 class KYCComplianceReport(BaseModel):
-
     """Schema for KYC compliance report."""
 
     report_id: str

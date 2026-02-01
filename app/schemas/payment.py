@@ -1,13 +1,11 @@
 """Payment and wallet request/response schemas."""
 
-
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
 class AddCreditsRequest(BaseModel):
-
     """Schema for adding credits request."""
 
     amount: float = Field(..., gt=0, description="Amount to add (minimum $5)")
@@ -23,7 +21,6 @@ class AddCreditsRequest(BaseModel):
 
 
 class PaymentInitialize(BaseModel):
-
     """Schema for payment initialization."""
 
     amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
@@ -46,14 +43,11 @@ class PaymentInitialize(BaseModel):
         return v
 
     model_config = {
-    "json_schema_extra": {
-        "example": {
-            "amount_usd": 20.0,
-             "payment_method": "paystack"}}}
+        "json_schema_extra": {"example": {"amount_usd": 20.0, "payment_method": "paystack"}}
+    }
 
 
 class PaymentInitializeResponse(BaseModel):
-
     """Schema for payment initialization response."""
 
     success: bool
@@ -81,7 +75,6 @@ class PaymentInitializeResponse(BaseModel):
 
 
 class PaymentVerify(BaseModel):
-
     """Schema for payment verification."""
 
     reference: str = Field(..., description="Payment reference to verify")
@@ -90,7 +83,6 @@ class PaymentVerify(BaseModel):
 
 
 class PaymentVerifyResponse(BaseModel):
-
     """Schema for payment verification response."""
 
     status: str = Field(..., description="Payment status")
@@ -113,7 +105,6 @@ class PaymentVerifyResponse(BaseModel):
 
 
 class WebhookPayload(BaseModel):
-
     """Schema for Paystack webhook payload."""
 
     event: str = Field(..., description="Webhook event type")
@@ -135,7 +126,6 @@ class WebhookPayload(BaseModel):
 
 
 class TransactionResponse(BaseModel):
-
     """Schema for transaction response."""
 
     id: str
@@ -159,7 +149,6 @@ class TransactionResponse(BaseModel):
 
 
 class TransactionHistoryResponse(BaseModel):
-
     """Schema for transaction history."""
 
     transactions: List[TransactionResponse]
@@ -184,7 +173,6 @@ class TransactionHistoryResponse(BaseModel):
 
 
 class RefundRequest(BaseModel):
-
     """Schema for refund request."""
 
     transaction_id: str = Field(..., description="Transaction ID to refund")
@@ -210,7 +198,6 @@ class RefundRequest(BaseModel):
 
 
 class RefundResponse(BaseModel):
-
     """Schema for refund response."""
 
     success: bool
@@ -233,7 +220,6 @@ class RefundResponse(BaseModel):
 
 
 class WalletBalanceResponse(BaseModel):
-
     """Schema for wallet balance response."""
 
     credits: float = Field(..., description="Current Namaskah credits")
@@ -241,15 +227,13 @@ class WalletBalanceResponse(BaseModel):
     free_verifications: float = Field(..., description="Free verifications remaining")
 
     model_config = {
-    "json_schema_extra": {
-        "example": {
-            "credits": 15.5,
-            "credits_usd": 31.0,
-             "free_verifications": 1.0}}}
+        "json_schema_extra": {
+            "example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}
+        }
+    }
 
 
 class CryptoWalletResponse(BaseModel):
-
     """Schema for crypto wallet configuration."""
 
     btc_address: Optional[str] = Field(None, description="Bitcoin address")
@@ -268,7 +252,6 @@ class CryptoWalletResponse(BaseModel):
 
 
 class SubscriptionPlan(BaseModel):
-
     """Schema for subscription plan."""
 
     id: str
@@ -299,7 +282,6 @@ class SubscriptionPlan(BaseModel):
 
 
 class SubscriptionRequest(BaseModel):
-
     """Schema for subscription request."""
 
     plan_id: str = Field(..., description="Plan ID to subscribe to")
@@ -315,7 +297,6 @@ class SubscriptionRequest(BaseModel):
 
 
 class SubscriptionResponse(BaseModel):
-
     """Schema for subscription response."""
 
     plan: str

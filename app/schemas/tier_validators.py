@@ -1,15 +1,14 @@
 """Response schema validators for tier-related API endpoints.
 
-from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field, validator
-
 These validators ensure API responses contain all required fields
 and have correct data types for frontend consumption.
 """
 
+from typing import Any, Dict, List, Optional
+from app.core.pydantic_compat import BaseModel, Field, field_validator
+
 
 class TierFeaturesSchema(BaseModel):
-
     """Schema for tier features object."""
 
     api_access: bool
@@ -20,7 +19,6 @@ class TierFeaturesSchema(BaseModel):
 
 
 class TierSchema(BaseModel):
-
     """Schema for a single tier in the list."""
 
     tier: str
@@ -31,14 +29,26 @@ class TierSchema(BaseModel):
     overage_rate: float
     features: TierFeaturesSchema
 
+    @field_validator("tier")
+    @classmethod
+    def validate_tier_name(cls, v):
+        """Validate tier name is allowed."""
+        allowed = {"freemium", "payg", "pro", "custom"}
+        if v not in allowed:
+            raise ValueError(f"Tier must be one of {allowed}")
+        return v
 
-class TierListResponse(BaseModel):
 
-    """Schema for /api/tiers/ response."""
+class TierListResponseSchema(BaseModel):
+    """Schema for tier list API response."""
 
     tiers: List[TierSchema]
+    current_tier: str
+    can_upgrade: bool = Field(default=True)
+    can_downgrade: bool = Field(default=False)
 
-    @validator("tiers")
+    @field_validator("tiers")
+    @classmethod
     def validate_tiers_count(cls, v):
         """Ensure we have all 4 tiers."""
         if len(v) < 4:
@@ -47,195 +57,52 @@ class TierListResponse(BaseModel):
 
 
 class CurrentTierFeaturesSchema(BaseModel):
+    """Schema for current tier features response."""
 
-    """Schema for current tier features."""
+    tier: str
+    features: TierFeaturesSchema
+    usage: Dict[str, Any] = Field(default_factory=dict)
+    limits: Dict[str, Any] = Field(default_factory=dict)
 
-    api_access: bool
-    area_code_selection: bool = Field(default=False)
-    isp_filtering: bool = Field(default=False)
-    api_key_limit: int = Field(default=0)
-    support_level: str = Field(default="community")
-
-
-class CurrentTierResponse(BaseModel):
-
-    """Schema for /api/tiers/current response."""
-
-    current_tier: str
-    tier_name: str
-    price_monthly: float
-    quota_usd: float
-    quota_used_usd: float
-    quota_remaining_usd: float
-    sms_count: int
-    within_quota: bool
-    overage_rate: float
-    features: CurrentTierFeaturesSchema
-
-    @validator("current_tier")
+    @field_validator("tier")
+    @classmethod
     def validate_tier_value(cls, v):
-        """Ensure tier is a valid value."""
-        valid_tiers = {"freemium", "payg", "pro", "custom"}
-
-
-if v not in valid_tiers:
-            raise ValueError(f"Invalid tier: {v}. Must be one of {valid_tiers}")
+        """Validate current tier value."""
+        allowed = {"freemium", "payg", "pro", "custom"}
+        if v not in allowed:
+            raise ValueError(f"Current tier must be one of {allowed}")
         return v
 
 
-class AnalyticsSummaryResponse(BaseModel):
+class TierUpgradeRequestSchema(BaseModel):
+    """Schema for tier upgrade request."""
 
-    """Schema for /api/analytics/summary response."""
+    target_tier: str
+    payment_method: str = Field(default="paystack")
 
-    total_verifications: int
-    successful_verifications: int
-    failed_verifications: int = Field(default=0)
-    pending_verifications: int = Field(default=0)
-    success_rate: float
-    total_spent: float
-    revenue: float = Field(default=0.0)  # Backward compatibility
-    average_cost: float = Field(default=0.0)
-    recent_activity: int = Field(default=0)
-    monthly_verifications: int = Field(default=0)
-    monthly_spent: float = Field(default=0.0)
-    last_updated: str
-
-    @validator("success_rate")
-    def validate_success_rate(cls, v):
-
-        """Ensure success rate is between 0 and 1."""
-if v < 0 or v > 1:
-            raise ValueError(f"Success rate must be between 0 and 1, got {v}")
+    @field_validator("target_tier")
+    @classmethod
+    def validate_upgrade_tier(cls, v):
+        """Validate upgrade target tier."""
+        allowed = {"payg", "pro", "custom"}
+        if v not in allowed:
+            raise ValueError(f"Can only upgrade to: {allowed}")
         return v
 
 
-class ActivityItemSchema(BaseModel):
+class TierUpgradeResponseSchema(BaseModel):
+    """Schema for tier upgrade response."""
 
-    """Schema for a single activity item."""
+    success: bool
+    new_tier: str
+    payment_url: Optional[str] = None
+    message: str
 
-    id: str
-    service_name: str
-    phone_number: str
-    status: str
-    created_at: Optional[str] = None
-
-
-class DashboardActivityResponse(BaseModel):
-
-    """Schema for /api/dashboard/activity/recent response (list of activities)."""
-
-    __root__: List[ActivityItemSchema]
-
-
-def validate_tier_list_response(data: Dict[str, Any]) -> TierListResponse:
-
-    """Validate /api/tiers/ response.
-
-    Args:
-        data: Response data from the API
-
-    Returns:
-        Validated TierListResponse
-
-    Raises:
-        ValueError: If validation fails
-    """
-    return TierListResponse(**data)
-
-
-def validate_current_tier_response(data: Dict[str, Any]) -> CurrentTierResponse:
-
-    """Validate /api/tiers/current response.
-
-    Args:
-        data: Response data from the API
-
-    Returns:
-        Validated CurrentTierResponse
-
-    Raises:
-        ValueError: If validation fails
-    """
-    return CurrentTierResponse(**data)
-
-
-def validate_analytics_summary_response(
-
-    data: Dict[str, Any],
-) -> AnalyticsSummaryResponse:
-    """Validate /api/analytics/summary response.
-
-    Args:
-        data: Response data from the API
-
-    Returns:
-        Validated AnalyticsSummaryResponse
-
-    Raises:
-        ValueError: If validation fails
-    """
-    return AnalyticsSummaryResponse(**data)
-
-
-def validate_dashboard_activity_response(
-
-    data: List[Dict[str, Any]],
-) -> List[ActivityItemSchema]:
-    """Validate /api/dashboard/activity/recent response.
-
-    Args:
-        data: Response data from the API (list of activities)
-
-    Returns:
-        List of validated ActivityItemSchema
-
-    Raises:
-        ValueError: If validation fails
-    """
-    return [ActivityItemSchema(**item) for item in data]
-
-
-# Validation helper functions for frontend use
-
-def get_validation_errors(data: Dict[str, Any], schema_type: str) -> List[str]:
-
-    """Get list of validation errors for a response.
-
-    Args:
-        data: Response data to validate
-        schema_type: One of 'tier_list', 'current_tier', 'analytics_summary', 'dashboard_activity'
-
-    Returns:
-        List of error messages (empty if valid)
-    """
-    errors = []
-
-try:
-if schema_type == "tier_list":
-            validate_tier_list_response(data)
-elif schema_type == "current_tier":
-            validate_current_tier_response(data)
-elif schema_type == "analytics_summary":
-            validate_analytics_summary_response(data)
-elif schema_type == "dashboard_activity":
-            validate_dashboard_activity_response(data)
-else:
-            errors.append(f"Unknown schema type: {schema_type}")
-except Exception as e:
-        errors.append(str(e))
-
-    return errors
-
-
-def is_valid_response(data: Any, schema_type: str) -> bool:
-
-    """Check if a response is valid.
-
-    Args:
-        data: Response data to validate
-        schema_type: One of 'tier_list', 'current_tier', 'analytics_summary', 'dashboard_activity'
-
-    Returns:
-        True if valid, False otherwise
-    """
-    return len(get_validation_errors(data, schema_type)) == 0
+    @field_validator("new_tier")
+    @classmethod
+    def validate_new_tier(cls, v):
+        """Validate new tier after upgrade."""
+        allowed = {"freemium", "payg", "pro", "custom"}
+        if v not in allowed:
+            raise ValueError(f"New tier must be one of {allowed}")
+        return v
