@@ -82,7 +82,7 @@ async def get_analytics_summary(
             )
         )
         monthly_verifications = monthly_verifications_query.count()
-        
+
         # Calculate monthly spent (current month)
         monthly_spent_transactions = (
             db.query(func.sum(Transaction.amount))
@@ -107,7 +107,7 @@ async def get_analytics_summary(
             .limit(10)
             .all()
         )
-        
+
         for v in recent_verifications:
             recent_activity.append({
                 "id": v.id,
