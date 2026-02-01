@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
+
 class AddCreditsRequest(BaseModel):
 
     """Schema for adding credits request."""
@@ -13,11 +14,10 @@ class AddCreditsRequest(BaseModel):
 
     @field_validator("amount", mode="before")
     @classmethod
-def validate_amount(cls, v):
-
-if v < 5.0:
+    def validate_amount(cls, v):
+        if v < 5.0:
             raise ValueError("Minimum amount is $5")
-if v > 10000.0:
+        if v > 10000.0:
             raise ValueError("Maximum amount is $10,000")
         return v
 
@@ -31,19 +31,17 @@ class PaymentInitialize(BaseModel):
 
     @field_validator("amount_usd", mode="before")
     @classmethod
-def validate_amount(cls, v):
-
-if v < 5.0:
+    def validate_amount(cls, v):
+        if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
-if v > 10000.0:
+        if v > 10000.0:
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
     @field_validator("payment_method", mode="before")
     @classmethod
-def validate_payment_method(cls, v):
-
-if v not in ["paystack"]:
+    def validate_payment_method(cls, v):
+        if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
         return v
 

@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
+
 class VerificationRequest(BaseModel):
 
     """Request to purchase SMS verification."""
@@ -14,12 +15,12 @@ class VerificationRequest(BaseModel):
     capability: str = Field(default="sms", description="sms or voice")
     area_codes: Optional[list[str]] = Field(default=None, description="Preferred area codes")
     carriers: Optional[list[str]] = Field(default=None, description="Preferred carriers")
-    idempotency_key: Optional[str] = Field(default=None, description="Idempotency key to prevent duplicate charges")
+    idempotency_key: Optional[str] = Field(
+    default=None, description="Idempotency key to prevent duplicate charges")
 
     @field_validator("country", mode="before")
     @classmethod
 def normalize_country(cls, v):
-
         """Normalize country codes to uppercase ISO format."""
         country_map = {
             "usa": "US",

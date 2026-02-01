@@ -526,8 +526,8 @@ def validate_search_query(query: str, min_length: int = 1, max_length: int = 255
     # Remove potentially dangerous characters
     dangerous_chars = ["<", ">", '"', "'", "&", ";", "|", "`"]
     for char in dangerous_chars:
-    if char in query:
-        raise ValueError(f"Search query contains invalid character: {char}")
+        if char in query:
+            raise ValueError(f"Search query contains invalid character: {char}")
 
     return query
 
