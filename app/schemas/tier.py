@@ -65,7 +65,9 @@ class TierUpgradeRequest(BaseModel):
     """Schema for tier upgrade requests."""
 
     target_tier: str = Field(..., description="Target tier to upgrade to")
-    payment_method: Optional[str] = Field(default="paystack", description="Payment method")
+    payment_method: Optional[str] = Field(
+        default="paystack", description="Payment method"
+    )
 
     @field_validator("target_tier")
     @classmethod
@@ -82,5 +84,7 @@ class TierUpgradeResponse(BaseModel):
 
     success: bool = Field(..., description="Whether upgrade was successful")
     new_tier: str = Field(..., description="New tier after upgrade")
-    payment_url: Optional[str] = Field(None, description="Payment URL if payment required")
+    payment_url: Optional[str] = Field(
+        None, description="Payment URL if payment required"
+    )
     message: str = Field(..., description="Success or error message")

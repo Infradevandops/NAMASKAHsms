@@ -14,7 +14,9 @@ def validate_phone_number(phone: str) -> str:
 
     # Check if it starts with + and has 10-15 digits
     if not re.match(r"^\+\d{10,15}$", cleaned):
-        raise ValueError("Invalid phone number format. Use international format: +1234567890")
+        raise ValueError(
+            "Invalid phone number format. Use international format: +1234567890"
+        )
 
     return cleaned
 
@@ -29,7 +31,9 @@ def validate_service_name(service: str) -> str:
 
     # Check for valid characters (alphanumeric, underscore, hyphen)
     if not re.match(r"^[a-z0-9_-]+$", cleaned):
-        raise ValueError("Service name can only contain letters, numbers, underscores, and hyphens")
+        raise ValueError(
+            "Service name can only contain letters, numbers, underscores, and hyphens"
+        )
 
     return cleaned
 

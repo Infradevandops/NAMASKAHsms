@@ -134,7 +134,9 @@ class KYCVerificationDecision(BaseModel):
     """Schema for admin KYC verification decision."""
 
     decision: str = Field(..., pattern="^(approved|rejected)$")
-    verification_level: Optional[str] = Field("basic", pattern="^(basic|enhanced|premium)$")
+    verification_level: Optional[str] = Field(
+        "basic", pattern="^(basic|enhanced|premium)$"
+    )
     notes: Optional[str] = Field(None, max_length=1000)
 
     model_config = {
