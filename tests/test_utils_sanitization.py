@@ -1,4 +1,6 @@
+
 from app.utils.sanitization import (
+
     sanitize_email_content,
     sanitize_filename,
     sanitize_html,
@@ -8,6 +10,7 @@ from app.utils.sanitization import (
 
 
 def test_sanitize_html():
+
     assert sanitize_html("<div>Safe</div>") == "&lt;div&gt;Safe&lt;/div&gt;"
     assert sanitize_html("<script>alert('xss')</script>") == "&lt;script&gt;alert(&#x27;xss&#x27;)&lt;/script&gt;"
     # Note: the regex in sanitize_html runs AFTER html.escape.
@@ -22,6 +25,7 @@ def test_sanitize_html():
 
 
 def test_sanitize_user_input():
+
     data = {
         "text": "<script>alert(1)</script>",
         "nested": {"key": "<b>bold</b>"},
@@ -35,6 +39,7 @@ def test_sanitize_user_input():
 
 
 def test_sanitize_email_content():
+
     content = "<p>Hello <b>User</b></p><script>bad</script>"
     sanitized = sanitize_email_content(content)
     assert "<p>" in sanitized  # Allowed
@@ -43,6 +48,7 @@ def test_sanitize_email_content():
 
 
 def test_validate_and_sanitize_response():
+
     resp = {
         "message": "<img src=x onerror=alert(1)>",
         "id": 123,
@@ -55,6 +61,7 @@ def test_validate_and_sanitize_response():
 
 
 def test_sanitize_filename():
+
     assert sanitize_filename("path/to/file.txt") == "file.txt"
     assert sanitize_filename("../../etc/passwd") == "passwd"
     assert sanitize_filename("my file?.txt") == "myfile.txt"

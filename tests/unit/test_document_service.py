@@ -1,16 +1,16 @@
-import io
-from unittest.mock import AsyncMock, MagicMock
 
+
+import io
+from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException, UploadFile
-
-from app.models.kyc import KYCProfile
 from app.services.document_service import DocumentService
-
+from app.services import document_service
 
 class TestDocumentService:
     @pytest.fixture
-    def service(self, db_session):
+def service(self, db_session):
+
         return DocumentService(db_session)
 
     @pytest.mark.asyncio
@@ -30,7 +30,7 @@ class TestDocumentService:
         mock_file.content_type = "text/plain"
         mock_file.filename = "test.txt"
 
-        with pytest.raises(HTTPException) as exc:
+with pytest.raises(HTTPException) as exc:
             await service._validate_file(mock_file, "passport")
         assert exc.value.status_code == 400
 
@@ -42,11 +42,12 @@ class TestDocumentService:
         # 6MB for 5MB limit
         mock_file.file = io.BytesIO(b"0" * (6 * 1024 * 1024))
 
-        with pytest.raises(HTTPException) as exc:
+with pytest.raises(HTTPException) as exc:
             await service._validate_file(mock_file, "passport")
         assert exc.value.status_code == 400
 
-    def test_generate_file_hash(self, service):
+def test_generate_file_hash(self, service):
+
         content = b"hello world"
         h = service._generate_file_hash(content)
         assert len(h) == 64  # SHA-256
@@ -61,7 +62,6 @@ class TestDocumentService:
     async def test_process_image_no_pil(self, service):
         # Even if PIL is available, we can mock it as missing if we want,
         # but let's test what happens when it's called
-        from app.services import document_service
 
         document_service.PIL_AVAILABLE = False
 

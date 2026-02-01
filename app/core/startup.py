@@ -1,22 +1,25 @@
 """Startup initialization for the application."""
 
-import os
 
+import os
 from sqlalchemy import text
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
-
 from app.core.database import SessionLocal, engine
 from app.core.logging import get_logger
 from app.models.user import User
 from app.utils.security import hash_password
+from app.utils.security import verify_password
+from app.utils.security import verify_password
+import traceback
 
 logger = get_logger("startup")
 
 
 def ensure_subscription_tiers_table():
+
     """Ensure subscription_tiers table exists with all tier definitions."""
-    try:
-        with engine.connect() as conn:
+try:
+with engine.connect() as conn:
             # Create subscription_tiers table
             logger.info("Checking subscription_tiers table...")
             conn.execute(
@@ -103,7 +106,7 @@ def ensure_subscription_tiers_table():
                 ),
             ]
 
-            for tier_data in tiers:
+for tier_data in tiers:
                 conn.execute(
                     text(
                         """
@@ -147,14 +150,15 @@ def ensure_subscription_tiers_table():
 
             conn.commit()
             logger.info("Subscription tiers table initialized successfully")
-    except Exception as e:
+except Exception as e:
         logger.warning(f"Subscription tiers initialization failed: {e}")
 
 
 def ensure_database_schema():
+
     """Ensure database has all required columns."""
-    try:
-        with engine.connect() as conn:
+try:
+with engine.connect() as conn:
             # Add ALL missing columns from User model
             columns_to_add = [
                 "ALTER TABLE users ADD COLUMN IF NOT EXISTS bonus_sms_balance FLOAT DEFAULT 0.0",
@@ -191,28 +195,29 @@ def ensure_database_schema():
                 "ALTER TABLE subscription_tiers ADD COLUMN IF NOT EXISTS rate_limit_per_hour INTEGER DEFAULT 1000",
             ]
 
-            for sql in columns_to_add:
-                try:
+for sql in columns_to_add:
+try:
                     conn.execute(text(sql))
                     conn.commit()
-                except Exception as e:
+except Exception as e:
                     logger.debug(f"Column may already exist: {e}")
 
             logger.info("Database schema verified")
-    except Exception as e:
+except Exception as e:
         logger.warning(f"Schema check failed: {e}")
 
 
 def ensure_admin_user():
+
     """Ensure admin user exists on startup."""
     db = SessionLocal()
-    try:
+try:
         admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
         admin_password = os.getenv("ADMIN_PASSWORD")
 
         logger.info(f"🔐 Admin user check starting for: {admin_email}")
 
-        if not admin_password:
+if not admin_password:
             logger.warning("⚠️ ADMIN_PASSWORD not set in environment. Skipping admin user creation.")
             logger.warning("⚠️ Set ADMIN_PASSWORD environment variable to enable admin access.")
             return
@@ -221,7 +226,7 @@ def ensure_admin_user():
 
         # Check if admin exists
         existing_admin = db.query(User).filter(User.email == admin_email).first()
-        if existing_admin:
+if existing_admin:
             logger.info(f"👤 Admin user exists: {admin_email} (ID: {existing_admin.id})")
 
             # ALWAYS update password on startup to ensure it matches env var
@@ -248,11 +253,10 @@ def ensure_admin_user():
             logger.info(f"   Password length: {len(admin_password)} chars")
 
             # Verify the password works
-            from app.utils.security import verify_password
 
-            if verify_password(admin_password, existing_admin.password_hash):
+if verify_password(admin_password, existing_admin.password_hash):
                 logger.info("✅ Password verification successful!")
-            else:
+else:
                 logger.error("❌ Password verification FAILED after update!")
 
             return
@@ -283,44 +287,43 @@ def ensure_admin_user():
         logger.info(f"   Hash: {admin_user.password_hash[:30]}...")
 
         # Verify the password works
-        from app.utils.security import verify_password
 
-        if verify_password(admin_password, admin_user.password_hash):
+if verify_password(admin_password, admin_user.password_hash):
             logger.info("✅ Password verification successful!")
-        else:
+else:
             logger.error("❌ Password verification FAILED after creation!")
 
-    except IntegrityError as e:
+except IntegrityError as e:
         logger.warning(f"⚠️ Admin user creation failed - user may already exist: {e}")
         db.rollback()
-    except SQLAlchemyError as e:
+except SQLAlchemyError as e:
         logger.error(f"❌ Database error creating admin user: {e}")
         db.rollback()
-    except Exception as e:
+except Exception as e:
         logger.error(f"❌ Unexpected error in ensure_admin_user: {e}")
-        import traceback
 
         traceback.print_exc()
         db.rollback()
-    finally:
+finally:
         db.close()
 
 
 def run_startup_initialization():
+
     """Run all startup initialization tasks."""
     logger.info("Running startup initialization")
 
-    try:
+try:
         ensure_subscription_tiers_table()  # Create tiers table first
         ensure_database_schema()
         ensure_admin_user()
         logger.info("Startup initialization completed")
-    except SQLAlchemyError as e:
+except SQLAlchemyError as e:
         logger.error(f"Database error during startup initialization: {e}")
-    except OSError as e:
+except OSError as e:
         logger.error(f"Environment configuration error during startup: {e}")
-    except (ImportError, AttributeError, TypeError) as e:
+except (ImportError, AttributeError, TypeError) as e:
         logger.error(f"Configuration or import error during startup initialization: {e}")
-    except Exception as e:
+except Exception as e:
         logger.critical(f"Critical unexpected error during startup initialization: {e}")
         raise

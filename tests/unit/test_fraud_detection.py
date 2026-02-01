@@ -1,9 +1,8 @@
+
+
 from unittest.mock import MagicMock
-
 import pytest
-
 from app.services.fraud_detection_service import FraudDetectionService
-
 
 @pytest.mark.asyncio
 async def test_score_verification_fraud():
@@ -36,6 +35,7 @@ async def test_score_verification_safe():
 
 
 def test_calculate_score_logic():
+
     service = FraudDetectionService()
 
     # Test high risk country logic

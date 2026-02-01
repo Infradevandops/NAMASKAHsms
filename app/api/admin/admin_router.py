@@ -1,11 +1,10 @@
 """Admin endpoints with RBAC."""
 
-from datetime import datetime, timedelta, timezone
 
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -16,25 +15,28 @@ logger = get_logger(__name__)
 
 
 class SuccessResponse(BaseModel):
+
     message: str
 
 
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_admin:
+if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user_id
 
 
 async def require_moderator_or_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or (not user.is_admin and not user.is_moderator):
+if not user or (not user.is_admin and not user.is_moderator):
         raise HTTPException(status_code=403, detail="Moderator or admin access required")
     return user_id
 
 
 def get_user_role(db, user_id):
-    class Role:
+
+class Role:
+
         value = "user"
 
     return Role()
@@ -57,7 +59,7 @@ async def list_users(user_id: str = Depends(require_admin), db: Session = Depend
                 "credits": u.credits,
                 "created_at": u.created_at,
             }
-            for u in users
+for u in users
         ],
     }
 
@@ -66,7 +68,7 @@ async def list_users(user_id: str = Depends(require_admin), db: Session = Depend
 async def promote_to_moderator(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Promote user to moderator (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         return {"error": "User not found"}
 
     user.is_moderator = True
@@ -78,7 +80,7 @@ async def promote_to_moderator(user_id: str, admin_id: str = Depends(require_adm
 async def promote_to_admin(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Promote user to admin (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         return {"error": "User not found"}
 
     user.is_admin = True
@@ -90,7 +92,7 @@ async def promote_to_admin(user_id: str, admin_id: str = Depends(require_admin),
 async def demote_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Demote user to regular user (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         return {"error": "User not found"}
 
     user.is_admin = False
@@ -115,6 +117,7 @@ async def get_stats(user_id: str = Depends(require_moderator_or_admin), db: Sess
 
 
 class SetUserTierRequest(BaseModel):
+
     tier: str
     duration_days: int = 30
 
@@ -128,19 +131,19 @@ async def set_user_tier(
 ):
     """Set user tier directly (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     valid_tiers = ["freemium", "payg", "pro", "custom"]
-    if request.tier not in valid_tiers:
+if request.tier not in valid_tiers:
         raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
 
     old_tier = user.subscription_tier or "payg"
     user.subscription_tier = request.tier
 
-    if request.tier != "payg":
+if request.tier != "payg":
         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=request.duration_days)
-    else:
+else:
         user.tier_expires_at = None
 
     db.commit()
@@ -159,7 +162,7 @@ async def set_user_tier(
 async def get_user_tier(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Get user's current tier info (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     tier = user.subscription_tier or "payg"

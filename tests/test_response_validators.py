@@ -1,19 +1,22 @@
 """Tests for response schema validators.
 
+import pytest
+from app.schemas.tier import (
+from app.utils.response_validator import (
+from pydantic import parse_obj_as
+from pydantic import ValidationError, parse_obj_as
+
 Feature: tier-system-rbac
 Tests validate that API response schemas correctly validate response structures.
 """
 
-import pytest
 
-from app.schemas.tier import (
     AnalyticsSummaryResponse,
     CurrentTierResponse,
     DashboardActivity,
     DashboardActivityResponse,
     TiersListResponse,
 )
-from app.utils.response_validator import (
     ResponseValidationError,
     check_required_fields,
     validate_response,
@@ -22,9 +25,11 @@ from app.utils.response_validator import (
 
 
 class TestTiersListResponseValidator:
+
     """Tests for /api/tiers/ response validation."""
 
-    def test_valid_tiers_list_response(self):
+def test_valid_tiers_list_response(self):
+
         """Test that valid tiers list response passes validation."""
         data = {
             "tiers": [
@@ -95,7 +100,8 @@ class TestTiersListResponseValidator:
         assert validated is not None
         assert len(validated.tiers) == 4
 
-    def test_invalid_tier_count_fails(self):
+def test_invalid_tier_count_fails(self):
+
         """Test that wrong number of tiers fails validation."""
         data = {
             "tiers": [
@@ -117,10 +123,11 @@ class TestTiersListResponseValidator:
             ]
         }
 
-        with pytest.raises(ResponseValidationError):
+with pytest.raises(ResponseValidationError):
             validate_response(data, TiersListResponse)
 
-    def test_invalid_tier_name_fails(self):
+def test_invalid_tier_name_fails(self):
+
         """Test that invalid tier name fails validation."""
         data = {
             "tiers": [
@@ -143,14 +150,16 @@ class TestTiersListResponseValidator:
             * 4
         }
 
-        with pytest.raises(ResponseValidationError):
+with pytest.raises(ResponseValidationError):
             validate_response(data, TiersListResponse)
 
 
 class TestCurrentTierResponseValidator:
+
     """Tests for /api/tiers/current response validation."""
 
-    def test_valid_current_tier_response(self):
+def test_valid_current_tier_response(self):
+
         """Test that valid current tier response passes validation."""
         data = {
             "current_tier": "freemium",
@@ -175,7 +184,8 @@ class TestCurrentTierResponseValidator:
         assert validated is not None
         assert validated.current_tier == "freemium"
 
-    def test_missing_required_field_fails(self):
+def test_missing_required_field_fails(self):
+
         """Test that missing required field fails validation."""
         data = {
             "current_tier": "freemium",
@@ -196,10 +206,11 @@ class TestCurrentTierResponseValidator:
             },
         }
 
-        with pytest.raises(ResponseValidationError):
+with pytest.raises(ResponseValidationError):
             validate_response(data, CurrentTierResponse)
 
-    def test_negative_values_fail(self):
+def test_negative_values_fail(self):
+
         """Test that negative values fail validation."""
         data = {
             "current_tier": "freemium",
@@ -220,14 +231,16 @@ class TestCurrentTierResponseValidator:
             },
         }
 
-        with pytest.raises(ResponseValidationError):
+with pytest.raises(ResponseValidationError):
             validate_response(data, CurrentTierResponse)
 
 
 class TestAnalyticsSummaryResponseValidator:
+
     """Tests for /api/analytics/summary response validation."""
 
-    def test_valid_analytics_summary_response(self):
+def test_valid_analytics_summary_response(self):
+
         """Test that valid analytics summary response passes validation."""
         data = {
             "total_verifications": 100,
@@ -248,7 +261,8 @@ class TestAnalyticsSummaryResponseValidator:
         assert validated is not None
         assert validated.total_verifications == 100
 
-    def test_invalid_success_rate_fails(self):
+def test_invalid_success_rate_fails(self):
+
         """Test that success rate outside 0-1 range fails validation."""
         data = {
             "total_verifications": 100,
@@ -265,14 +279,16 @@ class TestAnalyticsSummaryResponseValidator:
             "last_updated": "2024-01-01T00:00:00",
         }
 
-        with pytest.raises(ResponseValidationError):
+with pytest.raises(ResponseValidationError):
             validate_response(data, AnalyticsSummaryResponse)
 
 
 class TestDashboardActivityResponseValidator:
+
     """Tests for /api/dashboard/activity/recent response validation."""
 
-    def test_valid_dashboard_activity_response(self):
+def test_valid_dashboard_activity_response(self):
+
         """Test that valid dashboard activity response passes validation."""
         data = [
             {
@@ -292,13 +308,13 @@ class TestDashboardActivityResponseValidator:
         ]
 
         # Validate each item in the list
-        from pydantic import parse_obj_as
 
         validated = parse_obj_as(DashboardActivityResponse, data)
         assert validated is not None
         assert len(validated) == 2
 
-    def test_invalid_status_fails(self):
+def test_invalid_status_fails(self):
+
         """Test that invalid status fails validation."""
         data = [
             {
@@ -310,16 +326,17 @@ class TestDashboardActivityResponseValidator:
             }
         ]
 
-        from pydantic import ValidationError, parse_obj_as
 
-        with pytest.raises(ValidationError):
+with pytest.raises(ValidationError):
             parse_obj_as(DashboardActivityResponse, data)
 
 
 class TestResponseValidatorUtilities:
+
     """Tests for response validator utility functions."""
 
-    def test_validate_response_safe_success(self):
+def test_validate_response_safe_success(self):
+
         """Test safe validation with valid data."""
         data = {
             "id": "activity_1",
@@ -334,7 +351,8 @@ class TestResponseValidatorUtilities:
         assert validated is not None
         assert error is None
 
-    def test_validate_response_safe_failure(self):
+def test_validate_response_safe_failure(self):
+
         """Test safe validation with invalid data."""
         data = {
             "id": "activity_1",
@@ -346,7 +364,8 @@ class TestResponseValidatorUtilities:
         assert validated is None
         assert error is not None
 
-    def test_check_required_fields_all_present(self):
+def test_check_required_fields_all_present(self):
+
         """Test checking required fields when all are present."""
         data = {"field1": "value1", "field2": "value2", "field3": "value3"}
 
@@ -354,7 +373,8 @@ class TestResponseValidatorUtilities:
         assert all_present is True
         assert len(missing) == 0
 
-    def test_check_required_fields_some_missing(self):
+def test_check_required_fields_some_missing(self):
+
         """Test checking required fields when some are missing."""
         data = {"field1": "value1", "field3": "value3"}
 

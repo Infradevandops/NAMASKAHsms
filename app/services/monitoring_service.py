@@ -1,24 +1,26 @@
 """Advanced monitoring and observability service."""
 
+
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Dict, List
-
 from app.core.database import get_db
 from app.models.verification import Verification
 
-
 @dataclass
 class MetricPoint:
+
     timestamp: datetime
     value: float
     labels: Dict[str, str] = None
 
 
 class MonitoringService:
+
     """Advanced monitoring and metrics collection."""
 
-    def __init__(self):
+def __init__(self):
+
         self.metrics_buffer = []
         self.alerts = []
         self.thresholds = {
@@ -81,7 +83,7 @@ class MonitoringService:
         alerts = []
 
         # Response time alert
-        if metrics["performance"]["p95_response_time"] > self.thresholds["response_time_p95"]:
+if metrics["performance"]["p95_response_time"] > self.thresholds["response_time_p95"]:
             alerts.append(
                 {
                     "type": "performance",
@@ -92,7 +94,7 @@ class MonitoringService:
             )
 
         # Error rate alert
-        if metrics["requests"]["error_rate"] > self.thresholds["error_rate"]:
+if metrics["requests"]["error_rate"] > self.thresholds["error_rate"]:
             alerts.append(
                 {
                     "type": "reliability",
@@ -103,7 +105,7 @@ class MonitoringService:
             )
 
         # Success rate alert
-        if metrics["requests"]["success_rate"] < self.thresholds["success_rate"]:
+if metrics["requests"]["success_rate"] < self.thresholds["success_rate"]:
             alerts.append(
                 {
                     "type": "reliability",
@@ -125,7 +127,8 @@ class MonitoringService:
         # Simulated calculation
         return 1650.2
 
-    def _get_uptime(self) -> str:
+def _get_uptime(self) -> str:
+
         """Get system uptime."""
         # Simulated uptime
         return "15d 8h 32m"
@@ -137,17 +140,17 @@ class MonitoringService:
 
         # Overall health score
         health_score = 100
-        if metrics["requests"]["error_rate"] > 1:
+if metrics["requests"]["error_rate"] > 1:
             health_score -= 20
-        if metrics["performance"]["p95_response_time"] > 1500:
+if metrics["performance"]["p95_response_time"] > 1500:
             health_score -= 15
-        if len(alerts) > 0:
+if len(alerts) > 0:
             health_score -= 10 * len(alerts)
 
         health_status = "healthy"
-        if health_score < 80:
+if health_score < 80:
             health_status = "degraded"
-        if health_score < 60:
+if health_score < 60:
             health_status = "unhealthy"
 
         return {

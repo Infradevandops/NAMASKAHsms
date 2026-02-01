@@ -1,15 +1,15 @@
 """Safe add subscription tier columns
 
+import sqlalchemy as sa
+from sqlalchemy import inspect
+from alembic import op
+
 Revision ID: safe_add_tiers
-Revises: 
+Revises:
 Create Date: 2025-12-24
 
 """
 
-import sqlalchemy as sa
-from sqlalchemy import inspect
-
-from alembic import op
 
 revision = "safe_add_tiers"
 down_revision = None
@@ -18,6 +18,7 @@ depends_on = None
 
 
 def upgrade():
+
     """Safely add subscription tier columns if they don't exist."""
 
     bind = op.get_bind()
@@ -27,7 +28,7 @@ def upgrade():
     existing_columns = [col["name"] for col in inspector.get_columns("users")]
 
     # Add subscription_tier if missing
-    if "subscription_tier" not in existing_columns:
+if "subscription_tier" not in existing_columns:
         op.add_column(
             "users",
             sa.Column(
@@ -42,18 +43,19 @@ def upgrade():
         )
 
     # Add tier_upgraded_at if missing
-    if "tier_upgraded_at" not in existing_columns:
+if "tier_upgraded_at" not in existing_columns:
         op.add_column(
             "users", sa.Column("tier_upgraded_at", sa.DateTime(), nullable=True)
         )
 
     # Add tier_expires_at if missing
-    if "tier_expires_at" not in existing_columns:
+if "tier_expires_at" not in existing_columns:
         op.add_column(
             "users", sa.Column("tier_expires_at", sa.DateTime(), nullable=True)
         )
 
 
 def downgrade():
+
     """Remove subscription tier columns."""
     pass  # Don't remove in production

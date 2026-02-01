@@ -1,20 +1,21 @@
 """Multi - factor authentication service."""
 
+
 import base64
 from io import BytesIO
-
 import pyotp
 import qrcode
 
-
 class MFAService:
     @staticmethod
-    def generate_secret() -> str:
+def generate_secret() -> str:
+
         """Generate MFA secret key."""
         return pyotp.random_base32()
 
     @staticmethod
-    def generate_qr_code(user_email: str, secret: str) -> str:
+def generate_qr_code(user_email: str, secret: str) -> str:
+
         """Generate QR code for MFA setup."""
         totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(name=user_email, issuer_name="Namaskah SMS")
 
@@ -29,7 +30,8 @@ class MFAService:
         return base64.b64encode(buffer.getvalue()).decode()
 
     @staticmethod
-    def verify_token(secret: str, token: str) -> bool:
+def verify_token(secret: str, token: str) -> bool:
+
         """Verify MFA token."""
         totp = pyotp.TOTP(secret)
         return totp.verify(token, valid_window=1)

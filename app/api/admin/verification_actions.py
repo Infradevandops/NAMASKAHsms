@@ -1,12 +1,13 @@
-from datetime import datetime
 
+
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.user import User
 from app.models.verification import Verification
+from app.models.user import User
 
 router = APIRouter(prefix="/admin/verifications", tags=["admin-verifications"])
 
@@ -20,10 +21,10 @@ async def cancel_verification(
     """Cancel a pending verification"""
 
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
-    if verification.status != "pending":
+if verification.status != "pending":
         raise HTTPException(status_code=400, detail="Can only cancel pending verifications")
 
     # Update verification status
@@ -31,11 +32,10 @@ async def cancel_verification(
     verification.completed_at = datetime.utcnow()
 
     # Refund credits to user if applicable
-    if verification.cost and verification.cost > 0:
-        from app.models.user import User
+if verification.cost and verification.cost > 0:
 
         user = db.query(User).filter(User.id == verification.user_id).first()
-        if user:
+if user:
             user.credits = (user.credits or 0) + verification.cost
 
     db.commit()
@@ -55,7 +55,7 @@ async def get_verification_details(
     """Get detailed verification information"""
 
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
     user = db.query(User).filter(User.id == verification.user_id).first()
@@ -93,16 +93,16 @@ async def bulk_cancel_verifications(
     cancelled_count = 0
     refunded_amount = 0.0
 
-    for verification_id in verification_ids:
+for verification_id in verification_ids:
         verification = db.query(Verification).filter(Verification.id == verification_id).first()
-        if verification and verification.status == "pending":
+if verification and verification.status == "pending":
             verification.status = "cancelled"
             verification.completed_at = datetime.utcnow()
 
             # Refund credits
-            if verification.cost and verification.cost > 0:
+if verification.cost and verification.cost > 0:
                 user = db.query(User).filter(User.id == verification.user_id).first()
-                if user:
+if user:
                     user.credits = (user.credits or 0) + verification.cost
                     refunded_amount += verification.cost
 

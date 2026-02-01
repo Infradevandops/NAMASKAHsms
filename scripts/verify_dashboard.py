@@ -1,34 +1,42 @@
 #!/usr/bin/env python3
 """
+import sys
+from main import app
+from fastapi.testclient import TestClient
+from main import app
+from fastapi.testclient import TestClient
+from main import app
+from app.models.balance_transaction import BalanceTransaction
+from app.models.notification import Notification
+from app.models.user import User
+from pathlib import Path
+
 Dashboard Verification Script
 Tests all dashboard functionality
 """
-import sys
 
 sys.path.insert(0, ".")
 
 
 def test_imports():
+
     """Test if all modules import correctly."""
     print("Testing imports...")
-    try:
-        from app.models.balance_transaction import BalanceTransaction
-        from app.models.notification import Notification
-        from app.models.user import User
-        from main import app
+try:
+        pass
 
         print("✅ All imports successful")
         return True
-    except Exception as e:
+except Exception as e:
         print(f"❌ Import failed: {e}")
         return False
 
 
 def test_routes():
+
     """Test if dashboard routes are registered."""
     print("\nTesting routes...")
-    try:
-        from main import app
+try:
 
         routes = [route.path for route in app.routes]
 
@@ -41,74 +49,70 @@ def test_routes():
         ]
 
         all_found = True
-        for route in required_routes:
-            if route in routes:
+for route in required_routes:
+if route in routes:
                 print(f"  ✅ {route}")
-            else:
+else:
                 print(f"  ❌ {route} - NOT FOUND")
                 all_found = False
 
         return all_found
-    except Exception as e:
+except Exception as e:
         print(f"❌ Route test failed: {e}")
         return False
 
 
 def test_balance_api():
+
     """Test balance API endpoint."""
     print("\nTesting balance API...")
-    try:
-        from fastapi.testclient import TestClient
+try:
 
-        from main import app
 
         client = TestClient(app)
 
         # Test without auth (should fail)
         response = client.get("/api/billing/balance")
-        if response.status_code == 401:
+if response.status_code == 401:
             print("  ✅ Balance API requires authentication")
             return True
-        else:
+else:
             print(f"  ⚠️  Balance API returned {response.status_code} (expected 401)")
             return True  # Still pass, just warning
-    except Exception as e:
+except Exception as e:
         print(f"  ⚠️  Balance API test skipped: {e}")
         return True
 
 
 def test_notification_api():
+
     """Test notification API endpoint."""
     print("\nTesting notification API...")
-    try:
-        from fastapi.testclient import TestClient
+try:
 
-        from main import app
 
         client = TestClient(app)
 
         # Test without auth (should fail)
         response = client.get("/api/notifications")
-        if response.status_code == 401:
+if response.status_code == 401:
             print("  ✅ Notification API requires authentication")
             return True
-        else:
+else:
             print(
                 f"  ⚠️  Notification API returned {response.status_code} (expected 401)"
             )
             return True
-    except Exception as e:
+except Exception as e:
         print(f"  ⚠️  Notification API test skipped: {e}")
         return True
 
 
 def test_models():
+
     """Test database models."""
     print("\nTesting models...")
-    try:
-        from app.models.balance_transaction import BalanceTransaction
-        from app.models.notification import Notification
-        from app.models.user import User
+try:
 
         # Check if models have required fields
         assert hasattr(Notification, "id"), "Notification missing id"
@@ -124,15 +128,15 @@ def test_models():
 
         print("  ✅ All models have required fields")
         return True
-    except Exception as e:
+except Exception as e:
         print(f"  ❌ Model test failed: {e}")
         return False
 
 
 def test_templates():
+
     """Test if templates exist."""
     print("\nTesting templates...")
-    from pathlib import Path
 
     templates = [
         "templates/dashboard.html",
@@ -143,11 +147,11 @@ def test_templates():
     ]
 
     all_exist = True
-    for template in templates:
+for template in templates:
         path = Path(template)
-        if path.exists():
+if path.exists():
             print(f"  ✅ {template}")
-        else:
+else:
             print(f"  ❌ {template} - NOT FOUND")
             all_exist = False
 
@@ -155,6 +159,7 @@ def test_templates():
 
 
 def main():
+
     """Run all tests."""
     print("=" * 60)
     print("DASHBOARD VERIFICATION")
@@ -170,11 +175,11 @@ def main():
     ]
 
     results = []
-    for name, test_func in tests:
-        try:
+for name, test_func in tests:
+try:
             result = test_func()
             results.append((name, result))
-        except Exception as e:
+except Exception as e:
             print(f"\n❌ {name} test crashed: {e}")
             results.append((name, False))
 
@@ -185,13 +190,13 @@ def main():
     passed = sum(1 for _, result in results if result)
     total = len(results)
 
-    for name, result in results:
+for name, result in results:
         status = "✅ PASS" if result else "❌ FAIL"
         print(f"{status:10} {name}")
 
     print(f"\nResult: {passed}/{total} tests passed")
 
-    if passed == total:
+if passed == total:
         print("\n🎉 ALL TESTS PASSED - Dashboard is ready!")
         print("\nNext steps:")
         print("1. Start server: ./server.sh start")
@@ -200,7 +205,7 @@ def main():
         print("4. Password: Namaskah@Admin2024")
         print("5. Check dashboard: http://localhost:8000/dashboard")
         return 0
-    else:
+else:
         print("\n⚠️  SOME TESTS FAILED - Review errors above")
         return 1
 

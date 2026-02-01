@@ -1,10 +1,9 @@
 """Credit system endpoints for managing user credits and transactions."""
 
-from typing import Optional
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.exceptions import InsufficientCreditsError
@@ -17,14 +16,17 @@ router = APIRouter(prefix="/user", tags=["Credits"])
 
 
 class CreditBalanceResponse:
+
     """Response model for credit balance."""
 
 
 class TransactionResponse:
+
     """Response model for transaction."""
 
 
 class TransactionHistoryResponse:
+
     """Response model for transaction history."""
 
 
@@ -37,9 +39,9 @@ async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Sess
         - free_verifications: Free verifications remaining
         - currency: Currency code (USD)
     """
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             logger.error(f"User {user_id} not found")
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -50,9 +52,9 @@ async def get_user_balance(user_id: str = Depends(get_current_user_id), db: Sess
             "free_verifications": float(user.free_verifications or 0.0),
             "currency": "USD",
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get balance for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -84,7 +86,7 @@ async def get_credit_history(
         - limit: Number of records returned
         - transactions: List of transactions with details
     """
-    try:
+try:
         credit_service = CreditService(db)
         history = credit_service.get_transaction_history(
             user_id=user_id, transaction_type=transaction_type, skip=skip, limit=limit
@@ -94,10 +96,10 @@ async def get_credit_history(
 
         return history
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get credit history for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -117,7 +119,7 @@ async def get_credit_summary(user_id: str = Depends(get_current_user_id), db: Se
         - total_refunds: Total refunds received
         - transaction_count: Total number of transactions
     """
-    try:
+try:
         credit_service = CreditService(db)
         summary = credit_service.get_transaction_summary(user_id)
 
@@ -125,10 +127,10 @@ async def get_credit_summary(user_id: str = Depends(get_current_user_id), db: Se
 
         return summary
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get credit summary for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -155,10 +157,10 @@ async def add_credits(
         - new_balance: New balance
         - timestamp: Transaction timestamp
     """
-    try:
+try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to add credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -174,12 +176,12 @@ async def add_credits(
 
         return result
 
-    except HTTPException:
+except HTTPException:
         raise
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to add credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -206,10 +208,10 @@ async def deduct_credits(
         - new_balance: New balance
         - timestamp: Transaction timestamp
     """
-    try:
+try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to deduct credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -225,15 +227,15 @@ async def deduct_credits(
 
         return result
 
-    except HTTPException:
+except HTTPException:
         raise
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except InsufficientCreditsError as e:
+except InsufficientCreditsError as e:
         logger.warning(f"Insufficient credits: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to deduct credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -264,16 +266,16 @@ async def transfer_credits(
         - to_user_new_balance: Destination user new balance
         - timestamp: Transfer timestamp
     """
-    try:
+try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to transfer credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
         # Prevent self-transfer
-        if user_id == to_user_id:
-            raise ValueError("Cannot transfer credits to yourself")
+if user_id == to_user_id:
+            raise ValueError("Cannot transfer credits to yoursel")
 
         credit_service = CreditService(db)
         result = credit_service.transfer_credits(
@@ -287,15 +289,15 @@ async def transfer_credits(
 
         return result
 
-    except HTTPException:
+except HTTPException:
         raise
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except InsufficientCreditsError as e:
+except InsufficientCreditsError as e:
         logger.warning(f"Insufficient credits: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to transfer credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -320,10 +322,10 @@ async def reset_credits(
         - new_balance: New balance
         - timestamp: Reset timestamp
     """
-    try:
+try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to reset credits")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -334,12 +336,12 @@ async def reset_credits(
 
         return result
 
-    except HTTPException:
+except HTTPException:
         raise
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to reset credits: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

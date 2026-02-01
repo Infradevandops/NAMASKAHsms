@@ -1,9 +1,10 @@
 """Pricing Service for SMS Verification."""
 
+
 from app.models.user import User
 
-
 class PricingService:
+
     """Calculate SMS verification pricing with premiums and discounts."""
 
     BASE_PRICES = {
@@ -48,7 +49,8 @@ class PricingService:
         "custom": 0.25,  # 25% discount
     }
 
-    def calculate_price(
+def calculate_price(
+
         self,
         service: str,
         user: User,
@@ -71,12 +73,12 @@ class PricingService:
 
         # Calculate area code premium
         area_premium = 0.0
-        if area_code and area_code in self.AREA_CODE_PREMIUMS:
+if area_code and area_code in self.AREA_CODE_PREMIUMS:
             area_premium = self.AREA_CODE_PREMIUMS[area_code]
 
         # Calculate carrier premium
         carrier_premium = 0.0
-        if carrier and carrier.lower() in self.CARRIER_PREMIUMS:
+if carrier and carrier.lower() in self.CARRIER_PREMIUMS:
             carrier_premium = self.CARRIER_PREMIUMS[carrier.lower()]
 
         # Calculate subtotal

@@ -1,15 +1,15 @@
 """Tests for SMS forwarding webhook functionality."""
 
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
-
 import httpx
 import pytest
-
 from app.api.core.forwarding import _send_forwarding_webhook
-
+import json
 
 class TestForwardingWebhook:
+
     """Test webhook forwarding functionality."""
 
     @pytest.mark.asyncio
@@ -25,7 +25,7 @@ class TestForwardingWebhook:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
 
             result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
@@ -52,7 +52,7 @@ class TestForwardingWebhook:
             captured_headers = headers
             return mock_response
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = capture_post
 
             result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
@@ -76,7 +76,7 @@ class TestForwardingWebhook:
         mock_response = Mock()
         mock_response.status_code = 200
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
 
             result = await _send_forwarding_webhook("https://example.com/webhook", None, sms_data)
@@ -108,10 +108,10 @@ class TestForwardingWebhook:
             call_count += 1
             return response
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = mock_post
 
-            with patch("asyncio.sleep", new_callable=AsyncMock):
+with patch("asyncio.sleep", new_callable=AsyncMock):
                 result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
 
             assert result is True
@@ -127,12 +127,12 @@ class TestForwardingWebhook:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 side_effect=httpx.TimeoutException("Timeout")
             )
 
-            with patch("asyncio.sleep", new_callable=AsyncMock):
+with patch("asyncio.sleep", new_callable=AsyncMock):
                 result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
 
             assert result is False
@@ -147,12 +147,12 @@ class TestForwardingWebhook:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
                 side_effect=httpx.RequestError("Connection error")
             )
 
-            with patch("asyncio.sleep", new_callable=AsyncMock):
+with patch("asyncio.sleep", new_callable=AsyncMock):
                 result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
 
             assert result is False
@@ -167,11 +167,11 @@ class TestForwardingWebhook:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        for status_code in [200, 201, 202, 204]:
+for status_code in [200, 201, 202, 204]:
             mock_response = Mock()
             mock_response.status_code = status_code
 
-            with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
                 mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
 
                 result = await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
@@ -198,13 +198,12 @@ class TestForwardingWebhook:
             captured_content = content
             return mock_response
 
-        with patch("httpx.AsyncClient") as mock_client:
+with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = capture_post
 
             await _send_forwarding_webhook("https://example.com/webhook", "secret123", sms_data)
 
             assert captured_content is not None
-            import json
 
             payload = json.loads(captured_content)
             assert payload["event"] == "sms.received"

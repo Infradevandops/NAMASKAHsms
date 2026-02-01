@@ -1,15 +1,16 @@
 """Unit tests for PricingCalculator."""
 
-import pytest
 
+import pytest
 from app.models.user import User
 from app.services.pricing_calculator import PricingCalculator
 
-
 class TestPricingLogic:
+
     """Test pricing calculator logic."""
 
-    def test_get_filter_charges_payg(self, db_session):
+def test_get_filter_charges_payg(self, db_session):
+
         """Test filter charges for PAYG user."""
         user = User(email="payg_filter@example.com", subscription_tier="payg", credits=10.0)
         db_session.add(user)
@@ -31,7 +32,8 @@ class TestPricingLogic:
         charges = PricingCalculator.get_filter_charges(db_session, user.id, {})
         assert charges == 0.0
 
-    def test_get_filter_charges_pro(self, db_session):
+def test_get_filter_charges_pro(self, db_session):
+
         """Test filter charges for Pro user (free filters)."""
         user = User(email="pro_filter@example.com", subscription_tier="pro", credits=10.0)
         db_session.add(user)
@@ -40,16 +42,18 @@ class TestPricingLogic:
         charges = PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA", "isp": "Comcast"})
         assert charges == 0.0
 
-    def test_get_filter_charges_freemium_error(self, db_session):
+def test_get_filter_charges_freemium_error(self, db_session):
+
         """Test filter charges raises error for Freemium user."""
         user = User(email="free_filter@example.com", subscription_tier="freemium", credits=0.0)
         db_session.add(user)
         db_session.commit()
 
-        with pytest.raises(ValueError, match="Filters not available"):
+with pytest.raises(ValueError, match="Filters not available"):
             PricingCalculator.get_filter_charges(db_session, user.id, {"state": "CA"})
 
-    def test_get_pricing_breakdown(self, db_session):
+def test_get_pricing_breakdown(self, db_session):
+
         """Test full pricing breakdown."""
         user = User(email="breakdown@example.com", subscription_tier="payg", credits=100.0)
         db_session.add(user)

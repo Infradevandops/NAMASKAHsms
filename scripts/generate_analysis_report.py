@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Generate comprehensive analysis report from all security and quality checks."""
+
+
 import json
 import os
 from datetime import datetime
 
-
 class AnalysisReportGenerator:
-    def __init__(self):
+
+def __init__(self):
+
         self.reports = {}
         self.summary = {
             "total_issues": 0,
@@ -17,7 +20,8 @@ class AnalysisReportGenerator:
             "info": 0,
         }
 
-    def load_reports(self):
+def load_reports(self):
+
         """Load all analysis reports."""
         report_files = {
             "bandit": "bandit-report.json",
@@ -45,25 +49,26 @@ class AnalysisReportGenerator:
             "owasp": "owasp-report.json",
         }
 
-        for name, filename in report_files.items():
-            if os.path.exists(filename):
-                try:
-                    if filename.endswith(".json"):
-                        with open(filename, "r") as f:
+for name, filename in report_files.items():
+if os.path.exists(filename):
+try:
+if filename.endswith(".json"):
+with open(filename, "r") as f:
                             self.reports[name] = json.load(f)
-                    else:
-                        with open(filename, "r") as f:
+else:
+with open(filename, "r") as f:
                             self.reports[name] = f.read()
-                except Exception as e:
+except Exception as e:
                     print(f"Error loading {filename}: {e}")
 
-    def analyze_security_issues(self):
+def analyze_security_issues(self):
+
         """Analyze security-related issues."""
         security_issues = []
 
         # Bandit issues
-        if "bandit" in self.reports:
-            for result in self.reports["bandit"].get("results", []):
+if "bandit" in self.reports:
+for result in self.reports["bandit"].get("results", []):
                 security_issues.append(
                     {
                         "tool": "bandit",
@@ -77,8 +82,8 @@ class AnalysisReportGenerator:
                 )
 
         # Semgrep issues
-        if "semgrep" in self.reports:
-            for result in self.reports["semgrep"].get("results", []):
+if "semgrep" in self.reports:
+for result in self.reports["semgrep"].get("results", []):
                 security_issues.append(
                     {
                         "tool": "semgrep",
@@ -92,14 +97,15 @@ class AnalysisReportGenerator:
 
         return security_issues
 
-    def analyze_quality_issues(self):
+def analyze_quality_issues(self):
+
         """Analyze code quality issues."""
         quality_issues = []
 
         # Flake8 issues
-        if "flake8" in self.reports:
-            for file_path, issues in self.reports["flake8"].items():
-                for issue in issues:
+if "flake8" in self.reports:
+for file_path, issues in self.reports["flake8"].items():
+for issue in issues:
                     quality_issues.append(
                         {
                             "tool": "flake8",
@@ -113,8 +119,8 @@ class AnalysisReportGenerator:
                     )
 
         # Pylint issues
-        if "pylint" in self.reports:
-            for issue in self.reports["pylint"]:
+if "pylint" in self.reports:
+for issue in self.reports["pylint"]:
                 severity_map = {"error": "HIGH", "warning": "MEDIUM", "info": "LOW"}
                 quality_issues.append(
                     {
@@ -130,13 +136,14 @@ class AnalysisReportGenerator:
 
         return quality_issues
 
-    def analyze_dependencies(self):
+def analyze_dependencies(self):
+
         """Analyze dependency vulnerabilities."""
         dependency_issues = []
 
         # Safety issues
-        if "safety" in self.reports:
-            for vuln in self.reports["safety"]:
+if "safety" in self.reports:
+for vuln in self.reports["safety"]:
                 dependency_issues.append(
                     {
                         "tool": "safety",
@@ -149,9 +156,9 @@ class AnalysisReportGenerator:
                 )
 
         # NPM Audit issues
-        if "npm_audit" in self.reports:
+if "npm_audit" in self.reports:
             advisories = self.reports["npm_audit"].get("advisories", {})
-            for advisory_id, advisory in advisories.items():
+for advisory_id, advisory in advisories.items():
                 severity_map = {
                     "critical": "CRITICAL",
                     "high": "HIGH",
@@ -173,13 +180,14 @@ class AnalysisReportGenerator:
 
         return dependency_issues
 
-    def calculate_summary(self, all_issues):
+def calculate_summary(self, all_issues):
+
         """Calculate summary statistics."""
         severity_counts = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0, "INFO": 0}
 
-        for issue in all_issues:
+for issue in all_issues:
             severity = issue.get("severity", "LOW").upper()
-            if severity in severity_counts:
+if severity in severity_counts:
                 severity_counts[severity] += 1
 
         self.summary = {
@@ -191,9 +199,10 @@ class AnalysisReportGenerator:
             "info": severity_counts["INFO"],
         }
 
-    def generate_html_report(self, all_issues):
+def generate_html_report(self, all_issues):
+
         """Generate HTML report."""
-        html_template = f"""
+        html_template = """
 <!DOCTYPE html>
 <html>
 <head>
@@ -218,7 +227,7 @@ class AnalysisReportGenerator:
         <p>Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <p>Total Issues Found: {self.summary['total_issues']}</p>
     </div>
-    
+
     <div class="summary">
         <div class="metric critical">
             <h3>{self.summary['critical']}</h3>
@@ -237,34 +246,34 @@ class AnalysisReportGenerator:
             <p>Low</p>
         </div>
     </div>
-    
+
     <div class="issues">
         <h2>Issues by Tool</h2>
 """
 
         # Group issues by tool
         issues_by_tool = {}
-        for issue in all_issues:
+for issue in all_issues:
             tool = issue.get("tool", "unknown")
-            if tool not in issues_by_tool:
+if tool not in issues_by_tool:
                 issues_by_tool[tool] = []
             issues_by_tool[tool].append(issue)
 
-        for tool, issues in issues_by_tool.items():
-            html_template += f"""
+for tool, issues in issues_by_tool.items():
+            html_template += """
         <div class="tool-section">
             <div class="tool-header">{tool.upper()} ({len(issues)} issues)</div>
 """
-            for issue in issues[:10]:  # Limit to first 10 issues per tool
-                severity_class = issue.get("severity", "low").lower()
-                html_template += f"""
+for issue in issues[:10]:  # Limit to first 10 issues per tool
+                issue.get("severity", "low").lower()
+                html_template += """
             <div class="issue {severity_class}">
-                <strong>{issue.get('severity', 'LOW')}</strong> - 
-                {issue.get('file', 'N/A')}:{issue.get('line', 'N/A')} - 
+                <strong>{issue.get('severity', 'LOW')}</strong> -
+                {issue.get('file', 'N/A')}:{issue.get('line', 'N/A')} -
                 {issue.get('message', issue.get('issue', 'No description'))}
             </div>
 """
-            if len(issues) > 10:
+if len(issues) > 10:
                 html_template += (
                     f"<p><em>... and {len(issues) - 10} more issues</em></p>"
                 )
@@ -276,10 +285,11 @@ class AnalysisReportGenerator:
 </html>
 """
 
-        with open("analysis-report.html", "w") as f:
+with open("analysis-report.html", "w") as f:
             f.write(html_template)
 
-    def generate_json_report(self, all_issues):
+def generate_json_report(self, all_issues):
+
         """Generate JSON report."""
         report_data = {
             "timestamp": datetime.now().isoformat(),
@@ -288,10 +298,11 @@ class AnalysisReportGenerator:
             "raw_reports": self.reports,
         }
 
-        with open("analysis-report.json", "w") as f:
+with open("analysis-report.json", "w") as f:
             json.dump(report_data, f, indent=2)
 
-    def generate_reports(self):
+def generate_reports(self):
+
         """Generate comprehensive analysis reports."""
         print("Loading analysis reports...")
         self.load_reports()
@@ -317,7 +328,7 @@ class AnalysisReportGenerator:
         self.generate_json_report(all_issues)
 
         print(
-            f"""
+            """
 Analysis Complete!
 ==================
 Total Issues: {self.summary['total_issues']}

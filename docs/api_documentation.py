@@ -1,12 +1,13 @@
 """API documentation configuration for task 14.1."""
 
+
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 
-
 def custom_openapi(app: FastAPI):
+
     """Generate custom OpenAPI schema with comprehensive documentation."""
-    if app.openapi_schema:
+if app.openapi_schema:
         return app.openapi_schema
 
     openapi_schema = get_openapi(

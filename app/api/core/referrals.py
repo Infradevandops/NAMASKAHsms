@@ -1,6 +1,7 @@
+
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
@@ -41,6 +42,6 @@ async def list_referrals(current_user: User = Depends(get_current_user), db: Ses
                 "created_at": r.created_at.isoformat() if r.created_at else None,
                 "status": "Active" if r.email_verified else "Pending",
             }
-            for r in referrals
+for r in referrals
         ],
     )

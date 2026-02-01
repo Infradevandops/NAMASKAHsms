@@ -1,11 +1,10 @@
 """Number blacklist API endpoints."""
 
-from datetime import datetime, timezone
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -15,6 +14,7 @@ logger = get_logger(__name__)
 
 
 class BlacklistCreate(BaseModel):
+
     phone_number: str = Field(..., description="Phone number to blacklist")
     service_name: str = Field(default="all", description="Service name")
     country: str = Field(default=None, description="Country code")
@@ -23,8 +23,9 @@ class BlacklistCreate(BaseModel):
 
     @field_validator("phone_number")
     @classmethod
-    def validate_phone(cls, v):
-        if not v.startswith("+") or len(v) < 7:
+def validate_phone(cls, v):
+
+if not v.startswith("+") or len(v) < 7:
             raise ValueError("Phone number must start with + and be at least 7 digits")
         return v
 
@@ -45,7 +46,7 @@ async def add_to_blacklist(
     country = request.country
     reason = request.reason
     days = request.days
-    try:
+try:
         # Check if already blacklisted
         existing = (
             db.query(NumberBlacklist)
@@ -57,7 +58,7 @@ async def add_to_blacklist(
             .first()
         )
 
-        if existing and not existing.is_expired:
+if existing and not existing.is_expired:
             return {
                 "success": False,
                 "message": "Number already blacklisted",
@@ -84,7 +85,7 @@ async def add_to_blacklist(
             "expires_at": blacklist_entry.expires_at.isoformat(),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to add to blacklist: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -96,10 +97,10 @@ async def get_blacklist(
     db: Session = Depends(get_db),
 ):
     """Get user's blacklisted numbers."""
-    try:
+try:
         query = db.query(NumberBlacklist).filter(NumberBlacklist.user_id == user_id)
 
-        if service_name:
+if service_name:
             query = query.filter(NumberBlacklist.service_name == service_name)
 
         blacklist = query.all()
@@ -117,8 +118,8 @@ async def get_blacklist(
                 "expires_at": entry.expires_at.isoformat(),
                 "is_expired": entry.is_expired,
             }
-            for entry in blacklist
-            if not entry.is_expired
+for entry in blacklist
+if not entry.is_expired
         ]
 
         return {
@@ -127,7 +128,7 @@ async def get_blacklist(
             "total": len(active_blacklist),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get blacklist: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -139,14 +140,14 @@ async def remove_from_blacklist(
     db: Session = Depends(get_db),
 ):
     """Remove number from blacklist."""
-    try:
+try:
         entry = (
             db.query(NumberBlacklist)
             .filter(NumberBlacklist.id == blacklist_id, NumberBlacklist.user_id == user_id)
             .first()
         )
 
-        if not entry:
+if not entry:
             raise HTTPException(status_code=404, detail="Blacklist entry not found")
 
         db.delete(entry)
@@ -157,9 +158,9 @@ async def remove_from_blacklist(
             "message": f"Number {entry.phone_number} removed from blacklist",
         }
 
-    except HTTPException:
+except HTTPException:
         pass
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to remove from blacklist: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -172,7 +173,7 @@ async def check_blacklist(
     db: Session = Depends(get_db),
 ):
     """Check if number is blacklisted."""
-    try:
+try:
         entry = (
             db.query(NumberBlacklist)
             .filter(
@@ -183,7 +184,7 @@ async def check_blacklist(
             .first()
         )
 
-        if not entry or entry.is_expired:
+if not entry or entry.is_expired:
             return {"blacklisted": False, "message": "Number is not blacklisted"}
 
         return {
@@ -193,7 +194,7 @@ async def check_blacklist(
             "message": f"Number is blacklisted until {entry.expires_at.strftime('%Y-%m-%d')}",
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to check blacklist: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -204,7 +205,7 @@ async def cleanup_expired(
     db: Session = Depends(get_db),
 ):
     """Remove expired blacklist entries."""
-    try:
+try:
         expired = (
             db.query(NumberBlacklist)
             .filter(
@@ -216,13 +217,13 @@ async def cleanup_expired(
 
         count = len(expired)
 
-        for entry in expired:
+for entry in expired:
             db.delete(entry)
 
         db.commit()
 
         return {"success": True, "message": f"Removed {count} expired entries"}
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to cleanup blacklist: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

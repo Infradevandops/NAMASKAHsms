@@ -1,11 +1,11 @@
 """Verification - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, String
 
+from sqlalchemy import Boolean, Column, DateTime, Float, String
 from app.models.base import BaseModel
 
-
 class Verification(BaseModel):
+
     """SMS/Voice verification model."""
 
     __tablename__ = "verifications"
@@ -42,6 +42,7 @@ class Verification(BaseModel):
 
 
 class NumberRental(BaseModel):
+
     """Number rental for extended use."""
 
     __tablename__ = "number_rentals"
@@ -61,6 +62,7 @@ class NumberRental(BaseModel):
 
 
 class VerificationReceipt(BaseModel):
+
     """Receipt for completed verifications."""
 
     __tablename__ = "verification_receipts"

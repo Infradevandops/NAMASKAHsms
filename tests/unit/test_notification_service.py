@@ -1,23 +1,25 @@
+
+
 from unittest.mock import MagicMock
-
 import pytest
-
 from app.models.notification import Notification
 from app.models.user import User
 from app.services.notification_service import NotificationService
 
-
 @pytest.fixture
 def mock_db():
+
     return MagicMock()
 
 
 @pytest.fixture
 def service(mock_db):
+
     return NotificationService(mock_db)
 
 
 def test_create_notification_success(service, mock_db):
+
     user_id = "u1"
     # Mock user exists
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
@@ -31,13 +33,15 @@ def test_create_notification_success(service, mock_db):
 
 
 def test_create_notification_user_not_found(service, mock_db):
+
     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-    with pytest.raises(ValueError, match="User unknown not found"):
+with pytest.raises(ValueError, match="User unknown not found"):
         service.create_notification("unknown", "type", "title", "msg")
 
 
 def test_get_notifications_success(service, mock_db):
+
     user_id = "u1"
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
 
@@ -56,6 +60,7 @@ def test_get_notifications_success(service, mock_db):
 
 
 def test_get_notifications_unread_only(service, mock_db):
+
     user_id = "u1"
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
 
@@ -68,6 +73,7 @@ def test_get_notifications_unread_only(service, mock_db):
 
 
 def test_mark_as_read(service, mock_db):
+
     user_id = "u1"
     notif_id = "n1"
     notif = Notification(id=notif_id, user_id=user_id, is_read=False)
@@ -81,6 +87,7 @@ def test_mark_as_read(service, mock_db):
 
 
 def test_mark_all_as_read(service, mock_db):
+
     user_id = "u1"
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
 
@@ -93,6 +100,7 @@ def test_mark_all_as_read(service, mock_db):
 
 
 def test_delete_notification(service, mock_db):
+
     user_id = "u1"
     notif = Notification(id="n1", user_id=user_id)
     mock_db.query.return_value.filter.return_value.first.return_value = notif
@@ -105,6 +113,7 @@ def test_delete_notification(service, mock_db):
 
 
 def test_delete_all(service, mock_db):
+
     user_id = "u1"
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
     mock_db.query.return_value.filter.return_value.delete.return_value = 10
@@ -115,6 +124,7 @@ def test_delete_all(service, mock_db):
 
 
 def test_get_unread_count(service, mock_db):
+
     user_id = "u1"
     mock_db.query.return_value.filter.return_value.first.return_value = User(id=user_id)
     mock_db.query.return_value.filter.return_value.count.return_value = 42

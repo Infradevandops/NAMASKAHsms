@@ -1,7 +1,7 @@
 """Prometheus metrics middleware."""
 
-import time
 
+import time
 from fastapi import Request
 from prometheus_client import Counter, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -12,6 +12,7 @@ request_duration = Histogram("http_request_duration_seconds", "HTTP request dura
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
+
     async def dispatch(self, request: Request, call_next):
         start = time.time()
         response = await call_next(request)

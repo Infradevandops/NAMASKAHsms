@@ -1,13 +1,14 @@
 """Pricing endpoint for verification services"""
 
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.core.tier_helpers import raise_tier_error
 from app.services.tier_manager import TierManager
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -24,25 +25,24 @@ async def get_verification_pricing(
     db: Session = Depends(get_db),
 ):
     """Get pricing for verification with optional area code and carrier"""
-    try:
-        if not service:
+try:
+if not service:
             raise HTTPException(status_code=400, detail="Service required")
 
         tier_manager = TierManager(db)
 
         # Check area code access (Starter+)
-        if area_code and area_code != "any":
-            if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+if area_code and area_code != "any":
+if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 user_tier = tier_manager.get_user_tier(user_id)
                 raise_tier_error(user_tier, "starter", user_id)
 
         # Check ISP/carrier access (Turbo only)
-        if carrier and carrier != "any":
-            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+if carrier and carrier != "any":
+if not tier_manager.check_feature_access(user_id, "isp_filtering"):
                 user_tier = tier_manager.get_user_tier(user_id)
                 raise_tier_error(user_tier, "turbo", user_id)
 
-        from app.services.textverified_service import TextVerifiedService
 
         integration = TextVerifiedService()
 
@@ -80,8 +80,8 @@ async def get_verification_pricing(
             },
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get pricing: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to calculate pricing")

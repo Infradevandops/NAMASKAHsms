@@ -1,27 +1,29 @@
 """Payment and wallet request/response schemas."""
 
+
 from datetime import datetime
 from typing import Any, Dict, List, Optional
-
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
-
 class AddCreditsRequest(BaseModel):
+
     """Schema for adding credits request."""
 
     amount: float = Field(..., gt=0, description="Amount to add (minimum $5)")
 
     @field_validator("amount", mode="before")
     @classmethod
-    def validate_amount(cls, v):
-        if v < 5.0:
+def validate_amount(cls, v):
+
+if v < 5.0:
             raise ValueError("Minimum amount is $5")
-        if v > 10000.0:
+if v > 10000.0:
             raise ValueError("Maximum amount is $10,000")
         return v
 
 
 class PaymentInitialize(BaseModel):
+
     """Schema for payment initialization."""
 
     amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
@@ -29,17 +31,19 @@ class PaymentInitialize(BaseModel):
 
     @field_validator("amount_usd", mode="before")
     @classmethod
-    def validate_amount(cls, v):
-        if v < 5.0:
+def validate_amount(cls, v):
+
+if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
-        if v > 10000.0:
+if v > 10000.0:
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
     @field_validator("payment_method", mode="before")
     @classmethod
-    def validate_payment_method(cls, v):
-        if v not in ["paystack"]:
+def validate_payment_method(cls, v):
+
+if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
         return v
 
@@ -47,6 +51,7 @@ class PaymentInitialize(BaseModel):
 
 
 class PaymentInitializeResponse(BaseModel):
+
     """Schema for payment initialization response."""
 
     success: bool
@@ -74,6 +79,7 @@ class PaymentInitializeResponse(BaseModel):
 
 
 class PaymentVerify(BaseModel):
+
     """Schema for payment verification."""
 
     reference: str = Field(..., description="Payment reference to verify")
@@ -82,6 +88,7 @@ class PaymentVerify(BaseModel):
 
 
 class PaymentVerifyResponse(BaseModel):
+
     """Schema for payment verification response."""
 
     status: str = Field(..., description="Payment status")
@@ -104,6 +111,7 @@ class PaymentVerifyResponse(BaseModel):
 
 
 class WebhookPayload(BaseModel):
+
     """Schema for Paystack webhook payload."""
 
     event: str = Field(..., description="Webhook event type")
@@ -125,6 +133,7 @@ class WebhookPayload(BaseModel):
 
 
 class TransactionResponse(BaseModel):
+
     """Schema for transaction response."""
 
     id: str
@@ -148,6 +157,7 @@ class TransactionResponse(BaseModel):
 
 
 class TransactionHistoryResponse(BaseModel):
+
     """Schema for transaction history."""
 
     transactions: List[TransactionResponse]
@@ -172,6 +182,7 @@ class TransactionHistoryResponse(BaseModel):
 
 
 class RefundRequest(BaseModel):
+
     """Schema for refund request."""
 
     transaction_id: str = Field(..., description="Transaction ID to refund")
@@ -180,8 +191,9 @@ class RefundRequest(BaseModel):
 
     @field_validator("amount", mode="before")
     @classmethod
-    def validate_amount(cls, v):
-        if v is not None and v <= 0:
+def validate_amount(cls, v):
+
+if v is not None and v <= 0:
             raise ValueError("Refund amount must be positive")
         return v
 
@@ -197,6 +209,7 @@ class RefundRequest(BaseModel):
 
 
 class RefundResponse(BaseModel):
+
     """Schema for refund response."""
 
     success: bool
@@ -219,6 +232,7 @@ class RefundResponse(BaseModel):
 
 
 class WalletBalanceResponse(BaseModel):
+
     """Schema for wallet balance response."""
 
     credits: float = Field(..., description="Current Namaskah credits")
@@ -229,6 +243,7 @@ class WalletBalanceResponse(BaseModel):
 
 
 class CryptoWalletResponse(BaseModel):
+
     """Schema for crypto wallet configuration."""
 
     btc_address: Optional[str] = Field(None, description="Bitcoin address")
@@ -247,6 +262,7 @@ class CryptoWalletResponse(BaseModel):
 
 
 class SubscriptionPlan(BaseModel):
+
     """Schema for subscription plan."""
 
     id: str
@@ -277,14 +293,16 @@ class SubscriptionPlan(BaseModel):
 
 
 class SubscriptionRequest(BaseModel):
+
     """Schema for subscription request."""
 
     plan_id: str = Field(..., description="Plan ID to subscribe to")
 
     @field_validator("plan_id", mode="before")
     @classmethod
-    def validate_plan_id(cls, v):
-        if v not in ["pro", "turbo"]:
+def validate_plan_id(cls, v):
+
+if v not in ["pro", "turbo"]:
             raise ValueError("Plan ID must be pro or turbo")
         return v
 
@@ -292,6 +310,7 @@ class SubscriptionRequest(BaseModel):
 
 
 class SubscriptionResponse(BaseModel):
+
     """Schema for subscription response."""
 
     plan: str

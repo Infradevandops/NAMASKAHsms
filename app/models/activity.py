@@ -1,12 +1,12 @@
 """Activity model for tracking user events."""
 
+
 from sqlalchemy import JSON, Column, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class Activity(BaseModel):
+
     """User activity tracking model."""
 
     __tablename__ = "activities"
@@ -26,7 +26,8 @@ class Activity(BaseModel):
     # Relationship
     user = relationship("User", back_populates="activities")
 
-    def to_dict(self):
+def to_dict(self):
+
         """Convert to dictionary."""
         return {
             "id": self.id,

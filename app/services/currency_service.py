@@ -2,6 +2,7 @@
 
 
 class CurrencyService:
+
     """Handle currency conversion and formatting."""
 
     RATES = {
@@ -31,9 +32,10 @@ class CurrencyService:
     }
 
     @staticmethod
-    def convert(amount: float, from_currency: str, to_currency: str) -> float:
+def convert(amount: float, from_currency: str, to_currency: str) -> float:
+
         """Convert amount between currencies."""
-        if from_currency == to_currency:
+if from_currency == to_currency:
             return amount
 
         from_rate = CurrencyService.RATES.get(from_currency, 1.0)
@@ -42,17 +44,20 @@ class CurrencyService:
         return (amount / from_rate) * to_rate
 
     @staticmethod
-    def format_currency(amount: float, currency: str) -> str:
+def format_currency(amount: float, currency: str) -> str:
+
         """Format amount with currency symbol."""
         symbol = CurrencyService.SYMBOLS.get(currency, currency)
         return f"{symbol}{amount:.2f}"
 
     @staticmethod
-    def get_symbol(currency: str) -> str:
+def get_symbol(currency: str) -> str:
+
         """Get currency symbol."""
         return CurrencyService.SYMBOLS.get(currency, currency)
 
     @staticmethod
-    def get_available_currencies() -> list:
+def get_available_currencies() -> list:
+
         """List supported currencies."""
         return list(CurrencyService.RATES.keys())

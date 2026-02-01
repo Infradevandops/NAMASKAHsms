@@ -6,8 +6,6 @@ Analyzing the SMS verification flow for automatic refund failures.
 ISSUE: Credits deducted for failed/timeout/cancelled verifications without auto-refund
 """
 
-import sys
-from pathlib import Path
 
 # Analysis findings
 print("=" * 80)

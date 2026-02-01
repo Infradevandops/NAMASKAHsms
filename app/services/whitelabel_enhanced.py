@@ -1,11 +1,11 @@
 """Enhanced white - label service with advanced features."""
 
+
 from typing import Dict, Optional
-
 from sqlalchemy.orm import Session
-
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
+
     WhiteLabelAsset,
     WhiteLabelDomain,
     WhiteLabelTheme,
@@ -13,9 +13,11 @@ from app.models.whitelabel_enhanced import (
 
 
 class WhiteLabelEnhancedService:
+
     """Enhanced white - label platform management."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         self.db = db
 
     async def setup_complete_whitelabel(
@@ -81,7 +83,7 @@ class WhiteLabelEnhancedService:
 
         config = self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.id == config_id).first()
 
-        if not config:
+if not config:
             raise ValueError("Configuration not found")
 
         # Update main config
@@ -98,12 +100,12 @@ class WhiteLabelEnhancedService:
             .first()
         )
 
-        if theme:
+if theme:
             theme.css_variables.update(
                 {
                     "--primary - color": branding_data.get("primary_color", config.primary_color),
                     "--secondary - color": branding_data.get("secondary_color", config.secondary_color),
-                    "--font - family": branding_data.get("font_family", "Inter, sans - serif"),
+                    "--font - family": branding_data.get("font_family", "Inter, sans - seri"),
                 }
             )
             theme.custom_css = branding_data.get("custom_css")
@@ -117,7 +119,7 @@ class WhiteLabelEnhancedService:
 
         domain_entry = self.db.query(WhiteLabelDomain).filter(WhiteLabelDomain.domain == domain).first()
 
-        if not domain_entry:
+if not domain_entry:
             return {"error": "Domain not found"}
 
         # Simple verification (in production, implement DNS TXT record check)
@@ -140,7 +142,7 @@ class WhiteLabelEnhancedService:
             self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.enabled).first()
         )
 
-        if not config:
+if not config:
             return None
 
         # Get theme
@@ -168,7 +170,7 @@ class WhiteLabelEnhancedService:
                 "name": theme.name if theme else "Default",
                 "css_variables": theme.css_variables if theme else {},
                 "custom_css": theme.custom_css if theme else None,
-                "font_family": theme.font_family if theme else "Inter, sans - serif",
+                "font_family": theme.font_family if theme else "Inter, sans - seri",
             },
             "assets": [
                 {
@@ -176,7 +178,7 @@ class WhiteLabelEnhancedService:
                     "url": asset.cdn_url or asset.file_path,
                     "name": asset.file_name,
                 }
-                for asset in assets
+for asset in assets
             ],
         }
 
@@ -189,7 +191,7 @@ class WhiteLabelEnhancedService:
             .first()
         )
 
-        if not theme:
+if not theme:
             return ""
 
         css_vars = theme.css_variables or {}
@@ -197,12 +199,12 @@ class WhiteLabelEnhancedService:
 
         # Generate CSS with variables
         generated_css = ":root {\n"
-        for key, value in css_vars.items():
+for key, value in css_vars.items():
             generated_css += f"  {key}: {value};\n"
         generated_css += "}\n\n"
 
         # Add custom CSS
-        if custom_css:
+if custom_css:
             generated_css += custom_css
 
         # Add responsive design
@@ -220,7 +222,7 @@ class WhiteLabelEnhancedService:
 
         config = self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.id == config_id).first()
 
-        if not config:
+if not config:
             return {}
 
         return {
@@ -246,5 +248,6 @@ whitelabel_enhanced_service = None
 
 
 def get_whitelabel_enhanced_service(db: Session) -> WhiteLabelEnhancedService:
+
     """Get enhanced white - label service instance."""
     return WhiteLabelEnhancedService(db)

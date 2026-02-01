@@ -1,5 +1,6 @@
-from fastapi import APIRouter
 
+
+from fastapi import APIRouter
 from app.api.verification.area_codes_endpoint import router as area_codes_router
 from app.api.verification.bulk_purchase_endpoints import router as bulk_purchase_router
 from app.api.verification.carrier_endpoints import router as carrier_router

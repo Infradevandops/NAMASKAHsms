@@ -1,13 +1,12 @@
 """Subscription tier model for multi-tier SaaS platform."""
 
+
 from enum import Enum as PyEnum
-
 from sqlalchemy import JSON, Boolean, Column, Float, Integer, String
-
 from app.models.base import BaseModel
 
-
 class TierEnum(str, PyEnum):
+
     """Subscription tier levels."""
 
     FREEMIUM = "freemium"
@@ -17,6 +16,7 @@ class TierEnum(str, PyEnum):
 
 
 class SubscriptionTier(BaseModel):
+
     """Subscription tier configuration and limits."""
 
     __tablename__ = "subscription_tiers"

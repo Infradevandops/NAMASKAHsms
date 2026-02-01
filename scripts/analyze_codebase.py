@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """
-Comprehensive analysis of duplicates and abandoned code in Namaskah app
-"""
-
 import os
 import re
 from collections import defaultdict
 
+Comprehensive analysis of duplicates and abandoned code in Namaskah app
+"""
+
 
 def analyze_duplicates_and_abandoned():
+
     """Analyze the codebase for duplicates and abandoned code."""
 
     print("🔍 COMPREHENSIVE CODEBASE ANALYSIS")
@@ -25,13 +26,13 @@ def analyze_duplicates_and_abandoned():
         "textverified_service.py",
     ]
 
-    for service in textverified_services:
+for service in textverified_services:
         path = f"app/services/{service}"
-        if os.path.exists(path):
-            with open(path, "r") as f:
+if os.path.exists(path):
+with open(path, "r") as f:
                 lines = len(f.readlines())
             print(f"  📁 {service}: {lines} lines")
-        else:
+else:
             print(f"  ❌ {service}: NOT FOUND")
 
     # 2. Pricing System Duplicates
@@ -45,17 +46,17 @@ def analyze_duplicates_and_abandoned():
         "app/api/verification/pricing.py",
     ]
 
-    for file_path in pricing_files:
-        if os.path.exists(file_path):
-            with open(file_path, "r") as f:
+for file_path in pricing_files:
+if os.path.exists(file_path):
+with open(file_path, "r") as f:
                 lines = len(f.readlines())
             status = "🆕 NEW" if "calculator" in file_path else "📁 EXISTS"
             print(f"  {status} {file_path}: {lines} lines")
 
     # 3. Router Import Analysis
     print("\n🛣️  ROUTER ANALYSIS:")
-    if os.path.exists("main.py"):
-        with open("main.py", "r") as f:
+if os.path.exists("main.py"):
+with open("main.py", "r") as f:
             content = f.read()
 
         router_imports = len(re.findall(r"from.*import.*router", content))
@@ -72,18 +73,18 @@ def analyze_duplicates_and_abandoned():
     todo_count = 0
     pass_count = 0
 
-    for root, dirs, files in os.walk("app"):
-        for file in files:
-            if file.endswith(".py"):
+for root, dirs, files in os.walk("app"):
+for file in files:
+if file.endswith(".py"):
                 filepath = os.path.join(root, file)
-                try:
-                    with open(filepath, "r") as f:
+try:
+with open(filepath, "r") as f:
                         content = f.read()
                         todo_count += len(re.findall(r"TODO|FIXME|XXX|HACK", content))
                         pass_count += len(
                             re.findall(r"^\s*pass\s*$", content, re.MULTILINE)
                         )
-                except:
+except Exception:
                     pass
 
     print(f"  📝 TODO/FIXME comments: {todo_count}")
@@ -93,35 +94,35 @@ def analyze_duplicates_and_abandoned():
     print("\n📏 LARGE FILES (potential bloat):")
     large_files = []
 
-    for root, dirs, files in os.walk("app"):
-        for file in files:
-            if file.endswith(".py"):
+for root, dirs, files in os.walk("app"):
+for file in files:
+if file.endswith(".py"):
                 filepath = os.path.join(root, file)
-                try:
-                    with open(filepath, "r") as f:
+try:
+with open(filepath, "r") as f:
                         lines = len(f.readlines())
-                        if lines > 300:
+if lines > 300:
                             large_files.append((filepath, lines))
-                except:
+except Exception:
                     pass
 
     large_files.sort(key=lambda x: x[1], reverse=True)
-    for filepath, lines in large_files[:5]:
+for filepath, lines in large_files[:5]:
         print(f"  📄 {filepath}: {lines} lines")
 
     # 6. Service Duplication Analysis
     print("\n🔄 SERVICE DUPLICATION ANALYSIS:")
     service_patterns = defaultdict(list)
 
-    for root, dirs, files in os.walk("app/services"):
-        for file in files:
-            if file.endswith(".py") and "service" in file:
+for root, dirs, files in os.walk("app/services"):
+for file in files:
+if file.endswith(".py") and "service" in file:
                 # Group by service type
                 service_type = file.replace("_service.py", "").replace("service.py", "")
                 service_patterns[service_type].append(file)
 
-    for service_type, files in service_patterns.items():
-        if len(files) > 1:
+for service_type, files in service_patterns.items():
+if len(files) > 1:
             print(f"  🔄 {service_type}: {files}")
 
 

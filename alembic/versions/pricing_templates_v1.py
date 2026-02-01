@@ -1,14 +1,14 @@
 """
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
+from alembic import op
+
 Add Pricing Templates System
 
 Revision ID: pricing_templates_v1
 Created: 2025-12-25
 """
 
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
-from alembic import op
 
 revision = "pricing_templates_v1"
 down_revision = "quota_pricing_v3_1"
@@ -17,6 +17,7 @@ depends_on = None
 
 
 def upgrade():
+
     """Create pricing templates tables"""
 
     # 1. Create pricing_templates table
@@ -121,9 +122,9 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            f"""
+            """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
-        VALUES 
+        VALUES
             ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
             ({template_id}, 'starter', 8.99, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
             ({template_id}, 'pro', 25.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
@@ -148,9 +149,9 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            f"""
+            """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
-        VALUES 
+        VALUES
             ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
             ({template_id}, 'starter', 7.19, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
             ({template_id}, 'pro', 20.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
@@ -175,9 +176,9 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            f"""
+            """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
-        VALUES 
+        VALUES
             ({template_id}, 'payg_trial', 0.00, 0.00, 2.30, 1, '{{"api_access": false}}'::jsonb),
             ({template_id}, 'starter', 8.49, 5.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
             ({template_id}, 'pro', 23.00, 15.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
@@ -202,9 +203,9 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            f"""
+            """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
-        VALUES 
+        VALUES
             ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
             ({template_id}, 'starter', 9.99, 6.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
             ({template_id}, 'pro', 27.00, 18.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
@@ -221,6 +222,7 @@ def upgrade():
 
 
 def downgrade():
+
     """Remove pricing templates tables"""
     op.drop_table("user_pricing_assignments")
     op.drop_table("pricing_history")

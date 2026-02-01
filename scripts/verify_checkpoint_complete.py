@@ -1,23 +1,20 @@
 #!/usr/bin/env python3
 """Verify that the checkpoint requirements are met."""
+
+
 import os
 import sys
+from fastapi.testclient import TestClient
+from main import app
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from datetime import datetime, timedelta
-
-from fastapi.testclient import TestClient
-
-from app.core.database import SessionLocal
-from app.models.user import User
-from app.models.verification import Verification
-from main import app
 
 client = TestClient(app)
 
 
 def verify_dashboard_loads():
+
     """Verify dashboard loads tier info without 'Loading...'"""
     print("\n✓ Checkpoint 1: Dashboard loads tier info without 'Loading...'")
     print("  - Dashboard HTML includes tier info section")
@@ -28,6 +25,7 @@ def verify_dashboard_loads():
 
 
 def verify_settings_loads():
+
     """Verify settings page loads user data without 'Loading...'"""
     print("\n✓ Checkpoint 2: Settings page loads user data without 'Loading...'")
     print("  - Settings HTML includes user data sections")
@@ -38,16 +36,17 @@ def verify_settings_loads():
 
 
 def verify_analytics_endpoint():
+
     """Verify analytics endpoint exists and returns data"""
     print("\n✓ Checkpoint 3: Analytics endpoint exists and returns data")
 
     # Check endpoint exists
     response = client.get("/api/analytics/summary")
-    if response.status_code == 401:
+if response.status_code == 401:
         print("  - /api/analytics/summary endpoint exists (requires auth)")
         print("  - Returns 401 when not authenticated (expected)")
         return True
-    elif response.status_code == 200:
+elif response.status_code == 200:
         data = response.json()
         required_fields = [
             "total_verifications",
@@ -56,31 +55,32 @@ def verify_analytics_endpoint():
             "success_rate",
         ]
         missing = [f for f in required_fields if f not in data]
-        if missing:
+if missing:
             print(f"  ✗ Missing fields: {missing}")
             return False
-        print(f"  - /api/analytics/summary returns all required fields")
+        print("  - /api/analytics/summary returns all required fields")
         return True
-    else:
+else:
         print(f"  ✗ Unexpected status: {response.status_code}")
         return False
 
 
 def verify_activity_endpoint():
+
     """Verify activity endpoint exists and returns data"""
     print("\n✓ Checkpoint 4: Activity endpoint exists and returns data")
 
     # Check endpoint exists
     response = client.get("/api/dashboard/activity/recent")
-    if response.status_code == 401:
+if response.status_code == 401:
         print("  - /api/dashboard/activity/recent endpoint exists (requires auth)")
         print("  - Returns 401 when not authenticated (expected)")
         return True
-    elif response.status_code == 200:
+elif response.status_code == 200:
         data = response.json()
-        if isinstance(data, list):
-            print(f"  - /api/dashboard/activity/recent returns array of activities")
-            if len(data) > 0:
+if isinstance(data, list):
+            print("  - /api/dashboard/activity/recent returns array of activities")
+if len(data) > 0:
                 activity = data[0]
                 required_fields = [
                     "service_name",
@@ -89,54 +89,56 @@ def verify_activity_endpoint():
                     "status",
                 ]
                 missing = [f for f in required_fields if f not in activity]
-                if missing:
+if missing:
                     print(f"  ✗ Missing fields in activity: {missing}")
                     return False
-            print(f"  - Activity records contain all required fields")
+            print("  - Activity records contain all required fields")
             return True
-        else:
+else:
             print(f"  ✗ Expected array, got: {type(data)}")
             return False
-    else:
+else:
         print(f"  ✗ Unexpected status: {response.status_code}")
         return False
 
 
 def verify_tier_endpoint():
+
     """Verify tier endpoint returns data"""
     print("\n✓ Checkpoint 5: Tier endpoint returns data")
 
     response = client.get("/api/tiers/")
-    if response.status_code == 200:
+if response.status_code == 200:
         data = response.json()
-        if "tiers" in data:
+if "tiers" in data:
             tiers = data["tiers"]
             print(f"  - /api/tiers/ returns {len(tiers)} tiers")
 
             # Check tier structure
-            if len(tiers) > 0:
+if len(tiers) > 0:
                 tier = tiers[0]
                 required_fields = ["tier", "name", "price_monthly", "quota_usd"]
                 missing = [f for f in required_fields if f not in tier]
-                if missing:
+if missing:
                     print(f"  ✗ Missing fields in tier: {missing}")
                     return False
-                print(f"  - Tier records contain all required fields")
+                print("  - Tier records contain all required fields")
             return True
-        else:
+else:
             print(f"  ✗ Response missing 'tiers' field")
             return False
-    else:
+else:
         print(f"  ✗ Unexpected status: {response.status_code}")
         return False
 
 
 def verify_error_handling():
+
     """Verify error handling in frontend"""
     print("\n✓ Checkpoint 6: Error handling in frontend")
 
     # Check dashboard.html for error handling
-    with open("templates/dashboard.html", "r") as f:
+with open("templates/dashboard.html", "r") as f:
         dashboard_content = f.read()
 
     checks = [
@@ -155,7 +157,7 @@ def verify_error_handling():
         ("Error messages shown", "Failed to load" in dashboard_content),
     ]
 
-    for check_name, result in checks:
+for check_name, result in checks:
         status = "✓" if result else "✗"
         print(f"  {status} {check_name}")
 
@@ -163,11 +165,12 @@ def verify_error_handling():
 
 
 def verify_settings_error_handling():
+
     """Verify error handling in settings page"""
     print("\n✓ Checkpoint 7: Error handling in settings page")
 
     # Check settings.html for error handling
-    with open("templates/settings.html", "r") as f:
+with open("templates/settings.html", "r") as f:
         settings_content = f.read()
 
     checks = [
@@ -189,7 +192,7 @@ def verify_settings_error_handling():
         ),
     ]
 
-    for check_name, result in checks:
+for check_name, result in checks:
         status = "✓" if result else "✗"
         print(f"  {status} {check_name}")
 
@@ -197,11 +200,12 @@ def verify_settings_error_handling():
 
 
 def verify_loading_spinners():
+
     """Verify loading spinners are used"""
     print("\n✓ Checkpoint 8: Loading spinners are used")
 
     # Check dashboard.html for loading spinners
-    with open("templates/dashboard.html", "r") as f:
+with open("templates/dashboard.html", "r") as f:
         dashboard_content = f.read()
 
     checks = [
@@ -214,7 +218,7 @@ def verify_loading_spinners():
         ),
     ]
 
-    for check_name, result in checks:
+for check_name, result in checks:
         status = "✓" if result else "✗"
         print(f"  {status} {check_name}")
 
@@ -222,6 +226,7 @@ def verify_loading_spinners():
 
 
 def main():
+
     """Run all checkpoint verifications."""
     print("=" * 70)
     print("CHECKPOINT VERIFICATION - Tier System RBAC Phase 1")
@@ -251,13 +256,13 @@ def main():
     passed = sum(1 for _, result in results if result)
     total = len(results)
 
-    for name, result in results:
+for name, result in results:
         status = "✓ PASS" if result else "✗ FAIL"
         print(f"{status}: {name}")
 
     print(f"\nTotal: {passed}/{total} verifications passed")
 
-    if passed == total:
+if passed == total:
         print("\n" + "=" * 70)
         print("✓ CHECKPOINT 6 COMPLETE - All requirements verified!")
         print("=" * 70)
@@ -268,7 +273,7 @@ def main():
         print("  ✓ All API endpoints return data or proper errors")
         print("\nReady to proceed to Phase 2: Stability & Testing")
         return 0
-    else:
+else:
         print(f"\n✗ {total - passed} verification(s) failed")
         return 1
 

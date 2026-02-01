@@ -1,13 +1,14 @@
 """Comprehensive monitoring system for task 14.3."""
 
+
 import asyncio
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
-
 @dataclass
 class Metric:
+
     """Individual metric data point."""
 
     name: str
@@ -17,40 +18,49 @@ class Metric:
 
 
 class MetricsCollector:
+
     """Application performance metrics collector."""
 
-    def __init__(self):
+def __init__(self):
+
         self.metrics = []
         self.counters = {}
         self.gauges = {}
 
-    def increment(self, name: str, value: float = 1.0, tags: Dict[str, str] = None):
+def increment(self, name: str, value: float = 1.0, tags: Dict[str, str] = None):
+
         """Increment counter metric."""
         self.counters[name] = self.counters.get(name, 0) + value
         self.metrics.append(Metric(name, value, tags=tags or {}))
 
-    def gauge(self, name: str, value: float, tags: Dict[str, str] = None):
+def gauge(self, name: str, value: float, tags: Dict[str, str] = None):
+
         """Set gauge metric."""
         self.gauges[name] = value
         self.metrics.append(Metric(name, value, tags=tags or {}))
 
-    def timer(self, name: str, duration: float, tags: Dict[str, str] = None):
+def timer(self, name: str, duration: float, tags: Dict[str, str] = None):
+
         """Record timing metric."""
         self.metrics.append(Metric(f"{name}.duration", duration, tags=tags or {}))
 
-    def get_metrics(self) -> List[Metric]:
+def get_metrics(self) -> List[Metric]:
+
         """Get all collected metrics."""
         return self.metrics.copy()
 
-    def clear_metrics(self):
+def clear_metrics(self):
+
         """Clear collected metrics."""
         self.metrics.clear()
 
 
 class PerformanceMonitor:
+
     """Performance monitoring and SLA tracking."""
 
-    def __init__(self):
+def __init__(self):
+
         self.sla_thresholds = {
             "response_time_p95": 2000,  # 2 seconds
             "error_rate": 5.0,  # 5%
@@ -67,7 +77,7 @@ class PerformanceMonitor:
         self.metrics_collector.timer("requests.duration", duration, tags=tags)
 
         # Track errors
-        if status_code >= 400:
+if status_code >= 400:
             self.metrics_collector.increment("requests.errors", tags=tags)
 
     async def check_sla_compliance(self) -> Dict[str, Any]:
@@ -100,9 +110,10 @@ class PerformanceMonitor:
         return compliance
 
     @staticmethod
-    def _calculate_percentile(values: List[float], percentile: int) -> float:
+def _calculate_percentile(values: List[float], percentile: int) -> float:
+
         """Calculate percentile value."""
-        if not values:
+if not values:
             return 0
 
         sorted_values = sorted(values)
@@ -111,16 +122,19 @@ class PerformanceMonitor:
 
 
 class ErrorTracker:
+
     """Error tracking and alerting system."""
 
-    def __init__(self):
+def __init__(self):
+
         self.errors = []
         self.alert_thresholds = {
             "error_rate_5min": 10,  # 10 errors in 5 minutes
             "critical_error_rate": 5,  # 5 critical errors
         }
 
-    def track_error(self, error: Exception, context: Dict[str, Any] = None):
+def track_error(self, error: Exception, context: Dict[str, Any] = None):
+
         """Track application error."""
         error_data = {
             "timestamp": datetime.now(timezone.utc),
@@ -133,25 +147,27 @@ class ErrorTracker:
         self.errors.append(error_data)
 
         # Check for alert conditions
-        if self._should_alert(error_data):
+if self._should_alert(error_data):
             asyncio.create_task(self._send_alert(error_data))
 
     @staticmethod
-    def _determine_severity(error: Exception) -> str:
+def _determine_severity(error: Exception) -> str:
+
         """Determine error severity."""
         critical_errors = ["DatabaseError", "PaymentError", "ExternalServiceError"]
 
-        if type(error).__name__ in critical_errors:
+if type(error).__name__ in critical_errors:
             return "critical"
-        elif "timeout" in str(error).lower():
+elif "timeout" in str(error).lower():
             return "warning"
-        else:
+else:
             return "info"
 
-    def _should_alert(self, error_data: Dict) -> bool:
+def _should_alert(self, error_data: Dict) -> bool:
+
         """Check if error should trigger alert."""
         # Alert on critical errors
-        if error_data["severity"] == "critical":
+if error_data["severity"] == "critical":
             return True
 
         # Alert on high error rate
@@ -167,9 +183,11 @@ class ErrorTracker:
 
 
 class DashboardMetrics:
+
     """Real - time dashboard metrics."""
 
-    def __init__(self):
+def __init__(self):
+
         self.performance_monitor = PerformanceMonitor()
         self.error_tracker = ErrorTracker()
 
@@ -204,17 +222,21 @@ class DashboardMetrics:
 
 
 class CanaryAnalyzer:
+
     """Automated canary deployment analysis."""
 
-    def __init__(self):
+def __init__(self):
+
         self.baseline_metrics = {}
         self.canary_metrics = {}
 
-    def set_baseline(self, metrics: Dict[str, float]):
+def set_baseline(self, metrics: Dict[str, float]):
+
         """Set baseline metrics for comparison."""
         self.baseline_metrics = metrics.copy()
 
-    def analyze_canary(self, canary_metrics: Dict[str, float]) -> Dict[str, Any]:
+def analyze_canary(self, canary_metrics: Dict[str, float]) -> Dict[str, Any]:
+
         """Analyze canary deployment metrics."""
         self.canary_metrics = canary_metrics.copy()
 
@@ -225,8 +247,8 @@ class CanaryAnalyzer:
         }
 
         # Compare key metrics
-        for metric, canary_value in canary_metrics.items():
-            if metric in self.baseline_metrics:
+for metric, canary_value in canary_metrics.items():
+if metric in self.baseline_metrics:
                 baseline_value = self.baseline_metrics[metric]
                 change_percent = ((canary_value - baseline_value) / baseline_value) * 100
 
@@ -237,10 +259,10 @@ class CanaryAnalyzer:
                 }
 
                 # Check for significant degradation
-                if metric == "error_rate" and change_percent > 50:
+if metric == "error_rate" and change_percent > 50:
                     analysis["recommendation"] = "rollback"
                     analysis["confidence"] = 0.9
-                elif metric == "response_time" and change_percent > 25:
+elif metric == "response_time" and change_percent > 25:
                     analysis["recommendation"] = "rollback"
                     analysis["confidence"] = 0.85
 

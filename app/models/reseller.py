@@ -1,6 +1,9 @@
 """Reseller program models."""
 
 from sqlalchemy import (
+from sqlalchemy.orm import relationship
+from app.models.base import BaseModel
+
     JSON,
     Boolean,
     Column,
@@ -10,12 +13,10 @@ from sqlalchemy import (
     Integer,
     String,
 )
-from sqlalchemy.orm import relationship
-
-from app.models.base import BaseModel
 
 
 class ResellerAccount(BaseModel):
+
     __tablename__ = "reseller_accounts"
 
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
@@ -34,6 +35,7 @@ class ResellerAccount(BaseModel):
 
 
 class SubAccount(BaseModel):
+
     __tablename__ = "sub_accounts"
 
     reseller_id = Column(String, ForeignKey("reseller_accounts.id"), nullable=False)
@@ -52,6 +54,7 @@ class SubAccount(BaseModel):
 
 
 class SubAccountTransaction(BaseModel):
+
     __tablename__ = "sub_account_transactions"
 
     sub_account_id = Column(String, ForeignKey("sub_accounts.id"), nullable=False)
@@ -66,6 +69,7 @@ class SubAccountTransaction(BaseModel):
 
 
 class CreditAllocation(BaseModel):
+
     __tablename__ = "credit_allocations"
 
     reseller_id = Column(String, ForeignKey("reseller_accounts.id"), nullable=False)
@@ -80,6 +84,7 @@ class CreditAllocation(BaseModel):
 
 
 class BulkOperation(BaseModel):
+
     __tablename__ = "bulk_operations"
 
     reseller_id = Column(String, ForeignKey("reseller_accounts.id"), nullable=False)

@@ -1,12 +1,12 @@
 """Enterprise SLA and account management models."""
 
+
 from sqlalchemy import JSON, Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class EnterpriseTier(BaseModel):
+
     __tablename__ = "enterprise_tiers"
 
     name = Column(String(50), nullable=False, unique=True)
@@ -27,6 +27,7 @@ class EnterpriseTier(BaseModel):
 
 
 class EnterpriseAccount(BaseModel):
+
     __tablename__ = "enterprise_accounts"
 
     user_id = Column(String, ForeignKey("users.id"), nullable=False)

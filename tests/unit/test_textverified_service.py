@@ -1,10 +1,13 @@
+
+
+# Create a mock textverified module
+
 import os
 import time
 from unittest.mock import MagicMock, patch
-
 import pytest
+from app.services.textverified_service import TextVerifiedService
 
-# Create a mock textverified module
 mock_textverified = MagicMock()
 mock_textverified.TextVerified = MagicMock()
 mock_textverified.ReservationCapability.SMS = "sms"
@@ -12,11 +15,11 @@ mock_textverified.NumberType.MOBILE = "mobile"
 mock_textverified.ReservationType.VERIFICATION = "verification"
 
 # Apply patch before importing service if possible, or reload
-from app.services.textverified_service import TextVerifiedService
 
 
 @pytest.fixture
 def mock_client_instance():
+
     instance = MagicMock()
     mock_textverified.TextVerified.return_value = instance
     return instance
@@ -25,22 +28,24 @@ def mock_client_instance():
 @pytest.fixture
 def service(mock_client_instance):
     # Patch the module-level variable 'textverified'
-    with patch("app.services.textverified_service.textverified", mock_textverified):
-        with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}):
+with patch("app.services.textverified_service.textverified", mock_textverified):
+with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}):
             # Reset init
             svc = TextVerifiedService()
             return svc
 
 
 def test_init_success(service, mock_client_instance):
+
     assert service.enabled is True
     assert service.api_key == "key"
     mock_textverified.TextVerified.assert_called()
 
 
 def test_init_missing_creds():
-    with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": ""}):
-        with patch("app.services.textverified_service.settings") as mock_settings:
+
+with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": ""}):
+with patch("app.services.textverified_service.settings") as mock_settings:
             mock_settings.textverified_api_key = None
             svc = TextVerifiedService()
             assert svc.enabled is False
@@ -119,7 +124,7 @@ async def test_get_services_list(service, mock_client_instance):
     mock_client_instance._perform_action.return_value = mock_response
 
     # Need to mock textverified.Service.from_api
-    with patch("app.services.textverified_service.textverified.Service.from_api") as mock_from_api:
+with patch("app.services.textverified_service.textverified.Service.from_api") as mock_from_api:
         s1 = MagicMock()
         s1.service_name = "tg"
         s1.cost = 0.5
@@ -156,11 +161,11 @@ async def test_retry_backoff_connection_error(service):
 
     async def task():
         val = fail_mock()
-        if isinstance(val, Exception):
+if isinstance(val, Exception):
             raise val
         return val
 
-    with patch("asyncio.sleep") as mock_sleep:
+with patch("asyncio.sleep") as mock_sleep:
         res = await service._retry_with_backoff(task)
         assert res == "Success"
         assert mock_sleep.called
@@ -189,12 +194,12 @@ def test_circuit_breaker(service):
     assert service._circuit_breaker_failures == 0
 
     # Failure threshold
-    for i in range(5):
+for i in range(5):
         service._record_failure()
     assert service._check_circuit_breaker() is False
 
     # Reset time check
-    with patch("time.time", return_value=time.time() + 400):
+with patch("time.time", return_value=time.time() + 400):
         assert service._check_circuit_breaker() is True
 
 

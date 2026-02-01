@@ -1,12 +1,11 @@
 """Tier management API endpoints - Updated for 4-tier pricing system."""
 
+
 import logging
 from datetime import datetime
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.tier_config import TierConfig
@@ -23,13 +22,13 @@ router = APIRouter(prefix="/tiers", tags=["Tiers"])
 async def list_tiers(db: Session = Depends(get_db)):
     """List all available subscription tiers with pricing."""
     logger.info("Fetching all available tiers")
-    try:
+try:
         tiers = TierConfig.get_all_tiers(db)
         logger.debug(f"Retrieved {len(tiers)} tiers from config")
 
         # Format for frontend display
         formatted_tiers = []
-        for tier in tiers:
+for tier in tiers:
             # Convert price from cents to dollars
             price_monthly_dollars = tier["price_monthly"] / 100 if tier["price_monthly"] else 0
             formatted_tier = {
@@ -51,7 +50,7 @@ async def list_tiers(db: Session = Depends(get_db)):
 
         logger.info(f"Successfully formatted {len(formatted_tiers)} tiers")
         return {"tiers": formatted_tiers}
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to fetch tiers: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Failed to retrieve tier information: {str(e)}")
 
@@ -61,10 +60,10 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
     """Get current user's tier information, quota usage, and pricing."""
     logger.info(f"Fetching current tier for user_id: {user_id}")
 
-    try:
+try:
         # Fetch user from database
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             logger.warning(f"User not found: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -72,10 +71,10 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
         logger.debug(f"User {user_id} has tier: {user_tier}")
 
         # Get tier configuration
-        try:
+try:
             tier_config = TierConfig.get_tier_config(user_tier, db)
             logger.debug(f"Retrieved tier config for {user_tier}: {tier_config.get('name', 'Unknown')}")
-        except Exception as config_error:
+except Exception as config_error:
             logger.error(f"Failed to get tier config for {user_tier}: {str(config_error)}")
             # Use fallback config
             tier_config = TierConfig._get_fallback_config(user_tier)
@@ -88,7 +87,7 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
         quota_used_usd = 0.0
         sms_count = 0
 
-        try:
+try:
             # Try to get from MonthlyQuotaUsage table first
             monthly_usage = (
                 db.query(MonthlyQuotaUsage)
@@ -99,10 +98,10 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
                 .first()
             )
 
-            if monthly_usage:
+if monthly_usage:
                 quota_used_usd = monthly_usage.quota_used or 0.0
                 logger.debug(f"Found monthly quota usage: ${quota_used_usd}")
-            else:
+else:
                 # Fallback: Calculate from user's monthly_quota_used field
                 quota_used_usd = user.monthly_quota_used or 0.0
                 logger.debug(f"Using user.monthly_quota_used: ${quota_used_usd}")
@@ -121,7 +120,7 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
             )
             logger.debug(f"SMS count for current month: {sms_count}")
 
-        except Exception as quota_error:
+except Exception as quota_error:
             logger.warning(f"Failed to calculate quota usage: {str(quota_error)}")
             # Continue with defaults
             quota_used_usd = user.monthly_quota_used or 0.0
@@ -154,10 +153,10 @@ async def get_current_tier(user_id: str = Depends(get_current_user_id), db: Sess
             },
         }
 
-    except HTTPException:
+except HTTPException:
         # Re-raise HTTP exceptions as-is
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(
             f"Unexpected error fetching tier for user {user_id}: {str(e)}",
             exc_info=True,
@@ -174,14 +173,14 @@ async def upgrade_tier(
     """Upgrade user to a higher tier."""
     logger.info(f"Upgrade request from user {user_id}: {request_data}")
 
-    try:
+try:
         target_tier = request_data.get("target_tier")
-        if not target_tier:
+if not target_tier:
             logger.warning(f"Upgrade request missing target_tier from user {user_id}")
             raise HTTPException(status_code=400, detail="target_tier required")
 
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             logger.warning(f"User not found for upgrade: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -190,7 +189,7 @@ async def upgrade_tier(
 
         # Validate upgrade path
         tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
-        if tier_hierarchy.get(target_tier, -1) <= tier_hierarchy.get(current_tier, 0):
+if tier_hierarchy.get(target_tier, -1) <= tier_hierarchy.get(current_tier, 0):
             logger.warning(f"Invalid upgrade path: {current_tier} -> {target_tier}")
             raise HTTPException(
                 status_code=400,
@@ -220,9 +219,9 @@ async def upgrade_tier(
             "price_monthly": price_monthly_dollars,
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to upgrade user {user_id}: {str(e)}", exc_info=True)
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to upgrade tier: {str(e)}")
@@ -233,9 +232,9 @@ async def downgrade_tier(user_id: str = Depends(get_current_user_id), db: Sessio
     """Downgrade to Freemium tier."""
     logger.info(f"Downgrade request from user {user_id}")
 
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             logger.warning(f"User not found for downgrade: {user_id}")
             raise HTTPException(status_code=404, detail="User not found")
 
@@ -251,9 +250,9 @@ async def downgrade_tier(user_id: str = Depends(get_current_user_id), db: Sessio
             "new_tier": "freemium",
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to downgrade user {user_id}: {str(e)}", exc_info=True)
         db.rollback()
         raise HTTPException(status_code=500, detail=f"Failed to downgrade tier: {str(e)}")

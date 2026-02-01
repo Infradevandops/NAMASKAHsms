@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Security test runner script."""
+
+
 import subprocess
 import sys
 from pathlib import Path
 
-
 def run_security_tests():
+
     """Run all security tests."""
     print("🛡️ Running comprehensive security tests...\n")
 
@@ -21,16 +23,16 @@ def run_security_tests():
 
     results = {}
 
-    for category, test_file in test_categories:
+for category, test_file in test_categories:
         print(f"🔍 Running {category}...")
 
         test_path = project_root / test_file
-        if not test_path.exists():
+if not test_path.exists():
             print(f"⚠️ Test file not found: {test_file}")
             results[category] = "SKIPPED"
             continue
 
-        try:
+try:
             # Run pytest for the specific test file
             result = subprocess.run(
                 [sys.executable, "-m", "pytest", str(test_path), "-v"],
@@ -40,24 +42,24 @@ def run_security_tests():
                 timeout=60,
             )
 
-            if result.returncode == 0:
+if result.returncode == 0:
                 print(f"✅ {category}: PASSED")
                 results[category] = "PASSED"
-            else:
+else:
                 print(f"❌ {category}: FAILED")
                 print(f"Error output: {result.stdout[-200:]}")
                 results[category] = "FAILED"
 
-        except subprocess.TimeoutExpired:
+except subprocess.TimeoutExpired:
             print(f"⏰ {category}: TIMEOUT")
             results[category] = "TIMEOUT"
-        except Exception as e:
+except Exception as e:
             print(f"💥 {category}: ERROR - {e}")
             results[category] = "ERROR"
 
     # Run security scan
-    print(f"\n🔍 Running automated security scan...")
-    try:
+    print("\n🔍 Running automated security scan...")
+try:
         scan_script = project_root / "scripts" / "security_scan.py"
         result = subprocess.run(
             [sys.executable, str(scan_script), str(project_root)],
@@ -66,26 +68,26 @@ def run_security_tests():
             timeout=120,
         )
 
-        if result.returncode == 0:
+if result.returncode == 0:
             print("✅ Security scan: PASSED")
             results["Security Scan"] = "PASSED"
-        else:
+else:
             print("❌ Security scan: ISSUES FOUND")
             print(result.stdout[-300:])
             results["Security Scan"] = "FAILED"
 
-    except Exception as e:
+except Exception as e:
         print(f"💥 Security scan: ERROR - {e}")
         results["Security Scan"] = "ERROR"
 
     # Print summary
-    print(f"\n📊 Security Test Summary:")
+    print("\n📊 Security Test Summary:")
     print("=" * 50)
 
     passed = sum(1 for status in results.values() if status == "PASSED")
     total = len(results)
 
-    for category, status in results.items():
+for category, status in results.items():
         status_icon = {
             "PASSED": "✅",
             "FAILED": "❌",
@@ -99,10 +101,10 @@ def run_security_tests():
     print(f"\nOverall: {passed}/{total} tests passed")
 
     # Return exit code
-    if passed == total:
+if passed == total:
         print("\n🎉 All security tests passed!")
         return 0
-    else:
+else:
         print(f"\n⚠️ {total - passed} security tests failed!")
         return 1
 

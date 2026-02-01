@@ -1,19 +1,19 @@
 """Advanced commission calculation engine."""
 
+
 from datetime import datetime
 from typing import Dict, Optional
-
 from sqlalchemy.orm import Session
-
 from app.models.commission import CommissionTier, RevenueShare
 from app.models.user import User
 from app.utils.timezone_utils import utc_now
 
-
 class CommissionEngine:
+
     """Advanced commission calculation and revenue sharing engine."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         self.db = db
 
     async def calculate_commission(
@@ -27,12 +27,12 @@ class CommissionEngine:
 
         # Get partner details
         partner = self.db.query(User).filter(User.id == partner_id).first()
-        if not partner or not partner.is_affiliate:
+if not partner or not partner.is_affiliate:
             return {"error": "Invalid partner"}
 
         # Get partner's commission tier
         tier = await self._get_partner_tier(partner_id)
-        if not tier:
+if not tier:
             return {"error": "No commission tier found"}
 
         # Calculate base commission
@@ -80,8 +80,8 @@ class CommissionEngine:
             .all()
         )
 
-        for tier in tiers:
-            if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
+for tier in tiers:
+if total_volume >= tier.min_volume and total_referrals >= tier.min_referrals:
                 return {
                     "name": tier.name,
                     "base_rate": tier.base_rate,
@@ -94,7 +94,7 @@ class CommissionEngine:
 
     async def _calculate_bonus(self, partner_id: int, tier: Dict, transaction_amount: float) -> float:
         """Calculate performance - based bonus."""
-        if tier.get("bonus_rate", 0) == 0:
+if tier.get("bonus_rate", 0) == 0:
             return 0.0
 
         # Monthly volume bonus
@@ -107,8 +107,8 @@ class CommissionEngine:
         }
 
         bonus_rate = 0.0
-        for threshold, rate in sorted(bonus_thresholds.items(), reverse=True):
-            if monthly_volume >= threshold:
+for threshold, rate in sorted(bonus_thresholds.items(), reverse=True):
+if monthly_volume >= threshold:
                 bonus_rate = rate
                 break
 
@@ -130,7 +130,7 @@ class CommissionEngine:
     async def _get_partner_referrals(self, partner_id: int) -> int:
         """Get partner's total referral count."""
         partner = self.db.query(User).filter(User.id == partner_id).first()
-        if not partner or not partner.referral_code:
+if not partner or not partner.referral_code:
             return 0
 
         result = self.db.query(User).filter(User.referred_by == partner.referral_code).count()
@@ -161,7 +161,7 @@ class CommissionEngine:
         processed_count = 0
         total_amount = 0.0
 
-        for share in pending_shares:
+for share in pending_shares:
             # Update partner's earnings
             partner = share.partner
             partner.referral_earnings += share.commission_amount
@@ -183,5 +183,6 @@ commission_engine = None
 
 
 def get_commission_engine(db: Session) -> CommissionEngine:
+
     """Get commission engine instance."""
     return CommissionEngine(db)

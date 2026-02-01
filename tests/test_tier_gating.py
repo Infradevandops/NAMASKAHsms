@@ -1,37 +1,41 @@
 """Tests for tier-based access control (gating).
 
+from datetime import datetime, timezone
+from app.models.user import User
+from app.utils.security import hash_password
+
 Feature: tier-system-rbac
 Tests validate that tier-gated endpoints properly restrict access based on user tier.
 """
 
-from datetime import datetime, timezone
-
-from app.models.user import User
-from app.utils.security import hash_password
-
 
 class TestPayGEndpointGating:
+
     """Tests for endpoints that require payg tier or higher."""
 
-    def test_freemium_user_gets_402_on_voice_verify_page(self, client, regular_user, user_token):
+def test_freemium_user_gets_402_on_voice_verify_page(self, client, regular_user, user_token):
+
         """Test that freemium users get 402 when accessing /voice-verify."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_freemium_user_gets_402_on_api_docs_page(self, client, regular_user, user_token):
+def test_freemium_user_gets_402_on_api_docs_page(self, client, regular_user, user_token):
+
         """Test that freemium users get 402 when accessing /api-docs."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/api-docs", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_freemium_user_gets_402_on_affiliate_page(self, client, regular_user, user_token):
+def test_freemium_user_gets_402_on_affiliate_page(self, client, regular_user, user_token):
+
         """Test that freemium users get 402 when accessing /affiliate."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/affiliate", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_payg_user_can_access_payg_pages(self, client, db, user_token):
+def test_payg_user_can_access_payg_pages(self, client, db, user_token):
+
         """Test that payg users can access payg-tier pages."""
         user = User(
             id="payg_user",
@@ -63,15 +67,18 @@ class TestPayGEndpointGating:
 
 
 class TestProEndpointGating:
+
     """Tests for endpoints that require pro tier or higher."""
 
-    def test_freemium_user_gets_402_on_bulk_purchase_page(self, client, regular_user, user_token):
+def test_freemium_user_gets_402_on_bulk_purchase_page(self, client, regular_user, user_token):
+
         """Test that freemium users get 402 when accessing /bulk-purchase."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_payg_user_gets_402_on_bulk_purchase_page(self, client, db, user_token):
+def test_payg_user_gets_402_on_bulk_purchase_page(self, client, db, user_token):
+
         """Test that payg users get 402 when accessing /bulk-purchase."""
         user = User(
             id="payg_user_bulk",
@@ -91,7 +98,8 @@ class TestProEndpointGating:
         response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_pro_user_can_access_bulk_purchase_page(self, client, db, user_token):
+def test_pro_user_can_access_bulk_purchase_page(self, client, db, user_token):
+
         """Test that pro users can access /bulk-purchase."""
         user = User(
             id="pro_user",
@@ -113,9 +121,11 @@ class TestProEndpointGating:
 
 
 class TestCustomTierAccess:
+
     """Tests for custom tier access to all endpoints."""
 
-    def test_custom_user_can_access_all_pages(self, client, db, user_token):
+def test_custom_user_can_access_all_pages(self, client, db, user_token):
+
         """Test that custom tier users can access all tier-gated pages."""
         user = User(
             id="custom_user",
@@ -135,7 +145,7 @@ class TestCustomTierAccess:
 
         # Test payg pages
         pages_payg = ["/voice-verify", "/api-docs", "/affiliate"]
-        for page in pages_payg:
+for page in pages_payg:
             response = client.get(page, headers={"Authorization": f"Bearer {token}"})
             assert response.status_code != 402, f"Custom user should access {page}"
 
@@ -145,9 +155,11 @@ class TestCustomTierAccess:
 
 
 class TestTierGatingErrorResponse:
+
     """Tests for 402 error response format."""
 
-    def test_402_response_includes_error_details(self, client, regular_user, user_token):
+def test_402_response_includes_error_details(self, client, regular_user, user_token):
+
         """Test that 402 response includes error details."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
@@ -157,7 +169,8 @@ class TestTierGatingErrorResponse:
         # Should have error details (either 'detail' or 'details' or 'message')
         assert "detail" in data or "details" in data or "message" in data
 
-    def test_402_response_indicates_required_tier(self, client, regular_user, user_token):
+def test_402_response_indicates_required_tier(self, client, regular_user, user_token):
+
         """Test that 402 response indicates the required tier."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/voice-verify", headers={"Authorization": f"Bearer {token}"})
@@ -169,9 +182,11 @@ class TestTierGatingErrorResponse:
 
 
 class TestTierHierarchyEnforcement:
+
     """Tests for tier hierarchy enforcement across all tiers."""
 
-    def test_tier_hierarchy_freemium_to_pro(self, client, db, user_token):
+def test_tier_hierarchy_freemium_to_pro(self, client, db, user_token):
+
         """Test that freemium users cannot access pro features."""
         user = User(
             id="freemium_test",
@@ -191,7 +206,8 @@ class TestTierHierarchyEnforcement:
         response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_tier_hierarchy_payg_to_pro(self, client, db, user_token):
+def test_tier_hierarchy_payg_to_pro(self, client, db, user_token):
+
         """Test that payg users cannot access pro features."""
         user = User(
             id="payg_test",
@@ -211,7 +227,8 @@ class TestTierHierarchyEnforcement:
         response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 402
 
-    def test_tier_hierarchy_pro_can_access_payg_features(self, client, db, user_token):
+def test_tier_hierarchy_pro_can_access_payg_features(self, client, db, user_token):
+
         """Test that pro users can access payg features."""
         user = User(
             id="pro_test",
@@ -235,12 +252,14 @@ class TestTierHierarchyEnforcement:
 
 
 class TestUnauthenticatedAccessToGatedPages:
+
     """Tests for unauthenticated access to tier-gated pages."""
 
-    def test_unauthenticated_user_gets_401_on_gated_pages(self, client):
+def test_unauthenticated_user_gets_401_on_gated_pages(self, client):
+
         """Test that unauthenticated users get 401 on tier-gated pages."""
         pages = ["/voice-verify", "/api-docs", "/affiliate", "/bulk-purchase"]
 
-        for page in pages:
+for page in pages:
             response = client.get(page)
             assert response.status_code == 401, f"Unauthenticated user should get 401 on {page}"

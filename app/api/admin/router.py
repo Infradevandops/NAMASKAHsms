@@ -1,5 +1,6 @@
-from fastapi import APIRouter
 
+
+from fastapi import APIRouter
 from app.api.admin.actions import router as actions_router
 from app.api.admin.analytics import router as analytics_router
 from app.api.admin.audit_compliance import router as audit_compliance_router

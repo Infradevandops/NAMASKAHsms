@@ -1,13 +1,14 @@
 """Exception handling utilities for specific error types."""
 
+
 import logging
 from typing import Any, Dict, Optional
-
 from botocore.exceptions import BotoCoreError, ClientError
 from cryptography.fernet import InvalidToken
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
-
 from app.core.exceptions import (
+import json
+
     AuthorizationError,
     ExternalServiceError,
     NamaskahException,
@@ -18,9 +19,11 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseError(NamaskahException):
+
     """Database operation errors."""
 
-    def __init__(
+def __init__(
+
         self,
         message: str = "Database operation failed",
         details: Optional[Dict[str, Any]] = None,
@@ -29,9 +32,11 @@ class DatabaseError(NamaskahException):
 
 
 class EncryptionError(NamaskahException):
+
     """Encryption/decryption errors."""
 
-    def __init__(
+def __init__(
+
         self,
         message: str = "Encryption operation failed",
         details: Optional[Dict[str, Any]] = None,
@@ -40,9 +45,11 @@ class EncryptionError(NamaskahException):
 
 
 class ConfigurationError(NamaskahException):
+
     """Configuration errors."""
 
-    def __init__(
+def __init__(
+
         self,
         message: str = "Configuration error",
         details: Optional[Dict[str, Any]] = None,
@@ -51,9 +58,11 @@ class ConfigurationError(NamaskahException):
 
 
 class AWSServiceError(ExternalServiceError):
+
     """AWS service errors."""
 
-    def __init__(
+def __init__(
+
         self,
         service: str,
         message: str = "AWS service error",
@@ -63,22 +72,24 @@ class AWSServiceError(ExternalServiceError):
 
 
 def handle_database_exceptions(func):
+
     """Decorator to handle database exceptions."""
 
-    def wrapper(*args, **kwargs):
-        try:
+def wrapper(*args, **kwargs):
+
+try:
             return func(*args, **kwargs)
-        except IntegrityError as e:
+except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
             raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
-        except OperationalError as e:
+except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
                 "Database connection or \
     operation failed",
                 {"original_error": str(e)},
             )
-        except SQLAlchemyError as e:
+except SQLAlchemyError as e:
             logger.error(f"SQLAlchemy error in {func.__name__}: {e}")
             raise DatabaseError("Database operation failed", {"original_error": str(e)})
 
@@ -86,18 +97,21 @@ def handle_database_exceptions(func):
 
 
 def handle_aws_exceptions(service_name: str):
+
     """Decorator to handle AWS service exceptions."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
+def decorator(func):
+
+def wrapper(*args, **kwargs):
+
+try:
                 return func(*args, **kwargs)
-            except ClientError as e:
+except ClientError as e:
                 error_code = e.response.get("Error", {}).get("Code", "Unknown")
                 error_message = e.response.get("Error", {}).get("Message", str(e))
                 logger.error(f"AWS {service_name} client error in {func.__name__}: {error_code} - {error_message}")
 
-                if error_code in ["AccessDenied", "UnauthorizedOperation"]:
+if error_code in ["AccessDenied", "UnauthorizedOperation"]:
                     raise AuthorizationError(
                         f"Access denied to {service_name}",
                         {
@@ -106,7 +120,7 @@ def handle_aws_exceptions(service_name: str):
                             "original_error": error_message,
                         },
                     )
-                elif error_code in ["ResourceNotFoundException", "NoSuchKey"]:
+elif error_code in ["ResourceNotFoundException", "NoSuchKey"]:
                     raise ValidationError(
                         f"Resource not found in {service_name}",
                         {
@@ -115,13 +129,13 @@ def handle_aws_exceptions(service_name: str):
                             "original_error": error_message,
                         },
                     )
-                else:
+else:
                     raise AWSServiceError(
                         service_name,
                         f"{service_name} operation failed",
                         {"error_code": error_code, "original_error": error_message},
                     )
-            except BotoCoreError as e:
+except BotoCoreError as e:
                 logger.error(f"AWS {service_name} core error in {func.__name__}: {e}")
                 raise AWSServiceError(
                     service_name,
@@ -135,20 +149,22 @@ def handle_aws_exceptions(service_name: str):
 
 
 def handle_encryption_exceptions(func):
+
     """Decorator to handle encryption exceptions."""
 
-    def wrapper(*args, **kwargs):
-        try:
+def wrapper(*args, **kwargs):
+
+try:
             return func(*args, **kwargs)
-        except InvalidToken as e:
+except InvalidToken as e:
             logger.error(f"Invalid encryption token in {func.__name__}: {e}")
             raise EncryptionError(
                 "Invalid encryption token or \
     corrupted data",
                 {"original_error": str(e)},
             )
-        except ValueError as e:
-            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
+except ValueError as e:
+if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
                 raise EncryptionError(
                     "Invalid encryption key or \
@@ -161,58 +177,62 @@ def handle_encryption_exceptions(func):
 
 
 def safe_int_conversion(value: str, default: int = 0, field_name: str = "value") -> int:
+
     """Safely convert string to int with specific error handling."""
-    try:
+try:
         return int(value)
-    except (ValueError, TypeError) as e:
+except (ValueError, TypeError) as e:
         logger.warning(f"Failed to convert {field_name} '{value}' to int: {e}")
         return default
 
 
 def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
-    """Safely parse JSON string with specific error handling."""
-    import json
 
-    if default is None:
+    """Safely parse JSON string with specific error handling."""
+
+if default is None:
         default = {}
 
-    try:
+try:
         return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError) as e:
+except (json.JSONDecodeError, TypeError) as e:
         logger.warning(f"Failed to parse JSON {field_name}: {e}")
         return default
 
 
 def handle_http_client_exceptions(service_name: str):
+
     """Decorator to handle HTTP client exceptions."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
+def decorator(func):
+
+def wrapper(*args, **kwargs):
+
+try:
                 return func(*args, **kwargs)
-            except ConnectionError as e:
+except ConnectionError as e:
                 logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Failed to connect to {service_name}",
                     {"original_error": str(e)},
                 )
-            except TimeoutError as e:
+except TimeoutError as e:
                 logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Timeout connecting to {service_name}",
                     {"original_error": str(e)},
                 )
-            except Exception as e:
-                if "timeout" in str(e).lower():
+except Exception as e:
+if "timeout" in str(e).lower():
                     logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
-                elif "connection" in str(e).lower():
+elif "connection" in str(e).lower():
                     logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,

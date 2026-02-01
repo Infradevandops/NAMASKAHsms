@@ -3,14 +3,15 @@
 # Security middleware
 # Logging middleware
 from .logging import (
+from .rate_limiting import AdaptiveRateLimitMiddleware, RateLimitMiddleware
+from .security import (
+
     AuditTrailMiddleware,
     PerformanceMetricsMiddleware,
     RequestLoggingMiddleware,
 )
 
 # Rate limiting middleware
-from .rate_limiting import AdaptiveRateLimitMiddleware, RateLimitMiddleware
-from .security import (
     AdminRoleMiddleware,
     APIKeyAuthMiddleware,
     CORSMiddleware,

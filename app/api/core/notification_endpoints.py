@@ -1,8 +1,8 @@
 """Notification API endpoints."""
 
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.api.notifications.analytics_endpoints import router as analytics_router
 from app.api.notifications.email_endpoints import router as email_router
 from app.api.notifications.notification_center import router as notification_center_router
@@ -58,7 +58,7 @@ async def mark_notification_read(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-    if not notification:
+if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     notification.is_read = True
@@ -90,7 +90,7 @@ async def delete_notification(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-    if not notification:
+if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     db.delete(notification)

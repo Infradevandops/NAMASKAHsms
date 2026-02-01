@@ -1,14 +1,13 @@
 """Monitoring middleware for request tracking."""
 
-import time
 
+import time
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 from app.core.monitoring import error_tracker, performance_monitor
 
-
 class MonitoringMiddleware(BaseHTTPMiddleware):
+
     """Middleware to track request metrics and errors."""
 
     @staticmethod
@@ -16,7 +15,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
         """Process request and track metrics."""
         start_time = time.time()
 
-        try:
+try:
             response = await call_next(request)
 
             # Calculate duration
@@ -35,10 +34,10 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
 
             return response
 
-        except (HTTPException, StarletteHTTPException):
+except (HTTPException, StarletteHTTPException):
             # Don't track HTTP exceptions as errors - they're expected
             raise
-        except NamaskahException as e:
+except NamaskahException as e:
             # Track application - specific errors
             error_tracker.track_error(
                 e,
@@ -51,7 +50,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
                 },
             )
             raise
-        except Exception as e:
+except Exception as e:
             # Track unexpected errors
             error_tracker.track_error(
                 e,

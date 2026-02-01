@@ -1,12 +1,11 @@
 """SMS verification purchase endpoints."""
 
+
 import asyncio
 import json
 from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
-
 from app.core.cache import get_redis
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
@@ -17,6 +16,9 @@ from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.textverified_service import TextVerifiedService
+from app.services.tier_manager import TierManager
+from app.services.pricing_calculator import PricingCalculator
+from app.services.sms_polling_service import sms_polling_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -39,26 +41,26 @@ async def request_verification(
     """
 
     # Validate request
-    if not request.service or len(request.service.strip()) == 0:
+if not request.service or len(request.service.strip()) == 0:
         logger.warning("Empty service name provided")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Service name is required")
 
-    if not request.country or len(request.country.strip()) == 0:
+if not request.country or len(request.country.strip()) == 0:
         logger.warning("Empty country code provided")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Country code is required")
 
     # SAFETY: Check for duplicate request using idempotency key from header or request body
     final_idempotency_key = idempotency_key or request.idempotency_key
-    if final_idempotency_key:
+if final_idempotency_key:
         # Check Redis cache first for fast response
-        try:
+try:
             redis = get_redis()
             cache_key = f"idempotency:{user_id}:{final_idempotency_key}"
             cached_response = redis.get(cache_key)
-            if cached_response:
+if cached_response:
                 logger.info(f"Returning cached response for idempotency key: {final_idempotency_key}")
                 return json.loads(cached_response)
-        except Exception as cache_error:
+except Exception as cache_error:
             logger.warning(f"Redis cache check failed: {cache_error}")
 
         # Check database for existing verification
@@ -70,7 +72,7 @@ async def request_verification(
             )
             .first()
         )
-        if existing:
+if existing:
             logger.info(f"Duplicate request detected: {final_idempotency_key}")
             response = {
                 "success": True,
@@ -85,17 +87,17 @@ async def request_verification(
                 "duplicate": True,
             }
             # Cache for 24 hours
-            try:
+try:
                 redis.setex(cache_key, 86400, json.dumps(response))
-            except Exception:
+except Exception:
                 pass
             return response
 
     # Real verification with authentication required
-    try:
+try:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             logger.error(f"User {user_id} not found")
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -107,7 +109,7 @@ async def request_verification(
         # Get TextVerified service
         logger.info(f"Initializing TextVerified service for user {user_id}")
         tv_service = TextVerifiedService()
-        if not tv_service.enabled:
+if not tv_service.enabled:
             logger.error("TextVerified service not configured or unavailable")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -116,26 +118,24 @@ async def request_verification(
         logger.info("TextVerified service initialized successfully")
 
         # Check tier access for filtering features
-        from app.services.tier_manager import TierManager
 
         tier_manager = TierManager(db)
 
-        if request.area_codes:
-            if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+if request.area_codes:
+if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail="Area code filtering requires payg tier or higher. Upgrade your plan.",
                 )
 
-        if request.carriers:
-            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+if request.carriers:
+if not tier_manager.check_feature_access(user_id, "isp_filtering"):
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail="Carrier filtering requires payg tier or higher. Upgrade your plan.",
                 )
 
         # Calculate SMS cost using new pricing system
-        from app.services.pricing_calculator import PricingCalculator
 
         calculator = PricingCalculator(db)
         user_tier = user.subscription_tier or "freemium"
@@ -150,7 +150,7 @@ async def request_verification(
 
         # Check user has sufficient credits BEFORE calling API
         logger.info(f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}")
-        if user.credits < sms_cost:
+if user.credits < sms_cost:
             logger.warning(f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}")
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
@@ -165,15 +165,15 @@ async def request_verification(
         carrier = request.carriers[0] if request.carriers else None
 
         # Log what filters are being applied
-        if area_code:
+if area_code:
             logger.info(f"User {user_id} requesting area code: {area_code}")
-        if carrier:
+if carrier:
             logger.info(f"User {user_id} requesting carrier: {carrier}")
 
         textverified_result = None
         verification = None
 
-        try:
+try:
             # Step 1: Call TextVerified API FIRST with filters
             logger.info(
                 f"Calling TextVerified API - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}"
@@ -226,7 +226,7 @@ async def request_verification(
                 verification_id=verification.id
             )
 
-        except Exception as api_error:
+except Exception as api_error:
             # CRITICAL: Rollback if TextVerified API fails
             db.rollback()
             logger.error(
@@ -235,15 +235,15 @@ async def request_verification(
             )
 
             # If we got a number but DB failed, cancel it
-            if textverified_result and textverified_result.get("id"):
-                try:
+if textverified_result and textverified_result.get("id"):
+try:
                     await tv_service.cancel_verification(textverified_result["id"])
                     logger.info(f"Cancelled TextVerified number: {textverified_result['id']}")
-                except Exception as cancel_error:
+except Exception as cancel_error:
                     logger.error(f"Failed to cancel TextVerified number: {cancel_error}")
 
             # Notification: Verification Failed (Task 1.3)
-            try:
+try:
                 notification_dispatcher = NotificationDispatcher(db)
                 notification_dispatcher.on_verification_failed(
                     verification=type('obj', (object,), {
@@ -252,7 +252,7 @@ async def request_verification(
                     })(),
                     reason="SMS service temporarily unavailable"
                 )
-            except Exception:
+except Exception:
                 pass
 
             raise HTTPException(
@@ -264,8 +264,8 @@ async def request_verification(
         calculator.record_sms_usage(user_id, actual_cost)
 
         # Low balance warning
-        if new_balance < 5.0 and old_balance >= 5.0:
-            try:
+if new_balance < 5.0 and old_balance >= 5.0:
+try:
                 notif_service = NotificationService(db)
                 notif_service.create_notification(
                     user_id=user_id,
@@ -273,7 +273,7 @@ async def request_verification(
                     title="Low Balance Warning",
                     message=f"Your balance is ${new_balance:.2f}. Add credits to continue.",
                 )
-            except Exception:
+except Exception:
                 pass
 
         # CRITICAL: Commit transaction (all or nothing)
@@ -294,16 +294,16 @@ async def request_verification(
         }
 
         # Cache response for idempotency (24 hours)
-        if final_idempotency_key:
-            try:
+if final_idempotency_key:
+try:
                 redis = get_redis()
                 cache_key = f"idempotency:{user_id}:{final_idempotency_key}"
                 redis.setex(cache_key, 86400, json.dumps(response))
-            except Exception as cache_error:
+except Exception as cache_error:
                 logger.warning(f"Failed to cache response: {cache_error}")
 
         # Notification: Balance Updated (Task 2.5)
-        try:
+try:
             notif_service = NotificationService(db)
             notif_service.create_notification(
                 user_id=user_id,
@@ -311,11 +311,11 @@ async def request_verification(
                 title="💳 Balance Updated",
                 message=f"${actual_cost:.2f} charged for {request.service} - New balance: ${new_balance:.2f}",
             )
-        except Exception:
+except Exception:
             pass
 
         # Notification: Number Purchased (Task 2.2)
-        try:
+try:
             notif_service = NotificationService(db)
             notif_service.create_notification(
                 user_id=user_id,
@@ -323,11 +323,11 @@ async def request_verification(
                 title="📱 Number Purchased",
                 message=f"Phone: {textverified_result['phone_number']} - Waiting for SMS code...",
             )
-        except Exception:
+except Exception:
             pass
 
         # Notification: Verification Initiated (Task 2.1 Enhanced)
-        try:
+try:
             notif_service = NotificationService(db)
             notif_service.create_notification(
                 user_id=user_id,
@@ -335,7 +335,7 @@ async def request_verification(
                 title="🎯 Verification Started",
                 message=f"Purchasing {request.service} number in {request.country} for ${actual_cost:.2f}",
             )
-        except Exception:
+except Exception:
             pass
 
         logger.info(
@@ -345,51 +345,50 @@ async def request_verification(
             f"Balance: ${new_balance:.2f}"
         )
 
-        try:
-            from app.services.sms_polling_service import sms_polling_service
+try:
 
             asyncio.create_task(sms_polling_service.start_polling(verification.id))
             logger.info(f"Started SMS polling for verification {verification.id}")
-        except Exception as poll_error:
+except Exception as poll_error:
             logger.warning(f"SMS polling start failed (non-critical): {poll_error}")
 
         return response
 
-    except HTTPException as http_err:
+except HTTPException as http_err:
         db.rollback()
         logger.warning(f"HTTP exception in verification request: {http_err.status_code} - {http_err.detail}")
         raise
-    except ValueError as e:
+except ValueError as e:
         db.rollback()
         logger.warning(f"Validation error in verification request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Validation error: {str(e)}",
         )
-    except ConnectionError as e:
+except ConnectionError as e:
         db.rollback()
         logger.error(f"Connection error to TextVerified API: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Unable to connect to SMS service. Please try again.",
         )
-    except TimeoutError as e:
+except TimeoutError as e:
         db.rollback()
         logger.error(f"Timeout error in verification request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
             detail="Request timeout. Please try again.",
         )
-    except Exception as e:
+except Exception as e:
         db.rollback()
         logger.error(f"Unexpected error in verification request: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="An unexpected error occurred. Please try again or contact support.",
         )
-    finally:
+finally:
         # Ensure database session is properly closed
-        try:
+try:
             db.close()
-        except Exception as close_err:
+except Exception as close_err:
             logger.error(f"Error closing database session: {close_err}")

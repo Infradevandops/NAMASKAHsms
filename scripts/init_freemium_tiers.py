@@ -1,21 +1,20 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from app.core.database import get_db
+from app.models.subscription_tier import SubscriptionTier, TierEnum
+
 Initialize New Freemium Tier Structure
 Creates the 4-tier freemium model: Freemium, Pay-As-You-Go, Pro, Custom
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy.orm import Session
-
-from app.core.database import get_db
-from app.models.subscription_tier import SubscriptionTier, TierEnum
-
 
 def create_freemium_tiers():
+
     """Create the new 4-tier freemium structure"""
 
     db = next(get_db())
@@ -132,7 +131,7 @@ def create_freemium_tiers():
 
     created_count = 0
 
-    for tier_data in tiers_data:
+for tier_data in tiers_data:
         tier = SubscriptionTier(**tier_data)
         db.add(tier)
         created_count += 1

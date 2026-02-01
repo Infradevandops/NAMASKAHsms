@@ -1,11 +1,11 @@
 """Tier response schemas for validation."""
 
-from typing import List, Optional
 
+from typing import List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
-
 class TierFeatures(BaseModel):
+
     """Tier features schema."""
 
     api_access: bool
@@ -16,6 +16,7 @@ class TierFeatures(BaseModel):
 
 
 class TierInfo(BaseModel):
+
     """Single tier information schema."""
 
     tier: str = Field(..., description="Tier identifier (freemium, payg, pro, custom)")
@@ -28,29 +29,33 @@ class TierInfo(BaseModel):
 
     @field_validator("tier")
     @classmethod
-    def validate_tier(cls, v):
+def validate_tier(cls, v):
+
         """Validate tier is one of the allowed values."""
         allowed_tiers = {"freemium", "payg", "pro", "custom"}
-        if v not in allowed_tiers:
+if v not in allowed_tiers:
             raise ValueError(f"Tier must be one of {allowed_tiers}")
         return v
 
 
 class TiersListResponse(BaseModel):
+
     """Response schema for /api/tiers/ endpoint."""
 
     tiers: List[TierInfo] = Field(..., description="List of available tiers")
 
     @field_validator("tiers")
     @classmethod
-    def validate_tiers_count(cls, v):
+def validate_tiers_count(cls, v):
+
         """Validate that we have exactly 4 tiers."""
-        if len(v) != 4:
+if len(v) != 4:
             raise ValueError("Must have exactly 4 tiers")
         return v
 
 
 class CurrentTierResponse(BaseModel):
+
     """Response schema for /api/tiers/current endpoint."""
 
     current_tier: str = Field(..., description="User's current tier")
@@ -66,15 +71,17 @@ class CurrentTierResponse(BaseModel):
 
     @field_validator("current_tier")
     @classmethod
-    def validate_tier(cls, v):
+def validate_tier(cls, v):
+
         """Validate tier is one of the allowed values."""
         allowed_tiers = {"freemium", "payg", "pro", "custom"}
-        if v not in allowed_tiers:
+if v not in allowed_tiers:
             raise ValueError(f"Tier must be one of {allowed_tiers}")
         return v
 
 
 class AnalyticsSummaryResponse(BaseModel):
+
     """Response schema for /api/analytics/summary endpoint."""
 
     total_verifications: int = Field(..., ge=0, description="Total verifications")
@@ -92,6 +99,7 @@ class AnalyticsSummaryResponse(BaseModel):
 
 
 class DashboardActivity(BaseModel):
+
     """Single dashboard activity item schema."""
 
     id: str = Field(..., description="Activity ID")
@@ -102,10 +110,11 @@ class DashboardActivity(BaseModel):
 
     @field_validator("status")
     @classmethod
-    def validate_status(cls, v):
+def validate_status(cls, v):
+
         """Validate status is one of the allowed values."""
         allowed_statuses = {"pending", "completed", "failed", "expired", "processing"}
-        if v not in allowed_statuses:
+if v not in allowed_statuses:
             raise ValueError(f"Status must be one of {allowed_statuses}")
         return v
 

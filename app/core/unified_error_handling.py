@@ -1,8 +1,11 @@
 """Unified error handling system consolidating all error handling implementations."""
 
+
+# from botocore.exceptions import ClientError, BotoCoreError
+# # from cryptography.fernet import InvalidToken
+
 import logging
 from typing import Any, Callable, Dict, Optional
-
 from fastapi import Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -10,9 +13,9 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError, OperationalError, SQLAlchemyError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware
-
-# from botocore.exceptions import ClientError, BotoCoreError
-# # from cryptography.fernet import InvalidToken
+from app.core.config import get_settings
+import json
+from app.core.unified_rate_limiting import setup_unified_rate_limiting
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +23,11 @@ logger = logging.getLogger(__name__)
 
 
 class NamaskahException(Exception):
+
     """Base exception class for all Namaskah errors."""
 
-    def __init__(
+def __init__(
+
         self,
         message: str,
         error_code: str = "GENERAL_ERROR",
@@ -37,7 +42,9 @@ class NamaskahException(Exception):
 
 
 class AuthenticationError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Authentication failed",
         details: Optional[Dict[str, Any]] = None,
@@ -46,12 +53,16 @@ class AuthenticationError(NamaskahException):
 
 
 class AuthorizationError(NamaskahException):
-    def __init__(self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None):
+
+def __init__(self, message: str = "Access denied", details: Optional[Dict[str, Any]] = None):
+
         super().__init__(message, "AUTHZ_ERROR", details, 403)
 
 
 class ValidationError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Validation failed",
         details: Optional[Dict[str, Any]] = None,
@@ -60,7 +71,9 @@ class ValidationError(NamaskahException):
 
 
 class ExternalServiceError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         service: str,
         message: str = "External service error",
@@ -72,7 +85,9 @@ class ExternalServiceError(NamaskahException):
 
 
 class DatabaseError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Database operation failed",
         details: Optional[Dict[str, Any]] = None,
@@ -81,7 +96,9 @@ class DatabaseError(NamaskahException):
 
 
 class PaymentError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Payment processing failed",
         details: Optional[Dict[str, Any]] = None,
@@ -90,18 +107,22 @@ class PaymentError(NamaskahException):
 
 
 class InsufficientCreditsError(NamaskahException):
-    def __init__(self, required_or_message, available=None):
-        if available is not None:
+
+def __init__(self, required_or_message, available=None):
+
+if available is not None:
             message = f"Insufficient credits. Required: {required_or_message}, Available: {available}"
             details = {"required": required_or_message, "available": available}
-        else:
+else:
             message = str(required_or_message)
             details = {}
         super().__init__(message, "INSUFFICIENT_CREDITS", details, 402)
 
 
 class VerificationError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Verification failed",
         details: Optional[Dict[str, Any]] = None,
@@ -110,7 +131,9 @@ class VerificationError(NamaskahException):
 
 
 class RentalError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Rental operation failed",
         details: Optional[Dict[str, Any]] = None,
@@ -119,7 +142,9 @@ class RentalError(NamaskahException):
 
 
 class RateLimitError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Rate limit exceeded",
         details: Optional[Dict[str, Any]] = None,
@@ -128,7 +153,9 @@ class RateLimitError(NamaskahException):
 
 
 class ServiceUnavailableError(NamaskahException):
-    def __init__(
+
+def __init__(
+
         self,
         message: str = "Service temporarily unavailable",
         details: Optional[Dict[str, Any]] = None,
@@ -140,30 +167,32 @@ class ServiceUnavailableError(NamaskahException):
 
 
 class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
+
     """Unified error handling middleware with fallback responses."""
 
-    def __init__(self, app):
+def __init__(self, app):
+
         super().__init__(app)
         self.fallback_responses = self._get_fallback_responses()
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         # Skip error handling for auth endpoints and all API endpoints
         path = str(request.url.path)
-        if path.startswith("/api/") or path.startswith("/auth/"):
+if path.startswith("/api/") or path.startswith("/auth/"):
             return await call_next(request)
 
-        try:
+try:
             response = await call_next(request)
 
             # Check for fallback if response failed
-            if response.status_code >= 400:
+if response.status_code >= 400:
                 fallback = self._get_fallback_response(request)
-                if fallback:
+if fallback:
                     return fallback
 
             return response
 
-        except Exception as exc:
+except Exception as exc:
             logger.error(
                 "Unhandled error in %s %s: %s",
                 request.method,
@@ -174,16 +203,17 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
 
             # Try fallback first
             fallback = self._get_fallback_response(request)
-            if fallback:
+if fallback:
                 return fallback
 
             # Return appropriate error response
             return await self._handle_error(request, exc)
 
-    def _get_fallback_response(self, request: Request) -> Optional[JSONResponse]:
+def _get_fallback_response(self, request: Request) -> Optional[JSONResponse]:
+
         """Get fallback response for critical endpoints."""
         path = str(request.url.path)
-        if path in self.fallback_responses:
+if path in self.fallback_responses:
             logger.warning("Using fallback response for %s", path)
             return JSONResponse(
                 status_code=200,
@@ -196,7 +226,7 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
         """Handle different types of errors and return appropriate responses."""
 
         # Database errors
-        if "database" in str(exc).lower() or "connection" in str(exc).lower():
+if "database" in str(exc).lower() or "connection" in str(exc).lower():
             return JSONResponse(
                 status_code=503,
                 content={
@@ -207,7 +237,7 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
             )
 
         # Network/API errors
-        if "network" in str(exc).lower() or "timeout" in str(exc).lower():
+if "network" in str(exc).lower() or "timeout" in str(exc).lower():
             return JSONResponse(
                 status_code=503,
                 content={
@@ -219,7 +249,7 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
 
         # Authentication errors (but not for auth endpoints)
         path = str(request.url.path)
-        if (
+if (
             ("auth" in str(exc).lower() or "token" in str(exc).lower())
             and not path.startswith("/api/auth/")
             and not path.startswith("/auth/")
@@ -242,7 +272,8 @@ class UnifiedErrorHandlingMiddleware(BaseHTTPMiddleware):
             },
         )
 
-    def _get_fallback_responses(self) -> Dict[str, Dict]:
+def _get_fallback_responses(self) -> Dict[str, Dict]:
+
         """Get fallback responses for critical endpoints."""
         return {
             "/verify/services": {
@@ -370,19 +401,18 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     """Handle unexpected exceptions."""
     logger.error("Unexpected error: %s", str(exc), exc_info=True)
 
-    from app.core.config import get_settings
 
     settings = get_settings()
 
     # Only show detailed error info in development
-    if settings.environment == "development":
+if settings.environment == "development":
         error_details = {
             "exception_type": type(exc).__name__,
             "exception_message": str(exc),
             "request_url": str(request.url),
             "request_method": request.method,
         }
-    else:
+else:
         error_details = {"timestamp": str(exc.__class__.__name__)}
 
     return JSONResponse(
@@ -401,22 +431,24 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
 
 
 def handle_database_exceptions(func):
+
     """Decorator to handle database exceptions."""
 
-    def wrapper(*args, **kwargs):
-        try:
+def wrapper(*args, **kwargs):
+
+try:
             return func(*args, **kwargs)
-        except IntegrityError as e:
+except IntegrityError as e:
             logger.error(f"Database integrity error in {func.__name__}: {e}")
             raise ValidationError("Data integrity constraint violated", {"original_error": str(e)})
-        except OperationalError as e:
+except OperationalError as e:
             logger.error(f"Database operational error in {func.__name__}: {e}")
             raise DatabaseError(
                 "Database connection or \
     operation failed",
                 {"original_error": str(e)},
             )
-        except SQLAlchemyError as e:
+except SQLAlchemyError as e:
             logger.error(f"SQLAlchemy error in {func.__name__}: {e}")
             raise DatabaseError("Database operation failed", {"original_error": str(e)})
 
@@ -424,13 +456,16 @@ def handle_database_exceptions(func):
 
 
 def handle_aws_exceptions(service_name: str):
+
     """Decorator to handle AWS service exceptions."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
+def decorator(func):
+
+def wrapper(*args, **kwargs):
+
+try:
                 return func(*args, **kwargs)
-            except Exception as e:
+except Exception as e:
                 logger.error(f"AWS {service_name} error in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
@@ -444,18 +479,20 @@ def handle_aws_exceptions(service_name: str):
 
 
 def handle_encryption_exceptions(func):
+
     """Decorator to handle encryption exceptions."""
 
-    def wrapper(*args, **kwargs):
-        try:
+def wrapper(*args, **kwargs):
+
+try:
             return func(*args, **kwargs)
-        except ValueError as e:
-            if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
+except ValueError as e:
+if "Invalid" in str(e) and ("key" in str(e).lower() or "token" in str(e).lower()):
                 logger.error(f"Invalid encryption key/token in {func.__name__}: {e}")
                 raise ValidationError("Invalid encryption key or token", {"original_error": str(e)})
             raise
-        except Exception as e:
-            if "token" in str(e).lower() or "decrypt" in str(e).lower():
+except Exception as e:
+if "token" in str(e).lower() or "decrypt" in str(e).lower():
                 logger.error(f"Encryption error in {func.__name__}: {e}")
                 raise ValidationError("Encryption/decryption failed", {"original_error": str(e)})
             raise
@@ -464,35 +501,38 @@ def handle_encryption_exceptions(func):
 
 
 def handle_http_client_exceptions(service_name: str):
+
     """Decorator to handle HTTP client exceptions."""
 
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            try:
+def decorator(func):
+
+def wrapper(*args, **kwargs):
+
+try:
                 return func(*args, **kwargs)
-            except ConnectionError as e:
+except ConnectionError as e:
                 logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Failed to connect to {service_name}",
                     {"original_error": str(e)},
                 )
-            except TimeoutError as e:
+except TimeoutError as e:
                 logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                 raise ExternalServiceError(
                     service_name,
                     f"Timeout connecting to {service_name}",
                     {"original_error": str(e)},
                 )
-            except Exception as e:
-                if "timeout" in str(e).lower():
+except Exception as e:
+if "timeout" in str(e).lower():
                     logger.error(f"Timeout error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
                         f"Timeout connecting to {service_name}",
                         {"original_error": str(e)},
                     )
-                elif "connection" in str(e).lower():
+elif "connection" in str(e).lower():
                     logger.error(f"Connection error to {service_name} in {func.__name__}: {e}")
                     raise ExternalServiceError(
                         service_name,
@@ -510,24 +550,25 @@ def handle_http_client_exceptions(service_name: str):
 
 
 def safe_int_conversion(value: str, default: int = 0, field_name: str = "value") -> int:
+
     """Safely convert string to int with specific error handling."""
-    try:
+try:
         return int(value)
-    except (ValueError, TypeError) as e:
+except (ValueError, TypeError) as e:
         logger.warning(f"Failed to convert {field_name} '{value}' to int: {e}")
         return default
 
 
 def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data") -> dict:
-    """Safely parse JSON string with specific error handling."""
-    import json
 
-    if default is None:
+    """Safely parse JSON string with specific error handling."""
+
+if default is None:
         default = {}
 
-    try:
+try:
         return json.loads(json_str)
-    except (json.JSONDecodeError, TypeError) as e:
+except (json.JSONDecodeError, TypeError) as e:
         logger.warning(f"Failed to parse JSON {field_name}: {e}")
         return default
 
@@ -536,6 +577,7 @@ def safe_json_parse(json_str: str, default: dict = None, field_name: str = "data
 
 
 def setup_unified_error_handling(app):
+
     """Setup unified error handling for FastAPI app."""
     # Add middleware
     app.add_middleware(UnifiedErrorHandlingMiddleware)
@@ -560,8 +602,8 @@ def setup_unified_error_handling(app):
 
 
 def setup_unified_middleware(app):
+
     """Setup all unified middleware for FastAPI app."""
-    from app.core.unified_rate_limiting import setup_unified_rate_limiting
 
     # Setup rate limiting first (should be early in middleware stack)
     setup_unified_rate_limiting(app)

@@ -1,16 +1,16 @@
 """Real-time refund monitoring endpoint for admin."""
 
-from datetime import datetime, timedelta, timezone
 
+from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_admin_user
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
+from app.services.auto_refund_service import AutoRefundService
 
 router = APIRouter(prefix="/admin/refunds", tags=["Admin - Refunds"])
 
@@ -47,9 +47,9 @@ async def monitor_refunds(
 
     # Check which ones don't have refunds
     missing_refunds = []
-    for v in failed_verifications:
+for v in failed_verifications:
         has_refund = any(r.user_id == v.user_id and v.id in r.description for r in refunds)
-        if not has_refund:
+if not has_refund:
             missing_refunds.append(
                 {
                     "verification_id": v.id,
@@ -75,7 +75,7 @@ async def monitor_refunds(
             "missing_refund_amount": total_missing,
             "refund_rate": (
                 len(refunds) / (len(refunds) + len(missing_refunds)) * 100
-                if (len(refunds) + len(missing_refunds)) > 0
+if (len(refunds) + len(missing_refunds)) > 0
                 else 100
             ),
         },
@@ -87,7 +87,7 @@ async def monitor_refunds(
                 "description": r.description,
                 "created_at": r.created_at.isoformat(),
             }
-            for r in refunds[:20]
+for r in refunds[:20]
         ],
         "missing_refunds": missing_refunds[:20],
         "alerts": (
@@ -97,7 +97,7 @@ async def monitor_refunds(
                     "message": f"{len(missing_refunds)} verifications need refunds (${total_missing:.2f})",
                 }
             ]
-            if len(missing_refunds) > 0
+if len(missing_refunds) > 0
             else []
         ),
     }
@@ -111,7 +111,6 @@ async def process_missing_refunds(
     db: Session = Depends(get_db),
 ):
     """Process all missing refunds."""
-    from app.services.auto_refund_service import AutoRefundService
 
     refund_service = AutoRefundService(db)
     result = refund_service.reconcile_unrefunded_verifications(days_back=minutes // 1440 or 1, dry_run=dry_run)
@@ -121,7 +120,7 @@ async def process_missing_refunds(
         "result": result,
         "message": (
             f"Would refund {result['needs_refund']} verifications (${result['total_amount_refunded']:.2f})"
-            if dry_run
+if dry_run
             else f"Refunded {result['refunded_now']} verifications (${result['total_amount_refunded']:.2f})"
         ),
     }

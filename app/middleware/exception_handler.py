@@ -1,29 +1,31 @@
 """Comprehensive exception handling middleware."""
 
+
 import traceback
 import uuid
 from typing import Callable, Optional
-
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.base import BaseHTTPMiddleware
-
 from app.core.error_responses import (
+from app.core.logging import get_logger
+
     ErrorCode,
     create_error_response,
     get_http_status_code,
 )
-from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class AppException(Exception):
+
     """Base application exception."""
 
-    def __init__(
+def __init__(
+
         self,
         message: str,
         code: ErrorCode = ErrorCode.INTERNAL_ERROR,
@@ -38,9 +40,11 @@ class AppException(Exception):
 
 
 class ValidationException(AppException):
+
     """Validation error exception."""
 
-    def __init__(self, message: str, details: Optional[list] = None):
+def __init__(self, message: str, details: Optional[list] = None):
+
         super().__init__(
             message=message,
             code=ErrorCode.VALIDATION_ERROR,
@@ -50,48 +54,61 @@ class ValidationException(AppException):
 
 
 class AuthenticationException(AppException):
+
     """Authentication error exception."""
 
-    def __init__(self, message: str = "Authentication failed"):
+def __init__(self, message: str = "Authentication failed"):
+
         super().__init__(message=message, code=ErrorCode.UNAUTHORIZED, status_code=401)
 
 
 class AuthorizationException(AppException):
+
     """Authorization error exception."""
 
-    def __init__(self, message: str = "Insufficient permissions"):
+def __init__(self, message: str = "Insufficient permissions"):
+
         super().__init__(message=message, code=ErrorCode.FORBIDDEN, status_code=403)
 
 
 class ResourceNotFoundException(AppException):
+
     """Resource not found exception."""
 
-    def __init__(self, resource: str = "Resource"):
+def __init__(self, resource: str = "Resource"):
+
         super().__init__(message=f"{resource} not found", code=ErrorCode.NOT_FOUND, status_code=404)
 
 
 class ConflictException(AppException):
+
     """Conflict exception."""
 
-    def __init__(self, message: str = "Resource already exists"):
+def __init__(self, message: str = "Resource already exists"):
+
         super().__init__(message=message, code=ErrorCode.CONFLICT, status_code=409)
 
 
 class RateLimitException(AppException):
+
     """Rate limit exceeded exception."""
 
-    def __init__(self, message: str = "Too many requests"):
+def __init__(self, message: str = "Too many requests"):
+
         super().__init__(message=message, code=ErrorCode.RATE_LIMIT_EXCEEDED, status_code=429)
 
 
 class InsufficientCreditsException(AppException):
+
     """Insufficient credits exception."""
 
-    def __init__(self, message: str = "Insufficient credits"):
+def __init__(self, message: str = "Insufficient credits"):
+
         super().__init__(message=message, code=ErrorCode.INSUFFICIENT_CREDITS, status_code=402)
 
 
 class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
+
     """Middleware for handling exceptions and converting to standardized responses."""
 
     async def dispatch(self, request: Request, call_next: Callable) -> JSONResponse:
@@ -99,11 +116,11 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
 
-        try:
+try:
             response = await call_next(request)
             return response
 
-        except ValidationError as e:
+except ValidationError as e:
             """Handle Pydantic validation errors."""
             logger.warning(
                 f"Validation error in {request.method} {request.url.path}",
@@ -111,7 +128,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             )
 
             details = []
-            for error in e.errors():
+for error in e.errors():
                 details.append(
                     {
                         "field": ".".join(str(x) for x in error.get("loc", [])),
@@ -130,7 +147,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=400, content=error_response.dict())
 
-        except AppException as e:
+except AppException as e:
             """Handle application exceptions."""
             logger.warning(
                 f"Application error in {request.method} {request.url.path}: {e.message}",
@@ -147,7 +164,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=e.status_code, content=error_response.dict())
 
-        except SQLAlchemyError as e:
+except SQLAlchemyError as e:
             """Handle database errors."""
             logger.error(
                 f"Database error in {request.method} {request.url.path}",
@@ -164,7 +181,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=500, content=error_response.dict())
 
-        except ValueError as e:
+except ValueError as e:
             """Handle value errors."""
             logger.warning(
                 f"Value error in {request.method} {request.url.path}: {str(e)}",
@@ -180,7 +197,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=400, content=error_response.dict())
 
-        except KeyError as e:
+except KeyError as e:
             """Handle missing key errors."""
             logger.warning(
                 f"Missing key error in {request.method} {request.url.path}: {str(e)}",
@@ -196,7 +213,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=400, content=error_response.dict())
 
-        except AttributeError as e:
+except AttributeError as e:
             """Handle attribute errors."""
             logger.error(
                 f"Attribute error in {request.method} {request.url.path}: {str(e)}",
@@ -213,7 +230,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=500, content=error_response.dict())
 
-        except TypeError as e:
+except TypeError as e:
             """Handle type errors."""
             logger.error(
                 f"Type error in {request.method} {request.url.path}: {str(e)}",
@@ -230,7 +247,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
             return JSONResponse(status_code=400, content=error_response.dict())
 
-        except Exception as e:
+except Exception as e:
             """Handle all other exceptions."""
             logger.error(
                 f"Unhandled exception in {request.method} {request.url.path}: {str(e)}",
@@ -252,6 +269,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
 
 
 def setup_exception_handlers(app):
+
     """Setup exception handlers for FastAPI app."""
 
     @app.exception_handler(AppException)
@@ -275,7 +293,7 @@ def setup_exception_handlers(app):
         request_id = getattr(request.state, "request_id", str(uuid.uuid4()))
 
         details = []
-        for error in exc.errors():
+for error in exc.errors():
             details.append(
                 {
                     "field": ".".join(str(x) for x in error.get("loc", [])),

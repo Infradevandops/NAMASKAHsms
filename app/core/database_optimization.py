@@ -1,11 +1,11 @@
 """Database optimization utilities for task 12.1."""
 
-from sqlalchemy import Index, text
 
+from sqlalchemy import Index, text
 from app.models.transaction import Transaction
 
-
 def create_database_indexes(engine):
+
     """Create optimized database indexes."""
 
     # User table indexes
@@ -29,7 +29,7 @@ def create_database_indexes(engine):
     Index("idx_transaction_user_type", Transaction.user_id, Transaction.type)
 
     # Create all indexes
-    with engine.connect() as conn:
+with engine.connect() as conn:
         conn.execute(
             text(
                 """
@@ -48,10 +48,12 @@ def create_database_indexes(engine):
 
 
 class QueryOptimizer:
+
     """Query optimization utilities."""
 
     @staticmethod
-    def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50):
+def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50):
+
         """Optimized query for user verifications."""
         return (
             db.query(Verification)
@@ -62,7 +64,8 @@ class QueryOptimizer:
         )
 
     @staticmethod
-    def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
+def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
+
         """Optimized query for user transactions."""
         return (
             db.query(Transaction)
@@ -73,7 +76,8 @@ class QueryOptimizer:
         )
 
     @staticmethod
-    def get_verification_stats_optimized(db: Session, user_id: str):
+def get_verification_stats_optimized(db: Session, user_id: str):
+
         """Optimized query for verification statistics using ORM."""
 
         return (
@@ -89,6 +93,7 @@ class QueryOptimizer:
 
 
 def configure_connection_pool():
+
     """Configure database connection pooling."""
     # Connection pool is configured in engine creation
     # This function documents the recommended settings

@@ -1,23 +1,24 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from passlib.context import CryptContext
+from sqlalchemy import text
+from app.core.database import get_db
+
 Verify user credentials and tier access
 Tests login and tier-specific features for each user
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from passlib.context import CryptContext
-from sqlalchemy import text
-
-from app.core.database import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def verify_user_credentials():
+
     """Verify all user credentials and tier assignments"""
 
     db = next(get_db())
@@ -29,20 +30,20 @@ def verify_user_credentials():
         text(
             """
         SELECT id, email, password_hash, subscription_tier, tier_id, credits, is_admin
-        FROM users 
+        FROM users
         ORDER BY created_at
     """
         )
     ).fetchall()
 
-    if not users:
+if not users:
         print("❌ No users found")
         return
 
     print(f"📊 Found {len(users)} users\n")
     print("=" * 70)
 
-    for user in users:
+for user in users:
         user_id, email, password_hash, sub_tier, tier_id, credits, is_admin = user
 
         print(f"\n👤 USER: {email}")
@@ -52,25 +53,25 @@ def verify_user_credentials():
         print(f"   Admin: {'Yes' if is_admin else 'No'}")
 
         # Check password hash exists
-        if password_hash:
-            print(f"   Password: ✅ Set (hash exists)")
-        else:
-            print(f"   Password: ⚠️  Not set (OAuth user)")
+if password_hash:
+            print("   Password: ✅ Set (hash exists)")
+else:
+            print("   Password: ⚠️  Not set (OAuth user)")
 
         # Get tier configuration
         tier_config = db.execute(
             text(
                 """
-            SELECT name, price_monthly, quota_usd, has_api_access, 
+            SELECT name, price_monthly, quota_usd, has_api_access,
                    has_area_code_selection, has_isp_filtering, api_key_limit
-            FROM subscription_tiers 
+            FROM subscription_tiers
             WHERE tier = :tier
         """
             ),
             {"tier": sub_tier},
         ).fetchone()
 
-        if tier_config:
+if tier_config:
             tier_name, price, quota, api_access, area_codes, isp_filter, api_limit = (
                 tier_config
             )
@@ -82,27 +83,27 @@ def verify_user_credentials():
             print(f"      API Keys: {api_limit if api_limit != -1 else 'Unlimited'}")
             print(f"      Location Filters: {'✅' if area_codes else '❌'}")
             print(f"      ISP Filtering: {'✅' if isp_filter else '❌'}")
-        else:
+else:
             print(f"   ⚠️  Tier configuration not found for: {sub_tier}")
 
         # Check for API keys
-        try:
+try:
             api_key_count = db.execute(
                 text(
                     """
-                SELECT COUNT(*) FROM api_keys 
+                SELECT COUNT(*) FROM api_keys
                 WHERE user_id = :user_id AND is_active = 1
             """
                 ),
                 {"user_id": user_id},
             ).fetchone()[0]
 
-            if api_key_count > 0:
+if api_key_count > 0:
                 print(f"\n   🔑 API Keys: {api_key_count} active")
-            else:
-                print(f"\n   🔑 API Keys: None")
-        except:
-            print(f"\n   🔑 API Keys: Table not found")
+else:
+                print("\n   🔑 API Keys: None")
+except Exception:
+            print("\n   🔑 API Keys: Table not found")
 
         print("\n" + "-" * 70)
 
@@ -122,7 +123,7 @@ def verify_user_credentials():
         SELECT subscription_tier, COUNT(*) as count
         FROM users
         GROUP BY subscription_tier
-        ORDER BY 
+        ORDER BY
             CASE subscription_tier
                 WHEN 'freemium' THEN 1
                 WHEN 'payg' THEN 2
@@ -134,7 +135,7 @@ def verify_user_credentials():
     ).fetchall()
 
     print("\n🎯 Tier Distribution:")
-    for tier, count in tier_dist:
+for tier, count in tier_dist:
         print(f"   {tier.upper()}: {count} users")
 
     # Feature access summary
@@ -150,7 +151,7 @@ def verify_user_credentials():
         )
     ).fetchall()
 
-    for tier, name, api, area, isp in features:
+for tier, name, api, area, isp in features:
         print(f"\n   {name}:")
         print(f"      API: {'✅' if api else '❌'}")
         print(f"      Location Filters: {'✅' if area else '❌'}")

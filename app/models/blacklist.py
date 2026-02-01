@@ -1,13 +1,12 @@
 """Number blacklist model."""
 
+
 from datetime import datetime, timedelta, timezone
-
 from sqlalchemy import Boolean, Column, DateTime, String
-
 from app.models.base import BaseModel
 
-
 class NumberBlacklist(BaseModel):
+
     """Blacklisted phone numbers."""
 
     __tablename__ = "number_blacklist"
@@ -27,12 +26,14 @@ class NumberBlacklist(BaseModel):
     expires_at = Column(DateTime, nullable=False)
 
     @property
-    def is_expired(self) -> bool:
+def is_expired(self) -> bool:
+
         """Check if blacklist entry is expired."""
         return datetime.now(timezone.utc) > self.expires_at
 
     @classmethod
-    def create_blacklist_entry(
+def create_blacklist_entry(
+
         cls,
         user_id: str,
         phone_number: str,

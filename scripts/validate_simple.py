@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from sqlalchemy import text
+from app.core.database import get_db
+
 Simple validation script for freemium tier implementation
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import text
-
-from app.core.database import get_db
-
 
 def validate_implementation():
+
     """Validate the freemium implementation"""
 
     print("Starting freemium validation...")
@@ -22,12 +22,12 @@ def validate_implementation():
 
     # Test 1: Check subscription_tiers table
     print("\n1. Testing subscription_tiers table...")
-    try:
+try:
         tiers = db.execute(
             text(
                 """
-            SELECT tier, name, price_monthly, quota_usd 
-            FROM subscription_tiers 
+            SELECT tier, name, price_monthly, quota_usd
+            FROM subscription_tiers
             ORDER BY price_monthly
         """
             )
@@ -36,19 +36,19 @@ def validate_implementation():
         expected_tiers = ["freemium", "payg", "pro", "custom"]
         actual_tiers = [tier[0] for tier in tiers]
 
-        if actual_tiers == expected_tiers:
+if actual_tiers == expected_tiers:
             print("   PASS: All 4 tiers present")
-            for tier in tiers:
+for tier in tiers:
                 print(f"   - {tier[1]}: ${tier[2]/100}/mo, ${tier[3]} quota")
-        else:
+else:
             print(f"   FAIL: Expected {expected_tiers}, got {actual_tiers}")
 
-    except Exception as e:
+except Exception as e:
         print(f"   ERROR: {e}")
 
     # Test 2: Check user defaults
     print("\n2. Testing user tier defaults...")
-    try:
+try:
         user_count = db.execute(
             text(
                 """
@@ -61,12 +61,12 @@ def validate_implementation():
 
         print(f"   {user_count}/{total_users} users are on freemium tier")
 
-        if user_count > 0:
+if user_count > 0:
             print("   PASS: Users defaulting to freemium")
-        else:
+else:
             print("   WARN: No users on freemium tier")
 
-    except Exception as e:
+except Exception as e:
         print(f"   ERROR: {e}")
 
     # Test 3: Check pricing calculations
@@ -74,16 +74,16 @@ def validate_implementation():
 
     # Freemium rate: $20 for 9 SMS = $2.22/SMS
     freemium_rate = 20.0 / 9
-    if abs(freemium_rate - 2.22) < 0.01:
+if abs(freemium_rate - 2.22) < 0.01:
         print(f"   PASS: Freemium rate correct (${freemium_rate:.2f}/SMS)")
-    else:
+else:
         print(f"   FAIL: Freemium rate wrong (${freemium_rate:.2f}/SMS)")
 
     # PAYG combined filtering: $2.50 + $0.25 + $0.50 = $3.25
     payg_combined = 2.50 + 0.25 + 0.50
-    if payg_combined == 3.25:
+if payg_combined == 3.25:
         print(f"   PASS: PAYG combined filtering correct (${payg_combined}/SMS)")
-    else:
+else:
         print(f"   FAIL: PAYG combined filtering wrong (${payg_combined}/SMS)")
 
     # Test 4: Check file updates
@@ -95,22 +95,22 @@ def validate_implementation():
         ("templates/pricing.html", ["Freemium", "Pay-As-You-Go", "Pro", "Custom"]),
     ]
 
-    for file_path, expected_terms in files_to_check:
+for file_path, expected_terms in files_to_check:
         full_path = os.path.join("/Users/machine/Desktop/Namaskah. app", file_path)
-        if os.path.exists(full_path):
-            try:
-                with open(full_path, "r") as f:
+if os.path.exists(full_path):
+try:
+with open(full_path, "r") as f:
                     content = f.read()
 
                 found_terms = [term for term in expected_terms if term in content]
-                if len(found_terms) >= 3:  # At least 3 of 4 terms found
+if len(found_terms) >= 3:  # At least 3 of 4 terms found
                     print(f"   PASS: {file_path} updated")
-                else:
+else:
                     print(f"   WARN: {file_path} may need updates")
 
-            except Exception as e:
+except Exception as e:
                 print(f"   ERROR: Could not check {file_path}: {e}")
-        else:
+else:
             print(f"   WARN: {file_path} not found")
 
     db.close()

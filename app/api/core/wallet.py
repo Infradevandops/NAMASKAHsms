@@ -1,27 +1,29 @@
 """Wallet API router - Updated Error Handling"""
 
+
 import csv
 import io
 import json
 from datetime import datetime, timedelta, timezone
 from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-
 from app.core.custom_exceptions import (
-    InvalidInputError,
-    PaymentError,
-    ResourceNotFoundError,
-)
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.schemas.payment import (
+from app.services import get_payment_service
+from app.services.webhook_service import WebhookService
+
+    InvalidInputError,
+    PaymentError,
+    ResourceNotFoundError,
+)
     PaymentInitialize,
     PaymentInitializeResponse,
     PaymentVerify,
@@ -30,8 +32,6 @@ from app.schemas.payment import (
     TransactionResponse,
     WalletBalanceResponse,
 )
-from app.services import get_payment_service
-from app.services.webhook_service import WebhookService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/wallet", tags=["Wallet"])
@@ -39,10 +39,11 @@ router = APIRouter(prefix="/wallet", tags=["Wallet"])
 
 @router.get("/balance", response_model=WalletBalanceResponse)
 def get_wallet_balance(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+
     """Get current wallet balance."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise ResourceNotFoundError("User not found")
 
         return WalletBalanceResponse(
@@ -50,9 +51,9 @@ def get_wallet_balance(user_id: str = Depends(get_current_user_id), db: Session 
             credits_usd=user.credits,
             free_verifications=user.free_verifications,
         )
-    except ResourceNotFoundError as e:
+except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get wallet balance: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve balance")
 
@@ -64,9 +65,9 @@ async def initialize_paystack_payment(
     db: Session = Depends(get_db),
 ):
     """Initialize Paystack payment."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise ResourceNotFoundError("User not found")
 
         payment_service = get_payment_service(db)
@@ -75,15 +76,15 @@ async def initialize_paystack_payment(
         )
         return PaymentInitializeResponse(**result)
 
-    except ResourceNotFoundError as e:
+except ResourceNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except InvalidInputError as e:
+except InvalidInputError as e:
         logger.warning(f"Invalid payment input: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except PaymentError as e:
+except PaymentError as e:
         logger.error(f"Payment initialization failed: {str(e)}")
         raise HTTPException(status_code=402, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Payment initialization error: {str(e)}")
         raise HTTPException(status_code=500, detail="Payment initialization failed")
 
@@ -95,11 +96,11 @@ async def verify_paystack_payment(
     db: Session = Depends(get_db),
 ):
     """Verify Paystack payment status."""
-    try:
+try:
         payment_service = get_payment_service(db)
         result = await payment_service.verify_payment(verify_data.reference)
 
-        if result["status"] == "success":
+if result["status"] == "success":
             user = db.query(User).filter(User.id == user_id).first()
             return PaymentVerifyResponse(
                 status="success",
@@ -108,7 +109,7 @@ async def verify_paystack_payment(
                 reference=verify_data.reference,
                 message="Payment verified and credited successfully",
             )
-        else:
+else:
             return PaymentVerifyResponse(
                 status="failed",
                 amount_credited=0,
@@ -117,10 +118,10 @@ async def verify_paystack_payment(
                 message=f"Payment failed: {result.get('status', 'Unknown error')}",
             )
 
-    except PaymentError as e:
+except PaymentError as e:
         logger.error(f"Payment verification failed: {str(e)}")
         raise HTTPException(status_code=402, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Payment verification error: {str(e)}")
         raise HTTPException(status_code=500, detail="Payment verification failed")
 
@@ -128,36 +129,37 @@ async def verify_paystack_payment(
 @router.post("/paystack/webhook")
 async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
     """Handle Paystack webhook notifications."""
-    try:
+try:
 
         signature = request.headers.get("x-paystack-signature")
-        if not signature:
+if not signature:
             raise InvalidInputError("Missing signature")
 
         body = await request.body()
         webhook_service = WebhookService(db)
 
-        if not webhook_service.verify_signature(body, signature):
+if not webhook_service.verify_signature(body, signature):
             raise InvalidInputError("Invalid signature")
 
-        try:
+try:
             webhook_data = await request.json()
-        except (ValueError, TypeError):
+except (ValueError, TypeError):
             raise InvalidInputError("Invalid JSON")
 
         success = webhook_service.process_payment_webhook(webhook_data)
         return {"status": "success" if success else "ignored"}
 
-    except InvalidInputError as e:
+except InvalidInputError as e:
         logger.warning(f"Invalid webhook: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Webhook processing failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Webhook processing failed")
 
 
 @router.get("/transactions", response_model=TransactionHistoryResponse)
 def get_transaction_history(
+
     user_id: str = Depends(get_current_user_id),
     transaction_type: Optional[str] = Query(None),
     limit: int = Query(50, le=100),
@@ -165,10 +167,10 @@ def get_transaction_history(
     db: Session = Depends(get_db),
 ):
     """Get user's transaction history."""
-    try:
+try:
         query = db.query(Transaction).filter(Transaction.user_id == user_id)
 
-        if transaction_type:
+if transaction_type:
             query = query.filter(Transaction.type == transaction_type)
 
         total = query.count()
@@ -178,7 +180,7 @@ def get_transaction_history(
             transactions=[TransactionResponse.from_orm(t) for t in transactions],
             total_count=total,
         )
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get transaction history: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve transactions")
 
@@ -190,19 +192,19 @@ async def export_transactions(
     db: Session = Depends(get_db),
 ):
     """Export user's transaction history."""
-    try:
-        if export_format not in ["csv", "json"]:
+try:
+if export_format not in ["csv", "json"]:
             raise InvalidInputError("Invalid format. Use 'csv' or 'json'")
 
         transactions = (
             db.query(Transaction).filter(Transaction.user_id == user_id).order_by(Transaction.created_at.desc()).all()
         )
 
-        if export_format == "csv":
+if export_format == "csv":
             output = io.StringIO()
             writer = csv.writer(output)
             writer.writerow(["Date", "Type", "Amount (N)", "Description"])
-            for t in transactions:
+for t in transactions:
                 writer.writerow(
                     [
                         t.created_at.strftime("%Y-%m-%d %H:%M:%S"),
@@ -218,7 +220,7 @@ async def export_transactions(
                 headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.csv"},
             )
 
-        else:
+else:
             data = [
                 {
                     "date": t.created_at.isoformat(),
@@ -226,7 +228,7 @@ async def export_transactions(
                     "amount": t.amount,
                     "description": t.description,
                 }
-                for t in transactions
+for t in transactions
             ]
             output = io.StringIO()
             json.dump(data, output, indent=2)
@@ -237,21 +239,22 @@ async def export_transactions(
                 headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.json"},
             )
 
-    except InvalidInputError as e:
+except InvalidInputError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Export failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Export failed")
 
 
 @router.get("/spending-summary")
 def get_spending_summary(
+
     user_id: str = Depends(get_current_user_id),
     days: int = Query(30),
     db: Session = Depends(get_db),
 ):
     """Get spending summary and analytics."""
-    try:
+try:
         start_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         total_spent = (
@@ -277,7 +280,7 @@ def get_spending_summary(
         )
 
         daily_spending = []
-        for i in range(days):
+for i in range(days):
             day = datetime.now(timezone.utc) - timedelta(days=i)
             day_start = day.replace(hour=0, minute=0, second=0, microsecond=0)
             day_end = day_start + timedelta(days=1)
@@ -308,6 +311,6 @@ def get_spending_summary(
             "avg_daily_spending": abs(total_spent) / days if days > 0 else 0,
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get spending summary: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve summary")

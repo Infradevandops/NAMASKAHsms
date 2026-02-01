@@ -1,12 +1,12 @@
 """Notification model for user notifications."""
 
+
 from sqlalchemy import Boolean, Column, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class Notification(BaseModel):
+
     """User notification model."""
 
     __tablename__ = "notifications"
@@ -22,7 +22,8 @@ class Notification(BaseModel):
     # Relationship
     user = relationship("User", back_populates="notifications")
 
-    def to_dict(self):
+def to_dict(self):
+
         """Convert to dictionary."""
         return {
             "id": self.id,

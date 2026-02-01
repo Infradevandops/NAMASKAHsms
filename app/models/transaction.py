@@ -1,11 +1,11 @@
 """Transaction and payment - related database models."""
 
-from sqlalchemy import Boolean, Column, Float, String
 
+from sqlalchemy import Boolean, Column, Float, String
 from app.models.base import BaseModel
 
-
 class Transaction(BaseModel):
+
     """Financial transaction model."""
 
     __tablename__ = "transactions"
@@ -21,6 +21,7 @@ class Transaction(BaseModel):
 
 
 class PaymentLog(BaseModel):
+
     """Payment processing log."""
 
     __tablename__ = "payment_logs"

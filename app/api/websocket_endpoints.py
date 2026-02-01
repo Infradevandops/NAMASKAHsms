@@ -1,10 +1,9 @@
 """WebSocket endpoints for real-time notifications."""
 
-from typing import Optional
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -39,30 +38,30 @@ async def websocket_endpoint(
             "timestamp": "2026-01-26T12:00:00Z"
         }
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION, reason="User not found")
             logger.warning(f"WebSocket connection attempt for non-existent user {user_id}")
             return
 
         # Connect user
-        if not await connection_manager.connect(user_id, websocket):
+if not await connection_manager.connect(user_id, websocket):
             await websocket.close(code=status.WS_1011_SERVER_ERROR, reason="Failed to connect")
             return
 
         logger.info(f"WebSocket connected for user {user_id}")
 
-        try:
-            while True:
+try:
+while True:
                 # Receive message from client
                 data = await websocket.receive_json()
 
                 message_type = data.get("type", "ping")
                 channel = data.get("channel", "notifications")
 
-                if message_type == "subscribe":
+if message_type == "subscribe":
                     # Subscribe to channel
                     connection_manager.subscribe_user(user_id, channel)
                     await websocket.send_json(
@@ -74,7 +73,7 @@ async def websocket_endpoint(
                     )
                     logger.info(f"User {user_id} subscribed to channel {channel}")
 
-                elif message_type == "unsubscribe":
+elif message_type == "unsubscribe":
                     # Unsubscribe from channel
                     connection_manager.unsubscribe_user(user_id, channel)
                     await websocket.send_json(
@@ -86,7 +85,7 @@ async def websocket_endpoint(
                     )
                     logger.info(f"User {user_id} unsubscribed from channel {channel}")
 
-                elif message_type == "ping":
+elif message_type == "ping":
                     # Respond to ping
                     await websocket.send_json(
                         {
@@ -95,18 +94,18 @@ async def websocket_endpoint(
                         }
                     )
 
-                else:
+else:
                     logger.warning(f"Unknown message type from user {user_id}: {message_type}")
 
-        except WebSocketDisconnect:
+except WebSocketDisconnect:
             await connection_manager.disconnect(user_id)
             logger.info(f"WebSocket disconnected for user {user_id}")
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"WebSocket error for user {user_id}: {e}")
             await connection_manager.disconnect(user_id)
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"WebSocket endpoint error: {e}")
 
 
@@ -122,10 +121,10 @@ async def get_websocket_status(
         - subscriptions: List of subscribed channels
         - active_connections: Total active connections (admin only)
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         is_connected = connection_manager.is_user_connected(user_id)
@@ -137,7 +136,7 @@ async def get_websocket_status(
         }
 
         # Add active connections count for admins
-        if user.is_admin:
+if user.is_admin:
             response["active_connections"] = connection_manager.get_active_connections_count()
             response["active_users"] = connection_manager.get_active_users()
 
@@ -145,9 +144,9 @@ async def get_websocket_status(
 
         return response
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving WebSocket status: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve WebSocket status")
 
@@ -175,10 +174,10 @@ async def broadcast_notification(
         - success: Whether broadcast was successful
         - recipients: Number of recipients
     """
-    try:
+try:
         # Verify user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             raise HTTPException(status_code=403, detail="Admin access required")
 
         message = {
@@ -188,12 +187,12 @@ async def broadcast_notification(
             "content": content,
         }
 
-        if target_user_id:
+if target_user_id:
             # Send to specific user
             success = await connection_manager.broadcast_to_user(target_user_id, message)
             recipients = 1 if success else 0
             logger.info(f"Admin {user_id} sent notification to user {target_user_id}")
-        else:
+else:
             # Broadcast to all users on channel
             recipients = await connection_manager.broadcast_to_channel(channel, message)
             logger.info(f"Admin {user_id} broadcasted notification to {recipients} users on channel {channel}")
@@ -203,8 +202,8 @@ async def broadcast_notification(
             "recipients": recipients,
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error broadcasting notification: {e}")
         raise HTTPException(status_code=500, detail="Failed to broadcast notification")

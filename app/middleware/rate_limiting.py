@@ -1,20 +1,20 @@
 """Rate limiting middleware with configurable limits per endpoint."""
 
+
 import time
 from collections import defaultdict, deque
 from typing import Dict, Optional, Tuple
-
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
 from app.core.config import settings
 
-
 class RateLimitMiddleware(BaseHTTPMiddleware):
+
     """Rate limiting middleware with IP - based and user - based strategies."""
 
-    def __init__(
+def __init__(
+
         self,
         app,
         default_requests: int = None,
@@ -64,7 +64,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
         # Skip rate limiting for public pages
         path = request.url.path
-        if path == "/" or any(path.startswith(p + "/") for p in public_paths if p != "/") or path in public_paths:
+if path == "/" or any(path.startswith(p + "/") for p in public_paths if p != "/") or path in public_paths:
             return await call_next(request)
 
         current_time = time.time()
@@ -77,22 +77,22 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         requests_limit, window = self._get_endpoint_limit(request.url.path)
 
         # Check IP - based rate limit
-        if not self._check_rate_limit(self.ip_requests[client_ip], requests_limit, window, current_time):
+if not self._check_rate_limit(self.ip_requests[client_ip], requests_limit, window, current_time):
             return self._create_rate_limit_response("IP rate limit exceeded")
 
         # Check user - based rate limit (if authenticated)
-        if user_id:
+if user_id:
             user_limit = requests_limit * 2  # Users get higher limits
-            if not self._check_rate_limit(self.user_requests[user_id], user_limit, window, current_time):
+if not self._check_rate_limit(self.user_requests[user_id], user_limit, window, current_time):
                 return self._create_rate_limit_response("User rate limit exceeded")
 
         # Record the request
         self.ip_requests[client_ip].append(current_time)
-        if user_id:
+if user_id:
             self.user_requests[user_id].append(current_time)
 
         # Clean old entries periodically
-        if int(current_time) % 60 == 0:  # Every minute
+if int(current_time) % 60 == 0:  # Every minute
             self._cleanup_old_entries(current_time)
 
         response = await call_next(request)
@@ -108,45 +108,49 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
     @staticmethod
-    def _get_client_ip(request: Request) -> str:
+def _get_client_ip(request: Request) -> str:
+
         """Get client IP address from request."""
         # Check for forwarded headers (for reverse proxies)
         forwarded_for = request.headers.get("X - Forwarded-For")
-        if forwarded_for:
+if forwarded_for:
             return forwarded_for.split(",")[0].strip()
 
         real_ip = request.headers.get("X - Real-IP")
-        if real_ip:
+if real_ip:
             return real_ip
 
         # Fallback to direct client IP
         return request.client.host if request.client else "unknown"
 
-    def _get_endpoint_limit(self, path: str) -> Tuple[int, int]:
+def _get_endpoint_limit(self, path: str) -> Tuple[int, int]:
+
         """Get rate limit for specific endpoint."""
         # Check exact path match
-        if path in self.endpoint_limits:
+if path in self.endpoint_limits:
             return self.endpoint_limits[path]
 
         # Check prefix matches
-        for endpoint_path, limit in self.endpoint_limits.items():
-            if path.startswith(endpoint_path):
+for endpoint_path, limit in self.endpoint_limits.items():
+if path.startswith(endpoint_path):
                 return limit
 
         # Return default limit
         return self.default_requests, self.default_window
 
     @staticmethod
-    def _check_rate_limit(request_times: deque, limit: int, window: int, current_time: float) -> bool:
+def _check_rate_limit(request_times: deque, limit: int, window: int, current_time: float) -> bool:
+
         """Check if request is within rate limit."""
         # Remove old requests outside the window
-        while request_times and request_times[0] <= current_time - window:
+while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
 
         # Check if under limit
         return len(request_times) < limit
 
-    def _get_remaining_requests(
+def _get_remaining_requests(
+
         self,
         client_ip: str,
         user_id: Optional[str],
@@ -156,20 +160,21 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     ) -> int:
         """Get remaining requests for client."""
         # Use user - based limit if authenticated, otherwise IP - based
-        if user_id:
+if user_id:
             request_times = self.user_requests[user_id]
             effective_limit = limit * 2
-        else:
+else:
             request_times = self.ip_requests[client_ip]
             effective_limit = limit
 
         # Remove old requests
-        while request_times and request_times[0] <= current_time - window:
+while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
 
         return max(0, effective_limit - len(request_times))
 
-    def _cleanup_old_entries(self, current_time: float):
+def _cleanup_old_entries(self, current_time: float):
+
         """Clean up old entries to prevent memory leaks."""
         max_window = max(
             self.default_window,
@@ -178,26 +183,27 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         cutoff_time = current_time - max_window
 
         # Clean IP requests
-        for ip in list(self.ip_requests.keys()):
+for ip in list(self.ip_requests.keys()):
             request_times = self.ip_requests[ip]
-            while request_times and request_times[0] <= cutoff_time:
+while request_times and request_times[0] <= cutoff_time:
                 request_times.popleft()
 
             # Remove empty entries
-            if not request_times:
+if not request_times:
                 del self.ip_requests[ip]
 
         # Clean user requests
-        for user_id in list(self.user_requests.keys()):
+for user_id in list(self.user_requests.keys()):
             request_times = self.user_requests[user_id]
-            while request_times and request_times[0] <= cutoff_time:
+while request_times and request_times[0] <= cutoff_time:
                 request_times.popleft()
 
             # Remove empty entries
-            if not request_times:
+if not request_times:
                 del self.user_requests[user_id]
 
-    def _create_rate_limit_response(self, message: str) -> JSONResponse:
+def _create_rate_limit_response(self, message: str) -> JSONResponse:
+
         """Create rate limit exceeded response."""
         return JSONResponse(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -211,9 +217,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
+
     """Adaptive rate limiting that adjusts based on system load."""
 
-    def __init__(self, app, base_limit: int = 100, load_threshold: float = 0.8):
+def __init__(self, app, base_limit: int = 100, load_threshold: float = 0.8):
+
         super().__init__(app)
         self.base_limit = base_limit
         self.load_threshold = load_threshold
@@ -229,9 +237,9 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
         system_load = self._calculate_system_load(current_time)
 
         # Adjust rate limit based on load
-        if system_load > self.load_threshold:
+if system_load > self.load_threshold:
             adjusted_limit = int(self.base_limit * 0.5)  # Reduce by 50%
-        else:
+else:
             adjusted_limit = self.base_limit
 
         # Apply rate limiting
@@ -240,11 +248,11 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
         self.request_times.append(current_time)
 
         # Remove old requests (last minute)
-        while self.request_times and self.request_times[0] <= current_time - 60:
+while self.request_times and self.request_times[0] <= current_time - 60:
             self.request_times.popleft()
 
         # Check if over limit
-        if len(self.request_times) > adjusted_limit:
+if len(self.request_times) > adjusted_limit:
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                 content={
@@ -261,7 +269,7 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
 
         # Track metrics
         self.total_requests += 1
-        if response.status_code >= 500:
+if response.status_code >= 500:
             self.error_count += 1
 
         # Add performance headers
@@ -271,18 +279,19 @@ class AdaptiveRateLimitMiddleware(BaseHTTPMiddleware):
 
         return response
 
-    def _calculate_system_load(self, current_time: float) -> float:
+def _calculate_system_load(self, current_time: float) -> float:
+
         """Calculate simplified system load metric."""
         # Remove old request times (last 5 minutes)
-        while self.request_times and self.request_times[0] <= current_time - 300:
+while self.request_times and self.request_times[0] <= current_time - 300:
             self.request_times.popleft()
 
         # Calculate requests per second
-        if len(self.request_times) < 2:
+if len(self.request_times) < 2:
             return 0.0
 
         time_span = current_time - self.request_times[0]
-        if time_span <= 0:
+if time_span <= 0:
             return 0.0
 
         requests_per_second = len(self.request_times) / time_span

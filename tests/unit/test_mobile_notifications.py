@@ -1,26 +1,28 @@
 """Tests for mobile notification functionality."""
 
+
 from unittest.mock import AsyncMock, MagicMock, patch
-
 import pytest
-
 from app.models.device_token import DeviceToken
 from app.models.notification import Notification
 from app.services.mobile_notification_service import MobileNotificationService
-
+from datetime import datetime, timezone
 
 class TestMobileNotificationService:
+
     """Test mobile notification service."""
 
     @pytest.fixture
-    def mock_db(self):
+def mock_db(self):
+
         """Create mock database session."""
         return MagicMock()
 
     @pytest.fixture
-    def service(self, mock_db):
+def service(self, mock_db):
+
         """Create mobile notification service."""
-        with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
+with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_fcm_key"
             mock_settings.return_value.apns_key_id = "test_apns_key"
             mock_settings.return_value.apns_team_id = "test_team_id"
@@ -60,7 +62,7 @@ class TestMobileNotificationService:
 
         device_tokens = ["android_token_1", "android_token_2"]
 
-        with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
+with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
             mock_fcm.return_value = {"sent": 2, "failed": 0}
 
             result = await service.send_push_notification(
@@ -86,7 +88,7 @@ class TestMobileNotificationService:
 
         device_tokens = ["ios_token_1", "ios_token_2"]
 
-        with patch.object(service, "_send_apns_notification", new_callable=AsyncMock) as mock_apns:
+with patch.object(service, "_send_apns_notification", new_callable=AsyncMock) as mock_apns:
             mock_apns.return_value = {"sent": 2, "failed": 0}
 
             result = await service.send_push_notification(
@@ -112,7 +114,7 @@ class TestMobileNotificationService:
 
         device_tokens = ["android_token_1", "ios_token_1"]
 
-        with (
+with (
             patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm,
             patch.object(service, "_send_apns_notification", new_callable=AsyncMock) as mock_apns,
         ):
@@ -169,7 +171,7 @@ class TestMobileNotificationService:
     @pytest.mark.asyncio
     async def test_register_device_token_no_db(self):
         """Test registering device token without database session."""
-        with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
+with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_key"
             mock_settings.return_value.apns_key_id = None
             mock_settings.return_value.apns_team_id = None
@@ -246,7 +248,7 @@ class TestMobileNotificationService:
     @pytest.mark.asyncio
     async def test_get_user_device_tokens_no_db(self):
         """Test getting device tokens without database session."""
-        with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
+with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_key"
             mock_settings.return_value.apns_key_id = None
             mock_settings.return_value.apns_team_id = None
@@ -270,7 +272,7 @@ class TestMobileNotificationService:
     @pytest.mark.asyncio
     async def test_cleanup_inactive_tokens_no_db(self):
         """Test cleanup without database session."""
-        with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
+with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_key"
             mock_settings.return_value.apns_key_id = None
             mock_settings.return_value.apns_team_id = None
@@ -295,7 +297,7 @@ class TestMobileNotificationService:
         device_tokens = ["token_1", "token_2"]
 
         # Mock the entire _send_fcm_notification method to test the flow
-        with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
+with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
             mock_fcm.return_value = {"sent": 2, "failed": 0}
 
             result = await service._send_fcm_notification(
@@ -321,7 +323,7 @@ class TestMobileNotificationService:
         mock_session.post.return_value.__aenter__.return_value = mock_response
         mock_session.post.return_value.__aexit__.return_value = None
 
-        with patch("aiohttp.ClientSession", return_value=mock_session):
+with patch("aiohttp.ClientSession", return_value=mock_session):
             result = await service._send_fcm_notification(
                 notification=notification,
                 device_tokens=device_tokens,
@@ -345,11 +347,12 @@ class TestMobileNotificationService:
 
 
 class TestDeviceTokenModel:
+
     """Test device token model."""
 
-    def test_device_token_to_dict(self):
+def test_device_token_to_dict(self):
+
         """Test converting device token to dictionary."""
-        from datetime import datetime, timezone
 
         token = DeviceToken(
             id="token_id",
@@ -375,12 +378,13 @@ class TestDeviceTokenModel:
 
 
 class TestPushNotificationIntegration:
+
     """Integration tests for push notifications."""
 
     @pytest.mark.asyncio
     async def test_full_push_notification_flow(self):
         """Test complete push notification flow."""
-        with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
+with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_key"
             mock_settings.return_value.apns_key_id = None
             mock_settings.return_value.apns_team_id = None
@@ -413,7 +417,7 @@ class TestPushNotificationIntegration:
             notification.type = "test"
             notification.icon = "icon"
 
-            with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
+with patch.object(service, "_send_fcm_notification", new_callable=AsyncMock) as mock_fcm:
                 mock_fcm.return_value = {"sent": 1, "failed": 0}
 
                 result = await service.send_push_notification(

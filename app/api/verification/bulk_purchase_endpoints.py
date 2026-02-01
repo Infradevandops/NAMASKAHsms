@@ -1,20 +1,19 @@
 """Bulk purchase API endpoints.
 
-Requires pro tier or higher for access.
-"""
-
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, List
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import require_tier
 from app.core.logging import get_logger
 from app.models.user import User
+
+Requires pro tier or higher for access.
+"""
+
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/bulk-purchase", tags=["Bulk Purchase"])
@@ -24,6 +23,7 @@ require_pro = require_tier("pro")
 
 
 class BulkPurchaseRequest(BaseModel):
+
     """Bulk purchase request model."""
 
     service: str
@@ -33,6 +33,7 @@ class BulkPurchaseRequest(BaseModel):
 
 
 class BulkPurchaseResponse(BaseModel):
+
     """Bulk purchase response model."""
 
     bulk_id: str
@@ -59,14 +60,14 @@ async def create_bulk_purchase(
     )
 
     # Validate quantity
-    if request.quantity < 5:
+if request.quantity < 5:
         logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too low ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Bulk purchase requires minimum 5 numbers",
         )
 
-    if request.quantity > 100:
+if request.quantity > 100:
         logger.warning(f"Bulk purchase validation failed for user {user_id}: quantity too high ({request.quantity})")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -75,7 +76,7 @@ async def create_bulk_purchase(
 
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         logger.error(f"User not found for bulk purchase: {user_id}")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
 
@@ -86,7 +87,7 @@ async def create_bulk_purchase(
     total_cost = discounted_cost * request.quantity
 
     # Check credits
-    if user.credits < total_cost:
+if user.credits < total_cost:
         logger.warning(
             f"Bulk purchase denied for user {user_id}: insufficient credits "
             f"(required: ${total_cost:.2f}, available: ${user.credits:.2f})"

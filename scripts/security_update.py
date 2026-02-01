@@ -1,58 +1,62 @@
 #!/usr/bin/env python3
 """
+import json
+import subprocess
+import sys
+import starlette
+
 Security Update Script for Namaskah SMS
 Handles security dependency updates and vulnerability checks
 """
 
-import json
-import subprocess
-import sys
-
 
 def run_command(cmd):
+
     """Run shell command and return result."""
-    try:
-        if isinstance(cmd, str):
+try:
+if isinstance(cmd, str):
             cmd = cmd.split()
         result = subprocess.run(cmd, capture_output=True, text=True, check=False)
         return result.returncode == 0, result.stdout, result.stderr
-    except Exception as e:
+except Exception as e:
         return False, "", str(e)
 
 
 def check_vulnerabilities():
+
     """Check for known vulnerabilities using safety."""
     print("🔍 Checking for known vulnerabilities...")
 
     # Install safety if not available
     success, _, _ = run_command("python -m pip show safety")
-    if not success:
+if not success:
         print("📦 Installing safety scanner...")
         run_command("python -m pip install safety")
 
     # Run safety check
     success, output, error = run_command("python -m safety check --json")
 
-    if success and output:
-        try:
+if success and output:
+try:
             vulnerabilities = json.loads(output)
-            if vulnerabilities:
+if vulnerabilities:
                 print(f"⚠️ Found {len(vulnerabilities)} vulnerabilities:")
-                for vuln in vulnerabilities:
+for vuln in vulnerabilities:
                     print(f"  - {vuln['package']}: {vuln['vulnerability']}")
                 return False
-            else:
+else:
                 print("✅ No known vulnerabilities found")
                 return True
-        except json.JSONDecodeError:
+except json.JSONDecodeError:
             print("✅ No vulnerabilities detected")
             return True
-    else:
+else:
         print(f"❌ Safety check failed: {error}")
         return False
 
 
 def update_dependencies():
+
     """Update security-critical dependencies."""
     print("🔄 Updating security-critical dependencies...")
 
@@ -66,21 +70,21 @@ def update_dependencies():
         "sqlalchemy>=2.0.36",
     ]
 
-    for package in security_updates:
+for package in security_updates:
         print(f"📦 Updating {package}...")
         success, output, error = run_command(f"python -m pip install '{package}'")
-        if success:
+if success:
             print(f"✅ Updated {package}")
-        else:
+else:
             print(f"❌ Failed to update {package}: {error}")
 
 
 def verify_starlette_version():
+
     """Verify Starlette is at secure version."""
     print("🔍 Verifying Starlette version...")
 
-    try:
-        import starlette
+try:
 
         version = starlette.__version__
 
@@ -88,26 +92,27 @@ def verify_starlette_version():
         major, minor, patch = map(int, version.split("."))
 
         # Check if version is >= 0.49.1
-        if (
+if (
             (major > 0)
             or (major == 0 and minor > 49)
             or (major == 0 and minor == 49 and patch >= 1)
         ):
             print(f"✅ Starlette {version} is secure")
             return True
-        else:
+else:
             print(f"⚠️ Starlette {version} is vulnerable. Upgrade to >= 0.49.1")
             return False
 
-    except ImportError:
+except ImportError:
         print("❌ Starlette not installed")
         return False
-    except Exception as e:
+except Exception as e:
         print(f"❌ Error checking Starlette version: {e}")
         return False
 
 
 def generate_security_report():
+
     """Generate security status report."""
     print("\n" + "=" * 60)
     print("📊 SECURITY STATUS REPORT")
@@ -125,17 +130,17 @@ def generate_security_report():
         "psycopg2",
     ]
 
-    for package in packages_to_check:
+for package in packages_to_check:
         success, output, _ = run_command(f"python -m pip show {package}")
-        if success:
+if success:
             lines = output.split("\n")
             version_line = next(
                 (line for line in lines if line.startswith("Version:")), None
             )
-            if version_line:
+if version_line:
                 version = version_line.split(": ")[1]
                 print(f"📦 {package}: {version}")
-        else:
+else:
             print(f"❌ {package}: Not installed")
 
     print("\n🔒 Security Recommendations:")
@@ -146,6 +151,7 @@ def generate_security_report():
 
 
 def main():
+
     """Main security update process."""
     print("🔒 Namaskah SMS Security Update")
     print("=" * 40)
@@ -167,10 +173,10 @@ def main():
     print(f"Vulnerability Check: {'✅ PASS' if vuln_check else '⚠️ ISSUES FOUND'}")
     print(f"Starlette Security: {'✅ SECURE' if starlette_ok else '❌ VULNERABLE'}")
 
-    if vuln_check and starlette_ok:
+if vuln_check and starlette_ok:
         print("\n🎉 All security checks passed!")
         return 0
-    else:
+else:
         print("\n⚠️ Security issues detected. Please review and update.")
         return 1
 

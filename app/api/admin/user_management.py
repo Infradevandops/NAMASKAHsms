@@ -1,14 +1,14 @@
 """Admin user management endpoints."""
 
-from datetime import datetime, timezone
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
+from app.models.verification import Verification
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/admin/users", tags=["Admin User Management"])
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/admin/users", tags=["Admin User Management"])
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_admin:
+if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user_id
 
@@ -31,7 +31,7 @@ async def search_users(
     db: Session = Depends(get_db),
 ):
     """Search users by email or ID."""
-    try:
+try:
         search_term = f"%{query}%"
 
         users_query = db.query(User).filter((User.email.ilike(search_term)) | (User.id.ilike(search_term)))
@@ -55,10 +55,10 @@ async def search_users(
                     "created_at": u.created_at.isoformat() if u.created_at else None,
                     "last_login": (u.last_login.isoformat() if hasattr(u, "last_login") and u.last_login else None),
                 }
-                for u in users
+for u in users
             ],
         }
-    except Exception as e:
+except Exception as e:
         logger.error(f"Search users error: {e}")
         raise HTTPException(status_code=500, detail="Failed to search users")
 
@@ -71,13 +71,12 @@ async def get_user_activity(
     db: Session = Depends(get_db),
 ):
     """Get user activity logs."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get recent verifications
-        from app.models.verification import Verification
 
         verifications = (
             db.query(Verification)
@@ -103,12 +102,12 @@ async def get_user_activity(
                     "created_at": v.created_at.isoformat() if v.created_at else None,
                     "cost_usd": float(v.cost or 0),
                 }
-                for v in verifications[:limit]
+for v in verifications[:limit]
             ],
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Get user activity error: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch user activity")
 
@@ -121,15 +120,15 @@ async def suspend_user(
     db: Session = Depends(get_db),
 ):
     """Suspend a user account."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if user.id == admin_id:
-            raise HTTPException(status_code=400, detail="Cannot suspend yourself")
+if user.id == admin_id:
+            raise HTTPException(status_code=400, detail="Cannot suspend yoursel")
 
-        if getattr(user, "is_suspended", False):
+if getattr(user, "is_suspended", False):
             raise HTTPException(status_code=400, detail="User is already suspended")
 
         user.is_suspended = True
@@ -146,9 +145,9 @@ async def suspend_user(
             "suspended_at": (user.suspended_at.isoformat() if hasattr(user, "suspended_at") else None),
             "reason": reason,
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Suspend user error: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to suspend user")
@@ -157,12 +156,12 @@ async def suspend_user(
 @router.post("/{user_id}/unsuspend")
 async def unsuspend_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Unsuspend a user account."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if not getattr(user, "is_suspended", False):
+if not getattr(user, "is_suspended", False):
             raise HTTPException(status_code=400, detail="User is not suspended")
 
         user.is_suspended = False
@@ -177,9 +176,9 @@ async def unsuspend_user(user_id: str, admin_id: str = Depends(require_admin), d
             "message": f"User {user_id} unsuspended",
             "user_id": user_id,
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Unsuspend user error: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to unsuspend user")
@@ -193,15 +192,15 @@ async def ban_user(
     db: Session = Depends(get_db),
 ):
     """Ban a user account permanently."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if user.id == admin_id:
-            raise HTTPException(status_code=400, detail="Cannot ban yourself")
+if user.id == admin_id:
+            raise HTTPException(status_code=400, detail="Cannot ban yoursel")
 
-        if getattr(user, "is_banned", False):
+if getattr(user, "is_banned", False):
             raise HTTPException(status_code=400, detail="User is already banned")
 
         user.is_banned = True
@@ -218,9 +217,9 @@ async def ban_user(
             "banned_at": (user.banned_at.isoformat() if hasattr(user, "banned_at") else None),
             "reason": reason,
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Ban user error: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to ban user")
@@ -229,12 +228,12 @@ async def ban_user(
 @router.post("/{user_id}/unban")
 async def unban_user(user_id: str, admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
     """Unban a user account."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if not getattr(user, "is_banned", False):
+if not getattr(user, "is_banned", False):
             raise HTTPException(status_code=400, detail="User is not banned")
 
         user.is_banned = False
@@ -249,9 +248,9 @@ async def unban_user(user_id: str, admin_id: str = Depends(require_admin), db: S
             "message": f"User {user_id} unbanned",
             "user_id": user_id,
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Unban user error: {e}")
         db.rollback()
         raise HTTPException(status_code=500, detail="Failed to unban user")

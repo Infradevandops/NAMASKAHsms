@@ -1,10 +1,9 @@
+
+
 import json
 from unittest.mock import AsyncMock, patch
-
 import pytest
-
 from app.services.webhook_service import WebhookService
-
 
 @pytest.mark.asyncio
 async def test_register_webhook():
@@ -31,7 +30,7 @@ async def test_deliver_webhook_success():
     secret = "my_secret_key"
     data = {"transaction_id": "tx_123"}
 
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value.status_code = 200
 
         await service.deliver(webhook_id, "test_event", data, secret)
@@ -63,7 +62,7 @@ async def test_deliver_webhook_inactive_or_missing():
     service = WebhookService()
 
     # Missing ID
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         await service.deliver("missing_id", "event", {}, "secret")
         assert not mock_post.called
 
@@ -71,7 +70,7 @@ async def test_deliver_webhook_inactive_or_missing():
     webhook_id = await service.register("u1", "http://test.com", ["event"])
     service.webhooks[webhook_id]["active"] = False
 
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         await service.deliver(webhook_id, "event", {}, "secret")
         assert not mock_post.called
 
@@ -83,7 +82,7 @@ async def test_deliver_webhook_retry_logic():
     webhook_id = await service.register("u1", "http://test.com", ["event"])
 
     # Simulate failures
-    with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
         mock_post.side_effect = Exception("Connection error")
 
         # Initial state
@@ -91,7 +90,7 @@ async def test_deliver_webhook_retry_logic():
         assert service.webhooks[webhook_id]["active"] is True
 
         # Fail 4 times (threshold is > 3)
-        for i in range(4):
+for i in range(4):
             await service.deliver(webhook_id, "event", {}, "secret")
 
         # Should be active until AFTER 4th failure checks logic?

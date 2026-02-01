@@ -1,9 +1,9 @@
-from typing import Any, Dict
 
+
+from typing import Any, Dict
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import NotificationSettings, User
@@ -14,11 +14,13 @@ router = APIRouter(prefix="/user", tags=["User Settings"])
 
 
 class ChangePasswordRequest(BaseModel):
+
     old_password: str
     new_password: str
 
 
 class DeleteAccountRequest(BaseModel):
+
     password: str
 
 
@@ -35,14 +37,14 @@ async def save_notifications(
     # Check if settings exist
     settings = db.query(NotificationSettings).filter(NotificationSettings.user_id == user_id).first()
 
-    if not settings:
+if not settings:
         settings = NotificationSettings(
             user_id=user_id,
             email_on_sms=data.get("verification_alerts", True),
             email_on_low_balance=data.get("payment_receipts", True),  # Mapping receipts to this for now
         )
         db.add(settings)
-    else:
+else:
         settings.email_on_sms = data.get("verification_alerts", settings.email_on_sms)
         settings.email_on_low_balance = data.get("payment_receipts", settings.email_on_low_balance)
 
@@ -61,7 +63,7 @@ async def save_privacy(
     """
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
 
-    if not pref:
+if not pref:
         pref = UserPreference(user_id=user_id)
         db.add(pref)
 
@@ -95,7 +97,7 @@ async def save_billing(
     """
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
 
-    if not pref:
+if not pref:
         pref = UserPreference(user_id=user_id)
         db.add(pref)
 
@@ -104,10 +106,10 @@ async def save_billing(
     pref.auto_recharge = data.get("auto_recharge", pref.auto_recharge if pref.auto_recharge is not None else False)
 
     recharge_amount = data.get("recharge_amount")
-    if recharge_amount:
-        try:
+if recharge_amount:
+try:
             pref.recharge_amount = float(recharge_amount)
-        except ValueError:
+except ValueError:
             pass
 
     db.commit()
@@ -121,7 +123,7 @@ async def logout_all(user_id: str = Depends(get_current_user_id), db: Session = 
     In a more advanced setup, implementing token versions would be better.
     """
     user = db.query(User).filter(User.id == user_id).first()
-    if user:
+if user:
         user.refresh_token = None
         db.commit()
 
@@ -138,20 +140,20 @@ async def delete_account(
     Delete user account after verifying password.
     """
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not verify_password(request.password, user.password_hash):
+if not verify_password(request.password, user.password_hash):
         raise HTTPException(status_code=400, detail="Invalid password")
 
     # In a real app, we might soft delete or archive data.
     # For now, we will perform a hard delete of the user record.
     # Cascading deletes should handle related records if configured,
     # otherwise this might fail if foreign keys exist.
-    try:
+try:
         db.delete(user)
         db.commit()
-    except Exception:
+except Exception:
         db.rollback()
         # Fallback to soft delete or just erroring out for safefy
         raise HTTPException(
@@ -170,10 +172,10 @@ async def change_password(
 ):
     """Change user password."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if not verify_password(request.old_password, user.password_hash):
+if not verify_password(request.old_password, user.password_hash):
         raise HTTPException(status_code=400, detail="Invalid old password")
 
     user.password_hash = hash_password(request.new_password)

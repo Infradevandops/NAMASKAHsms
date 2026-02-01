@@ -1,9 +1,9 @@
 """Admin Dashboard API router with optimized analytics."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_admin_user as require_admin
 from app.core.logging import get_logger
@@ -22,7 +22,7 @@ async def get_admin_stats(
     db: Session = Depends(get_db),
 ):
     """Get admin dashboard statistics - OPTIMIZED"""
-    try:
+try:
         # Get basic counts with single queries
         users = db.query(func.count(User.id)).scalar() or 0
         active_users = db.query(func.count(User.id)).filter(User.last_login.isnot(None)).scalar() or 0
@@ -51,7 +51,7 @@ async def get_admin_stats(
             "revenue": float(revenue),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Admin stats error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch admin stats")
 
@@ -63,7 +63,7 @@ async def get_recent_verifications(
     db: Session = Depends(get_db),
 ):
     """Get recent verifications with optimized JOIN"""
-    try:
+try:
         # Use JOIN to avoid N+1 query problem
         verifications = (
             db.query(Verification)
@@ -74,7 +74,7 @@ async def get_recent_verifications(
         )
 
         result = []
-        for v in verifications:
+for v in verifications:
             result.append(
                 {
                     "id": v.id,
@@ -89,7 +89,7 @@ async def get_recent_verifications(
 
         return result
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Recent verifications error: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to fetch recent verifications")
 
@@ -97,11 +97,11 @@ async def get_recent_verifications(
 @router.get("/pricing/templates")
 async def get_pricing_templates(admin_user: User = Depends(require_admin), db: Session = Depends(get_db)):
     """Get pricing templates for admin dashboard"""
-    try:
+try:
         templates = db.query(PricingTemplate).all()
 
         result = []
-        for template in templates:
+for template in templates:
             result.append(
                 {
                     "id": template.id,
@@ -114,7 +114,7 @@ async def get_pricing_templates(admin_user: User = Depends(require_admin), db: S
 
         return {"success": True, "templates": result}
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Pricing templates error: {str(e)}")
         return {
             "success": True,
@@ -127,7 +127,7 @@ async def get_pricing_templates(admin_user: User = Depends(require_admin), db: S
                 },
                 {
                     "id": "promotional",
-                    "name": "Promotional 50% Off",
+                    "name": "Promotional 50% O",
                     "description": "Limited time offer",
                     "is_active": False,
                 },

@@ -1,11 +1,11 @@
 """Notification analytics model for tracking delivery and engagement metrics."""
 
-from sqlalchemy import JSON, Column, ForeignKey, Integer, String
 
+from sqlalchemy import JSON, Column, ForeignKey, Integer, String
 from app.models.base import BaseModel
 
-
 class NotificationAnalytics(BaseModel):
+
     """Notification delivery and engagement analytics."""
 
     __tablename__ = "notification_analytics"
@@ -27,7 +27,8 @@ class NotificationAnalytics(BaseModel):
     retry_count = Column(Integer, default=0, nullable=False)
     tracking_data = Column(JSON, nullable=True)  # Additional tracking data
 
-    def to_dict(self):
+def to_dict(self):
+
         """Convert to dictionary."""
         return {
             "id": self.id,

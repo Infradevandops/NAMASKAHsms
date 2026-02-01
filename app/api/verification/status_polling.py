@@ -1,20 +1,19 @@
 """
-Verification Status Polling Service
-Handles real-time status updates for pending verifications
-"""
-
 import logging
 from datetime import datetime
 from typing import Any, Dict, List
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
+
+Verification Status Polling Service
+Handles real-time status updates for pending verifications
+"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,9 @@ router = APIRouter(prefix="/verification", tags=["verification-status"])
 
 
 class VerificationStatusService:
-    def __init__(self, db: Session):
+
+def __init__(self, db: Session):
+
         self.db = db
         self.textverified = TextVerifiedService()
 
@@ -30,15 +31,15 @@ class VerificationStatusService:
         """
         Poll verification status from TextVerified API
         """
-        try:
+try:
             # Get verification from database
             verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
-            if not verification:
+if not verification:
                 raise HTTPException(status_code=404, detail="Verification not found")
 
             # Skip polling if already completed
-            if verification.status in ["completed", "failed", "cancelled"]:
+if verification.status in ["completed", "failed", "cancelled"]:
                 return {
                     "id": verification.id,
                     "status": verification.status,
@@ -49,8 +50,8 @@ class VerificationStatusService:
                 }
 
             # Poll TextVerified API for status update
-            if verification.activation_id:
-                try:
+if verification.activation_id:
+try:
                     tv_status = await self.textverified.get_verification_status(verification.activation_id)
 
                     # Update database with new status
@@ -63,12 +64,12 @@ class VerificationStatusService:
                     self.db.commit()
 
                     # Log status change
-                    if old_status != verification.status:
+if old_status != verification.status:
                         logger.info(
                             f"Verification {verification_id} status changed: {old_status} -> {verification.status}"
                         )
 
-                except Exception as e:
+except Exception as e:
                     logger.error(f"TextVerified API polling failed for {verification_id}: {e}")
 
             return {
@@ -82,7 +83,7 @@ class VerificationStatusService:
                 "updated_at": (verification.updated_at.isoformat() if verification.updated_at else None),
             }
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")
             raise HTTPException(status_code=500, detail=f"Status polling failed: {str(e)}")
 
@@ -90,7 +91,7 @@ class VerificationStatusService:
         """
         Poll status for all pending verifications for a user
         """
-        try:
+try:
             # Get all pending verifications for user
             pending_verifications = (
                 self.db.query(Verification)
@@ -102,11 +103,11 @@ class VerificationStatusService:
             )
 
             results = []
-            for verification in pending_verifications:
-                try:
+for verification in pending_verifications:
+try:
                     status_data = await self.poll_verification_status(verification.id)
                     results.append(status_data)
-                except Exception as e:
+except Exception as e:
                     logger.error(f"Failed to poll verification {verification.id}: {e}")
                     # Include current status even if polling failed
                     results.append(
@@ -120,7 +121,7 @@ class VerificationStatusService:
 
             return results
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"User verification polling failed for {user_id}: {e}")
             raise HTTPException(status_code=500, detail=f"User verification polling failed: {str(e)}")
 
@@ -143,7 +144,7 @@ async def get_verification_status(
         .first()
     )
 
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
     return await status_service.poll_verification_status(verification_id)
@@ -184,7 +185,7 @@ async def force_status_refresh(
         .first()
     )
 
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
     result = await status_service.poll_verification_status(verification_id)

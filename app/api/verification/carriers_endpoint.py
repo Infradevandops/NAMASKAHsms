@@ -1,5 +1,6 @@
 """Carriers endpoint for verification system."""
 
+
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/api/verification", tags=["Carriers"])
@@ -11,7 +12,7 @@ async def get_carriers(country: str):
 
     Currently supports US carriers only.
     """
-    if country.upper() != "US":
+if country.upper() != "US":
         return {"carriers": [], "total": 0, "message": "Only US carriers supported"}
 
     # Major US carriers

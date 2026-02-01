@@ -1,32 +1,34 @@
 """Database migration utilities."""
 
+
 import logging
 import os
 import subprocess
 from typing import Optional
-
 from sqlalchemy import text
-
 from app.utils.timezone_utils import utc_now
+import shutil
 
 logger = logging.getLogger(__name__)
 
 
 class MigrationManager:
+
     """Database migration management."""
 
-    def __init__(self):
+def __init__(self):
+
         self.settings = get_settings()
 
     @staticmethod
-    def run_migrations() -> bool:
+def run_migrations() -> bool:
+
         """Run pending migrations."""
-        try:
-            import shutil
+try:
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
-            if not alembic_path:
+if not alembic_path:
                 print("Alembic not found in PATH")
                 return False
 
@@ -39,23 +41,24 @@ class MigrationManager:
                 check=False,
             )
             return result.returncode == 0
-        except subprocess.TimeoutExpired:
+except subprocess.TimeoutExpired:
             migration_logger = logging.getLogger(__name__)
             migration_logger.error("Migration timed out")
             return False
-        except Exception as e:
+except Exception as e:
             migration_logger = logging.getLogger(__name__)
             migration_logger.error("Migration failed: %s", e)
             return False
 
     @staticmethod
-    def create_migration(message: str) -> bool:
+def create_migration(message: str) -> bool:
+
         """Create new migration."""
-        try:
+try:
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
-            if not alembic_path:
+if not alembic_path:
                 print("Alembic not found in PATH")
                 return False
 
@@ -71,27 +74,28 @@ class MigrationManager:
                 check=False,
             )
             return result.returncode == 0
-        except subprocess.TimeoutExpired:
+except subprocess.TimeoutExpired:
             logger.error("Migration creation timed out")
             return False
-        except Exception as e:
+except Exception as e:
             logger.error("Migration creation failed: %s", e)
             return False
 
     @staticmethod
-    def rollback_migration(revision: Optional[str] = None) -> bool:
+def rollback_migration(revision: Optional[str] = None) -> bool:
+
         """Rollback to specific revision or previous."""
-        try:
+try:
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
-            if not alembic_path:
+if not alembic_path:
                 print("Alembic not found in PATH")
                 return False
 
             # Sanitize revision input
             target = revision or "-1"
-            if revision and not revision.replace("-", "").replace("_", "").isalnum():
+if revision and not revision.replace("-", "").replace("_", "").isalnum():
                 print("Invalid revision format")
                 return False
 
@@ -104,21 +108,22 @@ class MigrationManager:
                 check=False,
             )
             return result.returncode == 0
-        except subprocess.TimeoutExpired:
+except subprocess.TimeoutExpired:
             logger.error("Rollback timed out")
             return False
-        except Exception as e:
+except Exception as e:
             logger.error("Rollback failed: %s", e)
             return False
 
     @staticmethod
-    def get_current_revision() -> Optional[str]:
+def get_current_revision() -> Optional[str]:
+
         """Get current database revision."""
-        try:
+try:
 
             # Verify alembic is available
             alembic_path = shutil.which("alembic")
-            if not alembic_path:
+if not alembic_path:
                 return None
 
             result = subprocess.run(
@@ -129,21 +134,22 @@ class MigrationManager:
                 timeout=30,
                 check=False,
             )
-            if result.returncode == 0:
+if result.returncode == 0:
                 return result.stdout.strip()
             return None
-        except subprocess.TimeoutExpired:
+except subprocess.TimeoutExpired:
             return None
-        except (subprocess.SubprocessError, OSError, ValueError):
+except (subprocess.SubprocessError, OSError, ValueError):
             return None
 
-    def backup_database(self) -> bool:
+def backup_database(self) -> bool:
+
         """Create database backup (SQLite only)."""
-        if "sqlite" not in self.settings.database_url:
+if "sqlite" not in self.settings.database_url:
             logger.warning("Backup only supported for SQLite")
             return False
 
-        try:
+try:
             pass
 
             db_path = self.settings.database_url.replace("sqlite:///", "")
@@ -151,15 +157,16 @@ class MigrationManager:
             shutil.copy2(db_path, backup_path)
             logger.info("Database backed up to: %s", backup_path)
             return True
-        except Exception as e:
+except Exception as e:
             logger.error("Backup failed: %s", e)
             return False
 
     @staticmethod
-    def validate_schema() -> bool:
+def validate_schema() -> bool:
+
         """Validate database schema integrity."""
-        try:
-            with engine.connect() as conn:
+try:
+with engine.connect() as conn:
                 # Basic connectivity test
                 conn.execute(text("SELECT 1"))
 
@@ -174,17 +181,17 @@ class MigrationManager:
                     "support_tickets",
                 ]
 
-                for table in expected_tables:
+for table in expected_tables:
                     result = conn.execute(
                         text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"),
                         {"table_name": table},
                     )
-                    if not result.fetchone():
+if not result.fetchone():
                         logger.error("Missing table: %s", table)
                         return False
 
                 return True
-        except Exception as e:
+except Exception as e:
             logger.error("Schema validation failed: %s", e)
             return False
 
@@ -194,11 +201,12 @@ migration_manager = MigrationManager()
 
 
 def run_startup_migrations():
+
     """Run migrations on application startup."""
-    try:
-        if migration_manager.run_migrations():
+try:
+if migration_manager.run_migrations():
             logger.info("Database migrations completed")
-        else:
+else:
             logger.warning("Database migrations failed")
-    except Exception as e:
+except Exception as e:
         logger.error("Migration startup error: %s", e)

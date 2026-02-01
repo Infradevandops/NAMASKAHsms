@@ -1,7 +1,7 @@
 """Infrastructure management API endpoints."""
 
-from fastapi import APIRouter, Depends, Request
 
+from fastapi import APIRouter, Depends, Request
 from app.core.dependencies import get_current_admin_user
 from app.core.region_manager import region_manager
 from app.models.user import User
@@ -22,7 +22,7 @@ async def get_regions_status():
 async def get_optimal_region(request: Request, country: str = None):
     """Get optimal region for user."""
     # Extract country from headers if not provided
-    if not country:
+if not country:
         country = request.headers.get("CF - IPCountry", "US")
 
     optimal = await region_manager.get_optimal_region(country)

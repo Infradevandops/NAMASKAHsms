@@ -1,12 +1,12 @@
 """
-Services API Router - SMS Service Management
-"""
-
 from fastapi import APIRouter, Depends
-
 from app.core.dependencies import get_current_user
 from app.core.unified_cache import cache
 from app.models.user import User
+
+Services API Router - SMS Service Management
+"""
+
 
 router = APIRouter(prefix="/services", tags=["services"])
 
@@ -17,7 +17,7 @@ async def get_services_status():
     # Check cache first
     cache_key_str = cache.cache_key("services", "status")
     cached_result = await cache.get(cache_key_str)
-    if cached_result:
+if cached_result:
         return cached_result
 
     result = {
@@ -41,7 +41,7 @@ async def get_providers(current_user: User = Depends(get_current_user)):
     # Check cache first
     cache_key_str = cache.cache_key("services", "providers")
     cached_result = await cache.get(cache_key_str)
-    if cached_result:
+if cached_result:
         return cached_result
 
     result = {

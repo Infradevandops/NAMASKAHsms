@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Generate secure keys for production deployment."""
+
+
 import secrets
 
-
 def generate_key(length=32):
+
     """Generate a secure random key."""
     return secrets.token_urlsafe(length)
 

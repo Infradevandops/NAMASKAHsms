@@ -1,12 +1,13 @@
 """Core configuration management using Pydantic Settings."""
 
+
 from functools import lru_cache
 from typing import Optional
-
 from app.core.pydantic_compat import field_validator, BaseSettings
-
+from app.core.secrets import SecretsManager
 
 class Settings(BaseSettings):
+
     """Application settings with environment variable support."""
 
     # Application
@@ -195,14 +196,13 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings() -> Settings:
+
     """Get cached settings instance with validation."""
     settings_instance = Settings()
 
     # Validate secrets on startup (production only)
     if settings_instance.environment == "production":
         try:
-            from app.core.secrets import SecretsManager
-
             SecretsManager.validate_required_secrets(settings_instance.environment)
         except Exception:
             pass

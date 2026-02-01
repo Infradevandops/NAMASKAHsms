@@ -1,12 +1,11 @@
 """System API router for health checks and service status."""
 
-from datetime import datetime, timezone
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.database import get_db
 
@@ -15,6 +14,7 @@ root_router = APIRouter()
 
 
 class ServiceStatus(BaseModel):
+
     service_name: str
     status: str
     success_rate: float
@@ -22,6 +22,7 @@ class ServiceStatus(BaseModel):
 
 
 class ServiceStatusSummary(BaseModel):
+
     overall_status: str
     services: list
     stats: dict
@@ -29,10 +30,12 @@ class ServiceStatusSummary(BaseModel):
 
 
 def check_system_health(db):
+
     return {"database": "connected"}
 
 
 def check_database_health(db):
+
     return {"status": "healthy"}
 
 
@@ -61,6 +64,7 @@ async def liveness_check():
 
 @router.get("/status", response_model=ServiceStatusSummary)
 def get_service_status(db: Session = Depends(get_db)):
+
     """Get service status."""
     return ServiceStatusSummary(
         overall_status="operational",
@@ -72,6 +76,7 @@ def get_service_status(db: Session = Depends(get_db)):
 
 @router.get("/info")
 def get_system_info():
+
     """Get system information."""
     return {
         "service_name": "Namaskah SMS",
@@ -82,6 +87,7 @@ def get_system_info():
 
 @router.get("/config")
 def get_public_config():
+
     """Get public configuration."""
     return {
         "supported_services": ["telegram", "whatsapp", "discord"],

@@ -1,18 +1,18 @@
 """Smart SMS routing with AI - based provider selection."""
 
+
 from datetime import datetime, timedelta
 from typing import Dict
-
 from sqlalchemy import case, func
-
 from app.core.database import get_db
 from app.models.verification import Verification
 
-
 class SmartRouter:
+
     """AI - powered SMS provider routing."""
 
-    def __init__(self):
+def __init__(self):
+
         self.provider_stats = {}
         self.routing_rules = {
             "cost_weight": 0.3,
@@ -25,7 +25,7 @@ class SmartRouter:
         providers = ["5sim", "sms_activate", "getsms", "textverified"]
         scores = {}
 
-        for provider in providers:
+for provider in providers:
             stats = await self._get_provider_stats(provider, service, country)
             scores[provider] = self._calculate_score(stats)
 
@@ -64,7 +64,8 @@ class SmartRouter:
             "reliability": min(success_rate + (total / 100), 1.0),
         }
 
-    def _calculate_score(self, stats: Dict) -> float:
+def _calculate_score(self, stats: Dict) -> float:
+
         """Calculate provider score using weighted metrics."""
         cost_score = 1 / max(stats["avg_cost"], 0.1)  # Lower cost = higher score
         success_score = stats["success_rate"]

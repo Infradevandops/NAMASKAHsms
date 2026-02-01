@@ -1,13 +1,14 @@
+
+
 from unittest.mock import AsyncMock, patch
-
 import pytest
-
 from app.services.webhook_notification_service import WebhookNotificationService
-
+from unittest.mock import ANY
 
 class TestWebhookNotificationService:
     @pytest.fixture
-    def service(self):
+def service(self):
+
         return WebhookNotificationService()
 
     @pytest.mark.asyncio
@@ -37,7 +38,6 @@ class TestWebhookNotificationService:
     @pytest.mark.asyncio
     @patch.object(WebhookNotificationService, "send_webhook", new_callable=AsyncMock)
     async def test_notify_methods(self, mock_send, service):
-        from unittest.mock import ANY
 
         url = "http://webhook.com"
 

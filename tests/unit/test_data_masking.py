@@ -1,5 +1,6 @@
-from app.utils.data_masking import DataMasker, sanitize_log_data
 
+
+from app.utils.data_masking import DataMasker, sanitize_log_data
 
 def test_mask_string_password():
     # Sensitive key pattern
@@ -9,6 +10,7 @@ def test_mask_string_password():
 
 
 def test_mask_string_nested():
+
     data = {
         "user": {"name": "John", "api_key": "longkey12345"},
         "list": [{"token": "xyz"}],
@@ -27,14 +29,15 @@ def test_mask_string_value_pattern():
     # The regex in code might be buggy with spaces, let's see.
     # If regex fails, it won't be masked unless key is sensitive.
     # Here input is string, key check doesn't apply.
-    if masked == jwt:
+if masked == jwt:
         # Regex didn't match
         pass
-    else:
+else:
         assert masked == "[REDACTED]"
 
 
 def test_mask_headers():
+
     headers = {
         "Authorization": "Bearer 123",
         "Content-Type": "application/json",
@@ -47,6 +50,7 @@ def test_mask_headers():
 
 
 def test_mask_email():
+
     assert DataMasker.mask_email("user@example.com") == "u**r@example.com"
     assert DataMasker.mask_email("me@a.com") == "**@a.com"  # Length <= 2 local part masked entirely
     # Code: if len(local) <= 2: masked = "*" * len(local)
@@ -54,11 +58,13 @@ def test_mask_email():
 
 
 def test_mask_phone():
+
     assert DataMasker.mask_phone("1234567890") == "******7890"
     assert DataMasker.mask_phone("123") == "***"
 
 
 def test_sanitize_error_message():
+
     msg = "Error at /app/code.py: Disconnected from postgresql://user:pass@localhost:5432/db"
     sanitized = DataMasker.sanitize_error_message(msg)
     assert "[FILE_PATH]" in sanitized
@@ -66,6 +72,7 @@ def test_sanitize_error_message():
 
 
 def test_sanitize_log_data():
+
     log = {
         "event": "error",
         "headers": {"Authorization": "token"},

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Automated security scanning script."""
+
+
 import os
 import re
 import subprocess
@@ -7,15 +9,17 @@ import sys
 from pathlib import Path
 from typing import Dict, List
 
-
 class SecurityScanner:
+
     """Automated security scanner for the application."""
 
-    def __init__(self, project_root: str):
+def __init__(self, project_root: str):
+
         self.project_root = Path(project_root)
         self.issues = []
 
-    def scan_all(self) -> Dict:
+def scan_all(self) -> Dict:
+
         """Run all security scans."""
         print("🔍 Starting comprehensive security scan...")
 
@@ -32,16 +36,17 @@ class SecurityScanner:
 
         total_issues = sum(len(issues) for issues in results.values())
 
-        print(f"\n📊 Security Scan Results:")
+        print("\n📊 Security Scan Results:")
         print(f"Total issues found: {total_issues}")
 
-        for category, issues in results.items():
-            if issues:
+for category, issues in results.items():
+if issues:
                 print(f"  {category}: {len(issues)} issues")
 
         return results
 
-    def scan_hardcoded_secrets(self) -> List[Dict]:
+def scan_hardcoded_secrets(self) -> List[Dict]:
+
         """Scan for hardcoded secrets and credentials."""
         print("🔐 Scanning for hardcoded secrets...")
 
@@ -56,15 +61,15 @@ class SecurityScanner:
             (r"AKIA[0-9A-Z]{16}", "AWS access key"),
         ]
 
-        for py_file in self.project_root.rglob("*.py"):
-            if "test" in str(py_file) or "__pycache__" in str(py_file):
+for py_file in self.project_root.rglob("*.py"):
+if "test" in str(py_file) or "__pycache__" in str(py_file):
                 continue
 
-            try:
+try:
                 content = py_file.read_text()
-                for pattern, description in secret_patterns:
+for pattern, description in secret_patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
-                    for match in matches:
+for match in matches:
                         line_num = content[: match.start()].count("\n") + 1
                         issues.append(
                             {
@@ -74,12 +79,13 @@ class SecurityScanner:
                                 "code": match.group(0)[:50] + "...",
                             }
                         )
-            except Exception as e:
+except Exception as e:
                 print(f"Error scanning {py_file}: {e}")
 
         return issues
 
-    def scan_sql_injection(self) -> List[Dict]:
+def scan_sql_injection(self) -> List[Dict]:
+
         """Scan for SQL injection vulnerabilities."""
         print("💉 Scanning for SQL injection vulnerabilities...")
 
@@ -93,15 +99,15 @@ class SecurityScanner:
             (r"%.*SELECT.*%", "String formatting in SQL"),
         ]
 
-        for py_file in self.project_root.rglob("*.py"):
-            if "__pycache__" in str(py_file):
+for py_file in self.project_root.rglob("*.py"):
+if "__pycache__" in str(py_file):
                 continue
 
-            try:
+try:
                 content = py_file.read_text()
-                for pattern, description in sql_patterns:
+for pattern, description in sql_patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
-                    for match in matches:
+for match in matches:
                         line_num = content[: match.start()].count("\n") + 1
                         issues.append(
                             {
@@ -111,12 +117,13 @@ class SecurityScanner:
                                 "code": match.group(0)[:100] + "...",
                             }
                         )
-            except Exception as e:
+except Exception as e:
                 print(f"Error scanning {py_file}: {e}")
 
         return issues
 
-    def scan_xss_vulnerabilities(self) -> List[Dict]:
+def scan_xss_vulnerabilities(self) -> List[Dict]:
+
         """Scan for XSS vulnerabilities."""
         print("🕷️ Scanning for XSS vulnerabilities...")
 
@@ -128,15 +135,15 @@ class SecurityScanner:
             (r"innerHTML.*=.*user", "Direct innerHTML assignment"),
         ]
 
-        for py_file in self.project_root.rglob("*.py"):
-            if "__pycache__" in str(py_file):
+for py_file in self.project_root.rglob("*.py"):
+if "__pycache__" in str(py_file):
                 continue
 
-            try:
+try:
                 content = py_file.read_text()
-                for pattern, description in xss_patterns:
+for pattern, description in xss_patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
-                    for match in matches:
+for match in matches:
                         line_num = content[: match.start()].count("\n") + 1
                         issues.append(
                             {
@@ -146,12 +153,13 @@ class SecurityScanner:
                                 "code": match.group(0)[:100] + "...",
                             }
                         )
-            except Exception as e:
+except Exception as e:
                 print(f"Error scanning {py_file}: {e}")
 
         return issues
 
-    def scan_log_injection(self) -> List[Dict]:
+def scan_log_injection(self) -> List[Dict]:
+
         """Scan for log injection vulnerabilities."""
         print("📝 Scanning for log injection vulnerabilities...")
 
@@ -162,15 +170,15 @@ class SecurityScanner:
             (r'print\(f".*{.*user.*}"', "User data in print statement"),
         ]
 
-        for py_file in self.project_root.rglob("*.py"):
-            if "__pycache__" in str(py_file):
+for py_file in self.project_root.rglob("*.py"):
+if "__pycache__" in str(py_file):
                 continue
 
-            try:
+try:
                 content = py_file.read_text()
-                for pattern, description in log_patterns:
+for pattern, description in log_patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
-                    for match in matches:
+for match in matches:
                         line_num = content[: match.start()].count("\n") + 1
                         issues.append(
                             {
@@ -180,12 +188,13 @@ class SecurityScanner:
                                 "code": match.group(0)[:100] + "...",
                             }
                         )
-            except Exception as e:
+except Exception as e:
                 print(f"Error scanning {py_file}: {e}")
 
         return issues
 
-    def scan_insecure_functions(self) -> List[Dict]:
+def scan_insecure_functions(self) -> List[Dict]:
+
         """Scan for insecure function usage."""
         print("⚠️ Scanning for insecure functions...")
 
@@ -200,15 +209,15 @@ class SecurityScanner:
             (r"random\.random\s*\(", "Weak random number generation"),
         ]
 
-        for py_file in self.project_root.rglob("*.py"):
-            if "__pycache__" in str(py_file):
+for py_file in self.project_root.rglob("*.py"):
+if "__pycache__" in str(py_file):
                 continue
 
-            try:
+try:
                 content = py_file.read_text()
-                for pattern, description in insecure_patterns:
+for pattern, description in insecure_patterns:
                     matches = re.finditer(pattern, content, re.IGNORECASE)
-                    for match in matches:
+for match in matches:
                         line_num = content[: match.start()].count("\n") + 1
                         issues.append(
                             {
@@ -218,20 +227,21 @@ class SecurityScanner:
                                 "code": match.group(0)[:100] + "...",
                             }
                         )
-            except Exception as e:
+except Exception as e:
                 print(f"Error scanning {py_file}: {e}")
 
         return issues
 
-    def scan_dependencies(self) -> List[Dict]:
+def scan_dependencies(self) -> List[Dict]:
+
         """Scan for vulnerable dependencies."""
         print("📦 Scanning dependencies for vulnerabilities...")
 
         issues = []
         requirements_file = self.project_root / "requirements.txt"
 
-        if requirements_file.exists():
-            try:
+if requirements_file.exists():
+try:
                 # Try to run safety check if available
                 result = subprocess.run(
                     ["safety", "check", "-r", str(requirements_file)],
@@ -240,7 +250,7 @@ class SecurityScanner:
                     timeout=30,
                 )
 
-                if (
+if (
                     result.returncode != 0
                     and "No known security vulnerabilities found" not in result.stdout
                 ):
@@ -252,7 +262,7 @@ class SecurityScanner:
                             "code": result.stdout[:200] + "...",
                         }
                     )
-            except (subprocess.TimeoutExpired, FileNotFoundError):
+except (subprocess.TimeoutExpired, FileNotFoundError):
                 # Safety not installed or timeout
                 issues.append(
                     {
@@ -265,19 +275,20 @@ class SecurityScanner:
 
         return issues
 
-    def check_file_permissions(self) -> List[Dict]:
+def check_file_permissions(self) -> List[Dict]:
+
         """Check for insecure file permissions."""
         print("🔒 Checking file permissions...")
 
         issues = []
 
         # Check for world-writable files
-        for file_path in self.project_root.rglob("*"):
-            if file_path.is_file():
-                try:
+for file_path in self.project_root.rglob("*"):
+if file_path.is_file():
+try:
                     stat = file_path.stat()
                     # Check if world-writable (others have write permission)
-                    if stat.st_mode & 0o002:
+if stat.st_mode & 0o002:
                         issues.append(
                             {
                                 "file": str(file_path.relative_to(self.project_root)),
@@ -286,25 +297,26 @@ class SecurityScanner:
                                 "code": f"chmod o-w {file_path}",
                             }
                         )
-                except Exception:
+except Exception:
                     pass
 
         return issues
 
-    def scan_configuration(self) -> List[Dict]:
+def scan_configuration(self) -> List[Dict]:
+
         """Scan configuration files for security issues."""
         print("⚙️ Scanning configuration files...")
 
         issues = []
 
         # Check .env files
-        for env_file in self.project_root.rglob(".env*"):
-            if env_file.is_file():
-                try:
+for env_file in self.project_root.rglob(".env*"):
+if env_file.is_file():
+try:
                     content = env_file.read_text()
 
                     # Check for debug mode in production
-                    if "DEBUG=True" in content or "DEBUG=true" in content:
+if "DEBUG=True" in content or "DEBUG=true" in content:
                         issues.append(
                             {
                                 "file": str(env_file.relative_to(self.project_root)),
@@ -315,7 +327,7 @@ class SecurityScanner:
                         )
 
                     # Check for weak secrets
-                    if "SECRET_KEY=test" in content or "SECRET_KEY=dev" in content:
+if "SECRET_KEY=test" in content or "SECRET_KEY=dev" in content:
                         issues.append(
                             {
                                 "file": str(env_file.relative_to(self.project_root)),
@@ -325,27 +337,28 @@ class SecurityScanner:
                             }
                         )
 
-                except Exception as e:
+except Exception as e:
                     print(f"Error reading {env_file}: {e}")
 
         return issues
 
-    def generate_report(self, results: Dict) -> str:
+def generate_report(self, results: Dict) -> str:
+
         """Generate security scan report."""
         report = ["# Security Scan Report\n"]
 
         total_issues = sum(len(issues) for issues in results.values())
 
-        if total_issues == 0:
+if total_issues == 0:
             report.append("✅ **No security issues found!**\n")
-        else:
+else:
             report.append(f"⚠️ **{total_issues} security issues found**\n")
 
-        for category, issues in results.items():
-            if issues:
+for category, issues in results.items():
+if issues:
                 report.append(f"\n## {category.replace('_', ' ').title()}\n")
 
-                for issue in issues:
+for issue in issues:
                     report.append(
                         f"- **{issue['file']}:{issue['line']}** - {issue['issue']}"
                     )
@@ -355,10 +368,11 @@ class SecurityScanner:
 
 
 def main():
+
     """Main function."""
-    if len(sys.argv) > 1:
+if len(sys.argv) > 1:
         project_root = sys.argv[1]
-    else:
+else:
         project_root = os.getcwd()
 
     scanner = SecurityScanner(project_root)

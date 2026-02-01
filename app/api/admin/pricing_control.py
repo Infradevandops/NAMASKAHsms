@@ -1,10 +1,10 @@
+
+
 from datetime import datetime
 from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.pricing_template import PricingHistory, PricingTemplate, TierPricing
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/admin/pricing", tags=["admin-pricing"])
 
 
 class TemplateCreate(BaseModel):
+
     name: str
     description: Optional[str] = None
     region: str = "US"
@@ -23,6 +24,7 @@ class TemplateCreate(BaseModel):
 
 
 class TierCreate(BaseModel):
+
     tier_name: str
     monthly_price: float
     included_quota: float
@@ -38,7 +40,7 @@ async def get_pricing_templates(admin_user: User = Depends(require_admin), db: S
     templates = db.query(PricingTemplate).all()
 
     result = []
-    for template in templates:
+for template in templates:
         tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
         result.append(
             {
@@ -62,7 +64,7 @@ async def get_pricing_templates(admin_user: User = Depends(require_admin), db: S
                         "api_keys_limit": tier.api_keys_limit,
                         "display_order": tier.display_order,
                     }
-                    for tier in sorted(tiers, key=lambda x: x.display_order or 0)
+for tier in sorted(tiers, key=lambda x: x.display_order or 0)
                 ],
             }
         )
@@ -81,7 +83,7 @@ async def create_pricing_template(
 
     # Check if template name already exists
     existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data.name).first()
-    if existing:
+if existing:
         raise HTTPException(status_code=400, detail="Template name already exists")
 
     # Create template
@@ -99,7 +101,7 @@ async def create_pricing_template(
     db.flush()  # Get the ID
 
     # Create tiers
-    for tier_data in tiers:
+for tier_data in tiers:
         tier = TierPricing(
             template_id=template.id,
             tier_name=tier_data.tier_name,
@@ -139,7 +141,7 @@ async def activate_template(
     """Activate a pricing template (deactivates others)"""
 
     template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-    if not template:
+if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
     # Deactivate all other templates
@@ -171,7 +173,7 @@ async def deactivate_template(
     """Deactivate a pricing template"""
 
     template = db.query(PricingTemplate).filter(PricingTemplate.id == template_id).first()
-    if not template:
+if not template:
         raise HTTPException(status_code=404, detail="Template not found")
 
     template.is_active = False
@@ -195,7 +197,7 @@ async def get_active_template(db: Session = Depends(get_db)):
     """Get currently active pricing template"""
 
     template = db.query(PricingTemplate).filter(PricingTemplate.is_active).first()
-    if not template:
+if not template:
         return {"active_template": None}
 
     tiers = db.query(TierPricing).filter(TierPricing.template_id == template.id).all()
@@ -216,7 +218,7 @@ async def get_active_template(db: Session = Depends(get_db)):
                     "features": tier.features or [],
                     "api_keys_limit": tier.api_keys_limit,
                 }
-                for tier in sorted(tiers, key=lambda x: x.display_order or 0)
+for tier in sorted(tiers, key=lambda x: x.display_order or 0)
             ],
         }
     }
@@ -245,7 +247,7 @@ async def get_template_history(
                 "changed_at": h.changed_at.isoformat() if h.changed_at else None,
                 "notes": h.notes,
             }
-            for h in history
+for h in history
         ]
     }
 
@@ -298,7 +300,7 @@ async def create_quick_templates(admin_user: User = Depends(require_admin), db: 
             ],
         },
         {
-            "name": "Promotional 50% Off",
+            "name": "Promotional 50% O",
             "description": "Limited time promotional pricing",
             "tiers": [
                 {
@@ -393,10 +395,10 @@ async def create_quick_templates(admin_user: User = Depends(require_admin), db: 
 
     created_templates = []
 
-    for template_data in templates_data:
+for template_data in templates_data:
         # Check if template already exists
         existing = db.query(PricingTemplate).filter(PricingTemplate.name == template_data["name"]).first()
-        if existing:
+if existing:
             continue
 
         # Create template
@@ -412,7 +414,7 @@ async def create_quick_templates(admin_user: User = Depends(require_admin), db: 
         db.flush()
 
         # Create tiers
-        for tier_data in template_data["tiers"]:
+for tier_data in template_data["tiers"]:
             tier = TierPricing(
                 template_id=template.id,
                 tier_name=tier_data["tier_name"],

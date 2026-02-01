@@ -1,18 +1,19 @@
+
+
 from unittest.mock import MagicMock
-
 import pytest
-
 from app.models.pricing_template import PricingTemplate, UserPricingAssignment
 from app.services.pricing_template_service import PricingTemplateService
 
-
 @pytest.fixture
 def mock_db():
+
     return MagicMock()
 
 
 @pytest.fixture
 def service(mock_db):
+
     return PricingTemplateService(mock_db)
 
 
@@ -32,6 +33,7 @@ def test_get_active_template_no_assignment(service, mock_db):
 
 
 def test_get_active_template_with_assignment(service, mock_db):
+
     assignment = UserPricingAssignment(user_id=123, template_id=99)
     template = PricingTemplate(id=99, name="Test Schema", is_active=False)
 
@@ -78,7 +80,7 @@ def test_create_template_duplicate_name(service, mock_db):
     # Mock existing
     mock_db.query.return_value.filter.return_value.first.return_value = PricingTemplate()
 
-    with pytest.raises(ValueError, match="already exists"):
+with pytest.raises(ValueError, match="already exists"):
         service.create_template(
             name="Existing",
             description="desc",
@@ -129,6 +131,7 @@ def test_activate_template(service, mock_db):
 
 
 def test_delete_template_success(service, mock_db):
+
     template = PricingTemplate(id=1, is_active=False)
 
     # Mock sequence:
@@ -146,14 +149,16 @@ def test_delete_template_success(service, mock_db):
 
 
 def test_delete_template_active_fails(service, mock_db):
+
     template = PricingTemplate(id=1, is_active=True)
     mock_db.query.return_value.filter.return_value.first.return_value = template
 
-    with pytest.raises(ValueError, match="Cannot delete active template"):
+with pytest.raises(ValueError, match="Cannot delete active template"):
         service.delete_template(1, admin_user_id=1)
 
 
 def test_assign_user_to_template(service, mock_db):
+
     template = PricingTemplate(id=10)
     mock_db.query.return_value.filter.return_value.first.side_effect = [
         template,  # get_template

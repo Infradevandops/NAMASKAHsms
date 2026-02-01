@@ -1,13 +1,12 @@
 """SMS forwarding preferences model."""
 
+
 from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
-
 from app.models.base import Base
 
-
 class SMSForwarding(Base):
+
     """SMS forwarding configuration."""
 
     __tablename__ = "sms_forwarding"

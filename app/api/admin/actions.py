@@ -1,8 +1,8 @@
-from datetime import datetime
 
+
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.user import User
@@ -19,7 +19,7 @@ async def suspend_user(
 ):
     """Suspend a user account"""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = False
@@ -36,7 +36,7 @@ async def activate_user(
 ):
     """Activate a user account"""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = True
@@ -53,7 +53,7 @@ async def cancel_verification(
 ):
     """Cancel a pending verification"""
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
     verification.status = "cancelled"
@@ -84,7 +84,7 @@ async def list_users(
             "created_at": user.created_at.isoformat() if user.created_at else "",
             "last_login": (user.last_login.isoformat() if hasattr(user, "last_login") and user.last_login else ""),
         }
-        for user in users
+for user in users
     ]
 
 

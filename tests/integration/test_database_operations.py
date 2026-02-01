@@ -1,21 +1,21 @@
 """
-Integration Tests - Database Operations
-Comprehensive database integration tests
-"""
-
 import pytest
-from sqlalchemy.orm import Session
-
 from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
 from app.models.verification import Verification
 from app.utils.security import hash_password
 
+Integration Tests - Database Operations
+Comprehensive database integration tests
+"""
+
 
 class TestDatabaseIntegration:
+
     """Database integration tests."""
 
-    def test_user_crud_operations(self, db_session):
+def test_user_crud_operations(self, db_session):
+
         """Test Create, Read, Update, Delete for User."""
         # Create
         user = User(
@@ -44,7 +44,8 @@ class TestDatabaseIntegration:
         deleted = db_session.query(User).filter(User.email == "crud@test.com").first()
         assert deleted is None
 
-    def test_transaction_user_relationship(self, db_session, regular_user):
+def test_transaction_user_relationship(self, db_session, regular_user):
+
         """Test relationship between User and Transaction."""
         tx = Transaction(
             user_id=regular_user.id,
@@ -61,7 +62,8 @@ class TestDatabaseIntegration:
         assert len(txs) >= 1
         assert any(t.amount == 50.0 for t in txs)
 
-    def test_payment_log_creation_and_query(self, db_session, regular_user):
+def test_payment_log_creation_and_query(self, db_session, regular_user):
+
         """Test PaymentLog creation and querying."""
         log = PaymentLog(
             user_id=regular_user.id,
@@ -83,7 +85,8 @@ class TestDatabaseIntegration:
         assert found.amount_usd == 100.0
         assert found.status == "success"
 
-    def test_verification_record_lifecycle(self, db_session, regular_user):
+def test_verification_record_lifecycle(self, db_session, regular_user):
+
         """Test Verification record lifecycle."""
         verification = Verification(
             user_id=regular_user.id,
@@ -106,7 +109,8 @@ class TestDatabaseIntegration:
         db_session.refresh(verification)
         assert verification.status == "completed"
 
-    def test_database_transaction_rollback(self, db_session):
+def test_database_transaction_rollback(self, db_session):
+
         """Test database transaction rollback."""
         user = User(
             email="rollback@test.com",
@@ -123,7 +127,8 @@ class TestDatabaseIntegration:
         found = db_session.query(User).filter(User.email == "rollback@test.com").first()
         assert found is None
 
-    def test_concurrent_user_updates(self, db_session, regular_user):
+def test_concurrent_user_updates(self, db_session, regular_user):
+
         """Test concurrent updates to same user."""
         initial_credits = regular_user.credits
 
@@ -137,7 +142,8 @@ class TestDatabaseIntegration:
         db_session.refresh(regular_user)
         assert regular_user.credits == initial_credits + 30.0
 
-    def test_bulk_insert_performance(self, db_session, regular_user):
+def test_bulk_insert_performance(self, db_session, regular_user):
+
         """Test bulk insert of transactions."""
         transactions = [
             Transaction(
@@ -146,7 +152,7 @@ class TestDatabaseIntegration:
                 type="credit",
                 description=f"Bulk {i}",
             )
-            for i in range(10)
+for i in range(10)
         ]
 
         db_session.bulk_save_objects(transactions)
@@ -157,10 +163,11 @@ class TestDatabaseIntegration:
 
         assert count >= 10
 
-    def test_query_filtering_and_ordering(self, db_session, regular_user):
+def test_query_filtering_and_ordering(self, db_session, regular_user):
+
         """Test complex queries with filtering and ordering."""
         # Create test data
-        for i in range(5):
+for i in range(5):
             tx = Transaction(
                 user_id=regular_user.id,
                 amount=float(i * 10),
@@ -180,22 +187,24 @@ class TestDatabaseIntegration:
 
         assert len(credits) >= 3
         # Should be ordered descending
-        if len(credits) >= 2:
+if len(credits) >= 2:
             assert credits[0].amount >= credits[1].amount
 
-    def test_database_constraint_enforcement(self, db_session):
+def test_database_constraint_enforcement(self, db_session):
+
         """Test database constraints."""
         # Try to create user without required fields
         user = User(subscription_tier="freemium")
         db_session.add(user)
 
         # Should raise error due to missing email
-        with pytest.raises(Exception):
+with pytest.raises(Exception):
             db_session.commit()
 
         db_session.rollback()
 
-    def test_cascade_delete_behavior(self, db_session):
+def test_cascade_delete_behavior(self, db_session):
+
         """Test cascade delete if configured."""
         user = User(
             email="cascade@test.com",
@@ -223,7 +232,8 @@ class TestDatabaseIntegration:
         # Adjust assertion based on actual cascade configuration
         assert tx_exists is None or tx_exists is not None
 
-    def test_database_session_isolation(self, db_session):
+def test_database_session_isolation(self, db_session):
+
         """Test database session isolation."""
         user1 = User(
             email="isolation1@test.com",
@@ -242,7 +252,8 @@ class TestDatabaseIntegration:
 
         db_session.commit()
 
-    def test_optimistic_locking_scenario(self, db_session, regular_user):
+def test_optimistic_locking_scenario(self, db_session, regular_user):
+
         """Test optimistic locking scenario."""
         # Get initial state
         initial_credits = regular_user.credits
@@ -260,10 +271,11 @@ class TestDatabaseIntegration:
         db_session.refresh(regular_user)
         assert regular_user.credits == initial_credits + 75.0
 
-    def test_query_pagination(self, db_session, regular_user):
+def test_query_pagination(self, db_session, regular_user):
+
         """Test query pagination."""
         # Create many transactions
-        for i in range(20):
+for i in range(20):
             tx = Transaction(
                 user_id=regular_user.id,
                 amount=float(i),

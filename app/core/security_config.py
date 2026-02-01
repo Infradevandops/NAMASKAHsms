@@ -1,12 +1,13 @@
 """Security configuration and utilities."""
 
+
 import secrets
 from typing import Any
-
 from app.core.config import get_settings
-
+import re
 
 class SecurityConfig:
+
     """Security configuration management."""
 
     # Sensitive data patterns to redact from logs
@@ -62,61 +63,66 @@ class SecurityConfig:
 
     # Security headers to add to responses
     SECURITY_HEADERS = {
-        "X - Content-Type - Options": "nosnif",
+        "X - Content-Type - Options": "nosni",
         "X - Frame-Options": "DENY",
         "X - XSS-Protection": "1; mode = block",
         "Strict - Transport-Security": "max - age = 31536000; includeSubDomains",
         "Referrer - Policy": "strict - origin-when - cross-origin",
-        "Content - Security-Policy": "default - src 'self'; script - src 'self' 'unsafe - inline'; style - src 'self' 'unsafe - inline';",
+        "Content - Security-Policy": "default - src 'sel'; script - src 'sel' 'unsafe - inline'; style - src 'sel' 'unsafe - inline';",
     }
 
     @staticmethod
-    def is_sensitive_key(key: str) -> bool:
+def is_sensitive_key(key: str) -> bool:
+
         """Check if a key contains sensitive information."""
         key_lower = key.lower()
         return any(pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS)
 
     @staticmethod
-    def sanitize_data(data: Any) -> Any:
+def sanitize_data(data: Any) -> Any:
+
         """Recursively sanitize sensitive data."""
-        if isinstance(data, dict):
+if isinstance(data, dict):
             sanitized = {}
-            for key, value in data.items():
-                if SecurityConfig.is_sensitive_key(key):
+for key, value in data.items():
+if SecurityConfig.is_sensitive_key(key):
                     sanitized[key] = "[REDACTED]"
-                elif isinstance(value, (dict, list)):
+elif isinstance(value, (dict, list)):
                     sanitized[key] = SecurityConfig.sanitize_data(value)
-                else:
+else:
                     sanitized[key] = value
             return sanitized
-        elif isinstance(data, list):
+elif isinstance(data, list):
             return [SecurityConfig.sanitize_data(item) for item in data]
-        else:
+else:
             return data
 
     @staticmethod
-    def validate_host(host: str) -> bool:
+def validate_host(host: str) -> bool:
+
         """Validate if host is allowed."""
         settings = get_settings()
-        if settings.environment == "development":
+if settings.environment == "development":
             return True  # Allow all hosts in development
 
         return host in SecurityConfig.ALLOWED_HOSTS
 
     @staticmethod
-    def generate_secure_token(length: int = 32) -> str:
+def generate_secure_token(length: int = 32) -> str:
+
         """Generate a cryptographically secure token."""
         return secrets.token_urlsafe(length)
 
     @staticmethod
-    def validate_input_length(value: str, max_length: int = 1000) -> bool:
+def validate_input_length(value: str, max_length: int = 1000) -> bool:
+
         """Validate input length to prevent DoS attacks."""
         return len(value) <= max_length
 
     @staticmethod
-    def get_safe_filename(filename: str) -> str:
+def get_safe_filename(filename: str) -> str:
+
         """Get a safe filename by removing dangerous characters."""
-        import re
 
         # Remove path traversal attempts and dangerous characters
         safe_name = re.sub(r"[^\w\-_\.]", "", filename)
@@ -124,7 +130,8 @@ class SecurityConfig:
         return safe_name[:100]
 
     @staticmethod
-    def validate_sql_identifier(identifier: str) -> bool:
+def validate_sql_identifier(identifier: str) -> bool:
+
         """Validate SQL identifier to prevent injection."""
 
         # Only allow alphanumeric characters and underscores
@@ -132,6 +139,7 @@ class SecurityConfig:
 
 
 class RateLimitConfig:
+
     """Rate limiting configuration."""
 
     # Default rate limits (requests per minute)
@@ -155,6 +163,7 @@ class RateLimitConfig:
 
 
 class AuditConfig:
+
     """Audit logging configuration."""
 
     # Events that require audit logging
@@ -183,11 +192,13 @@ class AuditConfig:
     ]
 
     @staticmethod
-    def should_audit(operation: str) -> bool:
+def should_audit(operation: str) -> bool:
+
         """Check if operation should be audited."""
         return operation in AuditConfig.AUDIT_EVENTS
 
     @staticmethod
-    def is_sensitive_operation(operation: str) -> bool:
+def is_sensitive_operation(operation: str) -> bool:
+
         """Check if operation is sensitive and needs enhanced logging."""
         return operation in AuditConfig.SENSITIVE_OPERATIONS

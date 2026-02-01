@@ -1,8 +1,8 @@
 """Notification API endpoints."""
 
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.notification import Notification
@@ -57,7 +57,7 @@ async def mark_as_read(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-    if not notification:
+if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     notification.is_read = True
@@ -89,7 +89,7 @@ async def delete_notification(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-    if not notification:
+if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     db.delete(notification)
@@ -99,7 +99,9 @@ async def delete_notification(
 
 
 # Helper function to create notifications
+
 def create_notification(
+
     db: Session,
     user_id: str,
     type: str,

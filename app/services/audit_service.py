@@ -1,17 +1,19 @@
 """Audit logging for compliance."""
 
+
 from datetime import datetime
 from typing import Any, Dict
-
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class AuditService:
+
     """Audit logging for GDPR compliance."""
 
-    def __init__(self):
+def __init__(self):
+
         self.audit_log = []
 
     async def log_action(self, user_id: str, action: str, resource: str, details: Dict[str, Any] = None):

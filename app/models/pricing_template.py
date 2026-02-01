@@ -1,6 +1,11 @@
 """Pricing Template Models"""
 
 from sqlalchemy import (
+from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
+from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
+from app.core.database import Base
+
     DECIMAL,
     JSON,
     TIMESTAMP,
@@ -11,17 +16,14 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
-from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
 
-from app.core.database import Base
 
 # Use cross-dialect JSONB (Postgres) / JSON (SQLite)
 JSONB = JSON().with_variant(PostgresJSONB, "postgresql")
 
 
 class PricingTemplate(Base):
+
     """Pricing template for managing multiple pricing strategies"""
 
     __tablename__ = "pricing_templates"
@@ -43,11 +45,13 @@ class PricingTemplate(Base):
     history = relationship("PricingHistory", back_populates="template")
     creator = relationship("User", foreign_keys=[created_by])
 
-    def __repr__(self):
+def __repr__(self):
+
         return f"<PricingTemplate(name='{self.name}', active={self.is_active}, region='{self.region}')>"
 
 
 class TierPricing(Base):
+
     """Tier pricing details for a template"""
 
     __tablename__ = "tier_pricing"
@@ -65,11 +69,13 @@ class TierPricing(Base):
     # Relationships
     template = relationship("PricingTemplate", back_populates="tiers")
 
-    def __repr__(self):
+def __repr__(self):
+
         return f"<TierPricing(tier='{self.tier_name}', price={self.monthly_price})>"
 
 
 class PricingHistory(Base):
+
     """Audit trail for pricing changes"""
 
     __tablename__ = "pricing_history"
@@ -87,11 +93,13 @@ class PricingHistory(Base):
     template = relationship("PricingTemplate", back_populates="history")
     user = relationship("User", foreign_keys=[changed_by])
 
-    def __repr__(self):
+def __repr__(self):
+
         return f"<PricingHistory(action='{self.action}', template_id={self.template_id})>"
 
 
 class UserPricingAssignment(Base):
+
     """User-specific pricing template assignment (for A/B testing)"""
 
     __tablename__ = "user_pricing_assignments"
@@ -105,5 +113,6 @@ class UserPricingAssignment(Base):
     user = relationship("User")
     template = relationship("PricingTemplate")
 
-    def __repr__(self):
+def __repr__(self):
+
         return f"<UserPricingAssignment(user_id={self.user_id}, template_id={self.template_id})>"

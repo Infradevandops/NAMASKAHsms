@@ -1,11 +1,12 @@
+
+
 import pytest
-
 from app.services.disaster_recovery import DisasterRecoveryService
-
 
 class TestDisasterRecoveryService:
     @pytest.fixture
-    def service(self):
+def service(self):
+
         return DisasterRecoveryService()
 
     @pytest.mark.asyncio

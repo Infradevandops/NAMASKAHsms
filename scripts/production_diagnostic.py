@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from datetime import datetime, timedelta, timezone
+from sqlalchemy import desc, func
+from app.core.database import SessionLocal
+from app.models.transaction import Transaction
+from app.models.user import User
+from app.models.verification import Verification
+import traceback
+
 Production Diagnostic Script
 ============================
 Analyzes production database to assess refund issue impact.
@@ -8,9 +18,6 @@ Usage:
     python production_diagnostic.py
 """
 
-import os
-import sys
-from datetime import datetime, timedelta, timezone
 
 # Check if production database URL is set
 if not os.getenv("DATABASE_URL"):
@@ -18,12 +25,6 @@ if not os.getenv("DATABASE_URL"):
     print("Set it to your production database connection string")
     sys.exit(1)
 
-from sqlalchemy import desc, func
-
-from app.core.database import SessionLocal
-from app.models.transaction import Transaction
-from app.models.user import User
-from app.models.verification import Verification
 
 print("=" * 80)
 print("PRODUCTION DIAGNOSTIC REPORT")
@@ -59,7 +60,7 @@ try:
         .all()
     )
 
-    for status, count in status_counts:
+for status, count in status_counts:
         percentage = (
             (count / total_verifications * 100) if total_verifications > 0 else 0
         )
@@ -77,7 +78,7 @@ try:
 
     print(f"Total Failed: {len(failed_verifications)}")
 
-    if failed_verifications:
+if failed_verifications:
         total_cost = sum(v.cost for v in failed_verifications)
         print(f"Total Cost: ${total_cost:.2f}")
         print()
@@ -87,7 +88,7 @@ try:
         unrefunded_count = 0
         unrefunded_amount = 0.0
 
-        for v in failed_verifications:
+for v in failed_verifications:
             existing_refund = (
                 db.query(Transaction)
                 .filter(
@@ -98,9 +99,9 @@ try:
                 .first()
             )
 
-            if existing_refund:
+if existing_refund:
                 refunded_count += 1
-            else:
+else:
                 unrefunded_count += 1
                 unrefunded_amount += v.cost
 
@@ -120,14 +121,14 @@ try:
 
     print(f"Total Verifications: {len(recent_verifications)}")
 
-    if recent_verifications:
+if recent_verifications:
         recent_failed = [v for v in recent_verifications if v.status in failed_statuses]
         recent_completed = [v for v in recent_verifications if v.status == "completed"]
 
         print(f"Completed: {len(recent_completed)}")
         print(f"Failed: {len(recent_failed)}")
 
-        if len(recent_verifications) > 0:
+if len(recent_verifications) > 0:
             success_rate = len(recent_completed) / len(recent_verifications) * 100
             print(f"Success Rate: {success_rate:.1f}%")
         print()
@@ -140,13 +141,13 @@ try:
         db.query(Verification).order_by(desc(Verification.created_at)).limit(20).all()
     )
 
-    if recent_20:
+if recent_20:
         print(
             f"{'ID':<10} {'User':<10} {'Service':<15} {'Status':<12} {'Cost':<8} {'Created':<20}"
         )
         print("-" * 80)
 
-        for v in recent_20:
+for v in recent_20:
             created_str = (
                 v.created_at.strftime("%Y-%m-%d %H:%M") if v.created_at else "N/A"
             )
@@ -164,10 +165,10 @@ try:
     print("👥 USERS WITH FAILED VERIFICATIONS")
     print("-" * 80)
 
-    if failed_verifications:
+if failed_verifications:
         user_failures = {}
-        for v in failed_verifications:
-            if v.user_id not in user_failures:
+for v in failed_verifications:
+if v.user_id not in user_failures:
                 user_failures[v.user_id] = {"count": 0, "amount": 0.0}
             user_failures[v.user_id]["count"] += 1
             user_failures[v.user_id]["amount"] += v.cost
@@ -182,7 +183,7 @@ try:
         )
         print("-" * 80)
 
-        for user_id, data in sorted_users:
+for user_id, data in sorted_users:
             user = db.query(User).filter(User.id == user_id).first()
             email = user.email if user else "N/A"
             balance = f"${user.credits:.2f}" if user else "N/A"
@@ -211,7 +212,7 @@ try:
     print(f"{'Type':<20} {'Count':<10} {'Total Amount':<15}")
     print("-" * 80)
 
-    for tx_type, count, total in transaction_types:
+for tx_type, count, total in transaction_types:
         total_str = f"${total:.2f}" if total else "$0.00"
         print(f"{tx_type:<20} {count:<10} {total_str:<15}")
     print()
@@ -228,20 +229,20 @@ try:
         .all()
     )
 
-    if refund_transactions:
+if refund_transactions:
         print(f"Total Refund Transactions: {len(refund_transactions)}")
         print()
         print(f"{'ID':<10} {'User':<10} {'Amount':<10} {'Description':<40}")
         print("-" * 80)
 
-        for tx in refund_transactions:
+for tx in refund_transactions:
             print(
                 f"{tx.id[:8]:<10} "
                 f"{tx.user_id[:8]:<10} "
                 f"${tx.amount:<9.2f} "
                 f"{tx.description[:38]:<40}"
             )
-    else:
+else:
         print("⚠️  NO REFUND TRANSACTIONS FOUND")
         print("This confirms the bug - failed verifications have NOT been refunded!")
     print()
@@ -250,7 +251,7 @@ try:
     print("🚨 CRITICAL ISSUES SUMMARY")
     print("=" * 80)
 
-    if unrefunded_count > 0:
+if unrefunded_count > 0:
         print(f"❌ {unrefunded_count} verifications need refunds")
         print(f"❌ ${unrefunded_amount:.2f} in unrefunded charges")
         print(f"❌ {len(user_failures)} users affected")
@@ -259,7 +260,7 @@ try:
         print("1. Run: python reconcile_refunds.py --dry-run")
         print("2. Review the report")
         print("3. Run: python reconcile_refunds.py --execute")
-    else:
+else:
         print("✅ No unrefunded verifications found")
         print("✅ System is working correctly")
 
@@ -267,7 +268,6 @@ try:
 
 except Exception as e:
     print(f"\n❌ ERROR: {str(e)}")
-    import traceback
 
     traceback.print_exc()
     sys.exit(1)

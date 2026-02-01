@@ -1,9 +1,9 @@
 """Refund endpoints for managing payment refunds."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -14,7 +14,9 @@ router = APIRouter(prefix="/billing", tags=["Refunds"])
 
 
 # Request Models
+
 class InitiateRefundRequest(BaseModel):
+
     """Request model for initiating refund."""
 
     payment_id: str = Field(..., description="Payment ID to refund")
@@ -40,7 +42,7 @@ async def initiate_refund(
         404: Payment not found
         500: Internal server error
     """
-    try:
+try:
         refund_service = RefundService(db)
         refund = refund_service.initiate_refund(
             user_id=user_id,
@@ -59,10 +61,10 @@ async def initiate_refund(
             "initiated_at": (refund.initiated_at.isoformat() if refund.initiated_at else None),
         }
 
-    except ValueError as e:
+except ValueError as e:
         logger.warning(f"Refund validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to initiate refund: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -88,7 +90,7 @@ async def get_refund_status(
         404: Refund not found
         500: Internal server error
     """
-    try:
+try:
         refund_service = RefundService(db)
         result = refund_service.verify_refund(reference)
 
@@ -96,10 +98,10 @@ async def get_refund_status(
 
         return result
 
-    except ValueError as e:
+except ValueError as e:
         logger.warning(f"Refund not found: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get refund status: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -126,7 +128,7 @@ async def get_refund_history(
         - limit: Number of records returned
         - refunds: List of refunds
     """
-    try:
+try:
         refund_service = RefundService(db)
         result = refund_service.get_refund_history(user_id=user_id, skip=skip, limit=limit)
 
@@ -134,10 +136,10 @@ async def get_refund_history(
 
         return result
 
-    except ValueError as e:
+except ValueError as e:
         logger.warning(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get refund history: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -164,7 +166,7 @@ async def cancel_refund(
         404: Refund not found
         500: Internal server error
     """
-    try:
+try:
         refund_service = RefundService(db)
         refund = refund_service.cancel_refund(reference, user_id)
 
@@ -176,13 +178,13 @@ async def cancel_refund(
             "message": "Refund cancelled successfully",
         }
 
-    except ValueError as e:
+except ValueError as e:
         logger.warning(f"Refund cancellation error: {str(e)}")
-        if "not found" in str(e).lower():
+if "not found" in str(e).lower():
             raise HTTPException(status_code=404, detail=str(e))
-        else:
+else:
             raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to cancel refund: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

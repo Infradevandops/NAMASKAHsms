@@ -1,12 +1,11 @@
 """Admin verification analytics endpoints - OPTIMIZED"""
 
+
 from datetime import datetime, timedelta
 from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session, joinedload
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.transaction import Transaction
@@ -17,9 +16,10 @@ router = APIRouter(prefix="/admin/verifications", tags=["admin-analytics"])
 
 
 def verify_admin(user_id: str, db: Session):
+
     """Verify user is admin"""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_admin:
+if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user
 
@@ -39,10 +39,10 @@ async def get_all_verifications(
     # Optimized query with JOINs (no N+1 problem)
     query = db.query(Verification).join(User).order_by(desc(Verification.created_at))
 
-    if status:
+if status:
         query = query.filter(Verification.status == status)
 
-    if search_user:
+if search_user:
         query = query.filter((User.email.ilike(f"%{search_user}%")) | (User.id == search_user))
 
     total = query.count()
@@ -51,7 +51,7 @@ async def get_all_verifications(
     verifications = query.options(joinedload(Verification.user)).limit(limit).offset(offset).all()
 
     results = []
-    for v in verifications:
+for v in verifications:
         results.append(
             {
                 "verification_id": v.id,
@@ -126,7 +126,7 @@ async def get_verification_stats(user_id: str = Depends(get_current_user_id), db
                 "verification_count": c,
                 "total_spent": float(s or 0),
             }
-            for u, e, c, s in top_users
+for u, e, c, s in top_users
         ],
         "top_services": [{"service": s, "count": c} for s, c in top_services],
     }
@@ -143,7 +143,7 @@ async def get_user_verifications(
     verify_admin(user_id, db)
 
     user = db.query(User).filter(User.id == user_id_param).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     verifications = (
@@ -155,7 +155,7 @@ async def get_user_verifications(
     )
 
     results = []
-    for v in verifications:
+for v in verifications:
         transaction = (
             db.query(Transaction)
             .filter(
@@ -198,16 +198,16 @@ async def export_verifications(
 
     query = db.query(Verification).order_by(desc(Verification.created_at))
 
-    if start_date:
+if start_date:
         query = query.filter(Verification.created_at >= datetime.fromisoformat(start_date))
-    if end_date:
+if end_date:
         query = query.filter(Verification.created_at <= datetime.fromisoformat(end_date))
 
     verifications = query.all()
 
     csv_data = "Verification ID,Transaction ID,User ID,User Email,Service,Phone,Country,Status,Cost,Created At\n"
 
-    for v in verifications:
+for v in verifications:
         user = db.query(User).filter(User.id == v.user_id).first()
         transaction = (
             db.query(Transaction)

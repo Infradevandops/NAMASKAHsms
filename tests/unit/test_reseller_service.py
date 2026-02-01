@@ -1,26 +1,27 @@
 """Unit tests for Reseller Service."""
 
-import pytest
 
+import pytest
 from app.models.reseller import (
+from app.models.user import User
+from app.services.reseller_service import ResellerService
+from app.services.reseller_service import ResellerService
+from app.services.reseller_service import get_reseller_service
+
     BulkOperation,
     ResellerAccount,
     SubAccount,
     SubAccountTransaction,
 )
-from app.models.user import User
-from app.services.reseller_service import ResellerService
 
 
 @pytest.fixture
 def service(db_session):
-    from app.services.reseller_service import ResellerService
 
     return ResellerService(db_session)
 
 
 def test_get_reseller_service(db_session):
-    from app.services.reseller_service import get_reseller_service
 
     svc = get_reseller_service(db_session)
     assert svc is not None
@@ -58,10 +59,12 @@ async def test_bulk_credit_topup_partial_failure(service, regular_user, db_sessi
 
 
 class TestResellerService:
+
     """Test reseller service functionality."""
 
     @pytest.fixture
-    def reseller_user(self, db_session):
+def reseller_user(self, db_session):
+
         """Create a parent user who will be the reseller."""
         user = User(
             email="reseller@example.com",
@@ -74,7 +77,8 @@ class TestResellerService:
         return user
 
     @pytest.fixture
-    def reseller_service(self, db_session):
+def reseller_service(self, db_session):
+
         return ResellerService(db_session)
 
     @pytest.mark.asyncio
@@ -185,7 +189,7 @@ class TestResellerService:
 
         # Create 3 sub-accounts
         subs = []
-        for i in range(3):
+for i in range(3):
             r = await reseller_service.create_sub_account(reseller_id, f"Sub {i}", f"sub{i}@example.com")
             subs.append(r["sub_account_id"])
 

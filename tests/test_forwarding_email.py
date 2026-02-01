@@ -1,14 +1,13 @@
 """Tests for SMS forwarding email functionality."""
 
+
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
-
 import pytest
-
 from app.api.core.forwarding import _send_forwarding_email
 
-
 class TestForwardingEmail:
+
     """Test email forwarding functionality."""
 
     @pytest.mark.asyncio
@@ -22,7 +21,7 @@ class TestForwardingEmail:
             "is_test": False,
         }
 
-        with patch("app.api.core.forwarding.email_service") as mock_email:
+with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock()
@@ -43,7 +42,7 @@ class TestForwardingEmail:
             "is_test": True,
         }
 
-        with patch("app.api.core.forwarding.email_service") as mock_email:
+with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock()
@@ -62,7 +61,7 @@ class TestForwardingEmail:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("app.api.core.forwarding.email_service") as mock_email:
+with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = False
 
             result = await _send_forwarding_email("user@example.com", sms_data)
@@ -79,7 +78,7 @@ class TestForwardingEmail:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-        with patch("app.api.core.forwarding.email_service") as mock_email:
+with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
             mock_email._send_smtp = Mock(side_effect=Exception("SMTP error"))
@@ -98,13 +97,14 @@ class TestForwardingEmail:
             "timestamp": "2026-01-13T12:00:00Z",
         }
 
-        with patch("app.api.core.forwarding.email_service") as mock_email:
+with patch("app.api.core.forwarding.email_service") as mock_email:
             mock_email.enabled = True
             mock_email.from_email = "noreply@namaskah.app"
 
             captured_message = None
 
-            def capture_smtp(email, message):
+def capture_smtp(email, message):
+
                 nonlocal captured_message
                 captured_message = message
 

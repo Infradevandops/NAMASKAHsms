@@ -1,11 +1,11 @@
 """Monthly quota usage tracking model."""
 
-from sqlalchemy import Column, Float, ForeignKey, String, UniqueConstraint
 
+from sqlalchemy import Column, Float, ForeignKey, String, UniqueConstraint
 from app.models.base import BaseModel
 
-
 class UserQuota(BaseModel):
+
     """User quota model - alias for backwards compatibility."""
 
     __tablename__ = "user_quotas"
@@ -16,6 +16,7 @@ class UserQuota(BaseModel):
 
 
 class MonthlyQuotaUsage(BaseModel):
+
     """Track monthly quota usage per user."""
 
     __tablename__ = "monthly_quota_usage"

@@ -1,15 +1,15 @@
 """Response schema validators for tier-related API endpoints.
 
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, Field, validator
+
 These validators ensure API responses contain all required fields
 and have correct data types for frontend consumption.
 """
 
-from typing import Any, Dict, List, Optional
-
-from pydantic import BaseModel, Field, validator
-
 
 class TierFeaturesSchema(BaseModel):
+
     """Schema for tier features object."""
 
     api_access: bool
@@ -20,6 +20,7 @@ class TierFeaturesSchema(BaseModel):
 
 
 class TierSchema(BaseModel):
+
     """Schema for a single tier in the list."""
 
     tier: str
@@ -32,19 +33,22 @@ class TierSchema(BaseModel):
 
 
 class TierListResponse(BaseModel):
+
     """Schema for /api/tiers/ response."""
 
     tiers: List[TierSchema]
 
     @validator("tiers")
-    def validate_tiers_count(cls, v):
+def validate_tiers_count(cls, v):
+
         """Ensure we have all 4 tiers."""
-        if len(v) < 4:
+if len(v) < 4:
             raise ValueError(f"Expected at least 4 tiers, got {len(v)}")
         return v
 
 
 class CurrentTierFeaturesSchema(BaseModel):
+
     """Schema for current tier features."""
 
     api_access: bool
@@ -55,6 +59,7 @@ class CurrentTierFeaturesSchema(BaseModel):
 
 
 class CurrentTierResponse(BaseModel):
+
     """Schema for /api/tiers/current response."""
 
     current_tier: str
@@ -69,15 +74,17 @@ class CurrentTierResponse(BaseModel):
     features: CurrentTierFeaturesSchema
 
     @validator("current_tier")
-    def validate_tier_value(cls, v):
+def validate_tier_value(cls, v):
+
         """Ensure tier is a valid value."""
         valid_tiers = {"freemium", "payg", "pro", "custom"}
-        if v not in valid_tiers:
+if v not in valid_tiers:
             raise ValueError(f"Invalid tier: {v}. Must be one of {valid_tiers}")
         return v
 
 
 class AnalyticsSummaryResponse(BaseModel):
+
     """Schema for /api/analytics/summary response."""
 
     total_verifications: int
@@ -94,14 +101,16 @@ class AnalyticsSummaryResponse(BaseModel):
     last_updated: str
 
     @validator("success_rate")
-    def validate_success_rate(cls, v):
+def validate_success_rate(cls, v):
+
         """Ensure success rate is between 0 and 1."""
-        if v < 0 or v > 1:
+if v < 0 or v > 1:
             raise ValueError(f"Success rate must be between 0 and 1, got {v}")
         return v
 
 
 class ActivityItemSchema(BaseModel):
+
     """Schema for a single activity item."""
 
     id: str
@@ -112,12 +121,14 @@ class ActivityItemSchema(BaseModel):
 
 
 class DashboardActivityResponse(BaseModel):
+
     """Schema for /api/dashboard/activity/recent response (list of activities)."""
 
     __root__: List[ActivityItemSchema]
 
 
 def validate_tier_list_response(data: Dict[str, Any]) -> TierListResponse:
+
     """Validate /api/tiers/ response.
 
     Args:
@@ -133,6 +144,7 @@ def validate_tier_list_response(data: Dict[str, Any]) -> TierListResponse:
 
 
 def validate_current_tier_response(data: Dict[str, Any]) -> CurrentTierResponse:
+
     """Validate /api/tiers/current response.
 
     Args:
@@ -148,6 +160,7 @@ def validate_current_tier_response(data: Dict[str, Any]) -> CurrentTierResponse:
 
 
 def validate_analytics_summary_response(
+
     data: Dict[str, Any],
 ) -> AnalyticsSummaryResponse:
     """Validate /api/analytics/summary response.
@@ -165,6 +178,7 @@ def validate_analytics_summary_response(
 
 
 def validate_dashboard_activity_response(
+
     data: List[Dict[str, Any]],
 ) -> List[ActivityItemSchema]:
     """Validate /api/dashboard/activity/recent response.
@@ -182,7 +196,9 @@ def validate_dashboard_activity_response(
 
 
 # Validation helper functions for frontend use
+
 def get_validation_errors(data: Dict[str, Any], schema_type: str) -> List[str]:
+
     """Get list of validation errors for a response.
 
     Args:
@@ -194,24 +210,25 @@ def get_validation_errors(data: Dict[str, Any], schema_type: str) -> List[str]:
     """
     errors = []
 
-    try:
-        if schema_type == "tier_list":
+try:
+if schema_type == "tier_list":
             validate_tier_list_response(data)
-        elif schema_type == "current_tier":
+elif schema_type == "current_tier":
             validate_current_tier_response(data)
-        elif schema_type == "analytics_summary":
+elif schema_type == "analytics_summary":
             validate_analytics_summary_response(data)
-        elif schema_type == "dashboard_activity":
+elif schema_type == "dashboard_activity":
             validate_dashboard_activity_response(data)
-        else:
+else:
             errors.append(f"Unknown schema type: {schema_type}")
-    except Exception as e:
+except Exception as e:
         errors.append(str(e))
 
     return errors
 
 
 def is_valid_response(data: Any, schema_type: str) -> bool:
+
     """Check if a response is valid.
 
     Args:

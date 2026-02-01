@@ -1,14 +1,14 @@
-from unittest.mock import MagicMock, patch
 
+
+from unittest.mock import patch
 import pytest
-
 from app.services.email_service import EmailService
-
 
 class TestEmailService:
     @pytest.fixture
-    def service(self):
-        with patch("app.services.email_service.get_settings") as mock_settings:
+def service(self):
+
+with patch("app.services.email_service.get_settings") as mock_settings:
             mock_settings.return_value.smtp_host = "localhost"
             mock_settings.return_value.smtp_port = 587
             mock_settings.return_value.smtp_user = "user"
@@ -45,8 +45,9 @@ class TestEmailService:
         assert res is True
         assert mock_send.called
 
-    def test_disabled_service(self):
-        with patch("app.services.email_service.get_settings") as mock_settings:
+def test_disabled_service(self):
+
+with patch("app.services.email_service.get_settings") as mock_settings:
             mock_settings.return_value.smtp_host = None
             service = EmailService()
             assert service.enabled is False

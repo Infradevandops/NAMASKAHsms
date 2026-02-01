@@ -1,15 +1,18 @@
 """Secrets management for production security."""
 
+
 import logging
 import os
 import secrets
 from pathlib import Path
 from typing import Dict, Optional
+from app.utils.path_security import sanitize_filename, validate_safe_path
 
 logger = logging.getLogger(__name__)
 
 
 class SecretsManager:
+
     """Secure secrets management with validation."""
 
     # Environment - specific required secrets
@@ -145,7 +148,6 @@ class SecretsManager:
             + "# PAYSTACK_SECRET_KEY=your-paystack-key\n"
         )
 
-        from app.utils.path_security import sanitize_filename, validate_safe_path
 
         # Validate output path to prevent path traversal
         safe_filename = sanitize_filename(os.path.basename(output_path))
@@ -164,20 +166,20 @@ class SecretsManager:
 
         # Check for required secrets
         required_secrets = SecretsManager.REQUIRED_SECRETS.get(environment, [])
-        for key in required_secrets:
+for key in required_secrets:
             value = os.getenv(key)
-            if not value:
+if not value:
                 issues.append(f"Missing required secret: {key}")
-            elif SecretsManager.is_weak_secret(value):
+elif SecretsManager.is_weak_secret(value):
                 warnings.append(f"Weak secret detected: {key}")
 
         # Check for exposed secrets in wrong environment
-        if environment == "production":
+if environment == "production":
             paystack_key = os.getenv("PAYSTACK_SECRET_KEY", "")
             base_url = os.getenv("BASE_URL", "")
-            if "test" in paystack_key.lower():
+if "test" in paystack_key.lower():
                 warnings.append("Test Paystack key detected in production")
-            if "localhost" in base_url:
+if "localhost" in base_url:
                 warnings.append("Localhost URL detected in production")
 
         return {

@@ -1,13 +1,15 @@
 """SOC 2 compliance and security audit service."""
 
+
 from datetime import datetime
 from typing import Dict
 
-
 class ComplianceService:
+
     """SOC 2 compliance management and audit tracking."""
 
-    def __init__(self):
+def __init__(self):
+
         self.soc2_controls = {
             "CC1": "Control Environment",
             "CC2": "Communication and Information",
@@ -25,7 +27,7 @@ class ComplianceService:
         controls_status = {}
 
         # Assess each SOC 2 control
-        for control_id, control_name in self.soc2_controls.items():
+for control_id, control_name in self.soc2_controls.items():
             controls_status[control_id] = await self._assess_control(control_id)
 
         # Calculate overall compliance score

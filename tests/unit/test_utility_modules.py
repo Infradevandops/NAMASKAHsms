@@ -1,22 +1,29 @@
 """
+import json
+from datetime import datetime, timedelta, timezone
+from app.utils.security import hash_password, verify_password
+import secrets
+from app.utils.security import create_access_token
+from html import escape
+import re
+import re
+from pathlib import Path
+import time
+
 Utility Module Tests - Comprehensive Coverage
 Tests for utility functions and helpers
 """
 
-import json
-from datetime import datetime, timedelta, timezone
-
-import pytest
-
 
 class TestUtilityModules:
+
     """Comprehensive utility module tests."""
 
     # ==================== Security Utils ====================
 
-    def test_password_hashing_bcrypt(self):
+def test_password_hashing_bcrypt(self):
+
         """Test bcrypt password hashing."""
-        from app.utils.security import hash_password, verify_password
 
         password = "TestPassword123!"
         hashed = hash_password(password)
@@ -24,9 +31,9 @@ class TestUtilityModules:
         assert hashed != password
         assert verify_password(password, hashed)
 
-    def test_token_generation(self):
+def test_token_generation(self):
+
         """Test secure token generation."""
-        import secrets
 
         token1 = secrets.token_urlsafe(32)
         token2 = secrets.token_urlsafe(32)
@@ -34,9 +41,9 @@ class TestUtilityModules:
         assert token1 != token2
         assert len(token1) >= 32
 
-    def test_jwt_token_creation(self):
+def test_jwt_token_creation(self):
+
         """Test JWT token creation."""
-        from app.utils.security import create_access_token
 
         token = create_access_token(data={"sub": "user123"})
 
@@ -45,9 +52,9 @@ class TestUtilityModules:
 
     # ==================== Sanitization Utils ====================
 
-    def test_html_sanitization(self):
+def test_html_sanitization(self):
+
         """Test HTML sanitization."""
-        from html import escape
 
         malicious = "<script>alert('XSS')</script>"
         safe = escape(malicious)
@@ -55,7 +62,8 @@ class TestUtilityModules:
         assert "&lt;script&gt;" in safe
         assert "<script>" not in safe
 
-    def test_sql_sanitization(self):
+def test_sql_sanitization(self):
+
         """Test SQL input sanitization."""
         # SQLAlchemy handles this via parameterized queries
         malicious_input = "'; DROP TABLE users; --"
@@ -63,7 +71,8 @@ class TestUtilityModules:
         # Should be treated as literal string
         assert "DROP TABLE" in malicious_input  # Not executed
 
-    def test_json_sanitization(self):
+def test_json_sanitization(self):
+
         """Test JSON sanitization."""
         data = {"key": "<script>alert(1)</script>"}
         json_str = json.dumps(data)
@@ -73,57 +82,60 @@ class TestUtilityModules:
 
     # ==================== Validation Utils ====================
 
-    def test_email_validation(self):
+def test_email_validation(self):
+
         """Test email validation."""
-        import re
 
         valid_emails = ["user@example.com", "test@domain.co.uk"]
         invalid_emails = ["notanemail", "@example.com"]
 
         pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
 
-        for email in valid_emails:
+for email in valid_emails:
             assert re.match(pattern, email)
 
-        for email in invalid_emails:
+for email in invalid_emails:
             assert not re.match(pattern, email)
 
-    def test_phone_number_validation(self):
+def test_phone_number_validation(self):
+
         """Test phone number validation."""
-        import re
 
         valid_phones = ["+1234567890", "+44123456789"]
         invalid_phones = ["123", "abc", ""]
 
         pattern = r"^\+\d{10,15}$"
 
-        for phone in valid_phones:
+for phone in valid_phones:
             assert re.match(pattern, phone)
 
-        for phone in invalid_phones:
+for phone in invalid_phones:
             assert not re.match(pattern, phone)
 
-    def test_url_validation(self):
+def test_url_validation(self):
+
         """Test URL validation."""
         valid_urls = ["https://example.com", "https://api.example.com/webhook"]
         invalid_urls = ["not-a-url", "ftp://example.com", ""]
 
-        for url in valid_urls:
+for url in valid_urls:
             assert url.startswith("https://")
 
-        for url in invalid_urls:
+for url in invalid_urls:
             assert not url.startswith("https://")
 
     # ==================== Timezone Utils ====================
 
-    def test_utc_now(self):
+def test_utc_now(self):
+
         """Test UTC now function."""
         now = datetime.now(timezone.utc)
 
         assert now.tzinfo == timezone.utc
         assert isinstance(now, datetime)
 
-    def test_timezone_conversion(self):
+def test_timezone_conversion(self):
+
         """Test timezone conversion."""
         utc_time = datetime.now(timezone.utc)
 
@@ -133,7 +145,8 @@ class TestUtilityModules:
 
         assert local_time > utc_time
 
-    def test_date_formatting(self):
+def test_date_formatting(self):
+
         """Test date formatting."""
         now = datetime.now(timezone.utc)
         formatted = now.isoformat()
@@ -143,21 +156,24 @@ class TestUtilityModules:
 
     # ==================== Pricing Display Utils ====================
 
-    def test_currency_formatting_usd(self):
+def test_currency_formatting_usd(self):
+
         """Test USD currency formatting."""
         amount = 10.50
         formatted = f"${amount:.2f}"
 
         assert formatted == "$10.50"
 
-    def test_currency_formatting_ngn(self):
+def test_currency_formatting_ngn(self):
+
         """Test NGN currency formatting."""
         amount = 15000
         formatted = f"₦{amount:,.0f}"
 
         assert "15,000" in formatted
 
-    def test_price_conversion(self):
+def test_price_conversion(self):
+
         """Test price conversion."""
         usd = 10.0
         rate = 1500  # USD to NGN
@@ -167,9 +183,9 @@ class TestUtilityModules:
 
     # ==================== Path Security Utils ====================
 
-    def test_path_traversal_prevention(self):
+def test_path_traversal_prevention(self):
+
         """Test path traversal prevention."""
-        from pathlib import Path
 
         safe_path = Path("/safe/directory/file.txt")
         malicious_path = "../../../etc/passwd"
@@ -178,11 +194,12 @@ class TestUtilityModules:
         assert ".." not in str(safe_path)
         assert ".." in malicious_path
 
-    def test_file_extension_validation(self):
-        """Test file extension validation."""
-        allowed_extensions = [".jpg", ".png", ".pdf"]
+def test_file_extension_validation(self):
 
-        valid_file = "document.pdf"
+        """Test file extension validation."""
+        allowed_extensions = [".jpg", ".png", ".pd"]
+
+        valid_file = "document.pd"
         invalid_file = "script.exe"
 
         assert any(valid_file.endswith(ext) for ext in allowed_extensions)
@@ -190,9 +207,9 @@ class TestUtilityModules:
 
     # ==================== Performance Utils ====================
 
-    def test_timing_decorator(self):
+def test_timing_decorator(self):
+
         """Test timing decorator."""
-        import time
 
         start = time.time()
         time.sleep(0.01)  # 10ms
@@ -200,7 +217,8 @@ class TestUtilityModules:
 
         assert elapsed >= 0.01
 
-    def test_caching_mechanism(self):
+def test_caching_mechanism(self):
+
         """Test simple caching."""
         cache = {}
         key = "test_key"
@@ -217,7 +235,8 @@ class TestUtilityModules:
 
     # ==================== Data Transformation ====================
 
-    def test_dict_to_json(self):
+def test_dict_to_json(self):
+
         """Test dictionary to JSON conversion."""
         data = {"key": "value", "number": 123}
         json_str = json.dumps(data)
@@ -225,7 +244,8 @@ class TestUtilityModules:
         assert isinstance(json_str, str)
         assert "key" in json_str
 
-    def test_json_to_dict(self):
+def test_json_to_dict(self):
+
         """Test JSON to dictionary conversion."""
         json_str = '{"key": "value", "number": 123}'
         data = json.loads(json_str)
@@ -233,7 +253,8 @@ class TestUtilityModules:
         assert isinstance(data, dict)
         assert data["key"] == "value"
 
-    def test_list_pagination(self):
+def test_list_pagination(self):
+
         """Test list pagination."""
         items = list(range(100))
         page_size = 10
@@ -248,7 +269,8 @@ class TestUtilityModules:
 
     # ==================== String Utils ====================
 
-    def test_string_truncation(self):
+def test_string_truncation(self):
+
         """Test string truncation."""
         long_string = "a" * 100
         max_length = 50
@@ -257,14 +279,16 @@ class TestUtilityModules:
 
         assert len(truncated) == max_length
 
-    def test_slug_generation(self):
+def test_slug_generation(self):
+
         """Test slug generation."""
         title = "Hello World Test"
         slug = title.lower().replace(" ", "-")
 
         assert slug == "hello-world-test"
 
-    def test_string_normalization(self):
+def test_string_normalization(self):
+
         """Test string normalization."""
         input_str = "  Hello   World  "
         normalized = " ".join(input_str.split())
@@ -273,7 +297,8 @@ class TestUtilityModules:
 
     # ==================== Math Utils ====================
 
-    def test_percentage_calculation(self):
+def test_percentage_calculation(self):
+
         """Test percentage calculation."""
         total = 100
         part = 25
@@ -281,14 +306,16 @@ class TestUtilityModules:
 
         assert percentage == 25.0
 
-    def test_rounding(self):
+def test_rounding(self):
+
         """Test number rounding."""
         value = 10.567
         rounded = round(value, 2)
 
         assert rounded == 10.57
 
-    def test_min_max_validation(self):
+def test_min_max_validation(self):
+
         """Test min/max validation."""
         value = 50
         min_val = 0
@@ -298,14 +325,16 @@ class TestUtilityModules:
 
     # ==================== Collection Utils ====================
 
-    def test_list_deduplication(self):
+def test_list_deduplication(self):
+
         """Test list deduplication."""
         items = [1, 2, 2, 3, 3, 3, 4]
         unique = list(set(items))
 
         assert len(unique) == 4
 
-    def test_dict_merge(self):
+def test_dict_merge(self):
+
         """Test dictionary merging."""
         dict1 = {"a": 1, "b": 2}
         dict2 = {"b": 3, "c": 4}
@@ -315,7 +344,8 @@ class TestUtilityModules:
         assert merged["b"] == 3  # dict2 overwrites
         assert merged["c"] == 4
 
-    def test_list_filtering(self):
+def test_list_filtering(self):
+
         """Test list filtering."""
         numbers = [1, 2, 3, 4, 5, 6]
         evens = [n for n in numbers if n % 2 == 0]

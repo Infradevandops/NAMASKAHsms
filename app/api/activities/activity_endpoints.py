@@ -1,17 +1,19 @@
 """Activity feed endpoints for user activity tracking."""
 
+
 from datetime import datetime, timedelta
 from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.activity import Activity
 from app.models.user import User
 from app.services.activity_service import ActivityService
+from sqlalchemy import desc
+import csv
+import io
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/activities", tags=["Activity Feed"])
@@ -48,47 +50,46 @@ async def get_activities(
         - limit: Number of records returned
         - activities: List of activities
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Build query
         query = db.query(Activity).filter(Activity.user_id == user_id)
 
         # Apply filters
-        if activity_type:
+if activity_type:
             query = query.filter(Activity.activity_type == activity_type)
 
-        if resource_type:
+if resource_type:
             query = query.filter(Activity.resource_type == resource_type)
 
-        if status:
+if status:
             query = query.filter(Activity.status == status)
 
-        if date_from:
-            try:
+if date_from:
+try:
                 date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
                 query = query.filter(Activity.created_at >= date_from_obj)
-            except ValueError:
+except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)")
 
-        if date_to:
-            try:
+if date_to:
+try:
                 date_to_obj = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
                 query = query.filter(Activity.created_at < date_to_obj)
-            except ValueError:
+except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)")
 
         # Get total count
         total = query.count()
 
         # Apply sorting
-        if sort_by == "oldest":
+if sort_by == "oldest":
             query = query.order_by(Activity.created_at)
-        else:  # newest (default)
-            from sqlalchemy import desc
+else:  # newest (default)
 
             query = query.order_by(desc(Activity.created_at))
 
@@ -107,9 +108,9 @@ async def get_activities(
             "activities": [a.to_dict() for a in activities],
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving activities for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve activities")
 
@@ -128,25 +129,25 @@ async def get_activity(
     Returns:
         Activity details
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get activity
         activity = db.query(Activity).filter(Activity.id == activity_id, Activity.user_id == user_id).first()
 
-        if not activity:
+if not activity:
             raise HTTPException(status_code=404, detail="Activity not found")
 
         logger.info(f"Retrieved activity {activity_id} for user {user_id}")
 
         return activity.to_dict()
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving activity {activity_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve activity")
 
@@ -171,10 +172,10 @@ async def get_resource_activities(
     Returns:
         List of activities for the resource
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Build query
@@ -205,9 +206,9 @@ async def get_resource_activities(
             "activities": [a.to_dict() for a in activities],
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving resource activities: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve resource activities")
 
@@ -229,10 +230,10 @@ async def get_activity_summary(
         - by_status: Count of activities by status
         - by_resource: Count of activities by resource type
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Use service to get summary
@@ -243,9 +244,9 @@ async def get_activity_summary(
 
         return summary
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving activity summary for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve activity summary")
 
@@ -274,45 +275,43 @@ async def export_activities(
     Returns:
         Exported activities in requested format
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Build query
         query = db.query(Activity).filter(Activity.user_id == user_id)
 
         # Apply filters
-        if activity_type:
+if activity_type:
             query = query.filter(Activity.activity_type == activity_type)
 
-        if resource_type:
+if resource_type:
             query = query.filter(Activity.resource_type == resource_type)
 
-        if status:
+if status:
             query = query.filter(Activity.status == status)
 
-        if date_from:
-            try:
+if date_from:
+try:
                 date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
                 query = query.filter(Activity.created_at >= date_from_obj)
-            except ValueError:
+except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)")
 
-        if date_to:
-            try:
+if date_to:
+try:
                 date_to_obj = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
                 query = query.filter(Activity.created_at < date_to_obj)
-            except ValueError:
+except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)")
 
         # Get all matching activities
         activities = query.order_by(Activity.created_at.desc()).all()
 
-        if format == "csv":
-            import csv
-            import io
+if format == "csv":
 
             output = io.StringIO()
             writer = csv.DictWriter(
@@ -330,7 +329,7 @@ async def export_activities(
                 ],
             )
             writer.writeheader()
-            for activity in activities:
+for activity in activities:
                 writer.writerow(
                     {
                         "id": activity.id,
@@ -352,7 +351,7 @@ async def export_activities(
                 "count": len(activities),
                 "data": output.getvalue(),
             }
-        else:  # json
+else:  # json
             logger.info(f"Exported {len(activities)} activities as JSON for user {user_id}")
 
             return {
@@ -361,8 +360,8 @@ async def export_activities(
                 "data": [a.to_dict() for a in activities],
             }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error exporting activities for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to export activities")

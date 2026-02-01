@@ -1,11 +1,10 @@
 """TextVerified SMS endpoints."""
 
+
 from datetime import datetime
 from typing import Any, Dict
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.logging import get_logger
 from app.services.textverified_service import TextVerifiedService
@@ -32,16 +31,16 @@ async def textverified_health() -> Dict[str, Any]:
 
     Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7
     """
-    try:
+try:
         logger.info("Health check endpoint called")
         service = TextVerifiedService()
         health_status = await service.get_health_status()
 
         # Determine HTTP status code based on service status
-        if health_status.get("status") == "operational":
+if health_status.get("status") == "operational":
             logger.info("Health check successful - service operational")
             return health_status
-        elif (
+elif (
             "credentials" in health_status.get("error", "").lower()
             or "not configured" in health_status.get("error", "").lower()
         ):
@@ -54,7 +53,7 @@ async def textverified_health() -> Dict[str, Any]:
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
-        else:
+else:
             logger.error(f"Health check failed - service unavailable: {health_status.get('error')}")
             raise HTTPException(
                 status_code=503,
@@ -64,9 +63,9 @@ async def textverified_health() -> Dict[str, Any]:
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Health check endpoint error: {str(e)}")
         raise HTTPException(
             status_code=503,
@@ -94,13 +93,13 @@ async def get_balance() -> Dict[str, Any]:
 
     Validates: Requirements 3.1, 3.2, 3.3, 3.5
     """
-    try:
+try:
         logger.info("Balance endpoint called")
         service = TextVerifiedService()
         balance_data = await service.get_balance()
         logger.info(f"Balance retrieved: {balance_data['balance']} {balance_data['currency']}")
         return balance_data
-    except Exception as e:
+except Exception as e:
         logger.error(f"Balance endpoint error: {str(e)}")
         raise HTTPException(
             status_code=503,
@@ -134,11 +133,11 @@ async def get_services() -> Dict[str, Any]:
 
     Validates: Requirements 4.1, 4.3, 4.5
     """
-    try:
+try:
         logger.info("Services endpoint called")
         service = TextVerifiedService()
 
-        if not service.enabled:
+if not service.enabled:
             # Fallback services if TextVerified not configured
             fallback_services = [
                 {"id": "telegram", "name": "Telegram", "cost": 0.50},
@@ -168,9 +167,9 @@ async def get_services() -> Dict[str, Any]:
             "source": "textverified_api",
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Services endpoint error: {str(e)}")
         # Return fallback services on error
         fallback_services = [

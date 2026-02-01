@@ -1,14 +1,13 @@
 """Email notification service for sending notification emails."""
 
+
 import asyncio
 import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any, Dict, List, Optional
-
 from sqlalchemy.orm import Session
-
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.notification import Notification
@@ -17,9 +16,11 @@ logger = get_logger(__name__)
 
 
 class EmailNotificationService:
+
     """Service for sending notification emails."""
 
-    def __init__(self, db: Optional[Session] = None):
+def __init__(self, db: Optional[Session] = None):
+
         """Initialize email notification service.
 
         Args:
@@ -34,9 +35,9 @@ class EmailNotificationService:
         self.enabled = bool(self.smtp_host and self.smtp_user and self.smtp_password)
         self.db = db
 
-        if self.enabled:
+if self.enabled:
             logger.info("Email notification service initialized")
-        else:
+else:
             logger.warning("Email notification service not configured")
 
     async def send_notification_email(
@@ -55,11 +56,11 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping notification email")
             return False
 
-        try:
+try:
             subject = f"[{notification.type.upper()}] {notification.title}"
             html_body = self._create_notification_html(
                 notification=notification,
@@ -71,7 +72,7 @@ class EmailNotificationService:
             logger.info(f"Notification email sent to {user_email} (type: {notification.type})")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send notification email: {str(e)}")
             return False
 
@@ -93,11 +94,11 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
             return False
 
-        try:
+try:
             subject = "Verification Started - Namaskah SMS"
             html_body = self._create_verification_initiated_html(
                 service_name=service_name,
@@ -110,7 +111,7 @@ class EmailNotificationService:
             logger.info(f"Verification initiated email sent to {user_email} for {service_name}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send verification initiated email: {str(e)}")
             return False
 
@@ -134,11 +135,11 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping verification email")
             return False
 
-        try:
+try:
             subject = "Verification Completed - Namaskah SMS"
             html_body = self._create_verification_completed_html(
                 service_name=service_name,
@@ -152,7 +153,7 @@ class EmailNotificationService:
             logger.info(f"Verification completed email sent to {user_email} for {service_name}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send verification completed email: {str(e)}")
             return False
 
@@ -174,11 +175,11 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping low balance email")
             return False
 
-        try:
+try:
             subject = "Low Balance Alert - Namaskah SMS"
             html_body = self._create_low_balance_alert_html(
                 current_balance=current_balance,
@@ -191,7 +192,7 @@ class EmailNotificationService:
             logger.info(f"Low balance alert sent to {user_email}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send low balance alert: {str(e)}")
             return False
 
@@ -211,15 +212,15 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping digest email")
             return False
 
-        if not notifications:
+if not notifications:
             logger.info("No notifications to send in digest")
             return False
 
-        try:
+try:
             subject = f"Daily Digest - {len(notifications)} Updates - Namaskah SMS"
             html_body = self._create_daily_digest_html(
                 notifications=notifications,
@@ -231,7 +232,7 @@ class EmailNotificationService:
             logger.info(f"Daily digest sent to {user_email} with {len(notifications)} notifications")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send daily digest: {str(e)}")
             return False
 
@@ -253,15 +254,15 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping weekly digest email")
             return False
 
-        if not notifications:
+if not notifications:
             logger.info("No notifications to send in weekly digest")
             return False
 
-        try:
+try:
             subject = "Weekly Summary - Namaskah SMS"
             html_body = self._create_weekly_digest_html(
                 notifications=notifications,
@@ -274,7 +275,7 @@ class EmailNotificationService:
             logger.info(f"Weekly digest sent to {user_email}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send weekly digest: {str(e)}")
             return False
 
@@ -289,7 +290,7 @@ class EmailNotificationService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        try:
+try:
             # Create message
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
@@ -306,27 +307,29 @@ class EmailNotificationService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
 
-    def _send_smtp(self, to_email: str, message: str) -> None:
+def _send_smtp(self, to_email: str, message: str) -> None:
+
         """Send email via SMTP (blocking operation).
 
         Args:
             to_email: Recipient email address
             message: Email message
         """
-        try:
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+try:
+with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.sendmail(self.from_email, to_email, message)
-        except Exception as e:
+except Exception as e:
             logger.error(f"SMTP error: {str(e)}")
             raise
 
-    def _create_notification_html(
+def _create_notification_html(
+
         self,
         notification: Notification,
         unsubscribe_token: Optional[str] = None,
@@ -342,11 +345,11 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -367,7 +370,8 @@ class EmailNotificationService:
         </html>
         """
 
-    def _create_verification_initiated_html(
+def _create_verification_initiated_html(
+
         self,
         service_name: str,
         verification_id: str,
@@ -385,11 +389,11 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -422,7 +426,8 @@ class EmailNotificationService:
         </html>
         """
 
-    def _create_verification_completed_html(
+def _create_verification_completed_html(
+
         self,
         service_name: str,
         verification_id: str,
@@ -442,11 +447,11 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -483,7 +488,8 @@ class EmailNotificationService:
         </html>
         """
 
-    def _create_low_balance_alert_html(
+def _create_low_balance_alert_html(
+
         self,
         current_balance: float,
         threshold: float,
@@ -501,11 +507,11 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -542,7 +548,8 @@ class EmailNotificationService:
         </html>
         """
 
-    def _create_daily_digest_html(
+def _create_daily_digest_html(
+
         self,
         notifications: List[Notification],
         unsubscribe_token: Optional[str] = None,
@@ -558,24 +565,24 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
         notifications_html = "".join(
             [
-                f"""
+                """
             <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #667eea;">
                 <h4 style="margin: 0 0 8px 0; color: #667eea;">{n.title}</h4>
                 <p style="margin: 0; color: #6b7280; font-size: 14px;">{n.message}</p>
                 <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">{n.created_at.strftime('%Y-%m-%d %H:%M:%S') if n.created_at else 'N/A'}</p>
             </div>
             """
-                for n in notifications
+for n in notifications
             ]
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -603,7 +610,8 @@ class EmailNotificationService:
         </html>
         """
 
-    def _create_weekly_digest_html(
+def _create_weekly_digest_html(
+
         self,
         notifications: List[Notification],
         stats: Dict[str, Any],
@@ -621,35 +629,35 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-            if unsubscribe_token
+if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
         notifications_html = "".join(
             [
-                f"""
+                """
             <div style="background: #f9fafb; padding: 15px; border-radius: 6px; margin: 10px 0; border-left: 4px solid #667eea;">
                 <h4 style="margin: 0 0 8px 0; color: #667eea;">{n.title}</h4>
                 <p style="margin: 0; color: #6b7280; font-size: 14px;">{n.message}</p>
             </div>
             """
-                for n in notifications[:10]
+for n in notifications[:10]
             ]
         )
 
         stats_html = "".join(
             [
-                f"""
+                """
             <tr>
                 <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;"><strong>{key.replace('_', ' ').title()}:</strong></td>
                 <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{value}</td>
             </tr>
             """
-                for key, value in stats.items()
+for key, value in stats.items()
             ]
         )
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">

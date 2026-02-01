@@ -1,10 +1,9 @@
 """Email notification endpoints."""
 
-from typing import Optional
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -27,10 +26,10 @@ async def send_test_email(
         - success: Whether email was sent successfully
         - message: Status message
     """
-    try:
+try:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Send test email
@@ -42,18 +41,18 @@ async def send_test_email(
             message="This is a test email from Namaskah SMS. If you received this, email notifications are working correctly!",
         )
 
-        if success:
+if success:
             logger.info(f"Test email sent to {user.email}")
             return {
                 "success": True,
                 "message": f"Test email sent to {user.email}",
             }
-        else:
+else:
             raise HTTPException(status_code=500, detail="Failed to send test email")
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error sending test email: {e}")
         raise HTTPException(status_code=500, detail="Failed to send test email")
 
@@ -69,10 +68,10 @@ async def get_email_preferences(
         - email_notifications_enabled: Whether email notifications are enabled
         - notification_types: Email preferences by notification type
     """
-    try:
+try:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get preferences
@@ -80,7 +79,7 @@ async def get_email_preferences(
 
         # Build response
         notification_types = {}
-        for pref in preferences:
+for pref in preferences:
             delivery_methods = pref.delivery_methods.split(",") if pref.delivery_methods else []
             notification_types[pref.notification_type] = {
                 "enabled": pref.enabled,
@@ -95,9 +94,9 @@ async def get_email_preferences(
             "notification_types": notification_types,
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving email preferences: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve email preferences")
 
@@ -119,10 +118,10 @@ async def update_email_preferences(
         - success: Whether update was successful
         - message: Status message
     """
-    try:
+try:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get or create preference
@@ -135,15 +134,15 @@ async def update_email_preferences(
             .first()
         )
 
-        if not preference:
+if not preference:
             raise HTTPException(status_code=404, detail="Notification preference not found")
 
         # Update delivery methods
         delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
 
-        if email_enabled and "email" not in delivery_methods:
+if email_enabled and "email" not in delivery_methods:
             delivery_methods.append("email")
-        elif not email_enabled and "email" in delivery_methods:
+elif not email_enabled and "email" in delivery_methods:
             delivery_methods.remove("email")
 
         preference.delivery_methods = ",".join(delivery_methods)
@@ -158,9 +157,9 @@ async def update_email_preferences(
             "message": f"Email preferences updated for {notification_type}",
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error updating email preferences: {e}")
         raise HTTPException(status_code=500, detail="Failed to update email preferences")
 
@@ -180,13 +179,13 @@ async def unsubscribe_from_emails(
         - success: Whether unsubscribe was successful
         - message: Status message
     """
-    try:
+try:
         # Get user
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if notification_type:
+if notification_type:
             # Unsubscribe from specific type
             preference = (
                 db.query(NotificationPreference)
@@ -197,21 +196,21 @@ async def unsubscribe_from_emails(
                 .first()
             )
 
-            if preference:
+if preference:
                 delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
-                if "email" in delivery_methods:
+if "email" in delivery_methods:
                     delivery_methods.remove("email")
                 preference.delivery_methods = ",".join(delivery_methods)
                 db.commit()
 
             logger.info(f"User {user_id} unsubscribed from email for {notification_type}")
-        else:
+else:
             # Unsubscribe from all
             preferences = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).all()
 
-            for preference in preferences:
+for preference in preferences:
                 delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
-                if "email" in delivery_methods:
+if "email" in delivery_methods:
                     delivery_methods.remove("email")
                 preference.delivery_methods = ",".join(delivery_methods)
 
@@ -224,8 +223,8 @@ async def unsubscribe_from_emails(
             "message": "Unsubscribed from email notifications",
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error unsubscribing from emails: {e}")
         raise HTTPException(status_code=500, detail="Failed to unsubscribe from emails")

@@ -1,11 +1,10 @@
 """API endpoints for managing verification presets (Tier 3 feature)."""
 
-from typing import List, Optional
 
+from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id, require_tier
 from app.core.logging import get_logger
@@ -20,6 +19,7 @@ require_pro = require_tier("pro")
 
 
 class PresetCreate(BaseModel):
+
     name: str
     service_id: str
     country_id: str = "US"
@@ -28,9 +28,11 @@ class PresetCreate(BaseModel):
 
 
 class PresetResponse(PresetCreate):
+
     id: str
 
-    class Config:
+class Config:
+
         from_attributes = True
 
 
@@ -40,7 +42,7 @@ async def get_presets(user_id: str = Depends(get_current_user_id), db: Session =
     # Note: We don't strictly enforce tier on GET so even if downgraded they can see (but maybe not use/edit)
     # But for now, let's enforce PRO to verify consistency
     tier_manager = TierManager(db)
-    if not tier_manager.check_feature_access(user_id, "isp_filtering"):  # Proxy for pro features
+if not tier_manager.check_feature_access(user_id, "isp_filtering"):  # Proxy for pro features
         # Or just check tier directly
         pass
         # We allow listing for now
@@ -59,7 +61,7 @@ async def create_preset(
 
     # Check limit (e.g. 10 presets)
     count = db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).count()
-    if count >= 10:
+if count >= 10:
         raise HTTPException(status_code=400, detail="Maximum of 10 presets allowed")
 
     preset = VerificationPreset(
@@ -92,7 +94,7 @@ async def delete_preset(
         .first()
     )
 
-    if not preset:
+if not preset:
         raise HTTPException(status_code=404, detail="Preset not found")
 
     db.delete(preset)

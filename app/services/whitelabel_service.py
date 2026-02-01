@@ -1,27 +1,27 @@
 """White - label platform service."""
 
-from typing import Dict, Optional
 
+from typing import Dict, Optional
 from app.core.database import get_db
 from app.models.whitelabel import WhiteLabelConfig
 
-
 class WhiteLabelService:
+
     """White - label platform management."""
 
     async def get_config_by_domain(self, domain: str) -> Optional[Dict]:
         """Get white - label config by domain."""
         db = next(get_db())
 
-        try:
+try:
             config = (
                 db.query(WhiteLabelConfig).filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active).first()
             )
-        except Exception:
+except Exception:
             # Table doesn't exist, return None
             return None
 
-        if not config:
+if not config:
             return None
 
         return {

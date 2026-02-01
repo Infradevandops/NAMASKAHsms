@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
 """
+import argparse
+import os
+import sys
+from pathlib import Path
+from app.core.secrets import SecretsManager
+
 Secret Management Utility for Namaskah SMS
 
 This script helps you manage environment variables and secrets securely.
@@ -11,30 +17,25 @@ Usage:
     python scripts/manage_secrets.py rotate --key SECRET_KEY
 """
 
-import argparse
-import os
-import sys
-from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from app.core.secrets import SecretsManager
-
 
 def generate_env_file(environment: str):
+
     """Generate a new environment file with secure secrets."""
     print(f"🔐 Generating environment file for {environment}...")
 
     output_path = f".env.{environment}"
-    if Path(output_path).exists():
+if Path(output_path).exists():
         response = input(f"File {output_path} already exists. Overwrite? (y/N): ")
-        if response.lower() != "y":
+if response.lower() != "y":
             print("❌ Cancelled")
             return
 
-    try:
+try:
         created_file = SecretsManager.create_env_file(environment, output_path)
         print(f"✅ Created {created_file}")
         print(f"📝 Please edit {created_file} and add your specific credentials")
@@ -43,11 +44,12 @@ def generate_env_file(environment: str):
         os.chmod(created_file, 0o600)
         print(f"🔒 Set secure permissions (600) on {created_file}")
 
-    except Exception as e:
+except Exception as e:
         print(f"❌ Error creating environment file: {e}")
 
 
 def audit_environment():
+
     """Audit current environment for security issues."""
     print("🔍 Auditing environment security...")
 
@@ -56,43 +58,45 @@ def audit_environment():
     print(f"\n📊 Environment: {audit_result['environment']}")
     print(f"🔑 Secrets found: {audit_result['secrets_count']}")
 
-    if audit_result["issues"]:
+if audit_result["issues"]:
         print(f"\n❌ Issues found ({len(audit_result['issues'])}):")
-        for issue in audit_result["issues"]:
+for issue in audit_result["issues"]:
             print(f"  • {issue}")
 
-    if audit_result["warnings"]:
+if audit_result["warnings"]:
         print(f"\n⚠️ Warnings ({len(audit_result['warnings'])}):")
-        for warning in audit_result["warnings"]:
+for warning in audit_result["warnings"]:
             print(f"  • {warning}")
 
-    if not audit_result["issues"] and not audit_result["warnings"]:
+if not audit_result["issues"] and not audit_result["warnings"]:
         print("\n✅ No security issues found!")
 
     return len(audit_result["issues"]) == 0
 
 
 def validate_environment(environment: str = None):
+
     """Validate environment secrets."""
-    if not environment:
+if not environment:
         environment = os.getenv("ENVIRONMENT", "development")
 
     print(f"🔍 Validating {environment} environment...")
 
-    try:
+try:
         SecretsManager.validate_required_secrets(environment)
         print("✅ All required secrets are present and valid")
         return True
-    except ValueError as e:
+except ValueError as e:
         print(f"❌ Validation failed: {e}")
         return False
 
 
 def rotate_secret(key: str):
+
     """Rotate a specific secret key."""
     print(f"🔄 Rotating secret: {key}")
 
-    if key not in ["SECRET_KEY", "JWT_SECRET_KEY"]:
+if key not in ["SECRET_KEY", "JWT_SECRET_KEY"]:
         print(
             f"❌ Cannot auto-rotate {key}. Only SECRET_KEY and JWT_SECRET_KEY are supported."
         )
@@ -105,48 +109,50 @@ def rotate_secret(key: str):
     env_files = [".env", ".env.production", ".env.staging", ".env.development"]
     updated_files = []
 
-    for env_file in env_files:
-        if Path(env_file).exists():
-            try:
+for env_file in env_files:
+if Path(env_file).exists():
+try:
                 content = Path(env_file).read_text()
-                if f"{key}=" in content:
+if f"{key}=" in content:
                     # Create backup
                     backup_file = f"{env_file}.backup"
                     Path(backup_file).write_text(content)
 
                     # Update the key
                     lines = content.split("\n")
-                    for i, line in enumerate(lines):
-                        if line.startswith(f"{key}="):
+for i, line in enumerate(lines):
+if line.startswith(f"{key}="):
                             lines[i] = f"{key}={new_value}"
                             break
 
                     Path(env_file).write_text("\n".join(lines))
                     updated_files.append(env_file)
                     print(f"✅ Updated {env_file} (backup: {backup_file})")
-            except Exception as e:
+except Exception as e:
                 print(f"❌ Error updating {env_file}: {e}")
 
-    if updated_files:
+if updated_files:
         print(f"🔄 Rotated {key} in {len(updated_files)} files")
         print("⚠️ Remember to restart your application and update deployment secrets")
-    else:
+else:
         print(f"❌ No files found containing {key}")
 
 
 def list_secrets():
+
     """List all environment variables (masking sensitive ones)."""
     print("📋 Environment Variables:")
 
-    for key, value in sorted(os.environ.items()):
-        if SecretsManager.is_sensitive_key(key):
+for key, value in sorted(os.environ.items()):
+if SecretsManager.is_sensitive_key(key):
             masked_value = SecretsManager.mask_secret(value)
             print(f"  🔒 {key}={masked_value}")
-        else:
+else:
             print(f"  📝 {key}={value}")
 
 
 def main():
+
     """Main CLI interface."""
     parser = argparse.ArgumentParser(description="Manage secrets for Namaskah SMS")
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
@@ -176,27 +182,27 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.command:
+if not args.command:
         parser.print_help()
         return 1
 
-    try:
-        if args.command == "generate":
+try:
+if args.command == "generate":
             generate_env_file(args.env)
-        elif args.command == "audit":
+elif args.command == "audit":
             success = audit_environment()
             return 0 if success else 1
-        elif args.command == "validate":
+elif args.command == "validate":
             success = validate_environment(args.env)
             return 0 if success else 1
-        elif args.command == "rotate":
+elif args.command == "rotate":
             rotate_secret(args.key)
-        elif args.command == "list":
+elif args.command == "list":
             list_secrets()
 
         return 0
 
-    except Exception as e:
+except Exception as e:
         print(f"❌ Error: {e}")
         return 1
 

@@ -2,13 +2,9 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import (  # Keep JSONResponse and HTMLResponse as they are used later
-    HTMLResponse,
-    JSONResponse,
-)
 from google.oauth2 import id_token  # Keep id_token as it might be used for Google OAuth
 from pydantic import BaseModel  # Added back BaseModel as it's used by SuccessResponse
 from sqlalchemy.orm import Session
-
 from app.core.auth_security import audit_log_auth_event, record_login_attempt
 from app.core.config import get_settings
 from app.core.database import get_db
@@ -18,6 +14,23 @@ from app.core.token_manager import create_tokens
 from app.models.api_key import APIKey
 from app.models.user import User
 from app.schemas.auth import (
+from app.services import get_auth_service, get_notification_service
+import secrets
+from app.models.user import User
+from app.utils.security import verify_password
+import traceback
+from datetime import datetime, timezone
+from app.core.token_manager import get_refresh_token_expiry
+from google.auth.transport import requests as google_requests
+from app.core.token_manager import verify_refresh_token
+from datetime import datetime, timezone
+from app.core.token_manager import get_refresh_token_expiry
+from app.core.logging import get_logger
+
+    HTMLResponse,
+    JSONResponse,
+)
+
     APIKeyCreate,
     APIKeyListResponse,
     APIKeyResponse,
@@ -29,10 +42,10 @@ from app.schemas.auth import (
     UserCreate,
     UserResponse,
 )
-from app.services import get_auth_service, get_notification_service
 
 
 class SuccessResponse(BaseModel):
+
     message: str
 
 
@@ -48,7 +61,7 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
 
-    try:
+try:
         new_user = auth_service.register_user(
             email=user_data.email,
             password=user_data.password,
@@ -57,7 +70,7 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
 
         tokens = create_tokens(new_user.id, new_user.email)
 
-        try:
+try:
             audit_log_auth_event(
                 db,
                 "register",
@@ -65,11 +78,10 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
                 ip_address=ip_address,
                 user_agent=user_agent,
             )
-        except Exception:
+except Exception:
             pass
 
         # Generate verification token
-        import secrets
 
         verification_token = secrets.token_urlsafe(32)
         new_user.verification_token = verification_token
@@ -88,7 +100,7 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
         user_dict = UserResponse.model_validate(new_user).model_dump()
         user_dict["created_at"] = (
             user_dict["created_at"].isoformat()
-            if hasattr(user_dict["created_at"], "isoformat")
+if hasattr(user_dict["created_at"], "isoformat")
             else str(user_dict["created_at"])
         )
 
@@ -120,22 +132,23 @@ async def register(user_data: UserCreate, request: Request, db: Session = Depend
 
         return response
 
-    except ValidationError:
-        try:
+except ValidationError:
+try:
             audit_log_auth_event(db, "register_failed", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=400, detail="Registration validation failed")
-    except (ValueError, KeyError, AttributeError):
-        try:
+except (ValueError, KeyError, AttributeError):
+try:
             audit_log_auth_event(db, "register_failed", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=400, detail="Invalid registration data")
 
 
 @router.get("/google/config")
 def get_google_config():
+
     """Serve Google OAuth config."""
     settings = get_settings()
     return JSONResponse(
@@ -155,7 +168,7 @@ def get_google_config():
 @router.get("/login", response_class=HTMLResponse)
 async def login_page():
     """Login page."""
-    with open("templates/login.html", "r") as f:
+with open("templates/login.html", "r") as f:
         return f.read()
 
 
@@ -169,54 +182,51 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
 
-    try:
+try:
         # Direct authentication without service layer to avoid session issues
-        from app.models.user import User
-        from app.utils.security import verify_password
 
-        try:
+try:
             user = db.query(User).filter(User.email == login_data.email).first()
             print(f"[DEBUG] User found: {user is not None}")
-            if user:
+if user:
                 print(f"[DEBUG] User ID: {user.id}")
                 print(f"[DEBUG] User email: {user.email}")
                 print(f"[DEBUG] Has password_hash: {bool(user.password_hash)}")
                 print(f"[DEBUG] Email verified: {user.email_verified}")
-                if user.password_hash:
+if user.password_hash:
                     verified = verify_password(login_data.password, user.password_hash)
                     print(f"[DEBUG] Password verified: {verified}")
                     print(f"[DEBUG] Hash starts with: {user.password_hash[:20]}...")
-        except Exception as e:
+except Exception as e:
             print(f"[DEBUG] Exception during auth: {e}")
-            import traceback
 
             traceback.print_exc()
             user = None
             verified = False
 
-        if not user or not user.password_hash or not verify_password(login_data.password, user.password_hash):
-            try:
+if not user or not user.password_hash or not verify_password(login_data.password, user.password_hash):
+try:
                 record_login_attempt(db, login_data.email, ip_address, False)
-            except Exception:
+except Exception:
                 pass
-            try:
+try:
                 audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
-            except Exception:
+except Exception:
                 pass
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         authenticated_user = user
 
-        if not authenticated_user:
+if not authenticated_user:
             record_login_attempt(db, login_data.email, ip_address, False)
-            try:
+try:
                 audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
-            except Exception:
+except Exception:
                 pass
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
         record_login_attempt(db, login_data.email, ip_address, True)
-        try:
+try:
             audit_log_auth_event(
                 db,
                 "login",
@@ -224,13 +234,11 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
                 ip_address=ip_address,
                 user_agent=user_agent,
             )
-        except Exception:
+except Exception:
             pass
 
         # Task 1.2: Create tokens and store refresh token
-        from datetime import datetime, timezone
 
-        from app.core.token_manager import get_refresh_token_expiry
 
         tokens = create_tokens(authenticated_user.id, authenticated_user.email)
 
@@ -273,18 +281,18 @@ async def login(login_data: LoginRequest, request: Request, db: Session = Depend
 
         return response
 
-    except HTTPException:
+except HTTPException:
         raise
-    except AuthenticationError:
-        try:
+except AuthenticationError:
+try:
             audit_log_auth_event(db, "login_failed", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=401, detail="Authentication failed")
-    except (ValueError, KeyError):
-        try:
+except (ValueError, KeyError):
+try:
             audit_log_auth_event(db, "login_error", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
@@ -295,8 +303,7 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
     ip_address = request.client.host if request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown")
 
-    try:
-        from google.auth.transport import requests as google_requests
+try:
 
         settings = get_settings()
         auth_service = get_auth_service(db)
@@ -312,7 +319,7 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
             google_id=google_id, email=email, name=name, avatar_url=avatar_url
         )
 
-        try:
+try:
             audit_log_auth_event(
                 db,
                 "google_login",
@@ -320,7 +327,7 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
                 ip_address=ip_address,
                 user_agent=user_agent,
             )
-        except Exception:
+except Exception:
             pass
         access_token = auth_service.create_user_token(user)
 
@@ -330,26 +337,27 @@ async def google_auth(google_data: GoogleAuthRequest, request: Request, db: Sess
             user=UserResponse.model_validate(user),
         )
 
-    except ValueError:
-        try:
+except ValueError:
+try:
             audit_log_auth_event(db, "google_login_failed", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=401, detail="Invalid Google token")
-    except (KeyError, AttributeError):
-        try:
+except (KeyError, AttributeError):
+try:
             audit_log_auth_event(db, "google_login_error", ip_address=ip_address, user_agent=user_agent)
-        except Exception:
+except Exception:
             pass
         raise HTTPException(status_code=401, detail="Google authentication failed")
 
 
 @router.get("/me", response_model=UserResponse)
 def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+
     """Get current authenticated user information."""
     current_user = db.query(User).filter(User.id == user_id).first()
 
-    if not current_user:
+if not current_user:
         raise HTTPException(status_code=404, detail="User not found")
 
     response = UserResponse.model_validate(current_user)
@@ -366,7 +374,7 @@ async def forgot_password(request_data: PasswordResetRequest, db: Session = Depe
 
     reset_token = auth_service.reset_password_request(request_data.email)
 
-    if reset_token:
+if reset_token:
         await notification_service.send_email(
             to_email=request_data.email,
             subject="Password Reset - Namaskah SMS",
@@ -381,12 +389,13 @@ async def forgot_password(request_data: PasswordResetRequest, db: Session = Depe
 
 @router.post("/reset-password", response_model=SuccessResponse)
 def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends(get_db)):
+
     """Reset password using token."""
     auth_service = get_auth_service(db)
 
     success = auth_service.reset_password(reset_data.token, reset_data.new_password)
 
-    if not success:
+if not success:
         raise HTTPException(status_code=400, detail="Invalid or expired reset token")
 
     return SuccessResponse(message="Password reset successfully")
@@ -394,10 +403,11 @@ def reset_password(reset_data: PasswordResetConfirm, db: Session = Depends(get_d
 
 @router.get("/verify-email", response_model=SuccessResponse)
 def verify_email(token: str, db: Session = Depends(get_db)):
+
     """Verify email address using token."""
     user = db.query(User).filter(User.verification_token == token).first()
 
-    if not user:
+if not user:
         raise HTTPException(status_code=400, detail="Invalid verification token")
 
     user.email_verified = True
@@ -413,13 +423,14 @@ require_payg_for_api_keys = require_tier("payg")
 
 @router.post("/api-keys", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
 def create_api_key(
+
     api_key_data: APIKeyCreate,
     user_id: str = Depends(require_payg_for_api_keys),
     db: Session = Depends(get_db),
 ):
     """Create new API key for programmatic access. Requires PayG tier or higher."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.email_verified:
+if not user or not user.email_verified:
         raise HTTPException(status_code=403, detail="Email verification required")
     auth_service = get_auth_service(db)
     api_key = auth_service.create_api_key(user_id, api_key_data.name)
@@ -435,6 +446,7 @@ def create_api_key(
 
 @router.get("/api-keys", response_model=list[APIKeyListResponse])
 def list_api_keys(user_id: str = Depends(require_payg_for_api_keys), db: Session = Depends(get_db)):
+
     """List user's API keys. Requires PayG tier or higher."""
 
     api_keys = db.query(APIKey).filter(APIKey.user_id == user_id).all()
@@ -448,12 +460,13 @@ def list_api_keys(user_id: str = Depends(require_payg_for_api_keys), db: Session
             created_at=key.created_at,
             last_used=key.last_used,
         )
-        for key in api_keys
+for key in api_keys
     ]
 
 
 @router.delete("/api-keys/{key_id}", response_model=SuccessResponse)
 def delete_api_key(
+
     key_id: str,
     user_id: str = Depends(require_payg_for_api_keys),
     db: Session = Depends(get_db),
@@ -462,7 +475,7 @@ def delete_api_key(
 
     api_key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
 
-    if not api_key:
+if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")
 
     db.delete(api_key)
@@ -473,6 +486,7 @@ def delete_api_key(
 
 @router.post("/logout", response_model=SuccessResponse)
 def logout(
+
     user_id: str = Depends(get_current_user_id),
     request: Request = None,
     db: Session = Depends(get_db),
@@ -480,9 +494,9 @@ def logout(
     """Logout user."""
     ip_address = request.client.host if request and request.client else "unknown"
     user_agent = request.headers.get("user-agent", "unknown") if request else "unknown"
-    try:
+try:
         audit_log_auth_event(db, "logout", user_id=user_id, ip_address=ip_address, user_agent=user_agent)
-    except Exception:
+except Exception:
         pass
     return SuccessResponse(message="Logged out successfully")
 
@@ -490,62 +504,59 @@ def logout(
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
     """Refresh access token using refresh token."""
-    try:
+try:
         # Try to get refresh token from multiple sources
         refresh_token = None
 
         # 1. Check request body
-        try:
+try:
             body = await request.json()
             refresh_token = body.get("refresh_token")
-        except Exception:
+except Exception:
             pass
 
         # 2. Check cookies
-        if not refresh_token:
+if not refresh_token:
             refresh_token = request.cookies.get("refresh_token")
 
         # 3. Check Authorization header
-        if not refresh_token:
+if not refresh_token:
             auth_header = request.headers.get("Authorization", "")
-            if auth_header.startswith("Bearer "):
+if auth_header.startswith("Bearer "):
                 refresh_token = auth_header[7:]
 
-        if not refresh_token:
+if not refresh_token:
             raise HTTPException(status_code=401, detail="Refresh token missing")
 
         # Verify and decode refresh token
-        from app.core.token_manager import verify_refresh_token
 
         payload = verify_refresh_token(refresh_token)
 
-        if not payload:
+if not payload:
             raise HTTPException(status_code=401, detail="Invalid refresh token")
 
         user_id = payload.get("sub")
-        if not user_id:
+if not user_id:
             raise HTTPException(status_code=401, detail="Invalid token payload")
 
         # Get user from database
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Verify stored refresh token matches
-        if user.refresh_token != refresh_token:
+if user.refresh_token != refresh_token:
             raise HTTPException(status_code=401, detail="Token mismatch")
 
         # Check if refresh token is expired
-        from datetime import datetime, timezone
 
-        if user.refresh_token_expires and user.refresh_token_expires < datetime.now(timezone.utc):
+if user.refresh_token_expires and user.refresh_token_expires < datetime.now(timezone.utc):
             raise HTTPException(status_code=401, detail="Refresh token expired")
 
         # Create new tokens
         tokens = create_tokens(user.id, user.email)
 
         # Update stored refresh token
-        from app.core.token_manager import get_refresh_token_expiry
 
         user.refresh_token = tokens["refresh_token"]
         user.refresh_token_expires = get_refresh_token_expiry()
@@ -580,10 +591,9 @@ async def refresh_access_token(request: Request, db: Session = Depends(get_db)):
 
         return response
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
-        from app.core.logging import get_logger
+except Exception as e:
 
         logger = get_logger(__name__)
         logger.error(f"Token refresh error: {e}")

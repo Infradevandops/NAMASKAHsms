@@ -1,13 +1,13 @@
 """Token management with refresh tokens and HttpOnly cookies - Task 1.2."""
 
+
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
-
 from app.utils.security import create_access_token, verify_token
 
-
 def create_tokens(user_id: str, email: str) -> Dict[str, str]:
+
     """Create access and refresh tokens - Task 1.2 Fix."""
     # Access token (24 hours)
     access_data = {"user_id": user_id, "email": email, "type": "access"}
@@ -25,18 +25,21 @@ def create_tokens(user_id: str, email: str) -> Dict[str, str]:
 
 
 def verify_refresh_token(refresh_token: str) -> bool:
+
     """Verify refresh token format (basic check)."""
     return len(refresh_token) > 20 and isinstance(refresh_token, str)
 
 
 def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
+
     """Decode and verify access token."""
     payload = verify_token(token)
-    if payload and payload.get("type") == "access":
+if payload and payload.get("type") == "access":
         return payload
     return None
 
 
 def get_refresh_token_expiry() -> datetime:
+
     """Get refresh token expiry datetime (30 days from now)."""
     return datetime.now(timezone.utc) + timedelta(days=30)

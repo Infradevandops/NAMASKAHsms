@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from sqlalchemy import text
+from app.core.database import get_db
+
 Distribute existing users across all 4 tiers
 Spreads users evenly for testing purposes
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import text
-
-from app.core.database import get_db
-
 
 def distribute_users_across_tiers():
+
     """Distribute existing users across all 4 tiers"""
 
     db = next(get_db())
@@ -26,7 +26,7 @@ def distribute_users_across_tiers():
         text("SELECT id, email FROM users ORDER BY created_at")
     ).fetchall()
 
-    if not users:
+if not users:
         print("❌ No users found in database")
         return
 
@@ -37,13 +37,13 @@ def distribute_users_across_tiers():
     tiers = ["freemium", "payg", "pro", "custom"]
 
     # Distribute users evenly across tiers
-    for idx, user in enumerate(users):
+for idx, user in enumerate(users):
         tier = tiers[idx % len(tiers)]  # Round-robin distribution
 
         db.execute(
             text(
                 """
-            UPDATE users 
+            UPDATE users
             SET subscription_tier = :tier, tier_id = :tier
             WHERE id = :user_id
         """
@@ -60,10 +60,10 @@ def distribute_users_across_tiers():
     distribution = db.execute(
         text(
             """
-        SELECT subscription_tier, COUNT(*) as count 
-        FROM users 
+        SELECT subscription_tier, COUNT(*) as count
+        FROM users
         GROUP BY subscription_tier
-        ORDER BY 
+        ORDER BY
             CASE subscription_tier
                 WHEN 'freemium' THEN 1
                 WHEN 'payg' THEN 2
@@ -74,7 +74,7 @@ def distribute_users_across_tiers():
         )
     ).fetchall()
 
-    for tier, count in distribution:
+for tier, count in distribution:
         percentage = (count / total_users) * 100
         print(f"   {tier.upper()}: {count} users ({percentage:.1f}%)")
 

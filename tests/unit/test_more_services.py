@@ -1,13 +1,16 @@
-import pytest
 
+
+import pytest
 from app.models.affiliate import AffiliateApplication
 from app.services.affiliate_service import AffiliateService
 from app.services.mfa_service import MFAService
-
+import pyotp
+import pyotp
 
 class TestAffiliateService:
     @pytest.fixture
-    def service(self):
+def service(self):
+
         return AffiliateService()
 
     @pytest.mark.asyncio
@@ -25,7 +28,7 @@ class TestAffiliateService:
     async def test_duplicate_application(self, service, db_session):
         email = "dup@ex.com"
         await service.create_application(email, "individual", [], None, db_session)
-        with pytest.raises(ValueError, match="already have a pending application"):
+with pytest.raises(ValueError, match="already have a pending application"):
             await service.create_application(email, "individual", [], None, db_session)
 
     @pytest.mark.asyncio
@@ -43,14 +46,15 @@ class TestAffiliateService:
 
 
 class TestMFAService:
-    def test_generate_secret(self):
-        import pyotp
+
+def test_generate_secret(self):
+
+        pass
 
         secret = MFAService.generate_secret()
         assert len(secret) == 32  # Base32 default
 
-    def test_verify_token(self):
-        import pyotp
+def test_verify_token(self):
 
         secret = pyotp.random_base32()
         totp = pyotp.TOTP(secret)
@@ -59,8 +63,7 @@ class TestMFAService:
         assert MFAService.verify_token(secret, token) is True
         assert MFAService.verify_token(secret, "000000") is False
 
-    def test_generate_qr_code(self):
-        import pyotp
+def test_generate_qr_code(self):
 
         secret = pyotp.random_base32()
         qr_b64 = MFAService.generate_qr_code("test@ex.com", secret)

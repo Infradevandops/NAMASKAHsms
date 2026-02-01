@@ -1,23 +1,26 @@
 #!/usr/bin/env python3
 """Reset admin password using environment variable."""
 
-import os
-import sys
 
 # Add app to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import os
+import sys
 from app.core.database import SessionLocal
 from app.models.user import User
 from app.utils.security import hash_password, verify_password
+import traceback
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def reset_admin_password():
+
     """Reset admin password from ADMIN_PASSWORD env var."""
     admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
     admin_password = os.getenv("ADMIN_PASSWORD")
 
-    if not admin_password:
+if not admin_password:
         print("❌ ADMIN_PASSWORD environment variable not set!")
         print(
             "Usage: ADMIN_PASSWORD='your-password' python scripts/reset_admin_password.py"
@@ -25,11 +28,11 @@ def reset_admin_password():
         sys.exit(1)
 
     db = SessionLocal()
-    try:
+try:
         # Find admin user
         admin = db.query(User).filter(User.email == admin_email).first()
 
-        if not admin:
+if not admin:
             print(f"❌ Admin user not found: {admin_email}")
             print("Creating new admin user...")
 
@@ -45,7 +48,7 @@ def reset_admin_password():
             db.add(admin)
             db.commit()
             print(f"✅ Admin user created: {admin_email}")
-        else:
+else:
             # Update password
             old_hash = admin.password_hash
             new_hash = hash_password(admin_password)
@@ -63,9 +66,9 @@ def reset_admin_password():
             print(f"   New hash: {new_hash[:30]}...")
 
             # Verify the password works
-            if verify_password(admin_password, new_hash):
+if verify_password(admin_password, new_hash):
                 print("✅ Password verification successful!")
-            else:
+else:
                 print("❌ Password verification failed!")
 
         # Test login
@@ -77,14 +80,13 @@ def reset_admin_password():
         print(f"🎫 Tier: {admin.subscription_tier}")
         print(f"💰 Credits: {admin.credits}")
 
-    except Exception as e:
+except Exception as e:
         print(f"❌ Error: {e}")
-        import traceback
 
         traceback.print_exc()
         db.rollback()
         sys.exit(1)
-    finally:
+finally:
         db.close()
 
 

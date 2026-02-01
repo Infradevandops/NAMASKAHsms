@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
 """
+import argparse
+import sys
+from datetime import datetime, timezone
+from app.core.database import SessionLocal
+from app.core.logging import get_logger
+from app.services.auto_refund_service import AutoRefundService
+from app.models.user import User
+from app.models.verification import Verification
+from app.models.transaction import Transaction
+
 Refund Reconciliation Script
 =============================
 Identifies and refunds users affected by the verification refund bug.
@@ -18,18 +28,12 @@ Usage:
     python reconcile_refunds.py --days 7 --dry-run
 """
 
-import argparse
-import sys
-from datetime import datetime, timezone
-
-from app.core.database import SessionLocal
-from app.core.logging import get_logger
-from app.services.auto_refund_service import AutoRefundService
 
 logger = get_logger(__name__)
 
 
 def main():
+
     parser = argparse.ArgumentParser(
         description="Refund reconciliation for failed verifications"
     )
@@ -57,17 +61,17 @@ def main():
 
     args = parser.parse_args()
 
-    if not args.dry_run and not args.execute:
+if not args.dry_run and not args.execute:
         print("ERROR: Must specify either --dry-run or --execute")
         sys.exit(1)
 
-    if args.dry_run and args.execute:
+if args.dry_run and args.execute:
         print("ERROR: Cannot use both --dry-run and --execute")
         sys.exit(1)
 
     db = SessionLocal()
 
-    try:
+try:
         refund_service = AutoRefundService(db)
 
         print("=" * 80)
@@ -81,13 +85,11 @@ def main():
         print("=" * 80)
         print()
 
-        if args.user_id:
+if args.user_id:
             # Check specific user
-            from app.models.user import User
-            from app.models.verification import Verification
 
             user = db.query(User).filter(User.id == args.user_id).first()
-            if not user:
+if not user:
                 print(f"ERROR: User {args.user_id} not found")
                 sys.exit(1)
 
@@ -109,8 +111,7 @@ def main():
             print("-" * 80)
 
             total_refund = 0.0
-            for v in verifications:
-                from app.models.transaction import Transaction
+for v in verifications:
 
                 existing_refund = (
                     db.query(Transaction)
@@ -127,31 +128,31 @@ def main():
                     f"{v.id} | {v.service_name} | ${v.cost:.2f} | {v.status} | {status}"
                 )
 
-                if not existing_refund:
+if not existing_refund:
                     total_refund += v.cost
 
             print("-" * 80)
             print(f"Total Refund Due: ${total_refund:.2f}")
             print()
 
-            if not args.dry_run and total_refund > 0:
+if not args.dry_run and total_refund > 0:
                 confirm = input(
                     f"Process ${total_refund:.2f} refund for user {user.email}? (yes/no): "
                 )
-                if confirm.lower() == "yes":
-                    for v in verifications:
+if confirm.lower() == "yes":
+for v in verifications:
                         result = refund_service.process_verification_refund(
                             v.id, v.status
                         )
-                        if result:
+if result:
                             print(
                                 f"✓ Refunded ${result['refund_amount']:.2f} for {v.id}"
                             )
-                    print(f"\n✓ Refunds processed successfully")
-                else:
+                    print("\n✓ Refunds processed successfully")
+else:
                     print("Cancelled")
 
-        else:
+else:
             # Full reconciliation
             report = refund_service.reconcile_unrefunded_verifications(
                 days_back=args.days,
@@ -168,10 +169,10 @@ def main():
             print(f"Total Amount Refunded: ${report['total_amount_refunded']:.2f}")
             print()
 
-            if report["verifications"]:
+if report["verifications"]:
                 print("DETAILS:")
                 print("-" * 80)
-                for v in report["verifications"]:
+for v in report["verifications"]:
                     status = "✓ Refunded" if v.get("refunded") else "✗ Pending"
                     print(
                         f"{v['id'][:8]}... | {v['user_id'][:8]}... | "
@@ -180,7 +181,7 @@ def main():
                     )
                 print()
 
-            if args.dry_run and report["needs_refund"] > 0:
+if args.dry_run and report["needs_refund"] > 0:
                 print("=" * 80)
                 print("⚠️  DRY RUN MODE - No refunds processed")
                 print(f"Run with --execute to process {report['needs_refund']} refunds")
@@ -189,11 +190,11 @@ def main():
                 )
                 print("=" * 80)
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Reconciliation error: {str(e)}", exc_info=True)
         print(f"\nERROR: {str(e)}")
         sys.exit(1)
-    finally:
+finally:
         db.close()
 
 

@@ -1,37 +1,44 @@
 """Services package with dependency injection support."""
 
+
 from sqlalchemy.orm import Session
-
 from .base import BaseService
-
+from .auth_service import AuthService
+from .payment_service import PaymentService
+from .notification_service import NotificationService
+from .auth_service import AuthService
+from .payment_service import PaymentService
+from .notification_service import NotificationService
 
 class ServiceFactory:
+
     """Factory for creating service instances with dependency injection."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         self.db = db
         self._services = {}
 
-    def get_auth_service(self):
+def get_auth_service(self):
+
         """Get or create AuthService instance."""
-        if "auth" not in self._services:
-            from .auth_service import AuthService
+if "auth" not in self._services:
 
             self._services["auth"] = AuthService(self.db)
         return self._services["auth"]
 
-    def get_payment_service(self):
+def get_payment_service(self):
+
         """Get or create PaymentService instance."""
-        if "payment" not in self._services:
-            from .payment_service import PaymentService
+if "payment" not in self._services:
 
             self._services["payment"] = PaymentService(self.db)
         return self._services["payment"]
 
-    def get_notification_service(self):
+def get_notification_service(self):
+
         """Get or create NotificationService instance."""
-        if "notification" not in self._services:
-            from .notification_service import NotificationService
+if "notification" not in self._services:
 
             self._services["notification"] = NotificationService(self.db)
         return self._services["notification"]
@@ -39,7 +46,7 @@ class ServiceFactory:
     async def cleanup(self):
         """Cleanup async resources."""
 
-        if "payment" in self._services:
+if "payment" in self._services:
             await self._services["payment"].close()
 
 
@@ -47,27 +54,28 @@ class ServiceFactory:
 
 
 def get_service_factory(db: Session) -> ServiceFactory:
+
     """Get service factory instance."""
     return ServiceFactory(db)
 
 
 def get_auth_service(db: Session):
+
     """Get AuthService instance."""
-    from .auth_service import AuthService
 
     return AuthService(db)
 
 
 def get_payment_service(db: Session):
+
     """Get PaymentService instance."""
-    from .payment_service import PaymentService
 
     return PaymentService(db)
 
 
 def get_notification_service(db: Session):
+
     """Get NotificationService instance."""
-    from .notification_service import NotificationService
 
     return NotificationService(db)
 

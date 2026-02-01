@@ -1,21 +1,20 @@
 """
-Enhanced Analytics API with Real-time Calculations
-Fixes all calculation issues and provides live data
-"""
-
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
+
+Enhanced Analytics API with Real-time Calculations
+Fixes all calculation issues and provides live data
+"""
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,22 +34,22 @@ async def get_analytics_summary(
     logger.info(
         f"Analytics summary requested by user_id: {current_user.id}, tier: {current_user.subscription_tier or 'freemium'}"
     )
-    try:
+try:
         # Date filtering
         end_date = datetime.utcnow()
-        if to_date:
-            try:
+if to_date:
+try:
                 end_date = datetime.fromisoformat(to_date.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59)
-            except ValueError:
+except ValueError:
                 pass
 
         start_date = end_date - timedelta(days=30)
-        if from_date:
-            try:
+if from_date:
+try:
                 start_date = datetime.fromisoformat(from_date.replace("Z", "+00:00")).replace(
                     hour=0, minute=0, second=0
                 )
-            except ValueError:
+except ValueError:
                 pass
 
         # Base query for period
@@ -108,7 +107,7 @@ async def get_analytics_summary(
             .all()
         )
 
-        for v in recent_verifications:
+for v in recent_verifications:
             recent_activity.append({
                 "id": v.id,
                 "service_name": v.service_name,
@@ -137,26 +136,26 @@ async def get_analytics_summary(
         daily_stats = {}
         # Initialize all days with 0
         delta = end_date - start_date
-        for i in range(delta.days + 1):
+for i in range(delta.days + 1):
             day = (start_date + timedelta(days=i)).strftime("%Y-%m-%d")
             daily_stats[day] = 0
 
-        for v in verifications:
+for v in verifications:
             day = v.created_at.strftime("%Y-%m-%d")
-            if day in daily_stats:
+if day in daily_stats:
                 daily_stats[day] += 1
 
         daily_verifications = [{"date": k, "count": v} for k, v in sorted(daily_stats.items())]
 
         # Top Services & Spending by Service
         services_map = {}
-        for v in verifications:
+for v in verifications:
             svc = v.service_name or "Unknown"
-            if svc not in services_map:
+if svc not in services_map:
                 services_map[svc] = {"count": 0, "success": 0, "spent": 0.0}
 
             services_map[svc]["count"] += 1
-            if v.status == "completed":
+if v.status == "completed":
                 services_map[svc]["success"] += 1
 
             # Estimate cost (approximate if not linked to transaction directly easily)
@@ -168,7 +167,7 @@ async def get_analytics_summary(
         top_services = []
         spending_by_service = []
 
-        for name, stats in services_map.items():
+for name, stats in services_map.items():
             s_rate = (stats["success"] / stats["count"] * 100) if stats["count"] > 0 else 0
             # Mock spending distribution based on count (since we don't have service in transaction easily without join)
             # In a real app, Transaction should store service_name or related Verification ID
@@ -207,7 +206,7 @@ async def get_analytics_summary(
             "last_updated": datetime.utcnow().isoformat(),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(
             f"Analytics calculation failed for user {current_user.id}: {str(e)}",
             exc_info=True,
@@ -223,7 +222,7 @@ async def get_real_time_stats(
     Get real-time statistics for dashboard updates
     """
     logger.debug(f"Real-time stats requested by user_id: {current_user.id}")
-    try:
+try:
         # Get current balance
         current_balance = current_user.credits or 0
 
@@ -274,7 +273,7 @@ async def get_real_time_stats(
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(
             f"Real-time stats failed for user {current_user.id}: {str(e)}",
             exc_info=True,
@@ -290,7 +289,7 @@ async def get_status_updates(
     Get status updates for all pending verifications
     """
     logger.debug(f"Status updates requested by user_id: {current_user.id}")
-    try:
+try:
         pending_verifications = (
             db.query(Verification)
             .filter(
@@ -303,7 +302,7 @@ async def get_status_updates(
         )
 
         updates = []
-        for verification in pending_verifications:
+for verification in pending_verifications:
             updates.append(
                 {
                     "id": verification.id,
@@ -323,6 +322,6 @@ async def get_status_updates(
             "timestamp": datetime.utcnow().isoformat(),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Status updates failed for user {current_user.id}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Status updates failed: {str(e)}")

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Initialize subscription_tiers table in production database."""
-import os
-import sys
 
-from sqlalchemy import create_engine, text
 
 # Get database URL from environment
+
+import os
+import sys
+from sqlalchemy import create_engine, text
+
 database_url = os.getenv("DATABASE_URL")
 
 if not database_url:
@@ -15,11 +17,11 @@ if not database_url:
     )
     sys.exit(1)
 
-print(f"🔧 Connecting to database...")
+print("🔧 Connecting to database...")
 engine = create_engine(database_url)
 
 try:
-    with engine.connect() as conn:
+with engine.connect() as conn:
         print("✅ Connected to database")
 
         # Create subscription_tiers table
@@ -106,15 +108,15 @@ try:
             },
         ]
 
-        for tier in tiers:
+for tier in tiers:
             conn.execute(
                 text(
                     """
-                INSERT INTO subscription_tiers 
-                (id, tier, name, price_monthly, quota_usd, overage_rate, 
-                 has_api_access, has_area_code_selection, has_isp_filtering, 
+                INSERT INTO subscription_tiers
+                (id, tier, name, price_monthly, quota_usd, overage_rate,
+                 has_api_access, has_area_code_selection, has_isp_filtering,
                  api_key_limit, support_level)
-                VALUES 
+                VALUES
                 (:id, :tier, :name, :price_monthly, :quota_usd, :overage_rate,
                  :has_api_access, :has_area_code_selection, :has_isp_filtering,
                  :api_key_limit, :support_level)
@@ -147,7 +149,7 @@ try:
         tiers = result.fetchall()
 
         print(f"\n✅ Found {len(tiers)} tiers:")
-        for tier in tiers:
+for tier in tiers:
             price = tier[2] / 100 if tier[2] > 0 else 0
             print(f"   - {tier[1]}: ${price:.2f}/mo")
 

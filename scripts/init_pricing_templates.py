@@ -1,29 +1,28 @@
 #!/usr/bin/env python3
 """
-Initialize Pricing Templates for Namaskah Admin Dashboard
-Creates Standard, Promotional, and Holiday pricing templates
-"""
-
 import os
 import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.models.pricing_template import PricingHistory, PricingTemplate, TierPricing
 from app.models.user import User
 
+Initialize Pricing Templates for Namaskah Admin Dashboard
+Creates Standard, Promotional, and Holiday pricing templates
+"""
+
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def create_pricing_templates():
+
     """Create the three main pricing templates"""
 
     db = next(get_db())
 
     # Get admin user
-    admin_user = db.query(User).filter(User.is_admin == True).first()
-    if not admin_user:
+    admin_user = db.query(User).filter(User.is_admin).first()
+if not admin_user:
         print("❌ No admin user found. Please create an admin user first.")
         return
 
@@ -72,7 +71,7 @@ def create_pricing_templates():
             ],
         },
         {
-            "name": "Promotional 50% Off",
+            "name": "Promotional 50% O",
             "description": "Limited time promotional pricing - 50% off all plans",
             "is_active": False,
             "tiers": [
@@ -196,14 +195,14 @@ def create_pricing_templates():
 
     created_count = 0
 
-    for template_data in templates_data:
+for template_data in templates_data:
         # Check if template already exists
         existing = (
             db.query(PricingTemplate)
             .filter(PricingTemplate.name == template_data["name"])
             .first()
         )
-        if existing:
+if existing:
             print(f"⚠️  Template '{template_data['name']}' already exists, skipping...")
             continue
 
@@ -220,7 +219,7 @@ def create_pricing_templates():
         db.flush()  # Get the ID
 
         # Create tiers
-        for tier_data in template_data["tiers"]:
+for tier_data in template_data["tiers"]:
             tier = TierPricing(
                 template_id=template.id,
                 tier_name=tier_data["tier_name"],
@@ -251,7 +250,7 @@ def create_pricing_templates():
     print(f"\n🎉 Successfully created {created_count} pricing templates!")
     print("\n📋 Available templates:")
     print("   • Standard Pricing (Active)")
-    print("   • Promotional 50% Off")
+    print("   • Promotional 50% O")
     print("   • Holiday Special")
     print("\n🚀 Admin can now switch between templates at /admin")
 

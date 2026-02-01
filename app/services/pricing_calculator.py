@@ -1,17 +1,18 @@
 """Pricing calculation service."""
 
-from sqlalchemy.orm import Session
 
+from sqlalchemy.orm import Session
 from app.core.tier_config_simple import TIER_CONFIG
 from app.models.user import User
 from app.services.quota_service import QuotaService
 
-
 class PricingCalculator:
+
     """Calculate SMS verification costs."""
 
     @staticmethod
-    def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
+def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
+
         """Calculate total cost for SMS verification.
 
         Args:
@@ -22,7 +23,7 @@ class PricingCalculator:
         Returns:
             dict with base_cost, filter_charges, overage_charge, total_cost
         """
-        if not filters:
+if not filters:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()
@@ -33,14 +34,14 @@ class PricingCalculator:
 
         # Filter charges (only for PAYG tier)
         filter_charges = 0.0
-        if user.subscription_tier == "payg":
-            if filters.get("state") or filters.get("city"):
+if user.subscription_tier == "payg":
+if filters.get("state") or filters.get("city"):
                 filter_charges += 0.25
-            if filters.get("isp"):
+if filters.get("isp"):
                 filter_charges += 0.50
 
         # Check if filters allowed for tier
-        if user.subscription_tier == "freemium" and any(filters.values()):
+if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
 
         # Overage charge
@@ -57,7 +58,8 @@ class PricingCalculator:
         }
 
     @staticmethod
-    def get_filter_charges(db: Session, user_id: str, filters: dict) -> float:
+def get_filter_charges(db: Session, user_id: str, filters: dict) -> float:
+
         """Get filter charges for user's tier.
 
         Args:
@@ -70,16 +72,16 @@ class PricingCalculator:
         """
         user = db.query(User).filter(User.id == user_id).first()
 
-        if user.subscription_tier == "freemium":
-            if any(filters.values()):
+if user.subscription_tier == "freemium":
+if any(filters.values()):
                 raise ValueError("Filters not available for Freemium tier")
             return 0.0
 
-        if user.subscription_tier == "payg":
+if user.subscription_tier == "payg":
             charges = 0.0
-            if filters.get("state") or filters.get("city"):
+if filters.get("state") or filters.get("city"):
                 charges += 0.25
-            if filters.get("isp"):
+if filters.get("isp"):
                 charges += 0.50
             return charges
 
@@ -87,7 +89,8 @@ class PricingCalculator:
         return 0.0
 
     @staticmethod
-    def validate_balance(db: Session, user_id: str, cost: float) -> bool:
+def validate_balance(db: Session, user_id: str, cost: float) -> bool:
+
         """Check if user has sufficient balance.
 
         Args:
@@ -100,13 +103,14 @@ class PricingCalculator:
         """
         user = db.query(User).filter(User.id == user_id).first()
 
-        if user.subscription_tier == "freemium":
+if user.subscription_tier == "freemium":
             return user.bonus_sms_balance >= 1  # At least 1 SMS
 
         return user.credits >= cost
 
     @staticmethod
-    def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
+def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
+
         """Get detailed pricing breakdown.
 
         Args:
@@ -117,7 +121,7 @@ class PricingCalculator:
         Returns:
             dict with pricing details
         """
-        if not filters:
+if not filters:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()

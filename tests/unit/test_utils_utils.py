@@ -1,16 +1,18 @@
-from datetime import datetime, timedelta, timezone
+
+
+from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-
 import pytest
-
 from app.utils.sanitization import (
+from app.utils.sql_safety import (
+from app.utils.timezone_utils import (
+
     sanitize_email_content,
     sanitize_filename,
     sanitize_html,
     sanitize_user_input,
     validate_and_sanitize_response,
 )
-from app.utils.sql_safety import (
     SQLSafetyValidator,
     audit_query_safety,
     validate_identifier,
@@ -20,6 +22,7 @@ from app.utils.sql_safety import (
 
 
 def test_sanitize_html():
+
     scr = "<script>alert(1)</script>Hello"
     assert sanitize_html(scr) == "&lt;script&gt;alert(1)&lt;/script&gt;Hello"
     assert sanitize_html("javascript:alert(1)") == "alert(1)"
@@ -27,6 +30,7 @@ def test_sanitize_html():
 
 
 def test_sanitize_user_input():
+
     data = {
         "text": "<p>Hi</p>",
         "list": ["<script>", 123],
@@ -39,6 +43,7 @@ def test_sanitize_user_input():
 
 
 def test_sanitize_email_content():
+
     content = "<h1>Title</h1><script>alert(1)</script>"
     # h1 is allowed
     sanitized = sanitize_email_content(content)
@@ -48,6 +53,7 @@ def test_sanitize_email_content():
 
 
 def test_validate_and_sanitize_response():
+
     resp = {"message": "<script>", "id": 1}
     sanitized = validate_and_sanitize_response(resp)
     assert sanitized["message"] == "&lt;script&gt;"
@@ -55,6 +61,7 @@ def test_validate_and_sanitize_response():
 
 
 def test_sanitize_filename():
+
     assert sanitize_filename("../../../etc/passwd") == "passwd"
     assert sanitize_filename("file name with spaces.txt") == "filenamewithspaces.txt"
     assert sanitize_filename("") == "unnamed_file"
@@ -62,7 +69,7 @@ def test_sanitize_filename():
 
 
 def test_timezone_utils():
-    from app.utils.timezone_utils import (
+
         days_ago,
         ensure_timezone_aware,
         format_datetime,
@@ -118,16 +125,17 @@ def test_timezone_utils():
 
 
 def test_sql_safety():
+
     assert validate_identifier("users") == "users"
-    with pytest.raises(ValueError):
+with pytest.raises(ValueError):
         validate_identifier("user; drop table")
 
     assert validate_sort_field("id", ["id", "name"]) == "id"
-    with pytest.raises(ValueError):
+with pytest.raises(ValueError):
         validate_sort_field("secrets", ["id", "name"])
 
     assert validate_sort_order("asc") == "ASC"
-    with pytest.raises(ValueError):
+with pytest.raises(ValueError):
         validate_sort_order("invalid")
 
     assert audit_query_safety("SELECT * FROM users") is True

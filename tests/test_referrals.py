@@ -1,9 +1,10 @@
-from sqlalchemy.orm import Session
 
+
+from sqlalchemy.orm import Session
 from app.models.user import User
 
-
 def test_get_referral_stats(client, auth_headers, regular_user):
+
     """Test getting referral stats."""
     response = client.get("/api/referrals/stats", headers=auth_headers)
     assert response.status_code == 200
@@ -14,6 +15,7 @@ def test_get_referral_stats(client, auth_headers, regular_user):
 
 
 def test_list_referrals_empty(client, auth_headers):
+
     """Test listing referrals when none exist."""
     response = client.get("/api/referrals/list", headers=auth_headers)
     assert response.status_code == 200
@@ -21,6 +23,7 @@ def test_list_referrals_empty(client, auth_headers):
 
 
 def test_list_referrals_with_data(client, auth_headers, db: Session, regular_user):
+
     """Test listing referrals when they exist."""
     # Create a referred user
     referred = User(

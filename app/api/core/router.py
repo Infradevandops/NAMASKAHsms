@@ -1,5 +1,6 @@
-from fastapi import APIRouter
 
+
+from fastapi import APIRouter
 from app.api.core.affiliate_endpoints import router as affiliate_router
 from app.api.core.analytics_enhanced import router as analytics_enhanced_router
 from app.api.core.api_key_endpoints import router as api_key_router

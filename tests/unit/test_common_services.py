@@ -1,15 +1,16 @@
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import httpx
-import pytest
-
-from app.services.audit_service import AuditService
-from app.services.error_handling import APIErrorHandler, RetryConfig, retry_with_backoff
 
 # --- Error Handling Tests ---
 
 
+from unittest.mock import AsyncMock, MagicMock, patch
+import httpx
+import pytest
+from app.services.audit_service import AuditService
+from app.services.error_handling import APIErrorHandler, RetryConfig, retry_with_backoff
+
 def test_retry_config():
+
     config = RetryConfig(max_retries=5, initial_delay=0.1)
     assert config.max_retries == 5
     assert config.get_delay(0) == 0.1
@@ -52,28 +53,31 @@ async def test_retry_with_backoff_fail_max():
     async def decorated():
         return await mock_func()
 
-    with pytest.raises(httpx.HTTPError):
+with pytest.raises(httpx.HTTPError):
         await decorated()
 
     assert mock_func.call_count == 2
 
 
 def test_retry_sync_wrapper():
+
     mock_func = MagicMock(side_effect=[Exception("Sync fail"), "Success"])
 
     @retry_with_backoff(RetryConfig(max_retries=2, initial_delay=0.01))
-    def decorated():
+def decorated():
+
         return mock_func()
 
     # Need to patch asyncio.run and sleep to avoid actual waiting/context issues in sync test if logic uses asyncio.run
     # The implementation uses asyncio.run(asyncio.sleep(delay))
-    with patch("asyncio.run"), patch("asyncio.sleep"):
+with patch("asyncio.run"), patch("asyncio.sleep"):
         result = decorated()
         assert result == "Success"
         assert mock_func.call_count == 2
 
 
 def test_api_error_handler():
+
     assert APIErrorHandler.get_user_message(404) == "Resource not found."
     assert APIErrorHandler.get_user_message(404, "Details") == "Resource not found. (Details)"
     assert APIErrorHandler.get_user_message(999) == "An error occurred. Please try again."
@@ -83,7 +87,8 @@ def test_api_error_handler():
 
 
 def test_api_error_handler_log():
-    with patch("app.services.error_handling.logger.error") as mock_log:
+
+with patch("app.services.error_handling.logger.error") as mock_log:
         APIErrorHandler.log_error("TestError", 500, "Msg", {"id": 1})
         mock_log.assert_called_once()
         args = mock_log.call_args[0][0]
@@ -97,6 +102,7 @@ def test_api_error_handler_log():
 
 @pytest.fixture
 def audit_service():
+
     return AuditService()
 
 

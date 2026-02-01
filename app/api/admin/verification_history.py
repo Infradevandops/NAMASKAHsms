@@ -1,13 +1,12 @@
 """Admin verification history endpoints."""
 
+
 import csv
 from datetime import datetime, timedelta, timezone
 from io import StringIO
 from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -21,7 +20,7 @@ router = APIRouter(prefix="/admin/verifications", tags=["Admin Verification Hist
 async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.is_admin:
+if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
     return user_id
 
@@ -37,19 +36,19 @@ async def list_verifications(
     db: Session = Depends(get_db),
 ):
     """List verification history with optional filters."""
-    try:
+try:
         query = db.query(Verification)
 
-        if status:
+if status:
             valid_statuses = ["pending", "completed", "failed", "expired"]
-            if status not in valid_statuses:
+if status not in valid_statuses:
                 raise HTTPException(status_code=400, detail=f"Invalid status: {status}")
             query = query.filter(Verification.status == status)
 
-        if country:
+if country:
             query = query.filter(Verification.country == country)
 
-        if service:
+if service:
             query = query.filter(Verification.service_name == service)
 
         total = query.count()
@@ -71,12 +70,12 @@ async def list_verifications(
                     "completed_at": (v.completed_at.isoformat() if v.completed_at else None),
                     "cost_usd": float(v.cost or 0),
                 }
-                for v in verifications
+for v in verifications
             ],
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"List verifications error: {e}")
         raise HTTPException(status_code=500, detail="Failed to list verifications")
 
@@ -88,9 +87,9 @@ async def get_verification_detail(
     db: Session = Depends(get_db),
 ):
     """Get detailed verification info."""
-    try:
+try:
         verification = db.query(Verification).filter(Verification.id == verification_id).first()
-        if not verification:
+if not verification:
             raise HTTPException(status_code=404, detail="Verification not found")
 
         user = db.query(User).filter(User.id == verification.user_id).first()
@@ -108,9 +107,9 @@ async def get_verification_detail(
             "cost_usd": float(verification.cost or 0),
             "messages_count": (len(verification.messages) if hasattr(verification, "messages") else 0),
         }
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Get verification detail error: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch verification")
 
@@ -122,7 +121,7 @@ async def get_verification_analytics(
     db: Session = Depends(get_db),
 ):
     """Get verification analytics for the last N days."""
-    try:
+try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         verifications = db.query(Verification).filter(Verification.created_at >= cutoff_date).all()
@@ -136,17 +135,17 @@ async def get_verification_analytics(
 
         # Group by country
         by_country = {}
-        for v in verifications:
+for v in verifications:
             country = v.country or "Unknown"
-            if country not in by_country:
+if country not in by_country:
                 by_country[country] = 0
             by_country[country] += 1
 
         # Group by service
         by_service = {}
-        for v in verifications:
+for v in verifications:
             service = v.service_name or "Unknown"
-            if service not in by_service:
+if service not in by_service:
                 by_service[service] = 0
             by_service[service] += 1
 
@@ -162,7 +161,7 @@ async def get_verification_analytics(
             "by_country": by_country,
             "by_service": by_service,
         }
-    except Exception as e:
+except Exception as e:
         logger.error(f"Get verification analytics error: {e}")
         raise HTTPException(status_code=500, detail="Failed to fetch analytics")
 
@@ -176,15 +175,15 @@ async def export_verifications(
     db: Session = Depends(get_db),
 ):
     """Export verification data as CSV."""
-    try:
+try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         query = db.query(Verification).filter(Verification.created_at >= cutoff_date)
 
-        if status:
+if status:
             query = query.filter(Verification.status == status)
 
-        if country:
+if country:
             query = query.filter(Verification.country == country)
 
         verifications = query.all()
@@ -204,7 +203,7 @@ async def export_verifications(
             ]
         )
 
-        for v in verifications:
+for v in verifications:
             writer.writerow(
                 [
                     v.id,
@@ -226,6 +225,6 @@ async def export_verifications(
             "csv_data": output.getvalue(),
             "count": len(verifications),
         }
-    except Exception as e:
+except Exception as e:
         logger.error(f"Export verifications error: {e}")
         raise HTTPException(status_code=500, detail="Failed to export verifications")

@@ -1,11 +1,12 @@
+
+
 import pytest
-
 from app.services.compliance_service import ComplianceService
-
 
 class TestComplianceService:
     @pytest.fixture
-    def service(self):
+def service(self):
+
         return ComplianceService()
 
     @pytest.mark.asyncio

@@ -1,16 +1,16 @@
 """Telegram Bot integration service."""
 
+
 from typing import Dict
-
 import httpx
-
 from app.core.config import settings
 
-
 class TelegramService:
+
     """Telegram Bot API service."""
 
-    def __init__(self):
+def __init__(self):
+
         self.bot_token = settings.telegram_bot_token
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
 

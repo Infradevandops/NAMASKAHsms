@@ -1,15 +1,16 @@
-from datetime import datetime, timedelta
 
+
+from datetime import datetime, timedelta
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
-
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
 
-
 class AnalyticsService:
-    def __init__(self, db: Session):
+
+def __init__(self, db: Session):
+
         self.db = db
 
     async def get_overview(self):
@@ -79,7 +80,7 @@ class AnalyticsService:
                 "verifications": row.verifications,
                 "success": row.success or 0,
             }
-            for row in results
+for row in results
         ]
 
     async def get_services_stats(self):
@@ -106,5 +107,5 @@ class AnalyticsService:
                 "count": row.count,
                 "success_rate": round(row.success_rate, 1) if row.success_rate else 0,
             }
-            for row in results
+for row in results
         ]

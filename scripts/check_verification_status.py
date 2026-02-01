@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Check detailed verification status."""
 
+
 import asyncio
 import sys
+from app.services.textverified_service import TextVerifiedService
 
 sys.path.insert(0, "/Users/machine/Desktop/Namaskah. app")
-
-from app.services.textverified_service import TextVerifiedService
 
 
 async def check_status():
@@ -16,7 +16,7 @@ async def check_status():
 
     print("Checking verification details...")
 
-    try:
+try:
         details = tv_service.client.verifications.details(verification_id)
         print(f"\nVerification ID: {details.id}")
         print(f"Number: {details.number}")
@@ -32,7 +32,7 @@ async def check_status():
         balance = await tv_service.get_balance()
         print(f"\n💰 Current Balance: ${balance['balance']:.2f}")
 
-    except Exception as e:
+except Exception as e:
         print(f"Error: {e}")
 
 

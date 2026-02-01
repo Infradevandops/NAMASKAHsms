@@ -1,13 +1,15 @@
 """Alerting and notification service."""
 
+
 from datetime import datetime
 from typing import Dict, List
 
-
 class AlertingService:
+
     """Advanced alerting and notification system."""
 
-    def __init__(self):
+def __init__(self):
+
         self.alert_channels = {
             "email": True,
             "slack": True,
@@ -22,21 +24,21 @@ class AlertingService:
 
     async def send_alert(self, alert: Dict) -> bool:
         """Send alert through configured channels."""
-        try:
+try:
             # Email notification
-            if self.alert_channels["email"]:
+if self.alert_channels["email"]:
                 await self._send_email_alert(alert)
 
             # Slack notification
-            if self.alert_channels["slack"]:
+if self.alert_channels["slack"]:
                 await self._send_slack_alert(alert)
 
             # Webhook notification
-            if self.alert_channels["webhook"]:
+if self.alert_channels["webhook"]:
                 await self._send_webhook_alert(alert)
 
             return True
-        except Exception as e:
+except Exception as e:
             print(f"Alert sending failed: {e}")
             return False
 
@@ -58,14 +60,14 @@ class AlertingService:
 
     async def process_alert_batch(self, alerts: List[Dict]) -> Dict:
         """Process multiple alerts with deduplication."""
-        if not alerts:
+if not alerts:
             return {"sent": 0, "deduplicated": 0}
 
         # Group alerts by type and severity
         grouped_alerts = {}
-        for alert in alerts:
+for alert in alerts:
             key = f"{alert['type']}_{alert['severity']}"
-            if key not in grouped_alerts:
+if key not in grouped_alerts:
                 grouped_alerts[key] = []
             grouped_alerts[key].append(alert)
 
@@ -73,8 +75,8 @@ class AlertingService:
         deduplicated_count = 0
 
         # Send one alert per group
-        for group, group_alerts in grouped_alerts.items():
-            if len(group_alerts) > 1:
+for group, group_alerts in grouped_alerts.items():
+if len(group_alerts) > 1:
                 # Create summary alert
                 summary_alert = {
                     "type": group_alerts[0]["type"],
@@ -86,7 +88,7 @@ class AlertingService:
                 await self.send_alert(summary_alert)
                 sent_count += 1
                 deduplicated_count += len(group_alerts) - 1
-            else:
+else:
                 await self.send_alert(group_alerts[0])
                 sent_count += 1
 

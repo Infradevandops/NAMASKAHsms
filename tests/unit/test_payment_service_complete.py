@@ -1,22 +1,22 @@
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-from app.models.transaction import PaymentLog, Transaction
-from app.models.user import User
-from app.services.payment_service import PaymentService
 
 # Critical Path: Payment Service
 # Status: Implementing High-Priority Tests
 
 
+from unittest.mock import AsyncMock, patch
+import pytest
+from app.models.transaction import PaymentLog
+from app.services.payment_service import PaymentService
+
 class TestPaymentServiceExtended:
+
     """Extended payment service tests for critical paths."""
 
     @pytest.fixture
-    def payment_service(self, db_session, redis_client):
-        with patch("redis.Redis.from_url", return_value=redis_client):
+def payment_service(self, db_session, redis_client):
+
+with patch("redis.Redis.from_url", return_value=redis_client):
             return PaymentService(db_session)
 
     @pytest.mark.asyncio
@@ -41,22 +41,22 @@ class TestPaymentServiceExtended:
     async def test_payment_amount_validation(self, payment_service, regular_user):
         """Test payment amount validation."""
         # Negative amount
-        with pytest.raises(ValueError, match="Amount must be positive"):
+with pytest.raises(ValueError, match="Amount must be positive"):
             await payment_service.initiate_payment(regular_user.id, -10.0)
 
         # Zero amount
-        with pytest.raises(ValueError, match="Amount must be positive"):
+with pytest.raises(ValueError, match="Amount must be positive"):
             await payment_service.initiate_payment(regular_user.id, 0.0)
 
         # Very large amount (potential fraud)
-        with pytest.raises(ValueError, match="Amount exceeds maximum"):
+with pytest.raises(ValueError, match="Amount exceeds maximum"):
             await payment_service.initiate_payment(regular_user.id, 1000000.0)
 
     async def test_payment_user_not_found(self, payment_service):
         """Test payment with non-existent user."""
         fake_user_id = "nonexistent-user-id"
 
-        with pytest.raises(ValueError, match="User .* not found"):
+with pytest.raises(ValueError, match="User .* not found"):
             await payment_service.initiate_payment(fake_user_id, 10.0)
 
     @patch("app.services.payment_service.paystack_service")
@@ -65,14 +65,14 @@ class TestPaymentServiceExtended:
         mock_paystack.enabled = True
         mock_paystack.initialize_payment = AsyncMock(side_effect=Exception("Paystack API error"))
 
-        with pytest.raises(Exception, match="Paystack API error"):
+with pytest.raises(Exception, match="Paystack API error"):
             await payment_service.initiate_payment(regular_user.id, 10.0)
 
     async def test_payment_invalid_reference(self, payment_service, regular_user):
         """Test verification with invalid reference."""
         invalid_ref = "invalid_ref_12345"
 
-        with pytest.raises(ValueError, match="Payment not found"):
+with pytest.raises(ValueError, match="Payment not found"):
             await payment_service.verify_payment(invalid_ref, regular_user.id)
 
     async def test_payment_status_transitions(self, payment_service, regular_user, db_session):
@@ -112,9 +112,9 @@ class TestPaymentServiceExtended:
 
         # Verify balance updated correctly (or not if duplicate)
         db_session.refresh(regular_user)
-        if result["status"] == "success":
+if result["status"] == "success":
             assert regular_user.credits == initial_balance + amount
-        else:
+else:
             # If duplicate, balance unchanged
             assert regular_user.credits == initial_balance
 
@@ -122,10 +122,11 @@ class TestPaymentServiceExtended:
         key = f"payment:credited:{reference}"
         assert redis_client.get(key) is not None
 
-    def test_payment_get_history_pagination(self, payment_service, regular_user, db_session):
+def test_payment_get_history_pagination(self, payment_service, regular_user, db_session):
+
         """Test payment history with pagination."""
         # Create multiple payment logs
-        for i in range(5):
+for i in range(5):
             log = PaymentLog(
                 user_id=regular_user.id,
                 email=regular_user.email,
@@ -140,7 +141,8 @@ class TestPaymentServiceExtended:
         history = payment_service.get_payment_history(regular_user.id, limit=3)
         assert len(history["payments"]) <= 3
 
-    def test_payment_summary_calculations(self, payment_service, regular_user, db_session):
+def test_payment_summary_calculations(self, payment_service, regular_user, db_session):
+
         """Test payment summary calculations."""
         # Add successful and failed payments
         db_session.add(
@@ -203,74 +205,89 @@ class TestPaymentServiceExtended:
 # Skipped tests for future implementation
 @pytest.mark.skip(reason="Not implemented yet")
 def test_concurrent_payment_handling():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_with_database_lock():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_timeout_handling():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_retry_logic():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_reconciliation():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_webhook_out_of_order():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_partial_refund():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_full_refund():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_refund_insufficient_balance():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_currency_conversion():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_expired_transaction():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_audit_logging():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_notification_trigger():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_transaction_rollback():
+
     pass
 
 
 @pytest.mark.skip(reason="Not implemented yet")
 def test_payment_edge_cases():
+
     pass

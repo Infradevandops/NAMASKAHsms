@@ -1,11 +1,11 @@
 """Reseller management service."""
 
+
 from datetime import datetime, timedelta
 from typing import Dict, List
-
 from sqlalchemy.orm import Session
-
 from app.models.reseller import (
+
     BulkOperation,
     CreditAllocation,
     ResellerAccount,
@@ -15,9 +15,11 @@ from app.models.reseller import (
 
 
 class ResellerService:
+
     """Reseller account and sub - account management."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         self.db = db
 
     async def create_reseller_account(self, user_id: int, tier: str = "bronze") -> Dict:
@@ -26,7 +28,7 @@ class ResellerService:
         # Check if user already has reseller account
         existing = self.db.query(ResellerAccount).filter(ResellerAccount.user_id == user_id).first()
 
-        if existing:
+if existing:
             return {"error": "User already has reseller account"}
 
         # Get tier configuration
@@ -62,13 +64,13 @@ class ResellerService:
 
         reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
 
-        if not reseller:
+if not reseller:
             return {"error": "Reseller account not found"}
 
         # Check if email already exists
         existing = self.db.query(SubAccount).filter(SubAccount.email == email).first()
 
-        if existing:
+if existing:
             return {"error": "Email already exists"}
 
         sub_account = SubAccount(
@@ -83,7 +85,7 @@ class ResellerService:
         self.db.flush()  # Get ID
 
         # Create initial credit transaction if credits > 0
-        if initial_credits > 0:
+if initial_credits > 0:
             transaction = SubAccountTransaction(
                 sub_account_id=sub_account.id,
                 transaction_type="credit",
@@ -121,12 +123,12 @@ class ResellerService:
             .first()
         )
 
-        if not reseller or not sub_account:
+if not reseller or not sub_account:
             return {"error": "Invalid reseller or sub - account"}
 
         # Check reseller balance (if applicable)
         reseller_user = reseller.user
-        if reseller_user.credits < amount:
+if reseller_user.credits < amount:
             return {"error": "Insufficient reseller credits"}
 
         # Deduct from reseller
@@ -186,7 +188,7 @@ class ResellerService:
                 "last_activity": account.last_activity,
                 "created_at": account.created_at,
             }
-            for account in sub_accounts
+for account in sub_accounts
         ]
 
     async def bulk_credit_topup(self, reseller_id: int, account_ids: List[int], amount_per_account: float) -> Dict:
@@ -210,8 +212,8 @@ class ResellerService:
         failed = 0
         errors = []
 
-        for account_id in account_ids:
-            try:
+for account_id in account_ids:
+try:
                 result = await self.allocate_credits(
                     reseller_id=reseller_id,
                     sub_account_id=account_id,
@@ -219,13 +221,13 @@ class ResellerService:
                     allocation_type="bulk",
                 )
 
-                if result.get("success"):
+if result.get("success"):
                     processed += 1
-                else:
+else:
                     failed += 1
                     errors.append(f"Account {account_id}: {result.get('error')}")
 
-            except Exception as e:
+except Exception as e:
                 failed += 1
                 errors.append(f"Account {account_id}: {str(e)}")
 
@@ -270,14 +272,14 @@ class ResellerService:
 
         # Usage by sub - account
         usage_by_account = {}
-        for transaction in transactions:
+for transaction in transactions:
             account_id = transaction.sub_account_id
-            if account_id not in usage_by_account:
+if account_id not in usage_by_account:
                 usage_by_account[account_id] = {"credits": 0, "debits": 0}
 
-            if transaction.transaction_type == "credit":
+if transaction.transaction_type == "credit":
                 usage_by_account[account_id]["credits"] += transaction.amount
-            else:
+else:
                 usage_by_account[account_id]["debits"] += transaction.amount
 
         return {
@@ -294,11 +296,12 @@ class ResellerService:
                     "amount": t.amount,
                     "description": t.description,
                 }
-                for t in transactions[-50:]  # Last 50 transactions
+for t in transactions[-50:]  # Last 50 transactions
             ],
         }
 
-    def _get_tier_config(self, tier: str) -> Dict:
+def _get_tier_config(self, tier: str) -> Dict:
+
         """Get configuration for reseller tier."""
 
         tiers = {
@@ -331,5 +334,6 @@ class ResellerService:
 
 
 def get_reseller_service(db: Session) -> ResellerService:
+
     """Get reseller service instance."""
     return ResellerService(db)

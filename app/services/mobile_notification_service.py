@@ -1,22 +1,28 @@
 """Mobile notification service for push notifications."""
 
+
 import asyncio
 from typing import Any, Dict, List, Optional
-
 import aiohttp
 from sqlalchemy.orm import Session
-
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.notification import Notification
+from app.models.device_token import DeviceToken
+from app.models.device_token import DeviceToken
+from app.models.device_token import DeviceToken
+from datetime import datetime, timedelta, timezone
+from app.models.device_token import DeviceToken
 
 logger = get_logger(__name__)
 
 
 class MobileNotificationService:
+
     """Service for sending push notifications to mobile devices."""
 
-    def __init__(self, db: Optional[Session] = None):
+def __init__(self, db: Optional[Session] = None):
+
         """Initialize mobile notification service.
 
         Args:
@@ -31,11 +37,11 @@ class MobileNotificationService:
         self.apns_enabled = bool(self.apns_key_id and self.apns_team_id and self.apns_bundle_id)
         self.db = db
 
-        if self.fcm_enabled:
+if self.fcm_enabled:
             logger.info("FCM push notification service initialized")
-        if self.apns_enabled:
+if self.apns_enabled:
             logger.info("APNs push notification service initialized")
-        if not self.fcm_enabled and not self.apns_enabled:
+if not self.fcm_enabled and not self.apns_enabled:
             logger.warning("No push notification services configured")
 
     async def send_push_notification(
@@ -58,23 +64,23 @@ class MobileNotificationService:
         """
         results = {"ios": {"sent": 0, "failed": 0}, "android": {"sent": 0, "failed": 0}}
 
-        if not device_tokens:
+if not device_tokens:
             logger.debug(f"No device tokens for user {user_id}")
             return results
 
-        try:
-            if platform in ("android", "both") and self.fcm_enabled:
+try:
+if platform in ("android", "both") and self.fcm_enabled:
                 android_tokens = [t for t in device_tokens if t.startswith("android_")]
-                if android_tokens:
+if android_tokens:
                     fcm_result = await self._send_fcm_notification(
                         notification=notification,
                         device_tokens=android_tokens,
                     )
                     results["android"] = fcm_result
 
-            if platform in ("ios", "both") and self.apns_enabled:
+if platform in ("ios", "both") and self.apns_enabled:
                 ios_tokens = [t for t in device_tokens if t.startswith("ios_")]
-                if ios_tokens:
+if ios_tokens:
                     apns_result = await self._send_apns_notification(
                         notification=notification,
                         device_tokens=ios_tokens,
@@ -87,7 +93,7 @@ class MobileNotificationService:
                 f"iOS {results['ios']['sent']}/{len([t for t in device_tokens if t.startswith('ios_')])}"
             )
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send push notifications for user {user_id}: {str(e)}")
 
         return results
@@ -108,10 +114,10 @@ class MobileNotificationService:
         """
         result = {"sent": 0, "failed": 0}
 
-        if not self.fcm_enabled or not device_tokens:
+if not self.fcm_enabled or not device_tokens:
             return result
 
-        try:
+try:
             fcm_url = "https://fcm.googleapis.com/fcm/send"
             headers = {
                 "Authorization": f"key={self.fcm_api_key}",
@@ -137,19 +143,19 @@ class MobileNotificationService:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(fcm_url, json=payload, headers=headers, timeout=10) as response:
-                    if response.status == 200:
+if response.status == 200:
                         data = await response.json()
                         result["sent"] = data.get("success", 0)
                         result["failed"] = data.get("failure", 0)
                         logger.info(f"FCM notification sent: {result['sent']} success, {result['failed']} failed")
-                    else:
+else:
                         logger.error(f"FCM API error: {response.status}")
                         result["failed"] = len(device_tokens)
 
-        except asyncio.TimeoutError:
+except asyncio.TimeoutError:
             logger.error("FCM request timeout")
             result["failed"] = len(device_tokens)
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send FCM notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
@@ -171,10 +177,10 @@ class MobileNotificationService:
         """
         result = {"sent": 0, "failed": 0}
 
-        if not self.apns_enabled or not device_tokens:
+if not self.apns_enabled or not device_tokens:
             return result
 
-        try:
+try:
             # APNs requires HTTP/2 and certificate-based authentication
             # This is a placeholder for the actual implementation
             # In production, use a library like aioapns or aiohttp with HTTP/2 support
@@ -182,7 +188,7 @@ class MobileNotificationService:
             logger.info(f"APNs notification prepared for {len(device_tokens)} devices")
             result["sent"] = len(device_tokens)
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send APNs notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
@@ -206,12 +212,11 @@ class MobileNotificationService:
         Returns:
             True if registration successful, False otherwise
         """
-        if not self.db:
+if not self.db:
             logger.warning("Database session not available for device token registration")
             return False
 
-        try:
-            from app.models.device_token import DeviceToken
+try:
 
             # Check if token already exists
             existing = (
@@ -223,11 +228,11 @@ class MobileNotificationService:
                 .first()
             )
 
-            if existing:
+if existing:
                 existing.platform = platform
                 existing.device_name = device_name
                 existing.is_active = True
-            else:
+else:
                 token = DeviceToken(
                     user_id=user_id,
                     device_token=device_token,
@@ -241,7 +246,7 @@ class MobileNotificationService:
             logger.info(f"Device token registered for user {user_id} ({platform})")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to register device token: {str(e)}")
             self.db.rollback()
             return False
@@ -260,12 +265,11 @@ class MobileNotificationService:
         Returns:
             True if unregistration successful, False otherwise
         """
-        if not self.db:
+if not self.db:
             logger.warning("Database session not available for device token unregistration")
             return False
 
-        try:
-            from app.models.device_token import DeviceToken
+try:
 
             token = (
                 self.db.query(DeviceToken)
@@ -276,7 +280,7 @@ class MobileNotificationService:
                 .first()
             )
 
-            if token:
+if token:
                 token.is_active = False
                 self.db.commit()
                 logger.info(f"Device token unregistered for user {user_id}")
@@ -284,7 +288,7 @@ class MobileNotificationService:
 
             return False
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to unregister device token: {str(e)}")
             self.db.rollback()
             return False
@@ -303,25 +307,24 @@ class MobileNotificationService:
         Returns:
             List of active device tokens
         """
-        if not self.db:
+if not self.db:
             logger.warning("Database session not available for getting device tokens")
             return []
 
-        try:
-            from app.models.device_token import DeviceToken
+try:
 
             query = self.db.query(DeviceToken).filter_by(
                 user_id=user_id,
                 is_active=True,
             )
 
-            if platform:
+if platform:
                 query = query.filter_by(platform=platform)
 
             tokens = query.all()
             return [t.device_token for t in tokens]
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get device tokens for user {user_id}: {str(e)}")
             return []
 
@@ -334,14 +337,12 @@ class MobileNotificationService:
         Returns:
             Number of tokens cleaned up
         """
-        if not self.db:
+if not self.db:
             logger.warning("Database session not available for cleanup")
             return 0
 
-        try:
-            from datetime import datetime, timedelta, timezone
+try:
 
-            from app.models.device_token import DeviceToken
 
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
@@ -358,7 +359,7 @@ class MobileNotificationService:
             logger.info(f"Cleaned up {deleted} inactive device tokens")
             return deleted
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to cleanup inactive tokens: {str(e)}")
             self.db.rollback()
             return 0

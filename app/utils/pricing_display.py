@@ -2,6 +2,7 @@
 
 
 def format_pricing_breakdown(breakdown: dict) -> dict:
+
     """Format pricing breakdown for display."""
     return {
         "tier": breakdown["tier"],
@@ -20,17 +21,19 @@ def format_pricing_breakdown(breakdown: dict) -> dict:
 
 
 def get_quota_percentage(quota_used: float, quota_limit: float) -> int:
+
     """Calculate quota usage percentage."""
-    if quota_limit == 0:
+if quota_limit == 0:
         return 0
     return min(100, int((quota_used / quota_limit) * 100))
 
 
 def format_quota_status(quota_used: float, quota_limit: float) -> str:
+
     """Format quota status message."""
-    if quota_limit == 0:
+if quota_limit == 0:
         return "No quota limit"
     remaining = quota_limit - quota_used
-    if remaining <= 0:
+if remaining <= 0:
         return "Quota exceeded - overage charges apply"
     return f"${remaining:.2f} remaining"

@@ -1,13 +1,10 @@
 """Test payment idempotency."""
 
+
 import asyncio
-from unittest.mock import Mock
-
 import pytest
-
 from app.models.user import User
 from app.services.payment_service import PaymentService
-
 
 @pytest.mark.asyncio
 async def test_duplicate_payment_prevented(db_session, redis_client):

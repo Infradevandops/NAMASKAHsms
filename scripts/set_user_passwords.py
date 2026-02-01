@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 """
-Set known passwords for existing users
-"""
-
-import os
 import sys
-
-sys.path.append(".")
-
 from passlib.context import CryptContext
-
 from app.core.database import SessionLocal
 from app.models.user import User
 
+Set known passwords for existing users
+"""
+
+
+sys.path.append(".")
+
 
 def set_user_passwords():
+
     """Set known passwords for existing users."""
 
     print("🔐 SETTING USER PASSWORDS")
@@ -33,10 +32,10 @@ def set_user_passwords():
 
     updated_users = []
 
-    for email, password in user_passwords.items():
+for email, password in user_passwords.items():
         user = db.query(User).filter(User.email == email).first()
 
-        if user:
+if user:
             # Update password
             user.password_hash = pwd_context.hash(password)
             user.email_verified = True
@@ -57,7 +56,7 @@ def set_user_passwords():
             )
 
             print(f"✅ Updated: {email}")
-        else:
+else:
             print(f"❌ Not found: {email}")
 
     db.commit()
@@ -66,7 +65,7 @@ def set_user_passwords():
     print("\n🎯 WORKING LOGIN CREDENTIALS:")
     print("=" * 40)
 
-    for user in updated_users:
+for user in updated_users:
         user_type = "👑 ADMIN" if user["is_admin"] else "👤 USER"
         print(f"{user_type}")
         print(f"   Email: {user['email']}")

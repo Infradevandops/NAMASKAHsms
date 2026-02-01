@@ -1,18 +1,20 @@
 """Comprehensive verification flow test."""
 
-import asyncio
-import os
-import sys
-from datetime import datetime
 
 # Add parent directory to path
+
+import os
+import sys
+from sqlalchemy import inspect
+from app.core.database import SessionLocal
+from app.models.verification import Verification
+from app.api.verification.consolidated_verification import router
+from app.models.verification import Verification
+from app.services.textverified_service import TextVerifiedService
+from app.api.verification.consolidated_verification import create_safe_error_detail
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import create_engine, inspect, text
-
-from app.core.database import SessionLocal
-from app.models.user import User
-from app.models.verification import Verification
 
 print("=" * 60)
 print("VERIFICATION FLOW DEEP ASSESSMENT")
@@ -48,20 +50,20 @@ try:
     ]
 
     missing = [col for col in required_columns if col not in columns]
-    if missing:
+if missing:
         issues.append(f"❌ Missing columns in verifications table: {missing}")
         print(f"   ❌ Missing columns: {missing}")
-    else:
+else:
         print("   ✅ All required columns present")
 
     # Check indexes
     indexes = inspector.get_indexes("verifications")
     index_names = [idx["name"] for idx in indexes]
 
-    if "ix_verifications_idempotency_key" not in index_names:
+if "ix_verifications_idempotency_key" not in index_names:
         issues.append("⚠️  Missing index on idempotency_key")
         print("   ⚠️  Missing index on idempotency_key")
-    else:
+else:
         print("   ✅ Idempotency index exists")
 
 except Exception as e:
@@ -71,7 +73,6 @@ except Exception as e:
 # Test 2: API Endpoint Availability
 print("\n2️⃣  Testing API Endpoints...")
 try:
-    from app.api.verification.consolidated_verification import router
 
     routes = [route.path for route in router.routes]
     required_routes = [
@@ -82,10 +83,10 @@ try:
         "/verify/history",
     ]
 
-    for route in required_routes:
-        if any(r.startswith(route.replace("{", "").replace("}", "")) for r in routes):
+for route in required_routes:
+if any(r.startswith(route.replace("{", "").replace("}", "")) for r in routes):
             print(f"   ✅ {route}")
-        else:
+else:
             issues.append(f"❌ Missing route: {route}")
             print(f"   ❌ {route}")
 
@@ -96,7 +97,7 @@ except Exception as e:
 # Test 3: Frontend JavaScript
 print("\n3️⃣  Testing Frontend JavaScript...")
 try:
-    with open("static/js/verification.js", "r") as f:
+with open("static/js/verification.js", "r") as f:
         js_content = f.read()
 
     # Check for critical functions
@@ -109,17 +110,17 @@ try:
         "checkTierAccess",
     ]
 
-    for func in critical_functions:
-        if f"function {func}" in js_content or f"async function {func}" in js_content:
+for func in critical_functions:
+if f"function {func}" in js_content or f"async function {func}" in js_content:
             print(f"   ✅ {func}()")
-        else:
+else:
             issues.append(f"❌ Missing function: {func}()")
             print(f"   ❌ {func}()")
 
     # Check for idempotency_key in request
-    if "idempotency_key" in js_content:
+if "idempotency_key" in js_content:
         print("   ✅ Idempotency key generation present")
-    else:
+else:
         issues.append("⚠️  Idempotency key not generated in frontend")
         print("   ⚠️  Idempotency key not generated")
 
@@ -131,13 +132,12 @@ except Exception as e:
 print("\n4️⃣  Testing Model Validation...")
 try:
     # Check if Verification model has all required fields
-    from app.models.verification import Verification
 
     model_columns = [col.name for col in Verification.__table__.columns]
 
-    if "idempotency_key" in model_columns:
+if "idempotency_key" in model_columns:
         print("   ✅ Verification model has idempotency_key")
-    else:
+else:
         issues.append("❌ Verification model missing idempotency_key")
         print("   ❌ Model missing idempotency_key")
 
@@ -148,20 +148,19 @@ except Exception as e:
 # Test 5: Service Integration
 print("\n5️⃣  Testing Service Integration...")
 try:
-    from app.services.textverified_service import TextVerifiedService
 
     tv = TextVerifiedService()
 
-    if tv.enabled:
+if tv.enabled:
         print("   ✅ TextVerified service enabled")
-    else:
+else:
         issues.append("⚠️  TextVerified service disabled")
         print("   ⚠️  TextVerified service disabled")
 
     # Check if API key is set
-    if tv.api_key:
+if tv.api_key:
         print("   ✅ API key configured")
-    else:
+else:
         issues.append("❌ TextVerified API key not configured")
         print("   ❌ API key not configured")
 
@@ -172,12 +171,12 @@ except Exception as e:
 # Test 6: Polling Service
 print("\n6️⃣  Testing Polling Service...")
 try:
-    from app.services.sms_polling_service import SMSPollingService
+    pass
 
     print("   ✅ SMS polling service importable")
 
     # Check if polling queries will work
-    try:
+try:
         db = SessionLocal()
         test_query = (
             db.query(Verification)
@@ -189,7 +188,7 @@ try:
             .all()
         )
         print("   ✅ Polling queries work")
-    except Exception as e:
+except Exception as e:
         issues.append(f"❌ Polling query failed: {e}")
         print(f"   ❌ Polling query failed: {e}")
 
@@ -200,14 +199,13 @@ except Exception as e:
 # Test 7: Error Handling
 print("\n7️⃣  Testing Error Handling...")
 try:
-    from app.api.verification.consolidated_verification import create_safe_error_detail
 
     test_error = Exception("Test error with sensitive data: password=secret123")
     safe_detail = create_safe_error_detail(test_error)
 
-    if len(safe_detail) <= 100:
+if len(safe_detail) <= 100:
         print("   ✅ Error sanitization works")
-    else:
+else:
         issues.append("⚠️  Error messages not properly truncated")
         print("   ⚠️  Error messages not properly truncated")
 
@@ -219,19 +217,19 @@ except Exception as e:
 print("\n8️⃣  Testing Frontend-Backend Integration...")
 try:
     # Check if API endpoint matches frontend call
-    with open("static/js/verification.js", "r") as f:
+with open("static/js/verification.js", "r") as f:
         js_content = f.read()
 
-    if "'/api/v1/verify/create'" in js_content:
+if "'/api/v1/verify/create'" in js_content:
         print("   ✅ Frontend calls correct endpoint")
-    else:
+else:
         issues.append("❌ Frontend endpoint mismatch")
         print("   ❌ Frontend endpoint mismatch")
 
     # Check if response fields match
-    if "phone_number" in js_content and "fallback_applied" in js_content:
+if "phone_number" in js_content and "fallback_applied" in js_content:
         print("   ✅ Response fields handled")
-    else:
+else:
         issues.append("⚠️  Some response fields may not be handled")
         print("   ⚠️  Some response fields may not be handled")
 
@@ -248,7 +246,7 @@ if not issues:
     print("✅ All checks passed!")
 else:
     print(f"⚠️  Found {len(issues)} issue(s):\n")
-    for i, issue in enumerate(issues, 1):
+for i, issue in enumerate(issues, 1):
         print(f"{i}. {issue}")
 
 print("\n" + "=" * 60)
@@ -270,7 +268,7 @@ if any("polling" in issue.lower() for issue in issues):
     recommendations.append("4. Restart polling services")
 
 if recommendations:
-    for rec in recommendations:
+for rec in recommendations:
         print(f"   {rec}")
 else:
     print("   No immediate actions required")

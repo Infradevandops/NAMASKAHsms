@@ -1,14 +1,14 @@
 """Authentication request/response schemas."""
 
+
 from datetime import datetime
 from typing import Optional
-
 from pydantic import EmailStr
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 from app.schemas.validators import validate_email, validate_password_strength
 
-
 class RegisterRequest(BaseModel):
+
     """Schema for user registration request."""
 
     email: EmailStr = Field(..., description="Valid email address")
@@ -16,6 +16,7 @@ class RegisterRequest(BaseModel):
 
 
 class UserCreate(BaseModel):
+
     """Schema for user registration."""
 
     email: EmailStr = Field(..., description="Valid email address")
@@ -28,24 +29,27 @@ class UserCreate(BaseModel):
 
     @field_validator("email", mode="before")
     @classmethod
-    def validate_email_field(cls, v):
-        if not v:
+def validate_email_field(cls, v):
+
+if not v:
             raise ValueError("Email cannot be empty")
         return validate_email(v)
 
     @field_validator("password", mode="before")
     @classmethod
-    def validate_password_field(cls, v):
-        if not v:
+def validate_password_field(cls, v):
+
+if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
 
     @field_validator("referral_code", mode="before")
     @classmethod
-    def validate_referral_code_field(cls, v):
-        if v:
+def validate_referral_code_field(cls, v):
+
+if v:
             v = v.strip().upper()
-            if len(v) != 6 or not v.isalnum():
+if len(v) != 6 or not v.isalnum():
                 raise ValueError("Referral code must be 6 alphanumeric characters")
         return v
 
@@ -61,6 +65,7 @@ class UserCreate(BaseModel):
 
 
 class UserUpdate(BaseModel):
+
     """Schema for user profile updates."""
 
     email: Optional[EmailStr] = Field(None, description="New email address")
@@ -68,13 +73,15 @@ class UserUpdate(BaseModel):
 
     @field_validator("password", mode="before")
     @classmethod
-    def validate_password(cls, v):
-        if v and len(v) < 6:
+def validate_password(cls, v):
+
+if v and len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
         return v
 
 
 class UserResponse(BaseModel):
+
     """Schema for user data in responses."""
 
     id: str
@@ -106,6 +113,7 @@ class UserResponse(BaseModel):
 
 
 class LoginRequest(BaseModel):
+
     """Schema for user login."""
 
     email: str = Field(..., description="User email address")
@@ -115,6 +123,7 @@ class LoginRequest(BaseModel):
 
 
 class TokenResponse(BaseModel):
+
     """Schema for JWT token response."""
 
     access_token: str = Field(..., description="JWT access token")
@@ -142,6 +151,7 @@ class TokenResponse(BaseModel):
 
 
 class APIKeyCreate(BaseModel):
+
     """Schema for API key creation."""
 
     name: str = Field(..., min_length=1, max_length=100, description="API key name")
@@ -150,6 +160,7 @@ class APIKeyCreate(BaseModel):
 
 
 class APIKeyResponse(BaseModel):
+
     """Schema for API key response."""
 
     id: str
@@ -177,6 +188,7 @@ class APIKeyResponse(BaseModel):
 
 
 class APIKeyListResponse(BaseModel):
+
     """Schema for API key list (without actual key)."""
 
     id: str
@@ -203,6 +215,7 @@ class APIKeyListResponse(BaseModel):
 
 
 class PasswordResetRequest(BaseModel):
+
     """Schema for password reset request."""
 
     email: EmailStr = Field(..., description="Email address for password reset")
@@ -211,6 +224,7 @@ class PasswordResetRequest(BaseModel):
 
 
 class PasswordResetConfirm(BaseModel):
+
     """Schema for password reset confirmation."""
 
     token: str = Field(..., min_length=1, description="Password reset token")
@@ -218,15 +232,17 @@ class PasswordResetConfirm(BaseModel):
 
     @field_validator("token", mode="before")
     @classmethod
-    def validate_token(cls, v):
-        if not v or not v.strip():
+def validate_token(cls, v):
+
+if not v or not v.strip():
             raise ValueError("Token cannot be empty")
         return v.strip()
 
     @field_validator("new_password", mode="before")
     @classmethod
-    def validate_password(cls, v):
-        if not v:
+def validate_password(cls, v):
+
+if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
 
@@ -241,12 +257,14 @@ class PasswordResetConfirm(BaseModel):
 
 
 class EmailVerificationRequest(BaseModel):
+
     """Schema for email verification resend."""
 
     email: EmailStr = Field(..., description="Email address to verify")
 
 
 class GoogleAuthRequest(BaseModel):
+
     """Schema for Google OAuth authentication."""
 
     token: str = Field(..., description="Google OAuth token")

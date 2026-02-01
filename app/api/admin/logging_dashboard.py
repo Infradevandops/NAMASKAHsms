@@ -1,12 +1,11 @@
 """Admin logging dashboard endpoints."""
 
+
 import logging
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
-
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id
 
@@ -23,6 +22,7 @@ database_errors = []
 
 
 def log_tier_api_call(user_id: str, endpoint: str, tier: str, status: int):
+
     """Log a tier API call."""
     tier_api_calls.append(
         {
@@ -34,11 +34,12 @@ def log_tier_api_call(user_id: str, endpoint: str, tier: str, status: int):
         }
     )
     # Keep only last 1000 entries
-    if len(tier_api_calls) > 1000:
+if len(tier_api_calls) > 1000:
         tier_api_calls.pop(0)
 
 
 def log_tier_402_error(user_id: str, endpoint: str, user_tier: str, required_tier: str, reason: str):
+
     """Log a 402 tier access denied error."""
     tier_402_errors.append(
         {
@@ -51,11 +52,12 @@ def log_tier_402_error(user_id: str, endpoint: str, user_tier: str, required_tie
         }
     )
     # Keep only last 1000 entries
-    if len(tier_402_errors) > 1000:
+if len(tier_402_errors) > 1000:
         tier_402_errors.pop(0)
 
 
 def log_database_error(operation: str, error: str, user_id: str = None):
+
     """Log a database error."""
     database_errors.append(
         {
@@ -66,7 +68,7 @@ def log_database_error(operation: str, error: str, user_id: str = None):
         }
     )
     # Keep only last 1000 entries
-    if len(database_errors) > 1000:
+if len(database_errors) > 1000:
         database_errors.pop(0)
 
 
@@ -124,22 +126,22 @@ async def get_error_trends(
 
     # Count 402 errors by day
     errors_402_by_day = {}
-    for error in tier_402_errors:
-        if error["timestamp"] >= cutoff_iso:
+for error in tier_402_errors:
+if error["timestamp"] >= cutoff_iso:
             day = error["timestamp"][:10]  # Get YYYY-MM-DD
             errors_402_by_day[day] = errors_402_by_day.get(day, 0) + 1
 
     # Count database errors by day
     db_errors_by_day = {}
-    for error in database_errors:
-        if error["timestamp"] >= cutoff_iso:
+for error in database_errors:
+if error["timestamp"] >= cutoff_iso:
             day = error["timestamp"][:10]
             db_errors_by_day[day] = db_errors_by_day.get(day, 0) + 1
 
     # Count 402 errors by required tier
     errors_by_tier = {}
-    for error in tier_402_errors:
-        if error["timestamp"] >= cutoff_iso:
+for error in tier_402_errors:
+if error["timestamp"] >= cutoff_iso:
             tier = error["required_tier"]
             errors_by_tier[tier] = errors_by_tier.get(tier, 0) + 1
 

@@ -1,11 +1,10 @@
 """Notification analytics service for tracking delivery and engagement metrics."""
 
+
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
-
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
-
 from app.core.logging import get_logger
 from app.models.notification_analytics import NotificationAnalytics
 
@@ -13,9 +12,11 @@ logger = get_logger(__name__)
 
 
 class NotificationAnalyticsService:
+
     """Service for tracking and analyzing notification metrics."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         """Initialize notification analytics service.
 
         Args:
@@ -23,7 +24,8 @@ class NotificationAnalyticsService:
         """
         self.db = db
 
-    def track_notification_sent(
+def track_notification_sent(
+
         self,
         notification_id: str,
         user_id: str,
@@ -43,7 +45,7 @@ class NotificationAnalyticsService:
         Returns:
             NotificationAnalytics record
         """
-        try:
+try:
             analytics = NotificationAnalytics(
                 notification_id=notification_id,
                 user_id=user_id,
@@ -64,11 +66,12 @@ class NotificationAnalyticsService:
 
             return analytics
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to track notification sent: {e}")
             raise
 
-    def track_notification_delivered(
+def track_notification_delivered(
+
         self,
         notification_id: str,
         user_id: str,
@@ -84,7 +87,7 @@ class NotificationAnalyticsService:
         Returns:
             True if tracking successful, False otherwise
         """
-        try:
+try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -97,7 +100,7 @@ class NotificationAnalyticsService:
                 .first()
             )
 
-            if not analytics:
+if not analytics:
                 logger.warning(
                     f"Analytics record not found for notification {notification_id}, "
                     f"user {user_id}, method {delivery_method}"
@@ -109,7 +112,7 @@ class NotificationAnalyticsService:
             analytics.delivered_at = now.isoformat()
 
             # Calculate delivery time
-            if analytics.sent_at:
+if analytics.sent_at:
                 sent_time = datetime.fromisoformat(analytics.sent_at)
                 analytics.delivery_time_ms = int((now - sent_time).total_seconds() * 1000)
 
@@ -122,11 +125,12 @@ class NotificationAnalyticsService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to track notification delivered: {e}")
             return False
 
-    def track_notification_read(
+def track_notification_read(
+
         self,
         notification_id: str,
         user_id: str,
@@ -140,7 +144,7 @@ class NotificationAnalyticsService:
         Returns:
             True if tracking successful, False otherwise
         """
-        try:
+try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -152,7 +156,7 @@ class NotificationAnalyticsService:
                 .first()
             )
 
-            if not analytics:
+if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
                 return False
 
@@ -161,7 +165,7 @@ class NotificationAnalyticsService:
             analytics.read_at = now.isoformat()
 
             # Calculate read time
-            if analytics.delivered_at:
+if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
                 analytics.read_time_ms = int((now - delivered_time).total_seconds() * 1000)
 
@@ -174,11 +178,12 @@ class NotificationAnalyticsService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to track notification read: {e}")
             return False
 
-    def track_notification_clicked(
+def track_notification_clicked(
+
         self,
         notification_id: str,
         user_id: str,
@@ -192,7 +197,7 @@ class NotificationAnalyticsService:
         Returns:
             True if tracking successful, False otherwise
         """
-        try:
+try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -204,7 +209,7 @@ class NotificationAnalyticsService:
                 .first()
             )
 
-            if not analytics:
+if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
                 return False
 
@@ -213,7 +218,7 @@ class NotificationAnalyticsService:
             analytics.clicked_at = now.isoformat()
 
             # Calculate click time
-            if analytics.delivered_at:
+if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
                 analytics.click_time_ms = int((now - delivered_time).total_seconds() * 1000)
 
@@ -226,11 +231,12 @@ class NotificationAnalyticsService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to track notification clicked: {e}")
             return False
 
-    def track_notification_failed(
+def track_notification_failed(
+
         self,
         notification_id: str,
         user_id: str,
@@ -248,7 +254,7 @@ class NotificationAnalyticsService:
         Returns:
             True if tracking successful, False otherwise
         """
-        try:
+try:
             analytics = (
                 self.db.query(NotificationAnalytics)
                 .filter(
@@ -261,7 +267,7 @@ class NotificationAnalyticsService:
                 .first()
             )
 
-            if not analytics:
+if not analytics:
                 logger.warning(f"Analytics record not found for notification {notification_id}")
                 return False
 
@@ -279,11 +285,12 @@ class NotificationAnalyticsService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to track notification failed: {e}")
             return False
 
-    def get_delivery_metrics(
+def get_delivery_metrics(
+
         self,
         user_id: Optional[str] = None,
         notification_type: Optional[str] = None,
@@ -299,15 +306,15 @@ class NotificationAnalyticsService:
         Returns:
             Dictionary with delivery metrics
         """
-        try:
+try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-            if user_id:
+if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
-            if notification_type:
+if notification_type:
                 query = query.filter(NotificationAnalytics.notification_type == notification_type)
 
             analytics = query.all()
@@ -356,11 +363,12 @@ class NotificationAnalyticsService:
                 "avg_click_time_ms": round(avg_click_time, 2),
             }
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get delivery metrics: {e}")
             return {}
 
-    def get_metrics_by_type(
+def get_metrics_by_type(
+
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -374,26 +382,26 @@ class NotificationAnalyticsService:
         Returns:
             Dictionary with metrics by type
         """
-        try:
+try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-            if user_id:
+if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by type
             by_type = {}
-            for a in analytics:
-                if a.notification_type not in by_type:
+for a in analytics:
+if a.notification_type not in by_type:
                     by_type[a.notification_type] = []
                 by_type[a.notification_type].append(a)
 
             # Calculate metrics for each type
             result = {}
-            for notification_type, records in by_type.items():
+for notification_type, records in by_type.items():
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
                 read = len([r for r in records if r.status in ["read", "clicked"]])
@@ -415,11 +423,12 @@ class NotificationAnalyticsService:
 
             return result
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get metrics by type: {e}")
             return {}
 
-    def get_metrics_by_method(
+def get_metrics_by_method(
+
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -433,26 +442,26 @@ class NotificationAnalyticsService:
         Returns:
             Dictionary with metrics by method
         """
-        try:
+try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-            if user_id:
+if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by method
             by_method = {}
-            for a in analytics:
-                if a.delivery_method not in by_method:
+for a in analytics:
+if a.delivery_method not in by_method:
                     by_method[a.delivery_method] = []
                 by_method[a.delivery_method].append(a)
 
             # Calculate metrics for each method
             result = {}
-            for method, records in by_method.items():
+for method, records in by_method.items():
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
                 read = len([r for r in records if r.status in ["read", "clicked"]])
@@ -474,11 +483,12 @@ class NotificationAnalyticsService:
 
             return result
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get metrics by method: {e}")
             return {}
 
-    def get_timeline_metrics(
+def get_timeline_metrics(
+
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -494,31 +504,31 @@ class NotificationAnalyticsService:
         Returns:
             List of metrics by time period
         """
-        try:
+try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
             query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
 
-            if user_id:
+if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
             analytics = query.all()
 
             # Group by time period
             by_period = {}
-            for a in analytics:
-                if interval == "day":
+for a in analytics:
+if interval == "day":
                     period = a.created_at.date().isoformat()
-                else:  # hour
+else:  # hour
                     period = a.created_at.replace(minute=0, second=0, microsecond=0).isoformat()
 
-                if period not in by_period:
+if period not in by_period:
                     by_period[period] = []
                 by_period[period].append(a)
 
             # Calculate metrics for each period
             result = []
-            for period in sorted(by_period.keys()):
+for period in sorted(by_period.keys()):
                 records = by_period[period]
                 total = len(records)
                 delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
@@ -544,6 +554,6 @@ class NotificationAnalyticsService:
 
             return result
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get timeline metrics: {e}")
             return []

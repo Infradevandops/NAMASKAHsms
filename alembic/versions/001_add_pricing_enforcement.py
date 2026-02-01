@@ -1,14 +1,14 @@
 """Add pricing enforcement schema.
 
+import sqlalchemy as sa
+from alembic import op
+
 Revision ID: 001_pricing_enforcement
-Revises: 
+Revises:
 Create Date: 2025-12-27
 
 """
 
-import sqlalchemy as sa
-
-from alembic import op
 
 revision = "001_pricing_enforcement"
 down_revision = "pricing_templates_v1"
@@ -58,6 +58,7 @@ def upgrade():
 
 
 def downgrade():
+
     op.drop_index("ix_monthly_quota_usage_month", table_name="monthly_quota_usage")
     op.drop_index("ix_monthly_quota_usage_user_id", table_name="monthly_quota_usage")
     op.drop_table("monthly_quota_usage")

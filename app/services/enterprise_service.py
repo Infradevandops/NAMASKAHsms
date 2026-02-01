@@ -1,12 +1,12 @@
 """Enterprise SLA and account management service."""
 
-from typing import Dict, Optional
 
+from typing import Dict, Optional
 from app.core.database import get_db
 from app.models.enterprise import EnterpriseAccount, EnterpriseTier
 
-
 class EnterpriseService:
+
     """Enterprise account and SLA management."""
 
     async def get_user_tier(self, user_id: int) -> Optional[Dict]:
@@ -15,7 +15,7 @@ class EnterpriseService:
 
         account = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
-        if not account:
+if not account:
             return None
 
         return {
@@ -35,15 +35,15 @@ class EnterpriseService:
 
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
-        if not tier:
+if not tier:
             raise ValueError(f"Tier {tier_name} not found")
 
         # Check if account already exists
         existing = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
-        if existing:
+if existing:
             existing.tier_id = tier.id
-        else:
+else:
             account = EnterpriseAccount(user_id=user_id, tier_id=tier.id)
             db.add(account)
 
@@ -56,7 +56,7 @@ class EnterpriseService:
 
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
-        if not tier:
+if not tier:
             return {"compliant": True}
 
         compliant = response_time <= tier.max_response_time

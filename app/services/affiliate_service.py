@@ -1,14 +1,13 @@
 """Affiliate program service."""
 
+
 from datetime import datetime
 from typing import Dict, List, Optional
-
 from sqlalchemy.orm import Session
-
 from app.models.affiliate import AffiliateApplication
 
-
 class AffiliateService:
+
     """Affiliate program management service."""
 
     async def create_application(
@@ -31,7 +30,7 @@ class AffiliateService:
             .first()
         )
 
-        if existing:
+if existing:
             raise ValueError("You already have a pending application")
 
         application = AffiliateApplication(
@@ -107,7 +106,7 @@ class AffiliateService:
                 "created_at": app.created_at,
                 "updated_at": app.updated_at,
             }
-            for app in applications
+for app in applications
         ]
 
     async def update_application_status(
@@ -116,11 +115,11 @@ class AffiliateService:
         """Update affiliate application status."""
         application = db.query(AffiliateApplication).filter(AffiliateApplication.id == application_id).first()
 
-        if not application:
+if not application:
             raise ValueError("Application not found")
 
         application.status = status
-        if admin_notes:
+if admin_notes:
             application.admin_notes = admin_notes
         application.updated_at = datetime.utcnow()
 

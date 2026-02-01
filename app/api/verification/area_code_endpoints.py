@@ -1,8 +1,8 @@
 """Area Code Endpoints for Verification."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.services.textverified_service import TextVerifiedService
@@ -21,7 +21,7 @@ async def get_area_codes(
 
     Available to all authenticated users. Selection requires PAYG+ tier.
     """
-    try:
+try:
         tv_service = TextVerifiedService()
         area_codes = await tv_service.get_area_codes(country, service)
 
@@ -29,5 +29,5 @@ async def get_area_codes(
         area_codes.sort(key=lambda x: x.get("available_count", 0), reverse=True)
 
         return {"success": True, "area_codes": area_codes}
-    except Exception as e:
+except Exception as e:
         raise HTTPException(500, f"Failed to fetch area codes: {str(e)}")

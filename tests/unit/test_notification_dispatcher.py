@@ -1,23 +1,24 @@
 """Tests for NotificationDispatcher."""
 
+
 from unittest.mock import MagicMock
-
 import pytest
-
 from app.services.notification_dispatcher import NotificationDispatcher
-
 
 @pytest.fixture
 def mock_db():
+
     return MagicMock()
 
 
 @pytest.fixture
 def dispatcher(mock_db):
+
     return NotificationDispatcher(mock_db)
 
 
 def test_dispatcher_init(mock_db):
+
     """Test NotificationDispatcher initialization."""
     dispatcher = NotificationDispatcher(mock_db)
     assert dispatcher.db == mock_db
@@ -25,6 +26,7 @@ def test_dispatcher_init(mock_db):
 
 
 def test_on_verification_created(dispatcher):
+
     """Test verification created notification."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -44,6 +46,7 @@ def test_on_verification_created(dispatcher):
 
 
 def test_on_sms_received(dispatcher):
+
     """Test SMS received notification."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -63,6 +66,7 @@ def test_on_sms_received(dispatcher):
 
 
 def test_on_verification_failed(dispatcher):
+
     """Test verification failed notification."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -81,6 +85,7 @@ def test_on_verification_failed(dispatcher):
 
 
 def test_on_credit_deducted(dispatcher):
+
     """Test credit deducted notification."""
     dispatcher.notification_service.create_notification = MagicMock(return_value=True)
 
@@ -94,6 +99,7 @@ def test_on_credit_deducted(dispatcher):
 
 
 def test_on_refund_issued(dispatcher):
+
     """Test refund issued notification."""
     dispatcher.notification_service.create_notification = MagicMock(return_value=True)
 
@@ -107,6 +113,7 @@ def test_on_refund_issued(dispatcher):
 
 
 def test_on_balance_low(dispatcher):
+
     """Test balance low notification."""
     dispatcher.notification_service.create_notification = MagicMock(return_value=True)
 
@@ -120,6 +127,7 @@ def test_on_balance_low(dispatcher):
 
 
 def test_on_verification_completed(dispatcher):
+
     """Test verification completed notification."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -138,6 +146,7 @@ def test_on_verification_completed(dispatcher):
 
 
 def test_on_verification_created_exception(dispatcher):
+
     """Test verification created with exception."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -150,6 +159,7 @@ def test_on_verification_created_exception(dispatcher):
 
 
 def test_on_sms_received_exception(dispatcher):
+
     """Test SMS received with exception."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -162,6 +172,7 @@ def test_on_sms_received_exception(dispatcher):
 
 
 def test_on_verification_failed_exception(dispatcher):
+
     """Test verification failed with exception."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"
@@ -174,6 +185,7 @@ def test_on_verification_failed_exception(dispatcher):
 
 
 def test_on_credit_deducted_exception(dispatcher):
+
     """Test credit deducted with exception."""
     dispatcher.notification_service.create_notification = MagicMock(side_effect=Exception("DB Error"))
 
@@ -183,6 +195,7 @@ def test_on_credit_deducted_exception(dispatcher):
 
 
 def test_on_refund_issued_exception(dispatcher):
+
     """Test refund issued with exception."""
     dispatcher.notification_service.create_notification = MagicMock(side_effect=Exception("DB Error"))
 
@@ -192,6 +205,7 @@ def test_on_refund_issued_exception(dispatcher):
 
 
 def test_on_balance_low_exception(dispatcher):
+
     """Test balance low with exception."""
     dispatcher.notification_service.create_notification = MagicMock(side_effect=Exception("DB Error"))
 
@@ -201,6 +215,7 @@ def test_on_balance_low_exception(dispatcher):
 
 
 def test_on_verification_completed_exception(dispatcher):
+
     """Test verification completed with exception."""
     mock_verification = MagicMock()
     mock_verification.user_id = "user123"

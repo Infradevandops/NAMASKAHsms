@@ -1,14 +1,15 @@
 """Verification cancellation endpoint with automatic refund."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.verification import Verification
 from app.services.auto_refund_service import AutoRefundService
 from app.services.textverified_service import TextVerifiedService
+from app.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -36,27 +37,27 @@ async def cancel_verification(
         .first()
     )
 
-    if not verification:
+if not verification:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Verification not found",
         )
 
     # Check if can be cancelled
-    if verification.status != "pending":
+if verification.status != "pending":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Cannot cancel verification with status: {verification.status}",
         )
 
-    try:
+try:
         # Cancel with TextVerified if activation_id exists
-        if verification.activation_id:
+if verification.activation_id:
             tv_service = TextVerifiedService()
-            try:
+try:
                 await tv_service.cancel_activation(verification.activation_id)
                 logger.info(f"Cancelled TextVerified activation: {verification.activation_id}")
-            except Exception as tv_error:
+except Exception as tv_error:
                 logger.warning(f"TextVerified cancellation failed: {tv_error}")
 
         # Update status
@@ -67,14 +68,13 @@ async def cancel_verification(
         refund_service = AutoRefundService(db)
         refund_result = refund_service.process_verification_refund(verification_id, "cancelled")
 
-        if refund_result:
+if refund_result:
             logger.info(
                 f"Verification {verification_id} cancelled with refund: " f"${refund_result['refund_amount']:.2f}"
             )
 
             # Send notification (Task 1.1)
-            try:
-                from app.services.notification_service import NotificationService
+try:
 
                 notif_service = NotificationService(db)
                 notif_service.create_notification(
@@ -83,7 +83,7 @@ async def cancel_verification(
                     title="❌ Verification Cancelled",
                     message=f"${refund_result['refund_amount']:.2f} refunded instantly for {verification.service_name}. New balance: ${refund_result['new_balance']:.2f}",
                 )
-            except Exception as n_error:
+except Exception as n_error:
                 logger.warning(f"Failed to send cancellation notification: {n_error}")
 
             return {
@@ -93,7 +93,7 @@ async def cancel_verification(
                 "refund_amount": refund_result["refund_amount"],
                 "new_balance": refund_result["new_balance"],
             }
-        else:
+else:
             logger.warning(f"Refund failed for cancelled verification {verification_id}")
             return {
                 "success": True,
@@ -101,7 +101,7 @@ async def cancel_verification(
                 "verification_id": verification_id,
             }
 
-    except Exception as e:
+except Exception as e:
         db.rollback()
         logger.error(f"Cancellation failed: {str(e)}", exc_info=True)
         raise HTTPException(

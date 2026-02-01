@@ -1,13 +1,12 @@
 """API Key model for programmatic access."""
 
+
 from datetime import datetime
-
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
-
 from app.models.base import Base
 
-
 class APIKey(Base):
+
     __tablename__ = "api_keys"
 
     id = Column(String(36), primary_key=True, default=lambda: str(__import__("uuid").uuid4()))

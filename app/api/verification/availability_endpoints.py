@@ -1,8 +1,8 @@
 """Availability API endpoints for real-time success rate indicators."""
 
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.services.availability_service import AvailabilityService
 

@@ -1,13 +1,12 @@
 """Admin API router for user management and system monitoring."""
 
+
 from datetime import datetime, timezone
 from typing import List, Optional
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi.responses import HTMLResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id
 from app.models.support_ticket import SupportTicket
@@ -17,29 +16,32 @@ from app.models.verification import Verification
 from app.schemas.responses import SuccessResponse, SupportTicketResponse
 from app.services.notification_service import get_notification_service
 from app.utils.sanitization import sanitize_email_content, sanitize_html
+from sqlalchemy import text
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/", response_class=HTMLResponse)
 def admin_dashboard():
+
     """Admin dashboard interface."""
-    with open("templates/admin.html", "r") as f:
+with open("templates/admin.html", "r") as f:
         return HTMLResponse(content=f.read())
 
 
 @router.get("/users")
 def get_all_users(
+
     admin_id: str = Depends(get_admin_user_id),
     size: int = Query(50, ge=1, le=100, description="Page size"),
     db: Session = Depends(get_db),
 ):
     """Get all users (admin only)."""
-    try:
+try:
         users = db.query(User).limit(size).all()
 
         items = []
-        for user in users:
+for user in users:
             items.append(
                 {
                     "id": user.id,
@@ -51,21 +53,22 @@ def get_all_users(
             )
 
         return {"items": items, "total": len(items)}
-    except (ValueError, AttributeError):
+except (ValueError, AttributeError):
         return {"items": [], "total": 0}
 
 
 @router.get("/users/{user_id}")
 def get_user_details(
+
     user_id: str,
     admin_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
     """Get detailed user information (admin only)."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
 
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get user statistics
@@ -101,12 +104,13 @@ def get_user_details(
                 "total_funded": total_funded,
             },
         }
-    except Exception as e:
+except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/users/{user_id}/credits", response_model=SuccessResponse)
 def manage_user_credits(
+
     user_id: str,
     amount: float = Body(..., description="Amount to add or deduct"),
     operation: str = Body(..., description="Operation: add or deduct"),
@@ -114,22 +118,22 @@ def manage_user_credits(
     db: Session = Depends(get_db),
 ):
     """Add or deduct credits from user account (admin only)."""
-    if operation not in ["add", "deduct"]:
+if operation not in ["add", "deduct"]:
         raise HTTPException(status_code=400, detail="Operation must be 'add' or 'deduct'")
 
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if operation == "deduct" and user.credits < amount:
+if operation == "deduct" and user.credits < amount:
         raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
     # Update credits
-    if operation == "add":
+if operation == "add":
         user.credits += amount
         transaction_amount = amount
         description = "Admin added credits"
-    else:
+else:
         user.credits -= amount
         transaction_amount = -float(amount)
         description = "Admin deducted credits"
@@ -153,6 +157,7 @@ def manage_user_credits(
 
 @router.post("/credits/add")
 def add_user_credits(
+
     user_id: str = Body(...),
     amount: float = Body(...),
     reason: str = Body(""),
@@ -160,9 +165,9 @@ def add_user_credits(
     db: Session = Depends(get_db),
 ):
     """Add credits to user account (admin only)."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         user.credits += amount
@@ -182,12 +187,13 @@ def add_user_credits(
             "message": f"Added {amount} credits",
             "new_balance": user.credits,
         }
-    except Exception as e:
+except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/credits/deduct")
 def deduct_user_credits(
+
     user_id: str = Body(...),
     amount: float = Body(...),
     reason: str = Body(""),
@@ -195,12 +201,12 @@ def deduct_user_credits(
     db: Session = Depends(get_db),
 ):
     """Deduct credits from user account (admin only)."""
-    try:
+try:
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        if user.credits < amount:
+if user.credits < amount:
             raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
         user.credits -= amount
@@ -220,22 +226,23 @@ def deduct_user_credits(
             "message": f"Deducted {amount} credits",
             "new_balance": user.credits,
         }
-    except Exception as e:
+except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/users/{user_id}/suspend", response_model=SuccessResponse)
 def suspend_user(
+
     user_id: str,
     admin_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
     """Suspend user account (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    if user.is_admin:
+if user.is_admin:
         raise HTTPException(status_code=403, detail="Cannot suspend admin account")
 
     user.is_active = False
@@ -246,13 +253,14 @@ def suspend_user(
 
 @router.post("/users/{user_id}/activate", response_model=SuccessResponse)
 def activate_user(
+
     user_id: str,
     admin_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
     """Activate suspended user account (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = True
@@ -263,8 +271,9 @@ def activate_user(
 
 @router.get("/stats")
 def get_platform_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+
     """Get platform-wide statistics (admin only)."""
-    try:
+try:
         # Total users
         total_users = db.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0
 
@@ -335,7 +344,7 @@ def get_platform_stats(admin_id: str = Depends(get_admin_user_id), db: Session =
             "popular_services": popular_services,
             "daily_usage": daily_usage,
         }
-    except Exception as e:
+except Exception as e:
         # Fallback with actual error logging
         return {
             "total_users": 0,
@@ -353,6 +362,7 @@ def get_platform_stats(admin_id: str = Depends(get_admin_user_id), db: Session =
 
 @router.get("/support/tickets", response_model=List[SupportTicketResponse])
 def get_support_tickets(
+
     admin_id: str = Depends(get_admin_user_id),
     ticket_status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(50, le=100, description="Number of results"),
@@ -361,7 +371,7 @@ def get_support_tickets(
     """Get all support tickets (admin only)."""
     query = db.query(SupportTicket)
 
-    if ticket_status:
+if ticket_status:
         query = query.filter(SupportTicket.status == ticket_status)
 
     tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
@@ -379,7 +389,7 @@ async def respond_to_ticket(
     """Respond to support ticket (admin only)."""
 
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
-    if not ticket:
+if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
     # Update ticket
@@ -407,14 +417,15 @@ async def respond_to_ticket(
 
 @router.get("/verifications/active")
 def get_active_verifications(
+
     admin_id: str = Depends(get_admin_user_id),
     limit: int = Query(100, le=500, description="Number of results"),
     db: Session = Depends(get_db),
 ):
     """Get all active verifications system - wide (admin only)."""
-    try:
+try:
         return {"verifications": [], "total_count": 0}
-    except (ValueError, AttributeError):
+except (ValueError, AttributeError):
         return {"verifications": [], "total_count": 0}
 
 
@@ -427,17 +438,17 @@ async def admin_cancel_verification(
     """Cancel any verification and refund user (admin only)."""
 
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
-    if not verification:
+if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
-    if verification.status == "cancelled":
+if verification.status == "cancelled":
         raise HTTPException(status_code=400, detail="Already cancelled")
 
     # Cancel verification locally
 
     # Refund user
     user = db.query(User).filter(User.id == verification.user_id).first()
-    if user:
+if user:
         user.credits += verification.cost
 
         # Create refund transaction
@@ -460,14 +471,14 @@ async def admin_cancel_verification(
 
 @router.get("/system/health")
 def get_system_health(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+
     """Get comprehensive system health status (admin only)."""
     # Database health
-    try:
-        from sqlalchemy import text
+try:
 
         db.execute(text("SELECT 1"))
         db_status = "healthy"
-    except Exception:
+except Exception:
         db_status = "unhealthy"
 
     # User statistics
@@ -497,6 +508,7 @@ def get_system_health(admin_id: str = Depends(get_admin_user_id), db: Session = 
 
 @router.get("/transactions")
 def get_all_transactions(
+
     admin_id: str = Depends(get_admin_user_id),
     user_id: Optional[str] = Query(None, description="Filter by user ID"),
     transaction_type: Optional[str] = Query(None, description="Filter by type"),
@@ -508,9 +520,9 @@ def get_all_transactions(
     query = db.query(Transaction)
 
     # Apply filters
-    if user_id:
+if user_id:
         query = query.filter(Transaction.user_id == user_id)
-    if transaction_type:
+if transaction_type:
         query = query.filter(Transaction.type == transaction_type)
 
     # Get total count
@@ -525,7 +537,7 @@ def get_all_transactions(
 
     # Format response
     items = []
-    for transaction in transactions:
+for transaction in transactions:
         user = db.query(User).filter(User.id == transaction.user_id).first()
         items.append(
             {
@@ -554,20 +566,20 @@ async def broadcast_notification(
     """Broadcast notification to users (admin only)."""
 
     # Get target users
-    if target_users:
+if target_users:
         users = db.query(User).filter(User.id.in_(target_users)).all()
-    else:
+else:
         users = db.query(User).filter(User.is_active.is_(True)).all()
 
-    if not users:
+if not users:
         raise HTTPException(status_code=404, detail="No target users found")
 
     # Send notifications
     notification_service = get_notification_service(db)
     sent_count = 0
 
-    for user in users:
-        try:
+for user in users:
+try:
             await notification_service.send_email(
                 to_email=user.email,
                 subject=title,
@@ -576,7 +588,7 @@ async def broadcast_notification(
                 + "<p>Best regards,<br>Namaskah Team</p>",
             )
             sent_count += 1
-        except Exception:
+except Exception:
             continue  # Skip failed sends
 
     return SuccessResponse(

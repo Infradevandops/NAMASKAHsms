@@ -1,17 +1,18 @@
+
+
 from unittest.mock import MagicMock, patch
-
 import pytest
-
 from app.services.monitoring_service import MonitoringService
-
 
 @pytest.fixture
 def mock_db():
+
     return MagicMock()
 
 
 @pytest.fixture
 def service():
+
     return MonitoringService()
 
 
@@ -27,7 +28,7 @@ async def test_collect_system_metrics(service, mock_db):
     mock_filter = mock_query.filter.return_value
     mock_filter.count.side_effect = [100, 95, 5]  # Total, Success, Failed
 
-    with patch("app.services.monitoring_service.get_db", return_value=iter([mock_db])):
+with patch("app.services.monitoring_service.get_db", return_value=iter([mock_db])):
         metrics = await service.collect_system_metrics()
 
     assert metrics["requests"]["total"] == 100
@@ -48,7 +49,7 @@ async def test_check_alerts_no_alerts(service):
         "requests": {"error_rate": 0.0, "success_rate": 100.0},
     }
 
-    with patch.object(service, "collect_system_metrics", return_value=mock_metrics):
+with patch.object(service, "collect_system_metrics", return_value=mock_metrics):
         alerts = await service.check_alerts()
         assert len(alerts) == 0
 
@@ -61,7 +62,7 @@ async def test_check_alerts_triggered(service):
         "requests": {"error_rate": 10.0, "success_rate": 80.0},  # > 5.0, < 95.0
     }
 
-    with patch.object(service, "collect_system_metrics", return_value=mock_metrics):
+with patch.object(service, "collect_system_metrics", return_value=mock_metrics):
         alerts = await service.check_alerts()
         assert len(alerts) == 3
         types = [a["type"] for a in alerts]
@@ -78,7 +79,7 @@ async def test_generate_health_report(service):
     }
     mock_alerts = [{"type": "warning"}]
 
-    with (
+with (
         patch.object(service, "collect_system_metrics", return_value=mock_metrics),
         patch.object(service, "check_alerts", return_value=mock_alerts),
     ):

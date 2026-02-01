@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
-Cancel pending SMS verifications and update timestamps
-"""
 import os
 import sqlite3
 import sys
 from datetime import datetime
+
+Cancel pending SMS verifications and update timestamps
+"""
 
 # Add app directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 
 def cancel_pending_verifications():
-    try:
+
+try:
         conn = sqlite3.connect("namaskah.db")
         cursor = conn.cursor()
 
@@ -23,16 +25,16 @@ def cancel_pending_verifications():
         pending = cursor.fetchall()
 
         print(f"Found {len(pending)} pending verifications:")
-        for v in pending:
+for v in pending:
             print(f"  ID: {v[0]}, Status: {v[1]}, Created: {v[2]}")
 
-        if pending:
+if pending:
             # Cancel all pending verifications
             now = datetime.now().isoformat()
             cursor.execute(
                 """
-                UPDATE verifications 
-                SET status = "cancelled", 
+                UPDATE verifications
+                SET status = "cancelled",
                     updated_at = ?,
                     cancelled_reason = "System cleanup - SMS service not configured"
                 WHERE status = "pending"
@@ -44,12 +46,12 @@ def cancel_pending_verifications():
             print(f"   Updated timestamp: {now}")
 
             conn.commit()
-        else:
+else:
             print("No pending verifications found")
 
-    except Exception as e:
+except Exception as e:
         print(f"❌ Error: {e}")
-    finally:
+finally:
         conn.close()
 
 

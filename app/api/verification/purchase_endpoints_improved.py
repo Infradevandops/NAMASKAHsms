@@ -1,4 +1,19 @@
 """
+from datetime import datetime, timezone
+from typing import Optional
+from fastapi import HTTPException, status
+from sqlalchemy.orm import Session
+from app.core.logging import get_logger
+from app.models.user import User
+from app.models.verification import Verification
+from app.schemas.verification import VerificationRequest
+from app.services.notification_service import NotificationService
+from app.services.textverified_service import TextVerifiedService
+from app.services.pricing_calculator import PricingCalculator
+from app.services.tier_manager import TierManager
+import asyncio
+from app.services.sms_polling_service import sms_polling_service
+
 IMPROVED PURCHASE ENDPOINT - Critical Fixes
 ===========================================
 Implements proper transaction handling with automatic rollback on failures.
@@ -11,18 +26,6 @@ Key Improvements:
 5. Transaction isolation
 """
 
-from datetime import datetime, timezone
-from typing import Optional
-
-from fastapi import HTTPException, status
-from sqlalchemy.orm import Session
-
-from app.core.logging import get_logger
-from app.models.user import User
-from app.models.verification import Verification
-from app.schemas.verification import VerificationRequest
-from app.services.notification_service import NotificationService
-from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -44,20 +47,20 @@ async def request_verification_improved(
     """
 
     # Validate request
-    if not request.service or len(request.service.strip()) == 0:
+if not request.service or len(request.service.strip()) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Service name is required",
         )
 
-    if not request.country or len(request.country.strip()) == 0:
+if not request.country or len(request.country.strip()) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Country code is required",
         )
 
     # Check idempotency
-    if idempotency_key:
+if idempotency_key:
         existing = (
             db.query(Verification)
             .filter(
@@ -66,7 +69,7 @@ async def request_verification_improved(
             )
             .first()
         )
-        if existing:
+if existing:
             logger.info(f"Duplicate request detected: {idempotency_key}")
             return {
                 "success": True,
@@ -81,14 +84,13 @@ async def request_verification_improved(
 
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="User not found",
         )
 
     # Calculate cost
-    from app.services.pricing_calculator import PricingCalculator
 
     calculator = PricingCalculator(db)
     user_tier = user.subscription_tier or "freemium"
@@ -96,7 +98,7 @@ async def request_verification_improved(
     sms_cost = pricing_info["cost_per_sms"]
 
     # Check sufficient credits BEFORE calling API
-    if user.credits < sms_cost:
+if user.credits < sms_cost:
         logger.warning(
             f"Insufficient credits: User={user_id}, " f"Available=${user.credits:.2f}, Required=${sms_cost:.2f}"
         )
@@ -107,26 +109,25 @@ async def request_verification_improved(
 
     # Initialize TextVerified
     tv_service = TextVerifiedService()
-    if not tv_service.enabled:
+if not tv_service.enabled:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="SMS service temporarily unavailable",
         )
 
     # Check tier access for filters
-    from app.services.tier_manager import TierManager
 
     tier_manager = TierManager(db)
 
-    if request.area_codes:
-        if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+if request.area_codes:
+if not tier_manager.check_feature_access(user_id, "area_code_selection"):
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Area code filtering requires payg tier or higher",
             )
 
-    if request.carriers:
-        if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+if request.carriers:
+if not tier_manager.check_feature_access(user_id, "isp_filtering"):
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
                 detail="Carrier filtering requires payg tier or higher",
@@ -136,7 +137,7 @@ async def request_verification_improved(
     verification = None
     textverified_result = None
 
-    try:
+try:
         # Step 1: Call TextVerified API FIRST (before deducting credits)
         logger.info(
             f"Calling TextVerified API: service={request.service}, " f"country={request.country}, user={user_id}"
@@ -197,8 +198,8 @@ async def request_verification_improved(
         )
 
         # Low balance warning
-        if new_balance < 5.0 and old_balance >= 5.0:
-            try:
+if new_balance < 5.0 and old_balance >= 5.0:
+try:
                 notif_service = NotificationService(db)
                 notif_service.create_notification(
                     user_id=user_id,
@@ -206,17 +207,15 @@ async def request_verification_improved(
                     title="Low Balance Warning",
                     message=f"Your balance is ${new_balance:.2f}. Add credits to continue.",
                 )
-            except Exception:
+except Exception:
                 pass
 
         # Start polling
-        try:
-            import asyncio
+try:
 
-            from app.services.sms_polling_service import sms_polling_service
 
             asyncio.create_task(sms_polling_service.start_polling(verification.id))
-        except Exception as poll_error:
+except Exception as poll_error:
             logger.warning(f"SMS polling start failed: {poll_error}")
 
         return {
@@ -231,13 +230,13 @@ async def request_verification_improved(
             "demo_mode": False,
         }
 
-    except HTTPException:
+except HTTPException:
         # Rollback on HTTP exceptions
         db.rollback()
         logger.warning("HTTP exception - transaction rolled back")
         raise
 
-    except Exception as e:
+except Exception as e:
         # CRITICAL: Rollback on ANY error
         db.rollback()
         logger.error(
@@ -246,29 +245,29 @@ async def request_verification_improved(
         )
 
         # If TextVerified succeeded but our DB failed, we need to cancel the number
-        if textverified_result and verification:
-            try:
+if textverified_result and verification:
+try:
                 logger.warning(f"Attempting to cancel TextVerified number: {textverified_result['id']}")
                 await tv_service.cancel_verification(textverified_result["id"])
                 logger.info("TextVerified number cancelled successfully")
-            except Exception as cancel_error:
+except Exception as cancel_error:
                 logger.error(
                     f"Failed to cancel TextVerified number: {cancel_error}",
                     exc_info=True,
                 )
 
         # Return appropriate error
-        if isinstance(e, ConnectionError):
+if isinstance(e, ConnectionError):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="Unable to connect to SMS service",
             )
-        elif isinstance(e, TimeoutError):
+elif isinstance(e, TimeoutError):
             raise HTTPException(
                 status_code=status.HTTP_504_GATEWAY_TIMEOUT,
                 detail="Request timeout",
             )
-        else:
+else:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="An unexpected error occurred",

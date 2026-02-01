@@ -1,9 +1,10 @@
 """E2E test for welcome modal user flow"""
 
+
 from playwright.sync_api import Page, expect
 
-
 def test_welcome_page_loads(page: Page):
+
     """Test welcome page loads correctly"""
     page.goto("http://localhost:8000/welcome")
     expect(page.locator("h1")).to_contain_text("Welcome to Namaskah")
@@ -12,6 +13,7 @@ def test_welcome_page_loads(page: Page):
 
 
 def test_language_selection(page: Page):
+
     """Test language dropdown selection"""
     page.goto("http://localhost:8000/welcome")
     page.select_option("#language", "en")
@@ -19,6 +21,7 @@ def test_language_selection(page: Page):
 
 
 def test_currency_selection(page: Page):
+
     """Test currency dropdown selection"""
     page.goto("http://localhost:8000/welcome")
     page.select_option("#currency", "USD")
@@ -26,6 +29,7 @@ def test_currency_selection(page: Page):
 
 
 def test_form_validation(page: Page):
+
     """Test form requires both selections"""
     page.goto("http://localhost:8000/welcome")
     page.click("button[type='submit']")
@@ -33,6 +37,7 @@ def test_form_validation(page: Page):
 
 
 def test_complete_flow(page: Page):
+
     """Test complete user flow from welcome to dashboard"""
     page.goto("http://localhost:8000/welcome")
     page.select_option("#language", "en")
@@ -47,6 +52,7 @@ def test_complete_flow(page: Page):
 
 
 def test_skip_link(page: Page):
+
     """Test skip functionality"""
     page.goto("http://localhost:8000/welcome")
     page.click("text=Skip")
@@ -54,6 +60,7 @@ def test_skip_link(page: Page):
 
 
 def test_preferences_persist(page: Page):
+
     """Test preferences persist on reload"""
     page.goto("http://localhost:8000/welcome")
     page.select_option("#language", "es")
@@ -67,6 +74,7 @@ def test_preferences_persist(page: Page):
 
 
 def test_all_languages_available(page: Page):
+
     """Test all 10 languages are in dropdown"""
     page.goto("http://localhost:8000/welcome")
     options = page.locator("#language option").all_text_contents()
@@ -76,6 +84,7 @@ def test_all_languages_available(page: Page):
 
 
 def test_all_currencies_available(page: Page):
+
     """Test all 10 currencies are in dropdown"""
     page.goto("http://localhost:8000/welcome")
     options = page.locator("#currency option").all_text_contents()
@@ -85,6 +94,7 @@ def test_all_currencies_available(page: Page):
 
 
 def test_mobile_responsive(page: Page):
+
     """Test mobile viewport"""
     page.set_viewport_size({"width": 375, "height": 667})
     page.goto("http://localhost:8000/welcome")

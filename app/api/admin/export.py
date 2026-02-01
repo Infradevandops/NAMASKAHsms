@@ -1,11 +1,11 @@
+
+
 import csv
 from datetime import date, datetime
 from io import StringIO
-
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
-
 from app.api.admin.dependencies import require_admin
 from app.core.database import get_db
 from app.models.transaction import Transaction
@@ -25,9 +25,9 @@ async def export_verifications(
     """Export verifications to CSV"""
     query = db.query(Verification)
 
-    if start_date:
+if start_date:
         query = query.filter(Verification.created_at >= datetime.fromisoformat(start_date))
-    if end_date:
+if end_date:
         query = query.filter(Verification.created_at <= datetime.fromisoformat(end_date))
 
     verifications = query.order_by(Verification.created_at.desc()).all()
@@ -49,7 +49,7 @@ async def export_verifications(
     )
     writer.writeheader()
 
-    for v in verifications:
+for v in verifications:
         user = db.query(User).filter(User.id == v.user_id).first()
         writer.writerow(
             {
@@ -83,9 +83,9 @@ async def export_users(
     """Export users to CSV"""
     query = db.query(User)
 
-    if start_date:
+if start_date:
         query = query.filter(User.created_at >= datetime.fromisoformat(start_date))
-    if end_date:
+if end_date:
         query = query.filter(User.created_at <= datetime.fromisoformat(end_date))
 
     users = query.order_by(User.created_at.desc()).all()
@@ -94,7 +94,7 @@ async def export_users(
     writer = csv.DictWriter(output, fieldnames=["id", "email", "tier", "credits", "is_admin", "created_at"])
     writer.writeheader()
 
-    for u in users:
+for u in users:
         writer.writerow(
             {
                 "id": u.id,
@@ -124,9 +124,9 @@ async def export_revenue(
     """Export revenue transactions to CSV"""
     query = db.query(Transaction).filter(Transaction.type == "credit")
 
-    if start_date:
+if start_date:
         query = query.filter(Transaction.created_at >= datetime.fromisoformat(start_date))
-    if end_date:
+if end_date:
         query = query.filter(Transaction.created_at <= datetime.fromisoformat(end_date))
 
     transactions = query.order_by(Transaction.created_at.desc()).all()
@@ -138,7 +138,7 @@ async def export_revenue(
     )
     writer.writeheader()
 
-    for t in transactions:
+for t in transactions:
         writer.writerow(
             {
                 "id": t.id,

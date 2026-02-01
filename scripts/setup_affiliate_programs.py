@@ -1,22 +1,23 @@
 #!/usr/bin/env python3
 """Setup affiliate programs in database."""
 
+
 import os
 import sys
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from app.core.database import get_db
 from app.models.affiliate import AffiliateProgram
 
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 
 def setup_affiliate_programs():
+
     """Initialize affiliate programs in database."""
     db = next(get_db())
 
     # Check if programs already exist
     existing = db.query(AffiliateProgram).first()
-    if existing:
+if existing:
         print("Affiliate programs already exist. Skipping setup.")
         return
 

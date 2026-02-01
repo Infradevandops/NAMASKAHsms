@@ -1,5 +1,6 @@
 """Area codes endpoint for verification system."""
 
+
 from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/api", tags=["Area Codes"])
@@ -11,7 +12,7 @@ async def get_area_codes(country: str = Query("US", description="Country code"))
 
     Currently supports US area codes only.
     """
-    if country.upper() != "US":
+if country.upper() != "US":
         return {"area_codes": [], "total": 0, "message": "Only US area codes supported"}
 
     # Common US area codes
@@ -311,7 +312,7 @@ async def get_area_codes(country: str = Query("US", description="Country code"))
     # Convert to list format expected by frontend
     area_codes_list = [
         {"code": code, "location": location}
-        for code, location in us_area_codes.items()
+for code, location in us_area_codes.items()
     ]
 
     return {

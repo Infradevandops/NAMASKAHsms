@@ -1,8 +1,8 @@
 """Pricing estimation endpoints - Non-conflicting with tier system."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.logging import get_logger
 
@@ -18,7 +18,7 @@ async def estimate_verification_cost(
     db: Session = Depends(get_db),
 ):
     """Estimate cost for verification(s) using new pricing system."""
-    try:
+try:
         # Simple estimation - always use Pay-As-You-Go pricing for estimates
         base_cost = 2.50  # Pay-As-You-Go rate
         total_cost = base_cost * quantity
@@ -33,7 +33,7 @@ async def estimate_verification_cost(
             "note": "Actual cost may vary based on your subscription tier",
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to estimate cost: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

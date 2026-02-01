@@ -1,14 +1,13 @@
 """Session management for tracking active user sessions."""
 
+
 import uuid
 from datetime import datetime, timedelta, timezone
-
 from sqlalchemy import Boolean, Column, DateTime, String
-
 from app.models.base import Base
 
-
 class UserSession(Base):
+
     """Track active user sessions."""
 
     __tablename__ = "user_sessions"
@@ -24,6 +23,7 @@ class UserSession(Base):
 
 
 def create_session(
+
     db,
     user_id: str,
     ip_address: str,
@@ -46,6 +46,7 @@ def create_session(
 
 
 def get_session(db, refresh_token: str):
+
     """Get active session by refresh token."""
     session = (
         db.query(UserSession)
@@ -60,14 +61,16 @@ def get_session(db, refresh_token: str):
 
 
 def invalidate_session(db, refresh_token: str):
+
     """Invalidate session."""
     session = db.query(UserSession).filter(UserSession.refresh_token == refresh_token).first()
-    if session:
+if session:
         session.is_active = False
         db.commit()
 
 
 def invalidate_all_sessions(db, user_id: str):
+
     """Invalidate all sessions for user."""
     db.query(UserSession).filter(UserSession.user_id == user_id).update({"is_active": False})
     db.commit()

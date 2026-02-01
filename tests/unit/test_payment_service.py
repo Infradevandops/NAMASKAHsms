@@ -1,16 +1,16 @@
+
+
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
-
 import pytest
-
 from app.models.transaction import PaymentLog
 from app.services.payment_service import PaymentService
 
-
 class TestPaymentService:
     @pytest.fixture
-    def payment_service(self, db_session, redis_client):
-        with patch("redis.Redis.from_url", return_value=redis_client):
+def payment_service(self, db_session, redis_client):
+
+with patch("redis.Redis.from_url", return_value=redis_client):
             return PaymentService(db_session)
 
     @patch("app.services.payment_service.paystack_service")
@@ -39,7 +39,7 @@ class TestPaymentService:
         assert log.status == "pending"
 
     async def test_initiate_payment_invalid_amount(self, payment_service, regular_user):
-        with pytest.raises(ValueError, match="Amount must be positive"):
+with pytest.raises(ValueError, match="Amount must be positive"):
             await payment_service.initiate_payment(regular_user.id, -5.0)
 
     @patch("app.services.payment_service.paystack_service")
@@ -134,7 +134,8 @@ class TestPaymentService:
         assert log.status == "failed"
         assert log.webhook_received is True
 
-    def test_get_payment_history(self, payment_service, regular_user, db_session):
+def test_get_payment_history(self, payment_service, regular_user, db_session):
+
         log = PaymentLog(
             user_id=regular_user.id,
             email=regular_user.email,
@@ -149,7 +150,7 @@ class TestPaymentService:
         assert len(history["payments"]) >= 1
         assert history["payments"][0]["reference"] == "ref_hist"
 
-    def test_get_payment_summary(self, payment_service, regular_user, db_session):
+def test_get_payment_summary(self, payment_service, regular_user, db_session):
         # Add a success log
         db_session.add(
             PaymentLog(

@@ -1,10 +1,10 @@
+
+
 import secrets
 from typing import List, Optional
-
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, HttpUrl
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user, require_tier
 from app.models.user import User, Webhook
@@ -17,12 +17,14 @@ require_payg = require_tier("payg")
 
 
 class WebhookCreate(BaseModel):
+
     name: str
     url: HttpUrl
     events: List[str] = ["*"]
 
 
 class WebhookUpdate(BaseModel):
+
     name: Optional[str] = None
     url: Optional[HttpUrl] = None
     events: Optional[List[str]] = None
@@ -30,6 +32,7 @@ class WebhookUpdate(BaseModel):
 
 
 class WebhookResponse(BaseModel):
+
     id: str
     name: str
     url: str
@@ -62,7 +65,7 @@ async def list_webhooks(
                 "last_success": w.last_success.isoformat() if w.last_success else None,
                 "last_failure": w.last_failure.isoformat() if w.last_failure else None,
             }
-            for w in webhooks
+for w in webhooks
         ],
     )
 
@@ -103,7 +106,7 @@ async def delete_webhook(
     """Delete a webhook."""
     webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
-    if not webhook:
+if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")
 
     db.delete(webhook)
@@ -122,7 +125,7 @@ async def test_webhook(
     """Send a test ping to the webhook."""
     webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
-    if not webhook:
+if not webhook:
         raise HTTPException(status_code=404, detail="Webhook not found")
 
     # In a real app, this would trigger an async task to ping the URL

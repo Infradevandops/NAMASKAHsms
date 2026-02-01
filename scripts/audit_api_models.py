@@ -1,33 +1,35 @@
 """Audit API responses against model fields."""
 
+
 import ast
 import os
 import re
 
-
 def get_model_fields(model_file):
+
     """Extract Column fields from SQLAlchemy model."""
-    if not os.path.exists(model_file):
+if not os.path.exists(model_file):
         return []
 
-    with open(model_file) as f:
+with open(model_file) as f:
         tree = ast.parse(f.read())
 
     fields = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            for target in node.targets:
-                if isinstance(target, ast.Name):
+for node in ast.walk(tree):
+if isinstance(node, ast.Assign):
+for target in node.targets:
+if isinstance(target, ast.Name):
                     fields.append(target.id)
     return fields
 
 
 def get_api_response_fields(api_file):
+
     """Extract response dict keys from API file."""
-    if not os.path.exists(api_file):
+if not os.path.exists(api_file):
         return []
 
-    with open(api_file) as f:
+with open(api_file) as f:
         content = f.read()
 
     # Simple regex to find dict keys in return statements or dict construction
@@ -37,6 +39,7 @@ def get_api_response_fields(api_file):
 
 
 def audit():
+
     """Run audit."""
     models = {
         "User": "app/models/user.py",
@@ -54,8 +57,8 @@ def audit():
 
     print("=== Model-API Alignment Audit ===\n")
 
-    for api_file in apis:
-        if not os.path.exists(api_file):
+for api_file in apis:
+if not os.path.exists(api_file):
             print(f"Skipping {api_file} (not found)")
             continue
 

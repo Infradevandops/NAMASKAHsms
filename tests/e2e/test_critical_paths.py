@@ -1,23 +1,26 @@
 """
-E2E Critical Path Tests - Smoke Tests for CI/CD
-"""
-
 import pytest
 from playwright.sync_api import Page, expect
+
+E2E Critical Path Tests - Smoke Tests for CI/CD
+"""
 
 
 @pytest.fixture(scope="module")
 def base_url():
+
     return "http://localhost:8000"
 
 
 def test_homepage_loads(page: Page, base_url: str):
+
     """Test that homepage loads successfully."""
     page.goto(base_url)
     expect(page).to_have_title("Namaskah")
 
 
 def test_registration_flow(page: Page, base_url: str):
+
     """Test user registration flow."""
     page.goto(f"{base_url}/register")
 
@@ -34,6 +37,7 @@ def test_registration_flow(page: Page, base_url: str):
 
 
 def test_login_flow(page: Page, base_url: str):
+
     """Test user login flow."""
     page.goto(f"{base_url}/login")
 
@@ -49,12 +53,14 @@ def test_login_flow(page: Page, base_url: str):
 
 
 def test_health_endpoint(page: Page, base_url: str):
+
     """Test health endpoint returns 200."""
     response = page.goto(f"{base_url}/health")
     assert response.status == 200
 
 
 def test_api_diagnostics(page: Page, base_url: str):
+
     """Test diagnostics endpoint."""
     response = page.goto(f"{base_url}/api/diagnostics")
     assert response.status == 200

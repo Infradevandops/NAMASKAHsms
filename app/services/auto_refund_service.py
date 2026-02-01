@@ -1,31 +1,35 @@
 """
-AUTOMATIC REFUND SYSTEM - Critical Fix
-=======================================
-Implements automatic refunds for failed/timeout/cancelled verifications.
-"""
-
 from datetime import datetime, timezone
 from typing import Optional
-
 from sqlalchemy.orm import Session
-
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.credit_service import CreditService
+from app.services.notification_dispatcher import NotificationDispatcher
+from datetime import timedelta
+
+AUTOMATIC REFUND SYSTEM - Critical Fix
+=======================================
+Implements automatic refunds for failed/timeout/cancelled verifications.
+"""
+
 
 logger = get_logger(__name__)
 
 
 class AutoRefundService:
+
     """Automatic refund service for failed verifications."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         self.db = db
         self.credit_service = CreditService(db)
 
-    def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
+def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
+
         """Process automatic refund for a failed verification.
 
         Args:
@@ -37,7 +41,7 @@ class AutoRefundService:
         """
         verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
-        if not verification:
+if not verification:
             logger.error(f"Verification {verification_id} not found")
             return None
 
@@ -52,25 +56,25 @@ class AutoRefundService:
             .first()
         )
 
-        if existing_refund:
+if existing_refund:
             logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
             return None
 
         # Only refund if status is timeout, cancelled, or failed
-        if verification.status not in ["timeout", "cancelled", "failed"]:
+if verification.status not in ["timeout", "cancelled", "failed"]:
             logger.warning(f"Cannot refund verification {verification_id} with status: {verification.status}")
             return None
 
         # Get user
         user = self.db.query(User).filter(User.id == verification.user_id).first()
-        if not user:
+if not user:
             logger.error(f"User {verification.user_id} not found")
             return None
 
         # Calculate refund amount
         refund_amount = verification.cost
 
-        try:
+try:
             # Add credits back to user
             old_balance = user.credits
             user.credits = (user.credits or 0.0) + refund_amount
@@ -95,8 +99,7 @@ class AutoRefundService:
             )
 
             # CRITICAL: Send notification using dispatcher for real-time updates
-            try:
-                from app.services.notification_dispatcher import NotificationDispatcher
+try:
 
                 notification_dispatcher = NotificationDispatcher(self.db)
                 notification_dispatcher.on_refund_completed(
@@ -107,7 +110,7 @@ class AutoRefundService:
                 )
                 self.db.commit()
                 logger.info(f"✓ Refund notification sent to {verification.user_id}")
-            except Exception as e:
+except Exception as e:
                 logger.error(
                     f"🚨 CRITICAL: Refund notification failed for {verification.user_id}: {e}",
                     exc_info=True,
@@ -125,7 +128,7 @@ class AutoRefundService:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-        except Exception as e:
+except Exception as e:
             self.db.rollback()
             logger.error(
                 f"Failed to process refund for verification {verification_id}: {str(e)}",
@@ -133,7 +136,8 @@ class AutoRefundService:
             )
             return None
 
-    def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
+def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
+
         """Scan for unrefunded failed verifications and process refunds.
 
         Args:
@@ -143,7 +147,6 @@ class AutoRefundService:
         Returns:
             Reconciliation report
         """
-        from datetime import timedelta
 
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
@@ -167,7 +170,7 @@ class AutoRefundService:
             "verifications": [],
         }
 
-        for verification in failed_verifications:
+for verification in failed_verifications:
             # Check if already refunded
             existing_refund = (
                 self.db.query(Transaction)
@@ -179,7 +182,7 @@ class AutoRefundService:
                 .first()
             )
 
-            if existing_refund:
+if existing_refund:
                 report["already_refunded"] += 1
                 continue
 
@@ -194,19 +197,19 @@ class AutoRefundService:
                 "created_at": verification.created_at.isoformat(),
             }
 
-            if not dry_run:
+if not dry_run:
                 # Process refund
                 result = self.process_verification_refund(verification.id, verification.status)
-                if result:
+if result:
                     report["refunded_now"] += 1
                     report["total_amount_refunded"] += result["refund_amount"]
                     verification_info["refunded"] = True
                     verification_info["refund_amount"] = result["refund_amount"]
-                else:
+else:
                     report["refund_errors"] += 1
                     verification_info["refunded"] = False
                     verification_info["error"] = "Refund processing failed"
-            else:
+else:
                 verification_info["refunded"] = False
                 verification_info["dry_run"] = True
 

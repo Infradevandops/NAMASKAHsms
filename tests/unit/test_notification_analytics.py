@@ -1,18 +1,17 @@
 """Tests for notification analytics system."""
 
-from datetime import datetime, timezone
 
+from datetime import datetime, timezone
 import pytest
 from sqlalchemy.orm import Session
-
 from app.models.notification import Notification
 from app.models.notification_analytics import NotificationAnalytics
 from app.models.user import User
 from app.services.notification_analytics_service import NotificationAnalyticsService
 
-
 @pytest.fixture
 def test_user(db: Session):
+
     """Create test user."""
     user = User(
         id="test-user-123",
@@ -27,6 +26,7 @@ def test_user(db: Session):
 
 @pytest.fixture
 def test_notification(db: Session, test_user):
+
     """Create test notification."""
     notification = Notification(
         user_id=test_user.id,
@@ -41,14 +41,17 @@ def test_notification(db: Session, test_user):
 
 @pytest.fixture
 def analytics_service(db: Session):
+
     """Create analytics service."""
     return NotificationAnalyticsService(db)
 
 
 class TestNotificationAnalyticsModel:
+
     """Test NotificationAnalytics model."""
 
-    def test_create_analytics_record(self, db: Session, test_user, test_notification):
+def test_create_analytics_record(self, db: Session, test_user, test_notification):
+
         """Test creating analytics record."""
         analytics = NotificationAnalytics(
             notification_id=test_notification.id,
@@ -65,7 +68,8 @@ class TestNotificationAnalyticsModel:
         assert analytics.notification_id == test_notification.id
         assert analytics.status == "sent"
 
-    def test_analytics_to_dict(self, db: Session, test_user, test_notification):
+def test_analytics_to_dict(self, db: Session, test_user, test_notification):
+
         """Test converting analytics to dictionary."""
         analytics = NotificationAnalytics(
             notification_id=test_notification.id,
@@ -88,9 +92,11 @@ class TestNotificationAnalyticsModel:
 
 
 class TestNotificationAnalyticsService:
+
     """Test NotificationAnalyticsService."""
 
-    def test_track_notification_sent(self, analytics_service, test_user, test_notification):
+def test_track_notification_sent(self, analytics_service, test_user, test_notification):
+
         """Test tracking notification sent."""
         analytics = analytics_service.track_notification_sent(
             notification_id=test_notification.id,
@@ -103,7 +109,8 @@ class TestNotificationAnalyticsService:
         assert analytics.status == "sent"
         assert analytics.sent_at is not None
 
-    def test_track_notification_delivered(self, analytics_service, test_user, test_notification):
+def test_track_notification_delivered(self, analytics_service, test_user, test_notification):
+
         """Test tracking notification delivered."""
         # First track sent
         analytics_service.track_notification_sent(
@@ -122,7 +129,8 @@ class TestNotificationAnalyticsService:
 
         assert result is True
 
-    def test_track_notification_read(self, analytics_service, test_user, test_notification):
+def test_track_notification_read(self, analytics_service, test_user, test_notification):
+
         """Test tracking notification read."""
         # First track sent
         analytics_service.track_notification_sent(
@@ -140,7 +148,8 @@ class TestNotificationAnalyticsService:
 
         assert result is True
 
-    def test_track_notification_clicked(self, analytics_service, test_user, test_notification):
+def test_track_notification_clicked(self, analytics_service, test_user, test_notification):
+
         """Test tracking notification clicked."""
         # First track sent
         analytics_service.track_notification_sent(
@@ -158,7 +167,8 @@ class TestNotificationAnalyticsService:
 
         assert result is True
 
-    def test_track_notification_failed(self, analytics_service, test_user, test_notification):
+def test_track_notification_failed(self, analytics_service, test_user, test_notification):
+
         """Test tracking notification failed."""
         # First track sent
         analytics_service.track_notification_sent(
@@ -178,10 +188,11 @@ class TestNotificationAnalyticsService:
 
         assert result is True
 
-    def test_get_delivery_metrics(self, db: Session, analytics_service, test_user):
+def test_get_delivery_metrics(self, db: Session, analytics_service, test_user):
+
         """Test getting delivery metrics."""
         # Create multiple notifications and track them
-        for i in range(5):
+for i in range(5):
             notification = Notification(
                 user_id=test_user.id,
                 type="verification",
@@ -198,7 +209,7 @@ class TestNotificationAnalyticsService:
                 delivery_method="email",
             )
 
-            if i < 3:
+if i < 3:
                 analytics_service.track_notification_delivered(
                     notification_id=notification.id,
                     user_id=test_user.id,
@@ -211,11 +222,12 @@ class TestNotificationAnalyticsService:
         assert metrics["delivered"] == 3
         assert metrics["delivery_rate"] == 60.0
 
-    def test_get_metrics_by_type(self, db: Session, analytics_service, test_user):
+def test_get_metrics_by_type(self, db: Session, analytics_service, test_user):
+
         """Test getting metrics by notification type."""
         # Create notifications of different types
-        for notification_type in ["verification", "payment", "login"]:
-            for i in range(2):
+for notification_type in ["verification", "payment", "login"]:
+for i in range(2):
                 notification = Notification(
                     user_id=test_user.id,
                     type=notification_type,
@@ -240,11 +252,12 @@ class TestNotificationAnalyticsService:
         assert "login" in metrics
         assert metrics["verification"]["total"] == 2
 
-    def test_get_metrics_by_method(self, db: Session, analytics_service, test_user):
+def test_get_metrics_by_method(self, db: Session, analytics_service, test_user):
+
         """Test getting metrics by delivery method."""
         # Create notifications with different delivery methods
-        for method in ["email", "sms", "websocket"]:
-            for i in range(2):
+for method in ["email", "sms", "websocket"]:
+for i in range(2):
                 notification = Notification(
                     user_id=test_user.id,
                     type="verification",
@@ -269,10 +282,11 @@ class TestNotificationAnalyticsService:
         assert "websocket" in metrics
         assert metrics["email"]["total"] == 2
 
-    def test_get_timeline_metrics(self, db: Session, analytics_service, test_user):
+def test_get_timeline_metrics(self, db: Session, analytics_service, test_user):
+
         """Test getting timeline metrics."""
         # Create notifications
-        for i in range(5):
+for i in range(5):
             notification = Notification(
                 user_id=test_user.id,
                 type="verification",
@@ -297,64 +311,70 @@ class TestNotificationAnalyticsService:
 
 
 class TestAnalyticsEndpoints:
+
     """Test analytics endpoints."""
 
-    def test_get_analytics_summary_endpoint(self, client, test_user, db: Session):
+def test_get_analytics_summary_endpoint(self, client, test_user, db: Session):
+
         """Test GET /api/notifications/analytics/summary endpoint."""
-        with client:
+with client:
             response = client.get(
                 "/api/notifications/analytics/summary",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-        if response.status_code == 200:
+if response.status_code == 200:
             data = response.json()
             assert "total_notifications" in data
             assert "delivery_rate" in data
 
-    def test_get_analytics_by_type_endpoint(self, client, test_user):
+def test_get_analytics_by_type_endpoint(self, client, test_user):
+
         """Test GET /api/notifications/analytics/by-type endpoint."""
-        with client:
+with client:
             response = client.get(
                 "/api/notifications/analytics/by-type",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-        if response.status_code == 200:
+if response.status_code == 200:
             data = response.json()
             assert isinstance(data, dict)
 
-    def test_get_analytics_by_method_endpoint(self, client, test_user):
+def test_get_analytics_by_method_endpoint(self, client, test_user):
+
         """Test GET /api/notifications/analytics/by-method endpoint."""
-        with client:
+with client:
             response = client.get(
                 "/api/notifications/analytics/by-method",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-        if response.status_code == 200:
+if response.status_code == 200:
             data = response.json()
             assert isinstance(data, dict)
 
-    def test_get_analytics_timeline_endpoint(self, client, test_user):
+def test_get_analytics_timeline_endpoint(self, client, test_user):
+
         """Test GET /api/notifications/analytics/timeline endpoint."""
-        with client:
+with client:
             response = client.get(
                 "/api/notifications/analytics/timeline",
                 headers={"Authorization": f"Bearer {test_user.id}"},
             )
 
         assert response.status_code in [200, 404, 405]
-        if response.status_code == 200:
+if response.status_code == 200:
             data = response.json()
             assert isinstance(data, list)
 
-    def test_get_analytics_timeline_invalid_interval(self, client, test_user):
+def test_get_analytics_timeline_invalid_interval(self, client, test_user):
+
         """Test timeline endpoint with invalid interval."""
-        with client:
+with client:
             response = client.get(
                 "/api/notifications/analytics/timeline?interval=invalid",
                 headers={"Authorization": f"Bearer {test_user.id}"},

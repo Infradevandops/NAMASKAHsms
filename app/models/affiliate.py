@@ -1,12 +1,12 @@
 """Affiliate program models."""
 
+
 from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class AffiliateProgram(BaseModel):
+
     __tablename__ = "affiliate_programs"
 
     name = Column(String(100), nullable=False)
@@ -18,6 +18,7 @@ class AffiliateProgram(BaseModel):
 
 
 class AffiliateApplication(BaseModel):
+
     __tablename__ = "affiliate_applications"
 
     email = Column(String(255), nullable=False)
@@ -29,6 +30,7 @@ class AffiliateApplication(BaseModel):
 
 
 class AffiliateCommission(BaseModel):
+
     __tablename__ = "affiliate_commissions"
 
     affiliate_id = Column(String, ForeignKey("users.id"), nullable=False)

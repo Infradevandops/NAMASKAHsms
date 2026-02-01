@@ -1,18 +1,17 @@
 """Alembic environment configuration."""
 
+
+# Add the project root to the path
 import os
 import sys
 from logging.config import fileConfig
-
 from sqlalchemy import engine_from_config, pool
-
 from alembic import context
-
-# Add the project root to the path
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
 from app.core.config import settings
 from app.core.database import Base
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -34,11 +33,13 @@ target_metadata = Base.metadata
 
 
 def get_url():
+
     """Get database URL from settings."""
     return settings.database_url
 
 
 def run_migrations_offline() -> None:
+
     """Run migrations in 'offline' mode."""
     url = get_url()
     context.configure(
@@ -48,14 +49,15 @@ def run_migrations_offline() -> None:
         dialect_opts={"paramstyle": "named"},
     )
 
-    with context.begin_transaction():
+with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online() -> None:
+
     """Run migrations in 'online' mode."""
     # Skip migrations if SKIP_MIGRATIONS env var is set
-    if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
+if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
         print("⚠️  SKIP_MIGRATIONS enabled, skipping migrations")
         return
 
@@ -67,10 +69,10 @@ def run_migrations_online() -> None:
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
+with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 
-        with context.begin_transaction():
+with context.begin_transaction():
             context.run_migrations()
 
 
@@ -80,8 +82,8 @@ else:
     # Check SKIP_MIGRATIONS before doing anything
     skip_val = os.getenv("SKIP_MIGRATIONS", "NOT_SET")
     skip = skip_val.lower() in ("true", "1", "yes")
-    if skip:
+if skip:
         print("⚠️  SKIP_MIGRATIONS enabled, skipping all migrations")
-    else:
+else:
         print("Running migrations...")
         run_migrations_online()

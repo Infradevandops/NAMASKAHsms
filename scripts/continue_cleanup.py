@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
+import os
+import re
+import shutil
+from datetime import datetime
+import shutil
+from datetime import datetime
+import sys
+from app.core.database import SessionLocal
+
 Update remaining imports and continue cleanup
 """
 
-import os
-import re
-
 
 def update_textverified_imports():
+
     """Update remaining TextVerified imports to use primary service."""
     print("🔄 STEP 6: Updating TextVerified imports...")
 
@@ -18,9 +25,9 @@ def update_textverified_imports():
         "app/api/verification/pricing.py",
     ]
 
-    for filepath in files_to_update:
-        if os.path.exists(filepath):
-            with open(filepath, "r") as f:
+for filepath in files_to_update:
+if os.path.exists(filepath):
+with open(filepath, "r") as f:
                 content = f.read()
 
             # Replace textverified_integration imports with textverified_service
@@ -37,15 +44,16 @@ def update_textverified_imports():
                 updated_content,
             )
 
-            if updated_content != content:
-                with open(filepath, "w") as f:
+if updated_content != content:
+with open(filepath, "w") as f:
                     f.write(updated_content)
                 print(f"✅ Updated imports in {filepath}")
-            else:
+else:
                 print(f"ℹ️  No changes needed in {filepath}")
 
 
 def remove_remaining_duplicates():
+
     """Remove remaining TextVerified duplicates after import updates."""
     print("\n🔄 STEP 7: Removing remaining duplicates...")
 
@@ -54,11 +62,9 @@ def remove_remaining_duplicates():
         "app/services/textverified_api.py",
     ]
 
-    for duplicate in remaining_duplicates:
-        if os.path.exists(duplicate):
+for duplicate in remaining_duplicates:
+if os.path.exists(duplicate):
             # Create backup
-            import shutil
-            from datetime import datetime
 
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             backup_path = f"{duplicate}.backup_{timestamp}"
@@ -70,25 +76,24 @@ def remove_remaining_duplicates():
 
 
 def clean_todo_comments():
+
     """Clean up specific TODO comments that can be safely removed."""
     print("\n🔄 STEP 8: Cleaning TODO comments...")
 
     # Remove OAuth service entirely (incomplete and unused)
     oauth_file = "app/services/oauth_service.py"
-    if os.path.exists(oauth_file):
-        import shutil
-        from datetime import datetime
+if os.path.exists(oauth_file):
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = f"{oauth_file}.backup_{timestamp}"
         shutil.copy2(oauth_file, backup_path)
         os.remove(oauth_file)
-        print(f"✅ Removed unused OAuth service (backed up)")
+        print("✅ Removed unused OAuth service (backed up)")
 
     # Update tier_endpoints.py TODO
     tier_file = "app/api/billing/tier_endpoints.py"
-    if os.path.exists(tier_file):
-        with open(tier_file, "r") as f:
+if os.path.exists(tier_file):
+with open(tier_file, "r") as f:
             content = f.read()
 
         # Replace TODO with proper comment
@@ -97,41 +102,39 @@ def clean_todo_comments():
             "# Payment processing will be implemented in Phase 2",
         )
 
-        if updated_content != content:
-            with open(tier_file, "w") as f:
+if updated_content != content:
+with open(tier_file, "w") as f:
                 f.write(updated_content)
             print(f"✅ Updated TODO comment in {tier_file}")
 
 
 def verify_codebase_integrity():
+
     """Verify the codebase still works after cleanup."""
     print("\n🔍 STEP 9: Verifying codebase integrity...")
 
-    try:
+try:
         # Test imports
-        import sys
 
         sys.path.append("/Users/machine/Desktop/Namaskah. app")
 
-        from app.services.pricing_calculator import PricingCalculator
-        from app.services.textverified_service import TextVerifiedService
 
         print("✅ Core services import successfully")
 
         # Test database connection
-        from app.core.database import SessionLocal
 
         db = SessionLocal()
         db.close()
         print("✅ Database connection works")
 
         return True
-    except Exception as e:
+except Exception as e:
         print(f"❌ Integrity check failed: {e}")
         return False
 
 
 def main():
+
     """Continue cleanup with import updates."""
     print("🔄 CONTINUING CLEANUP...")
     print("=" * 60)
@@ -148,7 +151,7 @@ def main():
     clean_todo_comments()
 
     # Verify integrity
-    if verify_codebase_integrity():
+if verify_codebase_integrity():
         print("\n" + "=" * 60)
         print("✅ CLEANUP PHASE 2 COMPLETED!")
         print("\n📋 Additional cleanup completed:")
@@ -157,7 +160,7 @@ def main():
         print("  - Cleaned TODO comments")
         print("  - Verified codebase integrity")
         return True
-    else:
+else:
         print("\n❌ CLEANUP FAILED - Integrity check failed")
         return False
 

@@ -1,16 +1,13 @@
 """
+import sqlalchemy as sa
+from alembic import op
+
 Migrate to Quota-Based Pricing Model
 
 Revision ID: quota_pricing_v3_1
 Created: 2025-12-25
 """
 
-from decimal import Decimal
-
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
-from alembic import op
 
 # revision identifiers
 revision = "quota_pricing_v3_1"
@@ -20,6 +17,7 @@ depends_on = None
 
 
 def upgrade():
+
     """Upgrade to quota-based pricing"""
 
     # 1. Add new columns to tiers table
@@ -74,8 +72,8 @@ def upgrade():
     connection.execute(
         sa.text(
             """
-        UPDATE tiers 
-        SET 
+        UPDATE tiers
+        SET
             monthly_price = 0.00,
             included_quota = 5.00,
             overage_rate = NULL,
@@ -89,8 +87,8 @@ def upgrade():
     connection.execute(
         sa.text(
             """
-        UPDATE tiers 
-        SET 
+        UPDATE tiers
+        SET
             monthly_price = 0.00,
             included_quota = 0.00,
             overage_rate = 2.50,
@@ -104,8 +102,8 @@ def upgrade():
     connection.execute(
         sa.text(
             """
-        UPDATE tiers 
-        SET 
+        UPDATE tiers
+        SET
             monthly_price = 8.99,
             included_quota = 10.00,
             overage_rate = 2.30,
@@ -120,7 +118,7 @@ def upgrade():
         sa.text(
             """
         INSERT INTO tiers (tier_name, monthly_price, included_quota, overage_rate, api_keys_limit, features, created_at)
-        VALUES ('turbo', 25.00, 30.00, 2.20, 10, 
+        VALUES ('turbo', 25.00, 30.00, 2.20, 10,
                 '["area_code_selection", "isp_filtering", "api_access"]'::jsonb,
                 CURRENT_TIMESTAMP)
         ON CONFLICT (tier_name) DO UPDATE SET
@@ -168,7 +166,7 @@ def upgrade():
         sa.text(
             """
         UPDATE users u
-        SET 
+        SET
             quota_balance = t.included_quota,
             quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
         FROM tiers t
@@ -182,7 +180,7 @@ def upgrade():
         sa.text(
             """
         INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
-        SELECT 
+        SELECT
             u.id,
             'quota_reset',
             t.included_quota,
@@ -200,6 +198,7 @@ def upgrade():
 
 
 def downgrade():
+
     """Downgrade from quota-based pricing"""
 
     # Remove quota tracking from users

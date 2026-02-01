@@ -1,11 +1,11 @@
 """Pricing tier and subscription models."""
 
-from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 from app.models.base import BaseModel
 
-
 class PricingTier(BaseModel):
+
     """Pricing tier model."""
 
     __tablename__ = "pricing_tiers"
@@ -30,6 +30,7 @@ class PricingTier(BaseModel):
 
 
 class UserSubscription(BaseModel):
+
     """User subscription model."""
 
     __tablename__ = "user_subscriptions"
@@ -49,6 +50,7 @@ class UserSubscription(BaseModel):
 
 
 class ServiceAddOn(BaseModel):
+
     """Service add-on model."""
 
     __tablename__ = "service_addons"
@@ -64,6 +66,7 @@ class ServiceAddOn(BaseModel):
 
 
 class UserAddOnSubscription(BaseModel):
+
     """User add-on subscription model."""
 
     __tablename__ = "user_addon_subscriptions"
@@ -82,6 +85,7 @@ class UserAddOnSubscription(BaseModel):
 
 
 class VerificationPricing(BaseModel):
+
     """Verification pricing by service and country."""
 
     __tablename__ = "verification_pricing"

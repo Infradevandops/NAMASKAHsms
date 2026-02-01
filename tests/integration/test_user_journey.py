@@ -1,11 +1,12 @@
+
+
 from unittest.mock import AsyncMock, MagicMock, patch
-
 from app.models.user import User
-
 
 @patch("app.api.core.auth.get_notification_service")
 @patch("app.services.textverified_service.TextVerifiedService")
 def test_complete_user_journey(MockTVService, mock_get_notify, client, db_session):
+
     """
     Test the complete user journey:
     1. Register

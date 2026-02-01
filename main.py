@@ -1,11 +1,7 @@
 """
-Namaskah SMS - Optimized Application Factory
-"""
-
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
-
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware as FastAPICORSMiddleware
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -13,11 +9,8 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
-
 from app.api.admin.router import router as admin_router
 from app.api.billing.router import router as billing_router
-
-# Import modular routers
 from app.api.core.router import router as core_router
 from app.api.health import router as health_router
 from app.api.preview_router import router as preview_router
@@ -38,6 +31,15 @@ from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.xss_protection import XSSProtectionMiddleware
+import jwt
+from app.models.base import Base
+import uvicorn
+
+Namaskah SMS - Optimized Application Factory
+"""
+
+
+# Import modular routers
 
 security = HTTPBearer(auto_error=False)
 TEMPLATES_DIR = Path("templates").resolve()
@@ -45,13 +47,13 @@ STATIC_DIR = Path("static").resolve()
 
 
 def get_optional_user_id(
+
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> Optional[str]:
     """Get user ID from token if provided, otherwise return None."""
-    if not credentials:
+if not credentials:
         return None
-    try:
-        import jwt
+try:
 
         settings = get_settings()
         payload = jwt.decode(
@@ -60,19 +62,18 @@ def get_optional_user_id(
             algorithms=[settings.jwt_algorithm],
         )
         return payload.get("user_id")
-    except Exception:
+except Exception:
         return None
 
 
 def create_app() -> FastAPI:
+
     """Application factory pattern."""
     setup_logging()
-    logger = get_logger("startup")
+    get_logger("startup")
     settings = get_settings()
 
     # Initialize models
-    import app.models
-    from app.models.base import Base
 
     Base.registry.configure()
 
@@ -93,7 +94,7 @@ def create_app() -> FastAPI:
         "http://127.0.0.1:3000",
         "http://127.0.0.1:8000",
     ]
-    if settings.environment == "production":
+if settings.environment == "production":
         cors_origins = list(
             set(
                 [
@@ -118,9 +119,9 @@ def create_app() -> FastAPI:
     async def fix_mime_types(request: Request, call_next):
         response = await call_next(request)
         path = request.url.path
-        if path.endswith(".css"):
+if path.endswith(".css"):
             response.headers["content-type"] = "text/css; charset=utf-8"
-        elif path.endswith(".js"):
+elif path.endswith(".js"):
             response.headers["content-type"] = "application/javascript; charset=utf-8"
         return response
 
@@ -130,9 +131,9 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(RequestLoggingMiddleware)
 
     # ============== STATIC FILES ==============
-    if STATIC_DIR.exists():
+if STATIC_DIR.exists():
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
-    else:
+else:
         STATIC_DIR.mkdir(parents=True, exist_ok=True)
         fastapi_app.mount("/static", StaticFiles(directory=str(STATIC_DIR)))
 
@@ -176,7 +177,7 @@ def create_app() -> FastAPI:
             "templates": {
                 "count": (
                     len(list(TEMPLATES_DIR.glob("*.html")))
-                    if TEMPLATES_DIR.exists()
+if TEMPLATES_DIR.exists()
                     else 0
                 )
             },
@@ -188,7 +189,6 @@ def create_app() -> FastAPI:
 app = create_app()
 
 if __name__ == "__main__":
-    import uvicorn
 
     # Using port 9527 to avoid conflicts with common ports (8000, 8001, 8080, 3000, 5000)
     uvicorn.run("main:app", host="0.0.0.0", port=9527, reload=True)

@@ -1,12 +1,10 @@
 """Background worker for webhook processing."""
 
+
 import asyncio
-
 from redis import Redis
-
 from app.core.config import get_settings
 from app.services.webhook_queue import WebhookQueue
-
 
 async def run_webhook_worker():
     """Run webhook worker continuously."""
@@ -14,10 +12,10 @@ async def run_webhook_worker():
     redis = Redis.from_url(settings.redis_url)
     queue = WebhookQueue(redis)
 
-    while True:
-        try:
+while True:
+try:
             await queue.process_batch(batch_size=10)
-        except Exception as e:
+except Exception as e:
             print(f"Worker error: {e}")
             await asyncio.sleep(5)
 

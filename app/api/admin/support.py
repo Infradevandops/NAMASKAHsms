@@ -1,12 +1,11 @@
 """Support API router for customer support and help desk functionality."""
 
+
 from datetime import datetime, timezone
 from typing import List, Optional
-
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
@@ -20,6 +19,7 @@ router = APIRouter(prefix="/support", tags=["Support"])
 
 
 class SupportTicketCreate(BaseModel):
+
     category: str
     priority: str = "medium"
     subject: str
@@ -27,6 +27,7 @@ class SupportTicketCreate(BaseModel):
 
 
 class SupportTicketResponse(BaseModel):
+
     id: str
     category: str
     priority: str
@@ -47,10 +48,10 @@ async def create_support_ticket(
     db: Session = Depends(get_db),
 ):
     """Create a new support ticket."""
-    try:
+try:
         # Get user information
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Create support ticket
@@ -81,7 +82,7 @@ async def create_support_ticket(
             },
         )
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to create support ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create support ticket")
 
@@ -94,17 +95,17 @@ async def get_user_tickets(
     db: Session = Depends(get_db),
 ):
     """Get user's support tickets."""
-    try:
+try:
         query = db.query(SupportTicket).filter(SupportTicket.user_id == user_id)
 
-        if status:
+if status:
             query = query.filter(SupportTicket.status == status)
 
         tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get user tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
@@ -116,17 +117,17 @@ async def get_ticket_details(
     db: Session = Depends(get_db),
 ):
     """Get specific ticket details."""
-    try:
+try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
-        if not ticket:
+if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
         return SupportTicketResponse.from_orm(ticket)
 
-    except HTTPException:
+except HTTPException:
         pass
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get ticket details: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get ticket details")
 
@@ -138,13 +139,13 @@ async def close_ticket(
     db: Session = Depends(get_db),
 ):
     """Close a support ticket."""
-    try:
+try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
-        if not ticket:
+if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
-        if ticket.status == "closed":
+if ticket.status == "closed":
             raise HTTPException(status_code=400, detail="Ticket is already closed")
 
         ticket.status = "closed"
@@ -156,9 +157,9 @@ async def close_ticket(
             data={"ticket_id": ticket_id, "status": "closed"},
         )
 
-    except HTTPException:
+except HTTPException:
         pass
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to close ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to close ticket")
 
@@ -166,7 +167,7 @@ async def close_ticket(
 @router.get("/faq")
 async def get_faq():
     """Get frequently asked questions."""
-    try:
+try:
         faq_items = [
             {
                 "id": "1",
@@ -239,7 +240,7 @@ async def get_faq():
 
         return {"faq": faq_items}
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get FAQ: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get FAQ")
 
@@ -252,11 +253,11 @@ async def mark_faq_helpful(
     db: Session = Depends(get_db),
 ):
     """Mark FAQ item as helpful or not helpful."""
-    try:
+try:
         # In a real implementation, you'd track this in the database
         return SuccessResponse(message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful})
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to record FAQ feedback: %s", e)
         raise HTTPException(status_code=500, detail="Failed to record feedback")
 
@@ -264,7 +265,7 @@ async def mark_faq_helpful(
 @router.get("/categories")
 async def get_support_categories():
     """Get available support categories."""
-    try:
+try:
         categories = [
             {
                 "id": "technical",
@@ -307,7 +308,7 @@ async def get_support_categories():
 
         return {"categories": categories}
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get support categories: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get categories")
 
@@ -315,7 +316,7 @@ async def get_support_categories():
 @router.get("/status")
 async def get_support_status():
     """Get current support system status."""
-    try:
+try:
         return {
             "status": "operational",
             "average_response_time": "4 hours",
@@ -324,7 +325,7 @@ async def get_support_status():
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get support status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support status")
 
@@ -342,21 +343,21 @@ async def get_all_tickets(
     db: Session = Depends(get_db),
 ):
     """Get all support tickets (admin only)."""
-    try:
+try:
         query = db.query(SupportTicket)
 
-        if status:
+if status:
             query = query.filter(SupportTicket.status == status)
-        if priority:
+if priority:
             query = query.filter(SupportTicket.priority == priority)
-        if category:
+if category:
             query = query.filter(SupportTicket.category == category)
 
         tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get all tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
@@ -369,10 +370,10 @@ async def respond_to_ticket(
     db: Session = Depends(get_db),
 ):
     """Respond to a support ticket (admin only)."""
-    try:
+try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
 
-        if not ticket:
+if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
 
         ticket.admin_response = response
@@ -388,9 +389,9 @@ async def respond_to_ticket(
             data={"ticket_id": ticket_id, "status": "resolved"},
         )
 
-    except HTTPException:
+except HTTPException:
         pass
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to respond to ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to respond to ticket")
 
@@ -398,7 +399,7 @@ async def respond_to_ticket(
 @router.get("/admin/stats")
 async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
     """Get support statistics (admin only)."""
-    try:
+try:
         total_tickets = db.query(SupportTicket).count()
         open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
         resolved_tickets = db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
@@ -415,6 +416,6 @@ async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Sess
             "resolution_rate": (round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0),
         }
 
-    except Exception as e:
+except Exception as e:
         logger.error("Failed to get support stats: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support stats")

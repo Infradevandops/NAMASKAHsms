@@ -1,5 +1,6 @@
 """Audit logging for secrets access and management."""
 
+
 import json
 import logging
 from datetime import datetime
@@ -10,6 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class AuditAction(str, Enum):
+
     """Audit action types."""
 
     GET = "get"
@@ -21,13 +23,16 @@ class AuditAction(str, Enum):
 
 
 class SecretsAudit:
+
     """Audit logging for secrets operations."""
 
-    def __init__(self):
+def __init__(self):
+
         self.audit_logger = logging.getLogger("secrets_audit")
         self.audit_logger.setLevel(logging.INFO)
 
-    def log_action(
+def log_action(
+
         self,
         action: AuditAction,
         secret_name: str,
@@ -51,7 +56,8 @@ class SecretsAudit:
 
         self.audit_logger.info(json.dumps(audit_entry))
 
-    def log_get(
+def log_get(
+
         self,
         secret_name: str,
         user_id: Optional[str] = None,
@@ -67,7 +73,8 @@ class SecretsAudit:
             metadata={"cached": cached},
         )
 
-    def log_set(
+def log_set(
+
         self,
         secret_name: str,
         user_id: Optional[str] = None,
@@ -83,7 +90,8 @@ class SecretsAudit:
             metadata={"created": created},
         )
 
-    def log_delete(
+def log_delete(
+
         self,
         secret_name: str,
         user_id: Optional[str] = None,
@@ -99,7 +107,8 @@ class SecretsAudit:
             metadata={"recovery_window_days": recovery_window_days},
         )
 
-    def log_rotate(
+def log_rotate(
+
         self,
         secret_name: str,
         user_id: Optional[str] = None,
@@ -113,7 +122,8 @@ class SecretsAudit:
             ip_address=ip_address,
         )
 
-    def log_error(
+def log_error(
+
         self,
         action: AuditAction,
         secret_name: str,
@@ -137,10 +147,11 @@ _audit: Optional[SecretsAudit] = None
 
 
 def get_audit() -> SecretsAudit:
+
     """Get or create global audit instance."""
     global _audit
 
-    if _audit is None:
+if _audit is None:
         _audit = SecretsAudit()
 
     return _audit

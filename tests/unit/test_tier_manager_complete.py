@@ -1,22 +1,22 @@
+
+
 from datetime import datetime, timedelta, timezone
-
-import pytest
-
 from app.models.api_key import APIKey
-from app.models.user import User
 from app.services.tier_manager import TierManager
 
-
 class TestTierManagerComplete:
+
     """Comprehensive tests for TierManager."""
 
-    def test_get_user_tier_default(self, db_session, regular_user):
+def test_get_user_tier_default(self, db_session, regular_user):
+
         """Test getting default user tier."""
         tier_manager = TierManager(db_session)
         tier = tier_manager.get_user_tier(regular_user.id)
         assert tier == "freemium"
 
-    def test_get_user_tier_expiration(self, db_session, regular_user):
+def test_get_user_tier_expiration(self, db_session, regular_user):
+
         """Test that expired tiers are downgraded."""
         tier_manager = TierManager(db_session)
 
@@ -33,7 +33,8 @@ class TestTierManagerComplete:
         db_session.refresh(regular_user)
         assert regular_user.subscription_tier == "freemium"
 
-    def test_feature_access(self, db_session, regular_user):
+def test_feature_access(self, db_session, regular_user):
+
         """Test feature access checks for different tiers."""
         tier_manager = TierManager(db_session)
 
@@ -51,7 +52,8 @@ class TestTierManagerComplete:
         webhooks_result = tier_manager.check_feature_access(regular_user.id, "webhooks")
         assert webhooks_result in [True, False]
 
-    def test_can_create_api_key(self, db_session, regular_user):
+def test_can_create_api_key(self, db_session, regular_user):
+
         """Test API key creation limits."""
         tier_manager = TierManager(db_session)
 
@@ -96,7 +98,8 @@ class TestTierManagerComplete:
         can, msg = tier_manager.can_create_api_key(regular_user.id)
         assert can is False
 
-    def test_upgrade_downgrade(self, db_session, regular_user):
+def test_upgrade_downgrade(self, db_session, regular_user):
+
         """Test upgrading and downgrading tiers."""
         tier_manager = TierManager(db_session)
 

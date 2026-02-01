@@ -1,17 +1,17 @@
 """Business intelligence and analytics service."""
 
+
 from datetime import datetime, timedelta
 from typing import Any, Dict
-
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.models.rental import Rental
 from app.utils.performance import async_cache
 
-
 class BusinessIntelligenceService:
-    def __init__(self, db: AsyncSession):
+
+def __init__(self, db: AsyncSession):
+
         self.db = db
 
     @async_cache(ttl=3600)
@@ -76,7 +76,7 @@ class BusinessIntelligenceService:
         previous_revenue = previous_result.scalar() or 0
 
         growth_rate = 0
-        if previous_revenue > 0:
+if previous_revenue > 0:
             growth_rate = ((current_revenue - previous_revenue) / previous_revenue) * 100
 
         return {

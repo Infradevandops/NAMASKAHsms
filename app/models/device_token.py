@@ -1,12 +1,12 @@
 """Device token model for push notifications."""
 
+
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class DeviceToken(BaseModel):
+
     """Device token for push notifications."""
 
     __tablename__ = "device_tokens"
@@ -20,7 +20,8 @@ class DeviceToken(BaseModel):
     # Relationship
     user = relationship("User", back_populates="device_tokens")
 
-    def to_dict(self):
+def to_dict(self):
+
         """Convert to dictionary."""
         return {
             "id": self.id,

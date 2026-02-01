@@ -1,8 +1,8 @@
+
+
 from datetime import timedelta
-
-import pytest
-
 from app.utils.security import (
+
     create_access_token,
     generate_api_key,
     generate_secure_id,
@@ -16,6 +16,7 @@ from app.utils.security import (
 
 
 def test_password_hashing():
+
     password = "StrongPass123!"
     hashed = hash_password(password)
     assert hashed != password
@@ -25,6 +26,7 @@ def test_password_hashing():
 
 
 def test_jwt_tokens():
+
     data = {"user_id": "123", "email": "test@example.com"}
     token = create_access_token(data, expires_delta=timedelta(minutes=5))
     assert token is not None
@@ -38,6 +40,7 @@ def test_jwt_tokens():
 
 
 def test_generators():
+
     assert len(generate_api_key(32)) == 32
     assert len(generate_verification_code(6)) == 6
     assert generate_verification_code(6).isdigit()
@@ -47,12 +50,14 @@ def test_generators():
 
 
 def test_mask_sensitive_data():
+
     assert mask_sensitive_data("1234567890", 2) == "12******90"
     assert mask_sensitive_data("123", 2) == "***"
     assert mask_sensitive_data("1234", 2) == "****"
 
 
 def test_validate_password_strength():
+
     res = validate_password_strength("Short1!")
     assert res["is_valid"] is False
     assert res["requirements"]["min_length"] is False

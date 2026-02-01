@@ -1,26 +1,32 @@
 """TextVerified provider service."""
 
-try:
-    import textverified
-except ImportError:
-    textverified = None
-
+import textverified
 import os
 import time
 from datetime import datetime
 from typing import Any, Dict, Optional
-
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.utils.phone_formatter import format_us_phone
+import asyncio
+from textverified.action import _Action
+from textverified.action import _Action
+from textverified.action import _Action
+import random
+
+try:
+except ImportError:
+    textverified = None
+
 
 logger = get_logger(__name__)
 
 
 class TextVerifiedService:
+
     """TextVerified provider implementation using official package."""
 
-    def __init__(self):
+def __init__(self):
         # Load credentials from environment variables
         self.api_key = os.getenv("TEXTVERIFIED_API_KEY") or settings.textverified_api_key
         self.api_username = os.getenv("TEXTVERIFIED_EMAIL") or getattr(
@@ -44,20 +50,21 @@ class TextVerifiedService:
         # Validate credentials
         self.enabled = self._validate_credentials()
 
-        if self.enabled:
-            try:
+if self.enabled:
+try:
                 self.client = textverified.TextVerified(api_key=self.api_key, api_username=self.api_username)
                 logger.info("TextVerified client initialized successfully")
-            except Exception as e:
+except Exception as e:
                 logger.error(f"TextVerified client initialization failed: {e}")
                 self.enabled = False
-        else:
-            if not textverified:
+else:
+if not textverified:
                 logger.warning("TextVerified package not installed")
-            else:
+else:
                 logger.warning("TextVerified API key or username not configured")
 
-    def _format_phone_number(self, number: str) -> str:
+def _format_phone_number(self, number: str) -> str:
+
         """Format phone number for display.
 
         Args:
@@ -68,7 +75,8 @@ class TextVerifiedService:
         """
         return format_us_phone(number)
 
-    def _validate_credentials(self) -> bool:
+def _validate_credentials(self) -> bool:
+
         """Validate TextVerified credentials.
 
         Returns:
@@ -76,24 +84,25 @@ class TextVerifiedService:
 
         Validates: Requirements 1.1, 1.2, 1.3, 1.4, 1.5
         """
-        if not self.api_key or not self.api_username:
+if not self.api_key or not self.api_username:
             logger.warning("TextVerified credentials are missing")
             return False
 
-        if not textverified:
+if not textverified:
             logger.warning("TextVerified package not installed")
             return False
 
-        try:
+try:
             # Attempt to validate credentials by creating client
             _ = textverified.TextVerified(api_key=self.api_key, api_username=self.api_username)
             logger.info("TextVerified credentials validated successfully")
             return True
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified credential validation failed: {e}")
             return False
 
-    def _get_cached_balance(self) -> Optional[float]:
+def _get_cached_balance(self) -> Optional[float]:
+
         """Get cached balance if still valid.
 
         Returns:
@@ -101,14 +110,15 @@ class TextVerifiedService:
 
         Validates: Requirements 3.5
         """
-        if self._balance_cache is not None and self._balance_cache_time is not None:
+if self._balance_cache is not None and self._balance_cache_time is not None:
             elapsed = time.time() - self._balance_cache_time
-            if elapsed < self._cache_ttl:
+if elapsed < self._cache_ttl:
                 logger.debug(f"Returning cached balance (age: {elapsed:.1f}s)")
                 return self._balance_cache
         return None
 
-    def _set_balance_cache(self, balance: float) -> None:
+def _set_balance_cache(self, balance: float) -> None:
+
         """Cache balance with timestamp.
 
         Args:
@@ -120,36 +130,39 @@ class TextVerifiedService:
         self._balance_cache_time = time.time()
         logger.debug(f"Balance cached: {balance}")
 
-    def _check_circuit_breaker(self) -> bool:
+def _check_circuit_breaker(self) -> bool:
+
         """Check if circuit breaker is open.
 
         Returns:
             True if circuit is closed (requests allowed), False if open
         """
-        if self._circuit_breaker_reset_time:
-            if time.time() > self._circuit_breaker_reset_time:
+if self._circuit_breaker_reset_time:
+if time.time() > self._circuit_breaker_reset_time:
                 # Reset circuit breaker
                 logger.info("Circuit breaker reset - allowing requests")
                 self._circuit_breaker_failures = 0
                 self._circuit_breaker_reset_time = None
                 return True
-            else:
+else:
                 logger.warning("Circuit breaker is OPEN - blocking requests to prevent cascading failures")
                 return False
         return True
 
-    def _record_failure(self):
+def _record_failure(self):
+
         """Record a failure and potentially open circuit breaker."""
         self._circuit_breaker_failures += 1
-        if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
+if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
             self._circuit_breaker_reset_time = time.time() + self._circuit_breaker_timeout
             logger.error(
                 f"Circuit breaker OPENED after {self._circuit_breaker_failures} failures. Will retry in {self._circuit_breaker_timeout}s"
             )
 
-    def _record_success(self):
+def _record_success(self):
+
         """Record a successful request."""
-        if self._circuit_breaker_failures > 0:
+if self._circuit_breaker_failures > 0:
             logger.info("Request successful - resetting failure counter")
         self._circuit_breaker_failures = 0
         self._circuit_breaker_reset_time = None
@@ -162,8 +175,8 @@ class TextVerifiedService:
 
         Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 logger.warning("Health check called but service not enabled")
                 return {
                     "status": "error",
@@ -182,7 +195,7 @@ class TextVerifiedService:
                 "currency": "USD",
                 "timestamp": datetime.utcnow().isoformat(),
             }
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified health check error: {str(e)}")
             return {
                 "status": "error",
@@ -200,14 +213,14 @@ class TextVerifiedService:
 
         Validates: Requirements 3.1, 3.2, 3.3, 3.5
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 logger.error("Balance retrieval attempted but service not enabled")
                 raise Exception("TextVerified not configured")
 
             # Check cache first
             cached_balance = self._get_cached_balance()
-            if cached_balance is not None:
+if cached_balance is not None:
                 return {"balance": cached_balance, "currency": "USD", "cached": True}
 
             # Retrieve from API
@@ -220,7 +233,7 @@ class TextVerifiedService:
 
             logger.info(f"Balance retrieved: {balance_float} USD")
             return {"balance": balance_float, "currency": "USD", "cached": False}
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified balance error: {str(e)}")
             raise
 
@@ -237,16 +250,15 @@ class TextVerifiedService:
 
         Validates: Requirements 4.4
         """
-        import asyncio
 
         delay = initial_delay
         last_exception = None
 
-        for attempt in range(max_retries + 1):
-            try:
+for attempt in range(max_retries + 1):
+try:
                 logger.debug(f"Attempt {attempt + 1}/{max_retries + 1}")
                 return await func()
-            except Exception as e:
+except Exception as e:
                 last_exception = e
                 error_msg = str(e)
 
@@ -260,19 +272,19 @@ class TextVerifiedService:
                     ]
                 )
 
-                if attempt < max_retries:
-                    if is_connection_error:
+if attempt < max_retries:
+if is_connection_error:
                         logger.warning(f"Connection error on attempt {attempt + 1}, retrying in {delay}s: {error_msg}")
-                    else:
+else:
                         logger.warning(f"Attempt {attempt + 1} failed, retrying in {delay}s: {error_msg}")
                     await asyncio.sleep(delay)
                     delay *= 2  # Exponential backoff
-                else:
-                    if is_connection_error:
+else:
+if is_connection_error:
                         logger.error(
                             f"All {max_retries + 1} attempts failed due to connection issues. Provider may be experiencing downtime."
                         )
-                    else:
+else:
                         logger.error(f"All {max_retries + 1} attempts failed")
 
         raise last_exception
@@ -284,7 +296,7 @@ class TextVerifiedService:
         """
 
         async def _buy():
-            if not self.enabled:
+if not self.enabled:
                 raise Exception("TextVerified not configured")
             verification = self.client.verifications.create(
                 service_name=service, capability=textverified.ReservationCapability.SMS
@@ -296,12 +308,12 @@ class TextVerifiedService:
                 "cost": float(verification.total_cost),
             }
 
-        try:
+try:
             logger.info(f"Purchasing number for {service} in {country}")
             result = await self._retry_with_backoff(_buy)
             logger.info(f"Number purchased: {result['activation_id']}")
             return result
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified purchase error: {str(e)}")
             raise
 
@@ -311,7 +323,7 @@ class TextVerifiedService:
         Validates: Requirements 4.1, 4.3, 4.5
         """
         # Check circuit breaker
-        if not self._check_circuit_breaker():
+if not self._check_circuit_breaker():
             return {
                 "sms_code": None,
                 "sms_text": None,
@@ -320,13 +332,13 @@ class TextVerifiedService:
             }
 
         async def _check():
-            if not self.enabled:
+if not self.enabled:
                 raise Exception("TextVerified not configured")
             verification = self.client.verifications.details(activation_id)
 
-            if hasattr(verification, "sms") and verification.sms:
-                for sms in verification.sms:
-                    if hasattr(sms, "message"):
+if hasattr(verification, "sms") and verification.sms:
+for sms in verification.sms:
+if hasattr(sms, "message"):
                         return {
                             "sms_code": sms.message,
                             "sms_text": sms.message,
@@ -335,13 +347,13 @@ class TextVerifiedService:
 
             return {"sms_code": None, "sms_text": None, "status": "pending"}
 
-        try:
+try:
             logger.debug(f"Checking SMS for activation {activation_id}")
             result = await self._retry_with_backoff(_check)
             logger.debug(f"SMS check result: {result['status']}")
             self._record_success()
             return result
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified check error: {str(e)}")
             self._record_failure()
             return {
@@ -369,8 +381,8 @@ class TextVerifiedService:
         Returns:
             Dict with cost and currency
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 return {"cost": 0.0, "currency": "USD"}
 
             # Build payload for pricing check
@@ -378,7 +390,6 @@ class TextVerifiedService:
             payload = {"serviceName": service, "country": country, "capability": "sms"}
 
             # Using low-level action to ensure country is passed
-            from textverified.action import _Action
 
             action = _Action(method="POST", href="/api/pub/v2/pricing/verifications")
 
@@ -386,20 +397,20 @@ class TextVerifiedService:
             # but for accurate costing we want to simulate the purchase parameters if possible.
             # If the API only supports 'has_area_code', we set it to True.
 
-            if area_code:
+if area_code:
                 payload["areaCode"] = True
-            if carrier:
+if carrier:
                 payload["carrier"] = True
 
             response = self.client._perform_action(action, json=payload)
 
-            if response and response.data:
+if response and response.data:
                 cost = float(response.data.get("price", 0.0))
                 return {"cost": cost, "currency": "USD"}
 
             return {"cost": 0.0, "currency": "USD"}
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Pricing fetch error: {str(e)}")
             # Fallback pricing if API fails
             return {
@@ -417,8 +428,8 @@ class TextVerifiedService:
         Returns:
             List of services with id, name, and cost
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 logger.error("Services list requested but service not enabled")
                 raise Exception("TextVerified not configured")
 
@@ -435,7 +446,6 @@ class TextVerifiedService:
             )
 
             # Re-performing via low-level to include country
-            from textverified.action import _Action
 
             action = _Action(method="GET", href="/api/pub/v2/services")
             response = self.client._perform_action(
@@ -450,12 +460,12 @@ class TextVerifiedService:
 
             formatted_services = []
             seen = set()
-            for service in services_data:
+for service in services_data:
                 # Extract service_name from Service object
                 service_name = service.service_name if hasattr(service, "service_name") else str(service)
 
                 # Skip duplicates
-                if service_name in seen:
+if service_name in seen:
                     continue
                 seen.add(service_name)
 
@@ -472,7 +482,7 @@ class TextVerifiedService:
             logger.info(f"Retrieved {len(formatted_services)} services from TextVerified API")
             return formatted_services
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified services API error: {str(e)}")
             raise
 
@@ -484,10 +494,10 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
+try:
             services_list = await self.get_services_list()
             return {"services": services_list, "total": len(services_list)}
-        except Exception as e:
+except Exception as e:
             logger.error(f"Get services error: {str(e)}")
             raise
 
@@ -511,14 +521,14 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 raise Exception("TextVerified not configured")
 
             logger.info(f"Creating verification for {service} in {country}")
-            if area_code:
+if area_code:
                 logger.info(f"Requesting area code: {area_code}")
-            if carrier:
+if carrier:
                 logger.info(f"Requesting carrier: {carrier}")
 
             # Use SDK's high-level method with proper parameters
@@ -540,7 +550,7 @@ class TextVerifiedService:
             )
             return result
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Create verification error: {str(e)}")
             raise
 
@@ -549,7 +559,7 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
+try:
             logger.debug(f"Getting number for {service} in {country}")
             result = await self.buy_number(country, service)
             return {
@@ -557,7 +567,7 @@ class TextVerifiedService:
                 "number": result["phone_number"],
                 "cost": result["cost"],
             }
-        except Exception as e:
+except Exception as e:
             logger.error(f"Get number error: {str(e)}")
             raise
 
@@ -566,11 +576,11 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
+try:
             logger.debug(f"Getting SMS for activation {activation_id}")
             result = await self.check_sms(activation_id)
             return result
-        except Exception as e:
+except Exception as e:
             logger.error(f"Get SMS error: {str(e)}")
             return {
                 "sms_code": None,
@@ -597,8 +607,8 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 raise Exception("TextVerified not configured")
 
             logger.debug(f"Getting verification status for {activation_id}")
@@ -609,9 +619,9 @@ class TextVerifiedService:
             sms_text = None
             status = "pending"
 
-            if hasattr(verification, "sms") and verification.sms:
-                for sms in verification.sms:
-                    if hasattr(sms, "message") and sms.message:
+if hasattr(verification, "sms") and verification.sms:
+for sms in verification.sms:
+if hasattr(sms, "message") and sms.message:
                         sms_code = sms.message
                         sms_text = sms.message
                         status = "completed"
@@ -619,7 +629,7 @@ class TextVerifiedService:
 
             return {"status": status, "sms_code": sms_code, "sms_text": sms_text}
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Verification status error: {str(e)}")
             return {
                 "status": "error",
@@ -633,14 +643,14 @@ class TextVerifiedService:
 
         Validates: Requirements 4.1, 4.3, 4.5
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 logger.warning("Cancel attempted but service not enabled")
                 return False
             self.client.verifications.cancel(activation_id)
             logger.info(f"Activation cancelled: {activation_id}")
             return True
-        except Exception as e:
+except Exception as e:
             logger.error(f"TextVerified cancel failed: {e}")
             return False
 
@@ -650,10 +660,10 @@ class TextVerifiedService:
         Returns:
             Current balance in USD
         """
-        try:
+try:
             data = await self.get_balance()
             return data["balance"]
-        except Exception:
+except Exception:
             return 0.0
 
     async def get_area_codes_list(self, service: str, country: str = "US") -> list:
@@ -666,19 +676,19 @@ class TextVerifiedService:
         Returns:
             List of area codes
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 return []
 
             # TextVerified SDK v2 uses services.area_codes()
-            if hasattr(self.client, "services") and hasattr(self.client.services, "area_codes"):
+if hasattr(self.client, "services") and hasattr(self.client.services, "area_codes"):
                 # Note: The SDK method doesn't seem to take service_name in its call but in the API it might.
                 # However, the SDK's area_codes() method uses /api/pub/v2/area-codes
                 codes = self.client.services.area_codes()
                 return [str(c.area_code) for c in codes] if codes else []
 
             return []
-        except Exception as e:
+except Exception as e:
             logger.warning(f"Failed to fetch area codes: {e}")
             return []
 
@@ -692,8 +702,8 @@ class TextVerifiedService:
         Returns:
             List of area codes with availability count
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 return []
 
             # Get area codes from TextVerified API
@@ -701,7 +711,7 @@ class TextVerifiedService:
 
             # Format with availability (TextVerified doesn't provide counts, so we return basic info)
             area_codes = []
-            for code in codes:
+for code in codes:
                 area_codes.append(
                     {
                         "area_code": code,
@@ -711,7 +721,7 @@ class TextVerifiedService:
                 )
 
             return area_codes
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to fetch area codes: {e}")
             return []
 
@@ -724,21 +734,19 @@ class TextVerifiedService:
         Returns:
             List of carriers with id and name
         """
-        try:
-            if not self.enabled:
+try:
+if not self.enabled:
                 return []
 
             # Get carriers via low-level action as it's not in the high-level SDK
-            from textverified.action import _Action
 
             action = _Action(method="GET", href="/api/pub/v2/carriers")
             response = self.client._perform_action(action, params={"country": country})
 
             carriers = []
-            if response and response.data:
-                import random
+if response and response.data:
 
-                for item in response.data:
+for item in response.data:
                     # Simulate success rate for analytics feature
                     # In a real scenario, this would come from historical DB stats
                     success_rate = random.randint(85, 99)
@@ -752,6 +760,6 @@ class TextVerifiedService:
                     )
 
             return carriers
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to fetch carriers for {country}: {e}")
             return []

@@ -1,14 +1,15 @@
 """Input sanitization utilities to prevent XSS attacks."""
 
+
 import html
 import os
 import re
 from typing import Any, Dict, List, Union
 
-
 def sanitize_html(text: str) -> str:
+
     """Sanitize HTML content to prevent XSS attacks."""
-    if not isinstance(text, str):
+if not isinstance(text, str):
         return str(text)
 
     # HTML escape the content
@@ -23,22 +24,24 @@ def sanitize_html(text: str) -> str:
 
 
 def sanitize_user_input(
+
     data: Union[str, Dict, List, Any],
 ) -> Union[str, Dict, List, Any]:
     """Recursively sanitize user input data."""
-    if isinstance(data, str):
+if isinstance(data, str):
         return sanitize_html(data)
-    elif isinstance(data, dict):
+elif isinstance(data, dict):
         return {key: sanitize_user_input(value) for key, value in data.items()}
-    elif isinstance(data, list):
+elif isinstance(data, list):
         return [sanitize_user_input(item) for item in data]
-    else:
+else:
         return data
 
 
 def sanitize_email_content(content: str) -> str:
+
     """Sanitize email content while preserving basic HTML formatting."""
-    if not isinstance(content, str):
+if not isinstance(content, str):
         return str(content)
 
     # Allow basic HTML tags but escape everything else
@@ -61,7 +64,7 @@ def sanitize_email_content(content: str) -> str:
     sanitized = html.escape(content)
 
     # Then unescape allowed tags
-    for tag in allowed_tags:
+for tag in allowed_tags:
         sanitized = sanitized.replace(f"&lt;{tag}&gt;", f"<{tag}>")
         sanitized = sanitized.replace(f"&lt;/{tag}&gt;", f"</{tag}>")
 
@@ -69,27 +72,29 @@ def sanitize_email_content(content: str) -> str:
 
 
 def validate_and_sanitize_response(response_data: Dict) -> Dict:
+
     """Validate and sanitize API response data."""
-    if not isinstance(response_data, dict):
+if not isinstance(response_data, dict):
         return response_data
 
     sanitized = {}
-    for key, value in response_data.items():
-        if key in ["message", "description", "name", "email", "title", "content"]:
+for key, value in response_data.items():
+if key in ["message", "description", "name", "email", "title", "content"]:
             # Sanitize user - facing text fields
             sanitized[key] = sanitize_html(str(value)) if value is not None else value
-        elif isinstance(value, (dict, list)):
+elif isinstance(value, (dict, list)):
             # Recursively sanitize nested data
             sanitized[key] = sanitize_user_input(value)
-        else:
+else:
             sanitized[key] = value
 
     return sanitized
 
 
 def sanitize_filename(filename: str) -> str:
+
     """Sanitize filename to prevent directory traversal and invalid characters."""
-    if not isinstance(filename, str):
+if not isinstance(filename, str):
         return "unnamed_file"
 
     # Remove directory separators
@@ -99,12 +104,12 @@ def sanitize_filename(filename: str) -> str:
     filename = re.sub(r"[^a-zA-Z0-9._-]", "", filename)
 
     # Limit length
-    if len(filename) > 255:
+if len(filename) > 255:
         base, ext = os.path.splitext(filename)
         filename = base[: 255 - len(ext)] + ext
 
     # Prevent empty filename
-    if not filename:
+if not filename:
         filename = "unnamed_file"
 
     return filename

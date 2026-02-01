@@ -1,10 +1,9 @@
 """Event broadcaster for sending notifications via WebSocket."""
 
+
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
-
 from sqlalchemy.orm import Session
-
 from app.core.logging import get_logger
 from app.models.notification import Notification
 from app.websocket.manager import connection_manager
@@ -13,9 +12,11 @@ logger = get_logger(__name__)
 
 
 class EventBroadcaster:
+
     """Service for broadcasting events to connected users via WebSocket."""
 
-    def __init__(self, db: Optional[Session] = None):
+def __init__(self, db: Optional[Session] = None):
+
         """Initialize event broadcaster.
 
         Args:
@@ -37,7 +38,7 @@ class EventBroadcaster:
         Returns:
             True if broadcast successful, False otherwise
         """
-        try:
+try:
             message = {
                 "type": "notification",
                 "channel": "notifications",
@@ -52,14 +53,14 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-            if success:
+if success:
                 logger.info(f"Notification broadcasted to user {user_id} via WebSocket")
-            else:
+else:
                 logger.debug(f"User {user_id} not connected, notification not broadcasted")
 
             return success
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to broadcast notification: {e}")
             return False
 
@@ -83,7 +84,7 @@ class EventBroadcaster:
         Returns:
             True if broadcast successful, False otherwise
         """
-        try:
+try:
             message = {
                 "type": "activity",
                 "channel": "activities",
@@ -96,14 +97,14 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-            if success:
+if success:
                 logger.info(f"Activity broadcasted to user {user_id} via WebSocket")
-            else:
+else:
                 logger.debug(f"User {user_id} not connected, activity not broadcasted")
 
             return success
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to broadcast activity: {e}")
             return False
 
@@ -129,7 +130,7 @@ class EventBroadcaster:
         Returns:
             True if broadcast successful, False otherwise
         """
-        try:
+try:
             message = {
                 "type": "payment",
                 "channel": "payments",
@@ -143,14 +144,14 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-            if success:
+if success:
                 logger.info(f"Payment event broadcasted to user {user_id} via WebSocket")
-            else:
+else:
                 logger.debug(f"User {user_id} not connected, payment event not broadcasted")
 
             return success
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to broadcast payment event: {e}")
             return False
 
@@ -176,7 +177,7 @@ class EventBroadcaster:
         Returns:
             True if broadcast successful, False otherwise
         """
-        try:
+try:
             message = {
                 "type": "verification",
                 "channel": "notifications",
@@ -190,14 +191,14 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-            if success:
+if success:
                 logger.info(f"Verification event broadcasted to user {user_id} via WebSocket")
-            else:
+else:
                 logger.debug(f"User {user_id} not connected, verification event not broadcasted")
 
             return success
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to broadcast verification event: {e}")
             return False
 
@@ -221,7 +222,7 @@ class EventBroadcaster:
         Returns:
             Number of users message was sent to
         """
-        try:
+try:
             message = {
                 "type": message_type,
                 "channel": channel,
@@ -237,17 +238,18 @@ class EventBroadcaster:
 
             return recipients
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to broadcast to channel: {e}")
             return 0
 
-    def get_connection_stats(self) -> Dict[str, Any]:
+def get_connection_stats(self) -> Dict[str, Any]:
+
         """Get WebSocket connection statistics.
 
         Returns:
             Dictionary with connection stats
         """
-        try:
+try:
             active_connections = connection_manager.get_active_connections_count()
             active_users = connection_manager.get_active_users()
 
@@ -257,7 +259,7 @@ class EventBroadcaster:
                 "user_ids": active_users,
             }
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to get connection stats: {e}")
             return {
                 "active_connections": 0,

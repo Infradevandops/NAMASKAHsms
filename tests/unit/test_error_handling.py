@@ -1,10 +1,10 @@
-import json
-from unittest.mock import MagicMock
+
 
 import pytest
-from fastapi import HTTPException, Request
-
 from app.core.unified_error_handling import (
+from fastapi import FastAPI
+from fastapi import FastAPI
+
     NamaskahException,
     UnifiedErrorHandlingMiddleware,
     setup_unified_error_handling,
@@ -13,7 +13,6 @@ from app.core.unified_error_handling import (
 
 @pytest.mark.asyncio
 async def test_error_handling_middleware_init():
-    from fastapi import FastAPI
 
     app = FastAPI()
     middleware = UnifiedErrorHandlingMiddleware(app)
@@ -22,7 +21,6 @@ async def test_error_handling_middleware_init():
 
 @pytest.mark.asyncio
 async def test_setup_error_handling():
-    from fastapi import FastAPI
 
     app = FastAPI()
     setup_unified_error_handling(app)

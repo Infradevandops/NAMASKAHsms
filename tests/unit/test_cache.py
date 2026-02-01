@@ -1,11 +1,9 @@
-import asyncio
+
+
 import json
 from unittest.mock import AsyncMock, patch
-
 import pytest
-
 from app.core.unified_cache import InMemoryCache, UnifiedCacheManager
-
 
 @pytest.mark.asyncio
 async def test_in_memory_cache():
@@ -26,7 +24,7 @@ async def test_unified_cache_manager():
     manager = UnifiedCacheManager()
 
     # Test fallback to memory
-    with patch("redis.asyncio.from_url") as mock_redis:
+with patch("redis.asyncio.from_url") as mock_redis:
         mock_redis.side_effect = Exception("Redis Down")
         await manager.connect()
         assert manager.redis_client is None

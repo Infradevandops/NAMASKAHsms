@@ -1,11 +1,10 @@
 """Dashboard activity endpoints."""
 
-import logging
 
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -21,7 +20,7 @@ async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: S
     """Get recent verification activity for dashboard."""
     logger.info(f"Recent activity requested by user_id: {user_id}")
 
-    try:
+try:
         # Get user tier for logging
         user = db.query(User).filter(User.id == user_id).first()
         user_tier = user.subscription_tier or "freemium" if user else "unknown"
@@ -36,7 +35,7 @@ async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: S
         )
 
         activities = []
-        for v in verifications:
+for v in verifications:
             activities.append(
                 {
                     "id": v.id,
@@ -52,7 +51,7 @@ async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: S
         # Return array directly for frontend compatibility
         return activities
 
-    except Exception as e:
+except Exception as e:
         logger.error(
             f"Failed to retrieve recent activity for user {user_id}: {str(e)}",
             exc_info=True,

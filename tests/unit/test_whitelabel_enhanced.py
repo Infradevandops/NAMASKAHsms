@@ -1,23 +1,26 @@
+
+
 from unittest.mock import MagicMock
-
 import pytest
-
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
+from app.services.whitelabel_enhanced import WhiteLabelEnhancedService
+
     WhiteLabelAsset,
     WhiteLabelDomain,
     WhiteLabelTheme,
 )
-from app.services.whitelabel_enhanced import WhiteLabelEnhancedService
 
 
 @pytest.fixture
 def mock_db():
+
     return MagicMock()
 
 
 @pytest.fixture
 def service(mock_db):
+
     return WhiteLabelEnhancedService(mock_db)
 
 
@@ -110,12 +113,13 @@ async def test_get_partner_config(service, mock_db):
     mock_query_asset = MagicMock()
     mock_query_asset.filter.return_value.all.return_value = [asset]
 
-    def side_effect(model):
-        if model == WhiteLabelConfig:
+def side_effect(model):
+
+if model == WhiteLabelConfig:
             return mock_query_config
-        if model == WhiteLabelTheme:
+if model == WhiteLabelTheme:
             return mock_query_theme
-        if model == WhiteLabelAsset:
+if model == WhiteLabelAsset:
             return mock_query_asset
         return MagicMock()
 

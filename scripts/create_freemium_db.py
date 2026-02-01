@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+from sqlalchemy import text
+from app.core.database import get_db
+
 Create subscription_tiers table and populate with freemium structure
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from sqlalchemy import text
-from sqlalchemy.orm import Session
-
-from app.core.database import get_db
-
 
 def create_subscription_tiers_table():
+
     """Create subscription_tiers table and populate with new structure"""
 
     db = next(get_db())
@@ -138,7 +137,7 @@ def create_subscription_tiers_table():
         },
     ]
 
-    for tier_data in tiers_data:
+for tier_data in tiers_data:
         db.execute(
             text(
                 """
@@ -165,7 +164,7 @@ def create_subscription_tiers_table():
     db.execute(
         text(
             """
-        UPDATE users 
+        UPDATE users
         SET subscription_tier = 'freemium', tier_id = 'freemium'
         WHERE subscription_tier IS NULL OR subscription_tier = ''
     """
@@ -176,7 +175,7 @@ def create_subscription_tiers_table():
     db.close()
 
     print(
-        f"\n🎉 Successfully created subscription_tiers table and populated with 4 tiers!"
+        "\n🎉 Successfully created subscription_tiers table and populated with 4 tiers!"
     )
     print("\n📋 New tier structure:")
     print("   • Freemium ($0/mo) - 9 SMS per $20 deposit")

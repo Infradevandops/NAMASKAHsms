@@ -1,14 +1,13 @@
 """White-label configuration model."""
 
-from datetime import datetime
 
+from datetime import datetime
 from sqlalchemy import JSON, Boolean, Column, DateTime, String
 from sqlalchemy.orm import relationship
-
 from .base import Base
 
-
 class WhiteLabelConfig(Base):
+
     """White-label configuration for partners."""
 
     __tablename__ = "whitelabel_config"
@@ -32,5 +31,6 @@ class WhiteLabelConfig(Base):
     themes = relationship("WhiteLabelTheme", back_populates="config")
     assets = relationship("WhiteLabelAsset", back_populates="config")
 
-    def __repr__(self):
+def __repr__(self):
+
         return f"<WhiteLabelConfig(partner_id={self.partner_id}, domain={self.domain})>"

@@ -1,7 +1,7 @@
 """Tier Validation Middleware for Feature Access Control."""
 
-from fastapi import HTTPException, status
 
+from fastapi import HTTPException, status
 from app.models.user import User
 
 TIER_HIERARCHY = {
@@ -21,6 +21,7 @@ TIER_FEATURES = {
 
 
 def require_tier(user: User, feature: str):
+
     """Validate user has required tier for feature.
 
     Args:
@@ -35,7 +36,7 @@ def require_tier(user: User, feature: str):
     """
     required_tiers = TIER_FEATURES.get(feature, [])
 
-    if user.tier not in required_tiers:
+if user.tier not in required_tiers:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -50,6 +51,7 @@ def require_tier(user: User, feature: str):
 
 
 def validate_tier_access(user: User, carrier: str = None, area_code: str = None):
+
     """Validate tier access for verification parameters.
 
     Args:
@@ -63,10 +65,10 @@ def validate_tier_access(user: User, carrier: str = None, area_code: str = None)
     Returns:
         True if user has access
     """
-    if carrier and carrier.lower() not in ["any", "", "none"]:
+if carrier and carrier.lower() not in ["any", "", "none"]:
         require_tier(user, "carrier_selection")
 
-    if area_code and area_code not in ["any", "", "none"]:
+if area_code and area_code not in ["any", "", "none"]:
         require_tier(user, "area_code_selection")
 
     return True

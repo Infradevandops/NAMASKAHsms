@@ -1,41 +1,43 @@
 #!/usr/bin/env python3
 """
-Tier Management CLI Tool
-Manage user subscription tiers from command line
-"""
 import argparse
 import sys
 from datetime import datetime, timedelta, timezone
-
 from sqlalchemy.orm import Session
-
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
 from app.core.tier_config import TierConfig
 from app.models.user import User
 
+Tier Management CLI Tool
+Manage user subscription tiers from command line
+"""
+
+
 logger = get_logger(__name__)
 
 
 def get_db():
+
     """Get database session."""
     return SessionLocal()
 
 
 def list_tiers(db: Session):
+
     """List all available tiers."""
     print("\n📊 Available Tiers:")
     print("-" * 80)
 
     tiers = TierConfig.get_all_tiers(db)
-    for tier in tiers:
+for tier in tiers:
         print(f"\n  {tier['name'].upper()}")
         print(f"    Price: ${tier['price_monthly']/100:.2f}/month")
         print(f"    Quota: ${tier['quota_usd']}")
         print(
             f"    API Keys: {tier['api_key_limit'] if tier['api_key_limit'] != -1 else 'Unlimited'}"
         )
-        print(f"    Features:")
+        print("    Features:")
         print(f"      - API Access: {'✓' if tier['has_api_access'] else '✗'}")
         print(
             f"      - Area Code Selection: {'✓' if tier['has_area_code_selection'] else '✗'}"
@@ -44,10 +46,11 @@ def list_tiers(db: Session):
 
 
 def list_users(db: Session, tier: str = None, limit: int = 20):
+
     """List users, optionally filtered by tier."""
     query = db.query(User)
 
-    if tier:
+if tier:
         query = query.filter(User.subscription_tier == tier)
 
     users = query.order_by(User.created_at.desc()).limit(limit).all()
@@ -57,7 +60,7 @@ def list_users(db: Session, tier: str = None, limit: int = 20):
     print(f"{'Email':<30} {'Tier':<12} {'Expires':<15} {'Credits':<10} {'Joined':<12}")
     print("-" * 100)
 
-    for user in users:
+for user in users:
         tier_name = user.subscription_tier or "freemium"
         expires = (
             user.tier_expires_at.strftime("%Y-%m-%d") if user.tier_expires_at else "N/A"
@@ -70,23 +73,24 @@ def list_users(db: Session, tier: str = None, limit: int = 20):
 
 
 def set_user_tier(db: Session, user_id: str, tier: str, days: int = 30):
+
     """Set user tier."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         print(f"❌ User {user_id} not found")
         return False
 
     valid_tiers = ["freemium", "payg", "pro", "custom"]
-    if tier not in valid_tiers:
+if tier not in valid_tiers:
         print(f"❌ Invalid tier: {tier}. Must be one of: {', '.join(valid_tiers)}")
         return False
 
     old_tier = user.subscription_tier or "freemium"
     user.subscription_tier = tier
 
-    if tier != "freemium":
+if tier != "freemium":
         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
-    else:
+else:
         user.tier_expires_at = None
 
     db.commit()
@@ -101,23 +105,24 @@ def set_user_tier(db: Session, user_id: str, tier: str, days: int = 30):
 
 
 def bulk_set_tier(db: Session, user_ids: list, tier: str, days: int = 30):
+
     """Set tier for multiple users."""
     valid_tiers = ["freemium", "payg", "pro", "custom"]
-    if tier not in valid_tiers:
+if tier not in valid_tiers:
         print(f"❌ Invalid tier: {tier}")
         return False
 
     users = db.query(User).filter(User.id.in_(user_ids)).all()
-    if not users:
-        print(f"❌ No users found")
+if not users:
+        print("❌ No users found")
         return False
 
     updated = 0
-    for user in users:
+for user in users:
         user.subscription_tier = tier
-        if tier != "freemium":
+if tier != "freemium":
             user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
-        else:
+else:
             user.tier_expires_at = None
         updated += 1
 
@@ -128,16 +133,17 @@ def bulk_set_tier(db: Session, user_ids: list, tier: str, days: int = 30):
 
 
 def get_user_info(db: Session, user_id: str):
+
     """Get detailed user information."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         print(f"❌ User {user_id} not found")
         return False
 
     tier = user.subscription_tier or "freemium"
     tier_config = TierConfig.get_tier_config(tier, db)
 
-    print(f"\n📋 User Information:")
+    print("\n📋 User Information:")
     print("-" * 50)
     print(f"  ID: {user.id}")
     print(f"  Email: {user.email}")
@@ -152,14 +158,14 @@ def get_user_info(db: Session, user_id: str):
         f"  Last Login: {user.last_login.strftime('%Y-%m-%d %H:%M:%S') if user.last_login else 'Never'}"
     )
 
-    if user.tier_expires_at:
+if user.tier_expires_at:
         expires = user.tier_expires_at.strftime("%Y-%m-%d %H:%M:%S")
         is_expired = user.tier_expires_at < datetime.now(timezone.utc)
         print(f"  Tier Expires: {expires} {'(EXPIRED)' if is_expired else ''}")
-    else:
-        print(f"  Tier Expires: Never")
+else:
+        print("  Tier Expires: Never")
 
-    print(f"\n  Tier Features:")
+    print("\n  Tier Features:")
     print(f"    - API Access: {'✓' if tier_config['has_api_access'] else '✗'}")
     print(
         f"    - Area Code Selection: {'✓' if tier_config['has_area_code_selection'] else '✗'}"
@@ -173,27 +179,28 @@ def get_user_info(db: Session, user_id: str):
 
 
 def extend_tier(db: Session, user_id: str, days: int = 30):
+
     """Extend user tier expiry."""
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         print(f"❌ User {user_id} not found")
         return False
 
     tier = user.subscription_tier or "freemium"
-    if tier == "freemium":
-        print(f"❌ Cannot extend Freemium tier")
+if tier == "freemium":
+        print("❌ Cannot extend Freemium tier")
         return False
 
     old_expiry = user.tier_expires_at
-    if user.tier_expires_at:
+if user.tier_expires_at:
         user.tier_expires_at = user.tier_expires_at + timedelta(days=days)
-    else:
+else:
         user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=days)
 
     db.commit()
 
     print(f"✅ Tier extended by {days} days")
-    if old_expiry:
+if old_expiry:
         print(f"   Old expiry: {old_expiry.strftime('%Y-%m-%d')}")
     print(f"   New expiry: {user.tier_expires_at.strftime('%Y-%m-%d')}")
 
@@ -201,6 +208,7 @@ def extend_tier(db: Session, user_id: str, days: int = 30):
 
 
 def get_expiring_tiers(db: Session, days: int = 7):
+
     """Get users with tiers expiring soon."""
     now = datetime.now(timezone.utc)
     future = now + timedelta(days=days)
@@ -221,7 +229,7 @@ def get_expiring_tiers(db: Session, days: int = 7):
     print(f"{'Email':<30} {'Tier':<12} {'Expires':<15} {'Days Left':<12}")
     print("-" * 100)
 
-    for user in users:
+for user in users:
         tier_name = user.subscription_tier or "freemium"
         expires = user.tier_expires_at.strftime("%Y-%m-%d")
         days_left = (user.tier_expires_at - now).days
@@ -230,6 +238,7 @@ def get_expiring_tiers(db: Session, days: int = 7):
 
 
 def main():
+
     parser = argparse.ArgumentParser(
         description="Namaskah Tier Management CLI",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -237,19 +246,19 @@ def main():
 Examples:
   # List all available tiers
   python tier_cli.py list-tiers
-  
+
   # List users
   python tier_cli.py list-users --tier starter --limit 50
-  
+
   # Get user info
   python tier_cli.py user-info <user_id>
-  
+
   # Set user tier
   python tier_cli.py set-tier <user_id> pro --days 30
-  
+
   # Extend tier
   python tier_cli.py extend-tier <user_id> --days 30
-  
+
   # Get expiring tiers
   python tier_cli.py expiring --days 7
         """,
@@ -302,40 +311,40 @@ Examples:
 
     args = parser.parse_args()
 
-    if not args.command:
+if not args.command:
         parser.print_help()
         return
 
     db = get_db()
 
-    try:
-        if args.command == "list-tiers":
+try:
+if args.command == "list-tiers":
             list_tiers(db)
 
-        elif args.command == "list-users":
+elif args.command == "list-users":
             list_users(db, args.tier, args.limit)
 
-        elif args.command == "user-info":
+elif args.command == "user-info":
             get_user_info(db, args.user_id)
 
-        elif args.command == "set-tier":
+elif args.command == "set-tier":
             set_user_tier(db, args.user_id, args.tier, args.days)
 
-        elif args.command == "bulk-set-tier":
+elif args.command == "bulk-set-tier":
             bulk_set_tier(db, args.user_ids, args.tier, args.days)
 
-        elif args.command == "extend-tier":
+elif args.command == "extend-tier":
             extend_tier(db, args.user_id, args.days)
 
-        elif args.command == "expiring":
+elif args.command == "expiring":
             get_expiring_tiers(db, args.days)
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"CLI error: {e}")
         print(f"❌ Error: {e}")
         sys.exit(1)
 
-    finally:
+finally:
         db.close()
 
 

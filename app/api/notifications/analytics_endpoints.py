@@ -1,10 +1,9 @@
 """Notification analytics endpoints."""
 
-from typing import Optional
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -43,10 +42,10 @@ async def get_analytics_summary(
         - avg_read_time_ms: Average read time in milliseconds
         - avg_click_time_ms: Average click time in milliseconds
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         service = NotificationAnalyticsService(db)
@@ -60,9 +59,9 @@ async def get_analytics_summary(
 
         return metrics
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving analytics summary: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve analytics summary")
 
@@ -89,10 +88,10 @@ async def get_analytics_by_type(
         - read_rate: Read rate percentage
         - click_rate: Click rate percentage
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         service = NotificationAnalyticsService(db)
@@ -102,9 +101,9 @@ async def get_analytics_by_type(
 
         return metrics
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving analytics by type: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve analytics by type")
 
@@ -131,10 +130,10 @@ async def get_analytics_by_method(
         - read_rate: Read rate percentage
         - click_rate: Click rate percentage
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         service = NotificationAnalyticsService(db)
@@ -144,9 +143,9 @@ async def get_analytics_by_method(
 
         return metrics
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving analytics by method: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve analytics by method")
 
@@ -176,14 +175,14 @@ async def get_analytics_timeline(
         - read_rate: Read rate percentage
         - click_rate: Click rate percentage
     """
-    try:
+try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Validate interval
-        if interval not in ["day", "hour"]:
+if interval not in ["day", "hour"]:
             raise HTTPException(status_code=400, detail="Invalid interval. Must be 'day' or 'hour'")
 
         service = NotificationAnalyticsService(db)
@@ -193,8 +192,8 @@ async def get_analytics_timeline(
 
         return metrics
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Error retrieving analytics timeline: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve analytics timeline")

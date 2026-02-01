@@ -1,11 +1,10 @@
 """Refund service for managing payment refunds."""
 
+
 from datetime import datetime, timezone
 from typing import Any, Dict
-
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-
 from app.core.logging import get_logger
 from app.models.refund import Refund
 from app.models.transaction import PaymentLog, Transaction
@@ -16,15 +15,18 @@ logger = get_logger(__name__)
 
 
 class RefundService:
+
     """Service for managing refunds."""
 
-    def __init__(self, db: Session):
+def __init__(self, db: Session):
+
         """Initialize refund service with database session."""
         self.db = db
         self.refund_window_days = 30  # Refunds allowed within 30 days
         self.notification_dispatcher = NotificationDispatcher(db)
 
-    def initiate_refund(self, user_id: str, payment_id: str, reason: str, initiated_by: str = "user") -> Refund:
+def initiate_refund(self, user_id: str, payment_id: str, reason: str, initiated_by: str = "user") -> Refund:
+
         """Initiate a refund request.
 
         Args:
@@ -44,11 +46,11 @@ class RefundService:
             self.db.query(PaymentLog).filter(PaymentLog.id == payment_id, PaymentLog.user_id == user_id).first()
         )
 
-        if not payment_log:
+if not payment_log:
             raise ValueError(f"Payment not found: {payment_id}")
 
         # Check payment status
-        if payment_log.status != "success":
+if payment_log.status != "success":
             raise ValueError(f"Cannot refund payment with status: {payment_log.status}")
 
         # Check if already refunded
@@ -61,13 +63,13 @@ class RefundService:
             .first()
         )
 
-        if existing_refund:
+if existing_refund:
             raise ValueError(f"Payment already refunded: {payment_id}")
 
         # Check refund window
-        if payment_log.created_at:
+if payment_log.created_at:
             days_since_payment = (datetime.now(timezone.utc) - payment_log.created_at).days
-            if days_since_payment > self.refund_window_days:
+if days_since_payment > self.refund_window_days:
                 raise ValueError(f"Refund window expired. Refunds allowed within {self.refund_window_days} days")
 
         # Generate reference
@@ -102,7 +104,8 @@ class RefundService:
 
         return refund
 
-    def process_refund(self, reference: str) -> Dict[str, Any]:
+def process_refund(self, reference: str) -> Dict[str, Any]:
+
         """Process a refund with Paystack.
 
         Args:
@@ -117,21 +120,21 @@ class RefundService:
         # Get refund
         refund = self.db.query(Refund).filter(Refund.reference == reference).first()
 
-        if not refund:
+if not refund:
             raise ValueError(f"Refund not found: {reference}")
 
-        if refund.status != "pending":
+if refund.status != "pending":
             raise ValueError(f"Cannot process refund with status: {refund.status}")
 
         # Get payment log for original reference
         payment_log = self.db.query(PaymentLog).filter(PaymentLog.id == refund.payment_id).first()
 
-        if not payment_log:
+if not payment_log:
             raise ValueError(f"Original payment not found: {refund.payment_id}")
 
         logger.info(f"Processing refund: {reference}")
 
-        try:
+try:
             # Call Paystack refund API
             # Note: This is a placeholder - actual implementation depends on Paystack API
             # For now, we'll mark as success
@@ -142,7 +145,7 @@ class RefundService:
 
             # Get user
             user = self.db.query(User).filter(User.id == refund.user_id).first()
-            if not user:
+if not user:
                 raise ValueError(f"User not found: {refund.user_id}")
 
             # Deduct credits
@@ -171,7 +174,7 @@ class RefundService:
                 "processed_at": refund.processed_at.isoformat(),
             }
 
-        except Exception as e:
+except Exception as e:
             self.db.rollback()
             logger.error(f"Failed to process refund: {str(e)}", exc_info=True)
 
@@ -182,7 +185,8 @@ class RefundService:
 
             raise ValueError(f"Refund processing failed: {str(e)}")
 
-    def verify_refund(self, reference: str) -> Dict[str, Any]:
+def verify_refund(self, reference: str) -> Dict[str, Any]:
+
         """Verify a refund status.
 
         Args:
@@ -196,7 +200,7 @@ class RefundService:
         """
         refund = self.db.query(Refund).filter(Refund.reference == reference).first()
 
-        if not refund:
+if not refund:
             raise ValueError(f"Refund not found: {reference}")
 
         logger.info(f"Verified refund: {reference}, Status={refund.status}")
@@ -211,7 +215,8 @@ class RefundService:
             "error_message": refund.error_message,
         }
 
-    def get_refund_history(self, user_id: str, skip: int = 0, limit: int = 20) -> Dict[str, Any]:
+def get_refund_history(self, user_id: str, skip: int = 0, limit: int = 20) -> Dict[str, Any]:
+
         """Get refund history for user.
 
         Args:
@@ -227,7 +232,7 @@ class RefundService:
         """
         # Verify user exists
         user = self.db.query(User).filter(User.id == user_id).first()
-        if not user:
+if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Get total count
@@ -261,11 +266,12 @@ class RefundService:
                     "initiated_at": (r.initiated_at.isoformat() if r.initiated_at else None),
                     "processed_at": (r.processed_at.isoformat() if r.processed_at else None),
                 }
-                for r in refunds
+for r in refunds
             ],
         }
 
-    def cancel_refund(self, reference: str, user_id: str) -> Refund:
+def cancel_refund(self, reference: str, user_id: str) -> Refund:
+
         """Cancel a pending refund.
 
         Args:
@@ -280,10 +286,10 @@ class RefundService:
         """
         refund = self.db.query(Refund).filter(Refund.reference == reference, Refund.user_id == user_id).first()
 
-        if not refund:
+if not refund:
             raise ValueError(f"Refund not found: {reference}")
 
-        if refund.status != "pending":
+if refund.status != "pending":
             raise ValueError(f"Cannot cancel refund with status: {refund.status}")
 
         refund.status = "cancelled"
@@ -293,7 +299,8 @@ class RefundService:
 
         return refund
 
-    def handle_refund_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+def handle_refund_webhook(self, event: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle refund webhook from Paystack.
 
         Args:
@@ -305,31 +312,31 @@ class RefundService:
         """
         logger.info(f"Processing refund webhook: Event={event}")
 
-        try:
-            if event == "charge.refunded":
+try:
+if event == "charge.refunded":
                 reference = payload.get("reference")
 
                 # Get payment log
                 payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
 
-                if not payment_log:
+if not payment_log:
                     logger.warning(f"Payment not found for refund: {reference}")
                     return {"status": "ignored", "message": "Payment not found"}
 
                 # Get refund
                 refund = self.db.query(Refund).filter(Refund.payment_id == payment_log.id).first()
 
-                if not refund:
+if not refund:
                     logger.warning(f"Refund not found for payment: {reference}")
                     return {"status": "ignored", "message": "Refund not found"}
 
                 # Process refund
                 return self.process_refund(refund.reference)
 
-            else:
+else:
                 logger.warning(f"Unknown refund event: {event}")
                 return {"status": "ignored", "message": f"Unknown event: {event}"}
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Refund webhook processing error: {str(e)}", exc_info=True)
             return {"status": "error", "message": str(e)}

@@ -1,9 +1,9 @@
 """User preferences API endpoints for language and currency."""
 
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/user/preferences", tags=["preferences"])
 
 
 class UpdatePreferencesRequest(BaseModel):
+
     language: str = None
     currency: str = None
 
@@ -23,7 +24,7 @@ async def get_preferences(current_user: User = Depends(get_current_user), db: Se
     """Get user language and currency preferences."""
     prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
-    if not prefs:
+if not prefs:
         return SuccessResponse(message="Default preferences", data={"language": "en", "currency": "USD"})
 
     return SuccessResponse(
@@ -45,7 +46,7 @@ async def update_preferences(
 
     # Validate language
     valid_languages = ["en", "es", "fr", "de", "pt", "zh", "ja", "ar", "hi", "yo"]
-    if language and language not in valid_languages:
+if language and language not in valid_languages:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid language. Supported: {', '.join(valid_languages)}",
@@ -64,7 +65,7 @@ async def update_preferences(
         "CAD",
         "AUD",
     ]
-    if currency and currency not in valid_currencies:
+if currency and currency not in valid_currencies:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid currency. Supported: {', '.join(valid_currencies)}",
@@ -73,14 +74,14 @@ async def update_preferences(
     # Get or create preferences
     prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
-    if not prefs:
+if not prefs:
         prefs = UserPreference(user_id=current_user.id)
         db.add(prefs)
 
     # Update fields
-    if language:
+if language:
         prefs.language = language
-    if currency:
+if currency:
         prefs.currency = currency
 
     db.commit()

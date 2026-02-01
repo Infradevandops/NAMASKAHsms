@@ -1,15 +1,15 @@
 """Payment history and management endpoints."""
 
-from typing import Optional
 
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
 from app.services.payment_service import PaymentService
+from app.models.transaction import PaymentLog
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -40,7 +40,7 @@ async def get_payment_history(
         - limit: Number of records returned
         - payments: List of payments with details
     """
-    try:
+try:
         payment_service = PaymentService(db)
         history = payment_service.get_payment_history(user_id=user_id, status=status_filter, skip=skip, limit=limit)
 
@@ -48,10 +48,10 @@ async def get_payment_history(
 
         return history
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get payment history for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -72,7 +72,7 @@ async def get_payment_summary(user_id: str = Depends(get_current_user_id), db: S
         - pending_payments: Number of pending payments
         - total_payments: Total number of payments
     """
-    try:
+try:
         payment_service = PaymentService(db)
         summary = payment_service.get_payment_summary(user_id)
 
@@ -80,10 +80,10 @@ async def get_payment_summary(user_id: str = Depends(get_current_user_id), db: S
 
         return summary
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get payment summary for user {user_id}: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -112,10 +112,10 @@ async def refund_payment(
         - reason: Refund reason
         - timestamp: Refund timestamp
     """
-    try:
+try:
         # Check if user is admin
         user = db.query(User).filter(User.id == user_id).first()
-        if not user or not user.is_admin:
+if not user or not user.is_admin:
             logger.warning(f"Non-admin user {user_id} attempted to refund payment")
             raise HTTPException(status_code=403, detail="Admin access required")
 
@@ -126,12 +126,12 @@ async def refund_payment(
 
         return result
 
-    except HTTPException:
+except HTTPException:
         raise
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to refund payment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -160,15 +160,14 @@ async def get_payment_details(
         - created_at: Payment creation timestamp
         - webhook_received: Whether webhook was received
     """
-    try:
-        from app.models.transaction import PaymentLog
+try:
 
         # Get payment log
         payment_log = (
             db.query(PaymentLog).filter(PaymentLog.reference == reference, PaymentLog.user_id == user_id).first()
         )
 
-        if not payment_log:
+if not payment_log:
             logger.warning(f"Payment not found: {reference}")
             raise HTTPException(status_code=404, detail="Payment not found")
 
@@ -186,9 +185,9 @@ async def get_payment_details(
             "email": payment_log.email,
         }
 
-    except HTTPException:
+except HTTPException:
         raise
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get payment details: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -218,7 +217,7 @@ async def initiate_payment_v2(
         - status: Payment status
         - created_at: Payment creation timestamp
     """
-    try:
+try:
         payment_service = PaymentService(db)
         result = payment_service.initiate_payment(user_id=user_id, amount_usd=amount_usd, description=description)
 
@@ -226,10 +225,10 @@ async def initiate_payment_v2(
 
         return result
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to initiate payment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -257,7 +256,7 @@ async def verify_payment_v2(
         - paid_at: Payment timestamp
         - verified_at: Verification timestamp
     """
-    try:
+try:
         payment_service = PaymentService(db)
         result = await payment_service.verify_payment(reference=reference, user_id=user_id)
 
@@ -265,10 +264,10 @@ async def verify_payment_v2(
 
         return result
 
-    except ValueError as e:
+except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to verify payment: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

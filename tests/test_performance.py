@@ -1,23 +1,23 @@
 """Performance Tests for Tier System.
 
-Tests API response times and frontend performance targets.
-"""
-
 import time
 from datetime import datetime, timezone
-
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-
 from app.models.user import User
 from app.utils.security import hash_password
 from tests.conftest import create_test_token
 
+Tests API response times and frontend performance targets.
+"""
+
 
 class TestAPIResponseTimes:
+
     """Test API endpoint response times."""
 
-    def test_tiers_list_response_time(self, client: TestClient, db: Session):
+def test_tiers_list_response_time(self, client: TestClient, db: Session):
+
         """/api/tiers/ should respond in < 100ms."""
         user = User(
             id="perf_tiers_list",
@@ -45,7 +45,8 @@ class TestAPIResponseTimes:
         assert response.status_code == 200
         assert elapsed < 500, f"Response time {elapsed:.2f}ms exceeds 500ms target"
 
-    def test_tiers_current_response_time(self, client: TestClient, db: Session):
+def test_tiers_current_response_time(self, client: TestClient, db: Session):
+
         """/api/tiers/current should respond in < 100ms."""
         user = User(
             id="perf_tiers_current",
@@ -73,7 +74,8 @@ class TestAPIResponseTimes:
         assert response.status_code == 200
         assert elapsed < 500, f"Response time {elapsed:.2f}ms exceeds 500ms target"
 
-    def test_analytics_summary_response_time(self, client: TestClient, db: Session):
+def test_analytics_summary_response_time(self, client: TestClient, db: Session):
+
         """/api/analytics/summary should respond in < 500ms."""
         user = User(
             id="perf_analytics",
@@ -101,7 +103,8 @@ class TestAPIResponseTimes:
         assert response.status_code == 200
         assert elapsed < 1000, f"Response time {elapsed:.2f}ms exceeds 1000ms target"
 
-    def test_api_keys_list_response_time(self, client: TestClient, db: Session):
+def test_api_keys_list_response_time(self, client: TestClient, db: Session):
+
         """/api/auth/api-keys should respond in < 200ms."""
         user = User(
             id="perf_api_keys",
@@ -131,9 +134,11 @@ class TestAPIResponseTimes:
 
 
 class TestConcurrentRequests:
+
     """Test system behavior under concurrent load."""
 
-    def test_multiple_tier_requests(self, client: TestClient, db: Session):
+def test_multiple_tier_requests(self, client: TestClient, db: Session):
+
         """System handles multiple concurrent tier requests."""
         user = User(
             id="perf_concurrent",
@@ -153,7 +158,7 @@ class TestConcurrentRequests:
 
         # Make 10 sequential requests (simulating concurrent load)
         response_times = []
-        for _ in range(10):
+for _ in range(10):
             start = time.time()
             response = client.get("/api/tiers/current", headers=headers)
             elapsed = (time.time() - start) * 1000
@@ -169,9 +174,11 @@ class TestConcurrentRequests:
 
 
 class TestDatabaseQueryPerformance:
+
     """Test database query efficiency."""
 
-    def test_tier_query_with_user_data(self, client: TestClient, db: Session):
+def test_tier_query_with_user_data(self, client: TestClient, db: Session):
+
         """Tier queries efficiently load user data."""
         # Create user with quota data
         user = User(

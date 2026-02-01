@@ -1,12 +1,12 @@
 """User - related database models."""
 
+
 from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class User(BaseModel):
+
     """User account model."""
 
     __tablename__ = "users"
@@ -89,6 +89,7 @@ class User(BaseModel):
 
 
 class Webhook(BaseModel):
+
     """Webhook configuration for notifications."""
 
     __tablename__ = "webhooks"
@@ -106,6 +107,7 @@ class Webhook(BaseModel):
 
 
 class NotificationSettings(BaseModel):
+
     """User notification preferences."""
 
     __tablename__ = "notification_settings"
@@ -117,6 +119,7 @@ class NotificationSettings(BaseModel):
 
 
 class Referral(BaseModel):
+
     """Referral tracking."""
 
     __tablename__ = "referrals"
@@ -127,6 +130,7 @@ class Referral(BaseModel):
 
 
 class Subscription(BaseModel):
+
     """User subscription plans."""
 
     __tablename__ = "subscriptions"

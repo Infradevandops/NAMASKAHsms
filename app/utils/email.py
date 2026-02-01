@@ -1,29 +1,32 @@
 """Email utilities for SMTP configuration and template management."""
 
+
 import logging
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from string import Template
 from typing import Any, Dict, Optional
-
 from app.core.config import settings
+import re
 
 logger = logging.getLogger(__name__)
 
 
 class EmailTemplate:
+
     """Simple email template class."""
 
-    def __init__(self, subject: str, html_body: str, text_body: Optional[str] = None):
+def __init__(self, subject: str, html_body: str, text_body: Optional[str] = None):
+
         self.subject = subject
         self.html_body = html_body
         self.text_body = text_body or self._html_to_text(html_body)
 
     @staticmethod
-    def _html_to_text(html: str) -> str:
+def _html_to_text(html: str) -> str:
+
         """Convert HTML to plain text (basic implementation)."""
-        import re
 
         # Remove HTML tags
         text = re.sub("<[^<]+?>", "", html)
@@ -31,7 +34,8 @@ class EmailTemplate:
         text = re.sub(r"\s+", " ", text).strip()
         return text
 
-    def render(self, **kwargs) -> Dict[str, str]:
+def render(self, **kwargs) -> Dict[str, str]:
+
         """Render template with variables."""
         subject = Template(self.subject).safe_substitute(**kwargs)
         html_body = Template(self.html_body).safe_substitute(**kwargs)
@@ -41,9 +45,11 @@ class EmailTemplate:
 
 
 class EmailService:
+
     """Simple email service for SMTP operations."""
 
-    def __init__(self):
+def __init__(self):
+
         self.smtp_host = settings.smtp_host
         self.smtp_port = settings.smtp_port
         self.smtp_user = settings.smtp_user
@@ -59,7 +65,7 @@ class EmailService:
         from_email: Optional[str] = None,
     ) -> bool:
         """Send email via SMTP."""
-        try:
+try:
             # Create message
             msg = MIMEMultipart("alternative")
             msg["Subject"] = subject
@@ -67,14 +73,14 @@ class EmailService:
             msg["To"] = to_email
 
             # Add body
-            if is_html:
+if is_html:
                 msg.attach(MIMEText(body, "html"))
-            else:
+else:
                 msg.attach(MIMEText(body, "plain"))
 
             # Send email
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
-                if self.smtp_user and self.smtp_password:
+with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+if self.smtp_user and self.smtp_password:
                     server.starttls()
                     server.login(self.smtp_user, self.smtp_password)
 
@@ -83,7 +89,7 @@ class EmailService:
             logger.info("Email sent successfully to %s", to_email)
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error("Failed to send email to %s: %s", to_email, str(e))
             return False
 
@@ -173,5 +179,6 @@ RECEIPT_TEMPLATE = EmailTemplate(
 
 
 def get_email_service() -> EmailService:
+
     """Get email service instance."""
     return EmailService()

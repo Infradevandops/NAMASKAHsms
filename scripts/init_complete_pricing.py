@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
 """
+import os
+import sys
+import uuid
+from app.core.database import SessionLocal, engine
+from app.models.base import Base
+from sqlalchemy import text
+
 Complete Pricing System Implementation
 Fixes all major discrepancies:
 - Creates 4-tier system (Pay-As-You-Go, Starter, Pro, Custom)
@@ -7,30 +14,9 @@ Fixes all major discrepancies:
 - Initializes database with correct pricing
 """
 
-import os
-import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import uuid
-from datetime import datetime
-
-from sqlalchemy import (
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Text,
-)
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
-
-import app.models
-from app.core.database import SessionLocal, engine
-from app.models.base import Base
 
 # Create all tables first
 Base.metadata.create_all(bind=engine)
@@ -39,7 +25,6 @@ db = SessionLocal()
 
 try:
     # Create subscription_tiers table if it doesn't exist
-    from sqlalchemy import text
 
     # Drop and recreate subscription_tiers table with correct structure
     print("Dropping and recreating subscription_tiers table...")
@@ -73,7 +58,7 @@ try:
     result = db.execute(
         text("SELECT name FROM sqlite_master WHERE type='table' AND name='user_quotas'")
     )
-    if not result.fetchone():
+if not result.fetchone():
         print("Creating user_quotas table...")
         db.execute(
             text(
@@ -92,14 +77,14 @@ try:
             )
         )
         print("✅ user_quotas table created")
-    else:
+else:
         print("✅ user_quotas table already exists")
 
     # Add tier_id column to users table if it doesn't exist
-    try:
+try:
         db.execute(text("ALTER TABLE users ADD COLUMN tier_id TEXT DEFAULT 'payg'"))
         print("✅ Added tier_id column to users table")
-    except:
+except Exception:
         print("✅ tier_id column already exists in users table")
 
     db.commit()
@@ -173,15 +158,15 @@ try:
         },
     ]
 
-    for tier in tiers:
+for tier in tiers:
         db.execute(
             text(
                 """
-            INSERT INTO subscription_tiers 
-            (id, tier, name, description, price_monthly, quota_usd, overage_rate, 
-             payment_required, has_api_access, has_area_code_selection, has_isp_filtering, 
+            INSERT INTO subscription_tiers
+            (id, tier, name, description, price_monthly, quota_usd, overage_rate,
+             payment_required, has_api_access, has_area_code_selection, has_isp_filtering,
              api_key_limit, support_level)
-            VALUES 
+            VALUES
             (:id, :tier, :name, :description, :price_monthly, :quota_usd, :overage_rate,
              :payment_required, :has_api_access, :has_area_code_selection, :has_isp_filtering,
              :api_key_limit, :support_level)
@@ -210,7 +195,7 @@ try:
 
     print("\n🎯 PRICING STRUCTURE IMPLEMENTED:")
     print("=" * 60)
-    for tier in tiers:
+for tier in tiers:
         price = tier[2] / 100 if tier[2] > 0 else 0
         print(
             f"• {tier[1]} ({tier[0]}): ${price:.2f}/mo, ${tier[3]} quota, +${tier[4]:.2f} overage"

@@ -1,17 +1,16 @@
 """Tier helper functions for subscription tier management.
 
+import logging
+from datetime import datetime
+from fastapi import HTTPException
+from sqlalchemy.orm import Session
+from app.models.user import User
+from app.schemas.tier_response import TierAccessDenied
+
 This module provides utility functions for working with user subscription tiers,
 including tier hierarchy checks, access validation, and display name mapping.
 """
 
-import logging
-from datetime import datetime
-
-from fastapi import HTTPException
-from sqlalchemy.orm import Session
-
-from app.models.user import User
-from app.schemas.tier_response import TierAccessDenied
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +28,7 @@ TIER_DISPLAY_NAMES: dict[str, str] = {
 
 
 def get_user_tier(user_id: str, db: Session) -> str:
+
     """Get user's current subscription tier.
 
     Args:
@@ -39,12 +39,13 @@ def get_user_tier(user_id: str, db: Session) -> str:
         The user's subscription tier, or 'freemium' if user not found or tier is null
     """
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         return "freemium"
     return user.subscription_tier or "freemium"
 
 
 def has_tier_access(user_tier: str, required_tier: str) -> bool:
+
     """Check if user tier meets or exceeds required tier.
 
     Args:
@@ -60,6 +61,7 @@ def has_tier_access(user_tier: str, required_tier: str) -> bool:
 
 
 def is_subscribed(user_tier: str) -> bool:
+
     """Check if user has a paid subscription (payg or higher).
 
     Args:
@@ -72,6 +74,7 @@ def is_subscribed(user_tier: str) -> bool:
 
 
 def get_tier_display_name(tier: str) -> str:
+
     """Get human-readable tier name.
 
     Args:
@@ -84,6 +87,7 @@ def get_tier_display_name(tier: str) -> str:
 
 
 def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None):
+
     logger.warning(f"Tier access denied: user={user_id}, current={current_tier}, required={required_tier}")
 
     raise HTTPException(
@@ -98,6 +102,7 @@ def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None)
 
 
 def log_tier_check(user_id: str, endpoint: str, tier: str, allowed: bool):
+
     logger.info(
         "tier_check",
         extra={

@@ -1,13 +1,15 @@
 """Disaster recovery and backup management service."""
 
+
 from datetime import datetime
 from typing import Dict
 
-
 class DisasterRecoveryService:
+
     """Disaster recovery and business continuity management."""
 
-    def __init__(self):
+def __init__(self):
+
         self.backup_locations = {
             "primary": "s3://namaskah - backups-us - east",
             "secondary": "s3://namaskah - backups-eu - west",

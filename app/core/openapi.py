@@ -1,11 +1,12 @@
 """OpenAPI/Swagger documentation configuration."""
 
+
 from fastapi.openapi.utils import get_openapi
 
-
 def get_openapi_schema(app: FastAPI) -> dict:
+
     """Generate OpenAPI schema for API documentation."""
-    if app.openapi_schema:
+if app.openapi_schema:
         return app.openapi_schema
 
     openapi_schema = get_openapi(
@@ -51,5 +52,6 @@ def get_openapi_schema(app: FastAPI) -> dict:
 
 
 def setup_openapi(app: FastAPI):
+
     """Setup OpenAPI documentation endpoints."""
     app.openapi = lambda: get_openapi_schema(app)

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """Check TextVerified provider balance."""
+
+
 import asyncio
 import os
 import sys
+from app.core.logging import get_logger
+from app.services.textverified_service import TextVerifiedService
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.core.logging import get_logger
-from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -18,10 +20,10 @@ async def main():
     print("TEXTVERIFIED BALANCE CHECK")
     print("=" * 60)
 
-    try:
+try:
         service = TextVerifiedService()
 
-        if not service.enabled:
+if not service.enabled:
             print("❌ TextVerified service not enabled")
             print("   Check API credentials in environment")
             return 1
@@ -29,7 +31,7 @@ async def main():
         print("✅ Service initialized")
         print(
             f"   API Key: {service.api_key[:10]}..."
-            if service.api_key
+if service.api_key
             else "   No API key"
         )
         print(f"   Username: {service.api_username}")
@@ -51,17 +53,17 @@ async def main():
         print(f"   (Based on ${avg_cost:.2f} avg cost)")
 
         # Warning thresholds
-        if balance < 10:
+if balance < 10:
             print("\n⚠️  WARNING: Low balance! Add funds soon.")
-        elif balance < 50:
+elif balance < 50:
             print("\n⚠️  Balance getting low. Consider adding funds.")
-        else:
+else:
             print("\n✅ Balance healthy")
 
         print("\n" + "=" * 60)
         return 0
 
-    except Exception as e:
+except Exception as e:
         print(f"\n❌ Error: {str(e)}")
         logger.error(f"Balance check failed: {e}")
         return 1

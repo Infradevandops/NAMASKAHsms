@@ -1,14 +1,14 @@
+
+
 from unittest.mock import AsyncMock, patch
-
 import pytest
-
 from app.models.user import User
 from app.services.auto_topup_service import AutoTopupService
 
-
 @pytest.fixture
 def mock_payment_service():
-    with patch("app.services.auto_topup_service.PaymentService") as MockService:
+
+with patch("app.services.auto_topup_service.PaymentService") as MockService:
         service_instance = MockService.return_value
         service_instance.initialize_payment = AsyncMock()
         yield service_instance
@@ -16,10 +16,12 @@ def mock_payment_service():
 
 @pytest.fixture
 def auto_topup_service(db, mock_payment_service):
+
     return AutoTopupService(db)
 
 
 def test_enable_auto_topup(auto_topup_service, db, regular_user):
+
     success = auto_topup_service.enable_auto_topup(regular_user.id, amount=50.0)
     assert success is True
 
@@ -30,6 +32,7 @@ def test_enable_auto_topup(auto_topup_service, db, regular_user):
 
 
 def test_disable_auto_topup(auto_topup_service, db, regular_user):
+
     auto_topup_service.enable_auto_topup(regular_user.id)
     success = auto_topup_service.disable_auto_topup(regular_user.id)
     assert success is True

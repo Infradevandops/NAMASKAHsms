@@ -1,18 +1,19 @@
 """Tier configuration and feature definitions - Updated for 4-tier system."""
 
-from typing import Any, Dict
 
+from typing import Any, Dict
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-
 class TierConfig:
+
     """Configuration for all subscription tiers - Database-driven."""
 
     @classmethod
-    def get_tier_config(cls, tier: str, db: Session = None) -> Dict[str, Any]:
+def get_tier_config(cls, tier: str, db: Session = None) -> Dict[str, Any]:
+
         """Get configuration for a specific tier from database."""
-        if not db:
+if not db:
             # Fallback to hardcoded config if no DB session
             return cls._get_fallback_config(tier)
 
@@ -32,7 +33,7 @@ class TierConfig:
         )
 
         row = result.fetchone()
-        if not row:
+if not row:
             return cls._get_fallback_config("freemium")
 
         return {
@@ -61,9 +62,10 @@ class TierConfig:
         }
 
     @classmethod
-    def get_all_tiers(cls, db: Session = None) -> list:
+def get_all_tiers(cls, db: Session = None) -> list:
+
         """Get all available tiers from database."""
-        if not db:
+if not db:
             return cls._get_fallback_tiers()
 
         result = db.execute(
@@ -81,7 +83,7 @@ class TierConfig:
         )
 
         tiers = []
-        for row in result.fetchall():
+for row in result.fetchall():
             tier_config = {
                 "name": row[1],
                 "tier": row[0],
@@ -111,13 +113,15 @@ class TierConfig:
         return tiers
 
     @classmethod
-    def get_tier_price(cls, tier: str, db: Session = None) -> int:
+def get_tier_price(cls, tier: str, db: Session = None) -> int:
+
         """Get monthly price in cents for a tier."""
         config = cls.get_tier_config(tier, db)
         return config["price_monthly"]
 
     @classmethod
-    def _get_fallback_config(cls, tier: str) -> Dict[str, Any]:
+def _get_fallback_config(cls, tier: str) -> Dict[str, Any]:
+
         """Fallback configuration when database is unavailable."""
         fallback_tiers = {
             "freemium": {
@@ -224,6 +228,7 @@ class TierConfig:
         return fallback_tiers.get(tier.lower(), fallback_tiers["freemium"])
 
     @classmethod
-    def _get_fallback_tiers(cls) -> list:
+def _get_fallback_tiers(cls) -> list:
+
         """Fallback tier list when database is unavailable."""
         return [cls._get_fallback_config(tier) for tier in ["freemium", "payg", "pro", "custom"]]

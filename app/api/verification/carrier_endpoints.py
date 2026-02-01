@@ -1,12 +1,16 @@
 """Carrier/ISP filtering endpoints."""
 
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
+from sqlalchemy import case, func
+from app.models.verification import Verification
+from app.core.unified_cache import cache
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -25,11 +29,9 @@ async def get_available_carriers(
     """
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
-    try:
+try:
         # Get unique carriers from past verifications
-        from sqlalchemy import case, func
 
-        from app.models.verification import Verification
 
         carriers_query = (
             db.query(
@@ -47,7 +49,7 @@ async def get_available_carriers(
         )
 
         carriers = []
-        for operator, total, completed in carriers_query:
+for operator, total, completed in carriers_query:
             success_rate = (completed / total * 100) if total > 0 else 90
             carriers.append(
                 {
@@ -59,7 +61,7 @@ async def get_available_carriers(
             )
 
         # If no carriers found, use fallback
-        if not carriers:
+if not carriers:
             carriers = [
                 {
                     "id": "verizon",
@@ -113,7 +115,7 @@ async def get_available_carriers(
         )
         return result
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get carriers: {str(e)}", exc_info=True)
 
         user = db.query(User).filter(User.id == user_id).first()
@@ -185,15 +187,13 @@ async def get_available_area_codes(
         {"area_code": "412", "state": "PA", "city": "Pittsburgh"},
     ]
 
-    try:
+try:
         # Try to get from TextVerified API
-        from app.core.unified_cache import cache
-        from app.services.textverified_service import TextVerifiedService
 
         # Check cache first
         cache_key = f"area_codes_{country}"
         cached_data = await cache.get(cache_key)
-        if cached_data:
+if cached_data:
             logger.info(f"Returning cached area codes for {country}")
             return cached_data
 
@@ -208,16 +208,16 @@ async def get_available_area_codes(
             type(codes),
             len(codes) if codes else 0,
         )
-        if codes:
+if codes:
             logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
 
-        if not codes or len(codes) == 0:
+if not codes or len(codes) == 0:
             logger.error("TextVerified API returned empty or None for area codes")
             raise Exception(f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})")
 
         # Enhance with city/state data and success rates
         enhanced = []
-        for code in codes:
+for code in codes:
             area_code_str = str(code.get("area_code", ""))
 
             # Try to find city/state from static map
@@ -261,7 +261,7 @@ async def get_available_area_codes(
         logger.info(f"Retrieved {len(enhanced)} area codes from TextVerified API for {country}")
         return result
 
-    except Exception as e:
+except Exception as e:
         logger.error(f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True)
         logger.error("Exception type: %s", type(e).__name__)
         logger.error("Full traceback will be in logs")

@@ -1,20 +1,21 @@
 """Tests for tier endpoints.
 
-Feature: tier-system-rbac
-Tests validate tier listing, current tier retrieval, and tier upgrade/downgrade functionality.
-"""
-
 from datetime import datetime, timezone
-
 from app.models.user import User
 from app.models.verification import Verification
 from app.utils.security import hash_password
 
+Feature: tier-system-rbac
+Tests validate tier listing, current tier retrieval, and tier upgrade/downgrade functionality.
+"""
+
 
 class TestTierListEndpoint:
+
     """Tests for GET /api/tiers/ endpoint."""
 
-    def test_list_tiers_returns_all_four_tiers(self, client):
+def test_list_tiers_returns_all_four_tiers(self, client):
+
         """Test that /api/tiers/ returns all 4 available tiers."""
         response = client.get("/api/tiers/")
         assert response.status_code == 200
@@ -30,7 +31,8 @@ class TestTierListEndpoint:
         tier_names = {tier["tier"] for tier in tiers}
         assert tier_names == {"freemium", "payg", "pro", "custom"}
 
-    def test_list_tiers_includes_required_fields(self, client):
+def test_list_tiers_includes_required_fields(self, client):
+
         """Test that each tier includes all required fields."""
         response = client.get("/api/tiers/")
         assert response.status_code == 200
@@ -48,12 +50,13 @@ class TestTierListEndpoint:
             "features",
         }
 
-        for tier in tiers:
+for tier in tiers:
             assert all(field in tier for field in required_fields)
             assert "api_access" in tier["features"]
             assert "support_level" in tier["features"]
 
-    def test_list_tiers_pricing_is_correct(self, client):
+def test_list_tiers_pricing_is_correct(self, client):
+
         """Test that tier pricing is formatted correctly."""
         response = client.get("/api/tiers/")
         assert response.status_code == 200
@@ -68,15 +71,17 @@ class TestTierListEndpoint:
 
         # Pro tier should have price
         pro = next((t for t in tiers if t["tier"] == "pro"), None)
-        if pro:
+if pro:
             assert pro["price_monthly"] > 0
             assert "$" in pro["price_display"]
 
 
 class TestCurrentTierEndpoint:
+
     """Tests for GET /api/tiers/current endpoint."""
 
-    def test_current_tier_returns_user_tier(self, client, regular_user, user_token):
+def test_current_tier_returns_user_tier(self, client, regular_user, user_token):
+
         """Test that /api/tiers/current returns the user's current tier."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
@@ -86,7 +91,8 @@ class TestCurrentTierEndpoint:
         assert data["current_tier"] == "freemium"
         assert data["tier_name"] == "Freemium"
 
-    def test_current_tier_returns_all_required_fields(self, client, regular_user, user_token):
+def test_current_tier_returns_all_required_fields(self, client, regular_user, user_token):
+
         """Test that /api/tiers/current returns all required fields."""
         token = user_token(regular_user.id, regular_user.email)
         response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
@@ -108,7 +114,8 @@ class TestCurrentTierEndpoint:
 
         assert all(field in data for field in required_fields)
 
-    def test_current_tier_quota_calculations(self, client, regular_user, user_token, db):
+def test_current_tier_quota_calculations(self, client, regular_user, user_token, db):
+
         """Test that quota calculations are correct."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -123,12 +130,13 @@ class TestCurrentTierEndpoint:
         assert data["quota_used_usd"] == 5.0
         assert data["quota_remaining_usd"] >= 0
 
-    def test_current_tier_sms_count(self, client, regular_user, user_token, db):
+def test_current_tier_sms_count(self, client, regular_user, user_token, db):
+
         """Test that SMS count is calculated correctly."""
         token = user_token(regular_user.id, regular_user.email)
 
         # Create some SMS verifications for this month
-        for i in range(3):
+for i in range(3):
             verification = Verification(
                 id=f"sms_verify_{i}",
                 user_id=regular_user.id,
@@ -149,16 +157,18 @@ class TestCurrentTierEndpoint:
         data = response.json()
         assert data["sms_count"] == 3
 
-    def test_current_tier_requires_authentication(self, client):
+def test_current_tier_requires_authentication(self, client):
+
         """Test that /api/tiers/current requires authentication."""
         response = client.get("/api/tiers/current")
         assert response.status_code == 401
 
-    def test_current_tier_with_different_tiers(self, client, db, user_token):
+def test_current_tier_with_different_tiers(self, client, db, user_token):
+
         """Test current tier endpoint with different user tiers."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
 
-        for tier in tiers_to_test:
+for tier in tiers_to_test:
             user = User(
                 id=f"user_{tier}",
                 email=f"{tier}@test.com",
@@ -173,7 +183,7 @@ class TestCurrentTierEndpoint:
             db.add(user)
         db.commit()
 
-        for tier in tiers_to_test:
+for tier in tiers_to_test:
             token = user_token(f"user_{tier}", f"{tier}@test.com")
             response = client.get("/api/tiers/current", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
@@ -182,9 +192,11 @@ class TestCurrentTierEndpoint:
 
 
 class TestUpgradeTierEndpoint:
+
     """Tests for POST /api/tiers/upgrade endpoint."""
 
-    def test_upgrade_tier_validates_hierarchy(self, client, regular_user, user_token, db):
+def test_upgrade_tier_validates_hierarchy(self, client, regular_user, user_token, db):
+
         """Test that upgrade validates tier hierarchy."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -203,7 +215,8 @@ class TestUpgradeTierEndpoint:
         db.refresh(regular_user)
         assert regular_user.subscription_tier == "payg"
 
-    def test_upgrade_tier_rejects_downgrade(self, client, db, user_token):
+def test_upgrade_tier_rejects_downgrade(self, client, db, user_token):
+
         """Test that upgrade rejects downgrade attempts."""
         user = User(
             id="payg_user",
@@ -229,7 +242,8 @@ class TestUpgradeTierEndpoint:
         )
         assert response.status_code == 400
 
-    def test_upgrade_tier_rejects_same_tier(self, client, regular_user, user_token):
+def test_upgrade_tier_rejects_same_tier(self, client, regular_user, user_token):
+
         """Test that upgrade rejects upgrading to same tier."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -241,23 +255,27 @@ class TestUpgradeTierEndpoint:
         )
         assert response.status_code == 400
 
-    def test_upgrade_tier_requires_target_tier(self, client, regular_user, user_token):
+def test_upgrade_tier_requires_target_tier(self, client, regular_user, user_token):
+
         """Test that upgrade requires target_tier parameter."""
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.post("/api/tiers/upgrade", json={}, headers={"Authorization": f"Bearer {token}"})
         assert response.status_code == 400
 
-    def test_upgrade_tier_requires_authentication(self, client):
+def test_upgrade_tier_requires_authentication(self, client):
+
         """Test that upgrade requires authentication."""
         response = client.post("/api/tiers/upgrade", json={"target_tier": "payg"})
         assert response.status_code == 401
 
 
 class TestDowngradeTierEndpoint:
+
     """Tests for POST /api/tiers/downgrade endpoint."""
 
-    def test_downgrade_tier_to_freemium(self, client, db, user_token):
+def test_downgrade_tier_to_freemium(self, client, db, user_token):
+
         """Test that downgrade sets tier to freemium."""
         user = User(
             id="pro_user",
@@ -285,11 +303,12 @@ class TestDowngradeTierEndpoint:
         db.refresh(user)
         assert user.subscription_tier == "freemium"
 
-    def test_downgrade_tier_from_any_tier(self, client, db, user_token):
+def test_downgrade_tier_from_any_tier(self, client, db, user_token):
+
         """Test that downgrade works from any tier."""
         tiers_to_test = ["payg", "pro", "custom"]
 
-        for tier in tiers_to_test:
+for tier in tiers_to_test:
             user = User(
                 id=f"downgrade_{tier}",
                 email=f"downgrade_{tier}@test.com",
@@ -304,14 +323,15 @@ class TestDowngradeTierEndpoint:
             db.add(user)
         db.commit()
 
-        for tier in tiers_to_test:
+for tier in tiers_to_test:
             token = user_token(f"downgrade_{tier}", f"downgrade_{tier}@test.com")
             response = client.post("/api/tiers/downgrade", headers={"Authorization": f"Bearer {token}"})
             assert response.status_code == 200
             data = response.json()
             assert data["new_tier"] == "freemium"
 
-    def test_downgrade_tier_requires_authentication(self, client):
+def test_downgrade_tier_requires_authentication(self, client):
+
         """Test that downgrade requires authentication."""
         response = client.post("/api/tiers/downgrade")
         assert response.status_code == 401

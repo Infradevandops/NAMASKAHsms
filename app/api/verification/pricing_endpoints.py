@@ -1,8 +1,8 @@
 """Pricing Endpoints for Verification."""
 
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -30,7 +30,7 @@ async def get_pricing(
     """
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
-    if not user:
+if not user:
         # Return default pricing for anonymous users
         user = User(tier="freemium")
 

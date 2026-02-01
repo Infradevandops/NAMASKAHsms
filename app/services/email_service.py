@@ -1,12 +1,12 @@
 """Email service for sending payment notifications."""
 
+
 import asyncio
 import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any, Dict
-
 from app.core.config import get_settings
 from app.core.logging import get_logger
 
@@ -14,9 +14,11 @@ logger = get_logger(__name__)
 
 
 class EmailService:
+
     """Service for sending emails."""
 
-    def __init__(self):
+def __init__(self):
+
         """Initialize email service with SMTP configuration."""
         settings = get_settings()
         self.smtp_host = settings.smtp_host
@@ -26,9 +28,9 @@ class EmailService:
         self.from_email = settings.from_email
         self.enabled = bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
-        if self.enabled:
+if self.enabled:
             logger.info("Email service initialized")
-        else:
+else:
             logger.warning("Email service not configured")
 
     async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
@@ -41,11 +43,11 @@ class EmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping receipt email")
             return False
 
-        try:
+try:
             subject = "Payment Receipt - Namaskah SMS"
 
             # Create HTML email body
@@ -57,7 +59,7 @@ class EmailService:
             logger.info(f"Payment receipt sent to {user_email}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send payment receipt: {str(e)}")
             return False
 
@@ -71,11 +73,11 @@ class EmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping failed alert email")
             return False
 
-        try:
+try:
             subject = "Payment Failed - Namaskah SMS"
 
             # Create HTML email body
@@ -87,7 +89,7 @@ class EmailService:
             logger.info(f"Payment failed alert sent to {user_email}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send payment failed alert: {str(e)}")
             return False
 
@@ -101,11 +103,11 @@ class EmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        if not self.enabled:
+if not self.enabled:
             logger.warning("Email service not configured, skipping refund email")
             return False
 
-        try:
+try:
             subject = "Refund Processed - Namaskah SMS"
 
             # Create HTML email body
@@ -117,7 +119,7 @@ class EmailService:
             logger.info(f"Refund notification sent to {user_email}")
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send refund notification: {str(e)}")
             return False
 
@@ -132,7 +134,7 @@ class EmailService:
         Returns:
             True if email sent successfully, False otherwise
         """
-        try:
+try:
             # Create message
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
@@ -149,27 +151,29 @@ class EmailService:
 
             return True
 
-        except Exception as e:
+except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
             return False
 
-    def _send_smtp(self, to_email: str, message: str) -> None:
+def _send_smtp(self, to_email: str, message: str) -> None:
+
         """Send email via SMTP (blocking operation).
 
         Args:
             to_email: Recipient email address
             message: Email message
         """
-        try:
-            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+try:
+with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.sendmail(self.from_email, to_email, message)
-        except Exception as e:
+except Exception as e:
             logger.error(f"SMTP error: {str(e)}")
             raise
 
-    def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
+def _create_receipt_html(self, payment_details: Dict[str, Any]) -> str:
+
         """Create HTML for payment receipt email.
 
         Args:
@@ -184,7 +188,7 @@ class EmailService:
         new_balance = payment_details.get("new_balance", 0)
         timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -229,7 +233,8 @@ class EmailService:
         </html>
         """
 
-    def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
+def _create_failed_alert_html(self, payment_details: Dict[str, Any]) -> str:
+
         """Create HTML for payment failed alert email.
 
         Args:
@@ -243,7 +248,7 @@ class EmailService:
         reason = payment_details.get("reason", "Unknown reason")
         timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -290,7 +295,8 @@ class EmailService:
         </html>
         """
 
-    def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
+def _create_refund_html(self, refund_details: Dict[str, Any]) -> str:
+
         """Create HTML for refund notification email.
 
         Args:
@@ -305,7 +311,7 @@ class EmailService:
         new_balance = refund_details.get("new_balance", 0)
         timestamp = refund_details.get("timestamp", datetime.now(timezone.utc).isoformat())
 
-        return f"""
+        return """
         <html>
             <body style="font-family: Arial, sans-serif; color: #333;">
                 <div style="max-width: 600px; margin: 0 auto; padding: 20px;">

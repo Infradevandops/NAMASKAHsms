@@ -1,9 +1,16 @@
 """Post-Fix Verification Flow Validation Suite."""
 
-import asyncio
+
 import os
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime
+from app.models.verification import Verification
+from app.api.verification.consolidated_verification import router
+from app.services.textverified_service import TextVerifiedService
+from app.services.sms_polling_service import SMSPollingService
+import os
+import sys
+from app.api.verification.consolidated_verification import create_safe_error_detail
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -20,7 +27,6 @@ warnings = []
 # TEST 1: Model Schema Validation
 print("\n🧪 TEST 1: Model Schema Validation")
 try:
-    from app.models.verification import Verification
 
     cols = [col.name for col in Verification.__table__.columns]
 
@@ -39,18 +45,18 @@ try:
 
     missing = [c for c in critical if c not in cols]
 
-    if missing:
+if missing:
         failed.append(f"Model missing columns: {missing}")
         print(f"   ❌ FAIL: Missing {missing}")
-    else:
+else:
         passed.append("Model has all critical columns")
         print(f"   ✅ PASS: All {len(critical)} critical columns present")
 
     # Check idempotency_key specifically
-    if "idempotency_key" in cols:
+if "idempotency_key" in cols:
         passed.append("idempotency_key column exists in model")
         print("   ✅ PASS: idempotency_key column enabled")
-    else:
+else:
         failed.append("idempotency_key still missing from model")
         print("   ❌ FAIL: idempotency_key not in model")
 
@@ -61,7 +67,6 @@ except Exception as e:
 # TEST 2: API Endpoint Registration
 print("\n🧪 TEST 2: API Endpoint Registration")
 try:
-    from app.api.verification.consolidated_verification import router
 
     routes = {route.path: [m for m in route.methods] for route in router.routes}
 
@@ -75,16 +80,16 @@ try:
     }
 
     all_good = True
-    for path, methods in required.items():
+for path, methods in required.items():
         found = any(path in r for r in routes.keys())
-        if found:
+if found:
             print(f"   ✅ {path}")
-        else:
+else:
             all_good = False
             failed.append(f"Missing route: {path}")
             print(f"   ❌ {path}")
 
-    if all_good:
+if all_good:
         passed.append("All API endpoints registered")
 
 except Exception as e:
@@ -94,7 +99,7 @@ except Exception as e:
 # TEST 3: Frontend JavaScript Integrity
 print("\n🧪 TEST 3: Frontend JavaScript Integrity")
 try:
-    with open("static/js/verification.js", "r") as f:
+with open("static/js/verification.js", "r") as f:
         js = f.read()
 
     checks = {
@@ -108,11 +113,11 @@ try:
         "Copy code function": "function copyCode()" in js,
     }
 
-    for check, result in checks.items():
-        if result:
+for check, result in checks.items():
+if result:
             print(f"   ✅ {check}")
             passed.append(f"Frontend: {check}")
-        else:
+else:
             print(f"   ❌ {check}")
             failed.append(f"Frontend missing: {check}")
 
@@ -123,7 +128,7 @@ except Exception as e:
 # TEST 4: Backend Logic Validation
 print("\n🧪 TEST 4: Backend Logic Validation")
 try:
-    with open("app/api/verification/consolidated_verification.py", "r") as f:
+with open("app/api/verification/consolidated_verification.py", "r") as f:
         backend = f.read()
 
     checks = {
@@ -137,11 +142,11 @@ try:
         "Status polling": "status" in backend and "pending" in backend,
     }
 
-    for check, result in checks.items():
-        if result:
+for check, result in checks.items():
+if result:
             print(f"   ✅ {check}")
             passed.append(f"Backend: {check}")
-        else:
+else:
             print(f"   ⚠️  {check}")
             warnings.append(f"Backend: {check} not found")
 
@@ -152,30 +157,29 @@ except Exception as e:
 # TEST 5: Service Integration
 print("\n🧪 TEST 5: Service Integration")
 try:
-    from app.services.textverified_service import TextVerifiedService
 
     tv = TextVerifiedService()
 
-    if tv.enabled:
+if tv.enabled:
         print("   ✅ TextVerified service enabled")
         passed.append("TextVerified service enabled")
-    else:
+else:
         print("   ⚠️  TextVerified service disabled")
         warnings.append("TextVerified service disabled")
 
-    if tv.api_key:
+if tv.api_key:
         print("   ✅ API key configured")
         passed.append("TextVerified API key set")
-    else:
+else:
         print("   ❌ API key missing")
         failed.append("TextVerified API key not configured")
 
     # Check if service has required methods
     methods = ["create_verification", "get_sms", "cancel_number", "get_services"]
-    for method in methods:
-        if hasattr(tv, method):
+for method in methods:
+if hasattr(tv, method):
             print(f"   ✅ Method: {method}()")
-        else:
+else:
             print(f"   ❌ Method: {method}()")
             failed.append(f"TextVerified missing method: {method}")
 
@@ -186,15 +190,14 @@ except Exception as e:
 # TEST 6: Polling Service Health
 print("\n🧪 TEST 6: Polling Service Health")
 try:
-    from app.services.sms_polling_service import SMSPollingService
 
     print("   ✅ SMS polling service importable")
     passed.append("SMS polling service exists")
 
     # Check if it has required methods
-    if hasattr(SMSPollingService, "start"):
+if hasattr(SMSPollingService, "start"):
         print("   ✅ Has start() method")
-    else:
+else:
         warnings.append("SMS polling missing start() method")
         print("   ⚠️  Missing start() method")
 
@@ -205,24 +208,23 @@ except Exception as e:
 # TEST 7: Database Migration Script
 print("\n🧪 TEST 7: Database Migration Script")
 try:
-    import os
 
     script_path = "scripts/fix_production_idempotency.py"
 
-    if os.path.exists(script_path):
-        print(f"   ✅ Migration script exists")
+if os.path.exists(script_path):
+        print("   ✅ Migration script exists")
         passed.append("Migration script created")
 
-        with open(script_path, "r") as f:
+with open(script_path, "r") as f:
             script = f.read()
 
-        if "idempotency_key" in script and "ALTER TABLE" in script:
+if "idempotency_key" in script and "ALTER TABLE" in script:
             print("   ✅ Script contains correct SQL")
             passed.append("Migration script has correct SQL")
-        else:
+else:
             warnings.append("Migration script may be incomplete")
             print("   ⚠️  Script may be incomplete")
-    else:
+else:
         failed.append("Migration script not found")
         print(f"   ❌ Script not found at {script_path}")
 
@@ -234,30 +236,27 @@ except Exception as e:
 print("\n🧪 TEST 8: Error Handling & Security")
 try:
     # Force reimport to get latest code
-    import importlib
-    import sys
 
-    if "app.api.verification.consolidated_verification" in sys.modules:
+if "app.api.verification.consolidated_verification" in sys.modules:
         del sys.modules["app.api.verification.consolidated_verification"]
 
-    from app.api.verification.consolidated_verification import create_safe_error_detail
 
     # Test error sanitization
     test_error = Exception("Error with sensitive data: password=secret123 api_key=xyz789")
     safe = create_safe_error_detail(test_error)
 
-    if len(safe) <= 100:
+if len(safe) <= 100:
         print("   ✅ Error messages truncated to 100 chars")
         passed.append("Error sanitization works")
-    else:
+else:
         warnings.append("Error messages not properly truncated")
         print(f"   ⚠️  Error message too long: {len(safe)} chars")
 
     # Check for sensitive data leakage
-    if "secret123" not in safe and "xyz789" not in safe:
+if "secret123" not in safe and "xyz789" not in safe:
         print("   ✅ Sensitive data sanitized")
         passed.append("No sensitive data in errors")
-    else:
+else:
         failed.append("Sensitive data may leak in errors")
         print(f"   ❌ Sensitive data found: {safe}")
 
@@ -268,10 +267,10 @@ except Exception as e:
 # TEST 9: Frontend-Backend Contract
 print("\n🧪 TEST 9: Frontend-Backend Contract")
 try:
-    with open("static/js/verification.js", "r") as f:
+with open("static/js/verification.js", "r") as f:
         frontend = f.read()
 
-    with open("app/api/verification/consolidated_verification.py", "r") as f:
+with open("app/api/verification/consolidated_verification.py", "r") as f:
         backend = f.read()
 
     # Check request fields match
@@ -293,16 +292,16 @@ try:
     ]
 
     contract_valid = True
-    for field in frontend_fields:
-        if field in backend:
+for field in frontend_fields:
+if field in backend:
             print(f"   ✅ Field: {field}")
-        else:
+else:
             print(f"   ❌ Field: {field} (frontend sends, backend doesn't handle)")
             contract_valid = False
 
-    if contract_valid:
+if contract_valid:
         passed.append("Frontend-backend contract valid")
-    else:
+else:
         failed.append("Frontend-backend contract mismatch")
 
 except Exception as e:
@@ -322,15 +321,15 @@ try:
     }
 
     all_flows = True
-    for flow, exists in flows.items():
-        if exists:
+for flow, exists in flows.items():
+if exists:
             print(f"   ✅ {flow}")
-        else:
+else:
             print(f"   ❌ {flow}")
             failed.append(f"Missing flow: {flow}")
             all_flows = False
 
-    if all_flows:
+if all_flows:
         passed.append("All critical user flows present")
 
 except Exception as e:
@@ -350,14 +349,14 @@ if len(passed) > 5:
 
 if warnings:
     print(f"\n⚠️  WARNINGS: {len(warnings)} issues")
-    for w in warnings[:5]:
+for w in warnings[:5]:
         print(f"   • {w}")
-    if len(warnings) > 5:
+if len(warnings) > 5:
         print(f"   ... and {len(warnings) - 5} more")
 
 if failed:
     print(f"\n❌ FAILED: {len(failed)} tests")
-    for f in failed:
+for f in failed:
         print(f"   • {f}")
 else:
     print("\n🎉 NO FAILURES!")
@@ -391,11 +390,11 @@ print("=" * 70)
 
 if failed:
     print("\n🔧 Required Actions:")
-    if any("idempotency" in f.lower() for f in failed):
+if any("idempotency" in f.lower() for f in failed):
         print("   1. Run: python scripts/fix_production_idempotency.py")
-    if any("api key" in f.lower() for f in failed):
+if any("api key" in f.lower() for f in failed):
         print("   2. Set TEXTVERIFIED_API_KEY environment variable")
-    if any("route" in f.lower() or "endpoint" in f.lower() for f in failed):
+if any("route" in f.lower() or "endpoint" in f.lower() for f in failed):
         print("   3. Check API router registration in main.py")
     print("   4. Restart application services")
     print("   5. Re-run this validation script")

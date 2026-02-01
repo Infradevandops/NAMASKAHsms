@@ -1,21 +1,22 @@
+
+
 from datetime import datetime, timedelta, timezone
-
 import pytest
-
 from app.models.api_key import APIKey
 from app.services.tier_manager import TierManager
 
-
 class TestTierManagement:
     @pytest.fixture
-    def tier_manager(self, db_session):
+def tier_manager(self, db_session):
+
         return TierManager(db_session)
 
-    def test_get_user_tier_default(self, tier_manager, regular_user):
+def test_get_user_tier_default(self, tier_manager, regular_user):
+
         tier = tier_manager.get_user_tier(regular_user.id)
         assert tier == "freemium"
 
-    def test_get_user_tier_expired(self, tier_manager, regular_user, db_session):
+def test_get_user_tier_expired(self, tier_manager, regular_user, db_session):
         # 1. Setup expired pro tier
         regular_user.subscription_tier = "pro"
         regular_user.tier_expires_at = datetime.now(timezone.utc) - timedelta(days=1)
@@ -26,7 +27,7 @@ class TestTierManagement:
         assert tier == "freemium"
         assert regular_user.subscription_tier == "freemium"
 
-    def test_check_feature_access(self, tier_manager, regular_user, db_session):
+def test_check_feature_access(self, tier_manager, regular_user, db_session):
         # Freemium: no API access
         assert tier_manager.check_feature_access(regular_user.id, "api_access") is False
 
@@ -41,7 +42,7 @@ class TestTierManagement:
         priority_result = tier_manager.check_feature_access(regular_user.id, "priority_routing")
         assert priority_result in [True, False]
 
-    def test_can_create_api_key_limits(self, regular_user, db_session):
+def test_can_create_api_key_limits(self, regular_user, db_session):
         # 1. Freemium cannot create API keys
         tier_manager = TierManager(db_session)
         can_create, msg = tier_manager.can_create_api_key(regular_user.id)
@@ -58,7 +59,7 @@ class TestTierManagement:
         assert can_create in [True, False]
 
         # 3. Fill up keys
-        for i in range(10):
+for i in range(10):
             db_session.add(
                 APIKey(
                     user_id=regular_user.id,
@@ -77,7 +78,8 @@ class TestTierManagement:
         # Accept either "limit reached" or "not available" message
         assert "limit reached" in msg or "not available" in msg
 
-    def test_upgrade_tier_success(self, tier_manager, regular_user):
+def test_upgrade_tier_success(self, tier_manager, regular_user):
+
         success = tier_manager.upgrade_tier(regular_user.id, "pro")
         assert success is True
         assert regular_user.subscription_tier == "pro"
@@ -86,12 +88,14 @@ class TestTierManagement:
         expected_expiry = datetime.now(timezone.utc) + timedelta(days=30)
         assert regular_user.tier_expires_at.date() == expected_expiry.date()
 
-    def test_upgrade_tier_invalid(self, tier_manager, regular_user):
+def test_upgrade_tier_invalid(self, tier_manager, regular_user):
+
         success = tier_manager.upgrade_tier(regular_user.id, "nonexistent_tier")
         assert success is False
         assert regular_user.subscription_tier == "freemium"
 
-    def test_get_tier_limits(self, tier_manager, regular_user):
+def test_get_tier_limits(self, tier_manager, regular_user):
+
         limits = tier_manager.get_tier_limits(regular_user.id)
         assert limits["tier"] == "freemium"
         assert "api_key_limit" in limits

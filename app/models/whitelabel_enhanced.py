@@ -1,12 +1,12 @@
 """Enhanced white - label models."""
 
+
 from sqlalchemy import JSON, Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
-
 from app.models.base import BaseModel
 
-
 class WhiteLabelDomain(BaseModel):
+
     __tablename__ = "whitelabel_domains"
 
     config_id = Column(String, ForeignKey("whitelabel_config.id"), nullable=False)
@@ -22,6 +22,7 @@ class WhiteLabelDomain(BaseModel):
 
 
 class WhiteLabelTheme(BaseModel):
+
     __tablename__ = "whitelabel_themes"
 
     config_id = Column(String, ForeignKey("whitelabel_config.id"), nullable=False)
@@ -37,6 +38,7 @@ class WhiteLabelTheme(BaseModel):
 
 
 class WhiteLabelAsset(BaseModel):
+
     __tablename__ = "whitelabel_assets"
 
     config_id = Column(String, ForeignKey("whitelabel_config.id"), nullable=False)
@@ -53,6 +55,7 @@ class WhiteLabelAsset(BaseModel):
 
 
 class PartnerFeature(BaseModel):
+
     __tablename__ = "partner_features"
 
     partner_id = Column(String, ForeignKey("users.id"), nullable=False)

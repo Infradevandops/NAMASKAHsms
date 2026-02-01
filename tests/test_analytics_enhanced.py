@@ -1,13 +1,13 @@
+
+
 from datetime import datetime, timedelta
-
 from sqlalchemy.orm import Session
-
 from app.models.transaction import Transaction
 from app.models.verification import Verification
 from tests.conftest import create_test_token
 
-
 def test_get_analytics_summary_empty(client, regular_user):
+
     """Test analytics summary with no data."""
     token = create_test_token(regular_user.id, regular_user.email)
     headers = {"Authorization": f"Bearer {token}"}
@@ -20,6 +20,7 @@ def test_get_analytics_summary_empty(client, regular_user):
 
 
 def test_get_analytics_summary_with_data(client, db: Session, regular_user):
+
     """Test analytics summary with verifications and transactions."""
     # Add verifications
     v1 = Verification(
@@ -66,6 +67,7 @@ def test_get_analytics_summary_with_data(client, db: Session, regular_user):
 
 
 def test_analytics_date_filter(client, db: Session, regular_user):
+
     """Test analytics date filtering."""
     # Add old verification
     old_date = datetime.utcnow() - timedelta(days=60)
@@ -95,6 +97,7 @@ def test_analytics_date_filter(client, db: Session, regular_user):
 
 
 def test_real_time_stats(client, regular_user):
+
     """Test real-time stats endpoint."""
     token = create_test_token(regular_user.id, regular_user.email)
     headers = {"Authorization": f"Bearer {token}"}
@@ -106,6 +109,7 @@ def test_real_time_stats(client, regular_user):
 
 
 def test_status_updates(client, regular_user):
+
     """Test status updates endpoint."""
     token = create_test_token(regular_user.id, regular_user.email)
     headers = {"Authorization": f"Bearer {token}"}

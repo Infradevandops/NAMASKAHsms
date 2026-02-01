@@ -1,23 +1,25 @@
 """Clean test user balances and ensure data integrity."""
 
+
 import os
 import sys
+from app.core.config import get_settings
+from app.core.database import engine
+from app.models.balance_transaction import BalanceTransaction
+from app.models.user import User
+from sqlalchemy.orm import sessionmaker
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.core.config import get_settings
-from app.core.database import engine, get_db
-from app.models.balance_transaction import BalanceTransaction
-from app.models.user import User
 
 settings = get_settings()
-from sqlalchemy.orm import sessionmaker
 
 Session = sessionmaker(bind=engine)
 db = Session()
 
 
 def clean_test_balances():
+
     """Reset test user balances to 0 (excluding admin)."""
     test_users = (
         db.query(User)
@@ -26,11 +28,11 @@ def clean_test_balances():
             | (User.email.like("%demo%"))
             | (User.email.like("%example%"))
         )
-        .filter(User.is_admin == False)  # Don't reset admin balance
+        .filter(~User.is_admin)  # Don't reset admin balance
         .all()
     )
 
-    for user in test_users:
+for user in test_users:
         print(f"Resetting balance for {user.email}: ${user.credits} -> $0.00")
         user.credits = 0.0
 
@@ -39,26 +41,27 @@ def clean_test_balances():
 
 
 def validate_balances():
+
     """Ensure all balances match transaction history."""
     users = db.query(User).all()
     issues = 0
 
-    for user in users:
+for user in users:
         transactions = db.query(BalanceTransaction).filter_by(user_id=user.id).all()
         calculated_balance = sum(t.amount for t in transactions)
 
-        if abs(user.credits - calculated_balance) > 0.01:
+if abs(user.credits - calculated_balance) > 0.01:
             print(f"⚠ Balance mismatch for {user.email}:")
             print(f"  Database: ${user.credits}")
             print(f"  Calculated: ${calculated_balance}")
-            print(f"  Fixing...")
+            print("  Fixing...")
             user.credits = calculated_balance
             issues += 1
 
     db.commit()
-    if issues > 0:
+if issues > 0:
         print(f"✓ Fixed {issues} balance mismatches")
-    else:
+else:
         print("✓ All balances validated - no issues found")
 
 

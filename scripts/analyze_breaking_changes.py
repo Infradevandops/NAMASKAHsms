@@ -1,15 +1,18 @@
 #!/usr/bin/env python3
 """
+import os
+from app.core.database import SessionLocal
+from app.services.pricing_calculator import PricingCalculator
+from app.services.textverified_service import TextVerifiedService
+from sqlalchemy import text
+from app.core.database import SessionLocal
+
 Comprehensive analysis to check for potential breaking changes from removed files
 """
 
-import glob
-import os
-import re
-from collections import defaultdict
-
 
 def analyze_removed_files_impact():
+
     """Analyze impact of removed files on the codebase."""
 
     print("🔍 COMPREHENSIVE BREAKING CHANGE ANALYSIS")
@@ -29,7 +32,7 @@ def analyze_removed_files_impact():
     # Check for any remaining references
     print("\n📊 CHECKING FOR REMAINING REFERENCES:")
 
-    for removed_file in removed_files:
+for removed_file in removed_files:
         module_name = (
             removed_file.replace("app/", "").replace(".py", "").replace("/", ".")
         )
@@ -44,33 +47,34 @@ def analyze_removed_files_impact():
 
         references_found = []
 
-        for root, dirs, files in os.walk("app"):
-            for file in files:
-                if file.endswith(".py"):
+for root, dirs, files in os.walk("app"):
+for file in files:
+if file.endswith(".py"):
                     filepath = os.path.join(root, file)
-                    try:
-                        with open(filepath, "r") as f:
+try:
+with open(filepath, "r") as f:
                             content = f.read()
-                            for pattern in import_patterns:
-                                if pattern in content:
+for pattern in import_patterns:
+if pattern in content:
                                     references_found.append((filepath, pattern))
-                    except:
+except Exception:
                         pass
 
-        if references_found:
-            print(f"  ❌ POTENTIAL ISSUES FOUND:")
-            for filepath, pattern in references_found:
+if references_found:
+            print("  ❌ POTENTIAL ISSUES FOUND:")
+for filepath, pattern in references_found:
                 print(f"    - {filepath}: '{pattern}'")
-        else:
-            print(f"  ✅ No references found - Safe removal")
+else:
+            print("  ✅ No references found - Safe removal")
 
 
 def check_main_py_imports():
+
     """Check main.py for any broken imports."""
     print("\n🔍 CHECKING MAIN.PY IMPORTS:")
 
-    if os.path.exists("main.py"):
-        with open("main.py", "r") as f:
+if os.path.exists("main.py"):
+with open("main.py", "r") as f:
             content = f.read()
 
         # Check for removed service imports
@@ -85,26 +89,25 @@ def check_main_py_imports():
         ]
 
         issues = []
-        for removed in removed_imports:
-            if removed in content:
+for removed in removed_imports:
+if removed in content:
                 issues.append(removed)
 
-        if issues:
-            print(f"  ❌ BROKEN IMPORTS FOUND:")
-            for issue in issues:
+if issues:
+            print("  ❌ BROKEN IMPORTS FOUND:")
+for issue in issues:
                 print(f"    - {issue}")
-        else:
-            print(f"  ✅ No broken imports in main.py")
+else:
+            print("  ✅ No broken imports in main.py")
 
 
 def test_core_functionality():
+
     """Test that core functionality still works."""
     print("\n🔍 TESTING CORE FUNCTIONALITY:")
 
-    try:
+try:
         # Test pricing system
-        from app.core.database import SessionLocal
-        from app.services.pricing_calculator import PricingCalculator
 
         db = SessionLocal()
         calculator = PricingCalculator(db)
@@ -113,38 +116,35 @@ def test_core_functionality():
 
         print(f"  ✅ Pricing system: {len(tiers)} tiers loaded")
 
-    except Exception as e:
+except Exception as e:
         print(f"  ❌ Pricing system error: {e}")
 
-    try:
+try:
         # Test TextVerified service
-        from app.services.textverified_service import TextVerifiedService
 
-        tv_service = TextVerifiedService()
-        print(f"  ✅ TextVerified service: initialized")
+        TextVerifiedService()
+        print("  ✅ TextVerified service: initialized")
 
-    except Exception as e:
+except Exception as e:
         print(f"  ❌ TextVerified service error: {e}")
 
-    try:
+try:
         # Test API endpoints
-        from app.api.billing.pricing_endpoints import router as pricing_router
-        from app.api.billing.tier_endpoints import router as tier_router
+        pass
 
-        print(f"  ✅ API routers: tier and pricing loaded")
+        print("  ✅ API routers: tier and pricing loaded")
 
-    except Exception as e:
+except Exception as e:
         print(f"  ❌ API router error: {e}")
 
 
 def check_database_dependencies():
+
     """Check if removed services had database dependencies."""
     print("\n🔍 CHECKING DATABASE DEPENDENCIES:")
 
-    try:
-        from sqlalchemy import text
+try:
 
-        from app.core.database import SessionLocal
 
         db = SessionLocal()
 
@@ -158,26 +158,27 @@ def check_database_dependencies():
         # Check for any service-specific tables
         service_tables = [
             t
-            for t in tables
-            if any(
+for t in tables
+if any(
                 s in t.lower() for s in ["oauth", "textverified_", "pricing_service"]
             )
         ]
 
-        if service_tables:
-            print(f"  ⚠️  Service-specific tables found:")
-            for table in service_tables:
+if service_tables:
+            print("  ⚠️  Service-specific tables found:")
+for table in service_tables:
                 print(f"    - {table}")
-        else:
-            print(f"  ✅ No service-specific tables found")
+else:
+            print("  ✅ No service-specific tables found")
 
         db.close()
 
-    except Exception as e:
+except Exception as e:
         print(f"  ❌ Database check error: {e}")
 
 
 def analyze_feature_completeness():
+
     """Analyze if any features are broken by removals."""
     print("\n🔍 ANALYZING FEATURE COMPLETENESS:")
 
@@ -190,27 +191,28 @@ def analyze_feature_completeness():
         "Payment Processing": ["payment", "billing"],
     }
 
-    for feature, keywords in features.items():
-        try:
+for feature, keywords in features.items():
+try:
             # Check if feature files exist
             feature_files = []
-            for root, dirs, files in os.walk("app"):
-                for file in files:
-                    if file.endswith(".py") and any(
+for root, dirs, files in os.walk("app"):
+for file in files:
+if file.endswith(".py") and any(
                         kw in file.lower() for kw in keywords
                     ):
                         feature_files.append(os.path.join(root, file))
 
-            if feature_files:
+if feature_files:
                 print(f"  ✅ {feature}: {len(feature_files)} files found")
-            else:
+else:
                 print(f"  ⚠️  {feature}: No files found")
 
-        except Exception as e:
+except Exception as e:
             print(f"  ❌ {feature}: Error checking - {e}")
 
 
 def check_template_references():
+
     """Check if removed templates are referenced anywhere."""
     print("\n🔍 CHECKING TEMPLATE REFERENCES:")
 
@@ -222,28 +224,29 @@ def check_template_references():
     ]
 
     template_refs = []
-    for root, dirs, files in os.walk("."):
-        for file in files:
-            if file.endswith((".py", ".html", ".js")):
+for root, dirs, files in os.walk("."):
+for file in files:
+if file.endswith((".py", ".html", ".js")):
                 filepath = os.path.join(root, file)
-                try:
-                    with open(filepath, "r") as f:
+try:
+with open(filepath, "r") as f:
                         content = f.read()
-                        for template in removed_templates:
-                            if template in content:
+for template in removed_templates:
+if template in content:
                                 template_refs.append((filepath, template))
-                except:
+except Exception:
                     pass
 
-    if template_refs:
-        print(f"  ⚠️  Template references found:")
-        for filepath, template in template_refs:
+if template_refs:
+        print("  ⚠️  Template references found:")
+for filepath, template in template_refs:
             print(f"    - {filepath}: {template}")
-    else:
-        print(f"  ✅ No references to removed templates")
+else:
+        print("  ✅ No references to removed templates")
 
 
 def main():
+
     """Main analysis function."""
     os.chdir("/Users/machine/Desktop/Namaskah. app")
 

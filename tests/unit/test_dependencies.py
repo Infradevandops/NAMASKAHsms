@@ -1,10 +1,11 @@
-from unittest.mock import MagicMock
 
+
+from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException, Request
-
 from app.core.dependencies import (
-    get_current_admin_user,
+from app.utils.security import create_access_token
+
     get_current_user,
     get_current_user_id,
     get_optional_user_id,
@@ -26,13 +27,12 @@ async def test_get_token_from_request():
 
     # 3. Test Missing
     mock_req.cookies = {}
-    with pytest.raises(HTTPException):
+with pytest.raises(HTTPException):
         get_token_from_request(mock_req, None)
 
 
 @pytest.mark.asyncio
 async def test_get_current_user_id(regular_user):
-    from app.utils.security import create_access_token
 
     token = create_access_token({"user_id": str(regular_user.id), "email": regular_user.email})
     assert get_current_user_id(token) == str(regular_user.id)
