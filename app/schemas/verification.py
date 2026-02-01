@@ -16,11 +16,11 @@ class VerificationRequest(BaseModel):
     area_codes: Optional[list[str]] = Field(default=None, description="Preferred area codes")
     carriers: Optional[list[str]] = Field(default=None, description="Preferred carriers")
     idempotency_key: Optional[str] = Field(
-    default=None, description="Idempotency key to prevent duplicate charges")
+        default=None, description="Idempotency key to prevent duplicate charges")
 
     @field_validator("country", mode="before")
     @classmethod
-def normalize_country(cls, v):
+    def normalize_country(cls, v):
         """Normalize country codes to uppercase ISO format."""
         country_map = {
             "usa": "US",
@@ -44,8 +44,7 @@ def normalize_country(cls, v):
 
     @field_validator("service", mode="before")
     @classmethod
-def normalize_service(cls, v):
-
+    def normalize_service(cls, v):
         """Normalize service names to lowercase."""
         return v.lower().strip()
 

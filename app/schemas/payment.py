@@ -45,7 +45,11 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Only paystack payment method is supported")
         return v
 
-    model_config = {"json_schema_extra": {"example": {"amount_usd": 20.0, "payment_method": "paystack"}}}
+    model_config = {
+    "json_schema_extra": {
+        "example": {
+            "amount_usd": 20.0,
+             "payment_method": "paystack"}}}
 
 
 class PaymentInitializeResponse(BaseModel):
@@ -189,9 +193,8 @@ class RefundRequest(BaseModel):
 
     @field_validator("amount", mode="before")
     @classmethod
-def validate_amount(cls, v):
-
-if v is not None and v <= 0:
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
             raise ValueError("Refund amount must be positive")
         return v
 
@@ -237,7 +240,12 @@ class WalletBalanceResponse(BaseModel):
     credits_usd: float = Field(..., description="Credits value in USD")
     free_verifications: float = Field(..., description="Free verifications remaining")
 
-    model_config = {"json_schema_extra": {"example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}}}
+    model_config = {
+    "json_schema_extra": {
+        "example": {
+            "credits": 15.5,
+            "credits_usd": 31.0,
+             "free_verifications": 1.0}}}
 
 
 class CryptoWalletResponse(BaseModel):
@@ -298,7 +306,8 @@ class SubscriptionRequest(BaseModel):
 
     @field_validator("plan_id", mode="before")
     @classmethod
-def validate_plan_id(cls, v):
+    def validate_plan_id(cls, v):
+
 
 if v not in ["pro", "turbo"]:
             raise ValueError("Plan ID must be pro or turbo")

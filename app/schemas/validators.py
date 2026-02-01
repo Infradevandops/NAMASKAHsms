@@ -163,35 +163,35 @@ class ValidationMixin:
     @classmethod
     def validate_phone(cls, v):
         if v:
-            return validate_phone_number(v)
+        return validate_phone_number(v)
         return v
 
     @field_validator("service_name", mode="before")
     @classmethod
     def validate_service(cls, v):
         if v:
-            return validate_service_name(v)
+        return validate_service_name(v)
         return v
 
     @field_validator("referral_code", mode="before")
     @classmethod
     def validate_referral(cls, v):
         if v:
-            return validate_referral_code(v)
+        return validate_referral_code(v)
         return v
 
     @field_validator("area_code", mode="before")
     @classmethod
     def validate_area(cls, v):
         if v:
-            return validate_area_code(v)
+        return validate_area_code(v)
         return v
 
     @field_validator("carrier", mode="before")
     @classmethod
     def validate_carrier(cls, v):
         if v:
-            return validate_carrier_name(v)
+        return validate_carrier_name(v)
         return v
 
 
@@ -466,7 +466,7 @@ def validate_ip_address(ip: str) -> str:
     if re.match(ipv6_pattern, ip):
         return ip
 
-    raise ValueError("Invalid IP address format")
+        raise ValueError("Invalid IP address format")
 
 
 def validate_credit_amount(amount: float) -> float:
