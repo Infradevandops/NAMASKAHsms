@@ -39,10 +39,9 @@ class TierListResponse(BaseModel):
     tiers: List[TierSchema]
 
     @validator("tiers")
-def validate_tiers_count(cls, v):
-
+    def validate_tiers_count(cls, v):
         """Ensure we have all 4 tiers."""
-if len(v) < 4:
+        if len(v) < 4:
             raise ValueError(f"Expected at least 4 tiers, got {len(v)}")
         return v
 
@@ -75,9 +74,10 @@ class CurrentTierResponse(BaseModel):
 
     @validator("current_tier")
 def validate_tier_value(cls, v):
-
         """Ensure tier is a valid value."""
         valid_tiers = {"freemium", "payg", "pro", "custom"}
+
+
 if v not in valid_tiers:
             raise ValueError(f"Invalid tier: {v}. Must be one of {valid_tiers}")
         return v

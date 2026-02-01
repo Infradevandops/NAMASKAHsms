@@ -47,7 +47,7 @@ class UserCreate(BaseModel):
         if v:
             v = v.strip().upper()
             if len(v) != 6 or not v.isalnum():
-            raise ValueError("Referral code must be 6 alphanumeric characters")
+                raise ValueError("Referral code must be 6 alphanumeric characters")
         return v
 
     model_config = {

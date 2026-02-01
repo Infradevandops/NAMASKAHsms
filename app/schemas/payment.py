@@ -307,9 +307,7 @@ class SubscriptionRequest(BaseModel):
     @field_validator("plan_id", mode="before")
     @classmethod
     def validate_plan_id(cls, v):
-
-
-if v not in ["pro", "turbo"]:
+        if v not in ["pro", "turbo"]:
             raise ValueError("Plan ID must be pro or turbo")
         return v
 

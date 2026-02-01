@@ -4,6 +4,7 @@
 from typing import List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
+
 class TierFeatures(BaseModel):
 
     """Tier features schema."""
@@ -29,11 +30,10 @@ class TierInfo(BaseModel):
 
     @field_validator("tier")
     @classmethod
-def validate_tier(cls, v):
-
+    def validate_tier(cls, v):
         """Validate tier is one of the allowed values."""
         allowed_tiers = {"freemium", "payg", "pro", "custom"}
-if v not in allowed_tiers:
+        if v not in allowed_tiers:
             raise ValueError(f"Tier must be one of {allowed_tiers}")
         return v
 
@@ -47,8 +47,9 @@ class TiersListResponse(BaseModel):
     @field_validator("tiers")
     @classmethod
 def validate_tiers_count(cls, v):
-
         """Validate that we have exactly 4 tiers."""
+
+
 if len(v) != 4:
             raise ValueError("Must have exactly 4 tiers")
         return v

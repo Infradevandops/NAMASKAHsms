@@ -6,6 +6,7 @@ from typing import Any, Dict, List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 import re
 
+
 class KYCProfileCreate(BaseModel):
 
     """Schema for creating KYC profile."""
@@ -24,19 +25,19 @@ class KYCProfileCreate(BaseModel):
 
     @field_validator("date_of_birth")
     @classmethod
-def validate_age(cls, v):
-
+    def validate_age(cls, v):
         today = date.today()
         age = today.year - v.year - ((today.month, today.day) < (v.month, v.day))
-if age < 18:
+        if age < 18:
             raise ValueError("Must be at least 18 years old")
-if age > 120:
+        if age > 120:
             raise ValueError("Invalid date of birth")
         return v
 
     @field_validator("phone_number")
     @classmethod
 def validate_phone(cls, v):
+
 
         # Basic phone validation
 if not re.match(r"^\+?[1 - 9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
