@@ -10,7 +10,6 @@ Base = declarative_base()
 
 
 class BaseModel(Base):
-
     """Base model class with common fields for all models."""
 
     __abstract__ = True
@@ -21,19 +20,16 @@ class BaseModel(Base):
     # deleted_at = Column(DateTime, nullable=True)
     # is_deleted = Column(Boolean, default=False, nullable=False)
 
-def __init__(self, **kwargs):
-
-if "id" not in kwargs:
+    def __init__(self, **kwargs):
+        if "id" not in kwargs:
             kwargs["id"] = str(uuid.uuid4())
         super().__init__(**kwargs)
 
-def to_dict(self):
-
+    def to_dict(self):
         """Convert model instance to dictionary."""
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
-def update_timestamp(self):
-
+    def update_timestamp(self):
         """Update the updated_at timestamp."""
         self.updated_at = datetime.now(timezone.utc)
 

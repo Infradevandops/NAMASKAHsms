@@ -1,9 +1,6 @@
 """Commission and revenue sharing models."""
 
 from sqlalchemy import (
-from sqlalchemy.orm import relationship
-from app.models.base import BaseModel
-
     JSON,
     Boolean,
     Column,
@@ -13,6 +10,8 @@ from app.models.base import BaseModel
     Integer,
     String,
 )
+from sqlalchemy.orm import relationship
+from app.models.base import BaseModel
 
 
 class CommissionTier(BaseModel):

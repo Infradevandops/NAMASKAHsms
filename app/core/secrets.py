@@ -148,7 +148,6 @@ class SecretsManager:
             + "# PAYSTACK_SECRET_KEY=your-paystack-key\n"
         )
 
-
         # Validate output path to prevent path traversal
         safe_filename = sanitize_filename(os.path.basename(output_path))
         safe_path = validate_safe_path(safe_filename, Path.cwd())
@@ -166,20 +165,21 @@ class SecretsManager:
 
         # Check for required secrets
         required_secrets = SecretsManager.REQUIRED_SECRETS.get(environment, [])
-for key in required_secrets:
+
+        for key in required_secrets:
             value = os.getenv(key)
-if not value:
+            if not value:
                 issues.append(f"Missing required secret: {key}")
-elif SecretsManager.is_weak_secret(value):
+            elif SecretsManager.is_weak_secret(value):
                 warnings.append(f"Weak secret detected: {key}")
 
         # Check for exposed secrets in wrong environment
-if environment == "production":
+        if environment == "production":
             paystack_key = os.getenv("PAYSTACK_SECRET_KEY", "")
             base_url = os.getenv("BASE_URL", "")
-if "test" in paystack_key.lower():
+            if "test" in paystack_key.lower():
                 warnings.append("Test Paystack key detected in production")
-if "localhost" in base_url:
+            if "localhost" in base_url:
                 warnings.append("Localhost URL detected in production")
 
         return {

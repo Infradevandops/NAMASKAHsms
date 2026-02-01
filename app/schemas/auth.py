@@ -7,6 +7,7 @@ from pydantic import EmailStr
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 from app.schemas.validators import validate_email, validate_password_strength
 
+
 class RegisterRequest(BaseModel):
 
     """Schema for user registration request."""
@@ -20,36 +21,32 @@ class UserCreate(BaseModel):
     """Schema for user registration."""
 
     email: EmailStr = Field(..., description="Valid email address")
-    password: str = Field(
-        ...,
-        min_length=8,
-        description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)",
-    )
+    password: str = Field(...,
+                          min_length=8,
+                          description="Password (minimum 8 characters with uppercase, lowercase, digit, special char)",
+                          )
     referral_code: Optional[str] = Field(None, description="Optional referral code")
 
     @field_validator("email", mode="before")
     @classmethod
-def validate_email_field(cls, v):
-
-if not v:
+    def validate_email_field(cls, v):
+        if not v:
             raise ValueError("Email cannot be empty")
         return validate_email(v)
 
     @field_validator("password", mode="before")
     @classmethod
-def validate_password_field(cls, v):
-
-if not v:
+    def validate_password_field(cls, v):
+        if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
 
     @field_validator("referral_code", mode="before")
     @classmethod
-def validate_referral_code_field(cls, v):
-
-if v:
+    def validate_referral_code_field(cls, v):
+        if v:
             v = v.strip().upper()
-if len(v) != 6 or not v.isalnum():
+            if len(v) != 6 or not v.isalnum():
                 raise ValueError("Referral code must be 6 alphanumeric characters")
         return v
 
@@ -73,9 +70,8 @@ class UserUpdate(BaseModel):
 
     @field_validator("password", mode="before")
     @classmethod
-def validate_password(cls, v):
-
-if v and len(v) < 6:
+    def validate_password(cls, v):
+        if v and len(v) < 6:
             raise ValueError("Password must be at least 6 characters")
         return v
 
@@ -119,7 +115,11 @@ class LoginRequest(BaseModel):
     email: str = Field(..., description="User email address")
     password: str = Field(..., min_length=1, description="User password")
 
-    model_config = {"json_schema_extra": {"example": {"email": "user@example.com", "password": "securepassword123"}}}
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "email": "user@example.com",
+                "password": "securepassword123"}}}
 
 
 class TokenResponse(BaseModel):
@@ -232,17 +232,15 @@ class PasswordResetConfirm(BaseModel):
 
     @field_validator("token", mode="before")
     @classmethod
-def validate_token(cls, v):
-
-if not v or not v.strip():
+    def validate_token(cls, v):
+        if not v or not v.strip():
             raise ValueError("Token cannot be empty")
         return v.strip()
 
     @field_validator("new_password", mode="before")
     @classmethod
-def validate_password(cls, v):
-
-if not v:
+    def validate_password(cls, v):
+        if not v:
             raise ValueError("Password cannot be empty")
         return validate_password_strength(v)
 

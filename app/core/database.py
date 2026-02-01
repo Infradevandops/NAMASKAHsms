@@ -28,17 +28,15 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 def get_db():
-
     """Dependency to get database session."""
     db = SessionLocal()
-try:
+    try:
         yield db
-finally:
+    finally:
         db.close()
 
 
 def create_tables():
-
     """Create all database tables."""
     # Import all models to ensure they're registered
     # Configure the registry to resolve relationships
@@ -47,6 +45,5 @@ def create_tables():
 
 
 def drop_tables():
-
     """Drop all database tables."""
     Base.metadata.drop_all(bind=engine)

@@ -57,7 +57,6 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 @pytest.fixture(scope="session")
 def db_engine():
-
     """Create test database engine."""
     Base.metadata.create_all(bind=engine)
     yield engine
@@ -66,7 +65,6 @@ def db_engine():
 
 @pytest.fixture
 def db(db_engine) -> Generator[Session, None, None]:
-
     """Create test database session."""
     connection = db_engine.connect()
     transaction = connection.begin()
@@ -81,7 +79,6 @@ def db(db_engine) -> Generator[Session, None, None]:
 
 @pytest.fixture
 def db_session(db: Session) -> Session:
-
     """Alias for db fixture for compatibility."""
     return db
 
@@ -89,10 +86,10 @@ def db_session(db: Session) -> Session:
 @pytest.fixture
 def client(db: Session) -> TestClient:
     """Create FastAPI test client with test database."""
-    
+
     def override_get_db():
         yield db
-    
+
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -100,14 +97,12 @@ def client(db: Session) -> TestClient:
 
 @pytest.fixture
 def test_user_id():
-
     """Return test user ID."""
     return "test-user-123"
 
 
 @pytest.fixture
 def test_user(db: Session):
-
     """Create a test user."""
 
     user = User(
@@ -123,7 +118,6 @@ def test_user(db: Session):
 
 @pytest.fixture
 def regular_user(db: Session):
-
     """Create a regular freemium user."""
 
     user = User(
@@ -142,7 +136,6 @@ def regular_user(db: Session):
 
 @pytest.fixture
 def pro_user(db: Session):
-
     """Create a pro tier user."""
 
     user = User(
@@ -160,7 +153,6 @@ def pro_user(db: Session):
 
 @pytest.fixture
 def admin_user(db: Session):
-
     """Create an admin user."""
 
     user = User(
@@ -179,7 +171,6 @@ def admin_user(db: Session):
 
 @pytest.fixture
 def payg_user(db: Session):
-
     """Create a pay-as-you-go user."""
 
     user = User(
@@ -197,7 +188,6 @@ def payg_user(db: Session):
 
 @pytest.fixture
 def test_verification_data():
-
     """Return test verification data."""
     return {
         "service_name": "telegram",
@@ -210,7 +200,6 @@ def test_verification_data():
 
 @pytest.fixture
 def auth_service(db: Session):
-
     """Create an AuthService instance."""
 
     return AuthService(db)
@@ -218,7 +207,6 @@ def auth_service(db: Session):
 
 @pytest.fixture
 def payment_service(db: Session):
-
     """Create a PaymentService instance."""
 
     return PaymentService(db)
@@ -226,7 +214,6 @@ def payment_service(db: Session):
 
 @pytest.fixture
 def credit_service(db: Session):
-
     """Create a CreditService instance."""
 
     return CreditService(db)
@@ -234,7 +221,6 @@ def credit_service(db: Session):
 
 @pytest.fixture
 def email_service(db: Session):
-
     """Create an EmailService instance."""
 
     return EmailService(db)
@@ -242,7 +228,6 @@ def email_service(db: Session):
 
 @pytest.fixture
 def notification_service(db: Session):
-
     """Create a NotificationService instance."""
 
     return NotificationService(db)
@@ -250,7 +235,6 @@ def notification_service(db: Session):
 
 @pytest.fixture
 def activity_service(db: Session):
-
     """Create an ActivityService instance."""
 
     return ActivityService(db)
@@ -258,27 +242,19 @@ def activity_service(db: Session):
 
 @pytest.fixture
 def redis_client():
-
     """Create a mock Redis client."""
 
     mock_redis = MagicMock()
     # Mock xadd to return a message ID
     mock_redis.xadd.return_value = b"1234567890-0"
     # Mock xread to return messages
-    mock_redis.xread.return_value = [
-        [
-            b"webhook_queue",
-            [
-                (b"1234567890-0", {b"webhook_id": b"test", b"event": b"test.event", b"data": b'{"test": "data"}'}),
-            ],
-        ]
-    ]
+    mock_redis.xread.return_value = [[b"webhook_queue", [
+        (b"1234567890-0", {b"webhook_id": b"test", b"event": b"test.event", b"data": b'{"test": "data"}'}), ], ]]
     return mock_redis
 
 
 @pytest.fixture
 def auth_token(test_user):
-
     """Generate a valid JWT token for test user."""
 
     return create_access_token(data={"sub": str(test_user.id)})
@@ -287,83 +263,83 @@ def auth_token(test_user):
 @pytest.fixture
 def authenticated_client(client, db, test_user):
     """Create an authenticated test client."""
-    
+
     def override_get_db():
         yield db
-    
+
     def override_get_current_user_id():
         return str(test_user.id)
-    
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-    
+
     yield client
-    
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def authenticated_regular_client(client, db, regular_user):
     """Create an authenticated test client for regular user."""
-    
+
     def override_get_db():
         yield db
-    
+
     def override_get_current_user_id():
         return str(regular_user.id)
-    
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-    
+
     yield client
-    
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def authenticated_pro_client(client, db, pro_user):
     """Create an authenticated test client for pro user."""
-    
+
     def override_get_db():
         yield db
-    
+
     def override_get_current_user_id():
         return str(pro_user.id)
-    
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-    
+
     yield client
-    
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def authenticated_admin_client(client, db, admin_user):
     """Create an authenticated test client for admin user."""
-    
+
     def override_get_db():
         yield db
-    
+
     def override_get_current_user_id():
         return str(admin_user.id)
-    
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-    
+
     yield client
-    
+
     app.dependency_overrides.clear()
 
 
 @pytest.fixture
 def auth_headers():
     """Create authorization headers for a given user ID."""
-    
+
     def _auth_headers(user_id: str):
         token = create_access_token(data={"sub": str(user_id)})
         return {"Authorization": f"Bearer {token}"}
-    
+
     return _auth_headers
 
 
