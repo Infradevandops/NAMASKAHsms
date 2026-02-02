@@ -187,25 +187,25 @@ class ValidationMixin:
     @classmethod
     def validate_phone(cls, v):
         if v:
-        return validate_phone_number(v)
+            return validate_phone_number(v)
         return v
 
-        @field_validator("service_name", mode="before")
-        @classmethod
+    @field_validator("service_name", mode="before")
+    @classmethod
     def validate_service(cls, v):
         if v:
-        return validate_service_name(v)
+            return validate_service_name(v)
         return v
 
-        @field_validator("referral_code", mode="before")
-        @classmethod
+    @field_validator("referral_code", mode="before")
+    @classmethod
     def validate_referral(cls, v):
         if v:
-        return validate_referral_code(v)
+            return validate_referral_code(v)
         return v
 
-        @field_validator("area_code", mode="before")
-        @classmethod
+    @field_validator("area_code", mode="before")
+    @classmethod
     def validate_area(cls, v):
         if v:
         return validate_area_code(v)
