@@ -127,8 +127,8 @@ class Settings(BaseSettings):
             raise ValueError("Secret keys must be at least 32 characters long")
         return value
 
-        @field_validator("database_url")
-        @classmethod
+    @field_validator("database_url")
+    @classmethod
     def validate_database_url(cls, value, info=None):
         """Validate database URL format."""
         if not value:
@@ -137,13 +137,13 @@ class Settings(BaseSettings):
         # Check for production database requirements
         if info and hasattr(info, "data"):
             environment = info.data.get("environment", "development")
-        if value.startswith("sqlite://") and environment == "production":
-            raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
+            if value.startswith("sqlite://") and environment == "production":
+                raise ValueError("SQLite is not recommended for production. Use PostgreSQL.")
 
         return value
 
-        @field_validator("base_url")
-        @classmethod
+    @field_validator("base_url")
+    @classmethod
     def validate_base_url(cls, value):
         """Validate base URL format."""
         if not value.startswith(("http://", "https://")):
