@@ -19,6 +19,6 @@ except ImportError:
             return validator(*args, **v1_kwargs)
 
     except ImportError:
-        raise ImportError("Neither Pydantic v1 nor v2 could be imported")
+            raise ImportError("Neither Pydantic v1 nor v2 could be imported")
 
 __all__ = ["field_validator", "Field", "BaseModel", "BaseSettings", "PYDANTIC_V2"]

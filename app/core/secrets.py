@@ -1,50 +1,37 @@
-"""Secrets management for production security."""
+"""Secrets management and validation."""
 
-
-import logging
 import os
 import secrets
 from pathlib import Path
-from typing import Dict, Optional
-from app.utils.path_security import sanitize_filename, validate_safe_path
+from typing import Dict, List, Optional
+from app.core.logging import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class SecretsManager:
+    """Manage application secrets and environment variables."""
 
-    """Secure secrets management with validation."""
-
-    # Environment - specific required secrets
-    REQUIRED_SECRETS = {
-        "development": ["SECRET_KEY", "JWT_SECRET_KEY"],
-        "test": ["SECRET_KEY", "JWT_SECRET_KEY"],
-        "staging": [
-            "SECRET_KEY",
-            "JWT_SECRET_KEY",
-            "DATABASE_URL",
-            "TEXTVERIFIED_API_KEY",
-        ],
-        "production": [
-            "SECRET_KEY",
-            "JWT_SECRET_KEY",
-            "DATABASE_URL",
-            "TEXTVERIFIED_API_KEY",
-            "PAYSTACK_SECRET_KEY",
-        ],
-    }
-
-    # Secrets that should never be logged or exposed
+    # Sensitive key patterns for masking
     SENSITIVE_KEYS = [
-        "SECRET_KEY",
-        "JWT_SECRET_KEY",
-        "PASSWORD",
-        "API_KEY",
-        "TOKEN",
-        "PRIVATE_KEY",
-        "CERT",
-        "CREDENTIAL",
+        "SECRET", "KEY", "TOKEN", "PASSWORD", "PASS", "AUTH", "API",
+        "PRIVATE", "CREDENTIAL", "CERT", "SIGNATURE", "HASH"
     ]
+
+    # Required secrets by environment
+    REQUIRED_SECRETS = {
+        "production": [
+            "SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL",
+            "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"
+        ],
+        "staging": [
+            "SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL",
+            "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"
+        ],
+        "development": [
+            "SECRET_KEY", "JWT_SECRET_KEY"
+        ]
+    }
 
     @staticmethod
     def get_secret(key: str, default: Optional[str] = None) -> str:
@@ -98,26 +85,18 @@ class SecretsManager:
     def is_weak_secret(value: str) -> bool:
         """Check if a secret appears to be weak or default."""
         weak_patterns = [
-            "password",
-            "123456",
-            "admin",
-            "test",
-            "default",
-            "changeme",
-            "secret",
-            "key",
-            "your-",
-            "placeholder",
+            "password", "123456", "admin", "test", "default",
+            "changeme", "secret", "key", "your-", "placeholder",
         ]
         value_lower = value.lower()
         return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
 
-        @staticmethod
+    @staticmethod
     def generate_secret_key() -> str:
         """Generate secure 256-bit secret key."""
         return secrets.token_urlsafe(32)
 
-        @staticmethod
+    @staticmethod
     def generate_all_keys() -> Dict[str, str]:
         """Generate all required keys for a new environment."""
         return {
@@ -125,7 +104,7 @@ class SecretsManager:
             "JWT_SECRET_KEY": SecretsManager.generate_secret_key(),
         }
 
-        @staticmethod
+    @staticmethod
     def create_env_file(environment: str, output_path: str = None) -> str:
         """Create a new environment file with generated secrets."""
         if not output_path:
@@ -133,29 +112,27 @@ class SecretsManager:
 
         keys = SecretsManager.generate_all_keys()
 
-        timestamp = secrets.token_hex(8)
-        env_content = (
-            f"# Generated environment file for {environment}\n"
-            + f"# Generated on: {timestamp}\n"
-            + "# \n"
-            + "# IMPORTANT: Keep this file secure and never commit to version control\n\n"
-            + f"ENVIRONMENT={environment}\n"
-            + f"SECRET_KEY={keys['SECRET_KEY']}\n"
-            + f"JWT_SECRET_KEY={keys['JWT_SECRET_KEY']}\n\n"
-            + "# Add your other environment-specific variables below:\n"
-            + "# DATABASE_URL=your-database-url\n"
-            + "# TEXTVERIFIED_API_KEY=your-api-key\n"
-            + "# PAYSTACK_SECRET_KEY=your-paystack-key\n"
-        )
+        env_content = f"""# Generated environment file for {environment}
+# Generated on: {secrets.token_hex(8)}
 
-        # Validate output path to prevent path traversal
-        safe_filename = sanitize_filename(os.path.basename(output_path))
-        safe_path = validate_safe_path(safe_filename, Path.cwd())
+ENVIRONMENT={environment}
+SECRET_KEY={keys['SECRET_KEY']}
+JWT_SECRET_KEY={keys['JWT_SECRET_KEY']}
 
+# Database
+DATABASE_URL=sqlite:///./namaskah.db
+
+# Base URL
+BASE_URL=http://localhost:8000
+
+# Add other environment-specific variables below
+"""
+
+        safe_path = Path(output_path)
         safe_path.write_text(env_content)
         return str(safe_path)
 
-        @staticmethod
+    @staticmethod
     def audit_environment() -> Dict[str, any]:
         """Audit current environment for security issues."""
         issues = []
@@ -168,7 +145,7 @@ class SecretsManager:
 
         for key in required_secrets:
             value = os.getenv(key)
-        if not value:
+            if not value:
                 issues.append(f"Missing required secret: {key}")
             elif SecretsManager.is_weak_secret(value):
                 warnings.append(f"Weak secret detected: {key}")
@@ -177,14 +154,14 @@ class SecretsManager:
         if environment == "production":
             paystack_key = os.getenv("PAYSTACK_SECRET_KEY", "")
             base_url = os.getenv("BASE_URL", "")
-        if "test" in paystack_key.lower():
-                warnings.append("Test Paystack key detected in production")
-        if "localhost" in base_url:
+            if "test" in paystack_key.lower():
+                issues.append("Test Paystack key detected in production")
+            if "localhost" in base_url:
                 warnings.append("Localhost URL detected in production")
 
         return {
             "environment": environment,
             "issues": issues,
             "warnings": warnings,
-            "secrets_count": len([k for k in os.environ if SecretsManager.is_sensitive_key(k)]),
+            "secrets_count": len([k for k in os.environ.keys() if SecretsManager.is_sensitive_key(k)])
         }

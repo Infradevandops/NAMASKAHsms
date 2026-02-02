@@ -1,6 +1,5 @@
 """Base service infrastructure with generic CRUD operations."""
 
-
 from typing import Generic, List, Optional, Type, TypeVar
 from sqlalchemy.orm import Session
 from app.models.base import BaseModel
@@ -35,10 +34,10 @@ class BaseService(Generic[T]):
         """Update model instance by ID."""
         instance = self.get_by_id(id)
         if not instance:
-        return None
+            return None
 
         for key, value in kwargs.items():
-        if hasattr(instance, key):
+            if hasattr(instance, key):
                 setattr(instance, key, value)
 
         instance.update_timestamp()
@@ -50,7 +49,7 @@ class BaseService(Generic[T]):
         """Delete model instance by ID."""
         instance = self.get_by_id(id)
         if not instance:
-        return False
+            return False
 
         self.db.delete(instance)
         self.db.commit()
@@ -61,6 +60,6 @@ class BaseService(Generic[T]):
         return self.db.query(self.model).count()
 
 
-    def get_service(model: Type[T], db: Session) -> BaseService[T]:
-        """Service factory function."""
-        return BaseService(model, db)
+def get_service(model: Type[T], db: Session) -> BaseService[T]:
+    """Service factory function."""
+    return BaseService(model, db)
