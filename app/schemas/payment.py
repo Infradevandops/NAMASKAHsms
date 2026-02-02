@@ -21,10 +21,10 @@ class AddCreditsRequest(BaseModel):
 
 
 class PaymentInitialize(BaseModel):
-        """Schema for payment initialization."""
+    """Schema for payment initialization."""
 
-        amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
-        payment_method: str = Field(default="paystack", description="Payment method")
+    amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
+    payment_method: str = Field(default="paystack", description="Payment method")
 
     @field_validator("amount_usd", mode="before")
     @classmethod
