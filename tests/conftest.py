@@ -87,8 +87,7 @@ def db_session(db: Session) -> Session:
 def client(db: Session) -> TestClient:
     """Create FastAPI test client with test database."""
 
-
-def override_get_db():
+    def override_get_db():
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
