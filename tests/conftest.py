@@ -264,10 +264,10 @@ def auth_token(test_user):
 def authenticated_client(client, db, test_user):
     """Create an authenticated test client."""
 
-def override_get_db():
+    def override_get_db():
         yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
         return str(test_user.id)
 
     app.dependency_overrides[get_db] = override_get_db
