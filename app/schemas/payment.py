@@ -21,13 +21,13 @@ class AddCreditsRequest(BaseModel):
 
 
 class PaymentInitialize(BaseModel):
-    """Schema for payment initialization."""
+        """Schema for payment initialization."""
 
-    amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
-    payment_method: str = Field(default="paystack", description="Payment method")
+        amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
+        payment_method: str = Field(default="paystack", description="Payment method")
 
-    @field_validator("amount_usd", mode="before")
-    @classmethod
+        @field_validator("amount_usd", mode="before")
+        @classmethod
     def validate_amount(cls, v):
         if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
@@ -35,8 +35,8 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
-    @field_validator("payment_method", mode="before")
-    @classmethod
+        @field_validator("payment_method", mode="before")
+        @classmethod
     def validate_payment_method(cls, v):
         if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
@@ -52,127 +52,116 @@ class PaymentInitialize(BaseModel):
 class PaymentInitializeResponse(BaseModel):
         """Schema for payment initialization response."""
 
-        success: bool
-        authorization_url: str = Field(..., description="Paystack checkout URL")
-        access_code: str = Field(..., description="Paystack access code")
+        payment_id: str = Field(..., description="Payment ID")
+        authorization_url: str = Field(..., description="Payment authorization URL")
+        access_code: str = Field(..., description="Payment access code")
         reference: str = Field(..., description="Payment reference")
-        payment_details: Dict[str, Any] = Field(..., description="Payment breakdown")
 
         model_config = {
         "json_schema_extra": {
             "example": {
-                "success": True,
+                "payment_id": "payment_1642680000000",
                 "authorization_url": "https://checkout.paystack.com/abc123",
-                "access_code": "access_code_123",
-                "reference": "namaskah_user123_1642680000",
-                "payment_details": {
-                    "namaskah_amount": 10.0,
-                    "usd_amount": 20.0,
-                    "ngn_amount": 29600.0,
-                    "exchange_rate": 1480.0,
-                },
+                "access_code": "abc123def456",
+                "reference": "ref_1642680000000",
             }
         }
         }
 
 
-class PaymentVerify(BaseModel):
+class PaymentResponse(BaseModel):
+        """Schema for payment response."""
+
+        payment_id: str = Field(..., description="Payment ID")
+        authorization_url: str = Field(..., description="Payment authorization URL")
+        access_code: str = Field(..., description="Payment access code")
+        reference: str = Field(..., description="Payment reference")
+
+        model_config = {
+        "json_schema_extra": {
+            "example": {
+                "payment_id": "payment_1642680000000",
+                "authorization_url": "https://checkout.paystack.com/abc123",
+                "access_code": "abc123def456",
+                "reference": "ref_1642680000000",
+            }
+        }
+        }
+
+
+class PaymentVerification(BaseModel):
         """Schema for payment verification."""
 
         reference: str = Field(..., description="Payment reference to verify")
 
         model_config = {
-        "json_schema_extra": {"example": {"reference": "namaskah_user123_1642680000"}}
+        "json_schema_extra": {"example": {"reference": "ref_1642680000000"}}
         }
 
 
-class PaymentVerifyResponse(BaseModel):
-        """Schema for payment verification response."""
+class PaymentStatus(BaseModel):
+        """Schema for payment status response."""
 
         status: str = Field(..., description="Payment status")
-        amount_credited: float = Field(..., description="Amount credited to wallet")
-        new_balance: float = Field(..., description="New wallet balance")
+        amount: float = Field(..., description="Payment amount")
+        currency: str = Field(..., description="Payment currency")
         reference: str = Field(..., description="Payment reference")
-        message: str = Field(..., description="Status message")
+        paid_at: Optional[datetime] = Field(None, description="Payment completion time")
 
         model_config = {
         "json_schema_extra": {
             "example": {
                 "status": "success",
-                "amount_credited": 10.0,
-                "new_balance": 25.5,
-                "reference": "namaskah_user123_1642680000",
-                "message": "Payment verified and credited successfully",
+                "amount": 20.0,
+                "currency": "USD",
+                "reference": "ref_1642680000000",
+                "paid_at": "2024-01-20T10:00:00Z",
             }
         }
         }
 
 
-class WebhookPayload(BaseModel):
-        """Schema for Paystack webhook payload."""
+class WalletBalance(BaseModel):
+        """Schema for wallet balance response."""
 
-        event: str = Field(..., description="Webhook event type")
-        data: Dict[str, Any] = Field(..., description="Webhook data")
-
-        model_config = {
-        "json_schema_extra": {
-            "example": {
-                "event": "charge.success",
-                "data": {
-                    "reference": "namaskah_user123_1642680000",
-                    "amount": 2960000,
-                    "status": "success",
-                    "metadata": {"user_id": "user_123", "namaskah_amount": 10.0},
-                },
-            }
-        }
-        }
-
-
-class TransactionResponse(BaseModel):
-        """Schema for transaction response."""
-
-        id: str
-        amount: float
-        type: str = Field(..., description="Transaction type: credit or debit")
-        description: str
-        created_at: datetime
+        balance: float = Field(..., description="Current wallet balance")
+        currency: str = Field(default="USD", description="Balance currency")
+        last_updated: datetime = Field(..., description="Last balance update time")
 
         model_config = {
         "from_attributes": True,
         "json_schema_extra": {
             "example": {
-                "id": "transaction_1642680000000",
-                "amount": 10.0,
-                "type": "credit",
-                "description": "Paystack payment: ref_123",
-                "created_at": "2024 - 01-20T10:00:00Z",
+                "balance": 25.50,
+                "currency": "USD",
+                "last_updated": "2024-01-20T10:00:00Z",
             }
         },
         }
 
 
-class TransactionHistoryResponse(BaseModel):
-        """Schema for transaction history."""
+class TransactionHistory(BaseModel):
+        """Schema for transaction history response."""
 
-        transactions: List[TransactionResponse]
-        total_count: int
+        id: str = Field(..., description="Transaction ID")
+        type: str = Field(..., description="Transaction type")
+        amount: float = Field(..., description="Transaction amount")
+        description: str = Field(..., description="Transaction description")
+        status: str = Field(..., description="Transaction status")
+        created_at: datetime = Field(..., description="Transaction creation time")
 
         model_config = {
+        "from_attributes": True,
         "json_schema_extra": {
             "example": {
-                "transactions": [
-                    {
-                        "id": "transaction_1642680000000",
-                        "amount": 10.0,
-                        "type": "credit",
-                        "description": "Paystack payment: ref_123",
-                        "created_at": "2024 - 01-20T10:00:00Z",
-                    }
-                ],
-                "total_count": 1,
+                "id": "txn_1642680000000",
+                "type": "credit",
+                "amount": 20.0,
+                "description": "Wallet top-up via Paystack",
+                "status": "completed",
+                "created_at": "2024-01-20T10:00:00Z",
             }
-        }
+        },
         }
 
 
@@ -181,7 +170,7 @@ class RefundRequest(BaseModel):
 
         transaction_id: str = Field(..., description="Transaction ID to refund")
         amount: Optional[float] = Field(
-        None, gt=0, description="Partial refund amount (optional)"
+        None, description="Partial refund amount (full refund if not specified)"
         )
         reason: str = Field(..., description="Refund reason")
 
@@ -206,20 +195,125 @@ class RefundRequest(BaseModel):
 class RefundResponse(BaseModel):
         """Schema for refund response."""
 
-        success: bool
-        refund_id: str
-        amount_refunded: float
-        status: str
-        message: str
+        refund_id: str = Field(..., description="Refund ID")
+        status: str = Field(..., description="Refund status")
+        amount: float = Field(..., description="Refund amount")
+        reason: str = Field(..., description="Refund reason")
+        processed_at: Optional[datetime] = Field(None, description="Refund processing time")
+
+        model_config = {
+        "from_attributes": True,
+        "json_schema_extra": {
+            "example": {
+                "refund_id": "refund_1642680000000",
+                "status": "pending",
+                "amount": 5.0,
+                "reason": "Service not delivered",
+                "processed_at": None,
+            }
+        },
+        }
+
+
+class PaymentMethodResponse(BaseModel):
+        """Schema for payment method response."""
+
+        methods: List[Dict[str, Any]] = Field(..., description="Available payment methods")
 
         model_config = {
         "json_schema_extra": {
             "example": {
-                "success": True,
-                "refund_id": "refund_123",
-                "amount_refunded": 5.0,
-                "status": "processing",
-                "message": "Refund initiated successfully",
+                "methods": [
+                    {
+                        "name": "paystack",
+                        "display_name": "Paystack",
+                        "supported_currencies": ["USD", "NGN"],
+                        "min_amount": 5.0,
+                        "max_amount": 10000.0,
+                    }
+                ]
+            }
+        }
+        }
+
+
+class PaymentVerify(BaseModel):
+        """Schema for payment verification request."""
+
+        reference: str = Field(..., description="Payment reference to verify")
+
+        model_config = {
+        "json_schema_extra": {"example": {"reference": "ref_1642680000000"}}
+        }
+
+
+class PaymentVerifyResponse(BaseModel):
+        """Schema for payment verification response."""
+
+        status: str = Field(..., description="Payment verification status")
+        amount_credited: float = Field(..., description="Amount credited to wallet")
+        new_balance: float = Field(..., description="New wallet balance after credit")
+        reference: str = Field(..., description="Payment reference")
+        message: str = Field(..., description="Verification message")
+
+        model_config = {
+        "json_schema_extra": {
+            "example": {
+                "status": "success",
+                "amount_credited": 20.0,
+                "new_balance": 45.50,
+                "reference": "ref_1642680000000",
+                "message": "Payment verified and credited successfully",
+            }
+        }
+        }
+
+
+class TransactionResponse(BaseModel):
+        """Schema for individual transaction response."""
+
+        id: str = Field(..., description="Transaction ID")
+        type: str = Field(..., description="Transaction type")
+        amount: float = Field(..., description="Transaction amount")
+        description: str = Field(..., description="Transaction description")
+        status: str = Field(..., description="Transaction status")
+        created_at: datetime = Field(..., description="Transaction creation time")
+
+        model_config = {
+        "from_attributes": True,
+        "json_schema_extra": {
+            "example": {
+                "id": "txn_1642680000000",
+                "type": "credit",
+                "amount": 20.0,
+                "description": "Wallet top-up via Paystack",
+                "status": "completed",
+                "created_at": "2024-01-20T10:00:00Z",
+            }
+        },
+        }
+
+
+class TransactionHistoryResponse(BaseModel):
+        """Schema for transaction history response."""
+
+        transactions: List[TransactionResponse] = Field(..., description="List of transactions")
+        total_count: int = Field(..., description="Total number of transactions")
+
+        model_config = {
+        "json_schema_extra": {
+            "example": {
+                "transactions": [
+                    {
+                        "id": "txn_1642680000000",
+                        "type": "credit",
+                        "amount": 20.0,
+                        "description": "Wallet top-up via Paystack",
+                        "status": "completed",
+                        "created_at": "2024-01-20T10:00:00Z",
+                    }
+                ],
+                "total_count": 1,
             }
         }
         }
@@ -228,30 +322,38 @@ class RefundResponse(BaseModel):
 class WalletBalanceResponse(BaseModel):
         """Schema for wallet balance response."""
 
-        credits: float = Field(..., description="Current Namaskah credits")
-        credits_usd: float = Field(..., description="Credits value in USD")
-        free_verifications: float = Field(..., description="Free verifications remaining")
+        credits: float = Field(..., description="Current wallet credits")
+        credits_usd: float = Field(..., description="Credits in USD")
+        free_verifications: int = Field(..., description="Free verifications remaining")
 
         model_config = {
+        "from_attributes": True,
         "json_schema_extra": {
-            "example": {"credits": 15.5, "credits_usd": 31.0, "free_verifications": 1.0}
+            "example": {
+                "credits": 25.50,
+                "credits_usd": 25.50,
+                "free_verifications": 3,
+            }
+        },
         }
-        }
 
 
-class CryptoWalletResponse(BaseModel):
-        """Schema for crypto wallet configuration."""
+class WebhookPayload(BaseModel):
+        """Schema for webhook payload."""
 
-        btc_address: Optional[str] = Field(None, description="Bitcoin address")
-        eth_address: Optional[str] = Field(None, description="Ethereum address")
-        sol_address: Optional[str] = Field(None, description="Solana address")
-        ltc_address: Optional[str] = Field(None, description="Litecoin address")
+        event: str = Field(..., description="Webhook event type")
+        data: Dict[str, Any] = Field(..., description="Webhook data")
 
         model_config = {
         "json_schema_extra": {
             "example": {
-                "btc_address": "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh",
-                "eth_address": "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+                "event": "charge.success",
+                "data": {
+                    "id": 123456,
+                    "reference": "ref_1642680000000",
+                    "amount": 2000,
+                    "status": "success",
+                },
             }
         }
         }
@@ -260,28 +362,22 @@ class CryptoWalletResponse(BaseModel):
 class SubscriptionPlan(BaseModel):
         """Schema for subscription plan."""
 
-        id: str
-        name: str
-        price: float = Field(..., description="Monthly price in Namaskah credits")
-        price_usd: float = Field(..., description="Monthly price in USD")
-        discount: str = Field(..., description="Discount percentage")
-        free_verifications: int = Field(..., description="Free verifications per month")
+        id: str = Field(..., description="Plan ID")
+        name: str = Field(..., description="Plan name")
+        price: float = Field(..., description="Plan price")
+        currency: str = Field(..., description="Plan currency")
+        interval: str = Field(..., description="Billing interval")
         features: List[str] = Field(..., description="Plan features")
 
         model_config = {
         "json_schema_extra": {
             "example": {
-                "id": "pro",
-                "name": "Pro Plan",
-                "price": 12.5,
-                "price_usd": 25.0,
-                "discount": "20%",
-                "free_verifications": 5,
-                "features": [
-                    "20% discount on all verifications",
-                    "5 free verifications per month",
-                    "Priority support",
-                ],
+                "id": "plan_basic",
+                "name": "Basic Plan",
+                "price": 9.99,
+                "currency": "USD",
+                "interval": "monthly",
+                "features": ["100 verifications", "Email support"],
             }
         }
         }
@@ -291,38 +387,35 @@ class SubscriptionRequest(BaseModel):
         """Schema for subscription request."""
 
         plan_id: str = Field(..., description="Plan ID to subscribe to")
+        payment_method: str = Field(default="paystack", description="Payment method")
 
-        @field_validator("plan_id", mode="before")
-        @classmethod
-    def validate_plan_id(cls, v):
-        if v not in ["pro", "turbo"]:
-            raise ValueError("Plan ID must be pro or turbo")
-        return v
-
-        model_config = {"json_schema_extra": {"example": {"plan_id": "pro"}}}
+        model_config = {
+        "json_schema_extra": {
+            "example": {"plan_id": "plan_basic", "payment_method": "paystack"}
+        }
+        }
 
 
 class SubscriptionResponse(BaseModel):
         """Schema for subscription response."""
 
-        plan: str
-        name: str
-        status: str
-        price: float
-        discount: str
-        expires_at: Optional[str]
-        features: Dict[str, Any]
+        subscription_id: str = Field(..., description="Subscription ID")
+        plan_id: str = Field(..., description="Plan ID")
+        status: str = Field(..., description="Subscription status")
+        current_period_start: datetime = Field(..., description="Current period start")
+        current_period_end: datetime = Field(..., description="Current period end")
+        next_billing_date: datetime = Field(..., description="Next billing date")
 
         model_config = {
+        "from_attributes": True,
         "json_schema_extra": {
             "example": {
-                "plan": "pro",
-                "name": "Pro Plan",
+                "subscription_id": "sub_1642680000000",
+                "plan_id": "plan_basic",
                 "status": "active",
-                "price": 12.5,
-                "discount": "20%",
-                "expires_at": "2024 - 02-20T10:00:00Z",
-                "features": {"discount": 0.20, "free_verifications": 5},
+                "current_period_start": "2024-01-20T10:00:00Z",
+                "current_period_end": "2024-02-20T10:00:00Z",
+                "next_billing_date": "2024-02-20T10:00:00Z",
             }
-        }
+        },
         }

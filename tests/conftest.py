@@ -301,10 +301,10 @@ def authenticated_regular_client(client, db, regular_user):
 def authenticated_pro_client(client, db, pro_user):
     """Create an authenticated test client for pro user."""
 
-    def override_get_db():
+def override_get_db():
         yield db
 
-    def override_get_current_user_id():
+def override_get_current_user_id():
         return str(pro_user.id)
 
     app.dependency_overrides[get_db] = override_get_db
@@ -319,10 +319,10 @@ def authenticated_pro_client(client, db, pro_user):
 def authenticated_admin_client(client, db, admin_user):
     """Create an authenticated test client for admin user."""
 
-    def override_get_db():
+def override_get_db():
         yield db
 
-    def override_get_current_user_id():
+def override_get_current_user_id():
         return str(admin_user.id)
 
     app.dependency_overrides[get_db] = override_get_db
@@ -337,7 +337,7 @@ def authenticated_admin_client(client, db, admin_user):
 def auth_headers():
     """Create authorization headers for a given user ID."""
 
-    def _auth_headers(user_id: str):
+def _auth_headers(user_id: str):
         token = create_access_token(data={"sub": str(user_id)})
         return {"Authorization": f"Bearer {token}"}
 

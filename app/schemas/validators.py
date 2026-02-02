@@ -2,8 +2,8 @@
 
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional
-from app.core.pydantic_compat import field_validator
+from typing import Any, Dict, List, Optional, TypeVar, Generic
+from app.core.pydantic_compat import field_validator, BaseModel
 import json
 
 
@@ -97,6 +97,44 @@ def validate_referral_code(code: str) -> str:
     return code
 
 
+def validate_api_key_name(name: str) -> str:
+    """Validate API key name."""
+    if not name or not name.strip():
+        raise ValueError("API key name cannot be empty")
+    
+    name = name.strip()
+    if len(name) < 3 or len(name) > 50:
+        raise ValueError("API key name must be between 3 and 50 characters")
+    
+    if not re.match(r'^[a-zA-Z0-9_\-\s]+$', name):
+        raise ValueError("API key name can only contain letters, numbers, spaces, underscores, and hyphens")
+    
+    return name
+
+
+def validate_webhook_url(url: str) -> str:
+    """Validate webhook URL format."""
+    if not url:
+        return url
+    
+    url = url.strip()
+    if not re.match(r'^https?://', url):
+        raise ValueError("Webhook URL must start with http:// or https://")
+    
+    return url
+
+
+def validate_duration_hours(hours: int) -> int:
+    """Validate duration in hours."""
+    if hours < 1:
+        raise ValueError("Duration must be at least 1 hour")
+    
+    if hours > 8760:  # 1 year
+        raise ValueError("Duration cannot exceed 1 year (8760 hours)")
+    
+    return hours
+
+
 def validate_area_code(area_code: str) -> str:
     """Validate area code format."""
     if not area_code:
@@ -154,40 +192,98 @@ def validate_non_empty_string(value: str) -> str:
     return value.strip()
 
 
-class ValidationMixin:
-    """Mixin class with common validators for Pydantic models."""
+def sanitize_input(value: str) -> str:
+    """Sanitize input string by removing potentially harmful characters."""
+    if not value:
+        return value
+    
+    # Remove HTML tags and script content
+    value = re.sub(r'<[^>]*>', '', value)
+    value = re.sub(r'javascript:', '', value, flags=re.IGNORECASE)
+    value = re.sub(r'on\w+\s*=', '', value, flags=re.IGNORECASE)
+    
+    return value.strip()
 
-    @field_validator("phone_number", mode="before")
-    @classmethod
+
+def validate_pagination_params(page: int, size: int) -> tuple[int, int]:
+    """Validate pagination parameters."""
+    if page < 1:
+        raise ValueError("Page must be at least 1")
+    
+    if size < 1:
+        raise ValueError("Page size must be at least 1")
+    
+    if size > 100:
+        raise ValueError("Page size cannot exceed 100")
+    
+    return page, size
+
+
+T = TypeVar('T')
+
+
+class PaginationResponse(BaseModel, Generic[T]):
+    """Generic pagination response model."""
+    
+    items: List[T]
+    total: int
+    page: int
+    size: int
+    pages: int
+
+
+    def create_pagination_response(
+        items: List[T],
+        total: int,
+        page: int,
+        size: int
+        ) -> PaginationResponse[T]:
+        """Create a pagination response."""
+        pages = (total + size - 1) // size  # Ceiling division
+    
+        return PaginationResponse(
+        items=items,
+        total=total,
+        page=page,
+        size=size,
+        pages=pages
+        )
+
+
+class ValidationMixin:
+        """Mixin class with common validators for Pydantic models."""
+
+        @field_validator("phone_number", mode="before")
+        @classmethod
     def validate_phone(cls, v):
         if v:
-            return validate_phone_number(v)
+        return validate_phone_number(v)
         return v
 
-    @field_validator("service_name", mode="before")
-    @classmethod
+        @field_validator("service_name", mode="before")
+        @classmethod
     def validate_service(cls, v):
         if v:
-            return validate_service_name(v)
+        return validate_service_name(v)
         return v
 
-    @field_validator("referral_code", mode="before")
-    @classmethod
+        @field_validator("referral_code", mode="before")
+        @classmethod
     def validate_referral(cls, v):
         if v:
-            return validate_referral_code(v)
+        return validate_referral_code(v)
         return v
 
-    @field_validator("area_code", mode="before")
-    @classmethod
+        @field_validator("area_code", mode="before")
+        @classmethod
     def validate_area(cls, v):
         if v:
-            return validate_area_code(v)
+        return validate_area_code(v)
         return v
 
-    @field_validator("carrier", mode="before")
-    @classmethod
+        @field_validator("carrier", mode="before")
+        @classmethod
     def validate_carrier(cls, v):
         if v:
-            return validate_carrier_name(v)
+        return validate_carrier_name(v)
         return v

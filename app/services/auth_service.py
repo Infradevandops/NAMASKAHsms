@@ -80,7 +80,6 @@ class AuthService(BaseService[User]):
         except Exception as e:
             # Log authentication error but don't expose details
             print("[AUTH] Exception: {}".format(e))
-
             traceback.print_exc()
         return None
 

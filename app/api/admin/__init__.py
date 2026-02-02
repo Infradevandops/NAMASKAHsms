@@ -1,6 +1,6 @@
 """Admin API routers."""
 
+# Note: Main router is in router.py, not admin_router.py
+# admin_router.py is a separate utility module
 
-from app.api.admin.admin_router import router
-
-__all__ = ["router"]
+__all__ = []

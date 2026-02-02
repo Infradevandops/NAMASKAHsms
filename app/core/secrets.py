@@ -112,12 +112,12 @@ class SecretsManager:
         value_lower = value.lower()
         return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
 
-    @staticmethod
+        @staticmethod
     def generate_secret_key() -> str:
         """Generate secure 256-bit secret key."""
         return secrets.token_urlsafe(32)
 
-    @staticmethod
+        @staticmethod
     def generate_all_keys() -> Dict[str, str]:
         """Generate all required keys for a new environment."""
         return {
@@ -125,7 +125,7 @@ class SecretsManager:
             "JWT_SECRET_KEY": SecretsManager.generate_secret_key(),
         }
 
-    @staticmethod
+        @staticmethod
     def create_env_file(environment: str, output_path: str = None) -> str:
         """Create a new environment file with generated secrets."""
         if not output_path:
@@ -155,7 +155,7 @@ class SecretsManager:
         safe_path.write_text(env_content)
         return str(safe_path)
 
-    @staticmethod
+        @staticmethod
     def audit_environment() -> Dict[str, any]:
         """Audit current environment for security issues."""
         issues = []
@@ -168,7 +168,7 @@ class SecretsManager:
 
         for key in required_secrets:
             value = os.getenv(key)
-            if not value:
+        if not value:
                 issues.append(f"Missing required secret: {key}")
             elif SecretsManager.is_weak_secret(value):
                 warnings.append(f"Weak secret detected: {key}")
@@ -177,9 +177,9 @@ class SecretsManager:
         if environment == "production":
             paystack_key = os.getenv("PAYSTACK_SECRET_KEY", "")
             base_url = os.getenv("BASE_URL", "")
-            if "test" in paystack_key.lower():
+        if "test" in paystack_key.lower():
                 warnings.append("Test Paystack key detected in production")
-            if "localhost" in base_url:
+        if "localhost" in base_url:
                 warnings.append("Localhost URL detected in production")
 
         return {
