@@ -1,14 +1,10 @@
 """Services package with dependency injection support."""
 
-
 from sqlalchemy.orm import Session
 from .base import BaseService
 from .auth_service import AuthService
 from .payment_service import PaymentService
-from .notification_service import NotificationService
-from .auth_service import AuthService
-from .payment_service import PaymentService
-from .notification_service import NotificationService
+
 
 class ServiceFactory:
     """Factory for creating service instances with dependency injection."""
@@ -29,46 +25,27 @@ class ServiceFactory:
             self._services["payment"] = PaymentService(self.db)
         return self._services["payment"]
 
-    def get_notification_service(self):
-        """Get or create NotificationService instance."""
-        if "notification" not in self._services:
-            self._services["notification"] = NotificationService(self.db)
-        return self._services["notification"]
-
-    async def cleanup(self):
-        """Cleanup async resources."""
-        if "payment" in self._services:
-            await self._services["payment"].close()
-
 
 # Dependency injection helpers
+def get_service_factory(db: Session) -> ServiceFactory:
+    """Get service factory instance."""
+    return ServiceFactory(db)
 
 
-    def get_service_factory(db: Session) -> ServiceFactory:
-        """Get service factory instance."""
-        return ServiceFactory(db)
+def get_auth_service(db: Session):
+    """Get AuthService instance."""
+    return AuthService(db)
 
 
-    def get_auth_service(db: Session):
-        """Get AuthService instance."""
-        return AuthService(db)
+def get_payment_service(db: Session):
+    """Get PaymentService instance."""
+    return PaymentService(db)
 
 
-    def get_payment_service(db: Session):
-        """Get PaymentService instance."""
-        return PaymentService(db)
-
-
-    def get_notification_service(db: Session):
-        """Get NotificationService instance."""
-        return NotificationService(db)
-
-
-        __all__ = [
-        "BaseService",
-        "ServiceFactory",
-        "get_service_factory",
-        "get_auth_service",
-        "get_payment_service",
-        "get_notification_service",
-        ]
+__all__ = [
+    "BaseService",
+    "ServiceFactory",
+    "get_service_factory",
+    "get_auth_service",
+    "get_payment_service",
+]

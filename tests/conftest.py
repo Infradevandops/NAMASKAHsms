@@ -1,92 +1,43 @@
-"""Pytest configuration and fixtures for all tests."""
+"""Test configuration and fixtures."""
 
-
-# Set testing mode before importing app
-
-import os
-from datetime import datetime, timedelta, timezone
-from typing import Generator
-import jwt
 import pytest
-from fastapi.testclient import TestClient
+import tempfile
+import os
+from datetime import datetime, timezone
 from sqlalchemy import create_engine
-from sqlalchemy.orm import Session, sessionmaker
-from app.core.config import get_settings
-from app.core.database import get_db
-from app.models.base import Base
+from sqlalchemy.orm import sessionmaker
+from fastapi.testclient import TestClient
+from app.core.database import Base, get_db
+from app.models.user import User
+from app.models.verification import Verification
+from app.models.transaction import Transaction
 from main import app
-from app.models.user import User
-from app.models.user import User
-from app.utils.security import hash_password
-from app.models.user import User
-from app.models.user import User
-from app.models.user import User
-from app.services.auth_service import AuthService
-from app.services.payment_service import PaymentService
-from app.services.credit_service import CreditService
-from app.services.email_service import EmailService
-from app.services.notification_service import NotificationService
-from app.services.activity_service import ActivityService
-from unittest.mock import MagicMock
-from app.core.security_config import create_access_token
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from app.utils.security import create_access_token
-
-os.environ["TESTING"] = "1"
-
-
-settings = get_settings()
-
-# Test database setup
-TEST_DATABASE_URL = "sqlite:///./test.db"
-
-engine = create_engine(
-    TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
-)
-
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="session")
-def db_engine():
+def engine():
     """Create test database engine."""
+    # Use in-memory SQLite for tests
+    engine = create_engine("sqlite:///:memory:", echo=False)
     Base.metadata.create_all(bind=engine)
-    yield engine
-    Base.metadata.drop_all(bind=engine)
+    return engine
 
 
-@pytest.fixture
-def db(db_engine) -> Generator[Session, None, None]:
+@pytest.fixture(scope="function")
+def db(engine):
     """Create test database session."""
-    connection = db_engine.connect()
-    transaction = connection.begin()
-    session = TestingSessionLocal(bind=connection)
-
-    yield session
-
-    session.close()
-    transaction.rollback()
-    connection.close()
+    TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+    session = TestingSessionLocal()
+    
+    try:
+        yield session
+    finally:
+        session.close()
 
 
 @pytest.fixture
-def db_session(db: Session) -> Session:
-    """Alias for db fixture for compatibility."""
-    return db
-
-
-@pytest.fixture
-def client(db: Session) -> TestClient:
+def client(db):
     """Create FastAPI test client with test database."""
-
     def override_get_db():
         yield db
 
@@ -102,48 +53,16 @@ def test_user_id():
 
 
 @pytest.fixture
-def test_user(db: Session):
-    """Create a test user."""
-
+def test_user(db, test_user_id):
+    """Create test user."""
     user = User(
+        id=test_user_id,
         email="test@example.com",
-        password_hash="hashed_password",
-        is_active=True,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-
-@pytest.fixture
-def regular_user(db: Session):
-    """Create a regular freemium user."""
-
-    user = User(
-        email="regular@example.com",
-        password_hash=hash_password("password123"),  # Hash the password properly
-        is_active=True,
-        subscription_tier="freemium",
-        credits=10.0,
-        bonus_sms_balance=5.0,
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    return user
-
-
-@pytest.fixture
-def pro_user(db: Session):
-    """Create a pro tier user."""
-
-    user = User(
-        email="pro@example.com",
-        password_hash="hashed_password",
-        is_active=True,
-        subscription_tier="pro",
+        password_hash="$2b$12$test_hash",
         credits=100.0,
+        tier="pro",
+        is_admin=False,
+        created_at=datetime.now(timezone.utc)
     )
     db.add(user)
     db.commit()
@@ -152,16 +71,16 @@ def pro_user(db: Session):
 
 
 @pytest.fixture
-def admin_user(db: Session):
-    """Create an admin user."""
-
+def admin_user(db):
+    """Create admin user."""
     user = User(
+        id="admin-user-123",
         email="admin@example.com",
-        password_hash="hashed_password",
-        is_active=True,
-        is_admin=True,
-        subscription_tier="enterprise",
+        password_hash="$2b$12$admin_hash",
         credits=1000.0,
+        tier="custom",
+        is_admin=True,
+        created_at=datetime.now(timezone.utc)
     )
     db.add(user)
     db.commit()
@@ -170,15 +89,16 @@ def admin_user(db: Session):
 
 
 @pytest.fixture
-def payg_user(db: Session):
-    """Create a pay-as-you-go user."""
-
+def regular_user(db):
+    """Create regular user."""
     user = User(
-        email="payg@example.com",
-        password_hash="hashed_password",
-        is_active=True,
-        subscription_tier="payg",
+        id="regular-user-123",
+        email="regular@example.com",
+        password_hash="$2b$12$regular_hash",
         credits=50.0,
+        tier="freemium",
+        is_admin=False,
+        created_at=datetime.now(timezone.utc)
     )
     db.add(user)
     db.commit()
@@ -187,83 +107,50 @@ def payg_user(db: Session):
 
 
 @pytest.fixture
-def test_verification_data():
-    """Return test verification data."""
-    return {
-        "service_name": "telegram",
-        "country": "US",
-        "capability": "sms",
-        "area_code": None,
-        "carrier": None,
-    }
+def auth_headers():
+    """Return authentication headers."""
+    return {"Authorization": "Bearer test-token"}
 
 
 @pytest.fixture
-def auth_service(db: Session):
-    """Create an AuthService instance."""
-
-    return AuthService(db)
-
-
-@pytest.fixture
-def payment_service(db: Session):
-    """Create a PaymentService instance."""
-
-    return PaymentService(db)
-
-
-@pytest.fixture
-def credit_service(db: Session):
-    """Create a CreditService instance."""
-
-    return CreditService(db)
+def test_verification(db, test_user):
+    """Create test verification."""
+    verification = Verification(
+        id="test-verification-123",
+        user_id=test_user.id,
+        phone_number="+1234567890",
+        service="test_service",
+        status="pending",
+        cost=2.50,
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(verification)
+    db.commit()
+    db.refresh(verification)
+    return verification
 
 
 @pytest.fixture
-def email_service(db: Session):
-    """Create an EmailService instance."""
-
-    return EmailService(db)
-
-
-@pytest.fixture
-def notification_service(db: Session):
-    """Create a NotificationService instance."""
-
-    return NotificationService(db)
-
-
-@pytest.fixture
-def activity_service(db: Session):
-    """Create an ActivityService instance."""
-
-    return ActivityService(db)
+def test_transaction(db, test_user):
+    """Create test transaction."""
+    transaction = Transaction(
+        id="test-transaction-123",
+        user_id=test_user.id,
+        type="credit",
+        amount=20.0,
+        description="Test credit",
+        status="completed",
+        created_at=datetime.now(timezone.utc)
+    )
+    db.add(transaction)
+    db.commit()
+    db.refresh(transaction)
+    return transaction
 
 
 @pytest.fixture
-def redis_client():
-    """Create a mock Redis client."""
-
-    mock_redis = MagicMock()
-    # Mock xadd to return a message ID
-    mock_redis.xadd.return_value = b"1234567890-0"
-    # Mock xread to return messages
-    mock_redis.xread.return_value = [[b"webhook_queue", [
-        (b"1234567890-0", {b"webhook_id": b"test", b"event": b"test.event", b"data": b'{"test": "data"}'}), ], ]]
-    return mock_redis
-
-
-@pytest.fixture
-def auth_token(test_user):
-    """Generate a valid JWT token for test user."""
-
-    return create_access_token(data={"sub": str(test_user.id)})
-
-
-@pytest.fixture
-def authenticated_client(client, db, test_user):
+def authenticated_client(client, test_user, db):
     """Create an authenticated test client."""
-
     def override_get_db():
         yield db
 
@@ -279,9 +166,25 @@ def authenticated_client(client, db, test_user):
 
 
 @pytest.fixture
-def authenticated_regular_client(client, db, regular_user):
-    """Create an authenticated test client for regular user."""
+def admin_client(client, admin_user, db):
+    """Create an admin test client."""
+    def override_get_db():
+        yield db
 
+    def override_get_current_user_id():
+        return str(admin_user.id)
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
+
+    yield client
+
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def regular_client(client, regular_user, db):
+    """Create a regular user test client."""
     def override_get_db():
         yield db
 
@@ -297,64 +200,26 @@ def authenticated_regular_client(client, db, regular_user):
 
 
 @pytest.fixture
-@pytest.fixture
-def authenticated_pro_client(client, db, pro_user):
-    """Create an authenticated test client for pro user."""
-
-def override_get_db():
-        yield db
-
-def override_get_current_user_id():
-        return str(pro_user.id)
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-
-    yield client
-
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def authenticated_admin_client(client, db, admin_user):
-    """Create an authenticated test client for admin user."""
-
-def override_get_db():
-        yield db
-
-def override_get_current_user_id():
-        return str(admin_user.id)
-
-    app.dependency_overrides[get_db] = override_get_db
-    app.dependency_overrides[get_current_user_id] = override_get_current_user_id
-
-    yield client
-
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-def auth_headers():
-    """Create authorization headers for a given user ID."""
-
-def _auth_headers(user_id: str):
-        token = create_access_token(data={"sub": str(user_id)})
-        return {"Authorization": f"Bearer {token}"}
-
-    return _auth_headers
-
-
-def create_test_token(user_id: str, email: str = "test@test.com") -> str:
-    """Create a JWT token for testing."""
-    payload = {
-        "user_id": user_id,
-        "email": email,
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+def mock_paystack_response():
+    """Mock Paystack API response."""
+    return {
+        "status": True,
+        "message": "Authorization URL created",
+        "data": {
+            "authorization_url": "https://checkout.paystack.com/test123",
+            "access_code": "test_access_code",
+            "reference": "test_reference_123"
+        }
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
 
 
 @pytest.fixture
-def user_token():
-    """Fixture to create JWT tokens for testing."""
-    return create_test_token
+def mock_verification_response():
+    """Mock verification service response."""
+    return {
+        "status": "success",
+        "verification_id": "test_verification_123",
+        "phone_number": "+1234567890",
+        "service": "test_service",
+        "cost": 2.50
+    }
