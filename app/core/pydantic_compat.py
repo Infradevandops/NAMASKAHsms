@@ -12,9 +12,7 @@ except ImportError:
         PYDANTIC_V2 = False
 
         # Create a compatibility wrapper for field_validator
-
-
-def field_validator(*args, **kwargs):
+        def field_validator(*args, **kwargs):
             """Compatibility wrapper for Pydantic v1 validator."""
             # Remove v2-specific arguments that don't exist in v1
             v1_kwargs = {k: v for k, v in kwargs.items() if k not in ['mode']}

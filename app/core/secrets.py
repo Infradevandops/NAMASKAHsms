@@ -54,20 +54,20 @@ class SecretsManager:
             raise ValueError(f"Required secret {key} not found")
         return value
 
-        @staticmethod
+    @staticmethod
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_upper = key.upper()
         return any(sensitive in key_upper for sensitive in SecretsManager.SENSITIVE_KEYS)
 
-        @staticmethod
+    @staticmethod
     def mask_secret(value: str, visible_chars: int = 4) -> str:
         """Mask sensitive values for logging."""
         if len(value) <= visible_chars * 2:
-        return "*" * len(value)
+            return "*" * len(value)
         return f"{value[:visible_chars]}{'*' * (len(value) - visible_chars * 2)}{value[-visible_chars:]}"
 
-        @staticmethod
+    @staticmethod
     def validate_required_secrets(environment: str = None) -> None:
         """Validate all required secrets are present for the environment."""
         if not environment:

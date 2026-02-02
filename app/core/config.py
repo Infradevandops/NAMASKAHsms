@@ -195,23 +195,24 @@ class Settings(BaseSettings):
             "extra": "ignore",
         }
 
-        @lru_cache()
-    def get_settings() -> Settings:
-        """Get cached settings instance with validation."""
-        settings_instance = Settings()
+
+@lru_cache()
+def get_settings() -> Settings:
+    """Get cached settings instance with validation."""
+    settings_instance = Settings()
 
     # Validate secrets on startup (production only)
-        if settings_instance.environment == "production":
+    if settings_instance.environment == "production":
         try:
             SecretsManager.validate_required_secrets(settings_instance.environment)
         except Exception:
             pass
 
     # Validate production configuration
-        settings_instance.validate_production_config()
+    settings_instance.validate_production_config()
 
-        return settings_instance
+    return settings_instance
 
 
 # Legacy settings instance for backward compatibility
-        settings = get_settings()
+settings = get_settings()
