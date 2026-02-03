@@ -5,8 +5,10 @@ from .api_key import APIKey  # Import from separate api_key module
 from .balance_transaction import BalanceTransaction
 from .base import Base, BaseModel
 from .commission import CommissionTier, PayoutRequest, RevenueShare
+from .device_token import DeviceToken
 from .enterprise import EnterpriseAccount, EnterpriseTier
 from .notification import Notification
+from .notification_preference import NotificationPreference, NotificationPreferenceDefaults
 from .reseller import (
     BulkOperation,
     CreditAllocation,
@@ -55,7 +57,10 @@ __all__ = [
     "SubscriptionTier",
     "UserPreference",
     "MonthlyQuotaUsage",
+    "DeviceToken",
     "Notification",
+    "NotificationPreference",
+    "NotificationPreferenceDefaults",
     "BalanceTransaction",
     # Verification models
     "Verification",

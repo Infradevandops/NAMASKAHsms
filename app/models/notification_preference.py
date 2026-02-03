@@ -44,19 +44,17 @@ class NotificationPreference(BaseModel):
 
 
 class NotificationPreferenceDefaults(BaseModel):
+    """Default notification preferences for new users."""
 
-        """Default notification preferences for new users."""
+    __tablename__ = "notification_preference_defaults"
 
-        __tablename__ = "notification_preference_defaults"
-
-        notification_type = Column(String(50), nullable=False, unique=True, index=True)
-        enabled = Column(Boolean, default=True, nullable=False)
-        delivery_methods = Column(String(255), default="toast")
-        frequency = Column(String(20), default="instant")
-        description = Column(String(255), nullable=True)
+    notification_type = Column(String(50), nullable=False, unique=True, index=True)
+    enabled = Column(Boolean, default=True, nullable=False)
+    delivery_methods = Column(String(255), default="toast")
+    frequency = Column(String(20), default="instant")
+    description = Column(String(255), nullable=True)
 
     def to_dict(self):
-
         """Convert to dictionary."""
         return {
             "id": self.id,
