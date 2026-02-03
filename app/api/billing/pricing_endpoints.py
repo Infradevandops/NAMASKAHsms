@@ -1,72 +1,125 @@
-"""Pricing estimation endpoints - Non-conflicting with tier system."""
+"""Pricing endpoints for billing operations."""
 
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from datetime import datetime, timezone
+from typing import Optional
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
+from app.models.user import User
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/pricing", tags=["Pricing"])
+router = APIRouter()
 
 
-@router.get("/estimate")
-async def estimate_verification_cost(
-    service: str = Query(..., description="Service name (telegram, whatsapp, etc)"),
-    country: str = Query("US", description="Country code"),
-    quantity: int = Query(1, ge=1, le=1000, description="Number of verifications"),
-    db: Session = Depends(get_db),
+@router.get("/current")
+async def get_current_pricing(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
 ):
-    """Estimate cost for verification(s) using new pricing system."""
-try:
-        # Simple estimation - always use Pay-As-You-Go pricing for estimates
-        base_cost = 2.50  # Pay-As-You-Go rate
-        total_cost = base_cost * quantity
+    """Get current pricing for user's tier."""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-        return {
-            "service": service,
-            "country": country,
-            "quantity": quantity,
-            "cost_per_sms": base_cost,
-            "total_cost": total_cost,
-            "currency": "USD",
-            "note": "Actual cost may vary based on your subscription tier",
+        tier = getattr(user, 'tier', 'freemium')
+        
+        # Basic pricing structure
+        pricing = {
+            "freemium": {
+                "tier": "freemium",
+                "base_cost": 2.50,
+                "monthly_fee": 0.0,
+                "free_verifications": 3,
+                "overage_rate": 2.22
+            },
+            "payg": {
+                "tier": "payg",
+                "base_cost": 2.50,
+                "monthly_fee": 0.0,
+                "free_verifications": 0,
+                "overage_rate": 2.50
+            },
+            "pro": {
+                "tier": "pro",
+                "base_cost": 2.50,
+                "monthly_fee": 25.0,
+                "free_verifications": 0,
+                "overage_rate": 0.30
+            },
+            "custom": {
+                "tier": "custom",
+                "base_cost": 2.50,
+                "monthly_fee": 35.0,
+                "free_verifications": 0,
+                "overage_rate": 0.20
+            }
         }
 
-except Exception as e:
-        logger.error(f"Failed to estimate cost: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to estimate cost",
-        )
+        return {
+            "user_tier": tier,
+            "pricing": pricing.get(tier, pricing["freemium"]),
+            "currency": "USD",
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Failed to get pricing for user {user_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve pricing")
 
 
-@router.get("/services")
-async def get_available_services():
-    """Get list of available services."""
-    services = {
-        "telegram": "Telegram",
-        "whatsapp": "WhatsApp",
-        "google": "Google",
-        "facebook": "Facebook",
-        "instagram": "Instagram",
-        "twitter": "Twitter",
-        "discord": "Discord",
-        "tiktok": "TikTok",
-    }
+@router.get("/tiers")
+async def get_all_tier_pricing(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get pricing for all available tiers."""
+    try:
+        tiers = [
+            {
+                "tier": "freemium",
+                "name": "Freemium",
+                "monthly_fee": 0.0,
+                "base_cost": 2.50,
+                "free_verifications": 3,
+                "features": ["Basic SMS verification", "Community support"]
+            },
+            {
+                "tier": "payg",
+                "name": "Pay-As-You-Go",
+                "monthly_fee": 0.0,
+                "base_cost": 2.50,
+                "free_verifications": 0,
+                "features": ["SMS verification", "Area code selection", "Community support"]
+            },
+            {
+                "tier": "pro",
+                "name": "Pro",
+                "monthly_fee": 25.0,
+                "base_cost": 2.50,
+                "free_verifications": 0,
+                "features": ["SMS verification", "API access", "Webhooks", "Priority support"]
+            },
+            {
+                "tier": "custom",
+                "name": "Custom",
+                "monthly_fee": 35.0,
+                "base_cost": 2.50,
+                "free_verifications": 0,
+                "features": ["All Pro features", "Custom branding", "Dedicated support"]
+            }
+        ]
 
-    return {"services": services, "total": len(services)}
+        return {
+            "tiers": tiers,
+            "currency": "USD",
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
 
-
-@router.get("/countries")
-async def get_available_countries():
-    """Get list of available countries."""
-    countries = {
-        "US": "United States",
-        "CA": "Canada",
-        "GB": "United Kingdom",
-        "DE": "Germany",
-        "FR": "France",
-    }
-
-    return {"countries": countries, "total": len(countries)}
+    except Exception as e:
+        logger.error(f"Failed to get tier pricing: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve tier pricing")

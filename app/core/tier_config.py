@@ -14,7 +14,7 @@ class TierConfig:
         """Get configuration for a specific tier from database."""
         if not db:
             # Fallback to hardcoded config if no DB session
-        return cls._get_fallback_config(tier)
+            return cls._get_fallback_config(tier)
 
         result = db.execute(
             text(
@@ -33,7 +33,7 @@ class TierConfig:
 
         row = result.fetchone()
         if not row:
-        return cls._get_fallback_config("freemium")
+            return cls._get_fallback_config("freemium")
 
         return {
             "name": row[1],

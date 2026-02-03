@@ -45,8 +45,8 @@ class VerificationRequest(BaseModel):
         }
         return country_map.get(v.lower(), v.upper())
 
-        @field_validator("service", mode="before")
-        @classmethod
+    @field_validator("service", mode="before")
+    @classmethod
     def normalize_service(cls, v):
         """Normalize service names to lowercase."""
         return v.lower().strip()
