@@ -33,7 +33,7 @@ async def get_notifications(
         - limit: Number of records returned
         - notifications: List of notifications
     """
-try:
+    try:
         notification_service = NotificationService(db)
         result = notification_service.get_notifications(
             user_id=user_id, unread_only=unread_only, skip=skip, limit=limit
@@ -43,10 +43,10 @@ try:
 
         return result
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get notifications: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -61,7 +61,7 @@ async def get_unread_count(user_id: str = Depends(get_current_user_id), db: Sess
     Returns:
         - unread_count: Number of unread notifications
     """
-try:
+    try:
         notification_service = NotificationService(db)
         count = notification_service.get_unread_count(user_id)
 
@@ -69,10 +69,10 @@ try:
 
         return {"user_id": user_id, "unread_count": count}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get unread count: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -94,7 +94,7 @@ async def get_notification(
     Returns:
         - Notification details
     """
-try:
+    try:
         notification_service = NotificationService(db)
         notification = notification_service.get_notification(notification_id, user_id)
 
@@ -111,10 +111,10 @@ try:
             "created_at": (notification.created_at.isoformat() if notification.created_at else None),
         }
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get notification: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -136,7 +136,7 @@ async def mark_as_read(
     Returns:
         - Updated notification details
     """
-try:
+    try:
         notification_service = NotificationService(db)
         notification = notification_service.mark_as_read(notification_id, user_id)
 
@@ -148,10 +148,10 @@ try:
             "updated_at": notification.updated_at.isoformat() if notification.updated_at else None,
         }
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to mark notification as read: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -166,7 +166,7 @@ async def mark_all_as_read(user_id: str = Depends(get_current_user_id), db: Sess
     Returns:
         - count: Number of notifications marked as read
     """
-try:
+    try:
         notification_service = NotificationService(db)
         count = notification_service.mark_all_as_read(user_id)
 
@@ -174,10 +174,10 @@ try:
 
         return {"user_id": user_id, "count": count}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to mark all notifications as read: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -199,7 +199,7 @@ async def delete_notification(
     Returns:
         - success: True if deleted
     """
-try:
+    try:
         notification_service = NotificationService(db)
         notification_service.delete_notification(notification_id, user_id)
 
@@ -207,10 +207,10 @@ try:
 
         return {"success": True, "message": "Notification deleted"}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to delete notification: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -225,7 +225,7 @@ async def delete_all_notifications(user_id: str = Depends(get_current_user_id), 
     Returns:
         - count: Number of notifications deleted
     """
-try:
+    try:
         notification_service = NotificationService(db)
         count = notification_service.delete_all_notifications(user_id)
 
@@ -233,40 +233,13 @@ try:
 
         return {"user_id": user_id, "count": count}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to delete all notifications: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete notifications",
         )
 
-@router.get("/unread-count")
-async def get_unread_count(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-):
-    """Get unread notification count for user.
-
-    Returns:
-        - count: Number of unread notifications
-    """
-try:
-        notification_service = NotificationService(db)
-        count = notification_service.get_unread_count(user_id)
-
-        logger.info(f"Retrieved unread count {count} for user {user_id}")
-
-        return {"count": count}
-
-except ValueError as e:
-        logger.error(f"Validation error: {str(e)}")
-        raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
-        logger.error(f"Failed to get unread count: {str(e)}", exc_info=True)
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to get unread count"
-        )
