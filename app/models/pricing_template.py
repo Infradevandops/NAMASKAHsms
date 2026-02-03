@@ -22,7 +22,6 @@ JSONB = JSON().with_variant(PostgresJSONB, "postgresql")
 
 
 class PricingTemplate(Base):
-
     """Pricing template for managing multiple pricing strategies"""
 
     __tablename__ = "pricing_templates"

@@ -1,12 +1,11 @@
 """Balance transaction model for tracking balance changes."""
 
-
 from sqlalchemy import Column, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
-class BalanceTransaction(BaseModel):
 
+class BalanceTransaction(BaseModel):
     """Balance transaction model."""
 
     __tablename__ = "balance_transactions"
@@ -21,7 +20,6 @@ class BalanceTransaction(BaseModel):
     user = relationship("User", back_populates="balance_transactions")
 
     def to_dict(self):
-
         """Convert to dictionary."""
         return {
             "id": self.id,

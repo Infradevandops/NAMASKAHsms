@@ -1,12 +1,11 @@
 """Notification preference model for user notification settings."""
 
-
 from sqlalchemy import Boolean, Column, ForeignKey, String, Time
 from sqlalchemy.orm import relationship
 from app.models.base import BaseModel
 
-class NotificationPreference(BaseModel):
 
+class NotificationPreference(BaseModel):
     """User notification preferences for each notification type."""
 
     __tablename__ = "notification_preferences"
@@ -25,7 +24,6 @@ class NotificationPreference(BaseModel):
     user = relationship("User", back_populates="notification_preferences")
 
     def to_dict(self):
-
         """Convert to dictionary."""
         return {
             "id": self.id,

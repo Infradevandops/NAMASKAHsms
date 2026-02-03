@@ -1,8 +1,8 @@
 """Waitlist model for pre - launch email collection."""
 
-
 from sqlalchemy import Boolean, Column, String
 from app.models.base import BaseModel
+
 
 class Waitlist(BaseModel):
 

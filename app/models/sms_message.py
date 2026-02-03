@@ -1,12 +1,11 @@
 """SMS Message model for inbox storage."""
 
-
 from datetime import datetime
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
 from app.models.base import Base
 
-class SMSMessage(Base):
 
+class SMSMessage(Base):
     """SMS message stored in inbox."""
 
     __tablename__ = "sms_messages"

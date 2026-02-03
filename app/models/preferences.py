@@ -1,11 +1,10 @@
 """User preferences model."""
 
-
 from sqlalchemy import JSON, Column, String
 from app.models.base import BaseModel
 
-class ServicePreference(BaseModel):
 
+class ServicePreference(BaseModel):
     """User preferences for services."""
 
     __tablename__ = "service_preferences"

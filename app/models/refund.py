@@ -1,12 +1,11 @@
 """Refund model for payment refunds."""
 
-
 from datetime import datetime, timezone
 from sqlalchemy import Column, DateTime, Float, ForeignKey, String
 from app.models.base import BaseModel
 
-class Refund(BaseModel):
 
+class Refund(BaseModel):
     """Refund record model."""
 
     __tablename__ = "refunds"

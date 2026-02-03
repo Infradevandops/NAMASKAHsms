@@ -1,11 +1,10 @@
 """Verification Preset model."""
 
-
 from sqlalchemy import Column, String
 from app.models.base import BaseModel
 
-class VerificationPreset(BaseModel):
 
+class VerificationPreset(BaseModel):
     """User saved verification filter presets."""
 
     __tablename__ = "verification_presets"

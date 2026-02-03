@@ -1,11 +1,10 @@
 """System monitoring and support - related database models."""
 
-
 from sqlalchemy import Boolean, Column, DateTime, Float, String
 from app.models.base import BaseModel
 
-class ServiceStatus(BaseModel):
 
+class ServiceStatus(BaseModel):
     """Service health monitoring."""
 
     __tablename__ = "service_status"
@@ -17,7 +16,6 @@ class ServiceStatus(BaseModel):
 
 
 class SupportTicket(BaseModel):
-
     """Customer support tickets."""
 
     __tablename__ = "support_tickets"
@@ -32,7 +30,6 @@ class SupportTicket(BaseModel):
 
 
 class ActivityLog(BaseModel):
-
     """User activity tracking."""
 
     __tablename__ = "activity_logs"
@@ -50,7 +47,6 @@ class ActivityLog(BaseModel):
 
 
 class BannedNumber(BaseModel):
-
     """Banned phone numbers tracking."""
 
     __tablename__ = "banned_numbers"
@@ -64,7 +60,6 @@ class BannedNumber(BaseModel):
 
 
 class InAppNotification(BaseModel):
-
     """In - app notifications."""
 
     __tablename__ = "in_app_notifications"

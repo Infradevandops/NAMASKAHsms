@@ -1,10 +1,8 @@
-
-
 from sqlalchemy import Boolean, Column, Float, String
 from app.models.base import BaseModel
 
-class UserPreference(BaseModel):
 
+class UserPreference(BaseModel):
     """User generic preferences and settings."""
 
     __tablename__ = "user_preferences"

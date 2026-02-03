@@ -1,11 +1,10 @@
 """KYC (Know Your Customer) database models."""
 
-
 from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, String, Text
 from app.models.base import BaseModel
 
-class KYCProfile(BaseModel):
 
+class KYCProfile(BaseModel):
     """KYC profile for user identity verification."""
 
     __tablename__ = "kyc_profiles"
@@ -46,7 +45,6 @@ class KYCProfile(BaseModel):
 
 
 class KYCDocument(BaseModel):
-
     """KYC document storage and verification."""
 
     __tablename__ = "kyc_documents"
@@ -79,7 +77,6 @@ class KYCDocument(BaseModel):
 
 
 class KYCVerificationLimit(BaseModel):
-
     """Transaction limits based on KYC verification level."""
 
     __tablename__ = "kyc_verification_limits"
@@ -100,7 +97,6 @@ class KYCVerificationLimit(BaseModel):
 
 
 class KYCAuditLog(BaseModel):
-
     """Audit trail for all KYC - related actions."""
 
     __tablename__ = "kyc_audit_logs"
@@ -129,7 +125,6 @@ class KYCAuditLog(BaseModel):
 
 
 class AMLScreening(BaseModel):
-
     """Anti - Money Laundering screening results."""
 
     __tablename__ = "aml_screenings"
@@ -155,7 +150,6 @@ class AMLScreening(BaseModel):
 
 
 class KYCSettings(BaseModel):
-
     """Global KYC configuration settings."""
 
     __tablename__ = "kyc_settings"
@@ -170,7 +164,6 @@ class KYCSettings(BaseModel):
 
 
 class BiometricVerification(BaseModel):
-
     """Biometric verification records."""
 
     __tablename__ = "biometric_verifications"
