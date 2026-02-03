@@ -57,7 +57,7 @@ async def generate_api_key(
 
     # Check API key limit
     can_create, error_msg = tier_manager.can_create_api_key(user_id)
-if not can_create:
+    if not can_create:
         logger.warning(f"API key generation denied for user {user_id}: {error_msg}")
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=error_msg)
 
@@ -91,7 +91,7 @@ async def revoke_api_key(
     api_key_service = APIKeyService(db)
     success = api_key_service.revoke_api_key(key_id, user_id)
 
-if not success:
+    if not success:
         logger.warning(f"API key revocation failed - key not found: user_id={user_id}, key_id={key_id}")
         raise HTTPException(status_code=404, detail="API key not found")
 
@@ -109,7 +109,7 @@ async def rotate_api_key(
     api_key_service = APIKeyService(db)
     result = api_key_service.rotate_api_key(key_id, user_id)
 
-if not result:
+    if not result:
         raise HTTPException(status_code=404, detail="API key not found")
 
     plain_key, new_key = result
@@ -135,7 +135,7 @@ async def get_api_key_usage(
     """Get usage statistics for an API key."""
     api_key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
 
-if not api_key:
+    if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")
 
     return {

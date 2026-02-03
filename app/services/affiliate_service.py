@@ -129,4 +129,4 @@ class AffiliateService:
 
 
 # Global service instance
-        affiliate_service = AffiliateService()
+affiliate_service = AffiliateService()

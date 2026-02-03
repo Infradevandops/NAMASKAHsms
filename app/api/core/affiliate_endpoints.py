@@ -1,5 +1,8 @@
 """Affiliate program API endpoints.
 
+Requires payg tier or higher for access.
+"""
+
 import logging
 from typing import Dict, List
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -8,9 +11,6 @@ from app.core.database import get_db
 from app.core.dependencies import require_tier
 from app.models.affiliate import AffiliateApplication
 from app.services.affiliate_service import affiliate_service
-
-Requires payg tier or higher for access.
-"""
 
 
 logger = logging.getLogger(__name__)
@@ -40,7 +40,7 @@ async def apply_for_affiliate(
     logger.info(
         f"Affiliate application submitted by user_id: {user_id}, program_type: {application_data.get('program_type')}"
     )
-try:
+    try:
         result = await affiliate_service.create_application(
             email=application_data.get("email"),
             program_type=application_data.get("program_type", "referral"),
@@ -51,7 +51,7 @@ try:
         )
         logger.info(f"Affiliate application created successfully for user {user_id}")
         return result
-except ValueError as e:
+    except ValueError as e:
         logger.warning(f"Affiliate application validation failed for user {user_id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 

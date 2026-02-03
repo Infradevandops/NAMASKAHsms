@@ -5,13 +5,13 @@
 
 export const api = {
   /**
-   * Get all countries
+   * Get supported countries (US only via TextVerified)
    * @async
    * @returns {Promise<Object>} Countries data
    */
   async getCountries() {
     try {
-      const response = await fetch('/api/billing/countries');
+      const response = await fetch('/api/countries');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -21,16 +21,14 @@ export const api = {
   },
 
   /**
-   * Get US area codes
+   * Get US area codes (TextVerified supports US only)
    * @async
    * @param {string} service - Optional service name
    * @returns {Promise<Object>} Area codes data
    */
   async getAreaCodes(service = null) {
     try {
-      const params = new URLSearchParams({ country: 'US' });
-      if (service) params.append('service', service);
-      const response = await fetch(`/api/area-codes?${params}`);
+      const response = await fetch('/api/countries/usa/area-codes');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -40,16 +38,13 @@ export const api = {
   },
 
   /**
-   * Get services for area code
+   * Get services (all services work with US numbers only)
    * @async
-   * @param {string} areaCode - Area code
    * @returns {Promise<Object>} Services data
    */
-  async getServices(areaCode) {
+  async getServices() {
     try {
-      const params = new URLSearchParams();
-      if (areaCode && areaCode !== 'any') params.append('areaCode', areaCode);
-      const response = await fetch(`/api/countries/usa/services?${params}`);
+      const response = await fetch('/api/verification/services');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {
@@ -59,13 +54,13 @@ export const api = {
   },
 
   /**
-   * Get available carriers
+   * Get available US carriers
    * @async
    * @returns {Promise<Object>} Carriers data
    */
   async getCarriers() {
     try {
-      const response = await fetch('/api/verification/carriers/US');
+      const response = await fetch('/api/countries/usa/carriers');
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
       return await response.json();
     } catch (error) {

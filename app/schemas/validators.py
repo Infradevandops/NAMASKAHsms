@@ -287,3 +287,35 @@ class ValidationMixin:
         if v:
             return validate_carrier_name(v)
         return v
+
+
+class BlacklistCreate(BaseModel):
+    """Schema for creating a blacklist entry."""
+    
+    phone_number: str
+    service_name: str
+    reason: Optional[str] = None
+    
+    @field_validator("phone_number", mode="before")
+    @classmethod
+    def validate_phone(cls, v):
+        return validate_phone_number(v)
+    
+    @field_validator("service_name", mode="before")
+    @classmethod
+    def validate_service(cls, v):
+        return validate_service_name(v)
+
+
+class BlacklistResponse(BaseModel):
+    """Schema for blacklist entry response."""
+    
+    id: str
+    phone_number: str
+    service_name: str
+    reason: str
+    created_at: datetime
+    expires_at: datetime
+    is_expired: bool
+    
+    model_config = {"from_attributes": True}

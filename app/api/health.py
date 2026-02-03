@@ -36,7 +36,7 @@ async def liveness_check():
 @router.get("/health/db")
 async def database_health_check(db=Depends(get_db)):
     """Check database schema health."""
-try:
+    try:
         engine = db.get_bind()
         inspector = inspect(engine)
         columns = [col["name"] for col in inspector.get_columns("verifications")]
@@ -51,21 +51,21 @@ try:
                 "All systems operational" if has_idempotency else "Database migration pending - verifications will fail"
             ),
         }
-except Exception as e:
+    except Exception as e:
         return {"status": "error", "database": "error", "message": str(e)[:100]}
 
 
 @router.post("/health/db/fix")
 async def fix_database_schema(db=Depends(get_db)):
     """Fix database schema - add missing columns."""
-try:
+    try:
         engine = db.get_bind()
         inspector = inspect(engine)
         columns = [col["name"] for col in inspector.get_columns("verifications")]
         fixes = []
 
-if "idempotency_key" not in columns:
-with engine.connect() as conn:
+        if "idempotency_key" not in columns:
+            with engine.connect() as conn:
                 conn.execute(text("ALTER TABLE verifications ADD COLUMN idempotency_key VARCHAR"))
                 conn.execute(text("CREATE INDEX ix_verifications_idempotency_key ON verifications (idempotency_key)"))
                 conn.commit()
@@ -76,5 +76,5 @@ with engine.connect() as conn:
             "fixes_applied": fixes if fixes else ["No fixes needed"],
             "message": "Database schema updated",
         }
-except Exception as e:
+    except Exception as e:
         return {"status": "error", "message": str(e)[:200]}

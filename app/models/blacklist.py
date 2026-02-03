@@ -31,9 +31,8 @@ class NumberBlacklist(BaseModel):
         """Check if blacklist entry is expired."""
         return datetime.now(timezone.utc) > self.expires_at
 
-        @classmethod
+    @classmethod
     def create_blacklist_entry(
-
         cls,
         user_id: str,
         phone_number: str,
