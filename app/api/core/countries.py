@@ -18,7 +18,7 @@ async def get_countries() -> Dict[str, Any]:
             "code": "US",
             "name": "United States",
             "flag": "🇺🇸",
-            "supported": True,
+       "supported": True,
             "area_codes_available": True,
             "carriers_available": True,
             "default": True,
