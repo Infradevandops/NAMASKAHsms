@@ -232,7 +232,7 @@ class PaginationResponse(BaseModel, Generic[T]):
     pages: int
 
 
-    def create_pagination_response(
+def create_pagination_response(
         items: List[T],
         total: int,
         page: int,
@@ -251,39 +251,39 @@ class PaginationResponse(BaseModel, Generic[T]):
 
 
 class ValidationMixin:
-        """Mixin class with common validators for Pydantic models."""
+    """Mixin class with common validators for Pydantic models."""
 
-        @field_validator("phone_number", mode="before")
-        @classmethod
+    @field_validator("phone_number", mode="before")
+    @classmethod
     def validate_phone(cls, v):
         if v:
-        return validate_phone_number(v)
+            return validate_phone_number(v)
         return v
 
-        @field_validator("service_name", mode="before")
-        @classmethod
+    @field_validator("service_name", mode="before")
+    @classmethod
     def validate_service(cls, v):
         if v:
-        return validate_service_name(v)
+            return validate_service_name(v)
         return v
 
-        @field_validator("referral_code", mode="before")
-        @classmethod
+    @field_validator("referral_code", mode="before")
+    @classmethod
     def validate_referral(cls, v):
         if v:
-        return validate_referral_code(v)
+            return validate_referral_code(v)
         return v
 
-        @field_validator("area_code", mode="before")
-        @classmethod
+    @field_validator("area_code", mode="before")
+    @classmethod
     def validate_area(cls, v):
         if v:
-        return validate_area_code(v)
+            return validate_area_code(v)
         return v
 
-        @field_validator("carrier", mode="before")
-        @classmethod
+    @field_validator("carrier", mode="before")
+    @classmethod
     def validate_carrier(cls, v):
         if v:
-        return validate_carrier_name(v)
+            return validate_carrier_name(v)
         return v

@@ -23,11 +23,11 @@ class AddCreditsRequest(BaseModel):
 class PaymentInitialize(BaseModel):
         """Schema for payment initialization."""
 
-        amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
-        payment_method: str = Field(default="paystack", description="Payment method")
+    amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
+    payment_method: str = Field(default="paystack", description="Payment method")
 
-        @field_validator("amount_usd", mode="before")
-        @classmethod
+    @field_validator("amount_usd", mode="before")
+    @classmethod
     def validate_amount(cls, v):
         if v < 5.0:
             raise ValueError("Minimum payment amount is $5 USD")
@@ -35,8 +35,8 @@ class PaymentInitialize(BaseModel):
             raise ValueError("Maximum payment amount is $10,000 USD")
         return v
 
-        @field_validator("payment_method", mode="before")
-        @classmethod
+    @field_validator("payment_method", mode="before")
+    @classmethod
     def validate_payment_method(cls, v):
         if v not in ["paystack"]:
             raise ValueError("Only paystack payment method is supported")
