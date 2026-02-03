@@ -37,11 +37,11 @@ def get_all_users(
     db: Session = Depends(get_db),
 ):
     """Get all users (admin only)."""
-try:
+    try:
         users = db.query(User).limit(size).all()
 
         items = []
-for user in users:
+        for user in users:
             items.append(
                 {
                     "id": user.id,

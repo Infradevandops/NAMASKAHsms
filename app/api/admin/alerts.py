@@ -15,7 +15,7 @@ try:
         payload = await request.json()
 
         alerts = payload.get("alerts", [])
-for alert in alerts:
+        for alert in alerts:
             status = alert.get("status")
             labels = alert.get("labels", {})
             annotations = alert.get("annotations", {})
