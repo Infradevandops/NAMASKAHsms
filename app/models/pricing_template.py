@@ -14,8 +14,8 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base
 
+from app.core.database import Base
 
 # Use cross-dialect JSONB (Postgres) / JSON (SQLite)
 JSONB = JSON().with_variant(PostgresJSONB, "postgresql")

@@ -14,23 +14,25 @@ class SecretsManager:
 
     # Sensitive key patterns for masking
     SENSITIVE_KEYS = [
-        "SECRET", "KEY", "TOKEN", "PASSWORD", "PASS", "AUTH", "API",
-        "PRIVATE", "CREDENTIAL", "CERT", "SIGNATURE", "HASH"
+        "SECRET",
+        "KEY",
+        "TOKEN",
+        "PASSWORD",
+        "PASS",
+        "AUTH",
+        "API",
+        "PRIVATE",
+        "CREDENTIAL",
+        "CERT",
+        "SIGNATURE",
+        "HASH",
     ]
 
     # Required secrets by environment
     REQUIRED_SECRETS = {
-        "production": [
-            "SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL",
-            "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"
-        ],
-        "staging": [
-            "SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL",
-            "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"
-        ],
-        "development": [
-            "SECRET_KEY", "JWT_SECRET_KEY"
-        ]
+        "production": ["SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL", "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"],
+        "staging": ["SECRET_KEY", "JWT_SECRET_KEY", "DATABASE_URL", "PAYSTACK_SECRET_KEY", "PAYSTACK_PUBLIC_KEY"],
+        "development": ["SECRET_KEY", "JWT_SECRET_KEY"],
     }
 
     @staticmethod
@@ -85,8 +87,16 @@ class SecretsManager:
     def is_weak_secret(value: str) -> bool:
         """Check if a secret appears to be weak or default."""
         weak_patterns = [
-            "password", "123456", "admin", "test", "default",
-            "changeme", "secret", "key", "your-", "placeholder",
+            "password",
+            "123456",
+            "admin",
+            "test",
+            "default",
+            "changeme",
+            "secret",
+            "key",
+            "your-",
+            "placeholder",
         ]
         value_lower = value.lower()
         return any(pattern in value_lower for pattern in weak_patterns) or len(value) < 16
@@ -163,5 +173,5 @@ BASE_URL=http://localhost:8000
             "environment": environment,
             "issues": issues,
             "warnings": warnings,
-            "secrets_count": len([k for k in os.environ.keys() if SecretsManager.is_sensitive_key(k)])
+            "secrets_count": len([k for k in os.environ.keys() if SecretsManager.is_sensitive_key(k)]),
         }

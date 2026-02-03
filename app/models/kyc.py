@@ -1,6 +1,7 @@
 """KYC (Know Your Customer) database models."""
 
 from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, String, Text
+
 from app.models.base import BaseModel
 
 

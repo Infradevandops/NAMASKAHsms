@@ -28,7 +28,6 @@ TIER_DISPLAY_NAMES: dict[str, str] = {
 
 
 def get_user_tier(user_id: str, db: Session) -> str:
-
     """Get user's current subscription tier.
 
     Args:

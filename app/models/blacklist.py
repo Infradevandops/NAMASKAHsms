@@ -1,7 +1,9 @@
 """Number blacklist model."""
 
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import Boolean, Column, DateTime, String
+
 from app.models.base import BaseModel
 
 

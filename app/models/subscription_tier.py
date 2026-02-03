@@ -1,7 +1,9 @@
 """Subscription tier model for multi-tier SaaS platform."""
 
 from enum import Enum as PyEnum
+
 from sqlalchemy import JSON, Boolean, Column, Float, Integer, String
+
 from app.models.base import BaseModel
 
 

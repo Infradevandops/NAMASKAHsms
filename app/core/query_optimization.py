@@ -2,6 +2,7 @@
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
+
 from app.core.logging import get_logger
 from app.models.user import User
 from app.models.verification import Verification

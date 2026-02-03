@@ -1,6 +1,7 @@
 """Verification Preset model."""
 
 from sqlalchemy import Column, String
+
 from app.models.base import BaseModel
 
 

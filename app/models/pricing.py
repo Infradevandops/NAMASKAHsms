@@ -1,6 +1,7 @@
 """Pricing tier and subscription models."""
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
+
 from app.models.base import BaseModel
 
 

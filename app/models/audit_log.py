@@ -1,6 +1,7 @@
 """Audit logging model."""
 
 from sqlalchemy import JSON, Column, String, Text
+
 from app.models.base import BaseModel
 
 

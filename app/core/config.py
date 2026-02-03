@@ -1,6 +1,5 @@
 """Core configuration management using Pydantic Settings."""
 
-
 from functools import lru_cache
 from typing import Optional
 from app.core.pydantic_compat import field_validator, BaseSettings
@@ -8,7 +7,6 @@ from app.core.secrets import SecretsManager
 
 
 class Settings(BaseSettings):
-
     """Application settings with environment variable support."""
 
     # Application
@@ -171,8 +169,7 @@ class Settings(BaseSettings):
             missing_settings.append(env_var)
 
         if missing_settings:
-            raise ValueError(
-                f"Production environment requires these settings: {', '.join(missing_settings)}")
+            raise ValueError(f"Production environment requires these settings: {', '.join(missing_settings)}")
 
         # Validate HTTPS in production
         if not self.base_url.startswith("https://"):

@@ -1,6 +1,5 @@
 """Database connection and session management."""
 
-
 # Database engine with connection pooling
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker

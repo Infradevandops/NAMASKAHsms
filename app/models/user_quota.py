@@ -1,6 +1,7 @@
 """Monthly quota usage tracking model."""
 
 from sqlalchemy import Column, Float, ForeignKey, String, UniqueConstraint
+
 from app.models.base import BaseModel
 
 

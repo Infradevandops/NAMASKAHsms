@@ -1,6 +1,5 @@
 """Tier configuration and feature definitions - Updated for 4-tier system."""
 
-
 from typing import Any, Dict
 from sqlalchemy import text
 from sqlalchemy.orm import Session

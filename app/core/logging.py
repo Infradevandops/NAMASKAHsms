@@ -1,13 +1,12 @@
 """Logging configuration for Namaskah application."""
 
-
 import logging
 import os
 import sys
 from pathlib import Path
 
-def setup_logging():
 
+def setup_logging():
     """Setup logging configuration."""
     handlers = [logging.StreamHandler(sys.stdout)]
 
@@ -29,6 +28,5 @@ def setup_logging():
 
 
 def get_logger(name: str) -> logging.Logger:
-
     """Get a logger instance."""
     return logging.getLogger(name)

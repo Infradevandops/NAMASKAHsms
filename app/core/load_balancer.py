@@ -1,9 +1,9 @@
 """Load balancing utilities."""
 
-
 import asyncio
 from random import choice
 from typing import Any, Callable, List
+
 
 class LoadBalancer:
 

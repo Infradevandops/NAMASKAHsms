@@ -1,7 +1,9 @@
 """SMS Message model for inbox storage."""
 
 from datetime import datetime
+
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
+
 from app.models.base import Base
 
 

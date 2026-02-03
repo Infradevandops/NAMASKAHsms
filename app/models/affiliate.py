@@ -2,6 +2,7 @@
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
+
 from app.models.base import BaseModel
 
 
