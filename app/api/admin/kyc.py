@@ -10,15 +10,14 @@ from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
 from app.models.kyc import KYCAuditLog, KYCDocument, KYCProfile
 from app.schemas.kyc import (
-from app.services.document_service import get_document_service
-from app.services.kyc_service import get_kyc_service
-
     KYCDocumentResponse,
     KYCProfileCreate,
     KYCProfileResponse,
     KYCStatsResponse,
     KYCVerificationDecision,
 )
+from app.services.document_service import get_document_service
+from app.services.kyc_service import get_kyc_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/kyc", tags=["KYC"])

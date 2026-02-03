@@ -19,9 +19,7 @@ from app.models.transaction import Transaction
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.textverified_service import TextVerifiedService
 from app.services.notification_dispatcher import NotificationDispatcher
-from app.services.textverified_service import TextVerifiedService
-from app.services.notification_service import (
-from app.services.textverified_service import TextVerifiedService
+from app.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verify", tags=["Verification"])
