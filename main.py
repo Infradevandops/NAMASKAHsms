@@ -15,6 +15,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
+from app.api.emergency import router as emergency_router
 
 # Temporarily disabled - multiple files have syntax errors that need fixing
 # from app.api.core.router import router as core_router
@@ -150,6 +151,9 @@ def create_app() -> FastAPI:
     # ============== ROUTERS ==============
     # Health checks (must be first for monitoring)
     fastapi_app.include_router(health_router)
+    
+    # Emergency admin reset (TEMPORARY)
+    fastapi_app.include_router(emergency_router, prefix="/api")
 
     # Auth endpoints (standalone while core_router is disabled)
     fastapi_app.include_router(auth_router)
