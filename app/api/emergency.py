@@ -10,7 +10,7 @@ router = APIRouter()
 
 RESET_SECRET = "namaskah-emergency-reset-2026"
 
-@router.post("/emergency-reset-admin")
+@router.get("/emergency-reset-admin")
 async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
     """Emergency admin password reset - REMOVE AFTER USE."""
     
