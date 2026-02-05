@@ -1,7 +1,7 @@
 """Core configuration management using Pydantic Settings."""
 
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List, Union
 from app.core.pydantic_compat import field_validator, BaseSettings
 from app.core.secrets import SecretsManager
 
@@ -62,8 +62,16 @@ class Settings(BaseSettings):
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     
     # CORS settings
-    cors_origins: list = ["http://localhost:3000", "http://localhost:8000"]
+    cors_origins: Union[str, List[str]] = "http://localhost:3000,http://localhost:8000"
     cors_allow_credentials: bool = True
+    
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value):
+        """Parse CORS origins from string or list."""
+        if isinstance(value, str):
+            return [origin.strip() for origin in value.split(",")]
+        return value
     
     # File upload settings
     max_file_size: int = 10 * 1024 * 1024  # 10MB
