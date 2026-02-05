@@ -13,7 +13,7 @@ class TierConfig:
         """Get configuration for a specific tier from database."""
         if not db:
             # Fallback to hardcoded config if no DB session
-        return cls._get_fallback_config(tier)
+            return cls._get_fallback_config(tier)
 
         result = db.execute(
             text(
@@ -32,7 +32,7 @@ class TierConfig:
 
         row = result.fetchone()
         if not row:
-        return cls._get_fallback_config("freemium")
+            return cls._get_fallback_config("freemium")
 
         return {
             "name": row[1],
@@ -59,11 +59,11 @@ class TierConfig:
             },
         }
 
-        @classmethod
+    @classmethod
     def get_all_tiers(cls, db: Session = None) -> list:
         """Get all available tiers from database."""
         if not db:
-        return cls._get_fallback_tiers()
+            return cls._get_fallback_tiers()
 
         result = db.execute(
             text(
@@ -109,13 +109,13 @@ class TierConfig:
 
         return tiers
 
-        @classmethod
+    @classmethod
     def get_tier_price(cls, tier: str, db: Session = None) -> int:
         """Get monthly price in cents for a tier."""
         config = cls.get_tier_config(tier, db)
         return config["price_monthly"]
 
-        @classmethod
+    @classmethod
     def _get_fallback_config(cls, tier: str) -> Dict[str, Any]:
         """Fallback configuration when database is unavailable."""
         fallback_tiers = {
@@ -222,7 +222,7 @@ class TierConfig:
         }
         return fallback_tiers.get(tier.lower(), fallback_tiers["freemium"])
 
-        @classmethod
+    @classmethod
     def _get_fallback_tiers(cls) -> list:
         """Fallback tier list when database is unavailable."""
         return [cls._get_fallback_config(tier) for tier in ["freemium", "payg", "pro", "custom"]]

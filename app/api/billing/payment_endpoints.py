@@ -1,8 +1,10 @@
 """Payment endpoints for billing operations."""
 
+import json
+import uuid
 from datetime import datetime, timezone
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, Header
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
@@ -10,19 +12,30 @@ from app.core.logging import get_logger
 from app.models.user import User
 from app.schemas.payment import PaymentInitialize, PaymentInitializeResponse, PaymentVerify, PaymentVerifyResponse
 from app.services.payment_service import get_payment_service
+from app.middleware.rate_limiting import rate_limit
 
 logger = get_logger(__name__)
 router = APIRouter()
 
 
 @router.post("/initialize", response_model=PaymentInitializeResponse)
+@rate_limit(max_requests=5, window_seconds=60)
 async def initialize_payment(
-    request: PaymentInitialize,
+    request: Request,
+    payment_request: PaymentInitialize,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
+    idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")
 ):
     """Initialize a payment transaction."""
     try:
+        # Validate idempotency key if provided
+        if idempotency_key:
+            try:
+                uuid.UUID(idempotency_key)
+            except ValueError:
+                raise HTTPException(status_code=400, detail="Invalid idempotency key format (must be UUID)")
+        
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
@@ -31,7 +44,8 @@ async def initialize_payment(
         result = await payment_service.initialize_payment(
             user_id=user_id,
             email=user.email,
-            amount_usd=request.amount_usd
+            amount_usd=payment_request.amount_usd,
+            idempotency_key=idempotency_key
         )
 
         return PaymentInitializeResponse(**result)
@@ -44,15 +58,17 @@ async def initialize_payment(
 
 
 @router.post("/verify", response_model=PaymentVerifyResponse)
+@rate_limit(max_requests=10, window_seconds=60)
 async def verify_payment(
-    request: PaymentVerify,
+    request: Request,
+    payment_request: PaymentVerify,
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Verify a payment transaction."""
     try:
         payment_service = get_payment_service(db)
-        result = await payment_service.verify_payment(request.reference)
+        result = await payment_service.verify_payment(payment_request.reference)
 
         if result.get("status") == True and result.get("data", {}).get("status") == "success":
             # Credit user account
@@ -60,14 +76,14 @@ async def verify_payment(
             amount = metadata.get("namaskah_amount", 0)
             
             if amount > 0:
-                success = payment_service.credit_user(user_id, amount, request.reference)
+                success = payment_service.credit_user(user_id, amount, payment_request.reference)
                 if success:
                     user = db.query(User).filter(User.id == user_id).first()
                     return PaymentVerifyResponse(
                         status="success",
                         amount_credited=amount,
                         new_balance=user.credits if user else 0,
-                        reference=request.reference,
+                        reference=payment_request.reference,
                         message="Payment verified and credited successfully"
                     )
 
@@ -75,7 +91,7 @@ async def verify_payment(
             status="failed",
             amount_credited=0,
             new_balance=0,
-            reference=request.reference,
+            reference=payment_request.reference,
             message="Payment verification failed"
         )
 
@@ -107,3 +123,56 @@ async def get_payment_methods(
     except Exception as e:
         logger.error(f"Failed to get payment methods: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve payment methods")
+
+
+@router.post("/paystack/webhook")
+async def paystack_webhook(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    """Handle Paystack webhook events."""
+    try:
+        # Get signature from header
+        signature = request.headers.get("x-paystack-signature")
+        if not signature:
+            logger.warning("Webhook received without signature")
+            raise HTTPException(status_code=401, detail="Missing signature")
+        
+        # Get raw body
+        body = await request.body()
+        
+        # Verify signature
+        payment_service = get_payment_service(db)
+        if not payment_service.verify_webhook_signature(body, signature):
+            logger.error("Invalid webhook signature")
+            raise HTTPException(status_code=401, detail="Invalid signature")
+        
+        # Parse and process
+        data = json.loads(body)
+        event = data.get("event")
+        
+        if event == "charge.success":
+            # Extract payment details
+            payment_data = data.get("data", {})
+            reference = payment_data.get("reference")
+            
+            if not reference:
+                raise HTTPException(status_code=400, detail="Missing reference")
+            
+            # Get user info from metadata
+            metadata = payment_data.get("metadata", {})
+            user_id = metadata.get("user_id")
+            amount = metadata.get("namaskah_amount", 0)
+            
+            if user_id and amount > 0:
+                # Process with distributed lock
+                await payment_service.credit_user_with_lock(user_id, amount, reference)
+                logger.info(f"Webhook processed: {reference}")
+        
+        return {"status": "success"}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Webhook processing error: {e}")
+        raise HTTPException(status_code=500, detail="Webhook processing failed")

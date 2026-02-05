@@ -39,7 +39,6 @@ def get_url():
 
 
 def run_migrations_offline() -> None:
-
     """Run migrations in 'offline' mode."""
     url = get_url()
     context.configure(
@@ -49,15 +48,14 @@ def run_migrations_offline() -> None:
         dialect_opts={"paramstyle": "named"},
     )
 
-with context.begin_transaction():
+    with context.begin_transaction():
         context.run_migrations()
 
 
 def run_migrations_online() -> None:
-
     """Run migrations in 'online' mode."""
     # Skip migrations if SKIP_MIGRATIONS env var is set
-if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
+    if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
         print("⚠️  SKIP_MIGRATIONS enabled, skipping migrations")
         return
 
@@ -69,10 +67,10 @@ if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
         poolclass=pool.NullPool,
     )
 
-with connectable.connect() as connection:
+    with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
 
-with context.begin_transaction():
+        with context.begin_transaction():
             context.run_migrations()
 
 
@@ -82,8 +80,8 @@ else:
     # Check SKIP_MIGRATIONS before doing anything
     skip_val = os.getenv("SKIP_MIGRATIONS", "NOT_SET")
     skip = skip_val.lower() in ("true", "1", "yes")
-if skip:
+    if skip:
         print("⚠️  SKIP_MIGRATIONS enabled, skipping all migrations")
-else:
+    else:
         print("Running migrations...")
         run_migrations_online()

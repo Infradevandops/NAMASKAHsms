@@ -42,10 +42,10 @@ class TokenResponse(BaseModel):
     user: dict
 
 
-    @router.post("/login", response_model=TokenResponse)
-    async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-        """Login endpoint - consolidated and working."""
-        try:
+@router.post("/login", response_model=TokenResponse)
+async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+    """Login endpoint - consolidated and working."""
+    try:
         # Find user by email
         user = db.query(User).filter(User.email == login_data.email).first()
         
@@ -113,9 +113,9 @@ class TokenResponse(BaseModel):
             }
         }
         
-        except HTTPException:
+    except HTTPException:
         raise
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Login error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -123,10 +123,10 @@ class TokenResponse(BaseModel):
         )
 
 
-        @router.post("/register", response_model=TokenResponse)
-    async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
-        """Register endpoint - consolidated and working."""
-        try:
+@router.post("/register", response_model=TokenResponse)
+async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
+    """Register endpoint - consolidated and working."""
+    try:
         # Check if user already exists
         existing_user = db.query(User).filter(User.email == register_data.email).first()
         
@@ -183,9 +183,9 @@ class TokenResponse(BaseModel):
             }
         }
         
-        except HTTPException:
+    except HTTPException:
         raise
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Registration error: {str(e)}")
         db.rollback()
         raise HTTPException(
@@ -194,13 +194,13 @@ class TokenResponse(BaseModel):
         )
 
 
-        @router.get("/me")
-    async def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-        db: Session = Depends(get_db)
-        ):
-        """Get current user info."""
-        try:
+@router.get("/me")
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """Get current user info."""
+    try:
         # Decode token
         payload = jwt.decode(
             credentials.credentials,
@@ -231,17 +231,17 @@ class TokenResponse(BaseModel):
             "is_active": user.is_active,
         }
         
-        except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired"
         )
-        except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
         )
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Get user error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -249,7 +249,7 @@ class TokenResponse(BaseModel):
         )
 
 
-        @router.post("/logout")
-    async def logout():
-        """Logout endpoint (client should discard token)."""
-        return {"message": "Successfully logged out"}
+@router.post("/logout")
+async def logout():
+    """Logout endpoint (client should discard token)."""
+    return {"message": "Successfully logged out"}

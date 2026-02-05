@@ -49,7 +49,7 @@ class TextVerifiedService:
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance from TextVerified."""
         if not self.enabled:
-        return {"balance": 0.0, "error": "Service not available"}
+            return {"balance": 0.0, "error": "Service not available"}
 
         try:
             # This would be the actual API call
@@ -57,17 +57,16 @@ class TextVerifiedService:
             # return balance_data
             
             # Mock response for now
-        return {"balance": 100.0, "currency": "USD"}
+            return {"balance": 100.0, "currency": "USD"}
             
         except Exception as e:
             logger.error(f"Failed to get TextVerified balance: {e}")
-        return {"balance": 0.0, "error": str(e)}
+            return {"balance": 0.0, "error": str(e)}
 
     async def get_area_codes_list(self) -> List[Dict[str, Any]]:
         """Get list of available area codes."""
         if not self.enabled:
-            # Return mock data if service is not available
-        return self._get_mock_area_codes()
+            return self._get_mock_area_codes()
 
         try:
             # This would be the actual API call
@@ -75,11 +74,11 @@ class TextVerifiedService:
             # return area_codes
             
             # Return mock data for now
-        return self._get_mock_area_codes()
+            return self._get_mock_area_codes()
             
         except Exception as e:
             logger.error(f"Failed to get area codes: {e}")
-        return self._get_mock_area_codes()
+            return self._get_mock_area_codes()
 
     def _get_mock_area_codes(self) -> List[Dict[str, Any]]:
         """Get mock US area codes for testing - TextVerified supports US only."""
@@ -104,7 +103,7 @@ class TextVerifiedService:
     async def get_services_list(self) -> List[Dict[str, Any]]:
         """Get list of available services."""
         if not self.enabled:
-        return self._get_mock_services()
+            return self._get_mock_services()
 
         try:
             # This would be the actual API call
@@ -112,11 +111,11 @@ class TextVerifiedService:
             # return services
             
             # Return mock data for now
-        return self._get_mock_services()
+            return self._get_mock_services()
             
         except Exception as e:
             logger.error(f"Failed to get services: {e}")
-        return self._get_mock_services()
+            return self._get_mock_services()
 
     def _get_mock_services(self) -> List[Dict[str, Any]]:
         """Get mock services for testing - All services work with US numbers only."""
@@ -141,7 +140,7 @@ class TextVerifiedService:
         ) -> Dict[str, Any]:
         """Purchase a phone number for verification."""
         if not self.enabled:
-        return {
+            return {
                 "success": False,
                 "error": "TextVerified service not available",
                 "verification_id": None
@@ -162,7 +161,7 @@ class TextVerifiedService:
             area_code = area_code or random.choice(["212", "213", "312", "415", "617", "713", "305", "206", "404", "702"])
             mock_number = f"+1{area_code}{random.randint(1000000, 9999999)}"
             
-        return {
+            return {
                 "success": True,
                 "verification_id": mock_id,
                 "phone_number": mock_number,
@@ -174,7 +173,7 @@ class TextVerifiedService:
             
         except Exception as e:
             logger.error(f"Failed to purchase number: {e}")
-        return {
+            return {
                 "success": False,
                 "error": str(e),
                 "verification_id": None
@@ -183,7 +182,7 @@ class TextVerifiedService:
     async def get_sms(self, verification_id: str) -> Dict[str, Any]:
         """Get SMS for a verification."""
         if not self.enabled:
-        return {
+            return {
                 "success": False,
                 "error": "TextVerified service not available",
                 "sms": None
@@ -197,7 +196,7 @@ class TextVerifiedService:
             # Mock response for now
             mock_code = f"{random.randint(100000, 999999)}"
             
-        return {
+            return {
                 "success": True,
                 "sms": f"Your verification code is: {mock_code}",
                 "code": mock_code,
@@ -206,7 +205,7 @@ class TextVerifiedService:
             
         except Exception as e:
             logger.error(f"Failed to get SMS: {e}")
-        return {
+            return {
                 "success": False,
                 "error": str(e),
                 "sms": None
@@ -215,7 +214,7 @@ class TextVerifiedService:
     async def cancel_verification(self, verification_id: str) -> Dict[str, Any]:
         """Cancel a verification."""
         if not self.enabled:
-        return {"success": False, "error": "Service not available"}
+            return {"success": False, "error": "Service not available"}
 
         try:
             # This would be the actual API call
@@ -223,8 +222,8 @@ class TextVerifiedService:
             # return result
             
             # Mock response for now
-        return {"success": True, "message": "Verification cancelled"}
+            return {"success": True, "message": "Verification cancelled"}
             
         except Exception as e:
             logger.error(f"Failed to cancel verification: {e}")
-        return {"success": False, "error": str(e)}
+            return {"success": False, "error": str(e)}
