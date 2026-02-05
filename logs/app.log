@@ -106,3 +106,12 @@
 2026-02-05 01:41:49,781 - startup - INFO - Startup initialization completed
 2026-02-05 01:41:49,781 - startup - INFO - Admin user verified
 2026-02-05 01:41:49,781 - startup - INFO - ✅ Application startup completed successfully
+2026-02-05 18:31:24,316 - app.services.payment_service - ERROR - Credit user error: User nonexistent_user not found
+2026-02-05 18:32:23,117 - app.services.payment_service - WARNING - Payment ref_double already credited
+2026-02-05 18:32:25,386 - app.services.payment_service - ERROR - Credit user error: User nonexistent_user not found
+2026-02-05 18:32:48,508 - app.services.payment_service - INFO - Credited 10.0 to user 6bf4cdd4-16bb-400a-b2c8-692ed5dda504
+2026-02-05 18:32:59,041 - app.services.payment_service - INFO - Credited 10.0 to user 2693f9a2-ef62-4138-8f7c-9cfea524fbe2
+2026-02-05 18:33:13,105 - app.services.payment_service - WARNING - Payment ref_double already credited
+2026-02-05 18:33:15,273 - app.services.payment_service - ERROR - Credit user error: User nonexistent_user not found
+2026-02-05 18:35:23,805 - httpx - INFO - HTTP Request: POST http://testserver/api/wallet/paystack/webhook "HTTP/1.1 404 Not Found"
+2026-02-05 18:35:23,964 - httpx - INFO - HTTP Request: POST http://testserver/api/wallet/paystack/webhook "HTTP/1.1 404 Not Found"

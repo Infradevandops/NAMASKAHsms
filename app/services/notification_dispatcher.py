@@ -53,7 +53,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created verification_started notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create verification_started notification: {e}")
         return False
@@ -77,7 +77,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created verification_completed notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create verification_completed notification: {e}")
         return False
@@ -101,7 +101,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created verification_failed notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create verification_failed notification: {e}")
         return False
@@ -124,7 +124,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created payment_completed notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create payment_completed notification: {e}")
         return False
@@ -148,7 +148,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created verification_timeout notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create verification_timeout notification: {e}")
         return False
@@ -172,7 +172,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created verification_cancelled notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create verification_cancelled notification: {e}")
         return False
@@ -196,7 +196,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(user_id, notification)
             logger.info(f"Created refund_completed notification for {user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create refund_completed notification: {e}")
         return False
@@ -214,7 +214,7 @@ class NotificationDispatcher:
 
             self._broadcast_notification(verification.user_id, notification)
             logger.info(f"Created sms_received notification for {verification.user_id}")
-        return True
+            return True
         except Exception as e:
             logger.error(f"Failed to create sms_received notification: {e}")
         return False

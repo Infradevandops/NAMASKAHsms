@@ -38,7 +38,7 @@ def db(engine):
 @pytest.fixture
 def client(db):
     """Create FastAPI test client with test database."""
-def override_get_db():
+    def override_get_db():
         yield db
 
     app.dependency_overrides[get_db] = override_get_db
@@ -151,10 +151,10 @@ def test_transaction(db, test_user):
 @pytest.fixture
 def authenticated_client(client, test_user, db):
     """Create an authenticated test client."""
-def override_get_db():
+    def override_get_db():
         yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
         return str(test_user.id)
 
     app.dependency_overrides[get_db] = override_get_db
@@ -168,10 +168,10 @@ def override_get_current_user_id():
 @pytest.fixture
 def admin_client(client, admin_user, db):
     """Create an admin test client."""
-def override_get_db():
+    def override_get_db():
         yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
         return str(admin_user.id)
 
     app.dependency_overrides[get_db] = override_get_db
@@ -185,10 +185,10 @@ def override_get_current_user_id():
 @pytest.fixture
 def regular_client(client, regular_user, db):
     """Create a regular user test client."""
-def override_get_db():
+    def override_get_db():
         yield db
 
-def override_get_current_user_id():
+    def override_get_current_user_id():
         return str(regular_user.id)
 
     app.dependency_overrides[get_db] = override_get_db

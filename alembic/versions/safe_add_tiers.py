@@ -18,9 +18,7 @@ depends_on = None
 
 
 def upgrade():
-
     """Safely add subscription tier columns if they don't exist."""
-
     bind = op.get_bind()
     inspector = inspect(bind)
 
@@ -28,7 +26,7 @@ def upgrade():
     existing_columns = [col["name"] for col in inspector.get_columns("users")]
 
     # Add subscription_tier if missing
-if "subscription_tier" not in existing_columns:
+    if "subscription_tier" not in existing_columns:
         op.add_column(
             "users",
             sa.Column(
@@ -43,13 +41,13 @@ if "subscription_tier" not in existing_columns:
         )
 
     # Add tier_upgraded_at if missing
-if "tier_upgraded_at" not in existing_columns:
+    if "tier_upgraded_at" not in existing_columns:
         op.add_column(
             "users", sa.Column("tier_upgraded_at", sa.DateTime(), nullable=True)
         )
 
     # Add tier_expires_at if missing
-if "tier_expires_at" not in existing_columns:
+    if "tier_expires_at" not in existing_columns:
         op.add_column(
             "users", sa.Column("tier_expires_at", sa.DateTime(), nullable=True)
         )

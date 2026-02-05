@@ -1,17 +1,17 @@
-"""Middleware package for cross - cutting concerns."""
+"""Middleware package for cross-cutting concerns."""
 
-# Security middleware
 # Logging middleware
 from .logging import (
-from .rate_limiting import AdaptiveRateLimitMiddleware, RateLimitMiddleware
-from .security import (
-
     AuditTrailMiddleware,
     PerformanceMetricsMiddleware,
     RequestLoggingMiddleware,
 )
 
 # Rate limiting middleware
+from .rate_limiting import rate_limit
+
+# Security middleware
+from .security import (
     AdminRoleMiddleware,
     APIKeyAuthMiddleware,
     CORSMiddleware,
@@ -27,8 +27,7 @@ __all__ = [
     "CORSMiddleware",
     "SecurityHeadersMiddleware",
     # Rate Limiting
-    "RateLimitMiddleware",
-    "AdaptiveRateLimitMiddleware",
+    "rate_limit",
     # Logging
     "RequestLoggingMiddleware",
     "PerformanceMetricsMiddleware",
