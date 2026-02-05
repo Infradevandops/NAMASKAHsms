@@ -1,11 +1,12 @@
 """Initialize admin user on startup if not exists."""
 
-import bcrypt
+from passlib.context import CryptContext
 from sqlalchemy import text
 from app.core.database import SessionLocal
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def init_admin_user():
     """Create or update admin user."""
@@ -23,11 +24,8 @@ def init_admin_user():
         )
         user = result.fetchone()
         
-        # Hash password
-        password_hash = bcrypt.hashpw(
-            ADMIN_PASSWORD.encode('utf-8'), 
-            bcrypt.gensalt(rounds=12)
-        ).decode('utf-8')
+        # Hash password using same method as auth_service
+        password_hash = pwd_context.hash(ADMIN_PASSWORD)
         
         if user:
             # Update existing user
