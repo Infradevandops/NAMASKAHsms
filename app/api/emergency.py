@@ -18,10 +18,10 @@ async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Invalid secret")
     
     ADMIN_EMAIL = "admin@namaskah.app"
-    ADMIN_PASSWORD = "Namaskah@Admin2024"
+    ADMIN_PASSWORD = "Admin123"  # Simpler password
     
-    # Hash password with bcrypt
-    password_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    # Hash password with bcrypt - use rounds=12 like production
+    password_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
     
     try:
         # Check if user exists
@@ -38,7 +38,7 @@ async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
                 {"hash": password_hash, "email": ADMIN_EMAIL}
             )
             db.commit()
-            return {"status": "updated", "email": ADMIN_EMAIL, "hash": password_hash[:20]}
+            return {"status": "updated", "email": ADMIN_EMAIL, "hash": password_hash[:20], "password": ADMIN_PASSWORD}
         else:
             # Create user with all required fields
             db.execute(
@@ -59,6 +59,6 @@ async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
                 {"email": ADMIN_EMAIL, "hash": password_hash}
             )
             db.commit()
-            return {"status": "created", "email": ADMIN_EMAIL, "hash": password_hash[:20]}
+            return {"status": "created", "email": ADMIN_EMAIL, "hash": password_hash[:20], "password": ADMIN_PASSWORD}
     except Exception as e:
         return {"error": str(e)}
