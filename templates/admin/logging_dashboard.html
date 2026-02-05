@@ -1,0 +1,307 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Logging Dashboard - Admin{% endblock %}
+
+{% block content %}
+<div style="padding: 24px;">
+    <h1 style="margin-bottom: 24px;">Logging Dashboard</h1>
+    
+    <!-- Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-bottom: 32px;">
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">Total API Calls</div>
+            <div id="total-api-calls" style="font-size: 32px; font-weight: 700;">-</div>
+            <div id="api-calls-last-hour" style="color: #10b981; font-size: 12px; margin-top: 4px;">- in last hour</div>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">402 Errors</div>
+            <div id="total-402-errors" style="font-size: 32px; font-weight: 700; color: #f59e0b;">-</div>
+            <div id="errors-402-last-hour" style="color: #f59e0b; font-size: 12px; margin-top: 4px;">- in last hour</div>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">Database Errors</div>
+            <div id="total-db-errors" style="font-size: 32px; font-weight: 700; color: #ef4444;">-</div>
+            <div id="db-errors-last-hour" style="color: #ef4444; font-size: 12px; margin-top: 4px;">- in last hour</div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div style="border-bottom: 1px solid #e5e7eb; margin-bottom: 24px;">
+        <div style="display: flex; gap: 24px;">
+            <button class="log-tab active" data-tab="api-calls" style="padding: 12px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid #3b82f6; color: #3b82f6; font-weight: 500;">
+                API Calls
+            </button>
+            <button class="log-tab" data-tab="402-errors" style="padding: 12px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: #6b7280;">
+                402 Errors
+            </button>
+            <button class="log-tab" data-tab="db-errors" style="padding: 12px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: #6b7280;">
+                Database Errors
+            </button>
+            <button class="log-tab" data-tab="trends" style="padding: 12px 0; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; color: #6b7280;">
+                Error Trends
+            </button>
+        </div>
+    </div>
+    
+    <!-- Tab Content -->
+    <div id="api-calls-content" class="tab-content" style="display: block;">
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 16px;">Recent Tier API Calls</h3>
+            <div id="api-calls-list" style="max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="402-errors-content" class="tab-content" style="display: none;">
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 16px;">Recent 402 Tier Access Errors</h3>
+            <div id="402-errors-list" style="max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="db-errors-content" class="tab-content" style="display: none;">
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 16px;">Recent Database Errors</h3>
+            <div id="db-errors-list" style="max-height: 500px; overflow-y: auto;">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">Loading...</div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="trends-content" class="tab-content" style="display: none;">
+        <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 16px;">Error Trends (Last 7 Days)</h3>
+            <div id="trends-summary" style="margin-bottom: 24px;">
+                <div style="text-align: center; padding: 40px; color: #6b7280;">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.log-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        // Update tab styles
+        document.querySelectorAll('.log-tab').forEach(t => {
+            t.style.borderBottom = '2px solid transparent';
+            t.style.color = '#6b7280';
+            t.classList.remove('active');
+        });
+        this.style.borderBottom = '2px solid #3b82f6';
+        this.style.color = '#3b82f6';
+        this.classList.add('active');
+        
+        // Show/hide content
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.style.display = 'none';
+        });
+        document.getElementById(this.dataset.tab + '-content').style.display = 'block';
+    });
+});
+
+// Load summary
+async function loadSummary() {
+    try {
+        const res = await fetch('/api/admin/logs/summary', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load summary');
+        
+        const data = await res.json();
+        document.getElementById('total-api-calls').textContent = data.total_tier_api_calls || 0;
+        document.getElementById('total-402-errors').textContent = data.total_402_errors || 0;
+        document.getElementById('total-db-errors').textContent = data.total_db_errors || 0;
+        
+        document.getElementById('api-calls-last-hour').textContent = (data.last_hour?.tier_api_calls || 0) + ' in last hour';
+        document.getElementById('errors-402-last-hour').textContent = (data.last_hour?.errors_402 || 0) + ' in last hour';
+        document.getElementById('db-errors-last-hour').textContent = (data.last_hour?.db_errors || 0) + ' in last hour';
+    } catch (error) {
+        console.error('Failed to load summary:', error);
+    }
+}
+
+// Load API calls
+async function loadApiCalls() {
+    try {
+        const res = await fetch('/api/admin/logs/tier-api-calls?limit=50', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load API calls');
+        
+        const calls = await res.json();
+        const container = document.getElementById('api-calls-list');
+        
+        if (!calls || calls.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No API calls logged yet</div>';
+            return;
+        }
+        
+        container.innerHTML = calls.map(call => `
+            <div style="padding: 12px; border-bottom: 1px solid #e5e7eb;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-weight: 500;">${call.endpoint}</div>
+                        <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                            User: ${call.user_id} | Tier: ${call.tier}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 12px; color: ${call.status >= 400 ? '#ef4444' : '#10b981'};">
+                            Status: ${call.status}
+                        </div>
+                        <div style="font-size: 11px; color: #9ca3af; margin-top: 2px;">
+                            ${new Date(call.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load API calls:', error);
+        document.getElementById('api-calls-list').innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading API calls</div>';
+    }
+}
+
+// Load 402 errors
+async function load402Errors() {
+    try {
+        const res = await fetch('/api/admin/logs/tier-402-errors?limit=50', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load 402 errors');
+        
+        const errors = await res.json();
+        const container = document.getElementById('402-errors-list');
+        
+        if (!errors || errors.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No 402 errors logged yet</div>';
+            return;
+        }
+        
+        container.innerHTML = errors.map(error => `
+            <div style="padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fef3c7;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div>
+                        <div style="font-weight: 500; color: #92400e;">${error.endpoint}</div>
+                        <div style="font-size: 12px; color: #78350f; margin-top: 4px;">
+                            User: ${error.user_id} | User Tier: ${error.user_tier} | Required: ${error.required_tier}
+                        </div>
+                        <div style="font-size: 11px; color: #78350f; margin-top: 2px;">
+                            Reason: ${error.reason}
+                        </div>
+                    </div>
+                    <div style="font-size: 11px; color: #78350f;">
+                        ${new Date(error.timestamp).toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load 402 errors:', error);
+        document.getElementById('402-errors-list').innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading 402 errors</div>';
+    }
+}
+
+// Load database errors
+async function loadDbErrors() {
+    try {
+        const res = await fetch('/api/admin/logs/database-errors?limit=50', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load database errors');
+        
+        const errors = await res.json();
+        const container = document.getElementById('db-errors-list');
+        
+        if (!errors || errors.length === 0) {
+            container.innerHTML = '<div style="text-align: center; padding: 40px; color: #6b7280;">No database errors logged yet</div>';
+            return;
+        }
+        
+        container.innerHTML = errors.map(error => `
+            <div style="padding: 12px; border-bottom: 1px solid #e5e7eb; background: #fee2e2;">
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; color: #991b1b;">${error.operation}</div>
+                        <div style="font-size: 12px; color: #7f1d1d; margin-top: 4px; word-break: break-word;">
+                            ${error.error}
+                        </div>
+                        ${error.user_id ? `<div style="font-size: 11px; color: #7f1d1d; margin-top: 2px;">User: ${error.user_id}</div>` : ''}
+                    </div>
+                    <div style="font-size: 11px; color: #7f1d1d; margin-left: 12px; white-space: nowrap;">
+                        ${new Date(error.timestamp).toLocaleString()}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Failed to load database errors:', error);
+        document.getElementById('db-errors-list').innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading database errors</div>';
+    }
+}
+
+// Load error trends
+async function loadTrends() {
+    try {
+        const res = await fetch('/api/admin/logs/error-trends?days=7', { credentials: 'include' });
+        if (!res.ok) throw new Error('Failed to load trends');
+        
+        const data = await res.json();
+        const container = document.getElementById('trends-summary');
+        
+        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">';
+        html += `
+            <div style="padding: 16px; background: #fef3c7; border-radius: 8px;">
+                <div style="font-size: 14px; color: #78350f; margin-bottom: 4px;">Total 402 Errors</div>
+                <div style="font-size: 28px; font-weight: 700; color: #92400e;">${data.total_402_errors}</div>
+            </div>
+            <div style="padding: 16px; background: #fee2e2; border-radius: 8px;">
+                <div style="font-size: 14px; color: #7f1d1d; margin-bottom: 4px;">Total DB Errors</div>
+                <div style="font-size: 28px; font-weight: 700; color: #991b1b;">${data.total_db_errors}</div>
+            </div>
+        `;
+        html += '</div>';
+        
+        // Errors by required tier
+        if (data.errors_by_required_tier && Object.keys(data.errors_by_required_tier).length > 0) {
+            html += '<h4 style="margin-bottom: 12px;">402 Errors by Required Tier</h4>';
+            html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">';
+            for (const [tier, count] of Object.entries(data.errors_by_required_tier)) {
+                html += `
+                    <div style="padding: 12px; background: #f3f4f6; border-radius: 6px; text-align: center;">
+                        <div style="font-size: 12px; color: #6b7280; text-transform: uppercase;">${tier}</div>
+                        <div style="font-size: 24px; font-weight: 700; color: #1f2937;">${count}</div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+        }
+        
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Failed to load trends:', error);
+        document.getElementById('trends-summary').innerHTML = '<div style="text-align: center; padding: 40px; color: #ef4444;">Error loading trends</div>';
+    }
+}
+
+// Initial load
+document.addEventListener('DOMContentLoaded', function() {
+    loadSummary();
+    loadApiCalls();
+    load402Errors();
+    loadDbErrors();
+    loadTrends();
+    
+    // Refresh every 30 seconds
+    setInterval(() => {
+        loadSummary();
+        const activeTab = document.querySelector('.log-tab.active');
+        if (activeTab) {
+            const tab = activeTab.dataset.tab;
+            if (tab === 'api-calls') loadApiCalls();
+            else if (tab === '402-errors') load402Errors();
+            else if (tab === 'db-errors') loadDbErrors();
+            else if (tab === 'trends') loadTrends();
+        }
+    }, 30000);
+});
+</script>
+{% endblock %}

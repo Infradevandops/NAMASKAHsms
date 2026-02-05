@@ -1,0 +1,391 @@
+{#
+    UI Component Macros
+    Reusable Jinja2 macros for consistent UI components across templates
+    
+    Usage:
+    {% from "macros/ui_components.html" import tier_badge, button, card, alert, loading_spinner %}
+#}
+
+{# ============================================================================
+   TIER BADGE
+   Displays a tier badge with appropriate styling
+   
+   Parameters:
+   - tier: string (freemium|payg|pro|custom)
+   - size: string (sm|md|lg) - default: md
+   - solid: boolean - use solid background - default: false
+   
+   Example:
+   {{ tier_badge('pro') }}
+   {{ tier_badge('freemium', size='lg', solid=true) }}
+   ============================================================================ #}
+{% macro tier_badge(tier, size='md', solid=false) %}
+{% set tier_names = {
+    'freemium': 'Freemium',
+    'payg': 'Pay-As-You-Go',
+    'pro': 'Pro',
+    'custom': 'Custom'
+} %}
+{% set size_classes = {
+    'sm': 'tier-badge-sm',
+    'md': '',
+    'lg': 'tier-badge-lg'
+} %}
+<span class="tier-badge tier-badge-{{ tier }} {{ size_classes[size] }} {{ 'tier-badge-solid' if solid else '' }}"
+      data-tier="{{ tier }}"
+      aria-label="Current plan: {{ tier_names.get(tier, tier) }}">
+    {{ tier_names.get(tier, tier) }}
+</span>
+{% endmacro %}
+
+
+{# ============================================================================
+   BUTTON
+   Renders a button with consistent styling
+   
+   Parameters:
+   - text: string - button text
+   - variant: string (primary|secondary|success|error|outline|ghost) - default: primary
+   - size: string (xs|sm|md|lg|xl) - default: md
+   - type: string (button|submit|reset) - default: button
+   - id: string - optional id attribute
+   - href: string - if provided, renders as <a> tag
+   - disabled: boolean - default: false
+   - loading: boolean - show loading state - default: false
+   - icon: string - optional icon class (e.g., 'ph ph-plus')
+   - aria_label: string - accessibility label
+   - attrs: dict - additional attributes
+   
+   Example:
+   {{ button('Submit', variant='primary', type='submit') }}
+   {{ button('Cancel', variant='ghost', href='/dashboard') }}
+   {{ button('Loading...', loading=true, disabled=true) }}
+   ============================================================================ #}
+{% macro button(text, variant='primary', size='md', type='button', id=none, href=none, disabled=false, loading=false, icon=none, aria_label=none, attrs={}) %}
+{% set classes = 'btn btn-' ~ variant ~ ' btn-' ~ size ~ (' btn-loading' if loading else '') %}
+{% set aria = aria_label or text %}
+
+{% if href and not disabled %}
+<a href="{{ href }}" 
+   class="{{ classes }}"
+   {% if id %}id="{{ id }}"{% endif %}
+   aria-label="{{ aria }}"
+   role="button"
+   {% for key, value in attrs.items() %}{{ key }}="{{ value }}"{% endfor %}>
+    {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i>{% endif %}
+    {{ text }}
+</a>
+{% else %}
+<button type="{{ type }}"
+        class="{{ classes }}"
+        {% if id %}id="{{ id }}"{% endif %}
+        {% if disabled %}disabled aria-disabled="true"{% endif %}
+        {% if loading %}aria-busy="true"{% endif %}
+        aria-label="{{ aria }}"
+        {% for key, value in attrs.items() %}{{ key }}="{{ value }}"{% endfor %}>
+    {% if loading %}
+    <span class="loading-spinner" aria-hidden="true"></span>
+    {% elif icon %}
+    <i class="{{ icon }}" aria-hidden="true"></i>
+    {% endif %}
+    {{ text }}
+</button>
+{% endif %}
+{% endmacro %}
+
+
+{# ============================================================================
+   CARD
+   Renders a card container
+   
+   Parameters:
+   - title: string - optional card title
+   - id: string - optional id attribute
+   - class: string - additional CSS classes
+   - header: boolean - show header section - default: true if title provided
+   - footer: boolean - show footer section - default: false
+   - aria_label: string - accessibility label
+   
+   Example:
+   {% call card(title='User Profile', id='profile-card') %}
+       <p>Card content here</p>
+   {% endcall %}
+   ============================================================================ #}
+{% macro card(title=none, id=none, class='', header=none, footer=false, aria_label=none) %}
+{% set show_header = header if header is not none else (title is not none) %}
+<div class="card {{ class }}"
+     {% if id %}id="{{ id }}"{% endif %}
+     {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}>
+    {% if show_header %}
+    <div class="card-header">
+        {% if title %}<h3 class="card-title">{{ title }}</h3>{% endif %}
+    </div>
+    {% endif %}
+    <div class="card-body">
+        {{ caller() }}
+    </div>
+    {% if footer %}
+    <div class="card-footer">
+        {{ footer }}
+    </div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   ALERT
+   Renders an alert/notification message
+   
+   Parameters:
+   - message: string - alert message
+   - type: string (success|warning|error|info) - default: info
+   - dismissible: boolean - show close button - default: false
+   - id: string - optional id attribute
+   - icon: string - optional icon class
+   
+   Example:
+   {{ alert('Operation successful!', type='success') }}
+   {{ alert('Please check your input', type='warning', dismissible=true) }}
+   ============================================================================ #}
+{% macro alert(message, type='info', dismissible=false, id=none, icon=none) %}
+{% set default_icons = {
+    'success': 'ph ph-check-circle',
+    'warning': 'ph ph-warning',
+    'error': 'ph ph-x-circle',
+    'info': 'ph ph-info'
+} %}
+{% set alert_icon = icon or default_icons.get(type, 'ph ph-info') %}
+<div class="alert alert-{{ type }}"
+     {% if id %}id="{{ id }}"{% endif %}
+     role="alert"
+     aria-live="polite">
+    <i class="{{ alert_icon }}" aria-hidden="true"></i>
+    <span class="alert-message">{{ message }}</span>
+    {% if dismissible %}
+    <button type="button" class="alert-close" aria-label="Dismiss alert" onclick="this.parentElement.remove()">
+        <i class="ph ph-x" aria-hidden="true"></i>
+    </button>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   LOADING SPINNER
+   Renders a loading spinner
+   
+   Parameters:
+   - size: string (sm|md|lg) - default: md
+   - text: string - optional loading text
+   - inline: boolean - inline display - default: false
+   
+   Example:
+   {{ loading_spinner() }}
+   {{ loading_spinner(size='lg', text='Loading data...') }}
+   ============================================================================ #}
+{% macro loading_spinner(size='md', text=none, inline=false) %}
+{% set size_classes = {
+    'sm': 'loading-spinner-sm',
+    'md': '',
+    'lg': 'loading-spinner-lg'
+} %}
+<div class="loading-container {{ 'loading-inline' if inline else '' }}" aria-busy="true" aria-live="polite">
+    <span class="loading-spinner {{ size_classes[size] }}" aria-hidden="true"></span>
+    {% if text %}
+    <span class="loading-text">{{ text }}</span>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   SKELETON LOADER
+   Renders a skeleton loading placeholder
+   
+   Parameters:
+   - type: string (text|title|avatar|card|button) - default: text
+   - lines: int - number of text lines - default: 3
+   - width: string - custom width - default: 100%
+   
+   Example:
+   {{ skeleton('text', lines=4) }}
+   {{ skeleton('card') }}
+   ============================================================================ #}
+{% macro skeleton(type='text', lines=3, width='100%') %}
+<div class="skeleton skeleton-{{ type }}" style="width: {{ width }};" aria-hidden="true">
+    {% if type == 'text' %}
+        {% for i in range(lines) %}
+        <div class="skeleton-line" style="width: {{ '100%' if i < lines - 1 else '60%' }};"></div>
+        {% endfor %}
+    {% elif type == 'title' %}
+        <div class="skeleton-line skeleton-title"></div>
+    {% elif type == 'avatar' %}
+        <div class="skeleton-avatar"></div>
+    {% elif type == 'card' %}
+        <div class="skeleton-card">
+            <div class="skeleton-line skeleton-title"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line"></div>
+            <div class="skeleton-line" style="width: 60%;"></div>
+        </div>
+    {% elif type == 'button' %}
+        <div class="skeleton-button"></div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   FORM INPUT
+   Renders a form input with label and error handling
+   
+   Parameters:
+   - name: string - input name attribute
+   - label: string - input label
+   - type: string - input type - default: text
+   - value: string - input value
+   - placeholder: string - placeholder text
+   - required: boolean - default: false
+   - error: string - error message
+   - help: string - help text
+   - id: string - optional id (defaults to name)
+   
+   Example:
+   {{ form_input('email', 'Email Address', type='email', required=true) }}
+   {{ form_input('password', 'Password', type='password', error='Password is required') }}
+   ============================================================================ #}
+{% macro form_input(name, label, type='text', value='', placeholder='', required=false, error=none, help=none, id=none) %}
+{% set input_id = id or name %}
+<div class="form-group {{ 'has-error' if error else '' }}">
+    <label for="{{ input_id }}">
+        {{ label }}
+        {% if required %}<span class="required" aria-hidden="true">*</span>{% endif %}
+    </label>
+    <input type="{{ type }}"
+           id="{{ input_id }}"
+           name="{{ name }}"
+           value="{{ value }}"
+           placeholder="{{ placeholder }}"
+           {% if required %}required aria-required="true"{% endif %}
+           {% if error %}aria-invalid="true" aria-describedby="{{ input_id }}-error"{% endif %}
+           class="form-control">
+    {% if error %}
+    <div class="form-error" id="{{ input_id }}-error" role="alert">{{ error }}</div>
+    {% endif %}
+    {% if help %}
+    <div class="form-help">{{ help }}</div>
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   PROGRESS BAR
+   Renders a progress bar
+   
+   Parameters:
+   - value: number - current value (0-100)
+   - max: number - maximum value - default: 100
+   - label: string - optional label
+   - variant: string (default|success|warning|danger) - default: default
+   - show_percentage: boolean - show percentage text - default: true
+   
+   Example:
+   {{ progress_bar(75) }}
+   {{ progress_bar(90, variant='warning', label='Storage Used') }}
+   ============================================================================ #}
+{% macro progress_bar(value, max=100, label=none, variant='default', show_percentage=true) %}
+{% set percentage = (value / max * 100) | round(1) %}
+{% set variant_class = 'progress-' ~ variant if variant != 'default' else '' %}
+<div class="progress-container">
+    {% if label %}
+    <div class="progress-label">
+        <span>{{ label }}</span>
+        {% if show_percentage %}<span>{{ percentage }}%</span>{% endif %}
+    </div>
+    {% endif %}
+    <div class="progress {{ variant_class }}" 
+         role="progressbar" 
+         aria-valuenow="{{ value }}" 
+         aria-valuemin="0" 
+         aria-valuemax="{{ max }}"
+         aria-label="{{ label or 'Progress' }}: {{ percentage }}%">
+        <div class="progress-fill" style="width: {{ percentage }}%;"></div>
+    </div>
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   EMPTY STATE
+   Renders an empty state placeholder
+   
+   Parameters:
+   - title: string - empty state title
+   - message: string - description message
+   - icon: string - icon class - default: ph ph-folder-open
+   - action_text: string - optional action button text
+   - action_href: string - optional action button href
+   
+   Example:
+   {{ empty_state('No items found', 'Try adjusting your filters') }}
+   {{ empty_state('No API Keys', 'Create your first API key', action_text='Create Key', action_href='/api-keys/new') }}
+   ============================================================================ #}
+{% macro empty_state(title, message='', icon='ph ph-folder-open', action_text=none, action_href=none) %}
+<div class="empty-state" role="status">
+    <i class="{{ icon }}" aria-hidden="true"></i>
+    <h3>{{ title }}</h3>
+    {% if message %}<p>{{ message }}</p>{% endif %}
+    {% if action_text and action_href %}
+    {{ button(action_text, variant='primary', href=action_href) }}
+    {% endif %}
+</div>
+{% endmacro %}
+
+
+{# ============================================================================
+   TIER CARD (Full)
+   Renders a complete tier card with features and CTA
+   
+   Parameters:
+   - tier: string (freemium|payg|pro|custom)
+   - name: string - tier display name
+   - price: string - price display (e.g., '$29/mo')
+   - features: list - list of feature dicts with 'text' and 'available' keys
+   - cta_text: string - CTA button text
+   - cta_href: string - CTA button href
+   - is_current: boolean - is this the user's current tier
+   
+   Example:
+   {{ tier_card_full('pro', 'Pro', '$29/mo', features, 'Upgrade Now', '/pricing') }}
+   ============================================================================ #}
+{% macro tier_card_full(tier, name, price, features=[], cta_text='Select Plan', cta_href='/pricing', is_current=false) %}
+<div class="tier-card tier-card-{{ tier }} {{ 'tier-current' if is_current else '' }}" data-tier="{{ tier }}">
+    <div class="tier-card-header">
+        <div class="tier-card-name">{{ name }}</div>
+        {{ tier_badge(tier, size='sm') }}
+    </div>
+    <div class="tier-card-price">
+        {{ price }}
+        {% if price != 'Free' and price != 'Custom' %}
+        <span class="tier-card-price-period">/month</span>
+        {% endif %}
+    </div>
+    <ul class="tier-features">
+        {% for feature in features %}
+        <li class="tier-feature {{ 'tier-feature-available' if feature.available else 'tier-feature-unavailable' }}">
+            <span class="tier-feature-icon">
+                {% if feature.available %}✓{% else %}✗{% endif %}
+            </span>
+            {{ feature.text }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% if not is_current %}
+    {{ button(cta_text, variant='primary', href=cta_href, class='tier-btn tier-btn-' ~ tier) }}
+    {% else %}
+    {{ button('Current Plan', variant='ghost', disabled=true) }}
+    {% endif %}
+</div>
+{% endmacro %}

@@ -1,0 +1,35 @@
+{
+    "common": {
+        "welcome": "Bienvenue",
+        "dashboard": "Tableau de bord",
+        "settings": "Paramètres",
+        "wallet": "Portefeuille",
+        "profile": "Profil",
+        "logout": "Se déconnecter",
+        "loading": "Chargement...",
+        "error": "Erreur",
+        "success": "Succès",
+        "type": "Type",
+        "amount": "Montant",
+        "date": "Date",
+        "status": "Statut"
+    },
+    "wallet": {
+        "title": "Portefeuille",
+        "subtitle": "Gérez vos crédits et votre facturation",
+        "current_balance": "Solde actuel",
+        "this_month": "Ce mois-ci",
+        "total_spent": "Total dépensé",
+        "add_credits": "Ajouter des crédits",
+        "transaction_history": "Historique des transactions",
+        "pay_with_crypto": "Payer avec Crypto",
+        "pay_with_card": "Payer par Carte"
+    },
+    "verify": {
+        "title": "Vérification SMS",
+        "subtitle": "Obtenir un numéro pour vérification",
+        "select_service": "Sélectionner un service",
+        "select_country": "Sélectionner un pays",
+        "buy_number": "Acheter un numéro"
+    }
+}

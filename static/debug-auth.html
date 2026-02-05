@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auth Debug Tool</title>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f9fafb;
+        }
+        .card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 { color: #FE3C72; }
+        h2 { color: #374151; font-size: 18px; }
+        .status { padding: 8px 12px; border-radius: 6px; display: inline-block; margin: 8px 0; }
+        .status.success { background: #d1fae5; color: #065f46; }
+        .status.error { background: #fee2e2; color: #991b1b; }
+        .status.warning { background: #fef3c7; color: #92400e; }
+        button {
+            background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 4px;
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3); }
+        pre {
+            background: #f3f4f6;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .info { color: #6b7280; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Auth Debug Tool</h1>
+    <p class="info">This tool helps debug authentication issues on the Settings page.</p>
+
+    <div class="card">
+        <h2>1. Token Status</h2>
+        <div id="token-status">Checking...</div>
+        <button onclick="checkToken()">Refresh Token Status</button>
+        <button onclick="clearToken()">Clear Token</button>
+    </div>
+
+    <div class="card">
+        <h2>2. API Test</h2>
+        <div id="api-status">Not tested yet</div>
+        <button onclick="testAPI()">Test /api/auth/me</button>
+    </div>
+
+    <div class="card">
+        <h2>3. User Data</h2>
+        <div id="user-data">No data yet</div>
+    </div>
+
+    <div class="card">
+        <h2>4. Quick Actions</h2>
+        <button onclick="window.location.href='/auth/login'">Go to Login</button>
+        <button onclick="window.location.href='/settings'">Go to Settings</button>
+        <button onclick="window.location.href='/dashboard'">Go to Dashboard</button>
+    </div>
+
+    <script>
+        function checkToken() {
+            const token = localStorage.getItem('access_token');
+            const statusDiv = document.getElementById('token-status');
+            
+            if (!token) {
+                statusDiv.innerHTML = `
+                    <div class="status error">❌ No Token Found</div>
+                    <p class="info">You are not logged in. Please login first.</p>
+                `;
+                return;
+            }
+            
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    statusDiv.innerHTML = `
+                        <div class="status error">❌ Invalid Token Format</div>
+                        <p class="info">Token is malformed.</p>
+                    `;
+                    return;
+                }
+                
+                const payload = JSON.parse(atob(parts[1]));
+                const exp = new Date(payload.exp * 1000);
+                const now = new Date();
+                const isExpired = exp < now;
+                
+                statusDiv.innerHTML = `
+                    <div class="status ${isExpired ? 'error' : 'success'}">
+                        ${isExpired ? '❌ Token Expired' : '✅ Token Valid'}
+                    </div>
+                    <p class="info">
+                        <strong>User ID:</strong> ${payload.sub || 'N/A'}<br>
+                        <strong>Expires:</strong> ${exp.toLocaleString()}<br>
+                        <strong>Status:</strong> ${isExpired ? 'Expired - Please login again' : 'Active'}
+                    </p>
+                    <pre>${JSON.stringify(payload, null, 2)}</pre>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="status error">❌ Error Parsing Token</div>
+                    <p class="info">${error.message}</p>
+                `;
+            }
+        }
+        
+        function clearToken() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            alert('Token cleared! You are now logged out.');
+            checkToken();
+        }
+        
+        async function testAPI() {
+            const statusDiv = document.getElementById('api-status');
+            const userDataDiv = document.getElementById('user-data');
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                statusDiv.innerHTML = `
+                    <div class="status error">❌ Cannot Test - No Token</div>
+                    <p class="info">Please login first.</p>
+                `;
+                return;
+            }
+            
+            statusDiv.innerHTML = `
+                <div class="status warning">⏳ Testing API...</div>
+            `;
+            
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const statusCode = response.status;
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    statusDiv.innerHTML = `
+                        <div class="status success">✅ API Working (${statusCode})</div>
+                        <p class="info">Successfully retrieved user data!</p>
+                    `;
+                    userDataDiv.innerHTML = `
+                        <div class="status success">✅ User Data Retrieved</div>
+                        <p class="info">
+                            <strong>ID:</strong> ${data.id}<br>
+                            <strong>Email:</strong> ${data.email}<br>
+                            <strong>Created:</strong> ${new Date(data.created_at).toLocaleString()}<br>
+                            <strong>Credits:</strong> $${data.credits}<br>
+                            <strong>Admin:</strong> ${data.is_admin ? 'Yes' : 'No'}
+                        </p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                } else {
+                    const errorText = await response.text();
+                    statusDiv.innerHTML = `
+                        <div class="status error">❌ API Error (${statusCode})</div>
+                        <p class="info">
+                            ${statusCode === 401 ? 'Token is invalid or expired. Please login again.' : 
+                              statusCode === 404 ? 'User not found in database.' :
+                              statusCode === 500 ? 'Server error. Check server logs.' :
+                              'Unknown error occurred.'}
+                        </p>
+                        <pre>${errorText}</pre>
+                    `;
+                    userDataDiv.innerHTML = `<div class="status error">❌ No Data</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `
+                    <div class="status error">❌ Network Error</div>
+                    <p class="info">Cannot connect to API: ${error.message}</p>
+                `;
+                userDataDiv.innerHTML = `<div class="status error">❌ No Data</div>`;
+            }
+        }
+        
+        // Auto-check on load
+        window.addEventListener('DOMContentLoaded', () => {
+            checkToken();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,262 @@
+{% extends "public_base.html" %}
+
+{% block page_title %}Sign Up{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+    .auth-container {
+        max-width: 440px;
+        margin: 20px auto;
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        border: 1px solid rgba(0, 0, 0, 0.05);
+    }
+
+    .auth-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 32px;
+        background: var(--bg-sidebar);
+        padding: 4px;
+        border-radius: 12px;
+    }
+
+    .auth-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        color: var(--text-muted);
+    }
+
+    .auth-tab.active {
+        background: white;
+        color: var(--primary);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        color: var(--text-main);
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 15px;
+        transition: border-color 0.2s;
+        background: white !important;
+    }
+
+    .form-input:-webkit-autofill,
+    .form-input:-webkit-autofill:hover,
+    .form-input:-webkit-autofill:focus {
+        -webkit-box-shadow: 0 0 0 30px white inset !important;
+        -webkit-text-fill-color: var(--text-main) !important;
+    }
+
+    .form-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary-light);
+    }
+
+    .btn-auth {
+        width: 100%;
+        background: var(--primary);
+        color: white;
+        border: none;
+        padding: 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-auth:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
+    .btn-auth:active {
+        transform: scale(0.98);
+    }
+
+    .error-msg {
+        background: #fff0f0;
+        color: #e02b2b;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 14px;
+        display: none;
+    }
+
+    .strength-meter {
+        height: 4px;
+        background: #eee;
+        margin-top: 8px;
+        border-radius: 2px;
+        overflow: hidden;
+        display: flex;
+    }
+
+    .strength-segment {
+        flex: 1;
+        opacity: 0.3;
+        margin-right: 2px;
+        background: #ccc;
+    }
+
+    .strength-segment:last-child {
+        margin-right: 0;
+    }
+
+    .weak .strength-segment:nth-child(1) {
+        background: #ff4757;
+        opacity: 1;
+    }
+
+    .medium .strength-segment:nth-child(1),
+    .medium .strength-segment:nth-child(2) {
+        background: #ffa502;
+        opacity: 1;
+    }
+
+    .strong .strength-segment {
+        background: #2ecc71;
+        opacity: 1;
+    }
+
+    .strength-text {
+        font-size: 12px;
+        margin-top: 4px;
+        color: #666;
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block public_content %}
+<div class="auth-container">
+    <div class="auth-tabs">
+        <div class="auth-tab" onclick="window.location.href='/auth/login'">Login</div>
+        <div class="auth-tab active" onclick="window.location.href='/auth/register'">Sign Up</div>
+    </div>
+
+    <div id="error-message" class="error-msg"></div>
+
+    <form id="register-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" class="form-input" id="email" required placeholder="name@example.com" autocomplete="email">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Password</label>
+            <input type="password" class="form-input" id="password" required placeholder="Create a strong password"
+                oninput="checkStrength(this.value)" autocomplete="new-password">
+            <div class="strength-meter" id="strength-meter">
+                <div class="strength-segment"></div>
+                <div class="strength-segment"></div>
+                <div class="strength-segment"></div>
+            </div>
+            <div class="strength-text" id="strength-text"></div>
+        </div>
+
+        <button type="submit" class="btn-auth" id="register-btn">Create Account</button>
+    </form>
+</div>
+
+<script>
+    function checkStrength(password) {
+        const meter = document.getElementById('strength-meter');
+        const text = document.getElementById('strength-text');
+
+        meter.className = 'strength-meter';
+
+        if (password.length === 0) {
+            text.textContent = '';
+            return;
+        }
+
+        let score = 0;
+        if (password.length > 8) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        if (score < 2) {
+            meter.classList.add('weak');
+            text.textContent = 'Weak';
+            text.style.color = '#ff4757';
+        } else if (score < 4) {
+            meter.classList.add('medium');
+            text.textContent = 'Medium';
+            text.style.color = '#ffa502';
+        } else {
+            meter.classList.add('strong');
+            text.textContent = 'Strong';
+            text.style.color = '#2ecc71';
+        }
+    }
+
+    async function handleRegister(e) {
+        e.preventDefault();
+        const btn = document.getElementById('register-btn');
+        const errorDiv = document.getElementById('error-message');
+
+        btn.textContent = "Creating Account...";
+        btn.disabled = true;
+        errorDiv.style.display = 'none';
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password })
+            });
+
+            if (res.ok) {
+                alert("Account created successfully! Please log in.");
+                window.location.href = '/auth/login';
+            } else {
+                const data = await res.json();
+                showError(data.detail || "Registration failed");
+                btn.disabled = false;
+                btn.textContent = "Create Account";
+            }
+        } catch (err) {
+            showError("Connection error. Please try again.");
+            btn.disabled = false;
+            btn.textContent = "Create Account";
+        }
+    }
+
+    function showError(msg) {
+        const el = document.getElementById('error-message');
+        el.textContent = msg;
+        el.style.display = 'block';
+    }
+</script>
+{% endblock %}

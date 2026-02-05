@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "欢迎",
+    "dashboard": "仪表板",
+    "settings": "设置",
+    "wallet": "钱包",
+    "profile": "个人资料",
+    "logout": "登出",
+    "loading": "加载中...",
+    "error": "错误",
+    "success": "成功",
+    "type": "类型",
+    "amount": "金额",
+    "date": "日期",
+    "status": "状态"
+  },
+  "dashboard": {
+    "title": "仪表板",
+    "subtitle": "您的短信验证活动概览",
+    "total_sms": "总短信数",
+    "successful": "成功",
+    "total_spent": "总花费",
+    "success_rate": "成功率",
+    "recent_activity": "最近活动",
+    "no_activity": "没有最近的活动",
+    "start_verification": "开始验证",
+    "service": "服务",
+    "number": "号码",
+    "time": "时间",
+    "your_plan": "您的计划",
+    "upgrade": "升级",
+    "features": "功能"
+  },
+  "tiers": {
+    "freemium": "免费增值",
+    "payg": "按需付费",
+    "pro": "专业版",
+    "custom": "定制",
+    "current_plan": "当前计划",
+    "upgrade_to": "升级到",
+    "features": {
+      "random_numbers": "仅随机号码",
+      "no_api": "无API访问",
+      "no_filters": "无位置过滤器",
+      "location_filters": "位置过滤器",
+      "isp_filters": "ISP过滤器",
+      "api_access": "API访问",
+      "all_filters": "包含所有过滤器",
+      "affiliate": "联盟计划",
+      "priority_support": "优先支持",
+      "unlimited_api": "无限API"
+    }
+  },
+  "wallet": {
+    "title": "钱包",
+    "subtitle": "管理您的积分和账单",
+    "current_balance": "当前余额",
+    "this_month": "本月",
+    "total_spent": "总花费",
+    "add_credits": "添加积分",
+    "transaction_history": "交易历史",
+    "pay_with_crypto": "使用加密货币支付",
+    "pay_with_card": "使用卡支付"
+  },
+  "verify": {
+    "title": "短信验证",
+    "subtitle": "获取验证号码",
+    "select_service": "选择服务",
+    "select_country": "选择国家",
+    "buy_number": "购买号码"
+  }
+}

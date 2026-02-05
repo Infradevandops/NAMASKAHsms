@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Bulk purchase - Namaskah">
+  <title>Bulk Purchase - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .bulk-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .bulk-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .bulk-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .bulk-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .bulk-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .card-header svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .card-header h2 {
+      margin: 0;
+      font-size: 1.25rem;
+    }
+    
+    .form-section {
+      margin-bottom: var(--space-xl);
+    }
+    
+    .form-section h3 {
+      margin: 0 0 var(--space-lg) 0;
+      font-size: 1.1rem;
+    }
+    
+    .quantity-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .quantity-selector label {
+      margin: 0;
+      font-weight: var(--font-weight-medium);
+      min-width: 150px;
+    }
+    
+    .quantity-input {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    
+    .quantity-input button {
+      background: var(--surface);
+      border: none;
+      padding: var(--space-md) var(--space-lg);
+      cursor: pointer;
+      transition: background var(--transition-fast);
+    }
+    
+    .quantity-input button:hover {
+      background: var(--border);
+    }
+    
+    .quantity-input input {
+      border: none;
+      width: 80px;
+      text-align: center;
+      font-size: 1rem;
+      padding: var(--space-md);
+    }
+    
+    .quantity-input input:focus {
+      outline: none;
+    }
+    
+    .price-info {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .price-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .price-row:last-child {
+      border-bottom: none;
+    }
+    
+    .price-label {
+      color: var(--neutral);
+    }
+    
+    .price-value {
+      font-weight: var(--font-weight-semibold);
+      color: #111827;
+    }
+    
+    .price-total {
+      font-size: 1.25rem;
+      color: var(--primary);
+    }
+    
+    .discount-section {
+      background: rgba(16, 185, 129, 0.05);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .discount-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    
+    .discount-item:last-child {
+      border-bottom: none;
+    }
+    
+    .discount-badge {
+      background: var(--success);
+      color: white;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .order-summary {
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .summary-item {
+      display: flex;
+      justify-content: space-between;
+      padding: var(--space-md) 0;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .summary-item:last-child {
+      border-bottom: none;
+    }
+    
+    .summary-total {
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+      padding-top: var(--space-lg);
+      border-top: 2px solid var(--border);
+      margin-top: var(--space-lg);
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+    
+    .action-buttons .btn {
+      flex: 1;
+    }
+    
+    @media (max-width: 640px) {
+      .bulk-container {
+        padding: var(--space-lg);
+      }
+      
+      .quantity-selector {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bulk-container">
+    <!-- Header -->
+    <div class="bulk-header">
+      <h1>Bulk Purchase</h1>
+      <p>Get discounts on large orders</p>
+    </div>
+
+    <!-- Purchase Form -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <i class="ph ph-shopping-cart"></i>
+        <h2>Configure Your Order</h2>
+      </div>
+
+      <!-- Service Selection -->
+      <div class="form-section">
+        <h3>Select Service</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--space-md);">
+          <button class="btn btn-primary" style="text-align: left;">
+            <i class="ph ph-check"></i>
+            SMS Verification
+          </button>
+          <button class="btn btn-outline" style="text-align: left;">
+            <i class="ph ph-mail"></i>
+            Email Verification
+          </button>
+          <button class="btn btn-outline" style="text-align: left;">
+            <i class="ph ph-phone"></i>
+            Phone Rental
+          </button>
+        </div>
+      </div>
+
+      <!-- Quantity Selection -->
+      <div class="form-section">
+        <h3>Quantity</h3>
+        <div class="quantity-selector">
+          <label for="quantity">Number of Units:</label>
+          <div class="quantity-input">
+            <button onclick="decreaseQuantity()">
+              <i class="ph ph-minus"></i>
+            </button>
+            <input type="number" id="quantity" value="100" min="1" max="10000" onchange="updatePrice()">
+            <button onclick="increaseQuantity()">
+              <i class="ph ph-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Discount Information -->
+      <div class="discount-section">
+        <h3 style="margin: 0 0 var(--space-lg) 0;">Available Discounts</h3>
+        <div class="discount-item">
+          <span>100-499 units</span>
+          <span class="discount-badge">5% OFF</span>
+        </div>
+        <div class="discount-item">
+          <span>500-999 units</span>
+          <span class="discount-badge">10% OFF</span>
+        </div>
+        <div class="discount-item">
+          <span>1000+ units</span>
+          <span class="discount-badge">15% OFF</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Price Breakdown -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <i class="ph ph-credit-card"></i>
+        <h2>Price Breakdown</h2>
+      </div>
+
+      <div class="price-info">
+        <div class="price-row">
+          <span class="price-label">Unit Price</span>
+          <span class="price-value">$0.50</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Quantity</span>
+          <span class="price-value" id="displayQuantity">100 units</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Subtotal</span>
+          <span class="price-value" id="subtotal">$50.00</span>
+        </div>
+        <div class="price-row">
+          <span class="price-label">Discount (5%)</span>
+          <span class="price-value" style="color: var(--success);" id="discount">-$2.50</span>
+        </div>
+        <div class="price-row" style="padding-top: var(--space-lg); border-top: 2px solid var(--border);">
+          <span class="price-label" style="font-weight: var(--font-weight-bold);">Total</span>
+          <span class="price-total" id="total">$47.50</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="bulk-card">
+      <div class="card-header">
+        <i class="ph ph-check-circle"></i>
+        <h2>Order Summary</h2>
+      </div>
+
+      <div class="order-summary">
+        <div class="summary-item">
+          <span>Service</span>
+          <span>SMS Verification</span>
+        </div>
+        <div class="summary-item">
+          <span>Quantity</span>
+          <span id="summaryQuantity">100 units</span>
+        </div>
+        <div class="summary-item">
+          <span>Unit Price</span>
+          <span>$0.50</span>
+        </div>
+        <div class="summary-item">
+          <span>Discount</span>
+          <span style="color: var(--success);">5% OFF</span>
+        </div>
+        <div class="summary-total">
+          Total: <span id="summaryTotal">$47.50</span>
+        </div>
+      </div>
+
+      <div class="alert alert-info">
+        <i class="ph ph-info"></i>
+        <span>Your order will be processed immediately after payment confirmation.</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-outline">
+        <i class="ph ph-arrow-left"></i>
+        Back
+      </button>
+      <button class="btn btn-primary">
+        <i class="ph ph-credit-card"></i>
+        Proceed to Checkout
+      </button>
+    </div>
+  </div>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+  <script>
+    const unitPrice = 0.50;
+    
+    function updatePrice() {
+      const quantity = parseInt(document.getElementById('quantity').value) || 100;
+      const subtotal = quantity * unitPrice;
+      
+      let discountPercent = 0;
+      if (quantity >= 1000) discountPercent = 15;
+      else if (quantity >= 500) discountPercent = 10;
+      else if (quantity >= 100) discountPercent = 5;
+      
+      const discount = subtotal * (discountPercent / 100);
+      const total = subtotal - discount;
+      
+      document.getElementById('displayQuantity').textContent = quantity + ' units';
+      document.getElementById('subtotal').textContent = '$' + subtotal.toFixed(2);
+      document.getElementById('discount').textContent = '-$' + discount.toFixed(2);
+      document.getElementById('total').textContent = '$' + total.toFixed(2);
+      document.getElementById('summaryQuantity').textContent = quantity + ' units';
+      document.getElementById('summaryTotal').textContent = '$' + total.toFixed(2);
+    }
+    
+    function increaseQuantity() {
+      const input = document.getElementById('quantity');
+      input.value = Math.min(parseInt(input.value) + 10, 10000);
+      updatePrice();
+    }
+    
+    function decreaseQuantity() {
+      const input = document.getElementById('quantity');
+      input.value = Math.max(parseInt(input.value) - 10, 1);
+      updatePrice();
+    }
+    
+    updatePrice();
+  </script>
+</body>
+</html>

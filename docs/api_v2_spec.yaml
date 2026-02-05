@@ -1,0 +1,175 @@
+openapi: 3.0.0
+info:
+  title: Namaskah SMS API
+  version: 2.5.0
+  description: Modular SMS Verification Service
+  contact:
+    name: Namaskah Support
+    url: https://namaskah.app
+  license:
+    name: MIT
+
+servers:
+  - url: https://namaskah.app/api/v1
+    description: Production
+  - url: http://localhost:8000/api/v1
+    description: Development
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+
+  /verify/services:
+    get:
+      summary: Get available services
+      tags:
+        - Verification
+      responses:
+        '200':
+          description: List of available services
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  services:
+                    type: array
+                    items:
+                      type: object
+                  total:
+                    type: integer
+
+  /verify/history:
+    get:
+      summary: Get verification history
+      tags:
+        - Verification
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Verification history
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Verification'
+                  total_count:
+                    type: integer
+        '401':
+          description: Unauthorized
+
+  /verify/create:
+    post:
+      summary: Create new verification
+      tags:
+        - Verification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationCreate'
+      responses:
+        '201':
+          description: Verification created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Verification'
+        '401':
+          description: Unauthorized
+        '402':
+          description: Insufficient credits
+
+components:
+  schemas:
+    Verification:
+      type: object
+      properties:
+        id:
+          type: string
+        service_name:
+          type: string
+        phone_number:
+          type: string
+        capability:
+          type: string
+          enum: [sms, voice]
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+        cost:
+          type: number
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        sms_code:
+          type: string
+          nullable: true
+        carrier:
+          type: string
+          nullable: true
+
+    VerificationCreate:
+      type: object
+      required:
+        - service_name
+      properties:
+        service_name:
+          type: string
+        country:
+          type: string
+          default: US
+        capability:
+          type: string
+          default: sms
+        area_code:
+          type: string
+          nullable: true
+        carrier:
+          type: string
+          nullable: true
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="White label setup - Namaskah">
+  <title>White Label Setup - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .setup-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .setup-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .setup-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .setup-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .steps-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .step-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      text-align: center;
+    }
+    
+    .step-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      background: var(--primary);
+      color: white;
+      border-radius: 50%;
+      font-weight: var(--font-weight-bold);
+      font-size: 1.25rem;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .step-title {
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .step-description {
+      color: var(--neutral);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .config-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .config-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .config-section h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .config-item {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .config-item label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .config-item input,
+    .config-item select {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+    }
+    
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      font-family: var(--font-family-mono);
+      font-size: 0.875rem;
+      overflow-x: auto;
+      margin: var(--space-lg) 0;
+    }
+    
+    .action-buttons {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-xl);
+    }
+    
+    .action-buttons .btn {
+      flex: 1;
+    }
+    
+    @media (max-width: 640px) {
+      .setup-container {
+        padding: var(--space-lg);
+      }
+      
+      .steps-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .action-buttons {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">Namaskah</div>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="setup-container">
+    <!-- Header -->
+    <div class="setup-header">
+      <h1>White Label Setup</h1>
+      <p>Configure your white label solution in minutes</p>
+    </div>
+
+    <!-- Steps -->
+    <div class="steps-container">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <h3 class="step-title">Configure Branding</h3>
+        <p class="step-description">Set your company name, logo, and colors</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <h3 class="step-title">Setup Domain</h3>
+        <p class="step-description">Point your domain to our infrastructure</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h3 class="step-title">Customize Features</h3>
+        <p class="step-description">Enable/disable features for your users</p>
+      </div>
+      
+      <div class="step-card">
+        <div class="step-number">4</div>
+        <h3 class="step-title">Go Live</h3>
+        <p class="step-description">Launch your white label platform</p>
+      </div>
+    </div>
+
+    <!-- Branding Configuration -->
+    <div class="config-section">
+      <h2>
+        <i class="ph ph-palette"></i>
+        Branding Configuration
+      </h2>
+      
+      <div class="config-item">
+        <label>Company Name</label>
+        <input type="text" placeholder="Your Company Name">
+      </div>
+      
+      <div class="config-item">
+        <label>Primary Color</label>
+        <input type="color" value="#2563eb">
+      </div>
+      
+      <div class="config-item">
+        <label>Secondary Color</label>
+        <input type="color" value="#7c3aed">
+      </div>
+      
+      <div class="config-item">
+        <label>Logo URL</label>
+        <input type="text" placeholder="https://example.com/logo.png">
+      </div>
+    </div>
+
+    <!-- Domain Configuration -->
+    <div class="config-section">
+      <h2>
+        <i class="ph ph-globe"></i>
+        Domain Configuration
+      </h2>
+      
+      <div class="config-item">
+        <label>Your Domain</label>
+        <input type="text" placeholder="app.yourcompany.com">
+      </div>
+      
+      <p style="color: var(--neutral); margin: var(--space-lg) 0;">Add these DNS records to your domain:</p>
+      
+      <div class="code-block">
+        CNAME: app.yourcompany.com → namaskah.app<br>
+        TXT: _acme-challenge → verification-token
+      </div>
+    </div>
+
+    <!-- Feature Configuration -->
+    <div class="config-section">
+      <h2>
+        <i class="ph ph-settings"></i>
+        Feature Configuration
+      </h2>
+      
+      <div style="display: flex; flex-direction: column; gap: var(--space-md);">
+        <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
+          <input type="checkbox" checked>
+          <span>SMS Verification</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
+          <input type="checkbox" checked>
+          <span>Email Verification</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
+          <input type="checkbox" checked>
+          <span>Phone Rental</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
+          <input type="checkbox">
+          <span>Analytics Dashboard</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: var(--space-md); cursor: pointer;">
+          <input type="checkbox">
+          <span>API Access</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <a href="/" class="btn btn-outline">
+        <i class="ph ph-arrow-left"></i>
+        Back
+      </a>
+      <button class="btn btn-primary">
+        <i class="ph ph-save"></i>
+        Save Configuration
+      </button>
+    </div>
+  </div>
+
+  <footer style="background-color: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 2rem;">
+    <p>&copy; 2025 Namaskah. All rights reserved.</p>
+  </footer>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing - Namaskah SMS</title>
+    <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.0.3/src/regular/style.css">
+    <link rel="stylesheet" href="/static/css/pricing.css">
+</head>
+
+<body>
+    <div class="pricing-container">
+        <header class="pricing-header">
+            <h1>Choose Your Plan</h1>
+            <p>Select the perfect tier for your SMS verification needs</p>
+        </header>
+
+        <div class="tier-cards">
+            <!-- Freemium Tier -->
+            <div class="tier-card" data-tier="freemium">
+                <div class="tier-badge tier-badge-free">Free</div>
+                <h2 class="tier-name">Freemium</h2>
+                <p class="tier-subtitle">Best for testing</p>
+                <div class="tier-price">
+                    <span class="price-amount">$0</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <p class="tier-description">Perfect for trying out our service</p>
+
+                <ul class="tier-features">
+                    <li><i class="ph ph-check"></i> 9 SMS per $20 deposit</li>
+                    <li><i class="ph ph-check"></i> $2.22/SMS effective rate</li>
+                    <li><i class="ph ph-check"></i> Random numbers only</li>
+                    <li><i class="ph ph-check"></i> Web UI only</li>
+                    <li><i class="ph ph-check"></i> Community support</li>
+                    <li class="disabled"><i class="ph ph-x"></i> No API access</li>
+                    <li class="disabled"><i class="ph ph-x"></i> No location filters</li>
+                    <li class="disabled"><i class="ph ph-x"></i> No ISP filtering</li>
+                </ul>
+
+                <button class="btn-cta btn-freemium" onclick="selectTier('freemium')">
+                    Get Started Free
+                </button>
+            </div>
+
+            <!-- Pay-As-You-Go Tier -->
+            <div class="tier-card" data-tier="payg">
+                <div class="tier-badge tier-badge-flexible">Flexible</div>
+                <h2 class="tier-name">Pay-As-You-Go</h2>
+                <p class="tier-subtitle">Best for occasional users</p>
+                <div class="tier-price">
+                    <span class="price-amount">$2.50</span>
+                    <span class="price-period">/SMS</span>
+                </div>
+                <p class="tier-description">For users who need filtering options</p>
+
+                <ul class="tier-features">
+                    <li><i class="ph ph-check"></i> Custom balance funding</li>
+                    <li><i class="ph ph-check"></i> State/City filters (+$0.25)</li>
+                    <li><i class="ph ph-check"></i> ISP filters (+$0.50)</li>
+                    <li><i class="ph ph-check"></i> Number pre-selection</li>
+                    <li><i class="ph ph-check"></i> No monthly commitment</li>
+                    <li class="disabled"><i class="ph ph-x"></i> No API access</li>
+                    <li class="disabled"><i class="ph ph-x"></i> No affiliate program</li>
+                </ul>
+
+                <button class="btn-cta btn-payg" onclick="selectTier('payg')">
+                    Get Started
+                </button>
+            </div>
+
+            <!-- Pro Tier -->
+            <div class="tier-card tier-card-popular" data-tier="pro">
+                <div class="tier-badge tier-badge-popular">Most Popular</div>
+                <div class="tier-savings-badge">Save 88%</div>
+                <h2 class="tier-name">Pro</h2>
+                <p class="tier-subtitle">Best for businesses</p>
+                <div class="tier-price">
+                    <span class="price-amount">$25</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <p class="tier-description">For businesses and developers</p>
+
+                <ul class="tier-features">
+                    <li><i class="ph ph-check"></i> $15 quota included (~50 SMS)</li>
+                    <li><i class="ph ph-check"></i> All filters included</li>
+                    <li><i class="ph ph-check"></i> <strong>10 API keys</strong></li>
+                    <li><i class="ph ph-check"></i> <strong>Affiliate program</strong></li>
+                    <li><i class="ph ph-check"></i> Priority support</li>
+                    <li><i class="ph ph-check"></i> $0.30 overage rate</li>
+                </ul>
+
+                <button class="btn-cta btn-pro" onclick="selectTier('pro')">
+                    Upgrade to Pro
+                </button>
+            </div>
+
+            <!-- Custom Tier -->
+            <div class="tier-card" data-tier="custom">
+                <div class="tier-badge tier-badge-premium">Enterprise</div>
+                <h2 class="tier-name">Custom</h2>
+                <p class="tier-subtitle">Best for enterprises</p>
+                <div class="tier-price">
+                    <span class="price-amount">$35</span>
+                    <span class="price-period">/month</span>
+                </div>
+                <p class="tier-description">For enterprises and high-volume users</p>
+
+                <ul class="tier-features">
+                    <li><i class="ph ph-check"></i> $25 quota included (~125 SMS)</li>
+                    <li><i class="ph ph-check"></i> <strong>Unlimited API keys</strong></li>
+                    <li><i class="ph ph-check"></i> <strong>Enhanced affiliate program</strong></li>
+                    <li><i class="ph ph-check"></i> All premium features</li>
+                    <li><i class="ph ph-check"></i> Dedicated support</li>
+                    <li><i class="ph ph-check"></i> $0.20 overage rate</li>
+                </ul>
+
+                <button class="btn-cta btn-custom" onclick="selectTier('custom')">
+                    Upgrade to Custom
+                </button>
+            </div>
+        </div>
+
+        <div class="comparison-table">
+            <h2>Feature Comparison</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Freemium</th>
+                        <th>Pay-As-You-Go</th>
+                        <th>Pro</th>
+                        <th>Custom</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Price</td>
+                        <td>Free</td>
+                        <td>$2.50/SMS</td>
+                        <td>$25/mo</td>
+                        <td>$35/mo</td>
+                    </tr>
+                    <tr>
+                        <td>SMS Rate</td>
+                        <td>$2.22/SMS (9 per $20)</td>
+                        <td>$2.50 base + filters</td>
+                        <td>$15 quota + $0.30 overage</td>
+                        <td>$25 quota + $0.20 overage</td>
+                    </tr>
+                    <tr>
+                        <td>API Access</td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-check text-success"></i></td>
+                        <td><i class="ph ph-check text-success"></i></td>
+                    </tr>
+                    <tr>
+                        <td>API Keys</td>
+                        <td>0</td>
+                        <td>0</td>
+                        <td>10</td>
+                        <td>Unlimited</td>
+                    </tr>
+                    <tr>
+                        <td>Location Filters</td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-check text-success"></i> +$0.25</td>
+                        <td><i class="ph ph-check text-success"></i> Included</td>
+                        <td><i class="ph ph-check text-success"></i> Included</td>
+                    </tr>
+                    <tr>
+                        <td>ISP/Carrier Filtering</td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-check text-success"></i> +$0.50</td>
+                        <td><i class="ph ph-check text-success"></i> Included</td>
+                        <td><i class="ph ph-check text-success"></i> Included</td>
+                    </tr>
+                    <tr>
+                        <td>Affiliate Program</td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-x text-danger"></i></td>
+                        <td><i class="ph ph-check text-success"></i> Standard</td>
+                        <td><i class="ph ph-check text-success"></i> Enhanced</td>
+                    </tr>
+                    <tr>
+                        <td>Support</td>
+                        <td>Community</td>
+                        <td>Community</td>
+                        <td>Priority</td>
+                        <td>Dedicated</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-item">
+                <h3>Can I change my plan anytime?</h3>
+                <p>Yes! You can upgrade or downgrade your plan at any time from your dashboard settings.</p>
+            </div>
+            <div class="faq-item">
+                <h3>What happens if I downgrade?</h3>
+                <p>You'll immediately lose access to premium features. Your API keys will be disabled, but your data
+                    remains safe.</p>
+            </div>
+            <div class="faq-item">
+                <h3>Do I need a credit card for Freemium?</h3>
+                <p>No! Sign up and start using Freemium tier without any payment information.</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #FDFBF7;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .pricing-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .pricing-header {
+            text-align: center;
+            color: #37352F;
+            margin-bottom: 50px;
+        }
+
+        .pricing-header h1 {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+
+        .pricing-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .tier-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .tier-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
+            position: relative;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            border: 2px solid #e5e7eb;
+        }
+
+        .tier-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(254, 60, 114, 0.15);
+            border-color: #FE3C72;
+        }
+
+        .tier-card-popular {
+            border: 3px solid #FE3C72;
+            background: #37352F;
+            transform: scale(1.05);
+        }
+
+        .tier-card-popular .tier-name,
+        .tier-card-popular .price-amount,
+        .tier-card-popular .tier-features li {
+            color: white;
+        }
+
+        .tier-card-popular .tier-subtitle,
+        .tier-card-popular .tier-description {
+            color: #d1d5db;
+        }
+
+        .tier-card-popular .ph-check {
+            color: #01DF8A;
+        }
+
+        .tier-badge {
+            position: absolute;
+            top: -12px;
+            right: 20px;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            z-index: 10;
+        }
+
+        .tier-badge-flexible {
+            background: #FF7854;
+        }
+
+        .tier-badge-free {
+            background: #01DF8A;
+        }
+
+        .tier-badge-popular {
+            background: white;
+            color: #37352F;
+        }
+
+        .tier-badge-premium {
+            background: #8B5CF6;
+        }
+
+        .tier-subtitle {
+            color: #6b7280;
+            font-size: 14px;
+            margin: -10px 0 15px 0;
+            font-weight: 500;
+        }
+
+        .tier-savings-badge {
+            position: absolute;
+            top: -12px;
+            left: 20px;
+            background: #01DF8A;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 10;
+        }
+
+        .tier-name {
+            font-size: 24px;
+            margin: 20px 0;
+            color: #1f2937;
+        }
+
+        .tier-price {
+            margin-bottom: 10px;
+        }
+
+        .price-amount {
+            font-size: 48px;
+            font-weight: 700;
+            color: #FE3C72;
+        }
+
+        .price-period {
+            color: #6b7280;
+            font-size: 18px;
+        }
+
+        .tier-description {
+            color: #6b7280;
+            margin-bottom: 30px;
+            min-height: 40px;
+        }
+
+        .tier-features {
+            list-style: none;
+            margin-bottom: 30px;
+        }
+
+        .tier-features li {
+            padding: 12px 0;
+            color: #374151;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tier-features li.disabled {
+            color: #9ca3af;
+        }
+
+        .tier-features i {
+            font-size: 20px;
+        }
+
+        .ph-check {
+            color: #01DF8A;
+        }
+
+        .ph-x {
+            color: #ef4444;
+        }
+
+        .btn-cta {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-freemium {
+            background: #37352F;
+            color: white;
+        }
+
+        .btn-freemium:hover {
+            background: #2a2824;
+        }
+
+        .btn-payg {
+            background: #37352F;
+            color: white;
+        }
+
+        .btn-payg:hover {
+            background: #2a2824;
+        }
+
+        .btn-pro {
+            background: white;
+            color: #37352F;
+        }
+
+        .btn-pro:hover {
+            background: #f9fafb;
+        }
+
+        .btn-custom {
+            background: #37352F;
+            color: white;
+        }
+
+        .btn-custom:hover {
+            background: #2a2824;
+        }
+
+        .btn-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .comparison-table,
+        .faq-section {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .comparison-table h2,
+        .faq-section h2 {
+            margin-bottom: 30px;
+            color: #1f2937;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .text-success {
+            color: #01DF8A;
+        }
+
+        .text-danger {
+            color: #ef4444;
+        }
+
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-item h3 {
+            color: #1f2937;
+            margin-bottom: 10px;
+        }
+
+        .faq-item p {
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .tier-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .tier-card-popular {
+                transform: scale(1);
+            }
+
+            .pricing-header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+
+    <script>
+        function selectTier(tier) {
+            // Check if user is logged in
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                window.location.href = `/auth/login?redirect=/pricing&tier=${tier}`;
+                return;
+            }
+
+            // If Freemium, redirect to dashboard
+            if (tier === 'freemium') {
+                window.location.href = '/dashboard';
+                return;
+            }
+
+            // For paid tiers, initiate upgrade
+            if (tier === 'payg') {
+                window.location.href = '/dashboard?view=billing';
+                return;
+            }
+
+            window.location.href = `/dashboard?view=settings&upgrade=${tier}`;
+        }
+    </script>
+</body>
+
+</html>

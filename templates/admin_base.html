@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.admin-layout { padding: 12px; }
+.admin-header { background: white; padding: 12px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; }
+.admin-header h1 { font-size: 20px; margin-bottom: 4px; }
+.admin-nav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.admin-nav button { padding: 6px 12px; font-size: 11px; border: none; border-radius: 3px; cursor: pointer; color: white; font-weight: 500; transition: opacity 0.2s; }
+.admin-nav button:hover { opacity: 0.9; }
+.admin-nav .active { background: #2c3e50; }
+.card { background: white; border-radius: 6px; padding: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="admin-layout">
+    <div class="admin-header">
+        <h1>🎯 {% block admin_title %}Admin Dashboard{% endblock %}</h1>
+        <p style="font-size: 12px; color: #666; margin-bottom: 8px;">
+            {% block admin_subtitle %}Tier Management • User Stats • Quick Actions{% endblock %}
+        </p>
+        <div class="admin-nav">
+            <button onclick="window.location.href='/admin'" style="background: #3498db;">📊 Dashboard</button>
+            <button onclick="window.location.href='/admin/tier-management'" style="background: #27ae60;">🎯 Tiers</button>
+            <button onclick="window.location.href='/admin/pricing-templates'" style="background: #e67e22;">💰 Pricing</button>
+            <button onclick="window.location.href='/admin/verification-history'" style="background: #e74c3c;">📋 History</button>
+        </div>
+    </div>
+    
+    {% block admin_content %}{% endblock %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const path = window.location.pathname;
+document.querySelectorAll('.admin-nav button').forEach(btn => {
+    if (btn.getAttribute('onclick').includes(path)) {
+        btn.classList.add('active');
+    }
+});
+</script>
+{% endblock %}

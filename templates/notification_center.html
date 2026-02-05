@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Center - Namaskah</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <style>
+        .notification-center {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 24px;
+            padding: 24px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            height: fit-content;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h3 {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #666;
+            margin: 0 0 16px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-group {
+            margin-bottom: 20px;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .filter-group input[type="date"] {
+            cursor: text;
+        }
+
+        .filter-group select:hover,
+        .filter-group input:hover {
+            border-color: #bbb;
+        }
+
+        .filter-group select:focus,
+        .filter-group input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+
+        .categories {
+            border-top: 1px solid #eee;
+            padding-top: 16px;
+            margin-top: 16px;
+        }
+
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            font-size: 13px;
+            cursor: pointer;
+            border-radius: 6px;
+            padding: 8px 12px;
+            transition: background 0.2s;
+        }
+
+        .category-item:hover {
+            background: #f5f5f5;
+        }
+
+        .category-item.active {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 600;
+        }
+
+        .category-name {
+            flex: 1;
+        }
+
+        .category-count {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .category-item.active .category-count {
+            background: #0369a1;
+            color: white;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin: 0;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .search-bar {
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #f9f9f9;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .actions button {
+            padding: 10px 16px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .actions button:hover {
+            background: #f5f5f5;
+            border-color: #bbb;
+        }
+
+        .actions button.primary {
+            background: #06b6d4;
+            color: white;
+            border-color: #06b6d4;
+        }
+
+        .actions button.primary:hover {
+            background: #0891b2;
+            border-color: #0891b2;
+        }
+
+        .notification-list {
+            max-height: calc(100vh - 300px);
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 16px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        .notification-item:hover {
+            background: #f9f9f9;
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: #06b6d4;
+        }
+
+        .notification-checkbox {
+            margin-top: 4px;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 4px 0;
+        }
+
+        .notification-message {
+            font-size: 13px;
+            color: #666;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .notification-meta {
+            display: flex;
+            gap: 12px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .notification-type {
+            background: #f0f0f0;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .notification-actions button {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .notification-actions button:hover {
+            background: #eee;
+            color: #333;
+        }
+
+        .empty-state {
+            padding: 60px 24px;
+            text-align: center;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .loading {
+            padding: 40px 24px;
+            text-align: center;
+            color: #999;
+        }
+
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #f0f0f0;
+            border-top-color: #06b6d4;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .pagination {
+            padding: 16px 24px;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover {
+            border-color: #06b6d4;
+            color: #06b6d4;
+        }
+
+        .pagination button.active {
+            background: #06b6d4;
+            color: white;
+            border-color: #06b6d4;
+        }
+
+        @media (max-width: 768px) {
+            .notification-center {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                position: static;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-bar {
+                max-width: none;
+            }
+
+            .actions {
+                flex-wrap: wrap;
+            }
+
+            .notification-item {
+                flex-direction: column;
+            }
+
+            .notification-actions {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-center">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h3>Filters</h3>
+            
+            <div class="filter-group">
+                <label>Category</label>
+                <select id="category-filter">
+                    <option value="">All Categories</option>
+                    <option value="verification_initiated">Verification Started</option>
+                    <option value="sms_received">SMS Received</option>
+                    <option value="verification_complete">Verification Complete</option>
+                    <option value="verification_failed">Verification Failed</option>
+                    <option value="credit_deducted">Credit Deducted</option>
+                    <option value="refund_issued">Refund Issued</option>
+                    <option value="balance_low">Balance Low</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="status-filter">
+                    <option value="">All</option>
+                    <option value="unread">Unread</option>
+                    <option value="read">Read</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>From Date</label>
+                <input type="date" id="date-from">
+            </div>
+
+            <div class="filter-group">
+                <label>To Date</label>
+                <input type="date" id="date-to">
+            </div>
+
+            <div class="categories">
+                <h3>Categories</h3>
+                <div id="categories-list">
+                    <!-- Categories loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1>Notifications</h1>
+                <div class="search-bar">
+                    <input type="text" id="search-input" placeholder="Search notifications...">
+                </div>
+                <div class="actions">
+                    <button id="mark-all-read">✓ Mark All Read</button>
+                    <button id="delete-all" class="primary">🗑 Delete All</button>
+                    <button id="export">⬇ Export</button>
+                </div>
+            </div>
+
+            <div class="notification-list" id="notification-list">
+                <div class="loading">Loading notifications...</div>
+            </div>
+
+            <div class="pagination" id="pagination">
+                <!-- Pagination controls -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class NotificationCenter {
+            constructor() {
+                this.notifications = [];
+                this.currentPage = 0;
+                this.totalNotifications = 0;
+                this.filters = {};
+                this.selectedNotifications = new Set();
+                this.init();
+            }
+
+            async init() {
+                this.setupEventListeners();
+                await this.loadCategories();
+                await this.loadNotifications();
+            }
+
+            setupEventListeners() {
+                document.getElementById('category-filter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('status-filter').addEventListener('change', () => this.applyFilters());
+                document.getElementById('date-from').addEventListener('change', () => this.applyFilters());
+                document.getElementById('date-to').addEventListener('change', () => this.applyFilters());
+                document.getElementById('search-input').addEventListener('input', (e) => this.search(e.target.value));
+                document.getElementById('mark-all-read').addEventListener('click', () => this.markAllRead());
+                document.getElementById('delete-all').addEventListener('click', () => this.deleteAll());
+                document.getElementById('export').addEventListener('click', () => this.exportNotifications());
+            }
+
+            async loadCategories() {
+                try {
+                    const response = await fetch('/api/notifications/categories');
+                    const data = await response.json();
+                    this.renderCategories(data.categories);
+                } catch (error) {
+                    console.error('Failed to load categories:', error);
+                }
+            }
+
+            renderCategories(categories) {
+                const list = document.getElementById('categories-list');
+                list.innerHTML = categories.map(cat => `
+                    <div class="category-item" onclick="notificationCenter.filterByCategory('${cat.type}')">
+                        <span class="category-name">${this.formatCategoryName(cat.type)}</span>
+                        <span class="category-count">${cat.unread}/${cat.total}</span>
+                    </div>
+                `).join('');
+            }
+
+            formatCategoryName(type) {
+                return type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            }
+
+            async loadNotifications() {
+                try {
+                    const params = new URLSearchParams({
+                        skip: this.currentPage * 20,
+                        limit: 20,
+                        ...this.filters
+                    });
+
+                    const response = await fetch(`/api/notifications/center?${params}`);
+                    const data = await response.json();
+
+                    this.notifications = data.notifications;
+                    this.totalNotifications = data.total;
+                    this.renderNotifications();
+                    this.renderPagination();
+                } catch (error) {
+                    console.error('Failed to load notifications:', error);
+                    document.getElementById('notification-list').innerHTML = '<div class="empty-state"><div class="empty-state-icon">⚠️</div><div class="empty-state-title">Failed to load notifications</div></div>';
+                }
+            }
+
+            renderNotifications() {
+                const list = document.getElementById('notification-list');
+
+                if (this.notifications.length === 0) {
+                    list.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-title">No notifications</div></div>';
+                    return;
+                }
+
+                list.innerHTML = this.notifications.map(n => `
+                    <div class="notification-item ${n.is_read ? '' : 'unread'}">
+                        <input type="checkbox" class="notification-checkbox" value="${n.id}" onchange="notificationCenter.toggleSelection(this)">
+                        <div class="notification-content">
+                            <div class="notification-title">${this.escapeHtml(n.title)}</div>
+                            <div class="notification-message">${this.escapeHtml(n.message)}</div>
+                            <div class="notification-meta">
+                                <span class="notification-type">${this.formatCategoryName(n.type)}</span>
+                                <span>${new Date(n.created_at).toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="notification-actions">
+                            ${!n.is_read ? `<button onclick="notificationCenter.markAsRead('${n.id}')" title="Mark as read">✓</button>` : ''}
+                            <button onclick="notificationCenter.deleteNotification('${n.id}')" title="Delete">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            renderPagination() {
+                const pagination = document.getElementById('pagination');
+                const totalPages = Math.ceil(this.totalNotifications / 20);
+
+                if (totalPages <= 1) {
+                    pagination.innerHTML = '';
+                    return;
+                }
+
+                let html = '';
+                for (let i = 0; i < totalPages; i++) {
+                    html += `<button ${i === this.currentPage ? 'class="active"' : ''} onclick="notificationCenter.goToPage(${i})">${i + 1}</button>`;
+                }
+                pagination.innerHTML = html;
+            }
+
+            async applyFilters() {
+                this.filters = {
+                    category: document.getElementById('category-filter').value || undefined,
+                    is_read: document.getElementById('status-filter').value === 'unread' ? false : document.getElementById('status-filter').value === 'read' ? true : undefined,
+                    date_from: document.getElementById('date-from').value || undefined,
+                    date_to: document.getElementById('date-to').value || undefined,
+                };
+
+                Object.keys(this.filters).forEach(key => this.filters[key] === undefined && delete this.filters[key]);
+
+                this.currentPage = 0;
+                await this.loadNotifications();
+            }
+
+            async search(query) {
+                if (query.length < 2) {
+                    await this.loadNotifications();
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/api/notifications/search?query=${encodeURIComponent(query)}`);
+                    const data = await response.json();
+                    this.notifications = data.notifications;
+                    this.totalNotifications = data.total;
+                    this.renderNotifications();
+                } catch (error) {
+                    console.error('Search failed:', error);
+                }
+            }
+
+            toggleSelection(checkbox) {
+                if (checkbox.checked) {
+                    this.selectedNotifications.add(checkbox.value);
+                } else {
+                    this.selectedNotifications.delete(checkbox.value);
+                }
+            }
+
+            async markAsRead(notificationId) {
+                try {
+                    await fetch(`/api/notifications/bulk-read?notification_ids=${notificationId}`, { method: 'POST' });
+                    await this.loadNotifications();
+                } catch (error) {
+                    console.error('Failed to mark as read:', error);
+                }
+            }
+
+            async markAllRead() {
+                if (this.selectedNotifications.size === 0) {
+                    alert('Please select notifications to mark as read');
+                    return;
+                }
+
+                try {
+                    const ids = Array.from(this.selectedNotifications).join('&notification_ids=');
+                    await fetch(`/api/notifications/bulk-read?notification_ids=${ids}`, { method: 'POST' });
+                    this.selectedNotifications.clear();
+                    await this.loadNotifications();
+                } catch (error) {
+                    console.error('Failed to mark as read:', error);
+                }
+            }
+
+            async deleteNotification(notificationId) {
+                if (confirm('Delete this notification?')) {
+                    try {
+                        await fetch(`/api/notifications/bulk-delete?notification_ids=${notificationId}`, { method: 'POST' });
+                        await this.loadNotifications();
+                    } catch (error) {
+                        console.error('Failed to delete:', error);
+                    }
+                }
+            }
+
+            async deleteAll() {
+                if (this.selectedNotifications.size === 0) {
+                    alert('Please select notifications to delete');
+                    return;
+                }
+
+                if (!confirm('Delete selected notifications?')) return;
+
+                try {
+                    const ids = Array.from(this.selectedNotifications).join('&notification_ids=');
+                    await fetch(`/api/notifications/bulk-delete?notification_ids=${ids}`, { method: 'POST' });
+                    this.selectedNotifications.clear();
+                    await this.loadNotifications();
+                } catch (error) {
+                    console.error('Failed to delete:', error);
+                }
+            }
+
+            async exportNotifications() {
+                try {
+                    const response = await fetch('/api/notifications/export?format=json');
+                    const data = await response.json();
+                    const blob = new Blob([JSON.stringify(data.data, null, 2)], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `notifications-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click();
+                } catch (error) {
+                    console.error('Export failed:', error);
+                }
+            }
+
+            goToPage(page) {
+                this.currentPage = page;
+                this.loadNotifications();
+                window.scrollTo(0, 0);
+            }
+
+            filterByCategory(category) {
+                document.getElementById('category-filter').value = category;
+                this.applyFilters();
+            }
+
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+
+        const notificationCenter = new NotificationCenter();
+    </script>
+</body>
+</html>

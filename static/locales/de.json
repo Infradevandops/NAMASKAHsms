@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "Willkommen",
+    "dashboard": "Armaturenbrett",
+    "settings": "Einstellungen",
+    "wallet": "Geldbörse",
+    "profile": "Profil",
+    "logout": "Abmelden",
+    "loading": "Lädt...",
+    "error": "Fehler",
+    "success": "Erfolg",
+    "type": "Typ",
+    "amount": "Betrag",
+    "date": "Datum",
+    "status": "Status"
+  },
+  "dashboard": {
+    "title": "Armaturenbrett",
+    "subtitle": "Übersicht Ihrer SMS-Verifizierungsaktivität",
+    "total_sms": "Gesamt SMS",
+    "successful": "Erfolgreich",
+    "total_spent": "Gesamt ausgegeben",
+    "success_rate": "Erfolgsquote",
+    "recent_activity": "Letzte Aktivität",
+    "no_activity": "Keine aktuelle Aktivität",
+    "start_verification": "Verifizierung starten",
+    "service": "Dienst",
+    "number": "Nummer",
+    "time": "Zeit",
+    "your_plan": "Ihr Plan",
+    "upgrade": "Upgrade",
+    "features": "Funktionen"
+  },
+  "tiers": {
+    "freemium": "Freemium",
+    "payg": "Pay-As-You-Go",
+    "pro": "Pro",
+    "custom": "Benutzerdefiniert",
+    "current_plan": "Aktueller Plan",
+    "upgrade_to": "Upgrade auf",
+    "features": {
+      "random_numbers": "Nur zufällige Nummern",
+      "no_api": "Kein API-Zugriff",
+      "no_filters": "Keine Standortfilter",
+      "location_filters": "Standortfilter",
+      "isp_filters": "ISP-Filter",
+      "api_access": "API-Zugriff",
+      "all_filters": "Alle Filter enthalten",
+      "affiliate": "Partnerprogramm",
+      "priority_support": "Prioritäts-Support",
+      "unlimited_api": "Unbegrenzte API"
+    }
+  },
+  "wallet": {
+    "title": "Geldbörse",
+    "subtitle": "Verwalten Sie Ihre Guthaben und Abrechnung",
+    "current_balance": "Aktuelles Guthaben",
+    "this_month": "Diesen Monat",
+    "total_spent": "Gesamt ausgegeben",
+    "add_credits": "Guthaben hinzufügen",
+    "transaction_history": "Transaktionsverlauf",
+    "pay_with_crypto": "Mit Krypto bezahlen",
+    "pay_with_card": "Mit Karte bezahlen"
+  },
+  "verify": {
+    "title": "SMS-Verifizierung",
+    "subtitle": "Holen Sie sich eine Nummer zur Verifizierung",
+    "select_service": "Dienst auswählen",
+    "select_country": "Land auswählen",
+    "buy_number": "Nummer kaufen"
+  }
+}

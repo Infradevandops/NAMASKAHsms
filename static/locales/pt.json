@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "Bem-vindo",
+    "dashboard": "Painel",
+    "settings": "Configurações",
+    "wallet": "Carteira",
+    "profile": "Perfil",
+    "logout": "Sair",
+    "loading": "Carregando...",
+    "error": "Erro",
+    "success": "Sucesso",
+    "type": "Tipo",
+    "amount": "Quantia",
+    "date": "Data",
+    "status": "Status"
+  },
+  "dashboard": {
+    "title": "Painel",
+    "subtitle": "Visão geral da sua atividade de verificação SMS",
+    "total_sms": "Total SMS",
+    "successful": "Bem-sucedido",
+    "total_spent": "Total gasto",
+    "success_rate": "Taxa de sucesso",
+    "recent_activity": "Atividade recente",
+    "no_activity": "Nenhuma atividade recente",
+    "start_verification": "Iniciar verificação",
+    "service": "Serviço",
+    "number": "Número",
+    "time": "Hora",
+    "your_plan": "Seu plano",
+    "upgrade": "Atualizar",
+    "features": "Recursos"
+  },
+  "tiers": {
+    "freemium": "Freemium",
+    "payg": "Pague conforme usa",
+    "pro": "Pro",
+    "custom": "Personalizado",
+    "current_plan": "Plano atual",
+    "upgrade_to": "Atualizar para",
+    "features": {
+      "random_numbers": "Apenas números aleatórios",
+      "no_api": "Sem acesso à API",
+      "no_filters": "Sem filtros de localização",
+      "location_filters": "Filtros de localização",
+      "isp_filters": "Filtros ISP",
+      "api_access": "Acesso à API",
+      "all_filters": "Todos os filtros incluídos",
+      "affiliate": "Programa de afiliados",
+      "priority_support": "Suporte prioritário",
+      "unlimited_api": "API ilimitada"
+    }
+  },
+  "wallet": {
+    "title": "Carteira",
+    "subtitle": "Gerencie seus créditos e faturamento",
+    "current_balance": "Saldo atual",
+    "this_month": "Este mês",
+    "total_spent": "Total gasto",
+    "add_credits": "Adicionar créditos",
+    "transaction_history": "Histórico de transações",
+    "pay_with_crypto": "Pagar com cripto",
+    "pay_with_card": "Pagar com cartão"
+  },
+  "verify": {
+    "title": "Verificação SMS",
+    "subtitle": "Obtenha um número para verificação",
+    "select_service": "Selecionar serviço",
+    "select_country": "Selecionar país",
+    "buy_number": "Comprar número"
+  }
+}

@@ -1,0 +1,247 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Referral Program{% endblock %}
+{% block page_subtitle %}Invite friends and earn credits{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<style>
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+
+    .stat-card {
+        background: var(--bg-card);
+        padding: 24px;
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--shadow-soft);
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+
+    .referral-link-section {
+        background: linear-gradient(135deg, rgba(254, 60, 114, 0.05) 0%, rgba(255, 107, 157, 0.05) 100%);
+        padding: 32px;
+        border-radius: var(--radius-card);
+        border: 1px dashed var(--primary);
+        margin-bottom: 32px;
+        text-align: center;
+    }
+
+    .link-box {
+        display: flex;
+        max-width: 600px;
+        margin: 24px auto 0;
+        gap: 8px;
+    }
+
+    .referral-input {
+        flex: 1;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-body);
+        font-family: monospace;
+        font-size: 14px;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 24px;
+        margin-top: 32px;
+    }
+
+    .step-item {
+        text-align: center;
+        padding: 24px;
+    }
+
+    .step-number {
+        width: 40px;
+        height: 40px;
+        background: var(--primary);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        font-weight: 700;
+    }
+
+    .referral-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+    }
+
+    .referral-table th {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .referral-table td {
+        padding: 12px;
+        border-bottom: 1px solid var(--border-color);
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="stats-row">
+    <div class="stat-card">
+        <div class="stat-value" id="total-earnings">$0.00</div>
+        <div class="stat-label">Total Earnings</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="total-referrals">0</div>
+        <div class="stat-label">Friends Invited</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" id="bonus-credits">0</div>
+        <div class="stat-label">Bonus Credits</div>
+    </div>
+</div>
+
+<div class="referral-link-section">
+    <h2 style="margin: 0;">Share the Love</h2>
+    <p style="color: var(--text-secondary); margin-top: 8px;">Give 2 free verifications to your friends and earn 10% on
+        their first deposit!</p>
+
+    <div class="link-box">
+        <input type="text" id="referral-url" class="referral-input" readonly value="Loading...">
+        <button class="btn btn-primary" onclick="copyReferralLink()">Copy Link</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>How it works</h2>
+    <div class="steps-grid">
+        <div class="step-item">
+            <div class="step-number">1</div>
+            <h3>Share Link</h3>
+            <p style="color: var(--text-secondary); font-size: 14px;">Send your unique referral link to your friends or
+                share on social media.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-number">2</div>
+            <h3>Friends Join</h3>
+            <p style="color: var(--text-secondary); font-size: 14px;">Your friends get 2 bonus verifications immediately
+                upon signing up.</p>
+        </div>
+        <div class="step-item">
+            <div class="step-number">3</div>
+            <h3>Get Paid</h3>
+            <p style="color: var(--text-secondary); font-size: 14px;">Earn 10% commission on every credit purchase they
+                make, forever.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 32px;">
+    <h2>Recent Referrals</h2>
+    <div style="overflow-x: auto;">
+        <table class="referral-table">
+            <thead>
+                <tr>
+                    <th>User ID</th>
+                    <th>Email</th>
+                    <th>Date Joined</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="referrals-list">
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                        <span class="loading-spinner"></span> Loading referrals...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/api-retry.js"></script>
+<script>
+    async function loadReferralData() {
+        const token = localStorage.getItem('access_token');
+
+        try {
+            // Load Stats
+            const statsRes = await ApiRetry.fetchWithRetry('/api/referrals/stats', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (statsRes.ok) {
+                const result = await statsRes.json();
+                const data = result.data;
+                document.getElementById('total-earnings').textContent = `$${data.total_earnings.toFixed(2)}`;
+                document.getElementById('total-referrals').textContent = data.total_referred;
+                document.getElementById('bonus-credits').textContent = data.bonus_credits;
+                document.getElementById('referral-url').value = data.referral_link;
+            }
+
+            // Load List
+            const listRes = await ApiRetry.fetchWithRetry('/api/referrals/list', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (listRes.ok) {
+                const result = await listRes.json();
+                const referrals = result.data || [];
+                const container = document.getElementById('referrals-list');
+
+                if (referrals.length === 0) {
+                    container.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">No referrals yet. Spread the word!</td></tr>';
+                    return;
+                }
+
+                container.innerHTML = referrals.map(r => `
+                    <tr>
+                        <td style="font-family: monospace;">${r.id}</td>
+                        <td>${r.email}</td>
+                        <td>${new Date(r.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <span style="color: ${r.status === 'Active' ? '#10b981' : '#f59e0b'}">
+                                ${r.status}
+                            </span>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+
+        } catch (error) {
+            console.error('Error loading referral data:', error);
+        }
+    }
+
+    function copyReferralLink() {
+        const input = document.getElementById('referral-url');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        alert('Referral link copied to clipboard!');
+    }
+
+    document.addEventListener('DOMContentLoaded', loadReferralData);
+</script>
+{% endblock %}

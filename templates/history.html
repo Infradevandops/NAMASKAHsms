@@ -1,0 +1,218 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}History{% endblock %}
+{% block page_subtitle %}Your verification history{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 16px;">
+    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <select id="filter-status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+            <option value="">All Status</option>
+            <option value="completed">Completed</option>
+            <option value="pending">Pending</option>
+            <option value="failed">Failed</option>
+        </select>
+        <input type="date" id="filter-date" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+        <button class="btn" onclick="applyFilters()" style="padding: 8px 16px;">Filter</button>
+        <button class="btn" onclick="clearFilters()" style="padding: 8px 16px; background: #6b7280;">Clear</button>
+        <button class="btn" onclick="exportHistory()"
+            style="padding: 8px 16px; background: #10b981; margin-left: auto;">📥 Export CSV</button>
+    </div>
+</div>
+
+<div class="card">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Country</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Carrier</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Number</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Code</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Cost</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="history-body">
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
+    <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
+    <h3 style="margin-bottom: 8px;">No verification history</h3>
+    <p style="margin-bottom: 24px;">Start your first verification to see it here</p>
+    <button class="btn" onclick="window.location.href='/verify'">Get SMS Code</button>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    let allHistory = [];
+
+    async function loadHistory() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        try {
+            // Use the correct Verification API endpoint
+            const res = await fetch('/api/v1/verify/history?limit=100', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const tbody = document.getElementById('history-body');
+            const emptyState = document.getElementById('empty-state');
+
+            if (res.ok) {
+                const data = await res.json();
+                // Data structure: { verifications: [...], total_count: 5 }
+                allHistory = data.verifications || [];
+
+                if (allHistory.length > 0) {
+                    renderHistory(allHistory);
+                    emptyState.style.display = 'none';
+                } else {
+                    tbody.innerHTML = '';
+                    emptyState.style.display = 'block';
+                }
+            } else {
+                const errorText = await res.text();
+                console.error(`API Error ${res.status}:`, errorText);
+                
+                // Handle specific error codes
+                if (res.status === 401) {
+                    window.location.href = '/auth/login';
+                    return;
+                }
+                
+                let errorMsg = 'Failed to load history';
+                if (res.status === 403) {
+                    errorMsg = 'Permission denied';
+                } else if (res.status === 500) {
+                    errorMsg = 'Server error - please try again later';
+                }
+                
+                tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">${errorMsg} (Error ${res.status})</td></tr>`;
+            }
+        } catch (error) {
+            console.error('Failed to load history:', error);
+            document.getElementById('history-body').innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 20px; color: #ef4444;">Failed to load history: ' + error.message + '</td></tr>';
+        }
+    }
+
+    function renderHistory(items) {
+        const tbody = document.getElementById('history-body');
+        tbody.innerHTML = items.map(item => {
+            const status = item.status || 'unknown';
+            let statusColor = '#f3f4f6';
+            let statusText = '#374151';
+
+            switch (status.toLowerCase()) {
+                case 'completed':
+                    statusColor = '#dcfce7';
+                    statusText = '#166534';
+                    break;
+                case 'pending':
+                    statusColor = '#fef9c3';
+                    statusText = '#854d0e';
+                    break;
+                case 'failed':
+                case 'cancelled':
+                case 'refunded':
+                    statusColor = '#fee2e2';
+                    statusText = '#991b1b';
+                    break;
+            }
+
+            const smsCode = item.sms_code ? `<span style="font-family: monospace; font-weight: bold; background: #eee; padding: 2px 6px; border-radius: 4px;">${item.sms_code}</span>` : '<span style="color: #9ca3af;">-</span>';
+            const carrier = item.carrier ? item.carrier : '<span style="color: #9ca3af;">Auto</span>';
+
+            return `
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <td style="padding: 12px; text-transform: capitalize;">${item.service_name}</td>
+                <td style="padding: 12px;">${item.phone_number.startsWith('+') ? '' : '🇺🇸'} ${item.phone_number || 'N/A'}</td>
+                <td style="padding: 12px;">${carrier}</td>
+                <td style="padding: 12px;">${item.phone_number}</td>
+
+                <td style="padding: 12px;">${smsCode}</td>
+                <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${statusColor}; color: ${statusText}; text-transform: capitalize;">${status}</span></td>
+                <td style="padding: 12px;">$${item.cost.toFixed(2)}</td>
+                <td style="padding: 12px;">${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                <td style="padding: 12px;">
+                    ${item.sms_text ? `<button onclick="viewDetails('${item.id}')" style="padding: 4px 8px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Msg</button>` : ''}
+                </td>
+            </tr>
+        `;
+        }).join('');
+    }
+
+    function viewDetails(id) {
+        const item = allHistory.find(x => x.id === id);
+        if (item && item.sms_text) {
+            alert(`Message from ${item.service_name}:\n\n${item.sms_text}`);
+        }
+    }
+
+    function applyFilters() {
+        const status = document.getElementById('filter-status').value;
+        const date = document.getElementById('filter-date').value;
+
+        let filtered = [...allHistory];
+
+        if (status) {
+            filtered = filtered.filter(tx => tx.status === status);
+        }
+
+        if (date) {
+            const filterDate = new Date(date).toDateString();
+            filtered = filtered.filter(tx => new Date(tx.created_at).toDateString() === filterDate);
+        }
+
+        renderHistory(filtered);
+    }
+
+    function clearFilters() {
+        document.getElementById('filter-status').value = '';
+        document.getElementById('filter-date').value = '';
+        renderHistory(allHistory);
+    }
+
+    function exportHistory() {
+        if (!allHistory || allHistory.length === 0) {
+            alert("No history to export.");
+            return;
+        }
+
+        const csv = [
+            ['Service', 'Phone', 'Code', 'Carrier', 'Status', 'Cost', 'Date', 'Message'],
+            ...allHistory.map(tx => [
+                tx.service_name,
+                tx.phone_number,
+                tx.sms_code || '',
+                tx.carrier || '',
+                tx.status,
+                tx.cost.toFixed(2),
+                new Date(tx.created_at).toISOString(),
+                `"${(tx.sms_text || '').replace(/"/g, '""')}"` // Escape quotes
+            ])
+        ].map(row => row.join(',')).join('\n');
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `verification-history-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadHistory);
+</script>
+{% endblock %}

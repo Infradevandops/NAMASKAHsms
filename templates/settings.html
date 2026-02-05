@@ -1,0 +1,1519 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}Settings{% endblock %}
+{% block page_subtitle %}Manage your account preferences and security{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/loading-animations.css">
+<link rel="stylesheet" href="/static/css/tier-colors.css">
+<style>
+    .settings-container {
+        display: flex;
+        gap: 32px;
+        flex-wrap: wrap;
+    }
+
+    .settings-nav {
+        width: 240px;
+        flex-shrink: 0;
+    }
+
+    .settings-nav-item {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        border-radius: var(--radius-card);
+        color: var(--text-secondary);
+        background: transparent;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-weight: 500;
+    }
+
+    .settings-nav-item:hover {
+        color: #FE3C72 !important;
+        background: #FFF5F7 !important;
+    }
+
+    .settings-nav-item.active {
+        background: linear-gradient(135deg, #FE3C72 0%, #FF6B9D 100%) !important;
+        color: white !important;
+        box-shadow: 0 4px 12px rgba(254, 60, 114, 0.3) !important;
+    }
+
+    .settings-content {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .settings-tab {
+        display: none;
+        animation: fadeIn 0.3s ease;
+    }
+
+    .settings-tab.active {
+        display: block;
+    }
+
+    .form-group {
+        margin-bottom: 24px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 14px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 12px;
+        background: var(--bg-body);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+        border-color: var(--primary);
+        outline: none;
+    }
+
+    .form-input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .toggle-switch {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--bg-body);
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+    }
+
+    .toggle-label {
+        font-weight: 500;
+    }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: .4s;
+        border-radius: 24px;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+
+    input:checked+.slider {
+        background-color: var(--primary);
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
+
+    .api-key-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: var(--bg-body);
+        padding: 16px;
+        border-radius: var(--radius-sm);
+        margin-bottom: 12px;
+    }
+
+    .api-key-value {
+        font-family: monospace;
+        color: var(--primary);
+        background: rgba(var(--primary-rgb), 0.1);
+        padding: 4px 8px;
+        border-radius: 4px;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="settings-container">
+    <nav class="settings-nav">
+        <button class="settings-nav-item active" onclick="switchTab('account', event)">Account</button>
+        <button class="settings-nav-item" onclick="switchTab('security', event)">Security</button>
+        <button class="settings-nav-item" onclick="switchTab('notifications', event)">Notifications</button>
+        <button class="settings-nav-item" onclick="switchTab('billing', event)">Billing</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys', event)"
+            style="display: none;">API Keys</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('forwarding', event)"
+            style="display: none;">SMS Forwarding</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist', event)"
+            style="display: none;">Blacklist</button>
+    </nav>
+
+    <div class="settings-content">
+        <!-- Account Tab -->
+        <div id="account-tab" class="settings-tab active">
+            <div class="card">
+                <h2>Account Information</h2>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" id="account-email" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">User ID</label>
+                    <input type="text" class="form-input" id="account-id" readonly>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Account Created</label>
+                    <input type="text" class="form-input" id="account-created" readonly>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tab -->
+        <div id="security-tab" class="settings-tab">
+            <div class="card">
+                <h2>Password & Security</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage your password and security
+                    settings.</p>
+
+                <div class="form-group">
+                    <button class="btn btn-primary" onclick="requestPasswordReset()">Request Password Reset
+                        Email</button>
+                    <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">We will send a secure link to
+                        your email address.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="settings-tab">
+            <div class="card">
+                <h2>Notification Preferences</h2>
+                <div class="toggle-switch">
+                    <span class="toggle-label">Email Notifications</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notify-email" onchange="updateSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-switch">
+                    <span class="toggle-label">SMS Alerts</span>
+                    <label class="switch">
+                        <input type="checkbox" id="notify-sms" onchange="updateSettings()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Keys Tab -->
+        <div id="api-keys-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <h2>API Keys</h2>
+                    <button class="btn btn-primary" onclick="generateApiKey()">Generate New Key</button>
+                </div>
+                <div id="api-keys-list">
+                    <!-- Keys injected via JS -->
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span
+                            class="loading-spinner"></span> Loading keys...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS Forwarding Tab -->
+        <div id="forwarding-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <h2>SMS Forwarding</h2>
+                <p style="color: var(--text-muted); margin-bottom: 24px;">
+                    Forward incoming SMS messages to your email or webhook endpoint in real-time.
+                </p>
+
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Email Forwarding</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Receive SMS messages
+                            via email</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-email-enabled" onchange="toggleForwardingOption('email')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="email-forwarding-config"
+                    style="display: none; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 16px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" class="form-input" id="forward-email-address" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Webhook Forwarding</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">POST SMS data to your
+                            endpoint</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-webhook-enabled"
+                            onchange="toggleForwardingOption('webhook')">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div id="webhook-forwarding-config"
+                    style="display: none; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 16px;">
+                    <div class="form-group">
+                        <label class="form-label">Webhook URL</label>
+                        <input type="url" class="form-input" id="forward-webhook-url"
+                            placeholder="https://your-server.com/webhook">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label">Webhook Secret (optional)</label>
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" class="form-input" id="forward-webhook-secret"
+                                placeholder="Leave empty to auto-generate" style="flex: 1;">
+                            <button class="btn btn-secondary" onclick="generateWebhookSecret()"
+                                style="padding: 8px 16px;">Generate</button>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Used to verify webhook
+                            authenticity via HMAC signature</p>
+                    </div>
+                </div>
+
+                <div class="toggle-switch">
+                    <div>
+                        <span class="toggle-label">Forward All Messages</span>
+                        <p style="font-size: 12px; color: var(--text-muted); margin: 4px 0 0 0;">Forward all SMS or only
+                            verification codes</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="forward-all" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button class="btn btn-primary" onclick="saveForwardingConfig()">Save Configuration</button>
+                    <button class="btn btn-secondary" onclick="testForwarding()">Test Forwarding</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Tab -->
+        <div id="billing-tab" class="settings-tab">
+            <div class="card">
+                <h2>Billing & Subscription</h2>
+                <div id="billing-current-tier" style="margin-bottom: 24px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm);">
+                        <div>
+                            <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span
+                                    class="loading-spinner"></span> Loading...</div>
+                            <div style="color: var(--text-muted); font-size: 14px;" id="billing-tier-features">Loading
+                                tier features...</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="window.location.href='/pricing'"
+                            id="billing-upgrade-btn">Upgrade</button>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 16px;">Available Plans</h3>
+                <div id="billing-plans" style="display: grid; gap: 16px;">
+                    <!-- Plans loaded via JS -->
+                </div>
+
+                <h3 style="margin-top: 32px; margin-bottom: 16px;">Payment History</h3>
+                <div id="payment-history">
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span
+                            class="loading-spinner"></span> Loading payment history...</div>
+                </div>
+
+                <h3 style="margin-top: 32px; margin-bottom: 16px;">Refund Requests</h3>
+                <div id="refund-section">
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+                        You can request a refund for payments made within the last 14 days. Refunds are processed within
+                        5-7 business days.
+                    </p>
+                    <div id="refund-history">
+                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Blacklist Management Tab -->
+        <div id="blacklist-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="margin: 0;">Blacklist Management</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin: 4px 0 0 0;">Block specific phone
+                            numbers from receiving verifications</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddBlacklistModal()">Add Number</button>
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-bottom: 16px;">
+                    <input type="text" id="blacklist-search" class="form-input" placeholder="Search numbers..."
+                        style="flex: 1;" oninput="filterBlacklist()">
+                    <button class="btn btn-secondary" onclick="showBulkImportModal()">Bulk Import</button>
+                </div>
+
+                <div id="blacklist-list">
+                    <div style="text-align: center; color: var(--text-muted); padding: 40px;">
+                        <span class="loading-spinner"></span> Loading blacklist...
+                    </div>
+                </div>
+
+                <div id="blacklist-pagination"
+                    style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Refund Request Modal -->
+<div id="refund-modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div
+        style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Request Refund</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            Payment: <strong id="refund-payment-ref"></strong><br>
+            Amount: <strong id="refund-payment-amount"></strong>
+        </p>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Reason for refund:</label>
+            <select id="refund-reason"
+                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-body);">
+                <option value="">Select a reason...</option>
+                <option value="service_not_working">Service not working as expected</option>
+                <option value="accidental_purchase">Accidental purchase</option>
+                <option value="duplicate_charge">Duplicate charge</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Additional details (optional):</label>
+            <textarea id="refund-details" rows="3"
+                style="width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--bg-body); resize: vertical;"
+                placeholder="Please provide any additional details..."></textarea>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideRefundModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="submitRefundRequest()" id="submit-refund-btn"
+                style="flex: 1;">Submit Request</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Blacklist Number Modal -->
+<div id="blacklist-add-modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div
+        style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Add to Blacklist</h3>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Phone Number:</label>
+            <input type="tel" id="blacklist-phone" class="form-input" placeholder="+1234567890" style="width: 100%;">
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Include country code (e.g., +1 for
+                US)</p>
+        </div>
+        <div style="margin-bottom: 16px;">
+            <label style="display: block; margin-bottom: 8px; font-size: 14px;">Reason (optional):</label>
+            <input type="text" id="blacklist-reason" class="form-input" placeholder="e.g., Spam number"
+                style="width: 100%;">
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideBlacklistModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="addToBlacklist()" id="add-blacklist-btn" style="flex: 1;">Add to
+                Blacklist</button>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Import Modal -->
+<div id="blacklist-bulk-modal"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div
+        style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 500px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0;">Bulk Import Numbers</h3>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
+            Upload a CSV file with phone numbers to blacklist. The file should have one number per line or a column
+            named "phone".
+        </p>
+        <div style="margin-bottom: 16px;">
+            <input type="file" id="blacklist-csv-file" accept=".csv,.txt" style="display: none;"
+                onchange="handleBulkFileSelect(event)">
+            <div id="bulk-drop-zone"
+                style="border: 2px dashed var(--border-color); border-radius: 8px; padding: 40px; text-align: center; cursor: pointer;"
+                onclick="document.getElementById('blacklist-csv-file').click()">
+                <div style="font-size: 32px; margin-bottom: 8px;">📄</div>
+                <div style="color: var(--text-muted);">Click to select or drag & drop CSV file</div>
+            </div>
+        </div>
+        <div id="bulk-preview" style="display: none; margin-bottom: 16px;">
+            <div style="font-weight: 500; margin-bottom: 8px;">Preview (<span id="bulk-count">0</span> numbers):</div>
+            <div id="bulk-preview-list"
+                style="max-height: 150px; overflow-y: auto; background: var(--bg-body); border-radius: 8px; padding: 12px; font-family: monospace; font-size: 12px;">
+            </div>
+        </div>
+        <div style="display: flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="hideBulkImportModal()" style="flex: 1;">Cancel</button>
+            <button class="btn btn-primary" onclick="submitBulkImport()" id="bulk-import-btn" style="flex: 1;"
+                disabled>Import Numbers</button>
+        </div>
+    </div>
+</div>
+
+{% include "components/modal.html" %}
+{% include "components/api_key_modal.html" %}
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/frontend-logger.js"></script>
+<script type="module" src="/static/js/api-retry.js"></script>
+<script src="/static/js/skeleton-loader.js"></script>
+<script src="/static/js/error-messages.js"></script>
+<script>
+    (function () {
+        'use strict';
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            if (!text) return '';
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Tier hierarchy for access checks (local to settings page)
+        const TIER_HIERARCHY = {
+            'freemium': 0,
+            'payg': 1,
+            'pro': 2,
+            'custom': 3
+        };
+
+        const TIER_DISPLAY_NAMES = {
+            'freemium': 'Freemium',
+            'payg': 'Pay-As-You-Go',
+            'pro': 'Pro',
+            'custom': 'Custom'
+        };
+
+        let settingsUserTier = 'freemium';
+
+        function hasTierAccess(userTier, requiredTier) {
+            const userLevel = TIER_HIERARCHY[userTier] || 0;
+            const requiredLevel = TIER_HIERARCHY[requiredTier] || 0;
+            return userLevel >= requiredLevel;
+        }
+
+        async function loadUserTierForSettings() {
+            FrontendLogger.info('[Settings] Loading user tier...');
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    FrontendLogger.warn('[Settings] No access token found');
+                    return;
+                }
+
+                FrontendLogger.logApiCall('GET', '/api/tiers/current');
+                const response = await ApiRetry.fetchWithRetry('/api/tiers/current', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                FrontendLogger.logApiResponse('GET', '/api/tiers/current', response.status);
+
+                if (response.ok) {
+                    const data = await response.json();
+                    settingsUserTier = data.current_tier || 'freemium';
+
+                    FrontendLogger.info('[Settings] User tier loaded', { tier: settingsUserTier });
+
+                    // Update billing tab
+                    document.getElementById('billing-tier-name').textContent = TIER_DISPLAY_NAMES[settingsUserTier] || settingsUserTier;
+                    document.getElementById('billing-tier-features').textContent = `Current plan: ${TIER_DISPLAY_NAMES[settingsUserTier]}`;
+
+                    // Hide upgrade button for custom tier
+                    if (settingsUserTier === 'custom') {
+                        document.getElementById('billing-upgrade-btn').style.display = 'none';
+                    }
+                }
+            } catch (error) {
+                FrontendLogger.error('[Settings] Failed to load user tier', { error: error.message, stack: error.stack });
+                console.error('[Settings] Failed to load user tier:', error);
+            }
+
+            updateSettingsTabVisibility(settingsUserTier);
+        }
+
+        function updateSettingsTabVisibility(userTier) {
+            const tierGatedTabs = document.querySelectorAll('.tier-gated-tab');
+
+            tierGatedTabs.forEach(tab => {
+                const requiredTier = tab.dataset.minTier || 'payg';
+                const hasAccess = hasTierAccess(userTier, requiredTier);
+                tab.style.display = hasAccess ? 'block' : 'none';
+            });
+
+            console.log('[Settings] Updated tab visibility for tier:', userTier);
+        }
+
+        async function loadUserData() {
+            FrontendLogger.info('[Settings] Loading user data...');
+
+            // Show loading state immediately
+            const emailInput = document.getElementById('account-email');
+            const idInput = document.getElementById('account-id');
+            const createdInput = document.getElementById('account-created');
+
+            if (emailInput) emailInput.value = 'Loading...';
+            if (idInput) idInput.value = 'Loading...';
+            if (createdInput) createdInput.value = 'Loading...';
+
+            try {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    FrontendLogger.warn('[Settings] No access token found');
+                    console.warn('[Settings] No access token found');
+                    if (emailInput) emailInput.value = 'Not logged in';
+                    if (idInput) idInput.value = 'Please log in';
+                    if (createdInput) createdInput.value = '';
+                    setTimeout(() => window.location.href = '/auth/login', 2000);
+                    return;
+                }
+
+                // Load basic profile
+                try {
+                    FrontendLogger.logApiCall('GET', '/api/v1/user/me');
+                    console.log('[Settings] Fetching user data from /api/v1/user/me...');
+
+                    const userRes = await ApiRetry.fetchWithRetry('/api/v1/user/me', {
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+
+                    FrontendLogger.logApiResponse('GET', '/api/v1/user/me', userRes.status);
+                    console.log('[Settings] API response status:', userRes.status);
+
+                    if (userRes.ok) {
+                        const user = await userRes.json();
+                        FrontendLogger.info('[Settings] User profile loaded', { email: user.email });
+                        console.log('[Settings] User data loaded successfully:', user);
+
+                        if (emailInput) emailInput.value = user.email || 'No email';
+                        if (idInput) idInput.value = user.id || 'No ID';
+                        if (createdInput) {
+                            createdInput.value = user.created_at
+                                ? new Date(user.created_at).toLocaleDateString()
+                                : 'Unknown';
+                        }
+                    } else {
+                        FrontendLogger.warn('[Settings] Failed to load user profile', { status: userRes.status });
+                        console.error('[Settings] API error:', userRes.status, userRes.statusText);
+
+                        if (emailInput) emailInput.value = 'Error loading';
+                        if (idInput) idInput.value = `API Error: ${userRes.status}`;
+                        if (createdInput) createdInput.value = '';
+
+                        // Show user-friendly error
+                        alert('Failed to load account information. Please refresh the page or try logging in again.');
+                    }
+                } catch (e) {
+                    FrontendLogger.error('[Settings] Error loading profile', { error: e.message, stack: e.stack });
+                    console.error('[Settings] Exception loading profile:', e);
+
+                    if (emailInput) emailInput.value = 'Error';
+                    if (idInput) idInput.value = e.message || 'Network error';
+                    if (createdInput) createdInput.value = '';
+
+                    // Show user-friendly error
+                    alert('Network error loading account information. Please check your connection and try again.');
+                }
+
+                // Load Settings
+                try {
+                    FrontendLogger.logApiCall('GET', '/api/user/settings');
+                    const settingsRes = await ApiRetry.fetchWithRetry('/api/user/settings', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    FrontendLogger.logApiResponse('GET', '/api/user/settings', settingsRes.status);
+
+                    if (settingsRes.ok) {
+                        const settings = await settingsRes.json();
+                        FrontendLogger.info('[Settings] User settings loaded');
+                        document.getElementById('notify-email').checked = settings.email_notifications || false;
+                        document.getElementById('notify-sms').checked = settings.sms_alerts || false;
+                    }
+                } catch (e) {
+                    FrontendLogger.error('[Settings] Error loading settings', { error: e.message, stack: e.stack });
+                    console.error('[Settings] Error loading settings:', e);
+                }
+
+                // Load user tier for tab visibility
+                await loadUserTierForSettings();
+
+                // Load API Keys (only if user has access)
+                if (hasTierAccess(settingsUserTier, 'payg')) {
+                    loadApiKeys();
+                }
+
+                // Load billing plans
+                loadBillingPlans();
+
+            } catch (e) {
+                FrontendLogger.error('[Settings] Failed to load user data', { error: e.message, stack: e.stack });
+                console.error("[Settings] Failed to load user data:", e);
+                showAccountError('Failed to load settings');
+            }
+        }
+
+        function showAccountError(message) {
+            document.getElementById('account-email').value = 'Error';
+            document.getElementById('account-id').value = message;
+            document.getElementById('account-created').value = '';
+        }
+
+        async function loadBillingPlans() {
+            FrontendLogger.info('[Settings] Loading billing plans...');
+            const container = document.getElementById('billing-plans');
+            try {
+                const token = localStorage.getItem('access_token');
+                FrontendLogger.logApiCall('GET', '/api/tiers/');
+                const res = await ApiRetry.fetchWithRetry('/api/tiers/', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                FrontendLogger.logApiResponse('GET', '/api/tiers/', res.status);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    const tiers = data.tiers || data;
+
+                    FrontendLogger.info('[Settings] Billing plans loaded', { count: Array.isArray(tiers) ? tiers.length : 0 });
+
+                    if (!Array.isArray(tiers)) {
+                        container.innerHTML = '<div style="color: var(--text-muted); padding: 16px;">No plans available</div>';
+                        return;
+                    }
+
+                    container.innerHTML = tiers.map(tier => `
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); ${tier.tier === settingsUserTier || tier.tier_code === settingsUserTier ? 'border: 2px solid var(--primary);' : ''}">
+                        <div>
+                            <div style="font-weight: 600;">${tier.name || tier.display_name || tier.tier_code}</div>
+                            <div style="color: var(--text-muted); font-size: 14px;">${tier.price_display || (tier.price_monthly === 0 ? 'Free' : '$' + tier.price_monthly + '/month')}</div>
+                        </div>
+                        ${(tier.tier === settingsUserTier || tier.tier_code === settingsUserTier) ?
+                            '<span style="color: var(--primary); font-weight: 500;">Current Plan</span>' :
+                            `<button class="btn btn-secondary" onclick="window.location.href='/pricing'" style="padding: 8px 16px;">View Details</button>`
+                        }
+                    </div>
+                `).join('');
+                } else {
+                    container.innerHTML = '<div style="color: red; padding: 16px;">Failed to load plans</div>';
+                }
+            } catch (e) {
+                FrontendLogger.error('[Settings] Failed to load billing plans', { error: e.message, stack: e.stack });
+                console.error('[Settings] Failed to load billing plans:', e);
+                ErrorMessages.showError(container, e, {
+                    retryCallback: loadBillingPlans,
+                    compact: true
+                });
+            }
+        }
+
+        async function loadApiKeys() {
+            FrontendLogger.info('[Settings] Loading API keys...');
+            const container = document.getElementById('api-keys-list');
+            try {
+                const token = localStorage.getItem('access_token');
+                FrontendLogger.logApiCall('GET', '/api/auth/api-keys');
+                const res = await ApiRetry.fetchWithRetry('/api/auth/api-keys', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                FrontendLogger.logApiResponse('GET', '/api/auth/api-keys', res.status);
+
+                if (res.ok) {
+                    const keys = await res.json();
+                    FrontendLogger.info('[Settings] API keys loaded', { count: keys ? keys.length : 0 });
+
+                    if (!keys || keys.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No API keys found. Generate one to get started.</div>';
+                        return;
+                    }
+
+                    container.innerHTML = keys.map(key => `
+                <div class="api-key-item">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">${escapeHtml(key.name || 'API Key')}</div>
+                        <div style="font-size: 12px; color: var(--text-muted); display: flex; gap: 16px;">
+                            <span>Created: ${key.created_at ? new Date(key.created_at).toLocaleDateString() : 'Unknown'}</span>
+                            ${key.last_used_at ? `<span>Last used: ${new Date(key.last_used_at).toLocaleDateString()}</span>` : '<span>Never used</span>'}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <span class="api-key-value">${escapeHtml(key.key_preview || '****')}</span>
+                        <button class="btn btn-secondary" onclick="deleteApiKey('${key.id}')" style="padding: 6px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ff4757; border: none;">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+                } else {
+                    FrontendLogger.warn('[Settings] Failed to load API keys', { status: res.status });
+                    container.innerHTML = '<div style="color: red; padding: 20px; text-align: center;">Failed to load API keys</div>';
+                }
+            } catch (e) {
+                FrontendLogger.error('[Settings] Failed to load API keys', { error: e.message, stack: e.stack });
+                console.error('[Settings] Failed to load API keys:', e);
+                ErrorMessages.showError(container, e, {
+                    retryCallback: loadApiKeys,
+                    compact: true
+                });
+            }
+        }
+
+        async function updateSettings() {
+            const emailNotify = document.getElementById('notify-email').checked;
+            const smsNotify = document.getElementById('notify-sms').checked;
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const res = await fetch('/api/user/settings', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email_notifications: emailNotify,
+                        sms_alerts: smsNotify
+                    })
+                });
+
+                if (!res.ok) throw new Error("Failed to update");
+                // Optional: Toast notification here
+            } catch (e) {
+                console.error(e);
+                // Revert UI on failure
+                loadUserData();
+            }
+        }
+
+        async function requestPasswordReset() {
+            const email = document.getElementById('account-email').value;
+            const token = localStorage.getItem('access_token');
+
+            openModal({
+                title: "Reset Password",
+                body: `Are you sure you want to request a password reset for ${email}?`,
+                confirmText: "Send Email",
+                onConfirm: async () => {
+                    const res = await fetch('/api/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: email })
+                    });
+                    if (!res.ok) throw new Error("Failed to send reset email");
+                    alert("Password reset email sent!");
+                }
+            });
+        }
+
+        function generateApiKey() {
+            // Use the new API key modal
+            showApiKeyGenerateModal();
+        }
+
+        function deleteApiKey(keyId) {
+            openModal({
+                title: "Delete API Key",
+                body: "Are you sure? This action cannot be undone and will immediately revoke access.",
+                confirmText: "Delete",
+                variant: "danger",
+                onConfirm: async () => {
+                    const token = localStorage.getItem('access_token');
+                    const res = await fetch(`/api/auth/api-keys/${keyId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!res.ok) throw new Error("Failed to delete key");
+                    loadApiKeys();
+                }
+            });
+        }
+
+        function switchTab(tabId, event) {
+            console.log('[Settings] Switching to tab:', tabId);
+
+            // Remove active class from all nav items and tabs
+            document.querySelectorAll('.settings-nav-item').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
+
+            // Add active class to clicked button
+            const clickedButton = event?.target || document.querySelector(`[onclick*="switchTab('${tabId}')"]`);
+            if (clickedButton) {
+                clickedButton.classList.add('active');
+            }
+
+            // Show the selected tab
+            const tabElement = document.getElementById(tabId + '-tab');
+            if (tabElement) {
+                tabElement.classList.add('active');
+                console.log('[Settings] Tab switched successfully:', tabId);
+            } else {
+                console.error('[Settings] Tab not found:', tabId + '-tab');
+            }
+
+            // Load tab-specific data
+            if (tabId === 'billing') {
+                loadPaymentHistory();
+                loadRefundHistory();
+            } else if (tabId === 'api-keys') {
+                loadApiKeys();
+            } else if (tabId === 'blacklist') {
+                loadBlacklist();
+            }
+        }
+
+        // Payment History
+        async function loadPaymentHistory() {
+            const container = document.getElementById('payment-history');
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await ApiRetry.fetchWithRetry('/api/billing/history', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const payments = data.payments || data || [];
+
+                    if (!Array.isArray(payments) || payments.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No payment history yet</div>';
+                        return;
+                    }
+
+                    let html = '<table style="width: 100%; border-collapse: collapse;">';
+                    html += '<thead><tr style="border-bottom: 1px solid var(--border-color);">';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Date</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reference</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Amount</th>';
+                    html += '<th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Status</th>';
+                    html += '<th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>';
+                    html += '</tr></thead><tbody>';
+
+                    for (const payment of payments.slice(0, 10)) {
+                        const statusColor = payment.status === 'completed' ? '#10b981' : payment.status === 'pending' ? '#f59e0b' : '#ef4444';
+                        const canRefund = payment.status === 'completed' && isWithinRefundWindow(payment.created_at);
+
+                        html += `<tr style="border-bottom: 1px solid var(--border-color);">
+                        <td style="padding: 12px; font-size: 14px;">${formatDate(payment.created_at)}</td>
+                        <td style="padding: 12px; font-size: 14px; font-family: monospace;">${escapeHtml(payment.reference || '-')}</td>
+                        <td style="padding: 12px; font-size: 14px; font-weight: 600;">$${(payment.amount_usd || payment.amount || 0).toFixed(2)}</td>
+                        <td style="padding: 12px;"><span style="color: ${statusColor}; font-size: 13px;">${escapeHtml(payment.status || 'unknown')}</span></td>
+                        <td style="padding: 12px; text-align: right;">
+                            ${canRefund ? `<button class="btn btn-secondary" onclick="showRefundModal('${payment.id || payment.reference}', '${payment.reference}', ${payment.amount_usd || payment.amount || 0})" style="padding: 4px 12px; font-size: 12px;">Request Refund</button>` : ''}
+                        </td>
+                    </tr>`;
+                    }
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Unable to load payment history</div>';
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to load payment history:', error);
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">Failed to load payment history</div>';
+            }
+        }
+
+        // Check if payment is within refund window (14 days)
+        function isWithinRefundWindow(dateStr) {
+            if (!dateStr) return false;
+            const paymentDate = new Date(dateStr);
+            const now = new Date();
+            const diffDays = (now - paymentDate) / (1000 * 60 * 60 * 24);
+            return diffDays <= 14;
+        }
+
+        // Refund History
+        async function loadRefundHistory() {
+            const container = document.getElementById('refund-history');
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await ApiRetry.fetchWithRetry('/api/billing/refunds', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const refunds = data.refunds || data || [];
+
+                    if (!Array.isArray(refunds) || refunds.length === 0) {
+                        container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div>';
+                        return;
+                    }
+
+                    let html = '';
+                    for (const refund of refunds) {
+                        const statusColor = refund.status === 'approved' ? '#10b981' : refund.status === 'pending' ? '#f59e0b' : '#ef4444';
+                        html += `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: var(--bg-body); border-radius: 8px; margin-bottom: 8px;">
+                            <div>
+                                <div style="font-weight: 500;">${escapeHtml(refund.reference || 'Refund')}</div>
+                                <div style="font-size: 12px; color: var(--text-muted);">${formatDate(refund.initiated_at || refund.created_at)}</div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-weight: 600;">$${(refund.amount || 0).toFixed(2)}</div>
+                                <div style="font-size: 12px; color: ${statusColor};">${escapeHtml(refund.status || 'pending')}</div>
+                            </div>
+                        </div>
+                    `;
+                    }
+                    container.innerHTML = html;
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to load refund history:', error);
+            }
+        }
+
+        // Refund Modal
+        let currentRefundPaymentId = null;
+
+        function showRefundModal(paymentId, reference, amount) {
+            currentRefundPaymentId = paymentId;
+            document.getElementById('refund-payment-ref').textContent = reference;
+            document.getElementById('refund-payment-amount').textContent = `$${amount.toFixed(2)}`;
+            document.getElementById('refund-reason').value = '';
+            document.getElementById('refund-details').value = '';
+            document.getElementById('refund-modal').style.display = 'flex';
+        }
+
+        function hideRefundModal() {
+            document.getElementById('refund-modal').style.display = 'none';
+            currentRefundPaymentId = null;
+        }
+
+        async function submitRefundRequest() {
+            const reason = document.getElementById('refund-reason').value;
+            if (!reason) {
+                alert('Please select a reason for the refund');
+                return;
+            }
+
+            const details = document.getElementById('refund-details').value;
+            const token = localStorage.getItem('access_token');
+            const btn = document.getElementById('submit-refund-btn');
+
+            btn.disabled = true;
+            btn.textContent = 'Submitting...';
+
+            try {
+                const response = await fetch('/api/billing/refund', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        payment_id: currentRefundPaymentId,
+                        reason: reason + (details ? ': ' + details : '')
+                    })
+                });
+
+                if (response.ok) {
+                    hideRefundModal();
+                    alert('Refund request submitted successfully. We will process it within 5-7 business days.');
+                    loadPaymentHistory();
+                    loadRefundHistory();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to submit refund request');
+                }
+            } catch (error) {
+                console.error('[Settings] Refund request failed:', error);
+                alert('Failed to submit refund request. Please try again.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Submit Request';
+            }
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        // Init
+        document.addEventListener('DOMContentLoaded', loadUserData);
+
+        // Close refund modal on outside click
+        document.getElementById('refund-modal')?.addEventListener('click', function (e) {
+            if (e.target === this) hideRefundModal();
+        });
+
+        // SMS Forwarding Functions
+        function toggleForwardingOption(type) {
+            const configEl = document.getElementById(`${type}-forwarding-config`);
+            const enabledEl = document.getElementById(`forward-${type}-enabled`);
+            configEl.style.display = enabledEl.checked ? 'block' : 'none';
+        }
+
+        function generateWebhookSecret() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+            let secret = '';
+            for (let i = 0; i < 32; i++) {
+                secret += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('forward-webhook-secret').value = secret;
+        }
+
+        async function loadForwardingConfig() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/forwarding', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.configured && data.config) {
+                        document.getElementById('forward-email-enabled').checked = data.config.email_enabled || false;
+                        document.getElementById('forward-email-address').value = data.config.email_address || '';
+                        document.getElementById('forward-webhook-enabled').checked = data.config.webhook_enabled || false;
+                        document.getElementById('forward-webhook-url').value = data.config.webhook_url || '';
+                        document.getElementById('forward-all').checked = data.config.forward_all !== false;
+
+                        toggleForwardingOption('email');
+                        toggleForwardingOption('webhook');
+                    }
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to load forwarding config:', error);
+            }
+        }
+
+        async function saveForwardingConfig() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            const config = {
+                email_enabled: document.getElementById('forward-email-enabled').checked,
+                email_address: document.getElementById('forward-email-address').value,
+                webhook_enabled: document.getElementById('forward-webhook-enabled').checked,
+                webhook_url: document.getElementById('forward-webhook-url').value,
+                webhook_secret: document.getElementById('forward-webhook-secret').value,
+                forward_all: document.getElementById('forward-all').checked
+            };
+
+            // Validation
+            if (config.email_enabled && !config.email_address) {
+                alert('Please enter an email address');
+                return;
+            }
+            if (config.webhook_enabled && !config.webhook_url) {
+                alert('Please enter a webhook URL');
+                return;
+            }
+
+            try {
+                const params = new URLSearchParams(config);
+                const response = await fetch(`/forwarding/configure?${params}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    alert('Forwarding configuration saved successfully');
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to save configuration');
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to save forwarding config:', error);
+                alert('Failed to save configuration');
+            }
+        }
+
+        async function testForwarding() {
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const response = await fetch('/forwarding/test', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    let message = 'Test results:\n';
+                    for (const result of data.results || []) {
+                        message += `\n${result.type}: ${result.success ? '✓' : '✗'} ${result.message}`;
+                    }
+                    alert(message);
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Forwarding test failed');
+                }
+            } catch (error) {
+                console.error('[Settings] Forwarding test failed:', error);
+                alert('Forwarding test failed');
+            }
+        }
+
+        // Load forwarding config when tab is switched
+        const originalSwitchTab = switchTab;
+        switchTab = function (tabId) {
+            originalSwitchTab(tabId);
+            if (tabId === 'forwarding') {
+                loadForwardingConfig();
+            }
+            if (tabId === 'blacklist') {
+                loadBlacklist();
+            }
+        };
+
+        // ==================== Blacklist Management ====================
+        let blacklistData = [];
+        let blacklistPage = 1;
+        const blacklistLimit = 20;
+        let bulkImportNumbers = [];
+
+        async function loadBlacklist() {
+            const container = document.getElementById('blacklist-list');
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch(`/blacklist?page=${blacklistPage}&limit=${blacklistLimit}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    blacklistData = data.numbers || data || [];
+                    const total = data.total || blacklistData.length;
+
+                    if (blacklistData.length === 0) {
+                        container.innerHTML = `
+                        <div style="text-align: center; padding: 60px; color: var(--text-muted);">
+                            <div style="font-size: 48px; margin-bottom: 16px;">🚫</div>
+                            <div style="font-size: 16px; margin-bottom: 8px;">No blacklisted numbers</div>
+                            <div style="font-size: 14px;">Add numbers to prevent them from receiving verifications</div>
+                        </div>
+                    `;
+                        document.getElementById('blacklist-pagination').innerHTML = '';
+                        return;
+                    }
+
+                    container.innerHTML = `
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid var(--border-color);">
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Phone Number</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Reason</th>
+                                <th style="text-align: left; padding: 12px; font-size: 12px; color: var(--text-muted);">Added</th>
+                                <th style="text-align: right; padding: 12px; font-size: 12px; color: var(--text-muted);">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${blacklistData.map(item => `
+                                <tr style="border-bottom: 1px solid var(--border-color);">
+                                    <td style="padding: 12px; font-family: monospace;">${escapeHtml(item.phone_number || item.number)}</td>
+                                    <td style="padding: 12px; color: var(--text-muted);">${escapeHtml(item.reason || '-')}</td>
+                                    <td style="padding: 12px; font-size: 13px;">${formatDate(item.created_at)}</td>
+                                    <td style="padding: 12px; text-align: right;">
+                                        <button class="btn btn-secondary" onclick="removeFromBlacklist('${item.id}')" style="padding: 4px 12px; font-size: 12px; background: rgba(255,0,0,0.1); color: #ef4444; border: none;">Remove</button>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+
+                    renderBlacklistPagination(total);
+                } else {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Failed to load blacklist</div>';
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to load blacklist:', error);
+                container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 40px;">Error loading blacklist</div>';
+            }
+        }
+
+        function renderBlacklistPagination(total) {
+            const totalPages = Math.ceil(total / blacklistLimit);
+            const container = document.getElementById('blacklist-pagination');
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            html += `<button onclick="changeBlacklistPage(${blacklistPage - 1})" class="btn" style="padding: 6px 12px;" ${blacklistPage === 1 ? 'disabled' : ''}>←</button>`;
+
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                const isActive = i === blacklistPage;
+                html += `<button onclick="changeBlacklistPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary); color: white;' : ''}">${i}</button>`;
+            }
+
+            html += `<button onclick="changeBlacklistPage(${blacklistPage + 1})" class="btn" style="padding: 6px 12px;" ${blacklistPage === totalPages ? 'disabled' : ''}>→</button>`;
+
+            container.innerHTML = html;
+        }
+
+        function changeBlacklistPage(page) {
+            if (page < 1) return;
+            blacklistPage = page;
+            loadBlacklist();
+        }
+
+        function filterBlacklist() {
+            const search = document.getElementById('blacklist-search').value.toLowerCase();
+            const rows = document.querySelectorAll('#blacklist-list tbody tr');
+
+            rows.forEach(row => {
+                const phone = row.cells[0]?.textContent.toLowerCase() || '';
+                const reason = row.cells[1]?.textContent.toLowerCase() || '';
+                row.style.display = (phone.includes(search) || reason.includes(search)) ? '' : 'none';
+            });
+        }
+
+        function showAddBlacklistModal() {
+            document.getElementById('blacklist-phone').value = '';
+            document.getElementById('blacklist-reason').value = '';
+            document.getElementById('blacklist-add-modal').style.display = 'flex';
+        }
+
+        function hideBlacklistModal() {
+            document.getElementById('blacklist-add-modal').style.display = 'none';
+        }
+
+        async function addToBlacklist() {
+            const phone = document.getElementById('blacklist-phone').value.trim();
+            const reason = document.getElementById('blacklist-reason').value.trim();
+
+            if (!phone) {
+                alert('Please enter a phone number');
+                return;
+            }
+
+            // Basic phone validation
+            if (!/^\+?[0-9]{10,15}$/.test(phone.replace(/[\s-]/g, ''))) {
+                alert('Please enter a valid phone number');
+                return;
+            }
+
+            const token = localStorage.getItem('access_token');
+            const btn = document.getElementById('add-blacklist-btn');
+
+            btn.disabled = true;
+            btn.textContent = 'Adding...';
+
+            try {
+                const response = await fetch('/blacklist', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        phone_number: phone,
+                        reason: reason || null
+                    })
+                });
+
+                if (response.ok) {
+                    hideBlacklistModal();
+                    loadBlacklist();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to add number to blacklist');
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to add to blacklist:', error);
+                alert('Failed to add number to blacklist');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Add to Blacklist';
+            }
+        }
+
+        async function removeFromBlacklist(id) {
+            if (!confirm('Are you sure you want to remove this number from the blacklist?')) return;
+
+            const token = localStorage.getItem('access_token');
+
+            try {
+                const response = await fetch(`/blacklist/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (response.ok) {
+                    loadBlacklist();
+                } else {
+                    const error = await response.json();
+                    alert(error.detail || 'Failed to remove number');
+                }
+            } catch (error) {
+                console.error('[Settings] Failed to remove from blacklist:', error);
+                alert('Failed to remove number');
+            }
+        }
+
+        function showBulkImportModal() {
+            bulkImportNumbers = [];
+            document.getElementById('blacklist-csv-file').value = '';
+            document.getElementById('bulk-preview').style.display = 'none';
+            document.getElementById('bulk-import-btn').disabled = true;
+            document.getElementById('blacklist-bulk-modal').style.display = 'flex';
+        }
+
+        function hideBulkImportModal() {
+            document.getElementById('blacklist-bulk-modal').style.display = 'none';
+        }
+
+        function handleBulkFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const content = e.target.result;
+                const lines = content.split(/[\r\n]+/).filter(line => line.trim());
+
+                // Check if CSV has header
+                const firstLine = lines[0].toLowerCase();
+                const hasHeader = firstLine.includes('phone') || firstLine.includes('number');
+
+                bulkImportNumbers = [];
+                const startIndex = hasHeader ? 1 : 0;
+
+                for (let i = startIndex; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    // Extract phone number (first column or whole line)
+                    const phone = line.split(',')[0].replace(/["\s]/g, '');
+                    if (phone && /^\+?[0-9]{10,15}$/.test(phone)) {
+                        bulkImportNumbers.push(phone);
+                    }
+                }
+
+                // Show preview
+                document.getElementById('bulk-count').textContent = bulkImportNumbers.length;
+                document.getElementById('bulk-preview-list').textContent = bulkImportNumbers.slice(0, 10).join('\n') + (bulkImportNumbers.length > 10 ? '\n...' : '');
+                document.getElementById('bulk-preview').style.display = 'block';
+                document.getElementById('bulk-import-btn').disabled = bulkImportNumbers.length === 0;
+            };
+            reader.readAsText(file);
+        }
+
+        async function submitBulkImport() {
+            if (bulkImportNumbers.length === 0) return;
+
+            const token = localStorage.getItem('access_token');
+            const btn = document.getElementById('bulk-import-btn');
+
+            btn.disabled = true;
+            btn.textContent = 'Importing...';
+
+            let successCount = 0;
+            let failCount = 0;
+
+            for (const phone of bulkImportNumbers) {
+                try {
+                    const response = await fetch('/blacklist', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ phone_number: phone, reason: 'Bulk import' })
+                    });
+
+                    if (response.ok) {
+                        successCount++;
+                    } else {
+                        failCount++;
+                    }
+                } catch {
+                    failCount++;
+                }
+            }
+
+            hideBulkImportModal();
+            alert(`Import complete: ${successCount} added, ${failCount} failed`);
+            loadBlacklist();
+        }
+
+        // Close modals on outside click
+        document.getElementById('blacklist-add-modal')?.addEventListener('click', function (e) {
+            if (e.target === this) hideBlacklistModal();
+        });
+        document.getElementById('blacklist-bulk-modal')?.addEventListener('click', function (e) {
+            if (e.target === this) hideBulkImportModal();
+        });
+
+        // Make switchTab globally accessible
+        window.switchTab = switchTab;
+        window.loadUserData = loadUserData;
+
+    })(); // End of IIFE
+</script>
+{% endblock %}

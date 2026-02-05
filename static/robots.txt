@@ -1,0 +1,34 @@
+User-agent: *
+Allow: /
+Allow: /app
+Allow: /api-docs
+Allow: /about
+Allow: /contact
+Allow: /faq
+Allow: /status
+Allow: /reviews
+Allow: /privacy
+Allow: /terms
+Allow: /cookies
+Allow: /refund
+Allow: /static/
+
+# Disallow private areas
+Disallow: /admin
+Disallow: /api/
+Disallow: /auth/
+Disallow: /*.json$
+Disallow: /*?*
+
+# Allow specific bots
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl delay
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://namaskah.app/sitemap.xml

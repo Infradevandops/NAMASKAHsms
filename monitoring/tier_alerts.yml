@@ -1,0 +1,12 @@
+alerts:
+  - name: high_402_rate
+    condition: 402_errors > 5% in 5min
+    action: notify_slack
+    
+  - name: null_tier_detected
+    condition: COUNT(subscription_tier IS NULL) > 0
+    action: page_admin
+    
+  - name: slow_tier_query
+    condition: tier_query_p99 > 100ms
+    action: notify_devops

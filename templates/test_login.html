@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Login Test</title>
+    <style>
+        body { font-family: Arial; max-width: 400px; margin: 50px auto; padding: 20px; }
+        input { width: 100%; padding: 10px; margin: 10px 0; }
+        button { width: 100%; padding: 10px; background: #4f46e5; color: white; border: none; cursor: pointer; }
+        .success { color: green; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h2>Admin Login Test</h2>
+    <form id="loginForm">
+        <input type="email" id="email" value="admin@namaskah.app" placeholder="Email">
+        <input type="password" id="password" value="admin123" placeholder="Password">
+        <button type="submit">Login</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const result = document.getElementById('result');
+            result.innerHTML = 'Logging in...';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: document.getElementById('email').value,
+                        password: document.getElementById('password').value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    result.innerHTML = '<p class="success">✅ Login successful!</p>';
+                    result.innerHTML += '<p>Redirecting to admin panel...</p>';
+                    setTimeout(() => {
+                        window.location.href = '/admin/pricing-templates';
+                    }, 1000);
+                } else {
+                    result.innerHTML = '<p class="error">❌ Login failed: ' + (data.message || data.detail || 'Unknown error') + '</p>';
+                }
+            } catch (error) {
+                result.innerHTML = '<p class="error">❌ Error: ' + error.message + '</p>';
+            }
+        });
+    </script>
+</body>
+</html>
