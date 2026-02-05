@@ -1,50 +1,50 @@
-2026-02-05T20:39:26.442965694Z INFO  [alembic.runtime.migration] Will assume transactional DDL.
-2026-02-05T20:39:26.47434118Z INFO  [alembic.runtime.migration] Running upgrade  -> safe_add_tiers, Safe add subscription tier columns
-2026-02-05T20:39:26.47647997Z Traceback (most recent call last):
-2026-02-05T20:39:26.476495491Z   File "/home/appuser/.local/bin/alembic", line 8, in <module>
-2026-02-05T20:39:26.476606714Z     sys.exit(main())
-2026-02-05T20:39:26.476624974Z              ^^^^^^
-2026-02-05T20:39:26.476707946Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 641, in main
-2026-02-05T20:39:26.476889871Z     CommandLine(prog=prog).main(argv=argv)
-2026-02-05T20:39:26.476899432Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 631, in main
-2026-02-05T20:39:26.477067607Z     self.run_cmd(cfg, options)
-2026-02-05T20:39:26.477073147Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 608, in run_cmd
-2026-02-05T20:39:26.477245501Z     fn(
-2026-02-05T20:39:26.477253942Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/command.py", line 403, in upgrade
-2026-02-05T20:39:26.532515455Z     script.run_env()
-2026-02-05T20:39:26.532536805Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/script/base.py", line 583, in run_env
-2026-02-05T20:39:26.534283234Z     util.load_python_file(self.dir, "env.py")
-2026-02-05T20:39:26.534295064Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
-2026-02-05T20:39:26.534298074Z     module = load_module_py(module_id, path)
-2026-02-05T20:39:26.534300585Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:39:26.534303045Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
-2026-02-05T20:39:26.534306225Z     spec.loader.exec_module(module)  # type: ignore
-2026-02-05T20:39:26.534308875Z     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:39:26.534312125Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-2026-02-05T20:39:26.534314945Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-2026-02-05T20:39:26.534317535Z   File "/app/alembic/env.py", line 87, in <module>
-2026-02-05T20:39:26.534320435Z     run_migrations_online()
-2026-02-05T20:39:26.534323065Z   File "/app/alembic/env.py", line 74, in run_migrations_online
-2026-02-05T20:39:26.534325835Z     context.run_migrations()
-2026-02-05T20:39:26.534328735Z   File "<string>", line 8, in run_migrations
-2026-02-05T20:39:26.534332105Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/environment.py", line 948, in run_migrations
-2026-02-05T20:39:26.534335415Z     self.get_context().run_migrations(**kw)
-2026-02-05T20:39:26.534338326Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/migration.py", line 627, in run_migrations
-2026-02-05T20:39:26.534340866Z     step.migration_fn(**kw)
-2026-02-05T20:39:26.534343626Z   File "/app/alembic/versions/safe_add_tiers.py", line 22, in upgrade
-2026-02-05T20:39:26.534346966Z     bind = op.get_bind()
-2026-02-05T20:39:26.534349826Z            ^^
-2026-02-05T20:39:26.534353106Z NameError: name 'op' is not defined
-2026-02-05T20:39:31.244848717Z 2026-02-05 20:39:31,244 - INFO - ============================================================
-2026-02-05T20:39:31.245563947Z 2026-02-05 20:39:31,244 - INFO - 🚀 NAMASKAH SMS PLATFORM - MINIMAL STARTUP
-2026-02-05T20:39:31.245572908Z 2026-02-05 20:39:31,244 - INFO - ============================================================
-2026-02-05T20:39:31.245588368Z 2026-02-05 20:39:31,244 - INFO - 📊 Environment: production
-2026-02-05T20:39:31.245590898Z 2026-02-05 20:39:31,244 - INFO - 🗄️  Database: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
-2026-02-05T20:39:31.245593148Z 2026-02-05 20:39:31,245 - INFO - 🌐 Server: 0.0.0.0:10000
-2026-02-05T20:39:31.245595358Z 2026-02-05 20:39:31,245 - INFO - 🧪 Testing application import...
-2026-02-05T20:39:36.548309225Z 2026-02-05 20:39:36,547 - INFO - Attempting to connect to PostgreSQL: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
-2026-02-05T20:39:37.236131629Z 2026-02-05 20:39:37,234 - INFO - ✅ PostgreSQL engine created (connection will be tested on first use)
-2026-02-05T20:39:39.138800723Z 2026-02-05 20:39:39,138 - ERROR - ❌ Application import failed: expected an indented block after 'if' statement on line 43 (logging.py, line 44)
-2026-02-05T20:39:39.138962078Z 2026-02-05 20:39:39,138 - ERROR - 💥 Application import failed. Exiting.
-2026-02-05T20:39:42.635310034Z ==> Exited with status 1
-2026-02-05T20:39:42.638286206Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2026-02-05T20:51:47.692565879Z INFO  [alembic.runtime.migration] Context impl PostgresqlImpl.
+2026-02-05T20:51:47.69260262Z INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2026-02-05T20:51:47.776786186Z INFO  [alembic.runtime.migration] Running upgrade  -> safe_add_tiers, Safe add subscription tier columns
+2026-02-05T20:51:47.876668452Z INFO  [alembic.runtime.migration] Running upgrade safe_add_tiers -> add_user_preferences, Add language and currency to users
+2026-02-05T20:51:47.878471088Z Traceback (most recent call last):
+2026-02-05T20:51:47.878481708Z   File "/home/appuser/.local/bin/alembic", line 8, in <module>
+2026-02-05T20:51:47.878647321Z     sys.exit(main())
+2026-02-05T20:51:47.878680741Z              ^^^^^^
+2026-02-05T20:51:47.878683921Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 641, in main
+2026-02-05T20:51:47.878903604Z     CommandLine(prog=prog).main(argv=argv)
+2026-02-05T20:51:47.878930954Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 631, in main
+2026-02-05T20:51:47.879116327Z     self.run_cmd(cfg, options)
+2026-02-05T20:51:47.879127148Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 608, in run_cmd
+2026-02-05T20:51:47.879358301Z     fn(
+2026-02-05T20:51:47.879367391Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/command.py", line 403, in upgrade
+2026-02-05T20:51:47.880035231Z     script.run_env()
+2026-02-05T20:51:47.880043671Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/script/base.py", line 583, in run_env
+2026-02-05T20:51:47.8813921Z     util.load_python_file(self.dir, "env.py")
+2026-02-05T20:51:47.881411781Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
+2026-02-05T20:51:47.882101521Z     module = load_module_py(module_id, path)
+2026-02-05T20:51:47.882146011Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-02-05T20:51:47.882186412Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
+2026-02-05T20:51:47.882327134Z     spec.loader.exec_module(module)  # type: ignore
+2026-02-05T20:51:47.882348064Z     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-02-05T20:51:47.882354314Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+2026-02-05T20:51:47.882359895Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+2026-02-05T20:51:47.882402485Z   File "/app/alembic/env.py", line 87, in <module>
+2026-02-05T20:51:47.882503077Z     run_migrations_online()
+2026-02-05T20:51:47.882507647Z   File "/app/alembic/env.py", line 74, in run_migrations_online
+2026-02-05T20:51:47.882602778Z     context.run_migrations()
+2026-02-05T20:51:47.882607298Z   File "<string>", line 8, in run_migrations
+2026-02-05T20:51:47.882610558Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/environment.py", line 948, in run_migrations
+2026-02-05T20:51:47.88408791Z     self.get_context().run_migrations(**kw)
+2026-02-05T20:51:47.88409679Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/migration.py", line 627, in run_migrations
+2026-02-05T20:51:47.885540211Z     step.migration_fn(**kw)
+2026-02-05T20:51:47.885564621Z   File "/app/alembic/versions/add_user_preferences.py", line 22, in upgrade
+2026-02-05T20:51:47.885663243Z     bind = op.get_bind()
+2026-02-05T20:51:47.885668553Z            ^^
+2026-02-05T20:51:47.885713813Z NameError: name 'op' is not defined
+2026-02-05T20:51:52.293555958Z 2026-02-05 20:51:52,293 - INFO - ============================================================
+2026-02-05T20:51:52.293585819Z 2026-02-05 20:51:52,293 - INFO - 🚀 NAMASKAH SMS PLATFORM - MINIMAL STARTUP
+2026-02-05T20:51:52.293595488Z 2026-02-05 20:51:52,293 - INFO - ============================================================
+2026-02-05T20:51:52.29366476Z 2026-02-05 20:51:52,293 - INFO - 📊 Environment: production
+2026-02-05T20:51:52.29367697Z 2026-02-05 20:51:52,293 - INFO - 🗄️  Database: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
+2026-02-05T20:51:52.293738731Z 2026-02-05 20:51:52,293 - INFO - 🌐 Server: 0.0.0.0:10000
+2026-02-05T20:51:52.293869532Z 2026-02-05 20:51:52,293 - INFO - 🧪 Testing application import...
+2026-02-05T20:51:57.690011245Z 2026-02-05 20:51:57,689 - INFO - Attempting to connect to PostgreSQL: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
+2026-02-05T20:51:58.290462473Z 2026-02-05 20:51:58,290 - INFO - ✅ PostgreSQL engine created (connection will be tested on first use)
+2026-02-05T20:51:59.985153512Z 2026-02-05 20:51:59,984 - ERROR - ❌ Application import failed: unindent does not match any outer indentation level (security.py, line 26)
+2026-02-05T20:51:59.985201822Z 2026-02-05 20:51:59,985 - ERROR - 💥 Application import failed. Exiting.
