@@ -16,26 +16,19 @@ revision = "add_user_preferences"
 down_revision = "safe_add_tiers"
 branch_labels = None
 depends_on = None
-
-
 def upgrade():
     bind = op.get_bind()
     inspector = inspect(bind)
     existing_columns = [col["name"] for col in inspector.get_columns("users")]
-
     if "language" not in existing_columns:
         op.add_column(
             "users",
             sa.Column("language", sa.String(10), nullable=False, server_default="en"),
         )
-
     if "currency" not in existing_columns:
         op.add_column(
             "users",
             sa.Column("currency", sa.String(10), nullable=False, server_default="USD"),
         )
-
-
 def downgrade():
-
     pass

@@ -1,12 +1,11 @@
-"""
-import sqlalchemy as sa
-from alembic import op
-
-Migrate to Quota-Based Pricing Model
+"""Migrate to Quota-Based Pricing Model
 
 Revision ID: quota_pricing_v3_1
 Created: 2025-12-25
 """
+
+import sqlalchemy as sa
+from alembic import op
 
 
 # revision identifiers
