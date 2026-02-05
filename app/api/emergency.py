@@ -40,11 +40,21 @@ async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
             db.commit()
             return {"status": "updated", "email": ADMIN_EMAIL, "hash": password_hash[:20]}
         else:
-            # Create user
+            # Create user with all required fields
             db.execute(
                 text("""
-                    INSERT INTO users (email, password_hash, is_admin, credits, free_verifications, email_verified, created_at)
-                    VALUES (:email, :hash, true, 1000, 0, true, NOW())
+                    INSERT INTO users (
+                        email, password_hash, is_admin, is_moderator, credits, 
+                        free_verifications, email_verified, subscription_tier, 
+                        bonus_sms_balance, monthly_quota_used, referral_earnings, 
+                        provider, failed_login_attempts, language, currency, created_at
+                    )
+                    VALUES (
+                        :email, :hash, true, false, 1000, 
+                        1.0, true, 'freemium', 
+                        0.0, 0.0, 0.0, 
+                        'email', 0, 'en', 'USD', NOW()
+                    )
                 """),
                 {"email": ADMIN_EMAIL, "hash": password_hash}
             )
