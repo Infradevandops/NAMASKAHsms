@@ -1,0 +1,111 @@
+import pytest
+import asyncio
+from unittest.mock import MagicMock, patch, ANY
+from app.api.core.forwarding import (
+    _send_forwarding_webhook,
+    _send_forwarding_email,
+    forward_sms_message,
+    ForwardingConfig,
+)
+
+
+@pytest.fixture
+def mock_db():
+    return MagicMock()
+
+
+@pytest.mark.asyncio
+async def test_send_forwarding_webhook_success():
+    with patch("httpx.AsyncClient") as MockClient:
+        mock_post = MockClient.return_value.__aenter__.return_value.post
+        mock_post.return_value.status_code = 200
+
+        result = await _send_forwarding_webhook(
+            "http://hook.com", "secret", {"msg": "test"}
+        )
+        assert result is True
+        mock_post.assert_called_once()
+        # Verify headers for signature
+        call_kwargs = mock_post.call_args[1]
+        headers = call_kwargs["headers"]
+        assert "X-Webhook-Signature" in headers
+
+
+@pytest.mark.asyncio
+async def test_send_forwarding_webhook_failure_retries():
+    with patch("httpx.AsyncClient") as MockClient, patch("asyncio.sleep") as mock_sleep:
+        mock_post = MockClient.return_value.__aenter__.return_value.post
+        mock_post.return_value.status_code = 500
+
+        result = await _send_forwarding_webhook(
+            "http://hook.com", "secret", {"msg": "test"}
+        )
+        assert result is False
+        # 3 retries = 3 calls
+        assert mock_post.call_count == 3
+        # Should have slept
+        assert mock_sleep.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_send_forwarding_email():
+    with (
+        patch("app.api.core.forwarding.email_service") as mock_service,
+        patch("asyncio.get_event_loop") as mock_loop,
+    ):
+
+        mock_service.enabled = True
+        mock_service.from_email = "test@app.com"
+
+        # mock run_in_executor to return a future
+        future = asyncio.Future()
+        future.set_result(None)
+        mock_runner = mock_loop.return_value.run_in_executor
+        mock_runner.return_value = future
+
+        result = await _send_forwarding_email(
+            "user@test.com", {"is_test": True, "message": "Hi"}
+        )
+        assert result is True
+        mock_runner.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_forward_sms_message(mock_db):
+    user_id = "u1"
+    config = ForwardingConfig(
+        user_id=user_id,
+        is_active=True,
+        email_enabled=True,
+        email_address="u@t.com",
+        webhook_enabled=True,
+        webhook_url="http://hook.com",
+        webhook_secret="s",
+    )
+    mock_db.query.return_value.filter.return_value.first.return_value = config
+
+    with (
+        patch(
+            "app.api.core.forwarding._send_forwarding_email", return_value=True
+        ) as mock_email,
+        patch(
+            "app.api.core.forwarding._send_forwarding_webhook", return_value=True
+        ) as mock_webhook,
+    ):
+
+        result = await forward_sms_message(user_id, {}, mock_db)
+
+        assert result["forwarded"] is True
+        assert result["success_count"] == 2
+        mock_email.assert_called_once()
+        mock_webhook.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_forward_sms_not_configured(mock_db):
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    result = await forward_sms_message("u1", {}, mock_db)
+
+    assert result["forwarded"] is False
+    assert result["reason"] == "Forwarding not configured"

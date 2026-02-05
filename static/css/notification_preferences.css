@@ -1,0 +1,358 @@
+/**
+ * Notification Preferences Styles
+ * Styling for notification preference management page
+ */
+
+.preferences-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.preferences-header {
+    margin-bottom: 32px;
+}
+
+.preferences-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+}
+
+.preferences-header p {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Preferences List */
+.preferences-list {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.preference-item {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 24px;
+    transition: all 0.2s;
+}
+
+.preference-item:hover {
+    border-color: #ddd;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.preference-header {
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.preference-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 4px 0;
+    color: #333;
+}
+
+.preference-description {
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+/* Control Groups */
+.preference-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.control-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.control-group input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.control-group input[type="time"] {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    max-width: 150px;
+}
+
+.control-group select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+    max-width: 200px;
+}
+
+.control-group select:focus {
+    outline: none;
+    border-color: #06b6d4;
+    box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+}
+
+/* Delivery Methods */
+.delivery-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.delivery-methods label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    padding: 8px 12px;
+    background: #f9f9f9;
+    border-radius: 6px;
+    border: 1px solid #eee;
+    transition: all 0.2s;
+}
+
+.delivery-methods label:hover {
+    background: #f0f0f0;
+    border-color: #ddd;
+}
+
+.delivery-methods input[type="checkbox"]:checked + label {
+    background: #e0f2fe;
+    border-color: #06b6d4;
+}
+
+/* Quiet Hours Section */
+.quiet-hours-section {
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.quiet-hours-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 16px 0;
+    color: #333;
+}
+
+.quiet-hours-section > label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+}
+
+.quiet-hours-section input[type="checkbox"] {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.quiet-hours-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-top: 16px;
+    border-top: 1px solid #ddd;
+}
+
+.quiet-hours-controls .control-group {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+}
+
+.quiet-hours-controls .control-group label {
+    min-width: 60px;
+    margin: 0;
+}
+
+.quiet-hours-controls .control-group input[type="time"] {
+    max-width: none;
+    flex: 1;
+}
+
+.quiet-hours-controls > label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 8px;
+}
+
+/* Action Buttons */
+.preferences-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid #eee;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background: #06b6d4;
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #0891b2;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+}
+
+.btn-secondary {
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+    background: #f9f9f9;
+    border-color: #bbb;
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Alerts */
+.alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 16px 24px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert-success {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+}
+
+.alert-error {
+    background: #fee2e2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .preferences-container {
+        padding: 16px;
+    }
+
+    .preferences-header h1 {
+        font-size: 24px;
+    }
+
+    .preference-item {
+        padding: 16px;
+    }
+
+    .delivery-methods {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .preferences-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
+    }
+
+    .quiet-hours-controls .control-group {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .quiet-hours-controls .control-group input[type="time"] {
+        width: 100%;
+    }
+}
+
+@media (max-width: 480px) {
+    .preferences-container {
+        padding: 12px;
+    }
+
+    .preferences-header h1 {
+        font-size: 20px;
+    }
+
+    .preference-item {
+        padding: 12px;
+    }
+
+    .delivery-methods {
+        grid-template-columns: 1fr;
+    }
+
+    .alert {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+    }
+}

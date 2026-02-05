@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Templates - Admin Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f3f4f6; }
+        .pricing-dashboard { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .dashboard-header h1 { font-size: 28px; color: #1a1a1a; }
+        .quick-actions { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.3s; }
+        .btn-primary { background: #4f46e5; color: white; }
+        .btn-primary:hover { background: #4338ca; }
+        .btn-secondary { background: #6b7280; color: white; }
+        .btn-secondary:hover { background: #4b5563; }
+        .btn-success { background: #10b981; color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .template-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .template-card { background: white; border: 2px solid #e5e7eb; border-radius: 12px; padding: 24px; transition: all 0.3s; }
+        .template-card:hover { border-color: #4f46e5; box-shadow: 0 4px 12px rgba(79, 70, 229, 0.1); }
+        .template-card.active { border-color: #10b981; background: #f0fdf4; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; margin-bottom: 12px; }
+        .badge.success { background: #10b981; color: white; }
+        .badge.secondary { background: #6b7280; color: white; }
+        .template-card h3 { font-size: 20px; margin-bottom: 8px; color: #1a1a1a; }
+        .template-card p { color: #6b7280; margin-bottom: 12px; font-size: 14px; }
+        .template-meta { display: flex; gap: 16px; margin-bottom: 16px; font-size: 13px; color: #6b7280; }
+        .expires { color: #f59e0b; font-weight: 500; font-size: 13px; }
+        .template-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .template-actions button { flex: 1; min-width: 80px; padding: 8px 12px; font-size: 13px; }
+        .loading { text-align: center; padding: 40px; color: #6b7280; }
+        .error { background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 8px; margin-bottom: 20px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 12px; padding: 32px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .close-modal { background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; }
+        .tier-list { margin-top: 16px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+        .tier-item { display: flex; justify-content: space-between; padding: 8px 0; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="pricing-dashboard">
+        <div class="dashboard-header">
+            <h1>🎯 Pricing Templates</h1>
+            <div class="quick-actions">
+                <button class="btn btn-secondary" onclick="rollbackPricing()">↩️ Rollback</button>
+                <button class="btn btn-primary" onclick="location.href='/admin-dashboard'">← Back</button>
+            </div>
+        </div>
+        <div id="error-message" class="error" style="display: none;"></div>
+        <div id="loading" class="loading">Loading templates...</div>
+        <div id="template-grid" class="template-grid" style="display: none;"></div>
+    </div>
+    <div id="template-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Template Details</h2>
+                <button class="close-modal" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+    <script>
+        let templates = [];
+        async function loadTemplates() {
+            try {
+                const response = await fetch('/api/admin/pricing/templates', {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    templates = data.templates;
+                    renderTemplates();
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('template-grid').style.display = 'grid';
+                } else {
+                    showError('Failed to load templates');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            }
+        }
+        function renderTemplates() {
+            const grid = document.getElementById('template-grid');
+            grid.innerHTML = '';
+            templates.forEach(template => {
+                const card = document.createElement('div');
+                card.className = `template-card ${template.is_active ? 'active' : ''}`;
+                const badgeClass = template.is_active ? 'success' : 'secondary';
+                const badgeText = template.is_active ? 'ACTIVE' : 'INACTIVE';
+                const expiresHtml = template.expires_at ? `<p class="expires">⏰ Expires: ${new Date(template.expires_at).toLocaleDateString()}</p>` : '';
+                card.innerHTML = `
+                    <span class="badge ${badgeClass}">${badgeText}</span>
+                    <h3>${template.name}</h3>
+                    <p>${template.description || 'No description'}</p>
+                    <div class="template-meta">
+                        <span>🌍 ${template.region}</span>
+                        <span>💰 ${template.currency}</span>
+                        <span>📋 ${template.tier_count} tiers</span>
+                    </div>
+                    ${expiresHtml}
+                    <div class="template-actions">
+                        <button class="btn btn-secondary" onclick="viewTemplate(${template.id})">View</button>
+                        ${!template.is_active ? `<button class="btn btn-success" onclick="activateTemplate(${template.id}, '${template.name}')">⚡ Activate</button>` : ''}
+                        <button class="btn btn-secondary" onclick="cloneTemplate(${template.id})">Clone</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+        async function viewTemplate(id) {
+            try {
+                const response = await fetch(`/api/admin/pricing/templates/${id}`, {
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const template = data.template;
+                    const modal = document.getElementById('template-modal');
+                    const modalBody = document.getElementById('modal-body');
+                    let tiersHtml = '<div class="tier-list">';
+                    template.tiers.forEach(tier => {
+                        tiersHtml += `<div class="tier-item"><span>${tier.tier_name}</span><span>$${tier.monthly_price}/mo</span></div>
+                        <div style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Quota: $${tier.included_quota} | Overage: +$${tier.overage_rate}</div>`;
+                    });
+                    tiersHtml += '</div>';
+                    modalBody.innerHTML = `<p><strong>Region:</strong> ${template.region}</p><p><strong>Currency:</strong> ${template.currency}</p><p><strong>Status:</strong> ${template.is_active ? '✅ Active' : '⏸️ Inactive'}</p><h3 style="margin-top: 20px;">Pricing Tiers</h3>${tiersHtml}`;
+                    modal.classList.add('active');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            }
+        }
+        async function activateTemplate(id, name) {
+            if (!confirm(`Activate "${name}"? This will deactivate the current pricing.`)) return;
+            try {
+                const response = await fetch(`/api/admin/pricing/templates/${id}/activate`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ notes: 'Activated via admin dashboard' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadTemplates();
+                } else {
+                    showError(data.detail || 'Failed to activate');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            }
+        }
+        async function cloneTemplate(id) {
+            const newName = prompt('Enter name for cloned template:');
+            if (!newName) return;
+            try {
+                const response = await fetch(`/api/admin/pricing/templates/${id}/clone?new_name=${encodeURIComponent(newName)}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadTemplates();
+                } else {
+                    showError(data.detail || 'Failed to clone');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            }
+        }
+        async function rollbackPricing() {
+            if (!confirm('Rollback to previous pricing?')) return;
+            try {
+                const response = await fetch('/api/admin/pricing/rollback', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ ${data.message}`);
+                    loadTemplates();
+                } else {
+                    showError(data.detail || 'Failed to rollback');
+                }
+            } catch (error) {
+                showError(`Error: ${error.message}`);
+            }
+        }
+        function closeModal() {
+            document.getElementById('template-modal').classList.remove('active');
+        }
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.getElementById('loading').style.display = 'none';
+        }
+        function getToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('access_token') || '';
+        }
+        document.addEventListener('DOMContentLoaded', () => { loadTemplates(); });
+        document.getElementById('template-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'template-modal') closeModal();
+        });
+    </script>
+</body>
+</html>

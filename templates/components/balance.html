@@ -1,0 +1,94 @@
+<div class="balance-chip" id="balance-display">$0.00</div>
+
+<style>
+.balance-chip { 
+    background: #f0f0f0; 
+    color: #333; 
+    padding: 8px 16px; 
+    border-radius: 8px; 
+    font-weight: 600; 
+    font-size: 14px; 
+    cursor: pointer; 
+    transition: all 0.2s; 
+}
+.balance-chip:hover { background: #e8e8e8; }
+.balance-chip.loading { opacity: 0.6; }
+</style>
+
+<script>
+async function loadBalance() {
+    const display = document.getElementById('balance-display');
+    if (!display) return;
+    
+    display.classList.add('loading');
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            display.textContent = '$0.00';
+            return;
+        }
+        
+        // Check if user is admin
+        const userRes = await fetch('/api/user/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (userRes.ok) {
+            const userData = await userRes.json();
+            
+            // If admin, show TextVerified API balance
+            if (userData.is_admin) {
+                const tvRes = await fetch('/api/verification/textverified/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (tvRes.ok) {
+                    const tvData = await tvRes.json();
+                    const balance = tvData.balance || 0;
+                    display.textContent = `$${parseFloat(balance).toFixed(2)}`;
+                    display.title = 'TextVerified API Balance';
+                    return;
+                } else {
+                    // Fallback to database balance if TextVerified fails
+                    console.warn('TextVerified API not available, using database balance');
+                }
+            }
+        }
+        
+        // For non-admin users, show their account balance
+        const res = await fetch('/api/billing/balance', {
+            headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Cache-Control': 'no-cache' 
+            }
+        });
+        
+        if (res.ok) {
+            const data = await res.json();
+            const balance = data.balance || data.credits || 0;
+            display.textContent = `$${parseFloat(balance).toFixed(2)}`;
+        } else {
+            display.textContent = '$0.00';
+        }
+    } catch (error) {
+        console.error('Balance load error:', error);
+        display.textContent = '$0.00';
+    } finally {
+        display.classList.remove('loading');
+    }
+}
+
+// Load on page load
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', loadBalance);
+} else {
+    loadBalance();
+}
+
+// Refresh every 30 seconds
+setInterval(loadBalance, 30000);
+
+// Expose globally for manual refresh
+window.refreshBalance = loadBalance;
+</script>

@@ -1,0 +1,509 @@
+<!-- API Key Generation Modal Component -->
+<style>
+.api-key-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.api-key-modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.api-key-modal {
+    background: var(--bg-card, #252540);
+    border-radius: 16px;
+    padding: 32px;
+    width: 100%;
+    max-width: 520px;
+    transform: translateY(20px) scale(0.95);
+    transition: transform 0.3s ease;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+}
+
+.api-key-modal-overlay.active .api-key-modal {
+    transform: translateY(0) scale(1);
+}
+
+.api-key-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.api-key-modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary, white);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.api-key-modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted, #888);
+    font-size: 24px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.api-key-modal-close:hover {
+    color: var(--text-primary, white);
+}
+
+.api-key-modal-body {
+    margin-bottom: 24px;
+}
+
+/* Generate Key Form */
+.api-key-form-group {
+    margin-bottom: 20px;
+}
+
+.api-key-form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-secondary, #ccc);
+    margin-bottom: 8px;
+}
+
+.api-key-form-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-body, #1a1a2e);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 8px;
+    color: var(--text-primary, white);
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.api-key-form-input:focus {
+    outline: none;
+    border-color: var(--primary, #667eea);
+}
+
+.api-key-form-input::placeholder {
+    color: var(--text-muted, #666);
+}
+
+/* Generated Key Display */
+.api-key-display {
+    background: var(--bg-body, #1a1a2e);
+    border: 1px solid var(--border-color, #333);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.api-key-display-label {
+    font-size: 12px;
+    color: var(--text-muted, #888);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.api-key-display-value {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.api-key-display-text {
+    flex: 1;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 13px;
+    color: var(--primary, #667eea);
+    background: rgba(102, 126, 234, 0.1);
+    padding: 12px;
+    border-radius: 6px;
+    word-break: break-all;
+    user-select: all;
+}
+
+.api-key-copy-btn {
+    background: var(--primary, #667eea);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.api-key-copy-btn:hover {
+    background: var(--primary-dark, #5a6fd6);
+}
+
+.api-key-copy-btn.copied {
+    background: var(--tier-freemium, #10B981);
+}
+
+/* Warning Message */
+.api-key-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 20px;
+}
+
+.api-key-warning-icon {
+    color: #F59E0B;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.api-key-warning-text {
+    font-size: 13px;
+    color: var(--text-secondary, #ccc);
+    line-height: 1.5;
+}
+
+.api-key-warning-text strong {
+    color: #F59E0B;
+}
+
+/* Modal Footer */
+.api-key-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.api-key-btn {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.api-key-btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color, #333);
+    color: var(--text-secondary, #ccc);
+}
+
+.api-key-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--text-muted, #666);
+}
+
+.api-key-btn-primary {
+    background: var(--primary, #667eea);
+    border: none;
+    color: white;
+}
+
+.api-key-btn-primary:hover {
+    background: var(--primary-dark, #5a6fd6);
+}
+
+.api-key-btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Key Info Display */
+.api-key-info {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.api-key-info-item {
+    background: var(--bg-body, #1a1a2e);
+    padding: 12px;
+    border-radius: 8px;
+}
+
+.api-key-info-label {
+    font-size: 11px;
+    color: var(--text-muted, #888);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.api-key-info-value {
+    font-size: 14px;
+    color: var(--text-primary, white);
+    font-weight: 500;
+}
+</style>
+
+<!-- Generate API Key Modal -->
+<div id="api-key-generate-modal" 
+     class="api-key-modal-overlay" 
+     role="dialog" 
+     aria-modal="true" 
+     aria-labelledby="api-key-generate-title">
+    <div class="api-key-modal">
+        <div class="api-key-modal-header">
+            <h3 class="api-key-modal-title" id="api-key-generate-title">
+                🔑 Generate API Key
+            </h3>
+            <button class="api-key-modal-close" onclick="closeApiKeyGenerateModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="api-key-modal-body">
+            <div class="api-key-form-group">
+                <label class="api-key-form-label" for="api-key-name">Key Name</label>
+                <input type="text" 
+                       id="api-key-name" 
+                       class="api-key-form-input" 
+                       placeholder="e.g., Development, Production, Mobile App"
+                       maxlength="50">
+            </div>
+            <p style="font-size: 13px; color: var(--text-muted); margin: 0;">
+                Give your API key a descriptive name to help you identify it later.
+            </p>
+        </div>
+        <div class="api-key-modal-footer">
+            <button class="api-key-btn api-key-btn-secondary" onclick="closeApiKeyGenerateModal()">Cancel</button>
+            <button class="api-key-btn api-key-btn-primary" id="api-key-generate-btn" onclick="generateApiKeyFromModal()">
+                Generate Key
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Display Generated API Key Modal -->
+<div id="api-key-display-modal" 
+     class="api-key-modal-overlay" 
+     role="dialog" 
+     aria-modal="true" 
+     aria-labelledby="api-key-display-title">
+    <div class="api-key-modal">
+        <div class="api-key-modal-header">
+            <h3 class="api-key-modal-title" id="api-key-display-title">
+                ✅ API Key Generated
+            </h3>
+            <button class="api-key-modal-close" onclick="closeApiKeyDisplayModal()" aria-label="Close">&times;</button>
+        </div>
+        <div class="api-key-modal-body">
+            <div class="api-key-warning">
+                <span class="api-key-warning-icon">⚠️</span>
+                <div class="api-key-warning-text">
+                    <strong>Save this key now!</strong> For security reasons, this is the only time you'll see the full API key. 
+                    Store it securely - you won't be able to view it again.
+                </div>
+            </div>
+            
+            <div class="api-key-info">
+                <div class="api-key-info-item">
+                    <div class="api-key-info-label">Key Name</div>
+                    <div class="api-key-info-value" id="api-key-created-name">-</div>
+                </div>
+                <div class="api-key-info-item">
+                    <div class="api-key-info-label">Created</div>
+                    <div class="api-key-info-value" id="api-key-created-date">-</div>
+                </div>
+            </div>
+            
+            <div class="api-key-display">
+                <div class="api-key-display-label">Your API Key</div>
+                <div class="api-key-display-value">
+                    <div class="api-key-display-text" id="api-key-full-value">-</div>
+                    <button class="api-key-copy-btn" onclick="copyApiKey()" id="api-key-copy-btn">
+                        📋 Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="api-key-modal-footer">
+            <button class="api-key-btn api-key-btn-primary" onclick="closeApiKeyDisplayModal()">
+                I've Saved My Key
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let previouslyFocusedElement = null;
+
+function showApiKeyGenerateModal() {
+    previouslyFocusedElement = document.activeElement;
+    const modal = document.getElementById('api-key-generate-modal');
+    const nameInput = document.getElementById('api-key-name');
+    
+    // Reset form
+    nameInput.value = '';
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Focus the input
+    setTimeout(() => nameInput.focus(), 100);
+    
+    // Add keyboard listener
+    document.addEventListener('keydown', handleApiKeyModalKeydown);
+}
+
+function closeApiKeyGenerateModal() {
+    const modal = document.getElementById('api-key-generate-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleApiKeyModalKeydown);
+    
+    if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+    }
+}
+
+function showApiKeyDisplayModal(keyData) {
+    const modal = document.getElementById('api-key-display-modal');
+    
+    // Populate data
+    document.getElementById('api-key-created-name').textContent = keyData.name || 'API Key';
+    document.getElementById('api-key-created-date').textContent = new Date().toLocaleDateString();
+    document.getElementById('api-key-full-value').textContent = keyData.key;
+    
+    // Reset copy button
+    const copyBtn = document.getElementById('api-key-copy-btn');
+    copyBtn.classList.remove('copied');
+    copyBtn.innerHTML = '📋 Copy';
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    
+    // Add keyboard listener
+    document.addEventListener('keydown', handleApiKeyModalKeydown);
+}
+
+function closeApiKeyDisplayModal() {
+    const modal = document.getElementById('api-key-display-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = '';
+    document.removeEventListener('keydown', handleApiKeyModalKeydown);
+    
+    // Refresh the API keys list
+    if (typeof loadApiKeys === 'function') {
+        loadApiKeys();
+    }
+    
+    if (previouslyFocusedElement) {
+        previouslyFocusedElement.focus();
+    }
+}
+
+async function generateApiKeyFromModal() {
+    const nameInput = document.getElementById('api-key-name');
+    const generateBtn = document.getElementById('api-key-generate-btn');
+    const keyName = nameInput.value.trim() || 'API Key ' + new Date().toLocaleDateString();
+    
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/auth/api-keys', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: keyName })
+        });
+        
+        if (!res.ok) {
+            throw new Error('Failed to generate API key');
+        }
+        
+        const newKey = await res.json();
+        
+        // Close generate modal and show display modal
+        closeApiKeyGenerateModal();
+        showApiKeyDisplayModal({ name: keyName, key: newKey.key });
+        
+    } catch (error) {
+        console.error('Failed to generate API key:', error);
+        alert('Failed to generate API key. Please try again.');
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = 'Generate Key';
+    }
+}
+
+async function copyApiKey() {
+    const keyValue = document.getElementById('api-key-full-value').textContent;
+    const copyBtn = document.getElementById('api-key-copy-btn');
+    
+    try {
+        await navigator.clipboard.writeText(keyValue);
+        copyBtn.classList.add('copied');
+        copyBtn.innerHTML = '✓ Copied!';
+        
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '📋 Copy';
+        }, 2000);
+    } catch (error) {
+        // Fallback for older browsers
+        const textArea = document.createElement('textarea');
+        textArea.value = keyValue;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+        
+        copyBtn.classList.add('copied');
+        copyBtn.innerHTML = '✓ Copied!';
+        
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = '📋 Copy';
+        }, 2000);
+    }
+}
+
+function handleApiKeyModalKeydown(e) {
+    if (e.key === 'Escape') {
+        const generateModal = document.getElementById('api-key-generate-modal');
+        const displayModal = document.getElementById('api-key-display-modal');
+        
+        if (generateModal.classList.contains('active')) {
+            closeApiKeyGenerateModal();
+        } else if (displayModal.classList.contains('active')) {
+            closeApiKeyDisplayModal();
+        }
+    }
+}
+
+// Export for global use
+window.showApiKeyGenerateModal = showApiKeyGenerateModal;
+window.closeApiKeyGenerateModal = closeApiKeyGenerateModal;
+window.showApiKeyDisplayModal = showApiKeyDisplayModal;
+window.closeApiKeyDisplayModal = closeApiKeyDisplayModal;
+</script>

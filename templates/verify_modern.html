@@ -1,0 +1,413 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}<span data-i18n="verify.title">SMS Verification</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="verify.subtitle">Get instant SMS codes for any service</span>{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/verification-design-system.css">
+<style>
+    .verification-container {
+        animation: slideUp 0.3s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="verification-container">
+    <!-- Header -->
+    <div class="verification-header">
+        <h1>🚀 SMS Verification</h1>
+        <p>Get instant SMS codes for any service. Fast, reliable, and secure.</p>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="verification-progress">
+        <div class="progress-steps">
+            <div class="progress-step active" id="step-1">
+                <span class="step-number">1</span>
+                <span class="step-label">Select Service</span>
+            </div>
+            <div class="progress-step" id="step-2">
+                <span class="step-number">2</span>
+                <span class="step-label">Get Number</span>
+            </div>
+            <div class="progress-step" id="step-3">
+                <span class="step-number">3</span>
+                <span class="step-label">Receive Code</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-info">
+            <span id="progress-elapsed">0s elapsed</span>
+            <span id="progress-remaining">~30s remaining</span>
+        </div>
+    </div>
+
+    <!-- Step 1: Service Selection -->
+    <div class="verification-card" id="step-1-card">
+        <h2>
+            <span class="icon">📱</span>
+            Select Service
+        </h2>
+        <p>Choose the service you want to verify</p>
+        
+        <div class="form-group">
+            <label class="form-label">
+                Country <span class="required">*</span>
+            </label>
+            <select class="form-select" id="country-select" onchange="updateServices()">
+                <option value="US">🇺🇸 United States</option>
+                <option value="CA">🇨🇦 Canada</option>
+                <option value="GB">🇬🇧 United Kingdom</option>
+                <option value="AU">🇦🇺 Australia</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                Service <span class="required">*</span>
+            </label>
+            <div class="service-grid" id="service-grid">
+                <div class="loading-text">
+                    <div class="loading-spinner"></div>
+                    Loading services...
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Options -->
+        <div class="form-group">
+            <label class="form-label">Advanced Options</label>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                <div>
+                    <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
+                    <select class="form-select" id="area-code-select" onchange="updatePricing()">
+                        <option value="">Any Area Code</option>
+                        <option value="212">212 - New York</option>
+                        <option value="310">310 - Los Angeles</option>
+                        <option value="415">415 - San Francisco</option>
+                        <option value="479">479 - Arkansas</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
+                    <select class="form-select" id="carrier-select" onchange="updatePricing()">
+                        <option value="">Any Carrier</option>
+                        <option value="att">AT&T</option>
+                        <option value="verizon">Verizon</option>
+                        <option value="tmobile">T-Mobile</option>
+                        <option value="sprint">Sprint</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Pricing & Confirmation -->
+    <div class="verification-card pricing-card" id="step-2-card" style="display: none;">
+        <h2>
+            <span class="icon">💰</span>
+            Pricing & Details
+        </h2>
+        <p>Review the cost and details before proceeding</p>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Service</span>
+            <span class="pricing-value" id="pricing-service">-</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Cost</span>
+            <span class="pricing-value" id="pricing-cost">$0.80</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Delivery Time</span>
+            <span class="pricing-value" id="pricing-time">~30s</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Success Rate</span>
+            <span class="pricing-value success" id="pricing-success">95%</span>
+        </div>
+
+        <div class="pricing-row">
+            <span class="pricing-label">Your Balance</span>
+            <span class="pricing-value" id="pricing-balance">$100.00</span>
+        </div>
+
+        <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
+            <button class="btn btn-secondary" onclick="goBack()">← Back</button>
+            <button class="btn btn-primary btn-block" onclick="createVerification()">
+                <span>Get Number</span>
+                <span>→</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Step 3: Waiting for SMS -->
+    <div class="verification-card" id="step-3-card" style="display: none;">
+        <h2>
+            <span class="icon">📞</span>
+            Your Phone Number
+        </h2>
+
+        <!-- Phone Display -->
+        <div class="phone-display">
+            <div class="phone-label">Call or text this number:</div>
+            <div class="phone-number" id="phone-number">+1 (479) 502-2832</div>
+            <div class="phone-actions">
+                <button class="copy-btn" onclick="copyPhoneNumber()">📋 Copy</button>
+            </div>
+        </div>
+
+        <!-- Scanning Animation -->
+        <div class="scanning-container">
+            <div class="scanning-icon">📡</div>
+            <div class="scanning-text">Scanning for SMS...</div>
+            <div class="scanning-time">
+                <span id="elapsed-time">0</span>s elapsed
+            </div>
+            <div class="scanning-progress">
+                <div class="scanning-progress-bar"></div>
+            </div>
+        </div>
+
+        <!-- SMS Code Display (Hidden until received) -->
+        <div id="code-received" style="display: none;">
+            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); padding: var(--spacing-lg); text-align: center;">
+                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">✅ SMS Code Received!</div>
+                <div style="font-size: var(--font-size-3xl); font-weight: 700; color: var(--success); font-family: 'Courier New', monospace; letter-spacing: 4px; margin-bottom: var(--spacing-lg);" id="sms-code">123456</div>
+                <button class="btn btn-success btn-block" onclick="copySMSCode()">📋 Copy Code</button>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
+            <button class="btn btn-danger btn-block" onclick="cancelVerification()">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Error State (Hidden) -->
+    <div class="error-container" id="error-container" style="display: none;">
+        <div class="error-title">
+            <span>❌</span>
+            <span id="error-title">Verification Failed</span>
+        </div>
+        <div class="error-message" id="error-message">
+            Something went wrong. Please try again.
+        </div>
+        <div class="error-actions">
+            <button class="btn btn-secondary" onclick="resetFlow()">← Start Over</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// State management
+let currentStep = 1;
+let selectedService = null;
+let selectedCountry = 'US';
+let verificationId = null;
+let elapsedSeconds = 0;
+let scanInterval = null;
+
+// Update progress
+function updateProgress(step) {
+    currentStep = step;
+    
+    // Update step indicators
+    for (let i = 1; i <= 3; i++) {
+        const stepEl = document.getElementById(`step-${i}`);
+        const cardEl = document.getElementById(`step-${i}-card`);
+        
+        if (i < step) {
+            stepEl.classList.add('completed');
+            stepEl.classList.remove('active');
+        } else if (i === step) {
+            stepEl.classList.add('active');
+            stepEl.classList.remove('completed');
+        } else {
+            stepEl.classList.remove('active', 'completed');
+        }
+        
+        cardEl.style.display = i === step ? 'block' : 'none';
+    }
+    
+    // Update progress bar
+    const progress = ((step - 1) / 2) * 100;
+    document.getElementById('progress-fill').style.width = progress + '%';
+}
+
+// Service selection
+function selectService(serviceName) {
+    selectedService = serviceName;
+    
+    // Update UI
+    document.querySelectorAll('.service-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+    event.target.closest('.service-card').classList.add('selected');
+    
+    // Move to pricing
+    document.getElementById('pricing-service').textContent = serviceName;
+    updateProgress(2);
+    
+    // Scroll to pricing
+    setTimeout(() => {
+        document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+}
+
+// Update services
+function updateServices() {
+    selectedCountry = document.getElementById('country-select').value;
+    const grid = document.getElementById('service-grid');
+    
+    const services = ['WhatsApp', 'Telegram', 'Discord', 'Instagram', 'Facebook', 'Twitter', 'TikTok', 'Snapchat'];
+    
+    grid.innerHTML = services.map(service => `
+        <div class="service-card" onclick="selectService('${service}')">
+            <span class="service-icon">📱</span>
+            <div class="service-name">${service}</div>
+            <div class="service-price">$0.80</div>
+        </div>
+    `).join('');
+}
+
+// Update pricing
+function updatePricing() {
+    // Simulate pricing update
+    const areaCode = document.getElementById('area-code-select').value;
+    const carrier = document.getElementById('carrier-select').value;
+    
+    let cost = 0.80;
+    if (areaCode) cost += 0.10;
+    if (carrier) cost += 0.05;
+    
+    document.getElementById('pricing-cost').textContent = `$${cost.toFixed(2)}`;
+}
+
+// Create verification
+async function createVerification() {
+    if (!selectedService) {
+        window.toast.error('Please select a service');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/v1/verify/create', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                service: selectedService,
+                country: selectedCountry,
+                area_code: document.getElementById('area-code-select').value || null,
+                carrier: document.getElementById('carrier-select').value || null
+            })
+        });
+        
+        if (!response.ok) throw new Error('Failed to create verification');
+        
+        const data = await response.json();
+        verificationId = data.id;
+        
+        document.getElementById('phone-number').textContent = data.phone_number;
+        updateProgress(3);
+        
+        // Start scanning
+        startScanning();
+        
+        window.toast.success('✅ Number received! Waiting for SMS...');
+        
+    } catch (error) {
+        console.error('Error:', error);
+        showError('Failed to create verification', error.message);
+    }
+}
+
+// Start scanning animation
+function startScanning() {
+    elapsedSeconds = 0;
+    
+    scanInterval = setInterval(() => {
+        elapsedSeconds++;
+        document.getElementById('elapsed-time').textContent = elapsedSeconds;
+        document.getElementById('progress-elapsed').textContent = elapsedSeconds + 's elapsed';
+        
+        const remaining = Math.max(0, 30 - elapsedSeconds);
+        document.getElementById('progress-remaining').textContent = `~${remaining}s remaining`;
+        
+        if (elapsedSeconds >= 30) {
+            clearInterval(scanInterval);
+            showError('Verification Timeout', 'No SMS received within 30 seconds');
+        }
+    }, 1000);
+}
+
+// Copy phone number
+function copyPhoneNumber() {
+    const phone = document.getElementById('phone-number').textContent;
+    navigator.clipboard.writeText(phone);
+    window.toast.success('📋 Phone number copied!');
+}
+
+// Copy SMS code
+function copySMSCode() {
+    const code = document.getElementById('sms-code').textContent;
+    navigator.clipboard.writeText(code);
+    window.toast.success('📋 Code copied!');
+}
+
+// Cancel verification
+function cancelVerification() {
+    if (confirm('Are you sure you want to cancel this verification?')) {
+        resetFlow();
+    }
+}
+
+// Go back
+function goBack() {
+    updateProgress(1);
+    document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Reset flow
+function resetFlow() {
+    clearInterval(scanInterval);
+    currentStep = 1;
+    selectedService = null;
+    verificationId = null;
+    elapsedSeconds = 0;
+    
+    document.getElementById('error-container').style.display = 'none';
+    document.getElementById('code-received').style.display = 'none';
+    
+    updateProgress(1);
+    document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+// Show error
+function showError(title, message) {
+    clearInterval(scanInterval);
+    document.getElementById('error-title').textContent = title;
+    document.getElementById('error-message').textContent = message;
+    document.getElementById('error-container').style.display = 'block';
+    window.toast.error(title);
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    updateServices();
+    updateProgress(1);
+});
+</script>
+{% endblock %}

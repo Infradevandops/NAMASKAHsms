@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voice Status - Namaskah</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    :root {
+      --bg-primary: #0f0f23; --bg-card: #1a1a2e; --bg-input: #16213e;
+      --accent: #0f3460; --accent-light: #533483; --success: #16a085;
+      --text-primary: #ffffff; --text-secondary: #8892b0; --border: #233554;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg-primary); color: var(--text-primary); padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .status { text-align: center; padding: 20px; }
+    .status-icon { font-size: 48px; margin-bottom: 12px; }
+    .status-text { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+    .code-display { background: var(--bg-input); border: 2px solid var(--success); border-radius: 8px; padding: 20px; text-align: center; font-size: 32px; font-weight: 700; letter-spacing: 4px; margin: 20px 0; }
+    .btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="card">
+    <div class="status">
+      <div class="status-icon" id="statusIcon"><i class="ph ph-phone"></i></div>
+      <div class="status-text" id="statusText">Calling...</div>
+      <p style="color: var(--text-secondary); font-size: 14px;" id="statusDesc">Waiting for voice call...</p>
+      
+      <div id="codeDisplay" style="display: none;">
+        <div class="code-display" id="code">------</div>
+        <p style="color: var(--text-secondary); font-size: 12px;">Voice verification code received</p>
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button class="btn" onclick="window.location.href='/dashboard'">Back to Dashboard</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+const verificationId = "{{ verification_id }}";
+let pollInterval;
+
+async function checkStatus() {
+  try {
+    const response = await axios.get(`/api/verification/${verificationId}`);
+    const data = response.data;
+    
+    if (data.sms_code) {
+      document.getElementById('statusIcon').innerHTML = '<i class="ph ph-check-circle" style="color: var(--success);"></i>';
+      document.getElementById('statusText').textContent = 'Code Received!';
+      document.getElementById('statusDesc').textContent = 'Voice verification complete';
+      document.getElementById('code').textContent = data.sms_code;
+      document.getElementById('codeDisplay').style.display = 'block';
+      clearInterval(pollInterval);
+    } else if (data.status === 'failed') {
+      document.getElementById('statusIcon').innerHTML = '<i class="ph ph-x-circle" style="color: #e74c3c;"></i>';
+      document.getElementById('statusText').textContent = 'Verification Failed';
+      document.getElementById('statusDesc').textContent = 'No code received';
+      clearInterval(pollInterval);
+    }
+  } catch (error) {
+    console.error('Status check error:', error);
+  }
+}
+
+// Auto-poll every 3 seconds
+pollInterval = setInterval(checkStatus, 3000);
+checkStatus();
+</script>
+</body>
+</html>

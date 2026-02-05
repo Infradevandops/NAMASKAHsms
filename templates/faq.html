@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ - Namaskah SMS Verification</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f172a; color: #f8fafc; }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); padding: 40px 20px; text-align: center; border-radius: 16px; margin-bottom: 40px; }
+        .header h1 { font-size: 36px; margin-bottom: 12px; }
+        .header p { opacity: 0.9; }
+        .faq-section { margin-bottom: 40px; }
+        .faq-section h2 { font-size: 24px; color: #6366f1; margin-bottom: 20px; }
+        .faq-item { background: #1e293b; border: 1px solid #475569; border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+        .faq-question { padding: 16px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.3s; }
+        .faq-question:hover { background: #334155; }
+        .faq-question h3 { font-size: 16px; margin: 0; }
+        .faq-toggle { font-size: 20px; transition: transform 0.3s; }
+        .faq-item.open .faq-toggle { transform: rotate(180deg); }
+        .faq-answer { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+        .faq-item.open .faq-answer { max-height: 500px; }
+        .faq-answer-content { padding: 16px; border-top: 1px solid #475569; }
+        .back-btn { display: inline-block; margin-bottom: 20px; padding: 8px 16px; background: #475569; color: white; border-radius: 6px; text-decoration: none; font-size: 14px; }
+        .back-btn:hover { background: #64748b; }
+        .search-box { width: 100%; padding: 12px 16px; background: #1e293b; border: 1px solid #475569; border-radius: 8px; color: #f8fafc; margin-bottom: 30px; font-size: 16px; }
+        .search-box:focus { outline: none; border-color: #6366f1; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-btn">← Back to Home</a>
+        
+        <div class="header">
+            <h1>Frequently Asked Questions</h1>
+            <p>Find answers to common questions about Namaskah SMS verification service</p>
+        </div>
+
+        <input type="text" class="search-box" placeholder="Search FAQ..." id="searchBox" onkeyup="filterFAQ()">
+
+        <div class="faq-section">
+            <h2>Getting Started</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>How do I create an account?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Creating an account is simple and free. Click the "Sign Up" button on our homepage, enter your email address, create a strong password, and verify your email. You'll get instant access to our platform with a welcome bonus.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Is there a free trial?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes! All new accounts receive a welcome bonus of $5 in free credits. This is enough to test our service with multiple verifications across different countries and services.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>What payment methods do you accept?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>We accept all major payment methods including credit cards (Visa, Mastercard, American Express), PayPal, bank transfers, and cryptocurrency. All payments are processed securely through Paystack.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>SMS Verification</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>How long does it take to receive an SMS?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Most SMS codes are delivered within 5-30 seconds. Our average delivery time is under 10 seconds. If you don't receive a code within 2 minutes, you can request a refund through your dashboard.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Which countries are supported?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>We support 190+ countries worldwide. You can view the complete list of supported countries in your dashboard. We're constantly adding new countries based on customer demand.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Can I use the same number multiple times?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Each verification number is single-use for security reasons. After receiving your SMS code, the number is released back to our pool. You can request a new number for each verification.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>What if I don't receive the SMS?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>If you don't receive an SMS within 2 minutes, you can request a refund from your dashboard. We'll credit your account immediately. If this happens frequently, contact our support team for assistance.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>Pricing & Billing</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>How much does each SMS verification cost?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Prices vary by country and service. Most verifications cost between $0.15 and $0.50. You can see exact pricing for each country and service before purchasing.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Do you offer volume discounts?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes! We offer tiered pricing for high-volume users. Contact our sales team for custom pricing if you need more than 1,000 verifications per month.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Can I get a refund?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes. If you don't receive an SMS within 2 minutes, you can request a refund. We also offer a 30-day money-back guarantee for new accounts if you're not satisfied.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>Security & Privacy</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Is my data secure?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes. We use bank-level encryption (AES-256) for all data. Our infrastructure is GDPR compliant, and we undergo regular security audits. All data is stored in secure data centers with redundancy.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Do you log SMS content?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>We log SMS content for a limited time (24 hours) for delivery verification purposes only. After that, all content is permanently deleted. We never share this data with third parties.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Is Namaskah GDPR compliant?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes. We are fully GDPR compliant. You can export or delete your data at any time from your account settings. See our Privacy Policy for more details.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>API & Integration</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Do you have an API?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes! We provide a comprehensive REST API with detailed documentation. You can integrate Namaskah into your application in minutes. SDKs are available for Python, JavaScript, PHP, and more.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>What's your API rate limit?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Standard accounts have a rate limit of 100 requests per minute. Enterprise customers can request higher limits. Check your API documentation for current limits.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>Is there webhook support?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>Yes. We support webhooks for SMS delivery notifications. You can configure webhooks in your dashboard to receive real-time updates when SMS codes are delivered.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="faq-section">
+            <h2>Support</h2>
+            
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>How do I contact support?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>You can reach our support team via email at support@namaskah.com or through the live chat on our website. We respond to all inquiries within 2 hours during business hours.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="faq-item" onclick="toggleFAQ(this)">
+                <div class="faq-question">
+                    <h3>What's your uptime guarantee?</h3>
+                    <span class="faq-toggle">▼</span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-content">
+                        <p>We guarantee 99.9% uptime. If we fall below this, you're eligible for service credits. Check our status page for real-time system status.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleFAQ(element) {
+            element.classList.toggle('open');
+        }
+
+        function filterFAQ() {
+            const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+            const faqItems = document.querySelectorAll('.faq-item');
+            
+            faqItems.forEach(item => {
+                const question = item.querySelector('h3').textContent.toLowerCase();
+                const answer = item.querySelector('.faq-answer-content').textContent.toLowerCase();
+                
+                if (question.includes(searchTerm) || answer.includes(searchTerm)) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+{
+  "common": {
+    "welcome": "स्वागत है",
+    "dashboard": "डैशबोर्ड",
+    "settings": "सेटिंग्स",
+    "wallet": "वॉलेट",
+    "profile": "प्रोफ़ाइल",
+    "logout": "लॉग आउट",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "type": "प्रकार",
+    "amount": "राशि",
+    "date": "तारीख",
+    "status": "स्थिति"
+  },
+  "dashboard": {
+    "title": "डैशबोर्ड",
+    "subtitle": "आपकी एसएमएस सत्यापन गतिविधि का अवलोकन",
+    "total_sms": "कुल एसएमएस",
+    "successful": "सफल",
+    "total_spent": "कुल खर्च",
+    "success_rate": "सफलता दर",
+    "recent_activity": "हाल की गतिविधि",
+    "no_activity": "कोई हालिया गतिविधि नहीं",
+    "start_verification": "सत्यापन शुरू करें",
+    "service": "सेवा",
+    "number": "नंबर",
+    "time": "समय",
+    "your_plan": "आपकी योजना",
+    "upgrade": "अपग्रेड",
+    "features": "विशेषताएं"
+  },
+  "tiers": {
+    "freemium": "फ्रीमियम",
+    "payg": "उपयोग के अनुसार भुगतान",
+    "pro": "प्रो",
+    "custom": "कस्टम",
+    "current_plan": "वर्तमान योजना",
+    "upgrade_to": "अपग्रेड करें",
+    "features": {
+      "random_numbers": "केवल यादृच्छिक नंबर",
+      "no_api": "कोई एपीआई एक्सेस नहीं",
+      "no_filters": "कोई स्थान फ़िल्टर नहीं",
+      "location_filters": "स्थान फ़िल्टर",
+      "isp_filters": "आईएसपी फ़िल्टर",
+      "api_access": "एपीआई एक्सेस",
+      "all_filters": "सभी फ़िल्टर शामिल",
+      "affiliate": "सहयोगी कार्यक्रम",
+      "priority_support": "प्राथमिकता समर्थन",
+      "unlimited_api": "असीमित एपीआई"
+    }
+  },
+  "wallet": {
+    "title": "वॉलेट",
+    "subtitle": "अपने क्रेडिट और बिलिंग प्रबंधित करें",
+    "current_balance": "वर्तमान शेष",
+    "this_month": "इस महीने",
+    "total_spent": "कुल खर्च",
+    "add_credits": "क्रेडिट जोड़ें",
+    "transaction_history": "लेनदेन इतिहास",
+    "pay_with_crypto": "क्रिप्टो से भुगतान करें",
+    "pay_with_card": "कार्ड से भुगतान करें"
+  },
+  "verify": {
+    "title": "एसएमएस सत्यापन",
+    "subtitle": "सत्यापन के लिए एक नंबर प्राप्त करें",
+    "select_service": "सेवा चुनें",
+    "select_country": "देश चुनें",
+    "buy_number": "नंबर खरीदें"
+  }
+}

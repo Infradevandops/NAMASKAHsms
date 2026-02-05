@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Reviews - Namaskah">
+  <title>Reviews - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .reviews-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .reviews-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2xl);
+      flex-wrap: wrap;
+      gap: var(--space-lg);
+    }
+    
+    .reviews-header h1 {
+      margin: 0;
+    }
+    
+    .rating-summary {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      text-align: center;
+    }
+    
+    .rating-value {
+      font-size: 3rem;
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+      margin: 0;
+    }
+    
+    .rating-stars {
+      color: var(--warning);
+      margin: var(--space-md) 0;
+    }
+    
+    .rating-count {
+      color: var(--neutral);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+    
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .review-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+    }
+    
+    .review-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .review-author {
+      font-weight: var(--font-weight-semibold);
+      margin: 0;
+    }
+    
+    .review-date {
+      font-size: 0.875rem;
+      color: var(--neutral);
+      margin: var(--space-xs) 0 0 0;
+    }
+    
+    .review-rating {
+      color: var(--warning);
+    }
+    
+    .review-text {
+      color: #374151;
+      margin: 0 0 var(--space-lg) 0;
+      line-height: 1.6;
+    }
+    
+    .review-actions {
+      display: flex;
+      gap: var(--space-md);
+    }
+    
+    .review-actions button {
+      padding: var(--space-sm) var(--space-md);
+      font-size: 0.875rem;
+    }
+    
+    .add-review-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+    }
+    
+    .add-review-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+    }
+    
+    .form-group {
+      margin-bottom: var(--space-lg);
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: var(--space-sm);
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      font-family: var(--font-family-base);
+    }
+    
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    .rating-input {
+      display: flex;
+      gap: var(--space-md);
+    }
+    
+    .rating-input label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+    
+    .pagination button {
+      padding: var(--space-sm) var(--space-md);
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+    }
+    
+    .pagination button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+    
+    @media (max-width: 640px) {
+      .reviews-container {
+        padding: var(--space-lg);
+      }
+      
+      .reviews-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .review-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">Namaskah</div>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="reviews-container">
+    <!-- Header -->
+    <div class="reviews-header">
+      <h1>Customer Reviews</h1>
+      <button class="btn btn-primary">
+        <i class="ph ph-plus"></i>
+        Write Review
+      </button>
+    </div>
+
+    <!-- Rating Summary -->
+    <div class="rating-summary">
+      <p class="rating-value">4.8</p>
+      <p class="rating-stars">★★★★★</p>
+      <p class="rating-count">Based on 234 reviews</p>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="reviews-list">
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">John Smith</p>
+            <p class="review-date">November 20, 2025</p>
+          </div>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p class="review-text">Excellent service! The SMS verification is incredibly fast and reliable. Highly recommended for any business.</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+      
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">Jane Doe</p>
+            <p class="review-date">November 18, 2025</p>
+          </div>
+          <span class="review-rating">★★★★☆</span>
+        </div>
+        <p class="review-text">Great service with good pricing. The API documentation could be more detailed, but overall very satisfied.</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+      
+      <div class="review-card">
+        <div class="review-header">
+          <div>
+            <p class="review-author">Bob Johnson</p>
+            <p class="review-date">November 15, 2025</p>
+          </div>
+          <span class="review-rating">★★★★★</span>
+        </div>
+        <p class="review-text">Perfect for our needs. The customer support team is responsive and helpful. Worth every penny!</p>
+        <div class="review-actions">
+          <button class="btn btn-sm btn-outline">Helpful</button>
+          <button class="btn btn-sm btn-outline">Report</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <button class="btn btn-sm btn-outline">
+        <i class="ph ph-chevron-left"></i>
+      </button>
+      <button class="btn btn-sm active">1</button>
+      <button class="btn btn-sm btn-outline">2</button>
+      <button class="btn btn-sm btn-outline">3</button>
+      <button class="btn btn-sm btn-outline">
+        <i class="ph ph-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Add Review Form -->
+    <div class="add-review-section" style="margin-top: var(--space-2xl);">
+      <h2>Share Your Experience</h2>
+      
+      <div class="form-group">
+        <label>Your Name</label>
+        <input type="text" placeholder="Enter your name">
+      </div>
+      
+      <div class="form-group">
+        <label>Rating</label>
+        <div class="rating-input">
+          <label><input type="radio" name="rating"> ★</label>
+          <label><input type="radio" name="rating"> ★★</label>
+          <label><input type="radio" name="rating"> ★★★</label>
+          <label><input type="radio" name="rating"> ★★★★</label>
+          <label><input type="radio" name="rating" checked> ★★★★★</label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Your Review</label>
+        <textarea placeholder="Share your experience with Namaskah..."></textarea>
+      </div>
+      
+      <button class="btn btn-primary" style="width: 100%;">
+        <i class="ph ph-send"></i>
+        Submit Review
+      </button>
+    </div>
+  </div>
+
+  <footer style="background-color: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 2rem;">
+    <p>&copy; 2025 Namaskah. All rights reserved.</p>
+  </footer>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+</body>
+</html>

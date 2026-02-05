@@ -1,0 +1,539 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}<span data-i18n="wallet.title">Wallet</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="wallet.subtitle">Manage your credits and billing</span>{% endblock %}
+
+{% block content %}
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
+    <div class="card">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.current_balance">Current Balance</div>
+        <div style="font-size: 32px; font-weight: 700; color: var(--primary);" id="wallet-balance">$0.00</div>
+    </div>
+    <div class="card">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.this_month">This Month</div>
+        <div style="font-size: 32px; font-weight: 700;" id="monthly-spent">$0.00</div>
+    </div>
+    <div class="card">
+        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.total_spent">Total Spent</div>
+        <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0.00</div>
+    </div>
+</div>
+
+<div class="card">
+    <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="wallet.add_credits">Add Credits</h2>
+
+    <div style="display: flex; border-bottom: 1px solid #eee; margin-bottom: 20px;">
+        <button onclick="switchPaymentMethod('card')" id="tab-card" style="padding: 10px 20px; background: transparent; border: none; border-bottom: 2px solid var(--primary); color: var(--primary); font-weight: 500; cursor: pointer;" data-i18n="wallet.pay_with_card">Credit/Debit Card</button>
+        <button onclick="switchPaymentMethod('crypto')" id="tab-crypto" style="padding: 10px 20px; background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--text-muted); font-weight: 500; cursor: pointer;" data-i18n="wallet.pay_with_crypto">Crypto</button>
+    </div>
+
+    <!-- Card Payment Section -->
+    <div id="payment-card">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
+            <button class="btn" onclick="addCredits(10)" style="background: #3b82f6;">$10</button>
+            <button class="btn" onclick="addCredits(25)" style="background: #8b5cf6;">$25</button>
+            <button class="btn" onclick="addCredits(50)" style="background: #ec4899;">$50 <span style="font-size: 10px;">+10%</span></button>
+            <button class="btn" onclick="addCredits(100)" style="background: #f59e0b;">$100 <span style="font-size: 10px;">+15%</span></button>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <input type="number" id="custom-amount" placeholder="Custom amount" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+            <button class="btn" onclick="addCustomCredits()">Add Custom</button>
+        </div>
+    </div>
+
+    <!-- Crypto Payment Section -->
+    <div id="payment-crypto" style="display: none;">
+        <div style="margin-bottom: 20px;">
+            <div style="margin-bottom: 16px;">
+                <label style="display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px;">Select Amount</label>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; margin-bottom: 12px;">
+                    <button class="btn" onclick="selectCryptoAmount(10)" id="crypto-btn-10" style="background: #3b82f6;">$10</button>
+                    <button class="btn" onclick="selectCryptoAmount(25)" id="crypto-btn-25" style="background: #8b5cf6;">$25</button>
+                    <button class="btn" onclick="selectCryptoAmount(50)" id="crypto-btn-50" style="background: #ec4899;">$50</button>
+                    <button class="btn" onclick="selectCryptoAmount(100)" id="crypto-btn-100" style="background: #f59e0b;">$100</button>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <input type="number" id="crypto-custom-amount" placeholder="Custom amount" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button class="btn" onclick="selectCryptoAmount(null)">Set</button>
+                </div>
+            </div>
+
+            <select id="crypto-select" onchange="updateCryptoDisplay()" style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; margin-bottom: 16px;">
+                <option value="btc">Bitcoin (BTC)</option>
+                <option value="eth">Ethereum (ETH)</option>
+                <option value="sol">Solana (SOL)</option>
+                <option value="ltc">Litecoin (LTC)</option>
+            </select>
+
+            <div id="crypto-amount-display" style="padding: 12px; background: #f0f9ff; border-radius: 8px; margin-bottom: 16px; text-align: center; font-weight: 500; display: none;"></div>
+
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 20px; background: #f8fafc; border-radius: 12px;">
+                <div id="qrcode" style="background: white; padding: 10px; border-radius: 8px;"></div>
+                <div style="text-align: center; width: 100%;">
+                    <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Send only <span id="crypto-symbol" style="font-weight: bold;">BTC</span> to this address</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="crypto-address" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: monospace; font-size: 14px; text-align: center;">
+                        <button onclick="copyAddress()" class="btn" style="padding: 10px; width: auto;"><i class="fas fa-copy"></i></button>
+                    </div>
+                </div>
+                <div style="font-size: 12px; color: #ef4444; text-align: center;">
+                    <i class="fas fa-exclamation-triangle"></i> Verification may take 10-60 minutes depending on network confirmation.
+                </div>
+            </div>
+        </div>
+        <button class="btn" onclick="confirmCryptoPayment()" style="width: 100%; background: var(--success);">I have sent the payment</button>
+    </div>
+</div>
+
+<!-- Credit History Section -->
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 18px; margin: 0;" data-i18n="wallet.credit_history">Credit History</h2>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <select id="credit-type-filter" onchange="loadCreditHistory()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
+                <option value="all">All Types</option>
+                <option value="purchase">Purchases</option>
+                <option value="usage">Usage</option>
+                <option value="refund">Refunds</option>
+                <option value="bonus">Bonuses</option>
+            </select>
+            <button onclick="exportCreditHistory()" class="btn" style="padding: 8px 12px; font-size: 14px;">
+                <span aria-hidden="true">📥</span> Export CSV
+            </button>
+        </div>
+    </div>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Type</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Description</th>
+                <th style="text-align: right; padding: 12px; font-size: 14px; color: var(--text-muted);">Amount</th>
+                <th style="text-align: right; padding: 12px; font-size: 14px; color: var(--text-muted);">Balance</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
+            </tr>
+        </thead>
+        <tbody id="credit-history-body">
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+    <div id="credit-history-pagination" style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"></div>
+</div>
+
+<!-- Transaction History Section -->
+<div class="card">
+    <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="wallet.transaction_history">Transaction History</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.type">Type</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.amount">Amount</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.date">Date</th>
+                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);" data-i18n="common.status">Status</th>
+            </tr>
+        </thead>
+        <tbody id="transactions-body">
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);" data-i18n="common.loading">Loading...</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+    let cryptoAddresses = {};
+    let currentCrypto = 'btc';
+    let selectedCryptoAmount = null;
+    const cryptoRates = {
+        btc: 0.000025,
+        eth: 0.0005,
+        sol: 0.002,
+        ltc: 0.0001
+    };
+
+    async function loadCryptoAddresses() {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch('/api/billing/crypto-addresses', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                cryptoAddresses = await res.json();
+            } else {
+                console.error('Failed to load crypto addresses');
+            }
+        } catch (e) {
+            console.error('Error loading crypto addresses', e);
+        }
+    }
+
+    function switchPaymentMethod(method) {
+        const cardEl = document.getElementById('payment-card');
+        const cryptoEl = document.getElementById('payment-crypto');
+        const tabCard = document.getElementById('tab-card');
+        const tabCrypto = document.getElementById('tab-crypto');
+
+        if (method === 'card') {
+            cardEl.style.display = 'block';
+            cryptoEl.style.display = 'none';
+            tabCard.style.borderBottomColor = 'var(--primary)';
+            tabCard.style.color = 'var(--primary)';
+            tabCrypto.style.borderBottomColor = 'transparent';
+            tabCrypto.style.color = 'var(--text-muted)';
+        } else {
+            cardEl.style.display = 'none';
+            cryptoEl.style.display = 'block';
+            tabCard.style.borderBottomColor = 'transparent';
+            tabCard.style.color = 'var(--text-muted)';
+            tabCrypto.style.borderBottomColor = 'var(--primary)';
+            tabCrypto.style.color = 'var(--primary)';
+
+            if (Object.keys(cryptoAddresses).length === 0) {
+                loadCryptoAddresses();
+            }
+        }
+    }
+
+    function selectCryptoAmount(amount) {
+        if (amount === null) {
+            amount = parseFloat(document.getElementById('crypto-custom-amount').value);
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+        }
+        selectedCryptoAmount = amount;
+        updateCryptoDisplay();
+    }
+
+    function updateCryptoDisplay() {
+        if (!selectedCryptoAmount) return;
+
+        const select = document.getElementById('crypto-select');
+        currentCrypto = select.value;
+        const addressKey = `${currentCrypto}_address`;
+        const address = cryptoAddresses[addressKey] || 'Address not available';
+
+        const cryptoAmount = (selectedCryptoAmount * cryptoRates[currentCrypto]).toFixed(8);
+        document.getElementById('crypto-amount-display').textContent = `$${selectedCryptoAmount} = ${cryptoAmount} ${currentCrypto.toUpperCase()}`;
+        document.getElementById('crypto-amount-display').style.display = 'block';
+
+        document.getElementById('crypto-address').value = address;
+        document.getElementById('crypto-symbol').textContent = currentCrypto.toUpperCase();
+
+        const qrContainer = document.getElementById('qrcode');
+        qrContainer.innerHTML = '';
+        if (address && address !== 'Address not available') {
+            new QRCode(qrContainer, {
+                text: address,
+                width: 128,
+                height: 128,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+        }
+    }
+
+    function copyAddress() {
+        const copyText = document.getElementById("crypto-address");
+        copyText.select();
+        navigator.clipboard.writeText(copyText.value);
+        const btn = event.target;
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i>';
+        setTimeout(() => { btn.innerHTML = originalContent; }, 2000);
+    }
+
+    function confirmCryptoPayment() {
+        alert('Thank you! Your payment is being monitored. Credits will be added automatically after 2-3 network confirmations.');
+    }
+
+    async function loadWalletData() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        try {
+            const userRes = await fetch('/api/user/me', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            let isAdmin = false;
+            if (userRes.ok) {
+                const userData = await userRes.json();
+                isAdmin = userData.is_admin;
+            }
+
+            if (isAdmin) {
+                const tvRes = await fetch('/api/textverified/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (tvRes.ok) {
+                    const tvData = await tvRes.json();
+                    const balance = tvData.balance || 0;
+                    document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+                } else {
+                    document.getElementById('wallet-balance').textContent = '$0.00';
+                }
+            } else {
+                const balanceRes = await fetch('/api/billing/balance', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (balanceRes.ok) {
+                    const data = await balanceRes.json();
+                    const balance = data.balance || data.credits || 0;
+                    document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
+                } else {
+                    document.getElementById('wallet-balance').textContent = '$0.00';
+                }
+            }
+
+            const txRes = await fetch('/api/billing/history?limit=50', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (txRes.ok) {
+                const data = await txRes.json();
+                const tbody = document.getElementById('transactions-body');
+                const transactions = data.transactions || data.payments || [];
+
+                if (transactions.length > 0) {
+                    let monthlySpent = 0;
+                    let totalSpent = 0;
+                    const now = new Date();
+                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+                    tbody.innerHTML = transactions.map(tx => {
+                        const txDate = new Date(tx.created_at);
+                        const amount = Math.abs(tx.amount || 0);
+
+                        if (tx.type === 'debit' || (tx.amount && tx.amount < 0)) {
+                            totalSpent += amount;
+                            if (txDate >= monthStart) monthlySpent += amount;
+                        }
+
+                        return `
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <td style="padding: 12px;">${escapeHtml(tx.description || tx.type || 'Transaction')}</td>
+                            <td style="padding: 12px; color: ${(tx.amount || 0) >= 0 ? '#10b981' : '#ef4444'};\">${(tx.amount || 0) >= 0 ? '+' : '-'}$${amount.toFixed(2)}</td>
+                            <td style="padding: 12px;">${txDate.toLocaleDateString()}</td>
+                            <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${tx.status === 'completed' || tx.status === 'success' ? '#d5f4e6' : '#fef3c7'}; color: ${tx.status === 'completed' || tx.status === 'success' ? '#166534' : '#92400e'};\">${escapeHtml(tx.status || 'completed')}</span></td>
+                        </tr>
+                    `}).join('');
+
+                    document.getElementById('monthly-spent').textContent = `$${monthlySpent.toFixed(2)}`;
+                    document.getElementById('total-spent').textContent = `$${totalSpent.toFixed(2)}`;
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions yet</td></tr>';
+                    document.getElementById('monthly-spent').textContent = '$0.00';
+                    document.getElementById('total-spent').textContent = '$0.00';
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load wallet data:', error);
+        }
+    }
+
+    async function addCredits(amount) {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/auth/login';
+            return;
+        }
+
+        try {
+            const res = await fetch('/api/billing/initialize-payment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ amount_usd: amount })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                if (data.authorization_url) {
+                    window.open(data.authorization_url, '_blank');
+                    alert(`Payment initialized for $${amount}. Complete payment in the new window.`);
+                } else {
+                    alert('Payment initialized successfully');
+                    setTimeout(loadWalletData, 2000);
+                }
+            } else {
+                const error = await res.json();
+                alert('Payment initialization failed: ' + (error.detail || 'Unknown error'));
+            }
+        } catch (error) {
+            alert('Error: ' + error.message);
+        }
+    }
+
+    function addCustomCredits() {
+        const amount = parseFloat(document.getElementById('custom-amount').value);
+        if (amount && amount > 0) {
+            addCredits(amount);
+            document.getElementById('custom-amount').value = '';
+        } else {
+            alert('Please enter a valid amount');
+        }
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // Credit History State
+    let creditHistoryPage = 1;
+    const creditHistoryLimit = 20;
+    let creditHistoryData = [];
+
+    async function loadCreditHistory() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const typeFilter = document.getElementById('credit-type-filter').value;
+        const tbody = document.getElementById('credit-history-body');
+        
+        try {
+            let url = `/api/user/credits/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
+            if (typeFilter !== 'all') {
+                url += `&type=${typeFilter}`;
+            }
+
+            const res = await fetch(url, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                creditHistoryData = data.transactions || data.history || [];
+                const total = data.total || creditHistoryData.length;
+
+                if (creditHistoryData.length > 0) {
+                    tbody.innerHTML = creditHistoryData.map(tx => {
+                        const typeIcon = {
+                            'purchase': '💳',
+                            'usage': '📱',
+                            'refund': '↩️',
+                            'bonus': '🎁'
+                        }[tx.type] || '💰';
+                        
+                        const amountColor = tx.amount >= 0 ? '#10b981' : '#ef4444';
+                        const amountPrefix = tx.amount >= 0 ? '+' : '';
+                        
+                        return `
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <td style="padding: 12px;">
+                                    <span style="display: inline-flex; align-items: center; gap: 8px;">
+                                        <span>${typeIcon}</span>
+                                        <span style="text-transform: capitalize;">${escapeHtml(tx.type || 'transaction')}</span>
+                                    </span>
+                                </td>
+                                <td style="padding: 12px; color: var(--text-muted);">${escapeHtml(tx.description || '-')}</td>
+                                <td style="padding: 12px; text-align: right; color: ${amountColor}; font-weight: 600;">
+                                    ${amountPrefix}$${Math.abs(tx.amount || 0).toFixed(2)}
+                                </td>
+                                <td style="padding: 12px; text-align: right; font-weight: 500;">
+                                    $${(tx.balance_after || 0).toFixed(2)}
+                                </td>
+                                <td style="padding: 12px;">${new Date(tx.created_at).toLocaleDateString()}</td>
+                            </tr>
+                        `;
+                    }).join('');
+
+                    // Render pagination
+                    renderCreditPagination(total);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">No credit history found</td></tr>';
+                    document.getElementById('credit-history-pagination').innerHTML = '';
+                }
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Failed to load credit history</td></tr>';
+            }
+        } catch (error) {
+            console.error('Failed to load credit history:', error);
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: var(--text-muted);">Error loading credit history</td></tr>';
+        }
+    }
+
+    function renderCreditPagination(total) {
+        const totalPages = Math.ceil(total / creditHistoryLimit);
+        const container = document.getElementById('credit-history-pagination');
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+
+        let html = '';
+        
+        // Previous button
+        html += `<button onclick="changeCreditPage(${creditHistoryPage - 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === 1 ? 'disabled' : ''}>←</button>`;
+        
+        // Page numbers
+        for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+            const isActive = i === creditHistoryPage;
+            html += `<button onclick="changeCreditPage(${i})" class="btn" style="padding: 6px 12px; ${isActive ? 'background: var(--primary); color: white;' : ''}">${i}</button>`;
+        }
+        
+        // Next button
+        html += `<button onclick="changeCreditPage(${creditHistoryPage + 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === totalPages ? 'disabled' : ''}>→</button>`;
+        
+        container.innerHTML = html;
+    }
+
+    function changeCreditPage(page) {
+        if (page < 1) return;
+        creditHistoryPage = page;
+        loadCreditHistory();
+    }
+
+    function exportCreditHistory() {
+        if (creditHistoryData.length === 0) {
+            alert('No data to export');
+            return;
+        }
+
+        const headers = ['Type', 'Description', 'Amount', 'Balance After', 'Date'];
+        const rows = creditHistoryData.map(tx => [
+            tx.type || 'transaction',
+            tx.description || '',
+            tx.amount || 0,
+            tx.balance_after || 0,
+            new Date(tx.created_at).toISOString()
+        ]);
+
+        const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n');
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `credit-history-${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWalletData();
+            loadCreditHistory();
+        });
+    } else {
+        loadWalletData();
+        loadCreditHistory();
+    }
+
+    setInterval(loadWalletData, 30000);
+</script>
+{% endblock %}

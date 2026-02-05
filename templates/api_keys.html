@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Keys - Namaskah</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --bg-dark: #0f172a;
+            --bg-card: #1e293b;
+            --text: #f8fafc;
+            --border: #475569;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-dark);
+            color: var(--text);
+        }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .header {
+            background: linear-gradient(135deg, var(--primary), #4f46e5);
+            padding: 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-success { background: var(--secondary); color: white; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .api-key-item {
+            background: #334155;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            border-left: 4px solid var(--primary);
+        }
+        .key-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .key-name { font-size: 18px; font-weight: bold; }
+        .key-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-active { background: rgba(16, 185, 129, 0.2); color: var(--secondary); }
+        .status-inactive { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        .key-preview {
+            font-family: 'Monaco', 'Menlo', monospace;
+            background: #0f172a;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 12px 0;
+            font-size: 14px;
+            border: 1px solid var(--border);
+        }
+        .key-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .info-item {
+            text-align: center;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        .info-label { font-size: 12px; opacity: 0.7; }
+        .info-value { font-weight: 600; margin-top: 4px; }
+        .key-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            background: #334155;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 16px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 24px;
+            margin: 50px auto;
+            max-width: 500px;
+            border: 1px solid var(--border);
+        }
+        .close {
+            float: right;
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .close:hover { opacity: 1; }
+        .warning-box {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid #f59e0b;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .copy-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🔑 API Keys</h1>
+                <p>Manage your API keys for programmatic access</p>
+            </div>
+            <button class="btn btn-success" onclick="openCreateModal()">+ Create API Key</button>
+        </div>
+
+        <div class="card">
+            <div class="warning-box">
+                <h3>⚠️ Important Security Information</h3>
+                <ul style="margin: 8px 0 0 20px;">
+                    <li>API keys provide full access to your account</li>
+                    <li>Keep your keys secure and never share them publicly</li>
+                    <li>Keys are only shown once during creation</li>
+                    <li>Regenerate keys immediately if compromised</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Your API Keys</h2>
+            <div id="api-keys-container">
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔑</div>
+                    <p>Loading API keys...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create API Key Modal -->
+    <div id="createModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Create New API Key</h2>
+            <form id="createForm">
+                <div class="form-group">
+                    <label for="keyName">Key Name</label>
+                    <input type="text" id="keyName" placeholder="e.g., Production App, Testing" required>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%;">Create API Key</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Show API Key Modal -->
+    <div id="showKeyModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>🎉 API Key Created!</h2>
+            <div class="warning-box">
+                <h3>⚠️ Save This Key Now</h3>
+                <p>This is the only time you'll see the full key. Copy it and store it securely.</p>
+            </div>
+            <div class="key-preview">
+                <span id="newApiKey"></span>
+                <button class="copy-btn" onclick="copyNewKey()">📋 Copy</button>
+            </div>
+            <button class="btn btn-primary" onclick="closeModal()" style="width: 100%; margin-top: 16px;">I've Saved My Key</button>
+        </div>
+    </div>
+
+    <script>
+        let apiKeys = [];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadApiKeys();
+        });
+
+        async function loadApiKeys() {
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/api-keys', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                apiKeys = data || [];
+                displayApiKeys();
+            } catch (error) {
+                console.error('Load API keys error:', error);
+                showEmptyState('Failed to load API keys');
+            }
+        }
+
+        function displayApiKeys() {
+            const container = document.getElementById('api-keys-container');
+            
+            if (apiKeys.length === 0) {
+                showEmptyState('No API keys yet');
+                return;
+            }
+
+            container.innerHTML = apiKeys.map(key => `
+                <div class="api-key-item">
+                    <div class="key-header">
+                        <div class="key-name">${key.name}</div>
+                        <div class="key-status status-${key.is_active ? 'active' : 'inactive'}">
+                            ${key.is_active ? 'Active' : 'Inactive'}
+                        </div>
+                    </div>
+                    <div class="key-preview">
+                        ${key.key_preview || key.key?.substring(0, 12) + '...' + key.key?.slice(-6)}
+                        <button class="copy-btn" onclick="copyKey('${key.key_preview}')">📋 Copy Preview</button>
+                    </div>
+                    <div class="key-info">
+                        <div class="info-item">
+                            <div class="info-label">Created</div>
+                            <div class="info-value">${formatDate(key.created_at)}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Last Used</div>
+                            <div class="info-value">${key.last_used ? formatDate(key.last_used) : 'Never'}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Status</div>
+                            <div class="info-value">${key.is_active ? 'Active' : 'Inactive'}</div>
+                        </div>
+                    </div>
+                    <div class="key-actions">
+                        <button class="btn btn-danger" onclick="deleteApiKey('${key.id}')">🗑️ Delete</button>
+                        <button class="btn btn-primary" onclick="regenerateKey('${key.id}')">🔄 Regenerate</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showEmptyState(message) {
+            document.getElementById('api-keys-container').innerHTML = `
+                <div class="empty-state">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔑</div>
+                    <h3>${message}</h3>
+                    <p style="margin-top: 8px;">Create your first API key to get started with programmatic access</p>
+                    <button class="btn btn-success" onclick="openCreateModal()" style="margin-top: 16px;">Create API Key</button>
+                </div>
+            `;
+        }
+
+        function openCreateModal() {
+            document.getElementById('createModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.style.display = 'none';
+            });
+        }
+
+        document.getElementById('createForm').onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('keyName').value;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch('/api/auth/api-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: name })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('newApiKey').textContent = data.key;
+                    closeModal();
+                    document.getElementById('showKeyModal').style.display = 'block';
+                    loadApiKeys();
+                } else {
+                    showAlert(data.detail || 'Failed to create API key', 'error');
+                }
+            } catch (error) {
+                console.error('Create API key error:', error);
+                showAlert('Failed to create API key', 'error');
+            }
+        };
+
+        async function deleteApiKey(keyId) {
+            if (!confirm('Delete this API key? This action cannot be undone.')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                const response = await fetch(`/api/auth/api-keys/${keyId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    showAlert('API key deleted successfully', 'success');
+                    loadApiKeys();
+                } else {
+                    showAlert('Failed to delete API key', 'error');
+                }
+            } catch (error) {
+                console.error('Delete API key error:', error);
+                showAlert('Failed to delete API key', 'error');
+            }
+        }
+
+        async function regenerateKey(keyId) {
+            if (!confirm('Regenerate this API key? The old key will stop working immediately.')) return;
+            
+            try {
+                const token = localStorage.getItem('token');
+                // First delete the old key
+                await fetch(`/api/auth/api-keys/${keyId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                // Create a new key with the same name
+                const keyName = prompt('Enter name for the new API key:');
+                if (!keyName) return;
+                
+                const response = await fetch('/api/auth/api-keys', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ name: keyName })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('newApiKey').textContent = data.key;
+                    document.getElementById('showKeyModal').style.display = 'block';
+                    loadApiKeys();
+                    showAlert('API key regenerated successfully!', 'success');
+                } else {
+                    showAlert('Failed to regenerate API key', 'error');
+                }
+            } catch (error) {
+                console.error('Regenerate API key error:', error);
+                showAlert('Failed to regenerate API key', 'error');
+            }
+        }
+
+        function copyKey(key) {
+            navigator.clipboard.writeText(key).then(() => {
+                showAlert('Key preview copied to clipboard!', 'success');
+            });
+        }
+
+        function copyNewKey() {
+            const key = document.getElementById('newApiKey').textContent;
+            navigator.clipboard.writeText(key).then(() => {
+                showAlert('API key copied to clipboard!', 'success');
+            });
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return 'Never';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        }
+
+        function showAlert(message, type = 'success') {
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed; top: 20px; right: 20px; z-index: 1000;
+                background: ${type === 'success' ? 'var(--secondary)' : type === 'error' ? 'var(--danger)' : 'var(--primary)'};
+                color: white; padding: 12px 20px; border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            `;
+            alert.textContent = message;
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

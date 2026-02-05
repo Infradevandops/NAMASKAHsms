@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="{{ page_description or 'Information - Namaskah' }}">
+  <title>{% if page_title %}{{ page_title }}{% else %}Information{% endif %} - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/theme-config.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  
+  <style>
+    .info-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: var(--space-xl);
+    }
+    
+    .info-header {
+      text-align: center;
+      margin-bottom: var(--space-xl);
+      padding-bottom: var(--space-xl);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .info-header h1 {
+      margin: 0 0 var(--space-md) 0;
+      font-size: 2.5rem;
+    }
+    
+    .info-header p {
+      margin: 0;
+      color: #6b7280;
+      font-size: 1.125rem;
+    }
+    
+    .info-content {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      line-height: 1.8;
+    }
+    
+    .info-content h2 {
+      margin-top: var(--space-xl);
+      margin-bottom: var(--space-lg);
+      padding-bottom: var(--space-md);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .info-content h2:first-child {
+      margin-top: 0;
+    }
+    
+    .info-content h3 {
+      margin-top: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+    
+    .info-content p {
+      margin-bottom: var(--space-lg);
+      color: #374151;
+    }
+    
+    .info-content ul,
+    .info-content ol {
+      margin-bottom: var(--space-lg);
+      padding-left: 2rem;
+    }
+    
+    .info-content li {
+      margin-bottom: var(--space-md);
+      color: #374151;
+    }
+    
+    .info-content a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    .info-content a:hover {
+      text-decoration: underline;
+    }
+    
+    .info-content code {
+      background-color: var(--surface);
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+    }
+    
+    .info-content pre {
+      background-color: var(--surface);
+      padding: var(--space-lg);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .info-content pre code {
+      background: none;
+      padding: 0;
+    }
+    
+    .info-content blockquote {
+      border-left: 4px solid var(--primary);
+      padding-left: var(--space-lg);
+      margin-left: 0;
+      margin-bottom: var(--space-lg);
+      color: #6b7280;
+      font-style: italic;
+    }
+    
+    .info-content table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .info-content th {
+      background-color: var(--surface);
+      padding: var(--space-lg);
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .info-content td {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .info-content tbody tr:hover {
+      background-color: var(--surface);
+    }
+    
+    .info-footer {
+      margin-top: var(--space-xl);
+      padding-top: var(--space-xl);
+      border-top: 1px solid var(--border);
+      text-align: center;
+    }
+    
+    .info-footer a {
+      color: var(--primary);
+      text-decoration: none;
+      margin: 0 var(--space-md);
+    }
+    
+    .info-footer a:hover {
+      text-decoration: underline;
+    }
+    
+    .toc {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .toc h3 {
+      margin-top: 0;
+    }
+    
+    .toc ul {
+      margin: 0;
+      padding-left: 1.5rem;
+    }
+    
+    .toc li {
+      margin-bottom: var(--space-sm);
+    }
+    
+    .toc a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+    
+    .toc a:hover {
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 768px) {
+      .info-container {
+        padding: var(--space-lg);
+      }
+      
+      .info-header h1 {
+        font-size: 1.75rem;
+      }
+      
+      .info-content {
+        padding: var(--space-lg);
+      }
+    }
+  </style>
+</head>
+<body data-page="info" data-info-page="{{ page_type or 'about' }}">
+  <div class="info-container">
+    <div class="info-header">
+      <h1>{{ page_title or 'Information' }}</h1>
+      <p>{{ page_subtitle or '' }}</p>
+    </div>
+    
+    <div class="info-content">
+      {% if page_type == 'about' %}
+        <h2>About Namaskah</h2>
+        <p>Namaskah is a leading SMS verification and phone rental service platform. We provide reliable, secure, and affordable solutions for businesses and individuals worldwide.</p>
+        
+        <h3>Our Mission</h3>
+        <p>To provide the most reliable and affordable SMS verification and phone rental services globally.</p>
+        
+        <h3>Our Values</h3>
+        <ul>
+          <li>Reliability - 99.9% uptime guarantee</li>
+          <li>Security - Enterprise-grade encryption</li>
+          <li>Affordability - Competitive pricing</li>
+          <li>Support - 24/7 customer support</li>
+        </ul>
+      {% elif page_type == 'contact' %}
+        <h2>Contact Us</h2>
+        <p>Have questions? We'd love to hear from you. Get in touch with our support team.</p>
+        
+        <h3>Contact Information</h3>
+        <ul>
+          <li><strong>Email:</strong> support@namaskah.com</li>
+          <li><strong>Phone:</strong> +1 (555) 123-4567</li>
+          <li><strong>Address:</strong> 123 Main St, City, State 12345</li>
+        </ul>
+      {% elif page_type == 'faq' %}
+        <h2>Frequently Asked Questions</h2>
+        
+        <h3>How do I get started?</h3>
+        <p>Simply create an account, add credits, and start requesting verifications.</p>
+        
+        <h3>What payment methods do you accept?</h3>
+        <p>We accept credit cards, PayPal, and cryptocurrency.</p>
+        
+        <h3>What is your refund policy?</h3>
+        <p>Unused credits can be refunded within 30 days of purchase.</p>
+      {% elif page_type == 'privacy' %}
+        <h2>Privacy Policy</h2>
+        <p>Your privacy is important to us. This policy explains how we collect, use, and protect your information.</p>
+        
+        <h3>Information We Collect</h3>
+        <p>We collect information you provide directly, such as when you create an account or contact us.</p>
+        
+        <h3>How We Use Your Information</h3>
+        <p>We use your information to provide, maintain, and improve our services.</p>
+      {% elif page_type == 'terms' %}
+        <h2>Terms of Service</h2>
+        <p>By using Namaskah, you agree to these terms and conditions.</p>
+        
+        <h3>User Responsibilities</h3>
+        <p>You are responsible for maintaining the confidentiality of your account and password.</p>
+        
+        <h3>Prohibited Activities</h3>
+        <p>You may not use our service for illegal activities or to violate any laws.</p>
+      {% elif page_type == 'refund' %}
+        <h2>Refund Policy</h2>
+        <p>We want you to be satisfied with your purchase. Here's our refund policy.</p>
+        
+        <h3>Refund Eligibility</h3>
+        <ul>
+          <li>Unused credits within 30 days of purchase</li>
+          <li>Failed verifications due to our error</li>
+          <li>Service outages lasting more than 1 hour</li>
+        </ul>
+      {% elif page_type == 'cookies' %}
+        <h2>Cookie Policy</h2>
+        <p>We use cookies to enhance your experience on our website.</p>
+        
+        <h3>Types of Cookies</h3>
+        <ul>
+          <li>Essential cookies - Required for site functionality</li>
+          <li>Analytics cookies - Help us understand how you use our site</li>
+          <li>Marketing cookies - Used for advertising purposes</li>
+        </ul>
+      {% elif page_type == 'status' %}
+        <h2>Service Status</h2>
+        <p>Check the current status of our services.</p>
+        
+        <h3>System Status</h3>
+        <p>All systems operational ✓</p>
+        
+        <h3>Recent Incidents</h3>
+        <p>No recent incidents reported.</p>
+      {% else %}
+        <h2>{{ page_title or 'Information' }}</h2>
+        <p>{{ page_content or 'Content not available.' }}</p>
+      {% endif %}
+    </div>
+    
+    <div class="info-footer">
+      <a href="/">Home</a>
+      <a href="/about">About</a>
+      <a href="/contact">Contact</a>
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+    </div>
+  </div>
+  
+  <script src="/static/js/theme-manager.js"></script>
+  <script type="module" src="/static/js/main.js"></script>
+</body>
+</html>

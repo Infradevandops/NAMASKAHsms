@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Verify your email address for Namaskah">
+  <title>Email Verification - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+      padding: 1rem;
+    }
+    
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    
+    .auth-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .auth-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .verification-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 1rem;
+      color: var(--primary);
+    }
+    
+    .code-input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+    
+    .code-input {
+      width: 50px;
+      height: 50px;
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: var(--font-weight-bold);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      transition: border-color var(--transition-fast);
+    }
+    
+    .code-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    
+    .code-input.filled {
+      border-color: var(--primary);
+      background-color: rgba(37, 99, 235, 0.05);
+    }
+    
+    .timer {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--neutral);
+    }
+    
+    .timer-value {
+      font-weight: var(--font-weight-bold);
+      color: var(--primary);
+    }
+    
+    .resend-section {
+      text-align: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    
+    .resend-text {
+      font-size: 0.9rem;
+      color: var(--neutral);
+      margin-bottom: 1rem;
+    }
+    
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      cursor: pointer;
+      text-decoration: underline;
+      font-weight: var(--font-weight-medium);
+      padding: 0;
+    }
+    
+    .resend-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .resend-btn:hover:not(:disabled) {
+      color: #1d4ed8;
+    }
+    
+    .btn-block {
+      width: 100%;
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <i class="verification-icon ph ph-mail"></i>
+        <h1>Verify Email</h1>
+        <p id="emailDisplay">Verification code sent to your email</p>
+      </div>
+
+      <form id="verifyForm">
+        <div class="code-input-group" id="codeInputs">
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+          <input type="text" class="code-input" maxlength="1" inputmode="numeric" required>
+        </div>
+
+        <div class="timer">
+          <span>Code expires in <span class="timer-value" id="timerValue">5:00</span></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">
+          <i class="ph ph-check"></i>
+          Verify Email
+        </button>
+      </form>
+
+      <div class="resend-section">
+        <p class="resend-text">Didn't receive the code?</p>
+        <button type="button" class="resend-btn" id="resendBtn" onclick="resendCode()">
+          Resend Code
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+  <script>
+    const codeInputs = document.querySelectorAll('.code-input');
+    const timerValue = document.getElementById('timerValue');
+    const resendBtn = document.getElementById('resendBtn');
+    let timeLeft = 300; // 5 minutes
+    
+    // Handle code input
+    codeInputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1) {
+          e.target.classList.add('filled');
+          if (index < codeInputs.length - 1) {
+            codeInputs[index + 1].focus();
+          }
+        } else {
+          e.target.classList.remove('filled');
+        }
+      });
+      
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+          codeInputs[index - 1].focus();
+        }
+      });
+      
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const digits = paste.replace(/\D/g, '').split('');
+        
+        digits.forEach((digit, i) => {
+          if (i < codeInputs.length) {
+            codeInputs[i].value = digit;
+            codeInputs[i].classList.add('filled');
+          }
+        });
+        
+        if (digits.length === codeInputs.length) {
+          codeInputs[codeInputs.length - 1].focus();
+        }
+      });
+    });
+    
+    // Timer
+    function updateTimer() {
+      const minutes = Math.floor(timeLeft / 60);
+      const seconds = timeLeft % 60;
+      timerValue.textContent = `${minutes}:${String(seconds).padStart(2, '0')}`;
+      
+      if (timeLeft > 0) {
+        timeLeft--;
+        setTimeout(updateTimer, 1000);
+      } else {
+        timerValue.textContent = 'Expired';
+        codeInputs.forEach(input => input.disabled = true);
+      }
+    }
+    
+    updateTimer();
+    
+    // Resend code
+    function resendCode() {
+      resendBtn.disabled = true;
+      
+      fetch('/api/email-verify-resend', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      .then(response => {
+        if (response.ok) {
+          showAlert('Verification code resent to your email', 'success', 3000);
+          timeLeft = 300;
+          codeInputs.forEach(input => {
+            input.value = '';
+            input.disabled = false;
+            input.classList.remove('filled');
+          });
+          updateTimer();
+          setTimeout(() => {
+            resendBtn.disabled = false;
+          }, 60000); // 1 minute cooldown
+        } else {
+          showAlert('Failed to resend code', 'error', 3000);
+          resendBtn.disabled = false;
+        }
+      })
+      .catch(() => {
+        showAlert('An error occurred', 'error', 3000);
+        resendBtn.disabled = false;
+      });
+    }
+    
+    // Form submission
+    document.getElementById('verifyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const code = Array.from(codeInputs).map(input => input.value).join('');
+      
+      if (code.length !== 6) {
+        showAlert('Please enter all 6 digits', 'error', 3000);
+        return;
+      }
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      setButtonLoading(submitBtn, true);
+      
+      try {
+        const response = await fetch('/api/email-verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ code }),
+        });
+        
+        if (response.ok) {
+          showAlert('Email verified successfully!', 'success', 2000);
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 1500);
+        } else {
+          const data = await response.json();
+          showAlert(data.message || 'Invalid verification code', 'error', 3000);
+        }
+      } catch (error) {
+        showAlert('An error occurred. Please try again.', 'error', 3000);
+      } finally {
+        setButtonLoading(submitBtn, false);
+      }
+    });
+  </script>
+</body>
+</html>

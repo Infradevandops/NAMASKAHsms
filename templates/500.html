@@ -1,0 +1,16 @@
+{% extends "public_base.html" %}
+
+{% block page_title %}Server Error{% endblock %}
+
+{% block public_content %}
+<div style="text-align: center; padding: 60px 20px;">
+  <div style="font-size: 80px; font-weight: 700; color: #ff4757; margin-bottom: 20px;">500</div>
+  <h1 style="font-size: 32px; margin-bottom: 16px;">Server Error</h1>
+  <p style="color: var(--text-secondary); max-width: 400px; margin: 0 auto 32px;">
+    Something went wrong on our end. Please try again later.
+  </p>
+  <a href="/" class="btn"
+    style="background: var(--primary); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Go
+    Home</a>
+</div>
+{% endblock %}

@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="API documentation - Namaskah">
+  <title>API Documentation - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .docs-container {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 0;
+      min-height: 100vh;
+    }
+    
+    .docs-sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: var(--space-lg);
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    
+    .docs-sidebar-nav {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-md);
+    }
+    
+    .docs-sidebar-nav a {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-md);
+      color: var(--neutral);
+      text-decoration: none;
+      transition: all var(--transition-fast);
+      font-size: 0.95rem;
+    }
+    
+    .docs-sidebar-nav a:hover,
+    .docs-sidebar-nav a.active {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .docs-sidebar-nav .icon {
+      width: 20px;
+      height: 20px;
+    }
+    
+    .docs-content {
+      padding: var(--space-xl);
+      overflow-y: auto;
+    }
+    
+    .docs-header {
+      margin-bottom: var(--space-2xl);
+    }
+    
+    .docs-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .docs-header p {
+      color: var(--neutral);
+      margin: 0;
+    }
+    
+    .docs-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-lg);
+    }
+    
+    .docs-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .docs-section h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .docs-section h3 {
+      margin: var(--space-lg) 0 var(--space-md) 0;
+      font-size: 1.1rem;
+    }
+    
+    .docs-section p {
+      margin: 0 0 var(--space-md) 0;
+      line-height: 1.6;
+      color: #374151;
+    }
+    
+    .code-block {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: var(--space-lg);
+      font-family: var(--font-family-mono);
+      font-size: 0.875rem;
+      overflow-x: auto;
+      margin: var(--space-lg) 0;
+    }
+    
+    .endpoint {
+      background: var(--surface);
+      border-left: 4px solid var(--primary);
+      padding: var(--space-lg);
+      margin: var(--space-lg) 0;
+      border-radius: var(--radius-md);
+    }
+    
+    .endpoint-method {
+      display: inline-block;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-md);
+      font-weight: var(--font-weight-semibold);
+      font-size: 0.875rem;
+      margin-right: var(--space-md);
+    }
+    
+    .method-get {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+    }
+    
+    .method-post {
+      background: rgba(37, 99, 235, 0.1);
+      color: var(--primary);
+    }
+    
+    .method-delete {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+    
+    .endpoint-path {
+      font-family: var(--font-family-mono);
+      font-size: 0.95rem;
+    }
+    
+    @media (max-width: 1024px) {
+      .docs-container {
+        grid-template-columns: 1fr;
+      }
+      
+      .docs-sidebar {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+      
+      .docs-sidebar-nav {
+        flex-direction: row;
+        flex-wrap: wrap;
+      }
+    }
+    
+    @media (max-width: 640px) {
+      .docs-content {
+        padding: var(--space-lg);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="docs-container">
+    <!-- Sidebar -->
+    <aside class="docs-sidebar">
+      <div style="margin-bottom: var(--space-xl);">
+        <h2 style="margin: 0; font-size: 1.25rem;">API Docs</h2>
+      </div>
+      
+      <ul class="docs-sidebar-nav">
+        <li>
+          <a href="#overview" class="active">
+            <i class="ph ph-book"></i>
+            Overview
+          </a>
+        </li>
+        <li>
+          <a href="#authentication">
+            <i class="ph ph-lock"></i>
+            Authentication
+          </a>
+        </li>
+        <li>
+          <a href="#endpoints">
+            <i class="ph ph-code"></i>
+            Endpoints
+          </a>
+        </li>
+        <li>
+          <a href="#errors">
+            <i class="ph ph-alert-circle"></i>
+            Errors
+          </a>
+        </li>
+        <li>
+          <a href="#rate-limits">
+            <i class="ph ph-zap"></i>
+            Rate Limits
+          </a>
+        </li>
+      </ul>
+    </aside>
+
+    <!-- Content -->
+    <main class="docs-content">
+      <!-- Header -->
+      <div class="docs-header">
+        <h1>API Documentation</h1>
+        <p>Complete guide to integrating with Namaskah API</p>
+      </div>
+
+      <!-- Overview -->
+      <div class="docs-section" id="overview">
+        <h2>
+          <i class="ph ph-book"></i>
+          Overview
+        </h2>
+        <p>The Namaskah API provides a RESTful interface for SMS verification, email verification, and phone rental services.</p>
+        <p><strong>Base URL:</strong> https://api.namaskah.com/v1</p>
+        <p><strong>Response Format:</strong> JSON</p>
+      </div>
+
+      <!-- Authentication -->
+      <div class="docs-section" id="authentication">
+        <h2>
+          <i class="ph ph-lock"></i>
+          Authentication
+        </h2>
+        <p>All API requests require authentication using an API key. Include your API key in the request header:</p>
+        <div class="code-block">
+Authorization: Bearer YOUR_API_KEY
+        </div>
+        <p>Get your API key from your <a href="/account/api-keys">account settings</a>.</p>
+      </div>
+
+      <!-- Endpoints -->
+      <div class="docs-section" id="endpoints">
+        <h2>
+          <i class="ph ph-code"></i>
+          Endpoints
+        </h2>
+        
+        <h3>SMS Verification</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/sms/send</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send SMS verification code</p>
+        </div>
+        
+        <div class="code-block">
+{
+  "phone": "+------7890",
+  "country": "US",
+  "message": "Your code is: {code}"
+}
+        </div>
+        
+        <h3>Email Verification</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/email/send</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Send email verification code</p>
+        </div>
+        
+        <h3>Verify Code</h3>
+        <div class="endpoint">
+          <span class="endpoint-method method-post">POST</span>
+          <span class="endpoint-path">/verify</span>
+          <p style="margin: var(--space-md) 0 0 0; color: var(--neutral);">Verify a code</p>
+        </div>
+      </div>
+
+      <!-- Error Codes -->
+      <div class="docs-section" id="errors">
+        <h2>
+          <i class="ph ph-alert-circle"></i>
+          Error Codes
+        </h2>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="background: var(--surface);">
+              <th style="padding: var(--space-lg); text-align: left; border-bottom: 2px solid var(--border);">Code</th>
+              <th style="padding: var(--space-lg); text-align: left; border-bottom: 2px solid var(--border);">Message</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">400</td>
+              <td style="padding: var(--space-lg);">Bad Request</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">401</td>
+              <td style="padding: var(--space-lg);">Unauthorized</td>
+            </tr>
+            <tr style="border-bottom: 1px solid var(--border);">
+              <td style="padding: var(--space-lg);">429</td>
+              <td style="padding: var(--space-lg);">Rate Limit Exceeded</td>
+            </tr>
+            <tr>
+              <td style="padding: var(--space-lg);">500</td>
+              <td style="padding: var(--space-lg);">Internal Server Error</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Rate Limits -->
+      <div class="docs-section" id="rate-limits">
+        <h2>
+          <i class="ph ph-zap"></i>
+          Rate Limits
+        </h2>
+        <p>API requests are rate limited to prevent abuse:</p>
+        <ul style="margin: 0 0 var(--space-lg) var(--space-lg);">
+          <li>Free tier: 100 requests/hour</li>
+          <li>Pro tier: 1,000 requests/hour</li>
+          <li>Enterprise: Custom limits</li>
+        </ul>
+        <p>Rate limit information is included in response headers:</p>
+        <div class="code-block">
+X-RateLimit-Limit: 1000
+X-RateLimit-Remaining: 999
+X-RateLimit-Reset: 1700000000
+        </div>
+      </div>
+    </main>
+  </div>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+</body>
+</html>

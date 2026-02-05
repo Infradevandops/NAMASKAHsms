@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Affiliate program - Namaskah">
+  <title>Affiliate Program - Namaskah</title>
+  
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/design-tokens.css') }}"
+  <link rel="stylesheet" href="/static/css/components.css') }}">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <style>
+    .program-container {
+      padding: var(--space-xl);
+      min-height: 100vh;
+    }
+    
+    .program-header {
+      text-align: center;
+      margin-bottom: var(--space-2xl);
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .program-header h1 {
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .program-header p {
+      color: var(--neutral);
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .benefit-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      text-align: center;
+    }
+    
+    .benefit-icon {
+      width: 48px;
+      height: 48px;
+      margin: 0 auto var(--space-lg);
+      color: var(--primary);
+    }
+    
+    .benefit-title {
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .benefit-description {
+      color: var(--neutral);
+      margin: 0;
+      font-size: 0.95rem;
+    }
+    
+    .commission-section {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+      max-width: 1000px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    .commission-section h2 {
+      margin: 0 0 var(--space-lg) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+    
+    .commission-section h2 svg {
+      width: 24px;
+      height: 24px;
+      color: var(--primary);
+    }
+    
+    .commission-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: var(--space-lg);
+    }
+    
+    .commission-table th {
+      background: var(--surface);
+      padding: var(--space-lg);
+      text-align: left;
+      font-weight: var(--font-weight-semibold);
+      border-bottom: 2px solid var(--border);
+    }
+    
+    .commission-table td {
+      padding: var(--space-lg);
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .commission-table tbody tr:hover {
+      background: var(--surface);
+    }
+    
+    .tier-badge {
+      display: inline-block;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-full);
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-medium);
+    }
+    
+    .tier-gold {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+    }
+    
+    .tier-silver {
+      background: rgba(107, 114, 128, 0.1);
+      color: var(--neutral);
+    }
+    
+    .tier-bronze {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+    }
+    
+    .signup-section {
+      background: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+      color: white;
+      padding: var(--space-2xl);
+      border-radius: var(--radius-lg);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto var(--space-2xl);
+    }
+    
+    .signup-section h2 {
+      color: white;
+      margin: 0 0 var(--space-md) 0;
+    }
+    
+    .signup-section p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 var(--space-lg) 0;
+    }
+    
+    .signup-section .btn {
+      background: white;
+      color: var(--primary);
+    }
+    
+    .faq-section {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    
+    .faq-item {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: var(--space-lg);
+      margin-bottom: var(--space-md);
+    }
+    
+    .faq-question {
+      font-weight: var(--font-weight-semibold);
+      margin: 0 0 var(--space-md) 0;
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      cursor: pointer;
+    }
+    
+    .faq-question svg {
+      width: 20px;
+      height: 20px;
+      color: var(--primary);
+    }
+    
+    .faq-answer {
+      color: var(--neutral);
+      margin: 0;
+      line-height: 1.6;
+    }
+    
+    @media (max-width: 640px) {
+      .program-container {
+        padding: var(--space-lg);
+      }
+      
+      .benefits-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-brand">Namaskah</div>
+    <ul class="navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li><a href="/services">Services</a></li>
+      <li><a href="/about">About</a></li>
+      <li><a href="/contact">Contact</a></li>
+      <li><a href="/login">Login</a></li>
+    </ul>
+  </nav>
+
+  <div class="program-container">
+    <!-- Header -->
+    <div class="program-header">
+      <h1>Affiliate Program</h1>
+      <p>Earn recurring commissions by referring customers to Namaskah</p>
+    </div>
+
+    <!-- Benefits -->
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-trending-up"></i>
+        <h3 class="benefit-title">High Commissions</h3>
+        <p class="benefit-description">Earn up to 30% recurring commission on every referral</p>
+      </div>
+      
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-gift"></i>
+        <h3 class="benefit-title">Bonuses</h3>
+        <p class="benefit-description">Earn performance bonuses and tier-based rewards</p>
+      </div>
+      
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-users"></i>
+        <h3 class="benefit-title">Dedicated Support</h3>
+        <p class="benefit-description">Get personal support from our affiliate team</p>
+      </div>
+      
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-zap"></i>
+        <h3 class="benefit-title">Marketing Materials</h3>
+        <p class="benefit-description">Access ready-to-use promotional materials</p>
+      </div>
+      
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-bar-chart-2"></i>
+        <h3 class="benefit-title">Real-time Analytics</h3>
+        <p class="benefit-description">Track clicks, conversions, and earnings in real-time</p>
+      </div>
+      
+      <div class="benefit-card">
+        <i class="benefit-icon ph ph-credit-card"></i>
+        <h3 class="benefit-title">Easy Payouts</h3>
+        <p class="benefit-description">Get paid monthly via bank transfer or PayPal</p>
+      </div>
+    </div>
+
+    <!-- Commission Structure -->
+    <div class="commission-section">
+      <h2>
+        <i class="ph ph-dollar-sign"></i>
+        Commission Structure
+      </h2>
+      
+      <table class="commission-table">
+        <thead>
+          <tr>
+            <th>Tier</th>
+            <th>Monthly Referrals</th>
+            <th>Commission Rate</th>
+            <th>Bonus</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tier-badge tier-bronze">Bronze</span></td>
+            <td>1-10</td>
+            <td>15%</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge tier-silver">Silver</span></td>
+            <td>11-50</td>
+            <td>20%</td>
+            <td>$100/month</td>
+          </tr>
+          <tr>
+            <td><span class="tier-badge tier-gold">Gold</span></td>
+            <td>51+</td>
+            <td>30%</td>
+            <td>$500/month</td>
+          </tr>
+        </tbody>
+      </table>
+      
+      <p style="color: var(--neutral); margin: 0;">Commissions are calculated on the subscription value and paid monthly. Tier status is determined by the number of active referrals.</p>
+    </div>
+
+    <!-- Sign Up -->
+    <div class="signup-section">
+      <h2>Ready to Start Earning?</h2>
+      <p>Join our affiliate program and start earning commissions today</p>
+      <button class="btn">
+        <i class="ph ph-arrow-right"></i>
+        Apply Now
+      </button>
+    </div>
+
+    <!-- FAQ -->
+    <div class="faq-section">
+      <h2 style="text-align: center; margin-bottom: var(--space-lg);">Frequently Asked Questions</h2>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <i class="ph ph-help-circle"></i>
+          How do I join the affiliate program?
+        </p>
+        <p class="faq-answer">Simply click "Apply Now" and fill out the application form. We'll review your application and get back to you within 24 hours.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <i class="ph ph-help-circle"></i>
+          When do I get paid?
+        </p>
+        <p class="faq-answer">Commissions are paid monthly on the 15th of each month via bank transfer or PayPal. Minimum payout is $50.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <i class="ph ph-help-circle"></i>
+          What's the cookie duration?
+        </p>
+        <p class="faq-answer">We use a 30-day cookie duration, meaning you'll earn commission on any customer who signs up within 30 days of clicking your link.</p>
+      </div>
+      
+      <div class="faq-item">
+        <p class="faq-question">
+          <i class="ph ph-help-circle"></i>
+          Can I promote on social media?
+        </p>
+        <p class="faq-answer">Yes! You can promote on social media, blogs, websites, and other channels. We provide marketing materials to help you succeed.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer style="background-color: var(--surface); border-top: 1px solid var(--border); padding: 2rem; text-align: center; margin-top: 2rem;">
+    <p>&copy; 2025 Namaskah. All rights reserved.</p>
+  </footer>
+
+  
+  <script src="/static/js/design-system.js') }}"></script>
+</body>
+</html>

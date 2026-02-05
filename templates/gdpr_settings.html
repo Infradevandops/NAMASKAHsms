@@ -1,0 +1,633 @@
+{% extends "dashboard_base.html" %}
+
+{% block page_title %}<span data-i18n="privacy.title">Privacy & Data</span>{% endblock %}
+{% block page_subtitle %}<span data-i18n="privacy.subtitle">Manage your data and privacy preferences (GDPR)</span>{% endblock %}
+
+{% block head_extra %}
+{{ super() }}
+<link rel="stylesheet" href="/static/css/loading-animations.css">
+<style>
+    .privacy-section {
+        background: var(--bg-card);
+        border-radius: var(--radius-card);
+        padding: 24px;
+        box-shadow: var(--shadow-soft);
+        margin-bottom: 24px;
+    }
+    
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .section-icon {
+        font-size: 24px;
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .privacy-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .privacy-item:last-child {
+        border-bottom: none;
+    }
+    
+    .privacy-info h4 {
+        margin: 0 0 4px 0;
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .privacy-info p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+    
+    .warning-box {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+    
+    .warning-box .icon {
+        font-size: 20px;
+    }
+    
+    .warning-box .text {
+        font-size: 14px;
+        color: #ef4444;
+    }
+    
+    .info-box {
+        background: rgba(59, 130, 246, 0.1);
+        border: 1px solid rgba(59, 130, 246, 0.3);
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+    
+    .info-box p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-secondary);
+    }
+    
+    .consent-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px;
+        background: var(--bg-body);
+        border-radius: 8px;
+        margin-bottom: 12px;
+    }
+    
+    .consent-toggle:last-child {
+        margin-bottom: 0;
+    }
+    
+    .consent-label {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .consent-label strong {
+        font-size: 14px;
+    }
+    
+    .consent-label span {
+        font-size: 12px;
+        color: var(--text-muted);
+    }
+    
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+    
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #444;
+        transition: .4s;
+        border-radius: 24px;
+    }
+    
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    
+    input:checked + .slider {
+        background-color: var(--primary);
+    }
+    
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
+    
+    input:disabled + .slider {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .activity-log {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .activity-entry {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .activity-entry:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-event {
+        font-weight: 500;
+        font-size: 14px;
+    }
+    
+    .activity-details {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 2px;
+    }
+    
+    .activity-time {
+        font-size: 12px;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+    
+    .delete-confirm-input {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #ef4444;
+        border-radius: 8px;
+        margin: 16px 0;
+        font-size: 14px;
+    }
+    
+    .delete-confirm-input:focus {
+        outline: none;
+        border-color: #dc2626;
+    }
+    
+    @media (max-width: 768px) {
+        .privacy-item {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Data Export Section -->
+<div class="privacy-section">
+    <div class="section-header">
+        <span class="section-icon">📥</span>
+        <h2 class="section-title">Data Export</h2>
+    </div>
+    
+    <div class="info-box">
+        <p>Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format. Click below to download all your data.</p>
+    </div>
+    
+    <div class="privacy-item">
+        <div class="privacy-info">
+            <h4>Download Your Data</h4>
+            <p>Export all your personal data including profile, verifications, and transaction history (JSON format)</p>
+        </div>
+        <button class="btn btn-primary" onclick="exportData()" id="export-btn">
+            📥 Export Data
+        </button>
+    </div>
+    
+    <div class="privacy-item">
+        <div class="privacy-info">
+            <h4>Last Export</h4>
+            <p id="last-export-date">Never exported</p>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Preferences Section -->
+<div class="privacy-section">
+    <div class="section-header">
+        <span class="section-icon">🔒</span>
+        <h2 class="section-title">Privacy Preferences</h2>
+    </div>
+    
+    <div class="consent-toggle">
+        <div class="consent-label">
+            <strong>Essential Cookies</strong>
+            <span>Required for basic functionality. Always enabled.</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" checked disabled>
+            <span class="slider"></span>
+        </label>
+    </div>
+    
+    <div class="consent-toggle">
+        <div class="consent-label">
+            <strong>Analytics</strong>
+            <span>Help us understand how you use our service</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="consent-analytics" onchange="savePreferences()">
+            <span class="slider"></span>
+        </label>
+    </div>
+    
+    <div class="consent-toggle">
+        <div class="consent-label">
+            <strong>Marketing Communications</strong>
+            <span>Receive updates about new features and promotions</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="consent-marketing" onchange="savePreferences()">
+            <span class="slider"></span>
+        </label>
+    </div>
+    
+    <div class="consent-toggle">
+        <div class="consent-label">
+            <strong>Email Notifications</strong>
+            <span>Receive important account notifications via email</span>
+        </div>
+        <label class="switch">
+            <input type="checkbox" id="consent-email" onchange="savePreferences()">
+            <span class="slider"></span>
+        </label>
+    </div>
+</div>
+
+<!-- Activity Log Section -->
+<div class="privacy-section">
+    <div class="section-header">
+        <span class="section-icon">📋</span>
+        <h2 class="section-title">Activity Log</h2>
+    </div>
+    
+    <div class="activity-log" id="activity-log">
+        <div style="text-align: center; padding: 20px; color: var(--text-muted);">
+            <span class="loading-spinner"></span> Loading activity...
+        </div>
+    </div>
+</div>
+
+<!-- Account Deletion Section -->
+<div class="privacy-section">
+    <div class="section-header">
+        <span class="section-icon">🗑️</span>
+        <h2 class="section-title">Delete Account</h2>
+    </div>
+    
+    <div class="warning-box">
+        <span class="icon">⚠️</span>
+        <div class="text">
+            <strong>Warning:</strong> Deleting your account is permanent and cannot be undone. All your data, including verification history, credits, and settings will be permanently removed.
+        </div>
+    </div>
+    
+    <div class="privacy-item">
+        <div class="privacy-info">
+            <h4>Permanently Delete Account</h4>
+            <p>This action will delete all your data and cannot be reversed</p>
+        </div>
+        <button class="btn" onclick="showDeleteConfirmation()" style="background: #ef4444; color: white;">
+            🗑️ Delete Account
+        </button>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: var(--bg-card); border-radius: 16px; padding: 32px; max-width: 450px; width: 90%; margin: 20px;">
+        <h3 style="margin: 0 0 16px 0; color: #ef4444;">⚠️ Confirm Account Deletion</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 16px;">
+            This action is <strong>permanent</strong> and cannot be undone. All your data will be deleted including:
+        </p>
+        <ul style="color: var(--text-secondary); margin-bottom: 16px; padding-left: 20px;">
+            <li>Profile information</li>
+            <li>Verification history</li>
+            <li>Credit balance</li>
+            <li>API keys</li>
+            <li>All settings</li>
+        </ul>
+        <p style="color: var(--text-secondary); margin-bottom: 8px;">
+            Type <strong>DELETE</strong> to confirm:
+        </p>
+        <input type="text" id="delete-confirm-input" class="delete-confirm-input" placeholder="Type DELETE here" autocomplete="off">
+        <div style="display: flex; gap: 12px; margin-top: 16px;">
+            <button class="btn btn-secondary" onclick="hideDeleteModal()" style="flex: 1;">Cancel</button>
+            <button class="btn" id="confirm-delete-btn" onclick="deleteAccount()" style="flex: 1; background: #ef4444; color: white;" disabled>
+                Delete Forever
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="/static/js/frontend-logger.js"></script>
+<script src="/static/js/api-retry.js"></script>
+<script>
+    // Load preferences on page load
+    async function loadPreferences() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        try {
+            const response = await ApiRetry.fetchWithRetry('/api/user/settings', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                document.getElementById('consent-analytics').checked = data.analytics_consent || false;
+                document.getElementById('consent-marketing').checked = data.marketing_consent || false;
+                document.getElementById('consent-email').checked = data.email_notifications || false;
+            }
+        } catch (error) {
+            console.error('[GDPR] Failed to load preferences:', error);
+        }
+    }
+    
+    // Save preferences
+    async function savePreferences() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        const preferences = {
+            analytics_consent: document.getElementById('consent-analytics').checked,
+            marketing_consent: document.getElementById('consent-marketing').checked,
+            email_notifications: document.getElementById('consent-email').checked
+        };
+        
+        try {
+            const response = await fetch('/api/user/settings', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(preferences)
+            });
+            
+            if (response.ok) {
+                showToast('Preferences saved');
+            }
+        } catch (error) {
+            console.error('[GDPR] Failed to save preferences:', error);
+            showToast('Failed to save preferences', 'error');
+        }
+    }
+    
+    // Export user data
+    async function exportData() {
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            alert('Please log in to export your data');
+            return;
+        }
+        
+        const btn = document.getElementById('export-btn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Exporting...';
+        
+        try {
+            const response = await fetch('/gdpr/export', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            
+            // Download as JSON file
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `namaskah-data-export-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            // Update last export date
+            document.getElementById('last-export-date').textContent = new Date().toLocaleString();
+            showToast('Data exported successfully');
+            
+        } catch (error) {
+            console.error('[GDPR] Export failed:', error);
+            alert('Failed to export data. Please try again.');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '📥 Export Data';
+        }
+    }
+    
+    // Load activity log
+    async function loadActivityLog() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        const container = document.getElementById('activity-log');
+        
+        try {
+            // Try to get audit logs if available
+            const response = await fetch('/api/user/activity', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const activities = data.activities || [];
+                
+                if (activities.length === 0) {
+                    container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">No activity recorded yet</div>';
+                    return;
+                }
+                
+                let html = '';
+                for (const activity of activities) {
+                    html += `
+                        <div class="activity-entry">
+                            <div>
+                                <div class="activity-event">${escapeHtml(activity.event || 'Activity')}</div>
+                                <div class="activity-details">${escapeHtml(activity.details || '')}</div>
+                            </div>
+                            <span class="activity-time">${formatDate(activity.created_at)}</span>
+                        </div>
+                    `;
+                }
+                container.innerHTML = html;
+            } else {
+                // Fallback: show basic info
+                container.innerHTML = `
+                    <div class="activity-entry">
+                        <div>
+                            <div class="activity-event">Account Active</div>
+                            <div class="activity-details">Your account is active and in good standing</div>
+                        </div>
+                        <span class="activity-time">Now</span>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('[GDPR] Failed to load activity:', error);
+            container.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Unable to load activity log</div>';
+        }
+    }
+    
+    // Show delete confirmation modal
+    function showDeleteConfirmation() {
+        document.getElementById('delete-modal').style.display = 'flex';
+        document.getElementById('delete-confirm-input').value = '';
+        document.getElementById('confirm-delete-btn').disabled = true;
+        
+        // Enable button only when "DELETE" is typed
+        document.getElementById('delete-confirm-input').addEventListener('input', function() {
+            document.getElementById('confirm-delete-btn').disabled = this.value !== 'DELETE';
+        });
+    }
+    
+    // Hide delete modal
+    function hideDeleteModal() {
+        document.getElementById('delete-modal').style.display = 'none';
+    }
+    
+    // Delete account
+    async function deleteAccount() {
+        const confirmInput = document.getElementById('delete-confirm-input').value;
+        if (confirmInput !== 'DELETE') {
+            alert('Please type DELETE to confirm');
+            return;
+        }
+        
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        
+        const btn = document.getElementById('confirm-delete-btn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Deleting...';
+        
+        try {
+            const response = await fetch('/gdpr/account', {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                localStorage.clear();
+                alert('Your account has been deleted. You will be redirected to the home page.');
+                window.location.href = '/';
+            } else {
+                throw new Error(`HTTP ${response.status}`);
+            }
+        } catch (error) {
+            console.error('[GDPR] Delete failed:', error);
+            alert('Failed to delete account. Please contact support.');
+            btn.disabled = false;
+            btn.textContent = 'Delete Forever';
+        }
+    }
+    
+    // Utility functions
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    function formatDate(isoString) {
+        if (!isoString) return 'Unknown';
+        return new Date(isoString).toLocaleString();
+    }
+    
+    function showToast(message, type = 'success') {
+        // Simple toast notification
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${type === 'error' ? '#ef4444' : '#10b981'};
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 10001;
+            animation: fadeIn 0.3s ease;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        loadPreferences();
+        loadActivityLog();
+    });
+    
+    // Close modal on outside click
+    document.getElementById('delete-modal').addEventListener('click', function(e) {
+        if (e.target === this) hideDeleteModal();
+    });
+</script>
+{% endblock %}

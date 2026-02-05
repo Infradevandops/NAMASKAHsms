@@ -1,0 +1,35 @@
+services:
+  # Backend and Frontend (Vite SSR or Static as per project)
+  - type: web
+    name: namaskah-api-staging
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt && bash render_build.sh
+    startCommand: gunicorn main:app -k uvicorn.workers.UvicornWorker
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: namaskah-db-staging
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: namaskah-redis-staging
+          type: redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: staging
+      - key: API_V1_PREFIX
+        value: /api/v1
+
+  # PostgreSQL Database
+  - type: db
+    name: namaskah-db-staging
+    plan: free
+    region: ohio
+
+  # Redis Cache
+  - type: redis
+    name: namaskah-redis-staging
+    plan: free
+    region: ohio
+    maxmemoryPolicy: allkeys-lru
