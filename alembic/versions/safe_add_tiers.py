@@ -1,14 +1,14 @@
 """Safe add subscription tier columns
 
-import sqlalchemy as sa
-from sqlalchemy import inspect
-from alembic import op
-
 Revision ID: safe_add_tiers
 Revises:
 Create Date: 2025-12-24
 
 """
+
+import sqlalchemy as sa
+from sqlalchemy import inspect
+from alembic import op
 
 
 revision = "safe_add_tiers"

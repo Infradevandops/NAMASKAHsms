@@ -1,50 +1,50 @@
-2026-02-05T20:06:33.72683476Z     CommandLine(prog=prog).main(argv=argv)
-2026-02-05T20:06:33.726891701Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 631, in main
-2026-02-05T20:06:33.727573568Z     self.run_cmd(cfg, options)
-2026-02-05T20:06:33.727640339Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 608, in run_cmd
-2026-02-05T20:06:33.72764393Z     fn(
-2026-02-05T20:06:33.727647299Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/command.py", line 403, in upgrade
-2026-02-05T20:06:33.727706381Z     script.run_env()
-2026-02-05T20:06:33.727712121Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/script/base.py", line 583, in run_env
-2026-02-05T20:06:33.727759902Z     util.load_python_file(self.dir, "env.py")
-2026-02-05T20:06:33.727767282Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
-2026-02-05T20:06:33.727780173Z     module = load_module_py(module_id, path)
-2026-02-05T20:06:33.727948617Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:06:33.727965857Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
-2026-02-05T20:06:33.728055889Z     spec.loader.exec_module(module)  # type: ignore
-2026-02-05T20:06:33.728122961Z     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:06:33.728127511Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
-2026-02-05T20:06:33.728129451Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
-2026-02-05T20:06:33.728131191Z   File "/app/alembic/env.py", line 10, in <module>
-2026-02-05T20:06:33.729159746Z     from app.core.config import settings
-2026-02-05T20:06:33.729169136Z   File "/app/app/core/__init__.py", line 3, in <module>
-2026-02-05T20:06:33.729172156Z     from .config import settings
-2026-02-05T20:06:33.729175036Z   File "/app/app/core/config.py", line 164, in <module>
-2026-02-05T20:06:33.729177766Z     settings = get_settings()
-2026-02-05T20:06:33.729180236Z                ^^^^^^^^^^^^^^
-2026-02-05T20:06:33.729182646Z   File "/app/app/core/config.py", line 160, in get_settings
-2026-02-05T20:06:33.729185756Z     return Settings()
-2026-02-05T20:06:33.729188356Z            ^^^^^^^^^^
-2026-02-05T20:06:33.729191296Z   File "/home/appuser/.local/lib/python3.11/site-packages/pydantic_settings/main.py", line 72, in __init__
-2026-02-05T20:06:33.729194096Z     **__pydantic_self__._settings_build_values(
-2026-02-05T20:06:33.729196696Z       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:06:33.729199487Z   File "/home/appuser/.local/lib/python3.11/site-packages/pydantic_settings/main.py", line 160, in _settings_build_values
-2026-02-05T20:06:33.729224767Z     return deep_update(*reversed([source() for source in sources]))
-2026-02-05T20:06:33.729230707Z                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T20:06:33.729233667Z   File "/home/appuser/.local/lib/python3.11/site-packages/pydantic_settings/main.py", line 160, in <listcomp>
-2026-02-05T20:06:33.729236667Z     return deep_update(*reversed([source() for source in sources]))
-2026-02-05T20:06:33.729239397Z                                   ^^^^^^^^
-2026-02-05T20:06:33.729241828Z   File "/home/appuser/.local/lib/python3.11/site-packages/pydantic_settings/sources.py", line 253, in __call__
-2026-02-05T20:06:33.729314569Z     raise SettingsError(
-2026-02-05T20:06:33.729320299Z pydantic_settings.sources.SettingsError: error parsing value for field "cors_origins" from source "EnvSettingsSource"
-2026-02-05T20:06:37.322866653Z 2026-02-05 20:06:37,322 - INFO - ============================================================
-2026-02-05T20:06:37.322886083Z 2026-02-05 20:06:37,322 - INFO - 🚀 NAMASKAH SMS PLATFORM - MINIMAL STARTUP
-2026-02-05T20:06:37.322894463Z 2026-02-05 20:06:37,322 - INFO - ============================================================
-2026-02-05T20:06:37.322978586Z 2026-02-05 20:06:37,322 - INFO - 📊 Environment: production
-2026-02-05T20:06:37.322996576Z 2026-02-05 20:06:37,322 - INFO - 🗄️  Database: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
-2026-02-05T20:06:37.323027116Z 2026-02-05 20:06:37,322 - INFO - 🌐 Server: 0.0.0.0:10000
-2026-02-05T20:06:37.323055357Z 2026-02-05 20:06:37,323 - INFO - 🧪 Testing application import...
-2026-02-05T20:06:42.027790766Z 2026-02-05 20:06:42,027 - ERROR - ❌ Application import failed: error parsing value for field "cors_origins" from source "EnvSettingsSource"
-2026-02-05T20:06:42.028092283Z 2026-02-05 20:06:42,027 - ERROR - 💥 Application import failed. Exiting.
-2026-02-05T20:06:42.268866783Z ==> No open ports detected, continuing to scan...
-2026-02-05T20:06:42.489644897Z ==> Docs on specifying a port: https://render.com/docs/web-services#port-binding
+2026-02-05T20:39:26.442965694Z INFO  [alembic.runtime.migration] Will assume transactional DDL.
+2026-02-05T20:39:26.47434118Z INFO  [alembic.runtime.migration] Running upgrade  -> safe_add_tiers, Safe add subscription tier columns
+2026-02-05T20:39:26.47647997Z Traceback (most recent call last):
+2026-02-05T20:39:26.476495491Z   File "/home/appuser/.local/bin/alembic", line 8, in <module>
+2026-02-05T20:39:26.476606714Z     sys.exit(main())
+2026-02-05T20:39:26.476624974Z              ^^^^^^
+2026-02-05T20:39:26.476707946Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 641, in main
+2026-02-05T20:39:26.476889871Z     CommandLine(prog=prog).main(argv=argv)
+2026-02-05T20:39:26.476899432Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 631, in main
+2026-02-05T20:39:26.477067607Z     self.run_cmd(cfg, options)
+2026-02-05T20:39:26.477073147Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/config.py", line 608, in run_cmd
+2026-02-05T20:39:26.477245501Z     fn(
+2026-02-05T20:39:26.477253942Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/command.py", line 403, in upgrade
+2026-02-05T20:39:26.532515455Z     script.run_env()
+2026-02-05T20:39:26.532536805Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/script/base.py", line 583, in run_env
+2026-02-05T20:39:26.534283234Z     util.load_python_file(self.dir, "env.py")
+2026-02-05T20:39:26.534295064Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 95, in load_python_file
+2026-02-05T20:39:26.534298074Z     module = load_module_py(module_id, path)
+2026-02-05T20:39:26.534300585Z              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-02-05T20:39:26.534303045Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/util/pyfiles.py", line 113, in load_module_py
+2026-02-05T20:39:26.534306225Z     spec.loader.exec_module(module)  # type: ignore
+2026-02-05T20:39:26.534308875Z     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2026-02-05T20:39:26.534312125Z   File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+2026-02-05T20:39:26.534314945Z   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+2026-02-05T20:39:26.534317535Z   File "/app/alembic/env.py", line 87, in <module>
+2026-02-05T20:39:26.534320435Z     run_migrations_online()
+2026-02-05T20:39:26.534323065Z   File "/app/alembic/env.py", line 74, in run_migrations_online
+2026-02-05T20:39:26.534325835Z     context.run_migrations()
+2026-02-05T20:39:26.534328735Z   File "<string>", line 8, in run_migrations
+2026-02-05T20:39:26.534332105Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/environment.py", line 948, in run_migrations
+2026-02-05T20:39:26.534335415Z     self.get_context().run_migrations(**kw)
+2026-02-05T20:39:26.534338326Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/runtime/migration.py", line 627, in run_migrations
+2026-02-05T20:39:26.534340866Z     step.migration_fn(**kw)
+2026-02-05T20:39:26.534343626Z   File "/app/alembic/versions/safe_add_tiers.py", line 22, in upgrade
+2026-02-05T20:39:26.534346966Z     bind = op.get_bind()
+2026-02-05T20:39:26.534349826Z            ^^
+2026-02-05T20:39:26.534353106Z NameError: name 'op' is not defined
+2026-02-05T20:39:31.244848717Z 2026-02-05 20:39:31,244 - INFO - ============================================================
+2026-02-05T20:39:31.245563947Z 2026-02-05 20:39:31,244 - INFO - 🚀 NAMASKAH SMS PLATFORM - MINIMAL STARTUP
+2026-02-05T20:39:31.245572908Z 2026-02-05 20:39:31,244 - INFO - ============================================================
+2026-02-05T20:39:31.245588368Z 2026-02-05 20:39:31,244 - INFO - 📊 Environment: production
+2026-02-05T20:39:31.245590898Z 2026-02-05 20:39:31,244 - INFO - 🗄️  Database: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
+2026-02-05T20:39:31.245593148Z 2026-02-05 20:39:31,245 - INFO - 🌐 Server: 0.0.0.0:10000
+2026-02-05T20:39:31.245595358Z 2026-02-05 20:39:31,245 - INFO - 🧪 Testing application import...
+2026-02-05T20:39:36.548309225Z 2026-02-05 20:39:36,547 - INFO - Attempting to connect to PostgreSQL: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
+2026-02-05T20:39:37.236131629Z 2026-02-05 20:39:37,234 - INFO - ✅ PostgreSQL engine created (connection will be tested on first use)
+2026-02-05T20:39:39.138800723Z 2026-02-05 20:39:39,138 - ERROR - ❌ Application import failed: expected an indented block after 'if' statement on line 43 (logging.py, line 44)
+2026-02-05T20:39:39.138962078Z 2026-02-05 20:39:39,138 - ERROR - 💥 Application import failed. Exiting.
+2026-02-05T20:39:42.635310034Z ==> Exited with status 1
+2026-02-05T20:39:42.638286206Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
