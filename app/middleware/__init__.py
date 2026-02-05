@@ -12,9 +12,6 @@ from .rate_limiting import rate_limit
 
 # Security middleware
 from .security import (
-    AdminRoleMiddleware,
-    APIKeyAuthMiddleware,
-    CORSMiddleware,
     JWTAuthMiddleware,
     SecurityHeadersMiddleware,
 )
@@ -22,9 +19,6 @@ from .security import (
 __all__ = [
     # Security
     "JWTAuthMiddleware",
-    "APIKeyAuthMiddleware",
-    "AdminRoleMiddleware",
-    "CORSMiddleware",
     "SecurityHeadersMiddleware",
     # Rate Limiting
     "rate_limit",
