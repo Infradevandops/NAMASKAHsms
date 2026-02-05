@@ -1,14 +1,14 @@
 """Add language and currency to users
 
-import sqlalchemy as sa
-from sqlalchemy import inspect
-from alembic import op
-
 Revision ID: add_user_preferences
 Revises: safe_add_tiers
 Create Date: 2025-01-09
 
 """
+
+import sqlalchemy as sa
+from sqlalchemy import inspect
+from alembic import op
 
 
 # revision identifiers, used by Alembic.
