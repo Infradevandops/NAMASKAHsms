@@ -43,8 +43,8 @@ async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
             # Create user
             db.execute(
                 text("""
-                    INSERT INTO users (email, password_hash, is_admin, credits, email_verified, created_at)
-                    VALUES (:email, :hash, true, 1000, true, NOW())
+                    INSERT INTO users (email, password_hash, is_admin, credits, free_verifications, email_verified, created_at)
+                    VALUES (:email, :hash, true, 1000, 0, true, NOW())
                 """),
                 {"email": ADMIN_EMAIL, "hash": password_hash}
             )
