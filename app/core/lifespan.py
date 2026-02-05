@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from app.core.database import engine
 from app.core.logging import get_logger
 from app.models.base import Base
+from app.core.init_admin import init_admin_user
 
 startup_logger = get_logger("startup")
 
@@ -13,7 +14,7 @@ def run_startup_initialization():
     """Run startup initialization tasks."""
     try:
         startup_logger.info("Running startup initialization...")
-        # Placeholder for startup tasks
+        init_admin_user()
         startup_logger.info("Startup initialization completed")
     except Exception as e:
         startup_logger.error(f"Startup initialization failed: {e}")
