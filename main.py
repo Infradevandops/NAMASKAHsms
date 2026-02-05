@@ -13,14 +13,14 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
 from app.api.admin.router import router as admin_router
-from app.api.auth_consolidated import router as auth_router
+from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
 
 # Temporarily disabled - multiple files have syntax errors that need fixing
 # from app.api.core.router import router as core_router
 from app.api.health import router as health_router
 from app.api.preview_router import router as preview_router
-from app.api.routes_consolidated import router as routes_router
+from app.api.main_routes import router as routes_router
 from app.api.v1.router import v1_router
 from app.api.websocket_endpoints import router as websocket_router
 
