@@ -1,50 +1,50 @@
-2026-02-05T21:37:17.150548905Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/operations/ops.py", line 2142, in add_column
-2026-02-05T21:37:17.150856882Z     return operations.invoke(op)
-2026-02-05T21:37:17.150884333Z            ^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.150913203Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/operations/base.py", line 445, in invoke
-2026-02-05T21:37:17.151058187Z     return fn(self, operation)
-2026-02-05T21:37:17.151233231Z            ^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.151237961Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/operations/toimpl.py", line 171, in add_column
-2026-02-05T21:37:17.151240771Z     operations.impl.add_column(table_name, column, schema=schema, **kw)
-2026-02-05T21:37:17.151243391Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/ddl/impl.py", line 334, in add_column
-2026-02-05T21:37:17.151326913Z     self._exec(base.AddColumn(table_name, column, schema=schema))
-2026-02-05T21:37:17.151335093Z   File "/home/appuser/.local/lib/python3.11/site-packages/alembic/ddl/impl.py", line 207, in _exec
-2026-02-05T21:37:17.151485426Z     return conn.execute(construct, multiparams)
-2026-02-05T21:37:17.151489237Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.151491026Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1418, in execute
-2026-02-05T21:37:17.151707711Z     return meth(
-2026-02-05T21:37:17.151710551Z            ^^^^^
-2026-02-05T21:37:17.151713051Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/sql/ddl.py", line 180, in _execute_on_connection
-2026-02-05T21:37:17.151850905Z     return connection._execute_ddl(
-2026-02-05T21:37:17.151865065Z            ^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.15208896Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1529, in _execute_ddl
-2026-02-05T21:37:17.152246184Z     ret = self._execute_context(
-2026-02-05T21:37:17.152255304Z           ^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.152312155Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
-2026-02-05T21:37:17.152627752Z     return self._exec_single_context(
-2026-02-05T21:37:17.152636563Z            ^^^^^^^^^^^^^^^^^^^^^^^^^^
-2026-02-05T21:37:17.152706394Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
-2026-02-05T21:37:17.153052722Z     self._handle_dbapi_exception(
-2026-02-05T21:37:17.153063102Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
-2026-02-05T21:37:17.153465111Z     raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
-2026-02-05T21:37:17.153484692Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
-2026-02-05T21:37:17.153801169Z     self.dialect.do_execute(
-2026-02-05T21:37:17.153810549Z   File "/home/appuser/.local/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 941, in do_execute
-2026-02-05T21:37:17.154037684Z     cursor.execute(statement, parameters)
-2026-02-05T21:37:17.154047235Z sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedTable) relation "tiers" does not exist
-2026-02-05T21:37:17.154050105Z 
-2026-02-05T21:37:17.154053025Z [SQL: ALTER TABLE tiers ADD COLUMN included_quota DECIMAL(10, 2) DEFAULT '0.00']
-2026-02-05T21:37:17.154055755Z (Background on this error at: https://sqlalche.me/e/20/f405)
-2026-02-05T21:37:21.783228496Z 2026-02-05 21:37:21,783 - INFO - ============================================================
-2026-02-05T21:37:21.783255587Z 2026-02-05 21:37:21,783 - INFO - 🚀 NAMASKAH SMS PLATFORM - MINIMAL STARTUP
-2026-02-05T21:37:21.783274367Z 2026-02-05 21:37:21,783 - INFO - ============================================================
-2026-02-05T21:37:21.783348899Z 2026-02-05 21:37:21,783 - INFO - 📊 Environment: production
-2026-02-05T21:37:21.783358119Z 2026-02-05 21:37:21,783 - INFO - 🗄️  Database: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
-2026-02-05T21:37:21.783373819Z 2026-02-05 21:37:21,783 - INFO - 🌐 Server: 0.0.0.0:10000
-2026-02-05T21:37:21.783448351Z 2026-02-05 21:37:21,783 - INFO - 🧪 Testing application import...
-2026-02-05T21:37:26.979659732Z 2026-02-05 21:37:26,979 - INFO - Attempting to connect to PostgreSQL: dpg-d61aldjuibrs73dhgmv0-a/namaskah_naaj
-2026-02-05T21:37:27.389900124Z 2026-02-05 21:37:27,389 - INFO - ✅ PostgreSQL engine created (connection will be tested on first use)
-2026-02-05T21:37:29.083797056Z 2026-02-05 21:37:29,083 - ERROR - ❌ Application import failed: cannot import name 'AdminRoleMiddleware' from 'app.middleware.security' (/app/app/middleware/security.py)
-2026-02-05T21:37:29.083932049Z 2026-02-05 21:37:29,083 - ERROR - 💥 Application import failed. Exiting.
-2026-02-05T21:37:31.635156358Z ==> Exited with status 1
-2026-02-05T21:37:31.638870905Z ==> Common ways to troubleshoot your deploy: https://render.com/docs/troubleshooting-deploys
+2026-02-06T00:18:44.150253363Z INFO:     Waiting for application startup.
+2026-02-06T00:18:44.150549109Z 2026-02-06 00:18:44,150 - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-06T00:18:44.15056444Z 2026-02-06 00:18:44,150 - INFO - Initializing database...
+2026-02-06T00:18:44.474976024Z 2026-02-06 00:18:44,474 - INFO - Database tables created successfully
+2026-02-06T00:18:44.475015206Z 2026-02-06 00:18:44,474 - INFO - Checking admin user...
+2026-02-06T00:18:44.475068639Z 2026-02-06 00:18:44,474 - INFO - Running startup initialization...
+2026-02-06T00:18:44.484834231Z 2026-02-06 00:18:44,484 - WARNING - (trapped) error reading bcrypt version
+2026-02-06T00:18:44.484846581Z Traceback (most recent call last):
+2026-02-06T00:18:44.484851651Z   File "/home/appuser/.local/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+2026-02-06T00:18:44.484865002Z     version = _bcrypt.__about__.__version__
+2026-02-06T00:18:44.484870082Z               ^^^^^^^^^^^^^^^^^
+2026-02-06T00:18:44.484874563Z AttributeError: module 'bcrypt' has no attribute '__about__'
+2026-02-06T00:18:46.155278583Z 2026-02-06 00:18:46,155 - ERROR - Failed to init admin user: (psycopg2.errors.NotNullViolation) null value in column "is_affiliate" of relation "users" violates not-null constraint
+2026-02-06T00:18:46.155302764Z DETAIL:  Failing row contains (admin@namaskah.app, $2b$12$2Jz8ltW5pWYNelt5PjFuye5GVKGClJIbx2b0R0B1SWnifAbfpWg0W, 1000, 1, t, f, t, null, null, null, freemium, null, null, 0, 0, null, null, null, 0, null, email, null, null, null, null, 0, null, en, USD, null, null, null, null, t, null, null, null, null, null, null, null, null, null, null, 2026-02-06 00:18:44.478129, null).
+2026-02-06T00:18:46.155309945Z 
+2026-02-06T00:18:46.155327735Z [SQL: 
+2026-02-06T00:18:46.155331846Z                     INSERT INTO users (
+2026-02-06T00:18:46.155335636Z                         email, password_hash, is_admin, is_moderator, is_active, credits, 
+2026-02-06T00:18:46.155339176Z                         free_verifications, email_verified, subscription_tier, 
+2026-02-06T00:18:46.155341956Z                         bonus_sms_balance, monthly_quota_used, referral_earnings, 
+2026-02-06T00:18:46.155345086Z                         provider, failed_login_attempts, language, currency, created_at
+2026-02-06T00:18:46.155348367Z                     )
+2026-02-06T00:18:46.155351277Z                     VALUES (
+2026-02-06T00:18:46.155353847Z                         %(email)s, %(hash)s, true, false, true, 1000, 
+2026-02-06T00:18:46.155356767Z                         1.0, true, 'freemium', 
+2026-02-06T00:18:46.155359097Z                         0.0, 0.0, 0.0, 
+2026-02-06T00:18:46.155362057Z                         'email', 0, 'en', 'USD', NOW()
+2026-02-06T00:18:46.155364308Z                     )
+2026-02-06T00:18:46.155366637Z                 ]
+2026-02-06T00:18:46.155369538Z [parameters: {'email': 'admin@namaskah.app', 'hash': '$2b$12$2Jz8ltW5pWYNelt5PjFuye5GVKGClJIbx2b0R0B1SWnifAbfpWg0W'}]
+2026-02-06T00:18:46.155371918Z (Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-02-06T00:18:46.155374188Z 2026-02-06 00:18:46,155 - INFO - Startup initialization completed
+2026-02-06T00:18:46.155389019Z 2026-02-06 00:18:46,155 - INFO - Admin user verified
+2026-02-06T00:18:46.155395199Z 2026-02-06 00:18:46,155 - INFO - ✅ Application startup completed successfully
+2026-02-06T00:18:46.155721807Z INFO:     Application startup complete.
+2026-02-06T00:18:46.237048708Z INFO:     Uvicorn running on http://0.0.0.0:10000 (Press CTRL+C to quit)
+2026-02-06T00:18:47.185548067Z INFO:     127.0.0.1:42402 - "HEAD / HTTP/1.1" 405 Method Not Allowed
+2026-02-06T00:18:52.870332712Z ==> Your service is live 🎉
+2026-02-06T00:18:53.014669731Z ==> 
+2026-02-06T00:18:53.018308394Z ==> ///////////////////////////////////////////////////////////
+2026-02-06T00:18:53.02211948Z ==> 
+2026-02-06T00:18:53.024849714Z ==> Available at your primary URL https://namaskah.onrender.com
+2026-02-06T00:18:53.027677281Z ==> 
+2026-02-06T00:18:53.030198861Z ==> ///////////////////////////////////////////////////////////
+2026-02-06T00:18:53.139825715Z INFO:     10.20.143.131:0 - "GET / HTTP/1.1" 200 OK
+2026-02-06T00:20:18.803660693Z INFO:     10.22.125.131:0 - "GET / HTTP/1.1" 200 OK
+2026-02-06T00:20:28.543867579Z INFO:     10.20.212.66:0 - "GET /auth/login HTTP/1.1" 301 Moved Permanently
+2026-02-06T00:20:28.919721916Z INFO:     10.20.143.131:0 - "GET /login HTTP/1.1" 200 OK
+2026-02-06T00:20:32.217082116Z 2026-02-06 00:20:32,216 - WARNING - Login attempt with non-existent email: admin@namaskah.app
+2026-02-06T00:20:32.222680537Z INFO:     10.20.143.131:0 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
