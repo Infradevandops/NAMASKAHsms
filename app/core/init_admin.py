@@ -30,7 +30,7 @@ def init_admin_user():
         if user:
             # Update existing user
             db.execute(
-                text("UPDATE users SET password_hash = :hash, is_admin = true WHERE email = :email"),
+                text("UPDATE users SET password_hash = :hash, is_admin = true, is_active = true WHERE email = :email"),
                 {"hash": password_hash, "email": ADMIN_EMAIL}
             )
             db.commit()
@@ -40,13 +40,13 @@ def init_admin_user():
             db.execute(
                 text("""
                     INSERT INTO users (
-                        email, password_hash, is_admin, is_moderator, credits, 
+                        email, password_hash, is_admin, is_moderator, is_active, credits, 
                         free_verifications, email_verified, subscription_tier, 
                         bonus_sms_balance, monthly_quota_used, referral_earnings, 
                         provider, failed_login_attempts, language, currency, created_at
                     )
                     VALUES (
-                        :email, :hash, true, false, 1000, 
+                        :email, :hash, true, false, true, 1000, 
                         1.0, true, 'freemium', 
                         0.0, 0.0, 0.0, 
                         'email', 0, 'en', 'USD', NOW()
