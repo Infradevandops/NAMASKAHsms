@@ -273,6 +273,7 @@ else:
             free_verifications=1000.0,
             subscription_tier="custom",
             is_active=True,
+            is_affiliate=False,
         )
 
         db.add(admin_user)
