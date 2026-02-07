@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from app.core.database import SessionLocal, engine
 from app.core.logging import get_logger
 from app.models.user import User
-from app.utils.security import hash_password
+from app.utils.security import get_password_hash as hash_password
 from app.utils.security import verify_password
 from app.utils.security import verify_password
 import traceback
