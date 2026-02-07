@@ -300,6 +300,8 @@
         if (res.ok) {
             const data = await res.json();
             localStorage.setItem('access_token', data.access_token);
+            // Set cookie for server-side auth
+            document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
             window.location.href = '/dashboard';
         } else {
             const data = await res.json();
