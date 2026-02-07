@@ -47,4 +47,25 @@
 2026-02-06T00:20:28.543867579Z INFO:     10.20.212.66:0 - "GET /auth/login HTTP/1.1" 301 Moved Permanently
 2026-02-06T00:20:28.919721916Z INFO:     10.20.143.131:0 - "GET /login HTTP/1.1" 200 OK
 2026-02-06T00:20:32.217082116Z 2026-02-06 00:20:32,216 - WARNING - Login attempt with non-existent email: admin@namaskah.app
-2026-02-06T00:20:32.222680537Z INFO:     10.20.143.131:0 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+2026-02-06T00:20:32.222680537Z INFO:     10.20.143.131:0 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized2026-02-07 04:55:56,920 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 04:55:56,921 - startup - INFO - Initializing database...
+2026-02-07 04:55:57,567 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
