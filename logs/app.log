@@ -356,3 +356,64 @@ CREATE TABLE affiliate_commissions (
 (Background on this error at: https://sqlalche.me/e/20/f405)
 2026-02-07 16:06:56,607 - watchfiles.main - INFO - 1 change detected
 2026-02-07 16:06:58,905 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:06:59,270 - watchfiles.main - INFO - 45 changes detected
+2026-02-07 16:07:01,214 - watchfiles.main - INFO - 4 changes detected
+2026-02-07 16:07:35,437 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:07:38,791 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 16:07:39,150 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:07:39,557 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:07:40,188 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:07:46,656 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:07:47,785 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 16:16:45,606 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:16:47,823 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 16:17:12,708 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:17,560 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:22,439 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 16:17:22,441 - startup - INFO - Initializing database...
+2026-02-07 16:17:22,881 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 16:17:23,300 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:23,693 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:28,796 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 16:17:28,796 - startup - INFO - Initializing database...
+2026-02-07 16:17:28,983 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 16:17:29,684 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:32,237 - watchfiles.main - INFO - 1 change detected
