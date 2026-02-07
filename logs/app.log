@@ -521,3 +521,107 @@ CREATE TABLE affiliate_commissions (
 2026-02-07 20:54:27,744 - watchfiles.main - INFO - 3 changes detected
 2026-02-07 20:55:47,271 - watchfiles.main - INFO - 1 change detected
 2026-02-07 20:55:56,232 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:55:56,743 - watchfiles.main - INFO - 15 changes detected
+2026-02-07 20:55:57,126 - watchfiles.main - INFO - 33 changes detected
+2026-02-07 20:55:57,392 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 20:55:57,392 - startup - INFO - Initializing database...
+2026-02-07 20:55:59,476 - watchfiles.main - INFO - 4 changes detected
+2026-02-07 20:55:59,731 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 20:56:00,588 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:56:25,118 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 20:56:25,125 - app.api.auth_routes - ERROR - Login error: 'User' object has no attribute 'username'
+2026-02-07 20:56:25,298 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 20:57:28,300 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:57:29,728 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 20:57:41,825 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 20:57:47,959 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 20:57:47,959 - startup - INFO - Initializing database...
+2026-02-07 20:57:47,971 - startup - INFO - Database tables created successfully
+2026-02-07 20:57:47,971 - startup - INFO - Checking admin user...
+2026-02-07 20:57:47,971 - startup - INFO - Running startup initialization...
+2026-02-07 20:57:48,342 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 20:57:48,342 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 20:57:48,342 - startup - INFO - Startup initialization completed
+2026-02-07 20:57:48,343 - startup - INFO - Admin user verified
+2026-02-07 20:57:48,343 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 20:57:48,427 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 20:57:50,619 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 20:57:50,723 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:00:30,273 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:00:31,306 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:11:08,295 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:11:10,240 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:11:10,704 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:12:15,252 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 21:12:15,255 - startup - INFO - Initializing database...
+2026-02-07 21:12:15,278 - startup - INFO - Database tables created successfully
+2026-02-07 21:12:15,278 - startup - INFO - Checking admin user...
+2026-02-07 21:12:15,279 - startup - INFO - Running startup initialization...
+2026-02-07 21:12:15,624 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 21:12:15,624 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 21:12:15,625 - startup - INFO - Startup initialization completed
+2026-02-07 21:12:15,625 - startup - INFO - Admin user verified
+2026-02-07 21:12:15,625 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 21:12:15,627 - startup - INFO - 🛑 Shutting down Namaskah SMS API...
+2026-02-07 21:12:15,627 - startup - INFO - ✅ Shutdown completed
+2026-02-07 21:12:15,924 - watchfiles.main - INFO - 4 changes detected
+2026-02-07 21:12:21,916 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 21:12:21,993 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:14:13,400 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:14:14,454 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:17:16,520 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:17:18,359 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:17:18,728 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:18:33,051 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:18:38,258 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 21:18:38,258 - startup - INFO - Initializing database...
+2026-02-07 21:18:38,274 - startup - INFO - Database tables created successfully
+2026-02-07 21:18:38,275 - startup - INFO - Checking admin user...
+2026-02-07 21:18:38,277 - startup - INFO - Running startup initialization...
+2026-02-07 21:18:39,208 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 21:18:39,209 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 21:18:39,209 - startup - INFO - Startup initialization completed
+2026-02-07 21:18:39,209 - startup - INFO - Admin user verified
+2026-02-07 21:18:39,210 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 21:18:39,331 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:20:27,490 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:20:28,635 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:20:28,995 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:25:09,961 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:25:11,462 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:29:35,267 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:29:36,497 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:32:32,746 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 21:32:32,816 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:32:44,159 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:32:45,911 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:35:05,725 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 21:35:05,807 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:35:14,281 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 21:35:14,337 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:37:52,443 - watchfiles.main - INFO - 1 change detected
+2026-02-07 21:37:53,790 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 21:38:10,421 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 21:38:10,576 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 21:39:54,125 - watchfiles.main - INFO - 1 change detected
+2026-02-07 22:36:53,755 - watchfiles.main - INFO - 1 change detected
+2026-02-07 22:36:54,127 - watchfiles.main - INFO - 1 change detected
