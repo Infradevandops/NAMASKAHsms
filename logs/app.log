@@ -417,3 +417,107 @@ CREATE TABLE affiliate_commissions (
 (Background on this error at: https://sqlalche.me/e/20/f405)
 2026-02-07 16:17:29,684 - watchfiles.main - INFO - 1 change detected
 2026-02-07 16:17:32,237 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:17:33,822 - watchfiles.main - INFO - 45 changes detected
+2026-02-07 16:17:36,075 - watchfiles.main - INFO - 4 changes detected
+2026-02-07 16:19:49,770 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:19:50,141 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 16:20:11,755 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 16:20:11,756 - startup - INFO - Initializing database...
+2026-02-07 16:20:11,796 - startup - INFO - Database tables created successfully
+2026-02-07 16:20:11,796 - startup - INFO - Checking admin user...
+2026-02-07 16:20:11,796 - startup - INFO - Running startup initialization...
+2026-02-07 16:20:11,903 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:20:12,204 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 16:20:12,204 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 16:20:12,204 - startup - INFO - Startup initialization completed
+2026-02-07 16:20:12,205 - startup - INFO - Admin user verified
+2026-02-07 16:20:12,207 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 16:20:12,314 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:20:18,684 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 16:20:18,685 - app.api.auth_routes - ERROR - Login error: 'User' object has no attribute 'username'
+2026-02-07 16:20:18,766 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:24:10,906 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:24:12,324 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:24:12,694 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 16:45:35,798 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:45:37,288 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 16:51:13,654 - watchfiles.main - INFO - 1 change detected
+2026-02-07 16:51:14,933 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:01:10,523 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:01:11,675 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:08:59,730 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:09:00,887 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:09:01,357 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 17:09:12,486 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 17:09:12,486 - startup - INFO - Initializing database...
+2026-02-07 17:09:12,534 - startup - INFO - Database tables created successfully
+2026-02-07 17:09:12,534 - startup - INFO - Checking admin user...
+2026-02-07 17:09:12,534 - startup - INFO - Running startup initialization...
+2026-02-07 17:09:13,542 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 17:09:13,543 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 17:09:13,543 - startup - INFO - Startup initialization completed
+2026-02-07 17:09:13,543 - startup - INFO - Admin user verified
+2026-02-07 17:09:13,543 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 17:09:13,640 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 17:12:52,460 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:12:53,651 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:19:02,593 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:19:03,622 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:20:46,220 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 17:20:46,223 - startup - INFO - Initializing database...
+2026-02-07 17:20:46,243 - startup - INFO - Database tables created successfully
+2026-02-07 17:20:46,243 - startup - INFO - Checking admin user...
+2026-02-07 17:20:46,244 - startup - INFO - Running startup initialization...
+2026-02-07 17:20:46,590 - app.core.init_admin - INFO - ✅ Admin user updated: admin@namaskah.app
+2026-02-07 17:20:46,590 - app.core.init_admin - INFO - ✅ Password: Namaskah@Admin2024
+2026-02-07 17:20:46,591 - startup - INFO - Startup initialization completed
+2026-02-07 17:20:46,591 - startup - INFO - Admin user verified
+2026-02-07 17:20:46,591 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 17:20:46,593 - startup - INFO - 🛑 Shutting down Namaskah SMS API...
+2026-02-07 17:20:46,594 - startup - INFO - ✅ Shutdown completed
+2026-02-07 17:20:46,740 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:20:47,136 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:21:17,727 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 17:21:17,728 - app.api.auth_routes - ERROR - Login error: 'User' object has no attribute 'username'
+2026-02-07 17:21:17,730 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 17:44:17,930 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:44:19,325 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:49:39,809 - watchfiles.main - INFO - 1 change detected
+2026-02-07 17:49:41,083 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 17:51:39,835 - app.api.auth_routes - INFO - Successful login: admin@namaskah.app
+2026-02-07 17:51:39,840 - app.api.auth_routes - ERROR - Login error: 'User' object has no attribute 'username'
+2026-02-07 17:51:39,924 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 18:01:39,508 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:04:41,800 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:07:42,495 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:10:43,224 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:13:43,918 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:16:44,357 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:19:44,827 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:22:45,616 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:25:46,053 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:28:46,935 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:31:47,477 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:34:48,601 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:37:49,730 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:40:50,406 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:43:50,669 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:46:51,932 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:49:53,131 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:52:53,523 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:55:54,633 - watchfiles.main - INFO - 1 change detected
+2026-02-07 18:58:54,935 - watchfiles.main - INFO - 1 change detected
+2026-02-07 19:01:55,798 - watchfiles.main - INFO - 1 change detected
+2026-02-07 19:04:56,185 - watchfiles.main - INFO - 1 change detected
+2026-02-07 19:07:56,498 - watchfiles.main - INFO - 1 change detected
+2026-02-07 19:11:00,108 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:01:28,848 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:23:22,142 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:40:21,789 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:40:22,929 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 20:51:23,229 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:51:24,655 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 20:54:26,361 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:54:27,744 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 20:55:47,271 - watchfiles.main - INFO - 1 change detected
+2026-02-07 20:55:56,232 - watchfiles.main - INFO - 1 change detected

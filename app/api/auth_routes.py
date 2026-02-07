@@ -107,7 +107,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             "user": {
                 "id": str(user.id),
                 "email": user.email,
-                "username": user.username,
+                "username": user.email.split('@')[0],
                 "credits": float(user.credits) if user.credits else 0.0,
                 "is_active": user.is_active,
             }
@@ -177,7 +177,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             "user": {
                 "id": str(user.id),
                 "email": user.email,
-                "username": user.username,
+                "username": user.email.split('@')[0],
                 "credits": 0.0,
                 "is_active": True,
             }
@@ -226,7 +226,7 @@ async def get_current_user(
         return {
             "id": str(user.id),
             "email": user.email,
-            "username": user.username,
+            "username": user.email.split('@')[0],
             "credits": float(user.credits) if user.credits else 0.0,
             "is_active": user.is_active,
         }
