@@ -294,12 +294,11 @@ def ensure_admin_user():
     except IntegrityError as e:
         logger.warning(f"⚠️ Admin user creation failed - user may already exist: {e}")
         db.rollback()
-except SQLAlchemyError as e:
+    except SQLAlchemyError as e:
         logger.error(f"❌ Database error creating admin user: {e}")
         db.rollback()
-except Exception as e:
+    except Exception as e:
         logger.error(f"❌ Unexpected error in ensure_admin_user: {e}")
-
         traceback.print_exc()
         db.rollback()
     finally:
