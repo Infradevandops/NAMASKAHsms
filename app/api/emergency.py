@@ -10,55 +10,69 @@ router = APIRouter()
 
 RESET_SECRET = "namaskah-emergency-reset-2026"
 
-@router.get("/emergency-reset-admin")
-async def emergency_reset_admin(secret: str, db: Session = Depends(get_db)):
-    """Emergency admin password reset - REMOVE AFTER USE."""
+@router.get("/emergency-create-admin")
+async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
+    """Emergency admin creation using ORM - bypasses SQL issues."""
     
     if secret != RESET_SECRET:
         raise HTTPException(status_code=403, detail="Invalid secret")
     
-    ADMIN_EMAIL = "admin@namaskah.app"
-    ADMIN_PASSWORD = "Admin123"  # Simpler password
+    from app.models.user import User
+    from app.utils.security import hash_password
+    import os
     
-    # Hash password with bcrypt - use rounds=12 like production
-    password_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt(rounds=12)).decode('utf-8')
+    ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Namaskah@Admin2024")
     
     try:
         # Check if user exists
-        result = db.execute(
-            text("SELECT id FROM users WHERE email = :email"),
-            {"email": ADMIN_EMAIL}
-        )
-        user = result.fetchone()
+        existing = db.query(User).filter(User.email == ADMIN_EMAIL).first()
         
-        if user:
-            # Update password
-            db.execute(
-                text("UPDATE users SET password_hash = :hash, is_admin = true WHERE email = :email"),
-                {"hash": password_hash, "email": ADMIN_EMAIL}
-            )
+        if existing:
+            # Update existing user
+            existing.password_hash = hash_password(ADMIN_PASSWORD)
+            existing.is_admin = True
+            existing.is_active = True
+            existing.email_verified = True
+            existing.subscription_tier = "custom"
+            existing.credits = max(existing.credits or 0, 10000.0)
             db.commit()
-            return {"status": "updated", "email": ADMIN_EMAIL, "hash": password_hash[:20], "password": ADMIN_PASSWORD}
+            return {
+                "status": "updated",
+                "email": ADMIN_EMAIL,
+                "id": existing.id,
+                "message": "Admin user updated successfully"
+            }
         else:
-            # Create user with all required fields
-            db.execute(
-                text("""
-                    INSERT INTO users (
-                        email, password_hash, is_admin, is_moderator, credits, 
-                        free_verifications, email_verified, subscription_tier, 
-                        bonus_sms_balance, monthly_quota_used, referral_earnings, 
-                        provider, failed_login_attempts, language, currency, created_at
-                    )
-                    VALUES (
-                        :email, :hash, true, false, 1000, 
-                        1.0, true, 'freemium', 
-                        0.0, 0.0, 0.0, 
-                        'email', 0, 'en', 'USD', NOW()
-                    )
-                """),
-                {"email": ADMIN_EMAIL, "hash": password_hash}
+            # Create new admin user using ORM
+            admin = User(
+                email=ADMIN_EMAIL,
+                password_hash=hash_password(ADMIN_PASSWORD),
+                is_admin=True,
+                is_moderator=False,
+                is_active=True,
+                is_affiliate=False,
+                email_verified=True,
+                subscription_tier="custom",
+                credits=10000.0,
+                free_verifications=1000.0,
+                bonus_sms_balance=0.0,
+                monthly_quota_used=0.0,
+                referral_earnings=0.0,
+                provider="email",
+                failed_login_attempts=0,
+                language="en",
+                currency="USD"
             )
+            db.add(admin)
             db.commit()
-            return {"status": "created", "email": ADMIN_EMAIL, "hash": password_hash[:20], "password": ADMIN_PASSWORD}
+            db.refresh(admin)
+            return {
+                "status": "created",
+                "email": ADMIN_EMAIL,
+                "id": admin.id,
+                "message": "Admin user created successfully"
+            }
     except Exception as e:
-        return {"error": str(e)}
+        db.rollback()
+        return {"error": str(e), "type": type(e).__name__}

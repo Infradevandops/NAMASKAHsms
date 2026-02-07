@@ -69,3 +69,233 @@ CREATE TABLE affiliate_commissions (
 
 ]
 (Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 05:09:40,501 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 05:09:40,502 - startup - INFO - Initializing database...
+2026-02-07 05:09:41,145 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 05:09:41,573 - watchfiles.main - INFO - 1 change detected
+2026-02-07 05:26:47,973 - watchfiles.main - INFO - 1 change detected
+2026-02-07 05:26:48,913 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 05:36:40,544 - watchfiles.main - INFO - 1 change detected
+2026-02-07 05:36:42,658 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 06:40:19,404 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:12:54,574 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:12:56,416 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:16:17,579 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:16:19,077 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:16:42,416 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:17:20,455 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 07:17:20,463 - startup - INFO - Initializing database...
+2026-02-07 07:17:23,003 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 07:17:23,316 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:20:58,047 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:20:59,123 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:23:38,678 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:23:56,705 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 07:23:56,705 - startup - INFO - Initializing database...
+2026-02-07 07:23:56,870 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:23:57,244 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 07:23:57,602 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 07:23:57,964 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 07:23:58,359 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 07:23:58,381 - startup - INFO - Database tables created successfully
+2026-02-07 07:23:58,389 - startup - INFO - Checking admin user...
+2026-02-07 07:23:58,389 - startup - INFO - Running startup initialization...
+2026-02-07 07:23:58,733 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 07:24:01,468 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:24:01,952 - app.core.init_admin - ERROR - Failed to init admin user: (sqlite3.OperationalError) no such function: NOW
+[SQL: 
+                    INSERT INTO users (
+                        email, password_hash, is_admin, is_moderator, is_active, is_affiliate, credits, 
+                        free_verifications, email_verified, subscription_tier, 
+                        bonus_sms_balance, monthly_quota_used, referral_earnings, 
+                        provider, failed_login_attempts, language, currency, created_at
+                    )
+                    VALUES (
+                        ?, ?, true, false, true, false, 1000, 
+                        1.0, true, 'freemium', 
+                        0.0, 0.0, 0.0, 
+                        'email', 0, 'en', 'USD', NOW()
+                    )
+                ]
+[parameters: ('admin@namaskah.app', '$2b$12$vFQWKP1CyJa/r8NvF1ZvjeipjzTNhd0AwcENr0tc82WBFdDU4uPfW')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-02-07 07:24:01,952 - startup - INFO - Startup initialization completed
+2026-02-07 07:24:01,953 - startup - INFO - Admin user verified
+2026-02-07 07:24:01,953 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 07:24:02,898 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:24:50,728 - app.api.auth_routes - WARNING - Login attempt with non-existent email: admin@namaskah.app
+2026-02-07 07:25:23,342 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:25:23,602 - startup - INFO - 🛑 Shutting down Namaskah SMS API...
+2026-02-07 07:25:23,603 - startup - INFO - ✅ Shutdown completed
+2026-02-07 07:25:24,114 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:25:28,493 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:25:53,472 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 07:25:53,473 - startup - INFO - Initializing database...
+2026-02-07 07:25:54,598 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 07:25:54,598 - startup - INFO - Initializing database...
+2026-02-07 07:25:54,928 - startup - INFO - Database tables created successfully
+2026-02-07 07:25:54,929 - startup - INFO - Checking admin user...
+2026-02-07 07:25:54,929 - startup - INFO - Running startup initialization...
+2026-02-07 07:25:59,187 - app.core.init_admin - ERROR - Failed to init admin user: (sqlite3.IntegrityError) NOT NULL constraint failed: users.is_suspended
+[SQL: 
+                    INSERT INTO users (
+                        email, password_hash, is_admin, is_moderator, is_active, is_affiliate, credits, 
+                        free_verifications, email_verified, subscription_tier, 
+                        bonus_sms_balance, monthly_quota_used, referral_earnings, 
+                        provider, failed_login_attempts, language, currency, created_at
+                    )
+                    VALUES (
+                        ?, ?, true, false, true, false, 1000, 
+                        1.0, true, 'freemium', 
+                        0.0, 0.0, 0.0, 
+                        'email', 0, 'en', 'USD', CURRENT_TIMESTAMP
+                    )
+                ]
+[parameters: ('admin@namaskah.app', '$2b$12$hyzruv.YDiqfjXRep/5ETueYCKMpHZlw/XsTIvyP6sX0leI6iUPmS')]
+(Background on this error at: https://sqlalche.me/e/20/gkpj)
+2026-02-07 07:25:59,190 - startup - INFO - Startup initialization completed
+2026-02-07 07:25:59,196 - startup - INFO - Admin user verified
+2026-02-07 07:25:59,197 - startup - INFO - ✅ Application startup completed successfully
+2026-02-07 07:26:00,036 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 07:26:02,061 - app.api.auth_routes - WARNING - Login attempt with non-existent email: admin@namaskah.app
+2026-02-07 07:26:02,245 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:27:03,835 - watchfiles.main - INFO - 1 change detected
+2026-02-07 07:27:05,285 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 07:28:06,645 - app.api.auth_routes - WARNING - Login attempt with non-existent email: admin@namaskah.app
+2026-02-07 14:03:19,739 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:03:24,011 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:03:24,754 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:08:18,435 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:08:20,749 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:08:24,030 - startup - INFO - 🛑 Shutting down Namaskah SMS API...
+2026-02-07 14:08:24,070 - startup - INFO - ✅ Shutdown completed
+2026-02-07 14:08:24,671 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:08:25,038 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:11:46,627 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:11:47,640 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:21:13,297 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:21:17,212 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:21:17,639 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:24:58,404 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:25:01,015 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:28:14,613 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:28:16,165 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:28:53,552 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:28:53,942 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:28:54,303 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:28:54,661 - watchfiles.main - INFO - 2 changes detected
+2026-02-07 14:28:55,666 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:29:13,188 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:29:26,619 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:29:38,487 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:29:49,974 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:29:57,004 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:30:07,971 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:30:20,737 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:30:21,149 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:30:34,456 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:30:48,180 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:00,274 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:10,858 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:24,192 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:26,570 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:28,040 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 14:31:41,457 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:31:53,018 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:32:18,881 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:33:34,245 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 14:33:34,247 - startup - INFO - Initializing database...
+2026-02-07 14:33:38,530 - startup - ERROR - Startup failed: (psycopg2.errors.DatatypeMismatch) foreign key constraint "affiliate_commissions_affiliate_id_fkey" cannot be implemented
+DETAIL:  Key columns "affiliate_id" and "id" are of incompatible types: character varying and uuid.
+
+[SQL: 
+CREATE TABLE affiliate_commissions (
+	affiliate_id VARCHAR NOT NULL, 
+	transaction_id VARCHAR(255) NOT NULL, 
+	amount FLOAT NOT NULL, 
+	commission_rate FLOAT NOT NULL, 
+	status VARCHAR(50), 
+	payout_date TIMESTAMP WITHOUT TIME ZONE, 
+	id VARCHAR NOT NULL, 
+	created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL, 
+	updated_at TIMESTAMP WITHOUT TIME ZONE, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(affiliate_id) REFERENCES users (id)
+)
+
+]
+(Background on this error at: https://sqlalche.me/e/20/f405)
+2026-02-07 14:33:41,706 - watchfiles.main - INFO - 1 change detected
+2026-02-07 14:50:13,552 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:36:47,315 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:36:48,839 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 15:39:53,557 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:39:55,987 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 15:42:57,229 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:42:58,784 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 15:46:22,745 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:46:23,903 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 15:49:01,528 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:49:25,371 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:49:26,695 - watchfiles.main - INFO - 3 changes detected
+2026-02-07 15:51:56,466 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:52:07,928 - watchfiles.main - INFO - 1 change detected
+2026-02-07 15:52:07,963 - startup - INFO - 🚀 Starting Namaskah SMS API...
+2026-02-07 15:52:07,966 - startup - INFO - Initializing database...
