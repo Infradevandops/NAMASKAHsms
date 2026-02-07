@@ -49,7 +49,7 @@ def init_admin_user():
                         :email, :hash, true, false, true, false, 1000, 
                         1.0, true, 'freemium', 
                         0.0, 0.0, 0.0, 
-                        'email', 0, 'en', 'USD', NOW()
+                        'email', 0, 'en', 'USD', CURRENT_TIMESTAMP
                     )
                 """),
                 {"email": ADMIN_EMAIL, "hash": password_hash}
