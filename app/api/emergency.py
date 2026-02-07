@@ -18,7 +18,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="Invalid secret")
     
     from app.models.user import User
-    from app.utils.security import hash_password
+    from app.utils.security import get_password_hash
     import os
     
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
@@ -30,7 +30,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
         
         if existing:
             # Update existing user
-            existing.password_hash = hash_password(ADMIN_PASSWORD)
+            existing.password_hash = get_password_hash(ADMIN_PASSWORD)
             existing.is_admin = True
             existing.is_active = True
             existing.email_verified = True
@@ -47,7 +47,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
             # Create new admin user using ORM
             admin = User(
                 email=ADMIN_EMAIL,
-                password_hash=hash_password(ADMIN_PASSWORD),
+                password_hash=get_password_hash(ADMIN_PASSWORD),
                 is_admin=True,
                 is_moderator=False,
                 is_active=True,
