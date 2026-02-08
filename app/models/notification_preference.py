@@ -1,5 +1,6 @@
 """Notification preference model for user notification settings."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, ForeignKey, String, Time
 from sqlalchemy.orm import relationship
 
@@ -11,7 +12,7 @@ class NotificationPreference(BaseModel):
 
     __tablename__ = "notification_preferences"
 
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     notification_type = Column(String(50), nullable=False)  # verification, payment, system, etc.
     enabled = Column(Boolean, default=True, nullable=False)  # Master toggle for this type
     delivery_methods = Column(String(255), default="toast")  # Comma-separated: toast,email,sms,webhook,push

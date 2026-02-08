@@ -2,19 +2,19 @@
 
 from datetime import datetime
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 
-from app.models.base import Base
+from app.models.base import BaseModel
 
 
-class SMSForwarding(Base):
+class SMSForwarding(BaseModel):
     """SMS forwarding configuration."""
 
     __tablename__ = "sms_forwarding"
 
-    id = Column(String(36), primary_key=True, default=lambda: str(__import__("uuid").uuid4()))
-    user_id = Column(String(36), ForeignKey("users.id"), nullable=False, index=True)
-    rental_id = Column(String(36), ForeignKey("rentals.id"), nullable=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+    rental_id = Column(UUID(as_uuid=False), ForeignKey("rentals.id"), nullable=True)
 
     # Forwarding destinations
     phone_number = Column(String(20), nullable=True)
