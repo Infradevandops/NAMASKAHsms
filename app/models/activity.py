@@ -1,5 +1,6 @@
 """Activity model for tracking user events."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import JSON, Column, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 
@@ -11,7 +12,7 @@ class Activity(BaseModel):
 
     __tablename__ = "activities"
 
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     activity_type = Column(String(50), nullable=False, index=True)  # verification, payment, login, settings, api_key
     resource_type = Column(String(50), nullable=False)  # verification, payment, user, api_key
     resource_id = Column(String(255), nullable=True, index=True)

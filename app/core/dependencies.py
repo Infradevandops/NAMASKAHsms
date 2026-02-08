@@ -1,7 +1,7 @@
 """FastAPI dependencies for authentication and authorization."""
 
 from typing import Optional
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -10,17 +10,33 @@ from app.models.user import User
 from app.services.auth_service import AuthService
 
 logger = get_logger(__name__)
-security = HTTPBearer()
+security = HTTPBearer(auto_error=False)
 
 
 def get_current_user_id(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> str:
-    """Get current user ID from JWT token."""
+    """Get current user ID from JWT token (header or cookie)."""
+    token = None
+    
+    # Try Authorization header first
+    if credentials:
+        token = credentials.credentials
+    # Fall back to cookie
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+    
+    if not token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not authenticated"
+        )
+    
     try:
         auth_service = AuthService(db)
-        user_id = auth_service.verify_token(credentials.credentials)
+        user_id = auth_service.verify_token(token)
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -71,16 +87,24 @@ def get_admin_user_id(
 
 
 def get_optional_user_id(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     db: Session = Depends(get_db)
 ) -> Optional[str]:
     """Get user ID if authenticated, None otherwise."""
-    if not credentials:
+    token = None
+    
+    if credentials:
+        token = credentials.credentials
+    elif "access_token" in request.cookies:
+        token = request.cookies["access_token"]
+    
+    if not token:
         return None
     
     try:
         auth_service = AuthService(db)
-        return auth_service.verify_token(credentials.credentials)
+        return auth_service.verify_token(token)
     except:
         return None
 

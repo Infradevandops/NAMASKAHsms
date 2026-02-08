@@ -1,5 +1,6 @@
 """Device token model for push notifications."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, ForeignKey, String
 from sqlalchemy.orm import relationship
 
@@ -11,7 +12,7 @@ class DeviceToken(BaseModel):
 
     __tablename__ = "device_tokens"
 
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     device_token = Column(String(500), nullable=False, unique=True, index=True)
     platform = Column(String(20), nullable=False)  # ios or android
     device_name = Column(String(255), nullable=True)  # e.g., "iPhone 14 Pro"

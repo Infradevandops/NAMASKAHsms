@@ -1,5 +1,6 @@
 """Pricing Template Models"""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import (
     DECIMAL,
     JSON,
@@ -21,7 +22,7 @@ from app.core.database import Base
 JSONB = JSON().with_variant(PostgresJSONB, "postgresql")
 
 
-class PricingTemplate(Base):
+class PricingTemplate(BaseModel):
     """Pricing template for managing multiple pricing strategies"""
 
     __tablename__ = "pricing_templates"
@@ -33,7 +34,7 @@ class PricingTemplate(Base):
     region = Column(String(10), default="US", index=True)
     currency = Column(String(3), default="USD")
     created_at = Column(TIMESTAMP, server_default=func.now())
-    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
+    created_by = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"))
     effective_date = Column(TIMESTAMP)
     expires_at = Column(TIMESTAMP)
     template_metadata = Column(JSONB)  # For A/B testing, notes, etc.
@@ -48,7 +49,7 @@ class PricingTemplate(Base):
         return f"<PricingTemplate(name='{self.name}', active={self.is_active}, region='{self.region}')>"
 
 
-class TierPricing(Base):
+class TierPricing(BaseModel):
         """Tier pricing details for a template"""
 
         __tablename__ = "tier_pricing"
@@ -70,7 +71,7 @@ class TierPricing(Base):
         return f"<TierPricing(tier='{self.tier_name}', price={self.monthly_price})>"
 
 
-class PricingHistory(Base):
+class PricingHistory(BaseModel):
         """Audit trail for pricing changes"""
 
         __tablename__ = "pricing_history"
@@ -79,7 +80,7 @@ class PricingHistory(Base):
         template_id = Column(Integer, ForeignKey("pricing_templates.id", ondelete="SET NULL"))
         action = Column(String(50), nullable=False)  # 'activated', 'deactivated', 'created', 'updated'
         previous_template_id = Column(Integer)
-        changed_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
+        changed_by = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"))
         changed_at = Column(TIMESTAMP, server_default=func.now(), index=True)
         notes = Column(Text)
         history_metadata = Column(JSONB)
@@ -92,12 +93,12 @@ class PricingHistory(Base):
         return f"<PricingHistory(action='{self.action}', template_id={self.template_id})>"
 
 
-class UserPricingAssignment(Base):
+class UserPricingAssignment(BaseModel):
         """User-specific pricing template assignment (for A/B testing)"""
 
         __tablename__ = "user_pricing_assignments"
 
-        user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+        user_id = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
         template_id = Column(Integer, ForeignKey("pricing_templates.id", ondelete="CASCADE"), nullable=False)
         assigned_at = Column(TIMESTAMP, server_default=func.now())
         assigned_by = Column(String(50), default="auto")  # 'admin', 'ab_test', 'region'

@@ -2,6 +2,7 @@
 
 from datetime import datetime, timezone
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, DateTime, Float, ForeignKey, String
 
 from app.models.base import BaseModel
@@ -13,7 +14,7 @@ class Refund(BaseModel):
     __tablename__ = "refunds"
 
     payment_id = Column(String, ForeignKey("payment_logs.id"), nullable=False, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Float, nullable=False)
     reason = Column(String, nullable=False)
     status = Column(String, nullable=False, index=True)  # pending, success, failed, cancelled
