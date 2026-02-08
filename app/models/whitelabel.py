@@ -1,20 +1,18 @@
 """White-label configuration model."""
 
-from datetime import datetime
-
-from sqlalchemy import JSON, Boolean, Column, DateTime, String
+from sqlalchemy import JSON, Boolean, Column, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
-from .base import Base
+from .base import BaseModel
 
 
-class WhiteLabelConfig(Base):
+class WhiteLabelConfig(BaseModel):
     """White-label configuration for partners."""
 
     __tablename__ = "whitelabel_config"
 
-    id = Column(String(36), primary_key=True)
-    partner_id = Column(String(36), nullable=False, unique=True)
+    partner_id = Column(UUID(as_uuid=False), nullable=False, unique=True)
     domain = Column(String(255), nullable=False)
     logo_url = Column(String(500))
     primary_color = Column(String(7))
@@ -25,8 +23,6 @@ class WhiteLabelConfig(Base):
     features = Column(JSON)
     custom_branding = Column(JSON)
     enabled = Column(Boolean, default=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     domains = relationship("WhiteLabelDomain", back_populates="config")
     themes = relationship("WhiteLabelTheme", back_populates="config")

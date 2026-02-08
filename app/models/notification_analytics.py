@@ -1,5 +1,6 @@
 """Notification analytics model for tracking delivery and engagement metrics."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import JSON, Column, ForeignKey, Integer, String
 
 from app.models.base import BaseModel
@@ -11,7 +12,7 @@ class NotificationAnalytics(BaseModel):
     __tablename__ = "notification_analytics"
 
     notification_id = Column(String, ForeignKey("notifications.id"), nullable=False, index=True)
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     notification_type = Column(String(50), nullable=False, index=True)
     delivery_method = Column(String(50), nullable=False)  # email, sms, toast, webhook, websocket
     status = Column(String(20), default="sent", nullable=False, index=True)  # sent, delivered, read, clicked, failed

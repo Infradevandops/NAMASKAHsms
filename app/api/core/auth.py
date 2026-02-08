@@ -23,7 +23,7 @@ logger = get_logger(__name__)
 router = APIRouter()
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post("/login")
 async def login(
     login_data: LoginRequest,
     db: Session = Depends(get_db)
@@ -43,11 +43,23 @@ async def login(
         # Create access token
         access_token = auth_service.create_user_token(user)
         
-        return TokenResponse(
-            access_token=access_token,
-            token_type="bearer",
-            expires_in=24 * 30 * 3600  # 30 days in seconds
+        response = JSONResponse(content={
+            "access_token": access_token,
+            "token_type": "bearer",
+            "expires_in": 24 * 30 * 3600
+        })
+        
+        # Set cookie for browser-based auth
+        response.set_cookie(
+            key="access_token",
+            value=access_token,
+            httponly=True,
+            secure=True,
+            samesite="lax",
+            max_age=24 * 30 * 3600
         )
+        
+        return response
         
     except HTTPException:
         raise
@@ -137,4 +149,6 @@ async def logout(
     user_id: str = Depends(get_current_user_id)
 ):
     """Logout user (client should discard token)."""
-    return {"message": "Successfully logged out"}
+    response = JSONResponse(content={"message": "Successfully logged out"})
+    response.delete_cookie(key="access_token")
+    return response

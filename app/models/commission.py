@@ -1,5 +1,6 @@
 """Commission and revenue sharing models."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import (
     JSON,
     Boolean,
@@ -33,7 +34,7 @@ class RevenueShare(BaseModel):
 
     __tablename__ = "revenue_shares"
 
-    partner_id = Column(String, ForeignKey("users.id"), nullable=False)
+    partner_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     transaction_id = Column(String(255), nullable=False)
     revenue_amount = Column(Float, nullable=False)
     commission_rate = Column(Float, nullable=False)
@@ -51,7 +52,7 @@ class PayoutRequest(BaseModel):
 
     __tablename__ = "payout_requests"
 
-    affiliate_id = Column(String, ForeignKey("users.id"), nullable=False)
+    affiliate_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False)
     amount = Column(Float, nullable=False)
     currency = Column(String(3), default="NGN")
     payment_method = Column(String(50), nullable=False)

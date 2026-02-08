@@ -1,5 +1,6 @@
 """Monthly quota usage tracking model."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, Float, ForeignKey, String, UniqueConstraint
 
 from app.models.base import BaseModel
@@ -10,7 +11,7 @@ class UserQuota(BaseModel):
 
     __tablename__ = "user_quotas"
 
-    user_id = Column(String(50), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     quota_limit = Column(Float, default=100.0, nullable=False)
     quota_used = Column(Float, default=0.0, nullable=False)
 
@@ -20,7 +21,7 @@ class MonthlyQuotaUsage(BaseModel):
 
     __tablename__ = "monthly_quota_usage"
 
-    user_id = Column(String(50), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     month = Column(String(7), nullable=False, index=True)  # "2025-01"
     quota_used = Column(Float, default=0.0, nullable=False)
     overage_used = Column(Float, default=0.0, nullable=False)

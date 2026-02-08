@@ -19,15 +19,9 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 @router.get("/", response_class=HTMLResponse)
-async def home_page(request: Request, db: Session = Depends(get_db)):
+async def home_page(request: Request):
     """Home page - landing page for visitors."""
-    # Get services data for the landing page
-    from app.models.user import User
-
-    # Get user count for social proof
-    user_count = db.query(User).count()
-
-    # Get services list (you can customize this based on your needs)
+    # Get services list
     services = [
         {"name": "Google", "id": "google"},
         {"name": "Facebook", "id": "facebook"},
@@ -44,7 +38,7 @@ async def home_page(request: Request, db: Session = Depends(get_db)):
         {
             "request": request,
             "services": services,
-            "user_count": user_count if user_count > 0 else 10000,
+            "user_count": 10000,  # Static count for now
         },
     )
 

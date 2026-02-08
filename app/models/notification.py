@@ -1,5 +1,6 @@
 """Notification model for user notifications."""
 
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 
@@ -11,7 +12,7 @@ class Notification(BaseModel):
 
     __tablename__ = "notifications"
 
-    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
     type = Column(String(50), nullable=False)  # sms_received, credit_added, etc
     title = Column(String(255), nullable=False)
     message = Column(Text)
