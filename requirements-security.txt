@@ -1,0 +1,21 @@
+# Security Tools Requirements
+# Install with: pip install -r requirements-security.txt
+
+# Code security scanning
+bandit==1.7.5
+safety==2.3.5
+pip-audit==2.6.1
+semgrep==1.45.0
+
+# Rate limiting
+slowapi==0.1.9
+
+# Input validation (already in main requirements)
+pydantic==2.5.0
+email-validator==2.1.0
+
+# Security testing
+pytest-security==0.1.0
+
+# Secrets detection
+detect-secrets==1.4.0
