@@ -224,6 +224,18 @@ function selectService(id, name, cost) {
     document.getElementById('purchase-btn').textContent = 'Get SMS Code';
     console.log(`Selected: ${name} ($${cost})`);
 
+    // Update favorite button
+    const btn = document.getElementById('favorite-btn');
+    if (btn) {
+        if (favoriteServices.isFavorite(id)) {
+            btn.textContent = '⭐';
+            btn.style.color = '#f59e0b';
+        } else {
+            btn.textContent = '☆';
+            btn.style.color = '#6b7280';
+        }
+    }
+
     // Load area codes for selected service if user has access
     loadAreaCodes(id);
 
