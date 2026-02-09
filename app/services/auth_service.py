@@ -100,7 +100,8 @@ class AuthService:
                 algorithms=[settings.jwt_algorithm]
             )
             
-            user_id = payload.get("sub")
+            # Support both 'sub' and 'user_id' for backwards compatibility
+            user_id = payload.get("sub") or payload.get("user_id")
             if not user_id:
                 print("[AUTH] No user ID in token")
                 return None

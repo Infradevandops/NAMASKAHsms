@@ -145,11 +145,9 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         # Create user
         user = User(
             email=register_data.email,
-            username=register_data.username or register_data.email.split('@')[0],
             password_hash=password_hash,
             is_active=True,
-            credits=0.0,
-            created_at=datetime.utcnow()
+            credits=0.0
         )
         
         db.add(user)

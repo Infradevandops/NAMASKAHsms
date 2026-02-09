@@ -16,7 +16,7 @@ async def get_services(
 
     Currently supports US services only.
     """
-if country.upper() != "USA" and country.upper() != "US":
+    if country.upper() != "USA" and country.upper() != "US":
         return {"services": [], "total": 0, "message": "Only US services supported"}
 
     # Popular services that work with SMS verification

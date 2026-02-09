@@ -1,5 +1,3 @@
-
-
 from fastapi import APIRouter
 from app.api.admin.actions import router as actions_router
 from app.api.admin.analytics import router as analytics_router
@@ -18,17 +16,18 @@ from app.api.admin.verification_history import router as verification_history_ro
 
 router = APIRouter()
 
-router.include_router(dashboard_router, prefix="/api")
-router.include_router(verification_analytics_router, prefix="/api")
-router.include_router(verification_history_router, prefix="/api")
-router.include_router(user_management_router, prefix="/api")
-router.include_router(audit_compliance_router, prefix="/api")
-router.include_router(analytics_router, prefix="/api")
-router.include_router(export_router, prefix="/api")
-router.include_router(stats_router, prefix="/api")
-router.include_router(tier_management_router, prefix="/api")
-router.include_router(actions_router, prefix="/api")
-router.include_router(pricing_control_router, prefix="/api")
-router.include_router(verification_actions_router, prefix="/api")
-router.include_router(logging_dashboard_router, prefix="/api")
-router.include_router(refund_monitoring_router, prefix="/api")
+# Mount all admin routers with /admin prefix
+router.include_router(dashboard_router, prefix="/admin", tags=["Admin"])
+router.include_router(user_management_router, prefix="/admin", tags=["Admin"])
+router.include_router(stats_router, prefix="/admin", tags=["Admin"])
+router.include_router(verification_analytics_router, prefix="/admin", tags=["Admin"])
+router.include_router(verification_history_router, prefix="/admin", tags=["Admin"])
+router.include_router(audit_compliance_router, prefix="/admin", tags=["Admin"])
+router.include_router(analytics_router, prefix="/admin", tags=["Admin"])
+router.include_router(export_router, prefix="/admin", tags=["Admin"])
+router.include_router(tier_management_router, prefix="/admin", tags=["Admin"])
+router.include_router(actions_router, prefix="/admin", tags=["Admin"])
+router.include_router(pricing_control_router, prefix="/admin", tags=["Admin"])
+router.include_router(verification_actions_router, prefix="/admin", tags=["Admin"])
+router.include_router(logging_dashboard_router, prefix="/admin", tags=["Admin"])
+router.include_router(refund_monitoring_router, prefix="/admin", tags=["Admin"])
