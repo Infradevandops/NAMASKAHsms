@@ -1,77 +1,87 @@
-"""Rate limiting middleware for API endpoints."""
-import time
-from functools import wraps
-from typing import Callable
-from fastapi import HTTPException, Request
-from app.core.cache import get_redis
-from app.core.logging import get_logger
+"""
+Rate Limiting Middleware
+Prevent API abuse with endpoint-specific rate limits
+"""
 
-logger = get_logger(__name__)
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from fastapi import Request, Response
+from starlette.middleware.base import BaseHTTPMiddleware
+import logging
 
+logger = logging.getLogger(__name__)
 
-def rate_limit(max_requests: int = 10, window_seconds: int = 60):
-    """
-    Rate limit decorator for FastAPI endpoints.
+# Initialize limiter
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=["100/minute"],
+    storage_uri="memory://",  # Use Redis in production
+    strategy="fixed-window"
+)
+
+# Rate limit configurations by endpoint type
+RATE_LIMITS = {
+    # Auth endpoints (strict)
+    "auth_login": "5/minute",
+    "auth_register": "3/hour",
+    "auth_password_reset": "3/hour",
     
-    Args:
-        max_requests: Maximum number of requests allowed in the window
-        window_seconds: Time window in seconds
-    """
-    def decorator(func: Callable):
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            # Get request from kwargs
-            request = None
-            for arg in args:
-                if isinstance(arg, Request):
-                    request = arg
-                    break
+    # Payment endpoints (moderate)
+    "payment_initialize": "10/minute",
+    "payment_verify": "20/minute",
+    
+    # Verification endpoints (moderate)
+    "verification_create": "20/minute",
+    "verification_status": "60/minute",
+    
+    # Wallet endpoints (lenient)
+    "wallet_balance": "60/minute",
+    "wallet_transactions": "30/minute",
+    
+    # API endpoints (strict for external)
+    "api_external": "100/hour",
+}
+
+
+class RateLimitMiddleware(BaseHTTPMiddleware):
+    """Custom rate limiting middleware with logging"""
+    
+    async def dispatch(self, request: Request, call_next):
+        try:
+            response = await call_next(request)
+            return response
+        except RateLimitExceeded as e:
+            # Log rate limit violation
+            logger.warning(
+                f"Rate limit exceeded: {get_remote_address(request)} "
+                f"on {request.url.path}"
+            )
             
-            if not request:
-                # If no request found, skip rate limiting
-                return await func(*args, **kwargs)
-            
-            # Get client identifier (IP or user ID)
-            client_id = request.client.host if request.client else "unknown"
-            
-            # Try to get user ID from headers for authenticated requests
-            auth_header = request.headers.get("authorization")
-            if auth_header:
-                client_id = f"user_{auth_header[:20]}"  # Use part of auth token
-            
-            # Create rate limit key
-            key = f"rate_limit:{func.__name__}:{client_id}"
-            
-            try:
-                redis = get_redis()
-                
-                # Get current count
-                current = redis.get(key)
-                
-                if current is None:
-                    # First request in window
-                    redis.setex(key, window_seconds, 1)
-                    return await func(*args, **kwargs)
-                
-                current_count = int(current)
-                
-                if current_count >= max_requests:
-                    logger.warning(f"Rate limit exceeded for {client_id} on {func.__name__}")
-                    raise HTTPException(
-                        status_code=429,
-                        detail=f"Rate limit exceeded. Max {max_requests} requests per {window_seconds} seconds"
-                    )
-                
-                # Increment counter
-                redis.incr(key)
-                return await func(*args, **kwargs)
-                
-            except HTTPException:
-                raise
-            except Exception as e:
-                # If Redis fails, allow request but log error
-                logger.error(f"Rate limiting error: {e}")
-                return await func(*args, **kwargs)
-        
-        return wrapper
-    return decorator
+            # Return 429 with retry-after header
+            return Response(
+                content='{"detail":"Rate limit exceeded. Please try again later."}',
+                status_code=429,
+                headers={
+                    "Retry-After": str(e.detail.split("Retry after ")[1] if "Retry after" in e.detail else "60"),
+                    "Content-Type": "application/json"
+                }
+            )
+
+
+def get_limiter():
+    """Get limiter instance"""
+    return limiter
+
+
+def rate_limit_handler(request: Request, exc: RateLimitExceeded):
+    """Custom rate limit error handler"""
+    logger.warning(
+        f"Rate limit: {get_remote_address(request)} "
+        f"on {request.url.path}"
+    )
+    return Response(
+        content='{"detail":"Too many requests. Please slow down."}',
+        status_code=429,
+        headers={"Content-Type": "application/json"}
+    )
