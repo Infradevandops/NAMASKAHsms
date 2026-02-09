@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+app.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary
+*.pid
+*.tmp
+*.bak
+
+# Test
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Documentation (keep only essential)
+*_PROGRESS*.md
+*_COMPLETE*.md
+*_SUMMARY*.md
+*_REPORT*.md
+*_STATUS*.md
+*_ASSESSMENT*.md
+!DASHBOARD_DEEP_ASSESSMENT.md
+!COMPLETE_FEATURE_INVENTORY.md
