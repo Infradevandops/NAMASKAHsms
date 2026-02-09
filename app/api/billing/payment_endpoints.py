@@ -125,7 +125,7 @@ async def get_payment_methods(
         raise HTTPException(status_code=500, detail="Failed to retrieve payment methods")
 
 
-@router.post("/paystack/webhook")
+@router.post("/webhook")
 async def paystack_webhook(
     request: Request,
     db: Session = Depends(get_db)
