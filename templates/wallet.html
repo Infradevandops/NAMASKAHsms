@@ -139,12 +139,14 @@
             </tr>
         </tbody>
     </table>
+    <div id="transactions-pagination" style="margin-top: 16px;"></div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="{{ url_for('static', path='/js/pagination.js') }}"></script>
 <script>
     let cryptoAddresses = {};
     let currentCrypto = 'btc';
@@ -296,47 +298,7 @@
                 }
             }
 
-            const txRes = await fetch('/api/billing/history?limit=50', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (txRes.ok) {
-                const data = await txRes.json();
-                const tbody = document.getElementById('transactions-body');
-                const transactions = data.transactions || data.payments || [];
-
-                if (transactions.length > 0) {
-                    let monthlySpent = 0;
-                    let totalSpent = 0;
-                    const now = new Date();
-                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-
-                    tbody.innerHTML = transactions.map(tx => {
-                        const txDate = new Date(tx.created_at);
-                        const amount = Math.abs(tx.amount || 0);
-
-                        if (tx.type === 'debit' || (tx.amount && tx.amount < 0)) {
-                            totalSpent += amount;
-                            if (txDate >= monthStart) monthlySpent += amount;
-                        }
-
-                        return `
-                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                            <td style="padding: 12px;">${escapeHtml(tx.description || tx.type || 'Transaction')}</td>
-                            <td style="padding: 12px; color: ${(tx.amount || 0) >= 0 ? '#10b981' : '#ef4444'};\">${(tx.amount || 0) >= 0 ? '+' : '-'}$${amount.toFixed(2)}</td>
-                            <td style="padding: 12px;">${txDate.toLocaleDateString()}</td>
-                            <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${tx.status === 'completed' || tx.status === 'success' ? '#d5f4e6' : '#fef3c7'}; color: ${tx.status === 'completed' || tx.status === 'success' ? '#166534' : '#92400e'};\">${escapeHtml(tx.status || 'completed')}</span></td>
-                        </tr>
-                    `}).join('');
-
-                    document.getElementById('monthly-spent').textContent = `$${monthlySpent.toFixed(2)}`;
-                    document.getElementById('total-spent').textContent = `$${totalSpent.toFixed(2)}`;
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions yet</td></tr>';
-                    document.getElementById('monthly-spent').textContent = '$0.00';
-                    document.getElementById('total-spent').textContent = '$0.00';
-                }
-            }
+            loadTransactions();
         } catch (error) {
             console.error('Failed to load wallet data:', error);
         }
@@ -472,10 +434,13 @@
         return div.innerHTML;
     }
 
-    // Credit History State
+    // Pagination State
     let creditHistoryPage = 1;
     const creditHistoryLimit = 20;
     let creditHistoryData = [];
+    let transactionsPage = 1;
+    const transactionsLimit = 10;
+    let transactionsPagination = null;
 
     async function loadCreditHistory() {
         const token = localStorage.getItem('access_token');
@@ -601,6 +566,76 @@
         a.download = `credit-history-${new Date().toISOString().split('T')[0]}.csv`;
         a.click();
         URL.revokeObjectURL(url);
+    }
+
+    async function loadTransactions() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+
+        const tbody = document.getElementById('transactions-body');
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Loading...</td></tr>';
+
+        try {
+            const res = await fetch(`/api/billing/history?page=${transactionsPage}&limit=${transactionsLimit}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const transactions = data.transactions || data.payments || [];
+                const total = data.total || transactions.length;
+
+                if (transactions.length > 0) {
+                    let monthlySpent = 0;
+                    let totalSpent = 0;
+                    const now = new Date();
+                    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+                    tbody.innerHTML = transactions.map(tx => {
+                        const txDate = new Date(tx.created_at);
+                        const amount = Math.abs(tx.amount || 0);
+
+                        if (tx.type === 'debit' || (tx.amount && tx.amount < 0)) {
+                            totalSpent += amount;
+                            if (txDate >= monthStart) monthlySpent += amount;
+                        }
+
+                        return `
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <td style="padding: 12px;" data-label="Type">${escapeHtml(tx.description || tx.type || 'Transaction')}</td>
+                            <td style="padding: 12px; color: ${(tx.amount || 0) >= 0 ? '#10b981' : '#ef4444'};" data-label="Amount">${(tx.amount || 0) >= 0 ? '+' : '-'}$${amount.toFixed(2)}</td>
+                            <td style="padding: 12px;" data-label="Date">${txDate.toLocaleDateString()}</td>
+                            <td style="padding: 12px;" data-label="Status"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${tx.status === 'completed' || tx.status === 'success' ? '#d5f4e6' : '#fef3c7'}; color: ${tx.status === 'completed' || tx.status === 'success' ? '#166534' : '#92400e'};">${escapeHtml(tx.status || 'completed')}</span></td>
+                        </tr>
+                    `}).join('');
+
+                    if (transactionsPage === 1) {
+                        document.getElementById('monthly-spent').textContent = `$${monthlySpent.toFixed(2)}`;
+                        document.getElementById('total-spent').textContent = `$${totalSpent.toFixed(2)}`;
+                    }
+
+                    if (!transactionsPagination) {
+                        transactionsPagination = new Pagination('transactions-pagination', {
+                            pageSize: transactionsLimit,
+                            onPageChange: (page) => {
+                                transactionsPage = page;
+                                loadTransactions();
+                            }
+                        });
+                    }
+                    transactionsPagination.render(transactionsPage, Math.ceil(total / transactionsLimit), total);
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">No transactions yet</td></tr>';
+                    if (transactionsPage === 1) {
+                        document.getElementById('monthly-spent').textContent = '$0.00';
+                        document.getElementById('total-spent').textContent = '$0.00';
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to load transactions:', error);
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px; color: var(--text-muted);">Error loading transactions</td></tr>';
+        }
     }
 
     if (document.readyState === 'loading') {

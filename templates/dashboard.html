@@ -67,24 +67,24 @@ endblock %}
 
 <div class="stats-grid"
     style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 40px;">
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_sms">
+    <div class="card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;">
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;" data-i18n="dashboard.total_sms">
             Total SMS</div>
         <div style="font-size: 32px; font-weight: 700;" id="total-sms">0</div>
     </div>
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.successful">
+    <div class="card" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none;">
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;" data-i18n="dashboard.successful">
             Successful</div>
-        <div style="font-size: 32px; font-weight: 700; color: #10b981;" id="successful-sms">0</div>
+        <div style="font-size: 32px; font-weight: 700;" id="successful-sms">0</div>
     </div>
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.total_spent">
+    <div class="card" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; border: none;">
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;" data-i18n="dashboard.total_spent">
             Total Spent</div>
         <div style="font-size: 32px; font-weight: 700;" id="total-spent" data-currency data-amount="0" data-from="USD">
             $0.00</div>
     </div>
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="dashboard.success_rate">
+    <div class="card" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white; border: none;">
+        <div style="font-size: 12px; opacity: 0.9; margin-bottom: 8px;" data-i18n="dashboard.success_rate">
             Success Rate</div>
         <div style="font-size: 32px; font-weight: 700;" id="success-rate">0%</div>
     </div>
@@ -138,6 +138,7 @@ endblock %}
         </thead>
         <tbody id="activity-body"></tbody>
     </table>
+    <div id="activity-pagination" style="margin-top: 16px;"></div>
 </div>
 
 {% include "components/tier_comparison_modal.html" %}
@@ -148,6 +149,7 @@ endblock %}
 {{ super() }}
 <!-- ULTRA-STABLE DASHBOARD - Production Grade -->
 <script src="/static/js/dashboard-ultra-stable.js?v=20260208-ultra"></script>
+<script src="/static/js/pagination.js"></script>
 
 <!-- Core utilities (non-module for backward compatibility) -->
 <script src="/static/js/frontend-logger.js?v=20260112"></script>
@@ -201,6 +203,10 @@ endblock %}
     // ============================================
     // ACTIVITY WIDGET
     // ============================================
+    let activityPage = 1;
+    const activityLimit = 10;
+    let activityPagination = null;
+
     async function loadActivity() {
         const loadingEl = document.getElementById('activity-loading');
         const tableEl = document.getElementById('activity-table');
@@ -214,7 +220,7 @@ endblock %}
         }
 
         try {
-            const response = await fetch(ENDPOINTS.DASHBOARD.ACTIVITY, {
+            const response = await fetch(`${ENDPOINTS.DASHBOARD.ACTIVITY}?page=${activityPage}&limit=${activityLimit}`, {
                 credentials: 'include',
                 headers: getAuthHeaders()
             });
@@ -226,7 +232,9 @@ endblock %}
                 return;
             }
 
-            const activities = await response.json();
+            const data = await response.json();
+            const activities = data.activities || data.verifications || data;
+            const total = data.total || (Array.isArray(data) ? data.length : 0);
 
             if (!activities || activities.length === 0) {
                 emptyEl.style.display = 'block';
@@ -241,16 +249,27 @@ endblock %}
 
                 html += `
                 <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                    <td style="padding: 12px;">${escapeHtml(activity.service_name || 'Unknown')}</td>
-                    <td style="padding: 12px;">${escapeHtml(activity.phone_number || '-')}</td>
-                    <td style="padding: 12px;">${formatTime(activity.created_at)}</td>
-                    <td style="padding: 12px; color: ${statusColor};">${escapeHtml(activity.status || 'pending')}</td>
+                    <td style="padding: 12px;" data-label="Service">${escapeHtml(activity.service_name || 'Unknown')}</td>
+                    <td style="padding: 12px;" data-label="Number">${escapeHtml(activity.phone_number || '-')}</td>
+                    <td style="padding: 12px;" data-label="Time">${formatTime(activity.created_at)}</td>
+                    <td style="padding: 12px; color: ${statusColor};" data-label="Status">${escapeHtml(activity.status || 'pending')}</td>
                 </tr>
             `;
             }
 
             bodyEl.innerHTML = html;
             tableEl.style.display = 'table';
+
+            if (!activityPagination) {
+                activityPagination = new Pagination('activity-pagination', {
+                    pageSize: activityLimit,
+                    onPageChange: (page) => {
+                        activityPage = page;
+                        loadActivity();
+                    }
+                });
+            }
+            activityPagination.render(activityPage, Math.ceil(total / activityLimit), total);
 
             if (window.FrontendLogger) {
                 window.FrontendLogger.logActivityLoad(true, activities.length);
