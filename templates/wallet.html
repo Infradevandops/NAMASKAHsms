@@ -26,6 +26,12 @@
 <!-- Spending Alerts Settings -->
 <div id="spending-alerts-container" style="margin-bottom: 24px;"></div>
 
+<!-- Auto-Reload Settings -->
+<div id="auto-reload-settings" style="margin-bottom: 24px;"></div>
+
+<!-- Pending Transactions -->
+<div id="pending-transactions"></div>
+
 <div class="card">
     <h2 style="font-size: 18px; margin-bottom: 16px;" data-i18n="wallet.add_credits">Add Credits</h2>
 
@@ -156,6 +162,8 @@
 <script src="{{ url_for('static', path='/js/pagination.js') }}"></script>
 <script src="{{ url_for('static', path='/js/spending-alerts.js') }}"></script>
 <script src="{{ url_for('static', path='/js/monthly-summary.js') }}"></script>
+<script src="{{ url_for('static', path='/js/auto-reload.js') }}"></script>
+<script src="{{ url_for('static', path='/js/pending-transactions.js') }}"></script>
 <script>
     let cryptoAddresses = {};
     let currentCrypto = 'btc';
@@ -625,6 +633,11 @@
                         // Check spending alerts
                         spendingAlerts.check(monthlySpent);
                         spendingAlerts.renderSettings('spending-alerts-container');
+                        
+                        // Check auto-reload
+                        const balance = parseFloat(document.getElementById('wallet-balance').textContent.replace('$', ''));
+                        autoReload.check(balance);
+                        autoReload.renderSettings('auto-reload-settings');
                     }
 
                     if (!transactionsPagination) {
@@ -655,10 +668,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadWalletData();
             loadCreditHistory();
+            pendingTransactions.startPolling();
         });
     } else {
         loadWalletData();
         loadCreditHistory();
+        pendingTransactions.startPolling();
     }
 
     setInterval(loadWalletData, 30000);
