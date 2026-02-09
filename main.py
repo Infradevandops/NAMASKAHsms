@@ -15,10 +15,8 @@ from starlette.middleware.gzip import GZipMiddleware
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
+from app.api.dashboard_router import router as dashboard_router
 from app.api.emergency import router as emergency_router
-
-# Temporarily disabled - multiple files have syntax errors that need fixing
-# from app.api.core.router import router as core_router
 from app.api.health import router as health_router
 from app.api.preview_router import router as preview_router
 from app.api.main_routes import router as routes_router
@@ -155,8 +153,11 @@ def create_app() -> FastAPI:
     # Emergency admin reset (TEMPORARY)
     fastapi_app.include_router(emergency_router, prefix="/api")
 
-    # Auth endpoints (standalone while core_router is disabled)
+    # Auth endpoints
     fastapi_app.include_router(auth_router)
+    
+    # Dashboard APIs
+    fastapi_app.include_router(dashboard_router)
 
     # WebSocket endpoints (real-time notifications)
     fastapi_app.include_router(websocket_router)
@@ -166,7 +167,7 @@ def create_app() -> FastAPI:
 
     # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
     # fastapi_app.include_router(core_router, deprecated=True)
-    fastapi_app.include_router(admin_router, deprecated=True)
+    fastapi_app.include_router(admin_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(verification_router, prefix="/api", deprecated=True)
 
