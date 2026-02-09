@@ -12,29 +12,24 @@ endblock %}
 <link rel="stylesheet" href="/static/css/tier-colors.css?v=20260112">
 
 <!-- Tier Information Card -->
-<div class="card" id="tier-card" aria-live="polite" aria-busy="true" style="margin-bottom: 24px;">
+<div class="card" id="tier-card" aria-live="polite" style="margin-bottom: 24px;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px;">
         <div style="flex: 1; min-width: 200px;">
             <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;" data-i18n="tiers.current_plan">
                 Current Plan</div>
-            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name"><span
-                    class="loading-spinner"></span> Loading...</div>
-            <div id="tier-price" style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;"></div>
-            <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);"></div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 8px;" id="tier-name">Freemium</div>
+            <div id="tier-price" style="font-size: 14px; color: var(--text-muted); margin-bottom: 12px;">$0.00/month</div>
+            <div id="tier-features-list" style="font-size: 13px; color: var(--text-secondary);">Basic SMS verification</div>
         </div>
         <div class="tier-cta-container" style="display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start;">
-            <button id="add-credits-btn" class="btn btn-primary" style="display: none;"
+            <button id="new-verification-btn" class="btn btn-success"
+                aria-label="Create new SMS verification">📱 New Verification</button>
+            <button id="add-credits-btn" class="btn btn-primary"
                 aria-label="Add credits to your wallet">Add Credits</button>
-            <button id="usage-btn" class="btn btn-primary" style="display: none;"
+            <button id="usage-btn" class="btn btn-primary"
                 aria-label="View your usage statistics">View Usage</button>
-            <button id="compare-plans-btn" class="btn btn-secondary" style="display: none;"
-                aria-label="Compare subscription plans">Compare Plans</button>
-            <button id="upgrade-btn" class="btn btn-primary" style="display: none;"
+            <button id="upgrade-btn" class="btn btn-primary"
                 aria-label="Upgrade your subscription plan">Upgrade</button>
-            <button id="manage-btn" class="btn btn-secondary" style="display: none;"
-                aria-label="Manage your billing settings">Manage Billing</button>
-            <button id="contact-btn" class="btn btn-secondary" style="display: none;"
-                aria-label="Contact customer support">Contact Support</button>
         </div>
     </div>
 </div>
@@ -151,6 +146,9 @@ endblock %}
 
 {% block scripts %}
 {{ super() }}
+<!-- ULTRA-STABLE DASHBOARD - Production Grade -->
+<script src="/static/js/dashboard-ultra-stable.js?v=20260208-ultra"></script>
+
 <!-- Core utilities (non-module for backward compatibility) -->
 <script src="/static/js/frontend-logger.js?v=20260112"></script>
 <script type="module" src="/static/js/response-validator.js?v=20260112"></script>
@@ -161,9 +159,8 @@ endblock %}
      * Dashboard Initialization
      * Uses new modular architecture from static/js/
      */
-    import { TIMEOUTS, ENDPOINTS, STORAGE_KEYS, TIER_DISPLAY_NAMES, TIER_BADGE_CLASSES, TIER_FEATURES, TIER_CTA_CONFIG } from '/static/js/constants.js';
+    import { TIMEOUTS, ENDPOINTS } from '/static/js/constants.js';
     import { hasAuthToken, getAuthHeaders } from '/static/js/auth-helpers.js';
-    import { initTierCard } from '/static/js/tier-card.js';
 
     // ============================================
     // ANALYTICS WIDGET
@@ -306,18 +303,13 @@ endblock %}
     // INITIALIZATION
     // ============================================
     function initDashboard() {
-        // Initialize Tier Card (new modular component)
-        const tierCard = initTierCard('tier-card');
-        window.tierCard = tierCard;
-
-        // Load other widgets
+        // Load widgets
         loadAnalytics();
         loadActivity();
 
         // Set up periodic refresh
         setInterval(() => {
             if (hasAuthToken()) {
-                tierCard.load();
                 loadAnalytics();
             }
         }, TIMEOUTS.REFRESH_INTERVAL);

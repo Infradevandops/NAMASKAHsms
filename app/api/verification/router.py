@@ -1,13 +1,17 @@
 """Verification router - Minimal version for CI fix."""
 
 from fastapi import APIRouter
-from app.api.verification import router as verification_main_router
+from app.api.verification.verification_routes import router as verify_router
+from app.api.verification.services_endpoint import router as services_router
 
-# Create main verification router
-router = APIRouter(prefix="/api/verification", tags=["Verification"])
+# Create main verification router without prefix (main.py adds /api)
+router = APIRouter(tags=["Verification"])
 
-# Include only the working consolidated verification router
-router.include_router(verification_main_router)
+# Include verification routes with /verify prefix
+router.include_router(verify_router)
+
+# Include services routes
+router.include_router(services_router)
 
 # Note: Other verification routers temporarily disabled for CI fix
 # They can be re-enabled once syntax errors are fixed

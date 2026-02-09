@@ -22,13 +22,39 @@ async def require_admin(user_id: str = Depends(get_current_user_id), db: Session
 async def list_users(
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0
 ):
-    """List users."""
+    """List users with pagination."""
     try:
-        users = db.query(User).all()
+        users = db.query(User).limit(limit).offset(offset).all()
+        total = db.query(User).count()
         return {
-            "users": [{"id": u.id, "email": u.email, "tier": getattr(u, 'tier', 'freemium')} for u in users],
-            "total": len(users)
+            "users": [
+                {
+                    "id": u.id,
+                    "email": u.email,
+                    "tier": getattr(u, 'tier', 'freemium'),
+                    "credits": float(u.credits or 0.0),
+                    "is_admin": u.is_admin,
+                    "created_at": u.created_at.isoformat() if u.created_at else None
+                }
+                for u in users
+            ],
+            "total": total,
+            "limit": limit,
+            "offset": offset
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list users: {str(e)}")
+
+
+@router.get("/users")
+async def get_users(
+    admin_id: str = Depends(require_admin),
+    db: Session = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0
+):
+    """Alias for list_users."""
+    return await list_users(admin_id, db, limit, offset)

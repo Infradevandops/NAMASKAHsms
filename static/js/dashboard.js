@@ -971,3 +971,44 @@ async function loadRecentActivity() {
 
 // Export for testing
 export { loadAreaCodes, loadServices, updatePricing, purchaseVerification, setupCreditHandlers, setupRentalHandlers, loadRecentActivity };
+
+
+// ==================== PRIMARY BUTTON HANDLERS ====================
+
+/**
+ * Initialize Primary Action Buttons
+ */
+function initPrimaryButtons() {
+  // Add Credits Button
+  const addCreditsBtn = document.getElementById('add-credits-btn');
+  if (addCreditsBtn) {
+    addCreditsBtn.addEventListener('click', () => {
+      window.location.href = '/pricing';
+    });
+  }
+
+  // View Usage Button
+  const usageBtn = document.getElementById('usage-btn');
+  if (usageBtn) {
+    usageBtn.addEventListener('click', () => {
+      window.location.href = '/analytics';
+    });
+  }
+
+  // Upgrade Button
+  const upgradeBtn = document.getElementById('upgrade-btn');
+  if (upgradeBtn) {
+    upgradeBtn.addEventListener('click', () => {
+      window.location.href = '/pricing';
+    });
+  }
+
+  console.log('✅ Primary buttons initialized');
+}
+
+// Initialize on DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPrimaryButtons);
+} else {
+  initPrimaryButtons();
+}
