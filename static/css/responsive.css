@@ -1,0 +1,178 @@
+/**
+ * Mobile Responsiveness
+ * Responsive tables, touch targets, and mobile layouts
+ */
+
+/* ============================================
+   RESPONSIVE TABLES
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Stack table rows vertically */
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Card-style table rows on mobile */
+    .card table tbody tr {
+        display: block;
+        margin-bottom: 16px;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 12px;
+        background: #f9fafb;
+    }
+
+    .card table thead {
+        display: none;
+    }
+
+    .card table tbody td {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border: none;
+        text-align: right;
+    }
+
+    .card table tbody td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        text-align: left;
+        color: var(--text-muted);
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+
+    /* Stats grid - single column on mobile */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Pagination - smaller on mobile */
+    .pagination {
+        font-size: 12px;
+    }
+
+    .pagination .page-link {
+        padding: 6px 10px;
+    }
+}
+
+/* ============================================
+   TOUCH TARGETS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Minimum 44px touch targets */
+    .btn,
+    button,
+    a.btn,
+    .page-link {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px 16px;
+    }
+
+    /* Larger form inputs */
+    input,
+    select,
+    textarea {
+        min-height: 44px;
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+
+    /* Larger clickable areas */
+    .card {
+        padding: 16px;
+    }
+
+    /* Touch-friendly spacing */
+    .btn + .btn {
+        margin-left: 8px;
+    }
+}
+
+/* ============================================
+   MOBILE LAYOUTS
+   ============================================ */
+
+@media (max-width: 768px) {
+    /* Single column layouts */
+    [style*="grid-template-columns"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Full width modals */
+    .modal-content {
+        margin: 0;
+        border-radius: 0;
+        min-height: 100vh;
+    }
+
+    /* Sticky headers on mobile */
+    .card h2,
+    .card h3 {
+        position: sticky;
+        top: 0;
+        background: white;
+        z-index: 10;
+        padding: 12px 0;
+    }
+
+    /* Hide desktop-only elements */
+    .desktop-only {
+        display: none !important;
+    }
+
+    /* Show mobile-only elements */
+    .mobile-only {
+        display: block !important;
+    }
+}
+
+/* ============================================
+   PAGINATION MOBILE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .pagination {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .pagination .page-item {
+        flex: 0 0 auto;
+    }
+
+    /* Hide page numbers on very small screens, keep prev/next */
+    @media (max-width: 480px) {
+        .pagination .page-item:not(:first-child):not(:last-child) {
+            display: none;
+        }
+    }
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.mobile-only {
+    display: none;
+}
+
+.desktop-only {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .mobile-only {
+        display: block;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+}

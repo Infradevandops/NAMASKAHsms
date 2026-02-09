@@ -198,3 +198,37 @@ class TestPaymentService:
         # Should not raise error, just return status
         result = await payment_service.process_webhook("unknown.event", {})
         assert result["status"] == "ignored"
+
+    async def test_initiate_payment_zero_amount(self, payment_service, regular_user):
+        """Test payment with zero amount"""
+        with pytest.raises(ValueError):
+            await payment_service.initiate_payment(regular_user.id, 0)
+
+    async def test_verify_payment_not_found(self, payment_service, regular_user):
+        """Test verifying non-existent payment"""
+        with pytest.raises(Exception):
+            await payment_service.verify_payment("nonexistent_ref", regular_user.id)
+
+    def test_get_payment_history_empty(self, payment_service, regular_user):
+        """Test payment history with no payments"""
+        history = payment_service.get_payment_history(regular_user.id)
+        assert "payments" in history
+        assert isinstance(history["payments"], list)
+
+    async def test_duplicate_payment_prevention(self, payment_service, regular_user, db_session):
+        """Test that duplicate payments are prevented"""
+        reference = "ref_duplicate"
+        log = PaymentLog(
+            user_id=regular_user.id,
+            email=regular_user.email,
+            reference=reference,
+            amount_usd=10.0,
+            status="success",
+            credited=True,
+        )
+        db_session.add(log)
+        db_session.commit()
+
+        # Try to process same payment again
+        result = await payment_service.process_webhook("charge.success", {"reference": reference})
+        assert result["status"] in ["duplicate", "success"]

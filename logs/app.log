@@ -1122,3 +1122,19 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2026-02-09 03:47:44,900 - startup - INFO - Startup initialization completed
 2026-02-09 03:47:44,900 - startup - INFO - Admin user verified
 2026-02-09 03:47:44,900 - startup - INFO - ✅ Application startup completed successfully
+2026-02-09 03:47:49,077 - watchfiles.main - INFO - 12 changes detected
+2026-02-09 03:47:49,438 - watchfiles.main - INFO - 2 changes detected
+2026-02-09 03:48:13,636 - watchfiles.main - INFO - 65 changes detected
+2026-02-09 03:48:23,536 - watchfiles.main - INFO - 4 changes detected
+2026-02-09 03:50:32,218 - watchfiles.main - INFO - 1 change detected
+2026-02-09 03:50:33,548 - watchfiles.main - INFO - 3 changes detected
+2026-02-09 17:04:56,861 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,052 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,311 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,377 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,441 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,503 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,565 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,766 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,771 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-02-09 17:04:57,776 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
