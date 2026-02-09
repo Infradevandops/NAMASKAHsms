@@ -364,6 +364,10 @@ async function cancelVerification() {
 
 function startPolling(id) {
     let count = 0;
+    
+    // Initialize WebSocket with fallback
+    const smsWS = new SMSWebSocket(id);
+    
     // Updated waiting UI with Pulse Animation
     document.getElementById('status-text').innerHTML = `
     <div class="pulse-container">
@@ -372,45 +376,73 @@ function startPolling(id) {
     </div>
     <div style="font-weight:600; color:#2563eb;">Scanning Network...</div>
     <div id="timer-display" style="font-size:12px; color:#6b7280; margin-top:4px;">0s elapsed</div>
+    <div id="connection-status" style="font-size:10px; color:#9ca3af; margin-top:4px;">🟢 Connected</div>
 `;
 
-    pollingInterval = setInterval(async () => {
-
-        count++;
-        try {
-            // Update timer
-            const timerEl = document.getElementById('timer-display');
-            if (timerEl) timerEl.textContent = `${count * 5}s elapsed`;
-
-            const token = localStorage.getItem('access_token');
-            const res = await axios.get(`/api/verify/${id}/status`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-
-            if (res.data.sms_code) {
-                document.getElementById('code-display').textContent = res.data.sms_code;
-                document.getElementById('status-text').textContent = 'SMS Received';
-                document.getElementById('status-text').parentElement.style.background = '#d1fae5';
-                document.getElementById('status-text').parentElement.style.borderColor = '#a7f3d0';
-                document.getElementById('status-text').style.color = '#065f46';
-                document.getElementById('code-display').style.color = '#059669';
-                document.getElementById('copy-btn').style.display = 'block';
-
-                // Play notification sound
-                playNotificationSound();
-
-                clearInterval(pollingInterval);
-            } else if (count >= 60) {
-                document.getElementById('status-text').textContent = 'Timeout - No SMS received';
-                document.getElementById('status-text').parentElement.style.background = '#fee2e2';
-                document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
-                document.getElementById('status-text').style.color = '#991b1b';
-                clearInterval(pollingInterval);
+    // Handle WebSocket messages
+    smsWS.onMessage((data) => {
+        if (data.type === 'sms_update' && data.data) {
+            if (data.data.sms_code) {
+                displaySMSCode(data.data.sms_code);
+                smsWS.close();
             }
-        } catch (error) {
-            if (count >= 60) clearInterval(pollingInterval);
+        }
+    });
+
+    // Update connection status
+    smsWS.onConnect(() => {
+        const statusEl = document.getElementById('connection-status');
+        if (statusEl) statusEl.innerHTML = '🟢 Live updates';
+    });
+
+    smsWS.onDisconnect(() => {
+        const statusEl = document.getElementById('connection-status');
+        if (statusEl) statusEl.innerHTML = '🟡 Reconnecting...';
+    });
+
+    // Connect WebSocket
+    smsWS.connect();
+
+    // Timer interval
+    pollingInterval = setInterval(() => {
+        count++;
+        const timerEl = document.getElementById('timer-display');
+        if (timerEl) timerEl.textContent = `${count * 5}s elapsed`;
+
+        // Update connection status if using fallback
+        if (smsWS.useFallback) {
+            const statusEl = document.getElementById('connection-status');
+            if (statusEl) statusEl.innerHTML = '🔵 Polling mode';
+        }
+
+        // Timeout after 5 minutes
+        if (count >= 60) {
+            document.getElementById('status-text').textContent = 'Timeout - No SMS received';
+            document.getElementById('status-text').parentElement.style.background = '#fee2e2';
+            document.getElementById('status-text').parentElement.style.borderColor = '#fecaca';
+            document.getElementById('status-text').style.color = '#991b1b';
+            clearInterval(pollingInterval);
+            smsWS.close();
         }
     }, 5000);
+
+    // Store WebSocket reference for cleanup
+    currentVerification.websocket = smsWS;
+}
+
+function displaySMSCode(code) {
+    document.getElementById('code-display').textContent = code;
+    document.getElementById('status-text').textContent = 'SMS Received';
+    document.getElementById('status-text').parentElement.style.background = '#d1fae5';
+    document.getElementById('status-text').parentElement.style.borderColor = '#a7f3d0';
+    document.getElementById('status-text').style.color = '#065f46';
+    document.getElementById('code-display').style.color = '#059669';
+    document.getElementById('copy-btn').style.display = 'block';
+
+    // Play notification sound
+    playNotificationSound();
+
+    if (pollingInterval) clearInterval(pollingInterval);
 }
 
 function copyCode() {
@@ -464,6 +496,11 @@ function fallbackCopy(text, onSuccess) {
 
 async function resetForm() {
     if (currentVerification) {
+        // Close WebSocket if exists
+        if (currentVerification.websocket) {
+            currentVerification.websocket.close();
+        }
+        
         try {
             const token = localStorage.getItem('access_token');
             await axios.delete(`/api/verify/${currentVerification.id}`, {
