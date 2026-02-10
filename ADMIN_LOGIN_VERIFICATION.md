@@ -36,7 +36,7 @@ python3 scripts/verify_admin_login.py
 ### 2. API Test (requires server running)
 ```bash
 # Start server
-uvicorn main:app --host 127.0.0.1 --port 8000
+./start_local.sh
 
 # Test API
 python3 scripts/test_admin_api.py
@@ -50,7 +50,7 @@ python3 scripts/test_admin_api.py
 ```
 
 ### 3. Browser Test
-1. Open: http://localhost:8000/login
+1. Open: http://localhost:9876/login
 2. Enter credentials:
    - Email: `admin@namaskah.app`
    - Password: `Namaskah@Admin2024`
@@ -117,7 +117,7 @@ python3 scripts/verify_admin_login.py
 python3 scripts/test_admin_api.py
 
 # 3. Manual API test
-curl -X POST http://localhost:8000/api/auth/login \
+curl -X POST http://localhost:9876/api/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"admin@namaskah.app","password":"Namaskah@Admin2024"}'
 ```
