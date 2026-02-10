@@ -1,137 +1,117 @@
-/**
- * Verification Templates Module
- * Save and reuse country/service combinations
- */
-
+// Verification Templates Manager
 class VerificationTemplates {
     constructor() {
-        this.templates = this.loadTemplates();
-        this.init();
+        this.templates = [];
+        this.load();
     }
 
-    init() {
-        this.renderTemplates();
-        this.setupEventListeners();
-    }
-
-    setupEventListeners() {
-        // Save template button
-        document.getElementById('save-template-btn')?.addEventListener('click', () => this.showSaveDialog());
-        
-        // Template actions
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('.use-template-btn')) {
-                const id = e.target.closest('.use-template-btn').dataset.templateId;
-                this.useTemplate(id);
-            }
-            if (e.target.closest('.delete-template-btn')) {
-                const id = e.target.closest('.delete-template-btn').dataset.templateId;
-                this.deleteTemplate(id);
-            }
-        });
-    }
-
-    loadTemplates() {
+    load() {
         const stored = localStorage.getItem('verification_templates');
-        return stored ? JSON.parse(stored) : [];
+        this.templates = stored ? JSON.parse(stored) : [];
     }
 
-    saveTemplates() {
+    save() {
         localStorage.setItem('verification_templates', JSON.stringify(this.templates));
     }
 
-    showSaveDialog() {
-        const service = document.getElementById('service-select').value;
-        const country = document.getElementById('country-select').value;
-
-        if (!service || !country) {
-            this.showToast('Please select a service and country first', 'warning');
-            return;
-        }
-
-        const name = prompt('Enter a name for this template:', `${service} - ${country}`);
-        if (!name) return;
-
-        this.saveTemplate(name, service, country);
-    }
-
-    saveTemplate(name, service, country) {
+    add(name, serviceId, serviceName, cost) {
         const template = {
             id: Date.now().toString(),
             name,
-            service,
-            country,
-            createdAt: new Date().toISOString()
+            serviceId,
+            serviceName,
+            cost,
+            createdAt: Date.now()
         };
-
         this.templates.push(template);
-        this.saveTemplates();
-        this.renderTemplates();
-        this.showToast('Template saved successfully!', 'success');
+        this.save();
+        return template;
     }
 
-    useTemplate(id) {
-        const template = this.templates.find(t => t.id === id);
-        if (!template) return;
-
-        document.getElementById('service-select').value = template.service;
-        document.getElementById('country-select').value = template.country;
-        
-        // Trigger change events
-        document.getElementById('service-select').dispatchEvent(new Event('change'));
-        document.getElementById('country-select').dispatchEvent(new Event('change'));
-
-        this.showToast(`Applied template: ${template.name}`, 'success');
-    }
-
-    deleteTemplate(id) {
-        if (!confirm('Delete this template?')) return;
-
+    remove(id) {
         this.templates = this.templates.filter(t => t.id !== id);
-        this.saveTemplates();
-        this.renderTemplates();
-        this.showToast('Template deleted', 'info');
+        this.save();
     }
 
-    renderTemplates() {
-        const container = document.getElementById('templates-list');
+    getAll() {
+        return this.templates;
+    }
+
+    renderUI(containerId) {
+        const container = document.getElementById(containerId);
         if (!container) return;
 
         if (this.templates.length === 0) {
-            container.innerHTML = '<p class="text-muted small">No saved templates</p>';
+            container.innerHTML = '<div style="font-size: 13px; color: #9ca3af; text-align: center; padding: 20px;">No templates saved. Create one to speed up repeat verifications.</div>';
             return;
         }
 
         container.innerHTML = this.templates.map(t => `
-            <div class="template-item d-flex align-items-center justify-content-between mb-2 p-2 border rounded">
-                <div class="flex-grow-1">
-                    <strong>${t.name}</strong>
-                    <small class="text-muted d-block">${t.service} • ${t.country}</small>
+            <div onclick="verificationTemplates.apply('${t.id}')" 
+                 style="padding: 12px; cursor: pointer; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;"
+                 onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#667eea'"
+                 onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'">
+                <div>
+                    <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${t.name}</div>
+                    <div style="font-size: 11px; color: #6b7280; margin-top: 2px;">${t.serviceName} • $${t.cost.toFixed(2)}</div>
                 </div>
-                <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-primary use-template-btn" data-template-id="${t.id}">
-                        <i class="fas fa-check"></i>
-                    </button>
-                    <button class="btn btn-outline-danger delete-template-btn" data-template-id="${t.id}">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <button onclick="event.stopPropagation(); verificationTemplates.remove('${t.id}'); verificationTemplates.renderUI('templates-list')" 
+                        style="background: none; border: none; cursor: pointer; font-size: 16px; color: #ef4444; padding: 4px;">×</button>
             </div>
         `).join('');
     }
 
-    showToast(message, type = 'info') {
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
-        toast.style.zIndex = '9999';
-        toast.textContent = message;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
+    apply(id) {
+        const template = this.templates.find(t => t.id === id);
+        if (!template) return;
+
+        if (typeof selectService === 'function') {
+            selectService(template.serviceId, template.serviceName, template.cost);
+        }
+    }
+
+    showSaveModal() {
+        if (!selectedService) {
+            alert('Please select a service first');
+            return;
+        }
+
+        const modal = document.createElement('div');
+        modal.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 10000;';
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+
+        modal.innerHTML = `
+            <div style="background: white; border-radius: 12px; padding: 24px; max-width: 400px; width: 90%;" onclick="event.stopPropagation()">
+                <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">Save Template</h3>
+                <input type="text" id="template-name-input" placeholder="Template name (e.g., WhatsApp US)" 
+                       style="width: 100%; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px; margin-bottom: 16px;">
+                <div style="display: flex; gap: 8px;">
+                    <button onclick="this.closest('[style*=fixed]').remove()" 
+                            style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
+                    <button onclick="verificationTemplates.saveFromModal()" 
+                            style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Save</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        setTimeout(() => document.getElementById('template-name-input').focus(), 100);
+    }
+
+    saveFromModal() {
+        const name = document.getElementById('template-name-input').value.trim();
+        if (!name) {
+            alert('Please enter a template name');
+            return;
+        }
+
+        const service = allServices.find(s => s.id === selectedService);
+        if (!service) return;
+
+        this.add(name, service.id, service.name, service.cost);
+        this.renderUI('templates-list');
+        document.querySelector('[style*="position: fixed"]').remove();
     }
 }
 
-// Initialize
-let verificationTemplates;
-document.addEventListener('DOMContentLoaded', () => {
-    verificationTemplates = new VerificationTemplates();
-});
+window.verificationTemplates = new VerificationTemplates();

@@ -72,6 +72,17 @@
             <div id="favorites-list"></div>
         </div>
 
+        <!-- Templates Section -->
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 style="font-size: 14px; margin: 0; font-weight: 600; color: #4b5563;">
+                    <span style="font-size: 16px; margin-right: 6px;">📋</span>Templates
+                </h3>
+                <button onclick="verificationTemplates.showSaveModal()" style="background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">+ Save</button>
+            </div>
+            <div id="templates-list"></div>
+        </div>
+
         <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 600; color: #4b5563;">
             <i class="fas fa-star" style="color: #f59e0b; margin-right: 6px;"></i>Quick Presets
         </h3>
@@ -241,6 +252,7 @@
     <script src="/static/js/websocket-client.js"></script>
     <script src="/static/js/pagination.js"></script>
     <script src="/static/js/favorite-services.js"></script>
+    <script src="/static/js/verification-templates.js"></script>
     <script src="/static/js/verification.js"></script>
     <script>
         function toggleFavorite() {
@@ -266,6 +278,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             favoriteServices.renderUI('favorites-list');
+            verificationTemplates.renderUI('templates-list');
         });
     </script>
     {% endblock %}
