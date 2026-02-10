@@ -900,9 +900,8 @@
             document.querySelectorAll('.settings-tab').forEach(el => el.classList.remove('active'));
 
             // Add active class to clicked button
-            const clickedButton = event?.target || document.querySelector(`[onclick*="switchTab('${tabId}')"]`);
-            if (clickedButton) {
-                clickedButton.classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
             }
 
             // Show the selected tab
@@ -922,6 +921,8 @@
                 loadApiKeys();
             } else if (tabId === 'blacklist') {
                 loadBlacklist();
+            } else if (tabId === 'forwarding') {
+                loadForwardingConfig();
             }
         }
 
@@ -1218,16 +1219,7 @@
         }
 
         // Load forwarding config when tab is switched
-        const originalSwitchTab = switchTab;
-        switchTab = function (tabId) {
-            originalSwitchTab(tabId);
-            if (tabId === 'forwarding') {
-                loadForwardingConfig();
-            }
-            if (tabId === 'blacklist') {
-                loadBlacklist();
-            }
-        };
+        // (Removed duplicate switchTab override)
 
         // ==================== Blacklist Management ====================
         let blacklistData = [];
@@ -1510,9 +1502,30 @@
             if (e.target === this) hideBulkImportModal();
         });
 
-        // Make switchTab globally accessible
+        // Make functions globally accessible
         window.switchTab = switchTab;
         window.loadUserData = loadUserData;
+        window.requestPasswordReset = requestPasswordReset;
+        window.updateSettings = updateSettings;
+        window.generateApiKey = generateApiKey;
+        window.deleteApiKey = deleteApiKey;
+        window.showRefundModal = showRefundModal;
+        window.hideRefundModal = hideRefundModal;
+        window.submitRefundRequest = submitRefundRequest;
+        window.toggleForwardingOption = toggleForwardingOption;
+        window.generateWebhookSecret = generateWebhookSecret;
+        window.saveForwardingConfig = saveForwardingConfig;
+        window.testForwarding = testForwarding;
+        window.showAddBlacklistModal = showAddBlacklistModal;
+        window.hideBlacklistModal = hideBlacklistModal;
+        window.addToBlacklist = addToBlacklist;
+        window.removeFromBlacklist = removeFromBlacklist;
+        window.showBulkImportModal = showBulkImportModal;
+        window.hideBulkImportModal = hideBulkImportModal;
+        window.handleBulkFileSelect = handleBulkFileSelect;
+        window.submitBulkImport = submitBulkImport;
+        window.filterBlacklist = filterBlacklist;
+        window.changeBlacklistPage = changeBlacklistPage;
 
     })(); // End of IIFE
 </script>
