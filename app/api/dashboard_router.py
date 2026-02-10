@@ -239,6 +239,81 @@ async def get_unread_count_alias(
         return {"count": 0, "unread_count": 0}
 
 
+@router.get("/user/me")
+async def get_current_user(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get current user info."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"error": "User not found"}
+    
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "tier": getattr(user, 'subscription_tier', 'freemium'),
+        "credits": float(user.credits or 0.0),
+        "is_admin": user.is_admin,
+        "created_at": user.created_at.isoformat() if user.created_at else None
+    }
+
+
+@router.get("/billing/balance")
+async def get_billing_balance(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get billing balance (alias for wallet/balance)."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"balance": 0.0}
+    
+    return {
+        "balance": float(user.credits or 0.0),
+        "currency": "USD"
+    }
+
+
+@router.get("/tiers/current")
+async def get_current_tier(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get current user tier."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {"tier": "freemium"}
+    
+    tier = getattr(user, 'subscription_tier', 'freemium')
+    return {
+        "tier": tier,
+        "name": tier.title(),
+        "features": []
+    }
+
+
+@router.get("/user/settings")
+async def get_user_settings(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Get user settings."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return {}
+    
+    return {
+        "email": user.email,
+        "language": getattr(user, 'language', 'en'),
+        "currency": getattr(user, 'currency', 'USD'),
+        "notifications": {
+            "email": True,
+            "sms": False
+        }
+    }
+
+
 @router.get("/countries")
 async def get_countries():
     """Get available countries for SMS verification."""
