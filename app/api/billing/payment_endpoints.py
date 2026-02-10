@@ -12,14 +12,14 @@ from app.core.logging import get_logger
 from app.models.user import User
 from app.schemas.payment import PaymentInitialize, PaymentInitializeResponse, PaymentVerify, PaymentVerifyResponse
 from app.services.payment_service import get_payment_service
-from app.middleware.rate_limiting import rate_limit
+from app.middleware.rate_limiting import limiter
 
 logger = get_logger(__name__)
 router = APIRouter()
 
 
 @router.post("/initialize", response_model=PaymentInitializeResponse)
-@rate_limit(max_requests=5, window_seconds=60)
+@limiter.limit("5/minute")
 async def initialize_payment(
     request: Request,
     payment_request: PaymentInitialize,
@@ -58,7 +58,7 @@ async def initialize_payment(
 
 
 @router.post("/verify", response_model=PaymentVerifyResponse)
-@rate_limit(max_requests=10, window_seconds=60)
+@limiter.limit("10/minute")
 async def verify_payment(
     request: Request,
     payment_request: PaymentVerify,
