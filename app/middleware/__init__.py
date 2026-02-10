@@ -8,7 +8,7 @@ from .logging import (
 )
 
 # Rate limiting middleware
-from .rate_limiting import rate_limit
+from .rate_limiting import limiter, get_limiter
 
 # Security middleware
 from .security import (
@@ -21,7 +21,8 @@ __all__ = [
     "JWTAuthMiddleware",
     "SecurityHeadersMiddleware",
     # Rate Limiting
-    "rate_limit",
+    "limiter",
+    "get_limiter",
     # Logging
     "RequestLoggingMiddleware",
     "PerformanceMetricsMiddleware",
