@@ -40,14 +40,14 @@ def init_admin_user():
             db.execute(
                 text("""
                     INSERT INTO users (
-                        email, password_hash, is_admin, is_moderator, is_active, is_affiliate, credits, 
-                        free_verifications, email_verified, subscription_tier, 
+                        id, email, password_hash, is_admin, is_moderator, is_active, is_affiliate, is_suspended, is_banned, is_deleted,
+                        credits, free_verifications, email_verified, subscription_tier, 
                         bonus_sms_balance, monthly_quota_used, referral_earnings, 
                         provider, failed_login_attempts, language, currency, created_at
                     )
                     VALUES (
-                        :email, :hash, true, false, true, false, 1000, 
-                        1.0, true, 'freemium', 
+                        gen_random_uuid(), :email, :hash, true, false, true, false, false, false, false,
+                        1000, 1.0, true, 'freemium', 
                         0.0, 0.0, 0.0, 
                         'email', 0, 'en', 'USD', CURRENT_TIMESTAMP
                     )
