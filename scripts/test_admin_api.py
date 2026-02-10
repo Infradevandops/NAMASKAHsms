@@ -4,7 +4,7 @@
 import requests
 import sys
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "http://localhost:9876"
 ADMIN_EMAIL = "admin@namaskah.app"
 ADMIN_PASSWORD = "Namaskah@Admin2024"
 

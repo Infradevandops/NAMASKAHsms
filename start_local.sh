@@ -1,10 +1,14 @@
 #!/bin/bash
-export DATABASE_URL="sqlite:///./namaskah_local.db"
-export SECRET_KEY="local-dev-secret-key-1234567890abcdefghijklmnop"
-export JWT_SECRET_KEY="local-jwt-secret-key-67890abcdefghijklmnopqrst"
-export ADMIN_EMAIL="admin@namaskah.app"
-export ADMIN_PASSWORD="admin123"
-export ENVIRONMENT="development"
+# Local development startup script - Always uses port 9876
 
-source venv/bin/activate
-uvicorn main:app --host 127.0.0.1 --port 8000 --reload
+PORT=9876
+HOST="0.0.0.0"
+
+echo "🚀 Starting Namaskah on port $PORT"
+
+# Kill any existing process on this port
+lsof -ti:$PORT | xargs kill -9 2>/dev/null
+sleep 1
+
+# Start the app
+uvicorn main:app --host $HOST --port $PORT --reload
