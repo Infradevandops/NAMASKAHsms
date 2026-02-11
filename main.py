@@ -15,6 +15,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
+from app.api.compatibility_routes import router as compatibility_router
 from app.api.dashboard_router import router as dashboard_router
 from app.api.emergency import router as emergency_router
 from app.api.health import router as health_router
@@ -155,6 +156,9 @@ def create_app() -> FastAPI:
 
     # Auth endpoints
     fastapi_app.include_router(auth_router)
+    
+    # Compatibility routes (API aliases for frontend)
+    fastapi_app.include_router(compatibility_router, prefix="/api")
     
     # Dashboard APIs
     fastapi_app.include_router(dashboard_router)
