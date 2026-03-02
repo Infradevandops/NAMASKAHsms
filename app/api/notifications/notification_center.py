@@ -47,45 +47,45 @@ async def get_notification_center(
         - limit: Number of records returned
         - notifications: List of notifications
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Build query
         query = db.query(Notification).filter(Notification.user_id == user_id)
 
         # Apply filters
-if category:
+        if category:
             query = query.filter(Notification.type == category)
 
-if is_read is not None:
+        if is_read is not None:
             query = query.filter(Notification.is_read == is_read)
 
-if date_from:
-try:
+        if date_from:
+            try:
                 date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
                 query = query.filter(Notification.created_at >= date_from_obj)
-except ValueError:
+            except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)")
 
-if date_to:
-try:
+        if date_to:
+            try:
                 date_to_obj = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
                 query = query.filter(Notification.created_at < date_to_obj)
-except ValueError:
+            except ValueError:
                 raise HTTPException(status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)")
 
         # Get total count before pagination
         total = query.count()
 
         # Apply sorting
-if sort_by == "oldest":
+        if sort_by == "oldest":
             query = query.order_by(Notification.created_at)
-elif sort_by == "unread_first":
+        elif sort_by == "unread_first":
             query = query.order_by(Notification.is_read, desc(Notification.created_at))
-else:  # newest (default)
+        else:  # newest (default)
             query = query.order_by(desc(Notification.created_at))
 
         # Apply pagination
@@ -103,10 +103,10 @@ else:  # newest (default)
             "notifications": [n.to_dict() for n in notifications],
         }
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get notification center: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -124,10 +124,10 @@ async def get_notification_categories(
     Returns:
         - categories: List of notification types with unread counts
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Get all notification types for this user
@@ -135,21 +135,21 @@ if not user:
 
         # Group by type and count
         categories = {}
-for notif in notifications:
-if notif.type not in categories:
+        for notif in notifications:
+            if notif.type not in categories:
                 categories[notif.type] = {"total": 0, "unread": 0}
             categories[notif.type]["total"] += 1
-if not notif.is_read:
+            if not notif.is_read:
                 categories[notif.type]["unread"] += 1
 
         logger.info(f"Retrieved {len(categories)} notification categories for user {user_id}")
 
         return {"categories": [{"type": k, "total": v["total"], "unread": v["unread"]} for k, v in categories.items()]}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get notification categories: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -176,10 +176,10 @@ async def search_notifications(
         - total: Total search results
         - notifications: Matching notifications
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Search in title and message
@@ -205,10 +205,10 @@ if not user:
             "notifications": [n.to_dict() for n in notifications],
         }
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to search notifications: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -230,10 +230,10 @@ async def bulk_mark_as_read(
     Returns:
         - updated: Number of notifications updated
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Update notifications
@@ -252,10 +252,10 @@ if not user:
 
         return {"updated": updated}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to bulk mark as read: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -277,10 +277,10 @@ async def bulk_delete_notifications(
     Returns:
         - deleted: Number of notifications deleted
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Delete notifications
@@ -299,10 +299,10 @@ if not user:
 
         return {"deleted": deleted}
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to bulk delete: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -324,10 +324,10 @@ async def export_notifications(
     Returns:
         - Exported notifications in requested format
     """
-try:
+    try:
         # Verify user exists
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise ValueError(f"User {user_id} not found")
 
         # Get all notifications
@@ -335,7 +335,7 @@ if not user:
             db.query(Notification).filter(Notification.user_id == user_id).order_by(desc(Notification.created_at)).all()
         )
 
-if format == "csv":
+        if format == "csv":
 
             output = io.StringIO()
             writer = csv.DictWriter(
@@ -343,7 +343,7 @@ if format == "csv":
                 fieldnames=["id", "type", "title", "message", "is_read", "created_at"],
             )
             writer.writeheader()
-for n in notifications:
+            for n in notifications:
                 writer.writerow(
                     {
                         "id": n.id,
@@ -355,16 +355,16 @@ for n in notifications:
                     }
                 )
             return {"format": "csv", "data": output.getvalue()}
-else:  # json
+        else:  # json
             return {
                 "format": "json",
                 "data": [n.to_dict() for n in notifications],
             }
 
-except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to export notifications: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

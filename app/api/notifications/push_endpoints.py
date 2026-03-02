@@ -37,7 +37,7 @@ async def register_device_token(
     Returns:
         Success message with device token info
     """
-try:
+    try:
         service = MobileNotificationService(db=db)
         success = await service.register_device_token(
             user_id=user_id,
@@ -46,7 +46,7 @@ try:
             device_name=device_name,
         )
 
-if not success:
+        if not success:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Failed to register device token",
@@ -61,7 +61,7 @@ if not success:
             "platform": platform,
         }
 
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error registering device token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -85,14 +85,14 @@ async def unregister_device_token(
     Returns:
         Success message
     """
-try:
+    try:
         service = MobileNotificationService(db=db)
         success = await service.unregister_device_token(
             user_id=user_id,
             device_token=device_token,
         )
 
-if not success:
+        if not success:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Device token not found",
@@ -105,9 +105,9 @@ if not success:
             "message": "Device token unregistered successfully",
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error unregistering device token: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -129,7 +129,7 @@ async def get_user_devices(
     Returns:
         List of registered devices
     """
-try:
+    try:
         devices = (
             db.query(DeviceToken)
             .filter_by(
@@ -145,7 +145,7 @@ try:
             "total": len(devices),
         }
 
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error getting user devices: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -169,7 +169,7 @@ async def delete_device(
     Returns:
         Success message
     """
-try:
+    try:
         device = (
             db.query(DeviceToken)
             .filter_by(
@@ -179,7 +179,7 @@ try:
             .first()
         )
 
-if not device:
+        if not device:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Device not found",
@@ -195,9 +195,9 @@ if not device:
             "message": "Device deleted successfully",
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error deleting device: {str(e)}")
         db.rollback()
         raise HTTPException(
@@ -220,7 +220,7 @@ async def send_test_push_notification(
     Returns:
         Results of push notification delivery
     """
-try:
+    try:
 
         # Get user's active devices
         devices = (
@@ -232,7 +232,7 @@ try:
             .all()
         )
 
-if not devices:
+        if not devices:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No registered devices found",
@@ -265,9 +265,9 @@ if not devices:
             "devices_count": len(devices),
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error sending test push notification: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -289,7 +289,7 @@ async def get_push_preferences(
     Returns:
         Push notification preferences
     """
-try:
+    try:
 
         preferences = (
             db.query(NotificationPreference)
@@ -308,7 +308,7 @@ try:
             "total": len(push_preferences),
         }
 
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error getting push preferences: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -334,7 +334,7 @@ async def update_push_preference(
     Returns:
         Updated preference
     """
-try:
+    try:
 
         preference = (
             db.query(NotificationPreference)
@@ -345,7 +345,7 @@ try:
             .first()
         )
 
-if not preference:
+        if not preference:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Preference not found",
@@ -353,9 +353,9 @@ if not preference:
 
         # Update delivery methods
         methods = set((preference.delivery_methods or "").split(","))
-if enabled:
+        if enabled:
             methods.add("push")
-else:
+        else:
             methods.discard("push")
 
         preference.delivery_methods = ",".join(filter(None, methods))
@@ -369,9 +369,9 @@ else:
             "preference": preference.to_dict(),
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Error updating push preference: {str(e)}")
         db.rollback()
         raise HTTPException(
