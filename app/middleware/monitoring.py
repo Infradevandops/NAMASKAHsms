@@ -32,7 +32,7 @@ class MonitoringMiddleware(BaseHTTPMiddleware):
             # Add monitoring headers
             response.headers["X - Response-Time"] = str(duration)
 
-        return response
+            return response
 
         except (HTTPException, StarletteHTTPException):
             # Don't track HTTP exceptions as errors - they're expected
