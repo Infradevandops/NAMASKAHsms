@@ -58,7 +58,7 @@ async def mark_notification_read(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-if not notification:
+    if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     notification.is_read = True
@@ -90,7 +90,7 @@ async def delete_notification(
         db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
     )
 
-if not notification:
+    if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
 
     db.delete(notification)

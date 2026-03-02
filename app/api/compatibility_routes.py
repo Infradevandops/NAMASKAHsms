@@ -81,10 +81,15 @@ async def user_settings(
     db: Session = Depends(get_db)
 ):
     user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
     
     return {
-        "email": user.email if user else "",
+        "id": str(user.id),
+        "email": user.email,
+        "username": user.email.split('@')[0],
         "notifications_enabled": True,
         "language": "en",
-        "timezone": "UTC"
+        "timezone": "UTC",
+        "created_at": user.created_at.isoformat() if hasattr(user, 'created_at') else None
     }

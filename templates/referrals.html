@@ -183,7 +183,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/api-retry.js"></script>
+<script type="module" src="/static/js/api-retry.js"></script>
 <script>
     async function loadReferralData() {
         const token = localStorage.getItem('access_token');
