@@ -380,8 +380,8 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/frontend-logger.js"></script>
-<script src="/static/js/api-retry.js"></script>
+<script type="module" src="/static/js/frontend-logger.js"></script>
+<script type="module" src="/static/js/api-retry.js"></script>
 <script>
     // Load preferences on page load
     async function loadPreferences() {

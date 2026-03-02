@@ -233,7 +233,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script src="/static/js/api-retry.js"></script>
+<script type="module" src="/static/js/api-retry.js"></script>
 <script>
     async function loadWebhooks() {
         const container = document.getElementById('webhooks-container');
