@@ -48,16 +48,33 @@ class TextVerifiedService:
 
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance from TextVerified."""
-        if not self.enabled:
-            return {"balance": 0.0, "error": "Service not available"}
+        if not self.api_key:
+            return {"balance": 0.0, "currency": "USD", "error": "No API key configured"}
 
         try:
-            # This would be the actual API call
-            # balance_data = await self.client.get_balance()
-            # return balance_data
-            
-            # Mock response for now
-            return {"balance": 100.0, "currency": "USD"}
+            import urllib.request
+            import json as _json
+            # Step 1: get bearer token
+            auth_req = urllib.request.Request(
+                "https://www.textverified.com/api/Auth",
+                data=_json.dumps({"api_key": self.api_key}).encode(),
+                headers={"Content-Type": "application/json", "Accept": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(auth_req, timeout=10) as r:
+                token_data = _json.loads(r.read().decode())
+            token = token_data.get("token") or token_data.get("access_token") or token_data.get("bearer_token")
+            if not token:
+                return {"balance": 0.0, "currency": "USD", "raw": token_data}
+            # Step 2: get balance
+            bal_req = urllib.request.Request(
+                "https://www.textverified.com/api/Auth",
+                headers={"Authorization": "Bearer " + token, "Accept": "application/json"}
+            )
+            with urllib.request.urlopen(bal_req, timeout=10) as r:
+                bal_data = _json.loads(r.read().decode())
+            balance = bal_data.get("balance") or bal_data.get("credits") or 0.0
+            return {"balance": float(balance), "currency": "USD", "raw": bal_data}
             
         except Exception as e:
             logger.error(f"Failed to get TextVerified balance: {e}")
