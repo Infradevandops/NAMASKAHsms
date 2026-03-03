@@ -16,7 +16,7 @@
             SERVICES: '/api/services',
             VERIFY_CREATE: '/api/verify/create',
             VERIFY_SMS: '/api/verify/{id}/sms',
-            VERIFY_STATUS: '/api/verify/status/{id}',
+            VERIFY_STATUS: '/api/verify/{id}/status',
             WALLET_BALANCE: '/api/wallet/balance',
             ANALYTICS: '/api/analytics/summary',
             WALLET: '/wallet',
@@ -106,299 +106,53 @@
     }
 
     // ============================================
-    // VERIFICATION MODAL
+    // VERIFICATION TYPE PICKER
     // ============================================
-    
-    let currentVerificationId = null;
-    let currentCapability = 'sms';
-    let smsCheckInterval = null;
 
     function createVerificationModal() {
         if (document.getElementById('verification-modal')) return;
-
-        const modalHTML = `
-        <div id="verification-modal" class="modal" style="display: none;">
+        document.body.insertAdjacentHTML('beforeend', `
+        <div id="verification-modal" class="modal" style="display:none;">
             <div class="modal-overlay"></div>
-            <div class="modal-content">
+            <div class="modal-content" style="max-width:400px;">
                 <div class="modal-header">
-                    <h2 id="modal-title">New Verification</h2>
-                    <button class="modal-close" id="close-modal-btn">&times;</button>
+                    <h2>New Verification</h2>
+                    <button class="modal-close" onclick="window.DashboardUltra.closeModal()">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div id="step-0" class="modal-step">
-                        <p style="margin-bottom:16px;color:#6b7280;">Choose verification method</p>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                            <button type="button" class="type-card" id="type-sms" onclick="window.DashboardUltra.selectCapability('sms')">
-                                <div style="font-size:28px;">&#128241;</div>
-                                <div style="font-weight:600;margin:8px 0 4px;">SMS</div>
-                                <div style="font-size:12px;color:#6b7280;">~30s &middot; $2.50</div>
-                            </button>
-                            <button type="button" class="type-card" id="type-voice" onclick="window.DashboardUltra.selectCapability('voice')">
-                                <div style="font-size:28px;">&#9742;&#65039;</div>
-                                <div style="font-weight:600;margin:8px 0 4px;">Voice Call</div>
-                                <div style="font-size:12px;color:#6b7280;">2-5 min &middot; $3.50</div>
-                            </button>
-                        </div>
+                    <p style="margin-bottom:16px;color:#6b7280;">Choose verification method</p>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <button type="button" class="type-card" onclick="window.location.href='/verify'">
+                            <div style="font-size:28px;">&#128241;</div>
+                            <div style="font-weight:600;margin:8px 0 4px;">SMS</div>
+                            <div style="font-size:12px;color:#6b7280;">~30s &middot; $2.50</div>
+                        </button>
+                        <button type="button" class="type-card" onclick="window.location.href='/voice-verify'">
+                            <div style="font-size:28px;">&#9742;&#65039;</div>
+                            <div style="font-weight:600;margin:8px 0 4px;">Voice Call</div>
+                            <div style="font-size:12px;color:#6b7280;">2-5 min &middot; $3.50</div>
+                        </button>
                     </div>
-
-                    <div id="step-1" class="modal-step" style="display:none;">
-                        <div class="form-group">
-                            <label for="service-select">Select Service *</label>
-                            <select id="service-select" class="form-control" required>
-                                <option value="">Loading services...</option>
-                            </select>
-                        </div>
-                        <div id="pricing-info" class="alert alert-info" style="display: none;">
-                            <strong>Estimated Cost:</strong> <span id="verification-cost">$2.50</span>
-                        </div>
-                    </div>
-
-                    <div id="step-2" class="modal-step" style="display: none;">
-                        <div class="alert alert-success">
-                            <h4>&#9989; Verification Created!</h4>
-                            <div class="verification-details">
-                                <p><strong>Phone Number:</strong> <span id="result-phone" class="phone-number"></span></p>
-                                <p><strong>Service:</strong> <span id="result-service"></span></p>
-                                <p><strong>Status:</strong> <span id="result-status" class="status-badge"></span></p>
-                            </div>
-                        </div>
-                        <div id="sms-waiting" class="alert alert-warning">
-                            <p id="waiting-text">&#9203; Waiting for SMS... This may take 10-60 seconds.</p>
-                            <div class="loading-spinner"></div>
-                        </div>
-                        <div id="sms-result" style="display: none;"></div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="action-btn" style="display:none;">Create Verification</button>
                 </div>
             </div>
-        </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHTML);
-        attachModalEvents();
-    }
-
-    function selectCapability(cap) {
-        currentCapability = cap;
-        const cost = cap === 'voice' ? '$3.50' : '$2.50';
-        document.getElementById('modal-title').textContent = cap === 'voice' ? 'Voice Verification' : 'SMS Verification';
-        document.getElementById('verification-cost').textContent = cost;
-        document.getElementById('step-0').style.display = 'none';
-        document.getElementById('step-1').style.display = 'block';
-        document.getElementById('action-btn').style.display = 'inline-flex';
-        loadServices();
-    }
-
-    function attachModalEvents() {
+        </div>`);
         const modal = document.getElementById('verification-modal');
-        const closeBtn = document.getElementById('close-modal-btn');
-        const cancelBtn = document.getElementById('cancel-btn');
-        const actionBtn = document.getElementById('action-btn');
-        const overlay = modal.querySelector('.modal-overlay');
-        const serviceSelect = document.getElementById('service-select');
-
-        closeBtn.onclick = closeModal;
-        cancelBtn.onclick = closeModal;
-        overlay.onclick = closeModal;
-        actionBtn.onclick = handleActionButton;
-
-        serviceSelect.onchange = function() {
-            const pricingInfo = document.getElementById('pricing-info');
-            if (this.value) {
-                pricingInfo.style.display = 'block';
-            } else {
-                pricingInfo.style.display = 'none';
-            }
-        };
-
-        // ESC key to close
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape' && modal.style.display === 'flex') {
-                closeModal();
-            }
+        modal.querySelector('.modal-overlay').onclick = closeModal;
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && modal.style.display === 'flex') closeModal();
         });
     }
 
-    async function openModal() {
+    function openModal() {
         createVerificationModal();
-        const modal = document.getElementById('verification-modal');
-
-        // Reset to step 0
-        currentCapability = 'sms';
-        document.getElementById('modal-title').textContent = 'New Verification';
-        document.getElementById('step-0').style.display = 'block';
-        document.getElementById('step-1').style.display = 'none';
-        document.getElementById('step-2').style.display = 'none';
-        document.getElementById('action-btn').style.display = 'none';
-        document.getElementById('action-btn').textContent = 'Create Verification';
-        document.getElementById('sms-result').style.display = 'none';
-        document.getElementById('sms-waiting').style.display = 'block';
-
-        modal.style.display = 'flex';
+        document.getElementById('verification-modal').style.display = 'flex';
         document.body.style.overflow = 'hidden';
     }
 
     function closeModal() {
         const modal = document.getElementById('verification-modal');
-        if (modal) {
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-        }
-        if (smsCheckInterval) {
-            clearInterval(smsCheckInterval);
-            smsCheckInterval = null;
-        }
-        currentVerificationId = null;
-        currentCapability = 'sms';
-    }
-
-    async function loadServices() {
-        const select = document.getElementById('service-select');
-        
-        try {
-            const data = await apiCall(CONFIG.ENDPOINTS.SERVICES);
-            
-            select.innerHTML = '<option value="">-- Select Service --</option>';
-            
-            const services = data.services || [];
-            services.forEach(service => {
-                const option = document.createElement('option');
-                option.value = service.id || service.name;
-                option.textContent = service.name;
-                select.appendChild(option);
-            });
-            
-            if (services.length === 0) {
-                select.innerHTML = '<option value="">No services available</option>';
-            }
-        } catch (error) {
-            console.error('Failed to load services:', error);
-            select.innerHTML = '<option value="">Failed to load services</option>';
-            showToast('Failed to load services. Please try again.', 'error');
-        }
-    }
-
-    async function handleActionButton() {
-        const step1 = document.getElementById('step-1');
-        if (step1.style.display !== 'none') {
-            await createVerification();
-        } else {
-            closeModal();
-            window.location.reload();
-        }
-    }
-
-    async function createVerification() {
-        const service = document.getElementById('service-select').value;
-        const country = document.getElementById('country-select').value;
-        const actionBtn = document.getElementById('action-btn');
-        
-        if (!service) {
-            showToast('Please select a service', 'warning');
-            return;
-        }
-        
-        const originalText = actionBtn.textContent;
-        actionBtn.textContent = 'Creating...';
-        actionBtn.disabled = true;
-        
-        try {
-            const data = await apiCall(CONFIG.ENDPOINTS.VERIFY_CREATE, {
-                method: 'POST',
-                body: JSON.stringify({ service, country: 'US', capability: currentCapability })
-            });
-
-            currentVerificationId = data.id;
-
-            document.getElementById('result-phone').textContent = data.phone_number;
-            document.getElementById('result-service').textContent = data.service;
-            document.getElementById('result-status').textContent = data.status;
-
-            const waitingText = document.getElementById('waiting-text');
-            if (currentCapability === 'voice') {
-                waitingText.textContent = '\u23F3 Waiting for voice call... This may take 2-5 minutes.';
-            } else {
-                waitingText.textContent = '\u23F3 Waiting for SMS... This may take 10-60 seconds.';
-            }
-
-            document.getElementById('step-1').style.display = 'none';
-            document.getElementById('step-2').style.display = 'block';
-            actionBtn.textContent = 'Done';
-            actionBtn.disabled = false;
-
-            showToast('Verification created successfully!', 'success');
-            startSMSCheck();
-            
-        } catch (error) {
-            console.error('Failed to create verification:', error);
-            showToast(error.message || 'Failed to create verification', 'error');
-            actionBtn.textContent = originalText;
-            actionBtn.disabled = false;
-        }
-    }
-
-    function startSMSCheck() {
-        if (!currentVerificationId) return;
-        
-        // Check immediately
-        checkSMS();
-        
-        // Then check every 5 seconds
-        smsCheckInterval = setInterval(checkSMS, 5000);
-        
-        // Stop after 2 minutes
-        setTimeout(() => {
-            if (smsCheckInterval) {
-                clearInterval(smsCheckInterval);
-                smsCheckInterval = null;
-                
-                const waiting = document.getElementById('sms-waiting');
-                if (waiting && waiting.style.display !== 'none') {
-                    waiting.innerHTML = '<p>⏱️ No SMS received yet. You can close this and check history later.</p>';
-                }
-            }
-        }, 120000);
-    }
-
-    async function checkSMS() {
-        if (!currentVerificationId) return;
-        try {
-            let data;
-            if (currentCapability === 'voice') {
-                const url = CONFIG.ENDPOINTS.VERIFY_STATUS.replace('{id}', currentVerificationId);
-                data = await apiCall(url);
-                if (data.status === 'completed' && data.sms_code) {
-                    data.code = data.sms_code;
-                } else {
-                    return;
-                }
-            } else {
-                const url = CONFIG.ENDPOINTS.VERIFY_SMS.replace('{id}', currentVerificationId);
-                data = await apiCall(url);
-            }
-
-            if (data.sms || data.code) {
-                clearInterval(smsCheckInterval);
-                smsCheckInterval = null;
-                document.getElementById('sms-waiting').style.display = 'none';
-                const label = currentCapability === 'voice' ? '\u260E\uFE0F Voice Code Received!' : '\uD83D\uDCF1 SMS Received!';
-                const resultDiv = document.getElementById('sms-result');
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = `
-                    <div class="alert alert-success">
-                        <h4>${label}</h4>
-                        ${data.code ? `<p class="sms-code"><strong>Code:</strong> <code>${data.code}</code></p>` : ''}
-                        ${data.sms ? `<p><strong>Message:</strong> ${data.sms}</p>` : ''}
-                    </div>
-                `;
-                showToast('Code received!', 'success');
-            }
-        } catch (error) {
-            console.error('Failed to check code:', error);
-        }
+        if (modal) modal.style.display = 'none';
+        document.body.style.overflow = '';
     }
 
     // ============================================
@@ -867,8 +621,6 @@
     window.DashboardUltra = {
         openModal,
         closeModal,
-        checkSMS,
-        selectCapability,
         openUpgradeModal,
         closeUpgradeModal,
         selectUpgradeTier,

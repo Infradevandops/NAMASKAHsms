@@ -25,7 +25,7 @@ async def get_current_tier(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        tier = getattr(user, 'tier', 'freemium')
+        tier = getattr(user, 'subscription_tier', 'freemium')
         tier_config = TierConfig.get_tier_config(tier, db)
 
         return {
@@ -79,7 +79,7 @@ async def upgrade_tier(
         if target_tier not in available_tiers:
             raise HTTPException(status_code=400, detail="Invalid tier")
 
-        current_tier = getattr(user, 'tier', 'freemium')
+        current_tier = getattr(user, 'subscription_tier', 'freemium')
         if current_tier == target_tier:
             raise HTTPException(status_code=400, detail="Already on this tier")
 
