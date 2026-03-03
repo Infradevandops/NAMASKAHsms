@@ -302,7 +302,7 @@
             localStorage.setItem('access_token', data.access_token);
             // Set cookie for server-side auth
             document.cookie = `access_token=${data.access_token}; path=/; max-age=604800; SameSite=Lax`;
-            window.location.href = '/dashboard';
+            window.location.href = data.user && data.user.is_admin ? '/admin' : '/dashboard';
         } else {
             const data = await res.json();
             showError(data.detail || "Invalid credentials");
