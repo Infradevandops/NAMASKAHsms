@@ -6,21 +6,20 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any, Dict
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class ServiceStatus(Enum):
-
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
 
 
-    @dataclass
+@dataclass
 class HealthCheck:
-
     service: str
     status: ServiceStatus
     response_time: float
@@ -29,22 +28,16 @@ class HealthCheck:
 
 
 class HealthMonitor:
-
     """Monitor health of external services."""
 
     def __init__(self):
-
         self.checks: Dict[str, HealthCheck] = {}
-        self.check_interval = 60  # 1 minute
+        self.check_interval = 60
         self.running = False
 
     async def check_all_services(self) -> Dict[str, HealthCheck]:
         """Check health of all monitored services."""
-        checks = {}
-
-        # Add other service checks here as needed
-
-        return checks
+        return {}
 
     async def get_system_health(self) -> Dict[str, Any]:
         """Get overall system health status."""
@@ -70,7 +63,7 @@ class HealthMonitor:
                     "last_check": check.last_check,
                     "error": check.error,
                 }
-        for name, check in checks.items()
+                for name, check in checks.items()
             },
             "summary": {
                 "healthy": healthy_count,
@@ -85,19 +78,17 @@ class HealthMonitor:
         logger.info("Health monitoring started")
 
         while self.running:
-        try:
+            try:
                 await self.check_all_services()
                 await asyncio.sleep(self.check_interval)
-        except Exception as e:
+            except Exception as e:
                 logger.error("Health monitoring error: %s", e)
                 await asyncio.sleep(self.check_interval)
 
     def stop_monitoring(self):
-
         """Stop health monitoring."""
         self.running = False
         logger.info("Health monitoring stopped")
 
 
-# Global health monitor instance
-        health_monitor = HealthMonitor()
+health_monitor = HealthMonitor()

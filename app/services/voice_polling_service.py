@@ -4,6 +4,7 @@
 import asyncio
 from contextlib import contextmanager
 from datetime import datetime, timedelta
+
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.logging import get_logger
@@ -17,19 +18,16 @@ settings = get_settings()
 
 @contextmanager
 def get_db_session():
-
     """Context manager for safe DB session handling"""
     db = next(get_db())
-try:
+    try:
         yield db
-finally:
+    finally:
         db.close()
 
 
 class VoicePollingService:
-
     def __init__(self):
-
         self.tv_service = TextVerifiedService()
         self.running = False
 
@@ -39,10 +37,10 @@ class VoicePollingService:
         logger.info("Voice polling service started")
 
         while self.running:
-        try:
+            try:
                 await self.poll_voice_verifications()
                 await asyncio.sleep(settings.voice_polling_interval_seconds)
-        except Exception as e:
+            except Exception as e:
                 logger.error(f"Voice polling error: {e}")
                 await asyncio.sleep(settings.sms_polling_error_backoff_seconds)
 
@@ -54,7 +52,7 @@ class VoicePollingService:
     async def poll_voice_verifications(self):
         """Poll pending voice verifications with retry logic"""
         with get_db_session() as db:
-        try:
+            try:
                 timeout_threshold = datetime.now() - timedelta(minutes=settings.voice_polling_timeout_minutes)
                 pending = (
                     db.query(Verification)
@@ -66,39 +64,37 @@ class VoicePollingService:
                     .all()
                 )
 
-        for verification in pending:
+                for verification in pending:
                     await self._poll_single_verification(verification, db)
 
-        except Exception as e:
+            except Exception as e:
                 logger.error(f"Error in poll_voice_verifications: {e}")
 
     async def _poll_single_verification(self, verification, db):
         """Poll single verification with error handling"""
         try:
-            # Retry logic for TextVerified API
             result = None
-        for attempt in range(settings.voice_max_retry_attempts):
-        try:
+            for attempt in range(settings.voice_max_retry_attempts):
+                try:
                     result = self.tv_service.client.verifications.get(verification.activation_id)
                     break
-        except Exception as e:
-        if attempt == settings.voice_max_retry_attempts - 1:
+                except Exception as e:
+                    if attempt == settings.voice_max_retry_attempts - 1:
                         logger.error(
                             f"Failed to poll voice verification {verification.id} after {settings.voice_max_retry_attempts} attempts: {e}"
                         )
                         return
-                    await asyncio.sleep(2**attempt)  # Exponential backoff
+                    await asyncio.sleep(2**attempt)
 
-        if not result:
+            if not result:
                 return
 
-        if result.code:
+            if result.code:
                 verification.sms_code = result.code
                 verification.status = "completed"
                 db.commit()
 
-                # Safe notification - won't break verification flow
-        try:
+                try:
                     notification_service = NotificationService(db)
                     notification_service.create_notification(
                         user_id=verification.user_id,
@@ -106,16 +102,16 @@ class VoicePollingService:
                         message=f"Code: {result.code} for {verification.service_name}",
                         type="verification_complete",
                     )
-        except Exception as notif_error:
+                except Exception as notif_error:
                     logger.warning(f"Notification failed for voice verification {verification.id}: {notif_error}")
 
                 logger.info(f"Voice code received: {verification.id}")
 
-        elif (datetime.now() - verification.created_at).seconds > (settings.voice_polling_timeout_minutes * 60):
+            elif (datetime.now() - verification.created_at).seconds > (settings.voice_polling_timeout_minutes * 60):
                 verification.status = "failed"
                 db.commit()
 
-        try:
+                try:
                     notification_service = NotificationService(db)
                     notification_service.create_notification(
                         user_id=verification.user_id,
@@ -123,7 +119,7 @@ class VoicePollingService:
                         message=f"No code received for {verification.service_name}",
                         type="verification_failed",
                     )
-        except Exception as notif_error:
+                except Exception as notif_error:
                     logger.warning(f"Notification failed for voice timeout {verification.id}: {notif_error}")
 
                 logger.warning(f"Voice verification timeout: {verification.id}")
@@ -132,4 +128,4 @@ class VoicePollingService:
             logger.error(f"Error polling voice verification {verification.id}: {e}")
 
 
-        voice_polling_service = VoicePollingService()
+voice_polling_service = VoicePollingService()

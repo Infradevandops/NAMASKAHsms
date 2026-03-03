@@ -15,32 +15,16 @@ router = APIRouter(prefix="/verification/textverified", tags=["TextVerified"])
 
 @router.get("/health")
 async def textverified_health() -> Dict[str, Any]:
-    """Get TextVerified service health status with balance.
-
-    Returns:
-        - status: "operational" or "error"
-        - balance: Account balance in USD (or None if error)
-        - currency: "USD"
-        - timestamp: ISO format timestamp
-        - error: Error message if status is "error"
-
-    HTTP Status Codes:
-        - 200: Service is operational
-        - 401: Invalid credentials
-        - 503: Service unavailable
-
-    Validates: Requirements 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7
-    """
-try:
+    """Get TextVerified service health status with balance."""
+    try:
         logger.info("Health check endpoint called")
         service = TextVerifiedService()
         health_status = await service.get_health_status()
 
-        # Determine HTTP status code based on service status
-if health_status.get("status") == "operational":
+        if health_status.get("status") == "operational":
             logger.info("Health check successful - service operational")
             return health_status
-elif (
+        elif (
             "credentials" in health_status.get("error", "").lower()
             or "not configured" in health_status.get("error", "").lower()
         ):
@@ -53,7 +37,7 @@ elif (
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
-else:
+        else:
             logger.error(f"Health check failed - service unavailable: {health_status.get('error')}")
             raise HTTPException(
                 status_code=503,
@@ -63,9 +47,9 @@ else:
                     "timestamp": datetime.utcnow().isoformat(),
                 },
             )
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Health check endpoint error: {str(e)}")
         raise HTTPException(
             status_code=503,
@@ -79,27 +63,14 @@ except Exception as e:
 
 @router.get("/balance")
 async def get_balance() -> Dict[str, Any]:
-    """Get TextVerified account balance.
-
-    Returns:
-        - balance: Account balance as float
-        - currency: "USD"
-        - cached: Whether this is cached data
-
-    HTTP Status Codes:
-        - 200: Balance retrieved successfully
-        - 401: Invalid credentials
-        - 503: Service unavailable
-
-    Validates: Requirements 3.1, 3.2, 3.3, 3.5
-    """
-try:
+    """Get TextVerified account balance."""
+    try:
         logger.info("Balance endpoint called")
         service = TextVerifiedService()
         balance_data = await service.get_balance()
         logger.info(f"Balance retrieved: {balance_data['balance']} {balance_data['currency']}")
         return balance_data
-except Exception as e:
+    except Exception as e:
         logger.error(f"Balance endpoint error: {str(e)}")
         raise HTTPException(
             status_code=503,
@@ -120,25 +91,12 @@ async def get_status(db: Session = Depends(get_db)):
 
 @router.get("/services")
 async def get_services() -> Dict[str, Any]:
-    """Get available services from TextVerified API.
-
-    Returns:
-        - success: Boolean indicating success
-        - services: List of available services
-        - total: Total number of services
-
-    HTTP Status Codes:
-        - 200: Services retrieved successfully
-        - 503: Service unavailable
-
-    Validates: Requirements 4.1, 4.3, 4.5
-    """
-try:
+    """Get available services from TextVerified API."""
+    try:
         logger.info("Services endpoint called")
         service = TextVerifiedService()
 
-if not service.enabled:
-            # Fallback services if TextVerified not configured
+        if not service.enabled:
             fallback_services = [
                 {"id": "telegram", "name": "Telegram", "cost": 0.50},
                 {"id": "whatsapp", "name": "WhatsApp", "cost": 0.75},
@@ -167,11 +125,10 @@ if not service.enabled:
             "source": "textverified_api",
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Services endpoint error: {str(e)}")
-        # Return fallback services on error
         fallback_services = [
             {"id": "telegram", "name": "Telegram", "cost": 0.50},
             {"id": "whatsapp", "name": "WhatsApp", "cost": 0.75},

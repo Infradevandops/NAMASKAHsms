@@ -3,7 +3,9 @@
 
 import json
 from typing import Any, Dict
+
 from redis import Redis
+
 from app.core.logging import get_logger
 from app.services.webhook_service import webhook_service
 
@@ -11,9 +13,7 @@ logger = get_logger(__name__)
 
 
 class WebhookQueue:
-
     def __init__(self, redis: Redis):
-
         self.redis = redis
         self.stream = "webhooks:pending"
         self.dlq_stream = "webhooks:failed"
@@ -33,24 +33,22 @@ class WebhookQueue:
         return message_id
 
     async def dequeue(self, count: int = 1):
-        """Remove and return webhooks from queue (for manual/test processing)."""
+        """Remove and return webhooks from queue."""
         messages = self.redis.xread({self.stream: "0"}, count=count)
         result = []
         if messages:
-        for stream, msgs in messages:
-        for msg_id, payload in msgs:
+            for stream, msgs in messages:
+                for msg_id, payload in msgs:
                     result.append({"id": msg_id, "payload": payload})
         return result
 
     async def process_batch(self, batch_size: int = 10):
         """Process webhooks from queue."""
-        # Create consumer group if not exists
         try:
             self.redis.xgroup_create(self.stream, "webhook-workers", id="0", mkstream=True)
         except Exception:
-            pass  # Group already exists
+            pass
 
-        # Read from stream
         messages = self.redis.xreadgroup(
             "webhook-workers",
             "worker-1",
@@ -60,7 +58,7 @@ class WebhookQueue:
         )
 
         for stream, message_list in messages:
-        for message_id, payload in message_list:
+            for message_id, payload in message_list:
                 await self._process_message(message_id, payload)
 
     async def _process_message(self, message_id: str, payload: Dict):
@@ -71,25 +69,18 @@ class WebhookQueue:
         retry_count = int(payload.get(b"retry_count", b"0"))
 
         try:
-            # Deliver webhook (import from webhook_service)
-
             await webhook_service.deliver(webhook_id, event, data, "secret")
-
-            # Acknowledge message
             self.redis.xack(self.stream, "webhook-workers", message_id)
             logger.info(f"Webhook {webhook_id} delivered successfully")
 
         except Exception as e:
             logger.error(f"Webhook delivery failed: {str(e)}")
 
-            # Retry with exponential backoff
-        if retry_count < self.max_retries:
+            if retry_count < self.max_retries:
                 payload[b"retry_count"] = str(retry_count + 1).encode()
                 self.redis.xadd(self.stream, payload)
-        else:
-                # Move to DLQ
+            else:
                 self.redis.xadd(self.dlq_stream, payload)
                 logger.error(f"Webhook {webhook_id} moved to DLQ after {retry_count} retries")
 
-            # Acknowledge original message
             self.redis.xack(self.stream, "webhook-workers", message_id)

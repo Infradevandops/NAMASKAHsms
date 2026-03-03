@@ -25,7 +25,7 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 def admin_dashboard():
 
     """Admin dashboard interface."""
-with open("templates/admin.html", "r") as f:
+    with open("templates/admin.html", "r") as f:
         return HTMLResponse(content=f.read())
 
 
@@ -53,7 +53,7 @@ def get_all_users(
             )
 
         return {"items": items, "total": len(items)}
-except (ValueError, AttributeError):
+    except (ValueError, AttributeError):
         return {"items": [], "total": 0}
 
 
@@ -65,10 +65,10 @@ def get_user_details(
     db: Session = Depends(get_db),
 ):
     """Get detailed user information (admin only)."""
-try:
+    try:
         user = db.query(User).filter(User.id == user_id).first()
 
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get user statistics
@@ -104,7 +104,7 @@ if not user:
                 "total_funded": total_funded,
             },
         }
-except Exception as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -118,22 +118,22 @@ def manage_user_credits(
     db: Session = Depends(get_db),
 ):
     """Add or deduct credits from user account (admin only)."""
-if operation not in ["add", "deduct"]:
+    if operation not in ["add", "deduct"]:
         raise HTTPException(status_code=400, detail="Operation must be 'add' or 'deduct'")
 
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-if operation == "deduct" and user.credits < amount:
+    if operation == "deduct" and user.credits < amount:
         raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
     # Update credits
-if operation == "add":
+    if operation == "add":
         user.credits += amount
         transaction_amount = amount
         description = "Admin added credits"
-else:
+    else:
         user.credits -= amount
         transaction_amount = -float(amount)
         description = "Admin deducted credits"
@@ -165,9 +165,9 @@ def add_user_credits(
     db: Session = Depends(get_db),
 ):
     """Add credits to user account (admin only)."""
-try:
+    try:
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         user.credits += amount
@@ -187,7 +187,7 @@ if not user:
             "message": f"Added {amount} credits",
             "new_balance": user.credits,
         }
-except Exception as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -201,12 +201,12 @@ def deduct_user_credits(
     db: Session = Depends(get_db),
 ):
     """Deduct credits from user account (admin only)."""
-try:
+    try:
         user = db.query(User).filter(User.id == user_id).first()
-if not user:
+        if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-if user.credits < amount:
+        if user.credits < amount:
             raise HTTPException(status_code=400, detail=f"Insufficient balance. User has {user.credits}")
 
         user.credits -= amount
@@ -226,7 +226,7 @@ if user.credits < amount:
             "message": f"Deducted {amount} credits",
             "new_balance": user.credits,
         }
-except Exception as e:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -239,10 +239,10 @@ def suspend_user(
 ):
     """Suspend user account (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-if user.is_admin:
+    if user.is_admin:
         raise HTTPException(status_code=403, detail="Cannot suspend admin account")
 
     user.is_active = False
@@ -260,7 +260,7 @@ def activate_user(
 ):
     """Activate suspended user account (admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     user.is_active = True
@@ -273,7 +273,7 @@ if not user:
 def get_platform_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
 
     """Get platform-wide statistics (admin only)."""
-try:
+    try:
         # Total users
         total_users = db.execute(text("SELECT COUNT(*) FROM users")).scalar() or 0
 
@@ -344,7 +344,7 @@ try:
             "popular_services": popular_services,
             "daily_usage": daily_usage,
         }
-except Exception as e:
+    except Exception as e:
         # Fallback with actual error logging
         return {
             "total_users": 0,
@@ -371,7 +371,7 @@ def get_support_tickets(
     """Get all support tickets (admin only)."""
     query = db.query(SupportTicket)
 
-if ticket_status:
+    if ticket_status:
         query = query.filter(SupportTicket.status == ticket_status)
 
     tickets = query.order_by(SupportTicket.created_at.desc()).limit(limit).all()
@@ -389,7 +389,7 @@ async def respond_to_ticket(
     """Respond to support ticket (admin only)."""
 
     ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
-if not ticket:
+    if not ticket:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
     # Update ticket
@@ -423,9 +423,9 @@ def get_active_verifications(
     db: Session = Depends(get_db),
 ):
     """Get all active verifications system - wide (admin only)."""
-try:
+    try:
         return {"verifications": [], "total_count": 0}
-except (ValueError, AttributeError):
+    except (ValueError, AttributeError):
         return {"verifications": [], "total_count": 0}
 
 
@@ -438,17 +438,17 @@ async def admin_cancel_verification(
     """Cancel any verification and refund user (admin only)."""
 
     verification = db.query(Verification).filter(Verification.id == verification_id).first()
-if not verification:
+    if not verification:
         raise HTTPException(status_code=404, detail="Verification not found")
 
-if verification.status == "cancelled":
+    if verification.status == "cancelled":
         raise HTTPException(status_code=400, detail="Already cancelled")
 
     # Cancel verification locally
 
     # Refund user
     user = db.query(User).filter(User.id == verification.user_id).first()
-if user:
+    if user:
         user.credits += verification.cost
 
         # Create refund transaction
@@ -474,11 +474,11 @@ def get_system_health(admin_id: str = Depends(get_admin_user_id), db: Session = 
 
     """Get comprehensive system health status (admin only)."""
     # Database health
-try:
+    try:
 
         db.execute(text("SELECT 1"))
         db_status = "healthy"
-except Exception:
+    except Exception:
         db_status = "unhealthy"
 
     # User statistics
@@ -520,9 +520,9 @@ def get_all_transactions(
     query = db.query(Transaction)
 
     # Apply filters
-if user_id:
+    if user_id:
         query = query.filter(Transaction.user_id == user_id)
-if transaction_type:
+    if transaction_type:
         query = query.filter(Transaction.type == transaction_type)
 
     # Get total count
@@ -537,7 +537,7 @@ if transaction_type:
 
     # Format response
     items = []
-for transaction in transactions:
+    for transaction in transactions:
         user = db.query(User).filter(User.id == transaction.user_id).first()
         items.append(
             {
@@ -566,20 +566,20 @@ async def broadcast_notification(
     """Broadcast notification to users (admin only)."""
 
     # Get target users
-if target_users:
+    if target_users:
         users = db.query(User).filter(User.id.in_(target_users)).all()
-else:
+    else:
         users = db.query(User).filter(User.is_active.is_(True)).all()
 
-if not users:
+    if not users:
         raise HTTPException(status_code=404, detail="No target users found")
 
     # Send notifications
     notification_service = get_notification_service(db)
     sent_count = 0
 
-for user in users:
-try:
+    for user in users:
+        try:
             await notification_service.send_email(
                 to_email=user.email,
                 subject=title,
@@ -588,7 +588,7 @@ try:
                 + "<p>Best regards,<br>Namaskah Team</p>",
             )
             sent_count += 1
-except Exception:
+        except Exception:
             continue  # Skip failed sends
 
     return SuccessResponse(

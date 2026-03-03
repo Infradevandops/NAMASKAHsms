@@ -4,8 +4,8 @@
 from sqlalchemy import Index, text
 from app.models.transaction import Transaction
 
-def create_database_indexes(engine):
 
+def create_database_indexes(engine):
     """Create optimized database indexes."""
 
     # User table indexes
@@ -28,8 +28,7 @@ def create_database_indexes(engine):
     Index("idx_transaction_created_at", Transaction.created_at)
     Index("idx_transaction_user_type", Transaction.user_id, Transaction.type)
 
-    # Create all indexes
-with engine.connect() as conn:
+    with engine.connect() as conn:
         conn.execute(
             text(
                 """
@@ -48,12 +47,10 @@ with engine.connect() as conn:
 
 
 class QueryOptimizer:
-
     """Query optimization utilities."""
 
     @staticmethod
     def get_user_verifications_optimized(db: Session, user_id: str, limit: int = 50):
-
         """Optimized query for user verifications."""
         return (
             db.query(Verification)
@@ -63,9 +60,8 @@ class QueryOptimizer:
             .all()
         )
 
-        @staticmethod
+    @staticmethod
     def get_user_transactions_optimized(db: Session, user_id: str, limit: int = 50):
-
         """Optimized query for user transactions."""
         return (
             db.query(Transaction)
@@ -75,9 +71,8 @@ class QueryOptimizer:
             .all()
         )
 
-        @staticmethod
+    @staticmethod
     def get_verification_stats_optimized(db: Session, user_id: str):
-
         """Optimized query for verification statistics using ORM."""
 
         return (
@@ -92,16 +87,13 @@ class QueryOptimizer:
         )
 
 
-    def configure_connection_pool():
-
-        """Configure database connection pooling."""
-    # Connection pool is configured in engine creation
-    # This function documents the recommended settings
-        pool_settings = {
+def configure_connection_pool():
+    """Configure database connection pooling."""
+    pool_settings = {
         "pool_size": 20,
         "max_overflow": 30,
         "pool_timeout": 30,
         "pool_recycle": 3600,
         "pool_pre_ping": True,
-        }
-        return pool_settings
+    }
+    return pool_settings

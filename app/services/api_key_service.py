@@ -27,16 +27,16 @@ class APIKeyService:
         """Check if user can create API key based on tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-        return False
+            return False
 
         tier = TIER_CONFIG.get(user.tier or "freemium", {})
         limit = tier.get("api_key_limit", 0)
 
         if limit == 0:
-        return False
+            return False
 
         if limit == -1:
-        return True
+            return True
 
         current_count = self.db.query(APIKey).filter(
             APIKey.user_id == user_id, 
@@ -49,16 +49,16 @@ class APIKeyService:
         """Get remaining API key slots for user."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-        return 0
+            return 0
 
         tier = TIER_CONFIG.get(user.tier or "freemium", {})
         limit = tier.get("api_key_limit", 0)
 
         if limit == 0:
-        return 0
+            return 0
 
         if limit == -1:
-        return 999  # Unlimited
+            return 999  # Unlimited
 
         current_count = self.db.query(APIKey).filter(
             APIKey.user_id == user_id, 
@@ -104,7 +104,7 @@ class APIKeyService:
         ).first()
 
         if not api_key:
-        return False
+            return False
 
         api_key.is_active = False
         self.db.commit()
@@ -118,7 +118,7 @@ class APIKeyService:
         ).first()
 
         if not old_key:
-        return None
+            return None
 
         # Generate new key
         plain_key, new_key = self.generate_api_key(user_id, old_key.name)

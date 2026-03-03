@@ -32,7 +32,7 @@ class NumberBlacklist(BaseModel):
         return datetime.now(timezone.utc) > self.expires_at
 
         @classmethod
-    def create_blacklist_entry(
+        def create_blacklist_entry(
         cls,
         user_id: str,
         phone_number: str,
@@ -42,7 +42,7 @@ class NumberBlacklist(BaseModel):
         is_manual: bool = False,
         days: int = 30,
         ):
-        """Create a new blacklist entry."""
+            """Create a new blacklist entry."""
         return cls(
             user_id=user_id,
             phone_number=phone_number,

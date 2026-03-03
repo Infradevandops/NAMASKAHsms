@@ -4,12 +4,7 @@
 from typing import Dict, Optional
 from sqlalchemy.orm import Session
 from app.models.whitelabel import WhiteLabelConfig
-from app.models.whitelabel_enhanced import (
-
-    WhiteLabelAsset,
-    WhiteLabelDomain,
-    WhiteLabelTheme,
-)
+from app.models.whitelabel_enhanced import WhiteLabelAsset, WhiteLabelDomain, WhiteLabelTheme
 
 
 class WhiteLabelEnhancedService:
@@ -22,7 +17,7 @@ class WhiteLabelEnhancedService:
 
     async def setup_complete_whitelabel(
         self, partner_id: int, domain: str, company_name: str, branding_config: Dict
-        ) -> Dict:
+    ) -> Dict:
         """Complete white - label setup wizard."""
 
         # Create main config
@@ -120,7 +115,7 @@ class WhiteLabelEnhancedService:
         domain_entry = self.db.query(WhiteLabelDomain).filter(WhiteLabelDomain.domain == domain).first()
 
         if not domain_entry:
-        return {"error": "Domain not found"}
+            return {"error": "Domain not found"}
 
         # Simple verification (in production, implement DNS TXT record check)
         verification_token = f"namaskah - verify-{domain_entry.id}"
@@ -143,7 +138,7 @@ class WhiteLabelEnhancedService:
         )
 
         if not config:
-        return None
+            return None
 
         # Get theme
         theme = (
@@ -192,7 +187,7 @@ class WhiteLabelEnhancedService:
         )
 
         if not theme:
-        return ""
+            return ""
 
         css_vars = theme.css_variables or {}
         custom_css = theme.custom_css or ""
@@ -223,7 +218,7 @@ class WhiteLabelEnhancedService:
         config = self.db.query(WhiteLabelConfig).filter(WhiteLabelConfig.id == config_id).first()
 
         if not config:
-        return {}
+            return {}
 
         return {
             "name": f"{config.company_name} SMS Platform",

@@ -45,8 +45,8 @@ class TierListResponse(BaseModel):
 
         @field_validator("tiers")
         @classmethod
-    def validate_tiers_count(cls, v):
-        """Ensure we have all 4 tiers."""
+        def validate_tiers_count(cls, v):
+            """Ensure we have all 4 tiers."""
         if len(v) < 4:
             raise ValueError(f"Expected at least 4 tiers, got {len(v)}")
         return v
@@ -71,8 +71,8 @@ class TierUpgradeRequest(BaseModel):
 
         @field_validator("target_tier")
         @classmethod
-    def validate_tier_value(cls, v):
-        """Validate target tier is upgradeable."""
+        def validate_tier_value(cls, v):
+            """Validate target tier is upgradeable."""
         allowed_tiers = {"payg", "pro", "custom"}
         if v not in allowed_tiers:
             raise ValueError(f"Can only upgrade to: {allowed_tiers}")

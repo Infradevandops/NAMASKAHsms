@@ -64,16 +64,16 @@ async def get_unreceived_verifications(
 
     # Group by service
     by_service = {}
-for v in unreceived:
-if v.service_name not in by_service:
+    for v in unreceived:
+        if v.service_name not in by_service:
             by_service[v.service_name] = {"count": 0, "amount": 0}
         by_service[v.service_name]["count"] += 1
         by_service[v.service_name]["amount"] += float(v.cost)
 
     # Group by status
     by_status = {}
-for v in unreceived:
-if v.status not in by_status:
+    for v in unreceived:
+        if v.status not in by_status:
             by_status[v.status] = {"count": 0, "amount": 0}
         by_status[v.status]["count"] += 1
         by_status[v.status]["amount"] += float(v.cost)
@@ -89,7 +89,7 @@ if v.status not in by_status:
             "created_at": v.created_at.isoformat(),
             "minutes_elapsed": int((datetime.now(timezone.utc) - v.created_at).total_seconds() / 60),
         }
-for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
+        for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
     ]
 
     return {
@@ -143,7 +143,7 @@ async def get_refund_candidates(
 
     # Filter out already refunded
     candidates = []
-for v in unreceived:
+    for v in unreceived:
         # Check for existing refund
         existing_refund = (
             db.query(Transaction)
@@ -158,7 +158,7 @@ for v in unreceived:
             .first()
         )
 
-if not existing_refund:
+        if not existing_refund:
             user = db.query(User).filter(User.id == v.user_id).first()
             candidates.append(
                 {

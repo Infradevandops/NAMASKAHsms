@@ -45,7 +45,7 @@ class EmailNotificationService:
         user_email: str,
         notification: Notification,
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send notification email to user.
 
         Args:
@@ -70,11 +70,11 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Notification email sent to {user_email} (type: {notification.type})")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send notification email: {str(e)}")
-        return False
+            return False
 
     async def send_verification_initiated_email(
         self,
@@ -82,7 +82,7 @@ class EmailNotificationService:
         service_name: str,
         verification_id: str,
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send verification initiated email.
 
         Args:
@@ -109,11 +109,11 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Verification initiated email sent to {user_email} for {service_name}")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send verification initiated email: {str(e)}")
-        return False
+            return False
 
     async def send_verification_completed_email(
         self,
@@ -122,7 +122,7 @@ class EmailNotificationService:
         verification_id: str,
         cost: float,
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send verification completed email.
 
         Args:
@@ -151,11 +151,11 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Verification completed email sent to {user_email} for {service_name}")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send verification completed email: {str(e)}")
-        return False
+            return False
 
     async def send_low_balance_alert_email(
         self,
@@ -163,7 +163,7 @@ class EmailNotificationService:
         current_balance: float,
         threshold: float,
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send low balance alert email.
 
         Args:
@@ -190,18 +190,18 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Low balance alert sent to {user_email}")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send low balance alert: {str(e)}")
-        return False
+            return False
 
     async def send_daily_digest_email(
         self,
         user_email: str,
         notifications: List[Notification],
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send daily digest email with multiple notifications.
 
         Args:
@@ -230,11 +230,11 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Daily digest sent to {user_email} with {len(notifications)} notifications")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send daily digest: {str(e)}")
-        return False
+            return False
 
     async def send_weekly_digest_email(
         self,
@@ -242,7 +242,7 @@ class EmailNotificationService:
         notifications: List[Notification],
         stats: Dict[str, Any],
         unsubscribe_token: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Send weekly digest email with statistics.
 
         Args:
@@ -273,11 +273,11 @@ class EmailNotificationService:
             await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
 
             logger.info(f"Weekly digest sent to {user_email}")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send weekly digest: {str(e)}")
-        return False
+            return False
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
         """Send email via SMTP.
@@ -305,11 +305,11 @@ class EmailNotificationService:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
 
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
-        return False
+            return False
 
     def _send_smtp(self, to_email: str, message: str) -> None:
 
@@ -320,7 +320,7 @@ class EmailNotificationService:
             message: Email message
         """
         try:
-        with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
+            with smtplib.SMTP(self.smtp_host, self.smtp_port) as server:
                 server.starttls()
                 server.login(self.smtp_user, self.smtp_password)
                 server.sendmail(self.from_email, to_email, message)
@@ -333,7 +333,7 @@ class EmailNotificationService:
         self,
         notification: Notification,
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for notification email.
 
         Args:
@@ -368,7 +368,7 @@ class EmailNotificationService:
                 </div>
             </body>
         </html>
-        """
+    """
 
     def _create_verification_initiated_html(
 
@@ -376,7 +376,7 @@ class EmailNotificationService:
         service_name: str,
         verification_id: str,
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for verification initiated email.
 
         Args:
@@ -424,7 +424,7 @@ class EmailNotificationService:
                 </div>
             </body>
         </html>
-        """
+    """
 
     def _create_verification_completed_html(
 
@@ -433,7 +433,7 @@ class EmailNotificationService:
         verification_id: str,
         cost: float,
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for verification completed email.
 
         Args:
@@ -486,7 +486,7 @@ class EmailNotificationService:
                 </div>
             </body>
         </html>
-        """
+    """
 
     def _create_low_balance_alert_html(
 
@@ -494,7 +494,7 @@ class EmailNotificationService:
         current_balance: float,
         threshold: float,
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for low balance alert email.
 
         Args:
@@ -546,14 +546,14 @@ class EmailNotificationService:
                 </div>
             </body>
         </html>
-        """
+    """
 
     def _create_daily_digest_html(
 
         self,
         notifications: List[Notification],
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for daily digest email.
 
         Args:
@@ -608,7 +608,7 @@ class EmailNotificationService:
                 </div>
             </body>
         </html>
-        """
+    """
 
     def _create_weekly_digest_html(
 
@@ -616,7 +616,7 @@ class EmailNotificationService:
         notifications: List[Notification],
         stats: Dict[str, Any],
         unsubscribe_token: Optional[str] = None,
-        ) -> str:
+    ) -> str:
         """Create HTML for weekly digest email.
 
         Args:

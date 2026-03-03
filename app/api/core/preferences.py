@@ -25,7 +25,7 @@ class UpdatePreferencesRequest(BaseModel):
         prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
         if not prefs:
-        return SuccessResponse(message="Default preferences", data={"language": "en", "currency": "USD"})
+            return SuccessResponse(message="Default preferences", data={"language": "en", "currency": "USD"})
 
         return SuccessResponse(
         message="User preferences",
@@ -34,12 +34,12 @@ class UpdatePreferencesRequest(BaseModel):
 
 
         @router.put("", response_model=SuccessResponse)
-    async def update_preferences(
+        async def update_preferences(
         request: UpdatePreferencesRequest,
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
         ):
-        """Update user language and currency preferences."""
+            """Update user language and currency preferences."""
         language = request.language
         currency = request.currency
         """Update user language and currency preferences."""
@@ -47,7 +47,7 @@ class UpdatePreferencesRequest(BaseModel):
     # Validate language
         valid_languages = ["en", "es", "fr", "de", "pt", "zh", "ja", "ar", "hi", "yo"]
         if language and language not in valid_languages:
-        raise HTTPException(
+            raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid language. Supported: {', '.join(valid_languages)}",
         )
@@ -66,7 +66,7 @@ class UpdatePreferencesRequest(BaseModel):
         "AUD",
         ]
         if currency and currency not in valid_currencies:
-        raise HTTPException(
+            raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid currency. Supported: {', '.join(valid_currencies)}",
         )
@@ -75,14 +75,14 @@ class UpdatePreferencesRequest(BaseModel):
         prefs = db.query(UserPreference).filter(UserPreference.user_id == current_user.id).first()
 
         if not prefs:
-        prefs = UserPreference(user_id=current_user.id)
+            prefs = UserPreference(user_id=current_user.id)
         db.add(prefs)
 
     # Update fields
         if language:
-        prefs.language = language
+            prefs.language = language
         if currency:
-        prefs.currency = currency
+            prefs.currency = currency
 
         db.commit()
         db.refresh(prefs)

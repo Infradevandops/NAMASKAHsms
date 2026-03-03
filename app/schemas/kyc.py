@@ -32,20 +32,19 @@ class KYCProfileCreate(BaseModel):
             raise ValueError("Invalid date of birth")
         return v
 
-        @field_validator("phone_number")
-        @classmethod
+    @field_validator("phone_number")
+    @classmethod
     def validate_phone(cls, v):
-        # Basic phone validation
         if not re.match(r"^\+?[1-9]\d{1,14}$", v.replace(" ", "").replace("-", "")):
             raise ValueError("Invalid phone number format")
         return v
 
-        model_config = {
+    model_config = {
         "json_schema_extra": {
             "example": {
                 "full_name": "John Doe",
                 "phone_number": "+1234567890",
-                "date_of_birth": "1990 - 01-01",
+                "date_of_birth": "1990-01-01",
                 "nationality": "US",
                 "address_line1": "123 Main Street",
                 "address_line2": "Apt 4B",
@@ -55,7 +54,7 @@ class KYCProfileCreate(BaseModel):
                 "country": "US",
             }
         }
-        }
+    }
 
 
 class KYCProfileResponse(BaseModel):

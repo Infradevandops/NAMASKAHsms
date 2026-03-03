@@ -2,17 +2,17 @@
 
 
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.services.pricing_calculator import PricingCalculator
 from app.services.quota_service import QuotaService
 
-class VerificationPricingService:
 
+class VerificationPricingService:
     """Handle verification with pricing enforcement."""
 
     @staticmethod
     def validate_and_calculate_cost(db: Session, user_id: str, filters: dict = None) -> dict:
-
         """Validate user can purchase and calculate cost."""
         if not filters:
             filters = {}
@@ -28,9 +28,8 @@ class VerificationPricingService:
 
         return cost_info
 
-        @staticmethod
+    @staticmethod
     def deduct_cost(db: Session, user_id: str, cost: float) -> None:
-
         """Deduct cost from user balance."""
         user = db.query(User).filter(User.id == user_id).first()
 
@@ -42,8 +41,7 @@ class VerificationPricingService:
         QuotaService.add_quota_usage(db, user_id, cost)
         db.commit()
 
-        @staticmethod
+    @staticmethod
     def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
-
         """Get pricing breakdown for user."""
         return PricingCalculator.get_pricing_breakdown(db, user_id, filters)

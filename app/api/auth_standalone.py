@@ -40,20 +40,18 @@ class TokenResponse(BaseModel):
     user: dict
 
 
-    @router.post("/login", response_model=TokenResponse)
-    async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
-        """Login endpoint."""
-        try:
-        # Find user by email
+@router.post("/login", response_model=TokenResponse)
+async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
+    """Login endpoint."""
+    try:
         user = db.query(User).filter(User.email == login_data.email).first()
-        
+
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password"
             )
-        
-        # Verify password
+
         if not bcrypt.checkpw(
             login_data.password.encode('utf-8'),
             user.password_hash.encode('utf-8')
@@ -62,33 +60,30 @@ class TokenResponse(BaseModel):
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid email or password"
             )
-        
-        # Check if user is active
+
         if not user.is_active:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Account is disabled"
             )
-        
-        # Generate JWT token
+
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
             "exp": datetime.utcnow() + timedelta(days=7)
         }
-        
+
         access_token = jwt.encode(
             token_data,
             settings.jwt_secret_key,
             algorithm=settings.jwt_algorithm
         )
-        
-        # Update last login
+
         user.last_login = datetime.utcnow()
         db.commit()
-        
+
         logger.info(f"User logged in: {user.email}")
-        
+
         return {
             "access_token": access_token,
             "token_type": "bearer",
@@ -99,10 +94,10 @@ class TokenResponse(BaseModel):
                 "credits": float(user.credits) if user.credits else 0.0,
             }
         }
-        
-        except HTTPException:
+
+    except HTTPException:
         raise
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Login error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -110,26 +105,23 @@ class TokenResponse(BaseModel):
         )
 
 
-        @router.post("/register", response_model=TokenResponse)
-    async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
-        """Register endpoint."""
-        try:
-        # Check if user already exists
+@router.post("/register", response_model=TokenResponse)
+async def register(register_data: RegisterRequest, db: Session = Depends(get_db)):
+    """Register endpoint."""
+    try:
         existing_user = db.query(User).filter(User.email == register_data.email).first()
-        
+
         if existing_user:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email already registered"
             )
-        
-        # Hash password
+
         password_hash = bcrypt.hashpw(
             register_data.password.encode('utf-8'),
             bcrypt.gensalt()
         ).decode('utf-8')
-        
-        # Create user
+
         user = User(
             email=register_data.email,
             username=register_data.username or register_data.email.split('@')[0],
@@ -138,26 +130,25 @@ class TokenResponse(BaseModel):
             credits=0.0,
             created_at=datetime.utcnow()
         )
-        
+
         db.add(user)
         db.commit()
         db.refresh(user)
-        
-        # Generate JWT token
+
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
             "exp": datetime.utcnow() + timedelta(days=7)
         }
-        
+
         access_token = jwt.encode(
             token_data,
             settings.jwt_secret_key,
             algorithm=settings.jwt_algorithm
         )
-        
+
         logger.info(f"New user registered: {user.email}")
-        
+
         return {
             "access_token": access_token,
             "token_type": "bearer",
@@ -168,10 +159,10 @@ class TokenResponse(BaseModel):
                 "credits": 0.0,
             }
         }
-        
-        except HTTPException:
+
+    except HTTPException:
         raise
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Registration error: {str(e)}")
         db.rollback()
         raise HTTPException(
@@ -180,35 +171,33 @@ class TokenResponse(BaseModel):
         )
 
 
-        @router.get("/me")
-    async def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-        db: Session = Depends(get_db)
-        ):
-        """Get current user info."""
-        try:
-        # Decode token
+@router.get("/me")
+async def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db)
+):
+    """Get current user info."""
+    try:
         payload = jwt.decode(
             credentials.credentials,
             settings.jwt_secret_key,
             algorithms=[settings.jwt_algorithm]
         )
-        
+
         user_id = payload.get("user_id")
         if not user_id:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token"
             )
-        
-        # Get user
+
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="User not found"
             )
-        
+
         return {
             "id": str(user.id),
             "email": user.email,
@@ -216,18 +205,18 @@ class TokenResponse(BaseModel):
             "credits": float(user.credits) if user.credits else 0.0,
             "is_active": user.is_active,
         }
-        
-        except jwt.ExpiredSignatureError:
+
+    except jwt.ExpiredSignatureError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token expired"
         )
-        except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid token"
         )
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Get user error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

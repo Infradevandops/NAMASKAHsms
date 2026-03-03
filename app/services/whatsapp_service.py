@@ -2,15 +2,16 @@
 
 
 from typing import Dict, Optional
+
 import httpx
+
 from app.core.config import settings
 
-class WhatsAppService:
 
+class WhatsAppService:
     """WhatsApp Business API service."""
 
     def __init__(self):
-
         self.base_url = "https://graph.facebook.com/v18.0"
         self.phone_number_id = settings.whatsapp_phone_number_id
         self.access_token = settings.whatsapp_access_token
@@ -29,7 +30,7 @@ class WhatsAppService:
                 "components": [
                     {
                         "type": "body",
-                        "parameters": [{"type": "text", "text": "123456"}],  # Generated code
+                        "parameters": [{"type": "text", "text": "123456"}],
                     }
                 ],
             },
@@ -37,7 +38,7 @@ class WhatsAppService:
 
         headers = {
             "Authorization": f"Bearer {self.access_token}",
-            "Content - Type": "application/json",
+            "Content-Type": "application/json",
         }
 
         async with httpx.AsyncClient() as client:
@@ -48,5 +49,5 @@ class WhatsAppService:
         """Verify WhatsApp webhook."""
         verify_token = settings.whatsapp_verify_token
         if token == verify_token:
-        return challenge
+            return challenge
         return None

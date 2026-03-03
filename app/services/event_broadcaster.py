@@ -53,12 +53,12 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-        if success:
+            if success:
                 logger.info(f"Notification broadcasted to user {user_id} via WebSocket")
-        else:
+            else:
                 logger.debug(f"User {user_id} not connected, notification not broadcasted")
 
-        return success
+            return success
 
         except Exception as e:
             logger.error(f"Failed to broadcast notification: {e}")
@@ -97,12 +97,12 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-        if success:
+            if success:
                 logger.info(f"Activity broadcasted to user {user_id} via WebSocket")
-        else:
+            else:
                 logger.debug(f"User {user_id} not connected, activity not broadcasted")
 
-        return success
+            return success
 
         except Exception as e:
             logger.error(f"Failed to broadcast activity: {e}")
@@ -144,12 +144,12 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-        if success:
+            if success:
                 logger.info(f"Payment event broadcasted to user {user_id} via WebSocket")
-        else:
+            else:
                 logger.debug(f"User {user_id} not connected, payment event not broadcasted")
 
-        return success
+            return success
 
         except Exception as e:
             logger.error(f"Failed to broadcast payment event: {e}")
@@ -191,12 +191,12 @@ class EventBroadcaster:
 
             success = await connection_manager.broadcast_to_user(user_id, message)
 
-        if success:
+            if success:
                 logger.info(f"Verification event broadcasted to user {user_id} via WebSocket")
-        else:
+            else:
                 logger.debug(f"User {user_id} not connected, verification event not broadcasted")
 
-        return success
+            return success
 
         except Exception as e:
             logger.error(f"Failed to broadcast verification event: {e}")
@@ -236,7 +236,7 @@ class EventBroadcaster:
 
             logger.info(f"Channel broadcast sent to {recipients} users on channel {channel}")
 
-        return recipients
+            return recipients
 
         except Exception as e:
             logger.error(f"Failed to broadcast to channel: {e}")
@@ -253,7 +253,7 @@ class EventBroadcaster:
             active_connections = connection_manager.get_active_connections_count()
             active_users = connection_manager.get_active_users()
 
-        return {
+            return {
                 "active_connections": active_connections,
                 "active_users": len(active_users),
                 "user_ids": active_users,
@@ -269,4 +269,4 @@ class EventBroadcaster:
 
 
 # Global event broadcaster instance
-        event_broadcaster = EventBroadcaster()
+event_broadcaster = EventBroadcaster()

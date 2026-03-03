@@ -48,7 +48,7 @@ class WebhookResponse(BaseModel):
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
         _=Depends(require_payg),
-        ):
+    ):
         """List all webhooks for the current user."""
         webhooks = db.query(Webhook).filter(Webhook.user_id == current_user.id).all()
 
@@ -71,13 +71,13 @@ class WebhookResponse(BaseModel):
 
 
         @router.post("", response_model=SuccessResponse)
-    async def create_webhook(
+        async def create_webhook(
         request: WebhookCreate,
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
         _=Depends(require_payg),
         ):
-        """Create a new webhook."""
+            """Create a new webhook."""
         webhook = Webhook(
         user_id=current_user.id,
         name=request.name,
@@ -97,17 +97,17 @@ class WebhookResponse(BaseModel):
 
 
         @router.delete("/{webhook_id}", response_model=SuccessResponse)
-    async def delete_webhook(
+        async def delete_webhook(
         webhook_id: str,
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
         _=Depends(require_payg),
         ):
-        """Delete a webhook."""
+            """Delete a webhook."""
         webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
         if not webhook:
-        raise HTTPException(status_code=404, detail="Webhook not found")
+            raise HTTPException(status_code=404, detail="Webhook not found")
 
         db.delete(webhook)
         db.commit()
@@ -116,17 +116,17 @@ class WebhookResponse(BaseModel):
 
 
         @router.post("/{webhook_id}/test", response_model=SuccessResponse)
-    async def test_webhook(
+        async def test_webhook(
         webhook_id: str,
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db),
         _=Depends(require_payg),
         ):
-        """Send a test ping to the webhook."""
+            """Send a test ping to the webhook."""
         webhook = db.query(Webhook).filter(Webhook.id == webhook_id, Webhook.user_id == current_user.id).first()
 
         if not webhook:
-        raise HTTPException(status_code=404, detail="Webhook not found")
+            raise HTTPException(status_code=404, detail="Webhook not found")
 
     # In a real app, this would trigger an async task to ping the URL
         return SuccessResponse(message=f"Test ping sent to {webhook.url}")

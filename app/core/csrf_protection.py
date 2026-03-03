@@ -14,7 +14,7 @@ def generate_csrf_token() -> str:
 async def verify_csrf_token(request: Request, db: Session) -> str:
     """Verify CSRF token from request."""
     token = request.headers.get("X-CSRF-Token")
-if not token:
+    if not token:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing")
     return token
 

@@ -19,12 +19,12 @@ class WhiteLabelService:
             )
         except Exception:
             # Table doesn't exist, return None
-        return None
+            return None
 
-        if not config:
-        return None
+            if not config:
+                return None
 
-        return {
+            return {
             "company_name": config.company_name,
             "logo_url": config.logo_url,
             "primary_color": config.primary_color,

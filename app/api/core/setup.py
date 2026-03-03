@@ -20,16 +20,16 @@ def initialize_admin(db: Session = Depends(get_db)):
     admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
     admin_password = os.getenv("ADMIN_PASSWORD")
 
-if not admin_password:
+    if not admin_password:
         return SuccessResponse(
             message="Admin setup requires ADMIN_PASSWORD environment variable",
             data={"error": "Missing ADMIN_PASSWORD"},
         )
 
-try:
+    try:
         # Check if any admin exists
         existing_admin = db.query(User).filter(User.is_admin).first()
-if existing_admin:
+        if existing_admin:
             return SuccessResponse(
                 message="Admin already exists",
                 data={"email": admin_email, "note": "Use existing admin credentials"},
@@ -37,7 +37,7 @@ if existing_admin:
 
         # Check if user exists
         existing_user = db.query(User).filter(User.email == admin_email).first()
-if existing_user:
+        if existing_user:
             # Upgrade to admin
             existing_user.is_admin = True
             existing_user.credits = 1000.0
@@ -62,7 +62,7 @@ if existing_user:
             data={"email": admin_email, "credits": 1000},
         )
 
-except Exception as e:
+    except Exception as e:
         return SuccessResponse(
             message=f"Setup failed: {str(e)}",
             data={"email": admin_email, "note": "Try logging in anyway"},
