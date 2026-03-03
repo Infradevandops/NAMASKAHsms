@@ -193,6 +193,17 @@
             style="display: none;">SMS Forwarding</button>
         <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist', event)"
             style="display: none;">Blacklist</button>
+        <button class="settings-nav-item" onclick="switchTab('history', event)">History</button>
+        <button class="settings-nav-item" onclick="switchTab('notifications-center', event)">Notifications
+            <span id="settings-notif-badge" class="notif-badge" style="display: none;">0</span>
+        </button>
+        <button class="settings-nav-item" onclick="switchTab('privacy', event)">Privacy</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('referrals', event)"
+            style="display: none;">Referrals</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('webhooks', event)"
+            style="display: none;">Webhooks</button>
+        <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-docs', event)"
+            style="display: none;">API Docs</button>
     </nav>
 
     <div class="settings-content">
@@ -418,6 +429,193 @@
                     style="display: flex; justify-content: center; gap: 8px; margin-top: 16px;"></div>
             </div>
         </div>
+
+        <!-- History Tab -->
+        <div id="history-tab" class="settings-tab">
+            <div class="card" style="margin-bottom: 16px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <select id="filter-status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                        <option value="">All Status</option>
+                        <option value="completed">Completed</option>
+                        <option value="pending">Pending</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                    <input type="date" id="filter-date" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
+                    <button class="btn" onclick="applyFilters()" style="padding: 8px 16px;">Filter</button>
+                    <button class="btn" onclick="clearFilters()" style="padding: 8px 16px; background: #6b7280;">Clear</button>
+                    <button class="btn" onclick="exportHistory()" style="padding: 8px 16px; background: #10b981; margin-left: auto;">📥 Export CSV</button>
+                </div>
+            </div>
+            <div class="card">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Country</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Carrier</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Number</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Code</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Cost</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
+                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body">
+                        <tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="history-empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
+                <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
+                <h3 style="margin-bottom: 8px;">No verification history</h3>
+                <p style="margin-bottom: 24px;">Start your first verification to see it here</p>
+                <button class="btn" onclick="window.location.href='/verify'">Get SMS Code</button>
+            </div>
+        </div>
+
+        <!-- Notifications Center Tab -->
+        <div id="notifications-center-tab" class="settings-tab">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <span id="notif-unread-count" style="font-size: 14px; color: var(--text-muted);">Loading...</span>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" onclick="markAllRead()" id="mark-all-btn" style="padding: 8px 16px;" disabled>✓ Mark All Read</button>
+                        <button class="btn btn-secondary" onclick="loadNotificationsTab()" style="padding: 8px 16px;">🔄 Refresh</button>
+                    </div>
+                </div>
+                <div class="notification-filters" role="tablist" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
+                    <button class="filter-btn active" data-filter="all" onclick="setNotifFilter('all')" role="tab">All <span class="count" id="notif-count-all">0</span></button>
+                    <button class="filter-btn" data-filter="unread" onclick="setNotifFilter('unread')" role="tab">Unread <span class="count" id="notif-count-unread">0</span></button>
+                    <button class="filter-btn" data-filter="system" onclick="setNotifFilter('system')" role="tab">System <span class="count" id="notif-count-system">0</span></button>
+                    <button class="filter-btn" data-filter="payment" onclick="setNotifFilter('payment')" role="tab">Payment <span class="count" id="notif-count-payment">0</span></button>
+                    <button class="filter-btn" data-filter="verification" onclick="setNotifFilter('verification')" role="tab">Verification <span class="count" id="notif-count-verification">0</span></button>
+                </div>
+                <div id="notif-list" role="list"><div style="text-align: center; padding: 40px;"><span class="loading-spinner"></span></div></div>
+                <div id="notif-empty-state" style="display: none; text-align: center; padding: 40px;">
+                    <div style="font-size: 48px;">🔔</div>
+                    <h3>No Notifications</h3>
+                    <p>You're all caught up!</p>
+                </div>
+                <div id="notif-load-more" style="display: none; text-align: center; margin-top: 16px;">
+                    <button class="btn btn-secondary" onclick="loadMoreNotifs()">Load More</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Privacy Tab -->
+        <div id="privacy-tab" class="settings-tab">
+            <div class="card">
+                <h2>Data Export</h2>
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Under GDPR Article 20, you have the right to receive your personal data in a structured, commonly used format.</p>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: 8px; margin-bottom: 8px;">
+                    <div>
+                        <h4 style="margin: 0;">Download Your Data</h4>
+                        <p style="color: var(--text-muted); font-size: 13px; margin: 4px 0 0 0;">Export all personal data including profile, verifications, and transactions (JSON)</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="exportData()" id="export-btn">📥 Export Data</button>
+                </div>
+                <p style="font-size: 13px; color: var(--text-muted);">Last export: <span id="last-export-date">Never</span></p>
+            </div>
+            <div class="card" style="margin-top: 16px;">
+                <h2>Privacy Preferences</h2>
+                <div class="toggle-switch">
+                    <div><strong>Essential Cookies</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Required for basic functionality. Always enabled.</p></div>
+                    <label class="switch"><input type="checkbox" checked disabled><span class="slider"></span></label>
+                </div>
+                <div class="toggle-switch">
+                    <div><strong>Analytics</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Help us understand how you use our service</p></div>
+                    <label class="switch"><input type="checkbox" id="consent-analytics" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
+                </div>
+                <div class="toggle-switch">
+                    <div><strong>Marketing Communications</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Receive updates about new features and promotions</p></div>
+                    <label class="switch"><input type="checkbox" id="consent-marketing" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
+                </div>
+                <div class="toggle-switch">
+                    <div><strong>Email Notifications</strong><p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Receive important account notifications via email</p></div>
+                    <label class="switch"><input type="checkbox" id="consent-email" onchange="savePrivacyPreferences()"><span class="slider"></span></label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Referrals Tab -->
+        <div id="referrals-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 24px;">
+                    <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
+                        <div style="font-size: 28px; font-weight: 700;" id="ref-total-earnings">$0.00</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">Total Earnings</div>
+                    </div>
+                    <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
+                        <div style="font-size: 28px; font-weight: 700;" id="ref-total-referrals">0</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">Friends Invited</div>
+                    </div>
+                    <div style="flex: 1; min-width: 120px; text-align: center; padding: 16px; background: var(--bg-body); border-radius: 8px;">
+                        <div style="font-size: 28px; font-weight: 700;" id="ref-bonus-credits">0</div>
+                        <div style="color: var(--text-muted); font-size: 13px;">Bonus Credits</div>
+                    </div>
+                </div>
+                <h2>Share the Love</h2>
+                <p style="color: var(--text-muted); margin: 8px 0 16px;">Give 2 free verifications to your friends and earn 10% on their first deposit!</p>
+                <div style="display: flex; gap: 8px; margin-bottom: 24px;">
+                    <input type="text" id="referral-url" class="form-input" readonly value="Loading..." style="flex: 1;">
+                    <button class="btn btn-primary" onclick="copyReferralLink()">Copy Link</button>
+                </div>
+                <h3 style="margin-bottom: 16px;">Recent Referrals</h3>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">User ID</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Email</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date Joined</th>
+                                <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="referrals-list">
+                            <tr><td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;"><span class="loading-spinner"></span> Loading referrals...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Webhooks Tab -->
+        <div id="webhooks-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <h2 style="margin: 0;">Webhook Builder</h2>
+                        <p style="color: var(--text-muted); margin: 4px 0 0 0;">Build custom real-time integrations for your business</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showAddWebhookModal()">+ Add Webhook</button>
+                </div>
+                <div id="webhooks-container">
+                    <div style="text-align: center; padding: 60px;"><span class="loading-spinner"></span> Loading your webhooks...</div>
+                </div>
+                <div id="webhooks-empty-state" style="display: none; text-align: center; padding: 60px;">
+                    <div style="font-size: 48px; margin-bottom: 16px;">🔗</div>
+                    <h2>No Webhooks Configured</h2>
+                    <p style="color: var(--text-muted);">Connect your apps to Namaskah and receive real-time updates.</p>
+                    <button class="btn btn-primary" onclick="showAddWebhookModal()" style="margin-top: 16px;">Create First Webhook</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- API Docs Tab -->
+        <div id="api-docs-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div class="card">
+                <h2>API Documentation</h2>
+                <p style="color: var(--text-muted); margin-bottom: 16px;">Integrate Namaskah SMS verification into your application.</p>
+                <div style="background: var(--bg-body); border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                    <strong>Base URL</strong>
+                    <code style="display: block; margin-top: 8px; font-size: 13px;">https://namaskah.app/api</code>
+                </div>
+                <a href="/api-docs" target="_blank" class="btn btn-primary">Open Full API Docs ↗</a>
+            </div>
+        </div>
+
+
     </div>
 </div>
 
@@ -923,6 +1121,16 @@
                 loadBlacklist();
             } else if (tabId === 'forwarding') {
                 loadForwardingConfig();
+            } else if (tabId === 'history') {
+                loadVerificationHistory();
+            } else if (tabId === 'notifications-center') {
+                loadNotificationsTab();
+            } else if (tabId === 'referrals') {
+                loadReferralsTab();
+            } else if (tabId === 'webhooks') {
+                loadWebhooksTab();
+            } else if (tabId === 'privacy') {
+                loadPrivacyTab();
             }
         }
 
@@ -1504,6 +1712,161 @@
 
         // Make functions globally accessible
         window.switchTab = switchTab;
+
+        // --- New Tab Loaders ---
+
+        async function loadVerificationHistory() {
+            const token = localStorage.getItem('access_token');
+            const tbody = document.getElementById('history-body');
+            const empty = document.getElementById('history-empty-state');
+            try {
+                const res = await fetch('/api/verify/history', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const items = data.verifications || data.items || data || [];
+                if (!items.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
+                empty.style.display = 'none';
+                tbody.innerHTML = items.map(v => `<tr>
+                    <td style="padding:12px">${v.service || '-'}</td>
+                    <td style="padding:12px">${v.country || '-'}</td>
+                    <td style="padding:12px">${v.carrier || '-'}</td>
+                    <td style="padding:12px">${v.phone_number || '-'}</td>
+                    <td style="padding:12px">${v.code || '-'}</td>
+                    <td style="padding:12px">${v.status || '-'}</td>
+                    <td style="padding:12px">${v.cost != null ? '$'+v.cost : '-'}</td>
+                    <td style="padding:12px">${v.created_at ? new Date(v.created_at).toLocaleDateString() : '-'}</td>
+                    <td style="padding:12px">-</td>
+                </tr>`).join('');
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:20px;color:var(--text-muted);">Failed to load history</td></tr>'; }
+        }
+
+        let notifCurrentFilter = 'all';
+        let notifAllData = [];
+
+        async function loadNotificationsTab() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/notifications', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                notifAllData = data.notifications || data.items || data || [];
+                const unread = notifAllData.filter(n => !n.is_read).length;
+                document.getElementById('notif-unread-count').textContent = `${unread} unread`;
+                document.getElementById('notif-count-all').textContent = notifAllData.length;
+                document.getElementById('notif-count-unread').textContent = unread;
+                document.getElementById('notif-count-system').textContent = notifAllData.filter(n => n.type === 'system').length;
+                document.getElementById('notif-count-payment').textContent = notifAllData.filter(n => n.type === 'payment').length;
+                document.getElementById('notif-count-verification').textContent = notifAllData.filter(n => n.type === 'verification').length;
+                const markBtn = document.getElementById('mark-all-btn');
+                if (markBtn) markBtn.disabled = unread === 0;
+                renderNotifList(notifAllData);
+            } catch(e) { document.getElementById('notif-list').innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Failed to load notifications</p>'; }
+        }
+
+        function setNotifFilter(filter) {
+            notifCurrentFilter = filter;
+            document.querySelectorAll('#notifications-center-tab .filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === filter));
+            const filtered = filter === 'all' ? notifAllData : filter === 'unread' ? notifAllData.filter(n => !n.is_read) : notifAllData.filter(n => n.type === filter);
+            renderNotifList(filtered);
+        }
+
+        function renderNotifList(items) {
+            const list = document.getElementById('notif-list');
+            const empty = document.getElementById('notif-empty-state');
+            if (!items.length) { list.innerHTML = ''; empty.style.display = 'block'; return; }
+            empty.style.display = 'none';
+            list.innerHTML = items.map(n => `<div role="listitem" style="padding:12px;border-bottom:1px solid var(--border-color);${!n.is_read ? 'background:var(--bg-body);' : ''}">
+                <div style="font-weight:${n.is_read ? '400' : '600'};">${n.title || n.message || 'Notification'}</div>
+                <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${n.body || n.message || ''}</div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">${n.created_at ? new Date(n.created_at).toLocaleString() : ''}</div>
+            </div>`).join('');
+        }
+
+        async function loadReferralsTab() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/referrals', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if (data.referral_code) document.getElementById('referral-url').value = `${window.location.origin}/register?ref=${data.referral_code}`;
+                if (data.total_earnings != null) document.getElementById('ref-total-earnings').textContent = '$' + data.total_earnings.toFixed(2);
+                if (data.total_referrals != null) document.getElementById('ref-total-referrals').textContent = data.total_referrals;
+                if (data.bonus_credits != null) document.getElementById('ref-bonus-credits').textContent = data.bonus_credits;
+                const tbody = document.getElementById('referrals-list');
+                const refs = data.referrals || [];
+                tbody.innerHTML = refs.length ? refs.map(r => `<tr>
+                    <td style="padding:12px">${r.user_id || '-'}</td>
+                    <td style="padding:12px">${r.email || '-'}</td>
+                    <td style="padding:12px">${r.created_at ? new Date(r.created_at).toLocaleDateString() : '-'}</td>
+                    <td style="padding:12px">${r.status || '-'}</td>
+                </tr>`).join('') : '<tr><td colspan="4" style="text-align:center;padding:40px;color:var(--text-muted);">No referrals yet</td></tr>';
+            } catch(e) { console.error('Failed to load referrals', e); }
+        }
+
+        function copyReferralLink() {
+            const input = document.getElementById('referral-url');
+            navigator.clipboard.writeText(input.value).then(() => showToast('Referral link copied!'));
+        }
+
+        async function loadWebhooksTab() {
+            const token = localStorage.getItem('access_token');
+            const container = document.getElementById('webhooks-container');
+            const empty = document.getElementById('webhooks-empty-state');
+            try {
+                const res = await fetch('/api/webhooks', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                const hooks = data.webhooks || data || [];
+                if (!hooks.length) { container.style.display = 'none'; empty.style.display = 'block'; return; }
+                empty.style.display = 'none'; container.style.display = 'block';
+                container.innerHTML = hooks.map(h => `<div style="padding:16px;border:1px solid var(--border-color);border-radius:8px;margin-bottom:12px;">
+                    <div style="font-weight:600;">${h.name || 'Webhook'}</div>
+                    <div style="font-size:13px;color:var(--text-muted);margin-top:4px;">${h.url || ''}</div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">Events: ${(h.events || []).join(', ')}</div>
+                </div>`).join('');
+            } catch(e) { container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:40px;">Failed to load webhooks</p>'; }
+        }
+
+        function showAddWebhookModal() { window.location.href = '/webhooks'; }
+
+        async function loadPrivacyTab() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/user/privacy', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.analytics != null) document.getElementById('consent-analytics').checked = data.analytics;
+                if (data.marketing != null) document.getElementById('consent-marketing').checked = data.marketing;
+                if (data.email != null) document.getElementById('consent-email').checked = data.email;
+                if (data.last_export) document.getElementById('last-export-date').textContent = new Date(data.last_export).toLocaleDateString();
+            } catch(e) { console.error('Failed to load privacy prefs', e); }
+        }
+
+        async function savePrivacyPreferences() {
+            const token = localStorage.getItem('access_token');
+            const payload = {
+                analytics: document.getElementById('consent-analytics').checked,
+                marketing: document.getElementById('consent-marketing').checked,
+                email: document.getElementById('consent-email').checked
+            };
+            try {
+                await fetch('/api/user/privacy', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            } catch(e) { console.error('Failed to save privacy prefs', e); }
+        }
+
+        async function exportData() {
+            const token = localStorage.getItem('access_token');
+            const btn = document.getElementById('export-btn');
+            btn.disabled = true; btn.textContent = 'Exporting...';
+            try {
+                const res = await fetch('/api/user/export', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'namaskah-data.json'; a.click();
+                document.getElementById('last-export-date').textContent = new Date().toLocaleDateString();
+            } catch(e) { showToast('Export failed', 'error'); }
+            finally { btn.disabled = false; btn.textContent = '📥 Export Data'; }
+        }
+
+        // Handle ?tab= URL param on page load
+        const urlTabParam = new URLSearchParams(window.location.search).get('tab');
+        if (urlTabParam) { document.addEventListener('DOMContentLoaded', () => switchTab(urlTabParam)); }
         window.loadUserData = loadUserData;
         window.requestPasswordReset = requestPasswordReset;
         window.updateSettings = updateSettings;

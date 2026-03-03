@@ -30,7 +30,6 @@ def test_routes_registered():
         '/api-docs',
         '/referrals',
         '/voice-verify',
-        '/bulk-purchase',
         '/admin',
         '/privacy-settings'
     ]
@@ -69,7 +68,6 @@ def test_templates_exist():
         'api_docs.html',
         'referrals.html',
         'voice_verify.html',
-        'bulk_purchase.html',
         'gdpr_settings.html'
     ]
     
@@ -152,7 +150,6 @@ def test_route_functions():
         'api_docs_page',
         'referrals_page',
         'voice_verify_page',
-        'bulk_purchase_page',
         'admin_page',
         'privacy_settings_page'
     ]

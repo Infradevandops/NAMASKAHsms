@@ -212,15 +212,6 @@ async def voice_verify_page(request: Request, user_id: str = Depends(get_current
     return templates.TemplateResponse("voice_verify_modern.html", {"request": request, "user": user})
 
 
-@router.get("/bulk-purchase", response_class=HTMLResponse)
-async def bulk_purchase_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Bulk Purchase page (Pro+ only)."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("bulk_purchase.html", {"request": request, "user": user})
-
-
 # ============================================
 # ADDITIONAL PAGES
 # ============================================
