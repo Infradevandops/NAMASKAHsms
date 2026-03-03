@@ -48,33 +48,15 @@ class TextVerifiedService:
 
     async def get_balance(self) -> Dict[str, Any]:
         """Get account balance from TextVerified."""
-        if not self.api_key:
-            return {"balance": 0.0, "currency": "USD", "error": "No API key configured"}
-
         try:
-            import urllib.request
-            import json as _json
-            # Step 1: get bearer token
-            auth_req = urllib.request.Request(
-                "https://www.textverified.com/api/Auth",
-                data=_json.dumps({"api_key": self.api_key}).encode(),
-                headers={"Content-Type": "application/json", "Accept": "application/json"},
-                method="POST"
-            )
-            with urllib.request.urlopen(auth_req, timeout=10) as r:
-                token_data = _json.loads(r.read().decode())
-            token = token_data.get("token") or token_data.get("access_token") or token_data.get("bearer_token")
-            if not token:
-                return {"balance": 0.0, "currency": "USD", "raw": token_data}
-            # Step 2: get balance
-            bal_req = urllib.request.Request(
-                "https://www.textverified.com/api/Auth",
-                headers={"Authorization": "Bearer " + token, "Accept": "application/json"}
-            )
-            with urllib.request.urlopen(bal_req, timeout=10) as r:
-                bal_data = _json.loads(r.read().decode())
-            balance = bal_data.get("balance") or bal_data.get("credits") or 0.0
-            return {"balance": float(balance), "currency": "USD", "raw": bal_data}
+            api_key = os.getenv("TEXTVERIFIED_API_KEY")
+            api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL")
+            if not api_key or not api_username:
+                return {"balance": 0.0, "currency": "USD", "error": "Missing credentials"}
+            import textverified as tv_lib
+            client = tv_lib.TextVerified(api_key=api_key, api_username=api_username)
+            balance = client.account.balance
+            return {"balance": float(balance), "currency": "USD"}
             
         except Exception as e:
             logger.error(f"Failed to get TextVerified balance: {e}")
