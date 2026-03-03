@@ -518,9 +518,9 @@ async function loadTierCompareCards() {
 
 function selectTierPlan(tierCode) {
     if (tierCode === 'custom') {
-        window.location.href = '/support?subject=Enterprise%20Plan';
+        window.location.href = '/contact?subject=Enterprise%20Plan';
     } else {
-        window.location.href = `/pricing?plan=${tierCode}`;
+        window.location.href = `/settings?tab=billing`;
     }
 }
 
