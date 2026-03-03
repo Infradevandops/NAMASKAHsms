@@ -43,7 +43,8 @@ async def initialize_payment(
             user_id=user_id,
             email=user.email,
             amount_usd=payment_request.amount_usd,
-            idempotency_key=idempotency_key
+            idempotency_key=idempotency_key,
+            metadata=payment_request.metadata
         )
 
         return PaymentInitializeResponse(**result)

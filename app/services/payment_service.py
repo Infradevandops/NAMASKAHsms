@@ -39,7 +39,7 @@ class PaymentService:
             }
         return None
 
-    async def initialize_payment(self, user_id: str, email: str, amount_usd: float, idempotency_key: str = None) -> Dict[str, Any]:
+    async def initialize_payment(self, user_id: str, email: str, amount_usd: float, idempotency_key: str = None, metadata: dict = None) -> Dict[str, Any]:
         """Initialize payment with Paystack."""
         try:
             # Check idempotency
@@ -74,7 +74,8 @@ class PaymentService:
                 "reference": reference,
                 "metadata": {
                     "user_id": user_id,
-                    "namaskah_amount": amount_usd
+                    "namaskah_amount": amount_usd,
+                    **(metadata or {})
                 }
             }
 

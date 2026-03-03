@@ -195,8 +195,8 @@ async def get_verification_history(
                 {
                     "id": str(v.id),
                     "phone_number": v.phone_number,
-                    "service": v.service,
-                    "service_name": v.service,
+                    "service": v.service_name,
+                    "service_name": v.service_name,
                     "country": v.country,
                     "status": v.status,
                     "cost": float(v.cost) if v.cost else 0.0,
