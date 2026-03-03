@@ -1,6 +1,5 @@
 """Balance transaction model for tracking balance changes."""
 
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Column, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import relationship
 
@@ -12,7 +11,7 @@ class BalanceTransaction(BaseModel):
 
     __tablename__ = "balance_transactions"
 
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     amount = Column(Numeric(10, 2), nullable=False)
     type = Column(String(50), nullable=False)  # credit, debit, refund
     description = Column(Text)

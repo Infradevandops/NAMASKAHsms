@@ -1,6 +1,5 @@
 """Pricing Template Models"""
 
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import (
     DECIMAL,
     JSON,
@@ -34,7 +33,7 @@ class PricingTemplate(BaseModel):
     region = Column(String(10), default="US", index=True)
     currency = Column(String(3), default="USD")
     created_at = Column(TIMESTAMP, server_default=func.now())
-    created_by = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"))
+    created_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
     effective_date = Column(TIMESTAMP)
     expires_at = Column(TIMESTAMP)
     template_metadata = Column(JSONB)  # For A/B testing, notes, etc.
@@ -80,7 +79,7 @@ class PricingHistory(BaseModel):
     template_id = Column(Integer, ForeignKey("pricing_templates.id", ondelete="SET NULL"))
     action = Column(String(50), nullable=False)
     previous_template_id = Column(Integer)
-    changed_by = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="SET NULL"))
+    changed_by = Column(String, ForeignKey("users.id", ondelete="SET NULL"))
     changed_at = Column(TIMESTAMP, server_default=func.now(), index=True)
     notes = Column(Text)
     history_metadata = Column(JSONB)
@@ -98,7 +97,7 @@ class UserPricingAssignment(BaseModel):
 
     __tablename__ = "user_pricing_assignments"
 
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
     template_id = Column(Integer, ForeignKey("pricing_templates.id", ondelete="CASCADE"), nullable=False)
     assigned_at = Column(TIMESTAMP, server_default=func.now())
     assigned_by = Column(String(50), default="auto")

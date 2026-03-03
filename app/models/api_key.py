@@ -2,7 +2,6 @@
 
 from datetime import datetime
 
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String
 
 from app.models.base import BaseModel
@@ -12,8 +11,8 @@ class APIKey(BaseModel):
 
     __tablename__ = "api_keys"
 
-    id = Column(UUID(as_uuid=False), primary_key=True, default=lambda: str(__import__("uuid").uuid4()))
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+    id = Column(String, primary_key=True, default=lambda: str(__import__("uuid").uuid4()))
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     name = Column(String(100), nullable=False)
     key_hash = Column(String(255), nullable=False, unique=True)  # Hashed key for security
     key_preview = Column(String(20), nullable=False)  # Last 4 chars for display

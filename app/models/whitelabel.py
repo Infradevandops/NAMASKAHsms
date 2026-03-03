@@ -1,7 +1,6 @@
 """White-label configuration model."""
 
 from sqlalchemy import JSON, Boolean, Column, String
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 
 from .base import BaseModel
@@ -12,7 +11,7 @@ class WhiteLabelConfig(BaseModel):
 
     __tablename__ = "whitelabel_config"
 
-    partner_id = Column(UUID(as_uuid=False), nullable=False, unique=True)
+    partner_id = Column(String, nullable=False, unique=True)
     domain = Column(String(255), nullable=False)
     logo_url = Column(String(500))
     primary_color = Column(String(7))
