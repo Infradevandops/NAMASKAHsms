@@ -100,18 +100,31 @@ class TextVerifiedService:
         ]
 
     async def get_services_list(self) -> List[Dict[str, Any]]:
-        """Get list of available services."""
+        """Get list of available services with base pricing."""
         if not self.enabled:
             return self._get_mock_services()
 
         try:
-            # This would be the actual API call
-            # services = await self.client.get_services()
-            # return services
-            
-            # Return mock data for now
-            return self._get_mock_services()
-            
+            from textverified.data import NumberType, ReservationType, ReservationCapability
+            services = self.client.services.list(NumberType.MOBILE, ReservationType.VERIFICATION)
+
+            # Get base SMS price once (flat rate across services)
+            try:
+                snapshot = self.client.verifications.pricing(
+                    service_name="google",
+                    area_code=False,
+                    carrier=False,
+                    number_type=NumberType.MOBILE,
+                    capability=ReservationCapability.SMS,
+                )
+                base_price = snapshot.price
+            except Exception:
+                base_price = 2.50
+
+            return [
+                {"id": s.service_name, "name": s.service_name.title(), "price": base_price}
+                for s in services
+            ]
         except Exception as e:
             logger.error(f"Failed to get services: {e}")
             return self._get_mock_services()
