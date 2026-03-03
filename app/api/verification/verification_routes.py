@@ -69,7 +69,7 @@ async def get_area_codes():
         raise HTTPException(status_code=500, detail="Failed to fetch area codes")
 
 
-@router.post("/create", response_model=VerificationResponse, status_code=status.HTTP_201_CREATED)
+@router.post("/create", status_code=status.HTTP_201_CREATED)
 async def create_verification(
     verification_data: VerificationCreate,
     user_id: str = Depends(get_current_user_id),
@@ -95,8 +95,7 @@ async def create_verification(
         purchase_result = await tv_service.purchase_number(
             service=verification_data.service,
             area_code=getattr(verification_data, 'area_code', None),
-            carrier=getattr(verification_data, 'carrier', None),
-            capability=getattr(verification_data, 'capability', 'sms')
+            carrier=getattr(verification_data, 'carrier', None)
         )
 
         if not purchase_result.get("success"):
@@ -105,8 +104,9 @@ async def create_verification(
         # Create verification record
         verification = Verification(
             user_id=user_id,
-            service=verification_data.service,
+            service_name=verification_data.service,
             phone_number=purchase_result["phone_number"],
+            activation_id=purchase_result.get("verification_id"),
             status="pending",
             cost=purchase_result["cost"],
             provider="TextVerified",
@@ -129,7 +129,7 @@ async def create_verification(
             await dispatcher.notify_verification_started(
                 user_id=user_id,
                 verification_id=verification.id,
-                service=verification.service,
+                service=verification.service_name,
                 phone_number=verification.phone_number,
                 cost=verification.cost
             )
@@ -138,22 +138,45 @@ async def create_verification(
 
         logger.info(f"Verification created: {verification.id} for user {user_id}")
 
-        return VerificationResponse(
-            id=verification.id,
-            service=verification.service,
-            phone_number=verification.phone_number,
-            status=verification.status,
-            cost=verification.cost,
-            country="US",
-            provider="TextVerified",
-            created_at=verification.created_at
-        )
+        return {
+            "id": verification.id,
+            "service": verification.service_name,
+            "phone_number": verification.phone_number,
+            "status": verification.status,
+            "cost": verification.cost,
+            "country": "US",
+            "provider": "TextVerified",
+            "created_at": verification.created_at
+        }
 
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Verification creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create verification")
+
+
+@router.get("/{verification_id}/status")
+async def get_verification_status(
+    verification_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get current status of a verification (used by both SMS and voice pages)."""
+    verification = db.query(Verification).filter(
+        Verification.id == verification_id,
+        Verification.user_id == user_id
+    ).first()
+    if not verification:
+        raise HTTPException(status_code=404, detail="Verification not found")
+    return {
+        "id": verification.id,
+        "status": verification.status,
+        "sms_code": verification.sms_code,
+        "capability": verification.capability,
+        "phone_number": verification.phone_number,
+        "service": verification.service_name,
+    }
 
 
 @router.get("/{verification_id}/sms")
@@ -178,7 +201,7 @@ async def get_verification_sms(
         if not tv_service.enabled:
             raise HTTPException(status_code=503, detail="SMS service unavailable")
 
-        sms_result = await tv_service.get_sms(verification_id)
+        sms_result = await tv_service.get_sms(verification.activation_id or str(verification.id))
         
         if sms_result.get("success") and sms_result.get("sms"):
             # Update verification status
@@ -193,7 +216,7 @@ async def get_verification_sms(
                 await dispatcher.notify_verification_completed(
                     user_id=user_id,
                     verification_id=verification.id,
-                    service=verification.service,
+                    service=verification.service_name,
                     phone_number=verification.phone_number
                 )
             except Exception as e:

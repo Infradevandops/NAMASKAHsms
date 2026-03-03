@@ -303,27 +303,39 @@ async function createVerification() {
 
 function startWaiting() {
     elapsedSeconds = 0;
-    
-    scanInterval = setInterval(() => {
+    scanInterval = setInterval(async () => {
         elapsedSeconds++;
         document.getElementById('elapsed-time').textContent = elapsedSeconds;
-        
-        if (elapsedSeconds >= 300) { // 5 minutes
+        if (verificationId) {
+            try {
+                const token = localStorage.getItem('access_token');
+                const res = await fetch(`/api/verify/status/${verificationId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'completed' && data.sms_code) {
+                        clearInterval(scanInterval);
+                        document.querySelector('.scanning-container').style.display = 'none';
+                        const section = document.getElementById('code-input-section');
+                        section.style.display = 'block';
+                        section.innerHTML = `
+                            <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-lg);padding:var(--spacing-lg);text-align:center;">
+                                <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:var(--spacing-md);">✅ Voice Code Received!</div>
+                                <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--success);font-family:'Courier New',monospace;letter-spacing:4px;margin-bottom:var(--spacing-lg);">${data.sms_code}</div>
+                                <button class="btn btn-success btn-block" onclick="navigator.clipboard.writeText('${data.sms_code}');window.toast.success('📋 Code copied!')">📋 Copy Code</button>
+                            </div>`;
+                        window.toast.success('✅ Voice code received!');
+                        return;
+                    }
+                }
+            } catch (e) { /* continue polling */ }
+        }
+        if (elapsedSeconds >= 300) {
             clearInterval(scanInterval);
             showError('Call Timeout', 'No call received within 5 minutes');
         }
-    }, 1000);
-}
-
-function submitVoiceCode() {
-    const code = document.getElementById('voice-code-input').value;
-    if (!code || code.length < 4) {
-        window.toast.error('Please enter a valid code');
-        return;
-    }
-    
-    window.toast.success('✅ Code verified!');
-    clearInterval(scanInterval);
+    }, 5000);
 }
 
 function cancelVerification() {
