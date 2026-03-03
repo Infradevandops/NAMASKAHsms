@@ -236,6 +236,38 @@ async def admin_page(request: Request, user_id: str = Depends(get_current_user_i
     return templates.TemplateResponse("admin/dashboard.html", {"request": request, "user": user})
 
 
+@router.get("/admin/tier-management", response_class=HTMLResponse)
+async def admin_tier_management_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse("admin/tier_management.html", {"request": request, "user": user})
+
+
+@router.get("/admin/pricing-templates", response_class=HTMLResponse)
+async def admin_pricing_templates_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
+
+
+@router.get("/admin/verification-history", response_class=HTMLResponse)
+async def admin_verification_history_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse("admin/verification_history.html", {"request": request, "user": user})
+
+
+@router.get("/admin/logging", response_class=HTMLResponse)
+async def admin_logging_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_admin:
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return templates.TemplateResponse("admin/logging_dashboard.html", {"request": request, "user": user})
+
+
 @router.get("/privacy-settings", response_class=HTMLResponse)
 async def privacy_settings_page(request: Request):
     """Privacy Settings page."""
