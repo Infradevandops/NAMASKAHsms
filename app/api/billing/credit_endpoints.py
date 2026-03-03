@@ -19,15 +19,27 @@ async def get_credit_balance(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Get current credit balance for user."""
+    """Get current credit balance. For admin, returns TextVerified API balance."""
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            logger.error(f"User {user_id} not found")
             raise HTTPException(status_code=404, detail="User not found")
 
-        logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
+        if user.is_admin:
+            from app.services.textverified_service import TextVerifiedService
+            tv = TextVerifiedService()
+            bal_data = await tv.get_balance()
+            balance = bal_data.get("balance", 0.0)
+            logger.info(f"Retrieved TextVerified balance for admin {user_id}: {balance}")
+            return {
+                "credits": balance,
+                "free_verifications": getattr(user, 'free_verifications', 0),
+                "currency": "USD",
+                "source": "textverified",
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }
 
+        logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
         return {
             "credits": user.credits or 0.0,
             "free_verifications": getattr(user, 'free_verifications', 0),
