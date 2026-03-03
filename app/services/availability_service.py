@@ -41,7 +41,7 @@ class AvailabilityService:
         verifications = query.all()
 
         if not verifications:
-        return {
+            return {
                 "success_rate": 0,
                 "avg_delivery_time": 0,
                 "total_attempts": 0,
@@ -56,7 +56,7 @@ class AvailabilityService:
         # Calculate avg delivery time for completed
         delivery_times = []
         for v in verifications:
-        if v.status == "completed" and v.completed_at and v.created_at:
+            if v.status == "completed" and v.completed_at and v.created_at:
                 delta = (v.completed_at - v.created_at).total_seconds()
                 delivery_times.append(delta)
 
@@ -98,7 +98,7 @@ class AvailabilityService:
         )
 
         if not verifications:
-        return {"success_rate": 0, "status": "unknown"}
+            return {"success_rate": 0, "status": "unknown"}
 
         total = len(verifications)
         completed = sum(1 for v in verifications if v.status == "completed")
@@ -132,7 +132,7 @@ class AvailabilityService:
         verifications = query.all()
 
         if not verifications:
-        return {"success_rate": 90, "total": 0, "status": "unknown"}
+            return {"success_rate": 90, "total": 0, "status": "unknown"}
 
         total = len(verifications)
         completed = sum(1 for v in verifications if v.status == "completed")
@@ -167,7 +167,7 @@ class AvailabilityService:
         verifications = query.all()
 
         if not verifications:
-        return {"success_rate": 90, "total": 0, "status": "unknown"}
+            return {"success_rate": 90, "total": 0, "status": "unknown"}
 
         total = len(verifications)
         completed = sum(1 for v in verifications if v.status == "completed")

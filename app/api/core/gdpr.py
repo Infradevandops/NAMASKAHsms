@@ -19,7 +19,7 @@ router = APIRouter(prefix="/gdpr", tags=["GDPR"])
 async def export_user_data(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Export all user data in JSON format (GDPR right to data portability)."""
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
@@ -45,7 +45,7 @@ if not user:
                 "status": v.status,
                 "created_at": v.created_at.isoformat() if v.created_at else None,
             }
-for v in verifications
+    for v in verifications
         ],
         "audit_logs": [
             {
@@ -53,7 +53,7 @@ for v in verifications
                 "ip_address": log.ip_address,
                 "created_at": log.created_at.isoformat() if log.created_at else None,
             }
-for log in audit_logs
+    for log in audit_logs
         ],
         "export_date": datetime.utcnow().isoformat(),
     }
@@ -65,7 +65,7 @@ for log in audit_logs
 async def delete_account(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Delete user account and all associated data (GDPR right to be forgotten)."""
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     db.query(Verification).filter(Verification.user_id == user_id).delete()

@@ -1,8 +1,4 @@
-"""Response schema validators for tier-related API endpoints.
-
-These validators ensure API responses contain all required fields
-and have correct data types for frontend consumption.
-"""
+"""Response schema validators for tier-related API endpoints."""
 
 from typing import Any, Dict, List, Optional
 from app.core.pydantic_compat import BaseModel, Field, field_validator
@@ -40,15 +36,15 @@ class TierSchema(BaseModel):
 
 
 class TierListResponseSchema(BaseModel):
-        """Schema for tier list API response."""
+    """Schema for tier list API response."""
 
-        tiers: List[TierSchema]
-        current_tier: str
-        can_upgrade: bool = Field(default=True)
-        can_downgrade: bool = Field(default=False)
+    tiers: List[TierSchema]
+    current_tier: str
+    can_upgrade: bool = Field(default=True)
+    can_downgrade: bool = Field(default=False)
 
-        @field_validator("tiers")
-        @classmethod
+    @field_validator("tiers")
+    @classmethod
     def validate_tiers_count(cls, v):
         """Ensure we have all 4 tiers."""
         if len(v) < 4:
@@ -57,15 +53,15 @@ class TierListResponseSchema(BaseModel):
 
 
 class CurrentTierFeaturesSchema(BaseModel):
-        """Schema for current tier features response."""
+    """Schema for current tier features response."""
 
-        tier: str
-        features: TierFeaturesSchema
-        usage: Dict[str, Any] = Field(default_factory=dict)
-        limits: Dict[str, Any] = Field(default_factory=dict)
+    tier: str
+    features: TierFeaturesSchema
+    usage: Dict[str, Any] = Field(default_factory=dict)
+    limits: Dict[str, Any] = Field(default_factory=dict)
 
-        @field_validator("tier")
-        @classmethod
+    @field_validator("tier")
+    @classmethod
     def validate_tier_value(cls, v):
         """Validate current tier value."""
         allowed = {"freemium", "payg", "pro", "custom"}
@@ -75,13 +71,13 @@ class CurrentTierFeaturesSchema(BaseModel):
 
 
 class TierUpgradeRequestSchema(BaseModel):
-        """Schema for tier upgrade request."""
+    """Schema for tier upgrade request."""
 
-        target_tier: str
-        payment_method: str = Field(default="paystack")
+    target_tier: str
+    payment_method: str = Field(default="paystack")
 
-        @field_validator("target_tier")
-        @classmethod
+    @field_validator("target_tier")
+    @classmethod
     def validate_upgrade_tier(cls, v):
         """Validate upgrade target tier."""
         allowed = {"payg", "pro", "custom"}
@@ -91,15 +87,15 @@ class TierUpgradeRequestSchema(BaseModel):
 
 
 class TierUpgradeResponseSchema(BaseModel):
-        """Schema for tier upgrade response."""
+    """Schema for tier upgrade response."""
 
-        success: bool
-        new_tier: str
-        payment_url: Optional[str] = None
-        message: str
+    success: bool
+    new_tier: str
+    payment_url: Optional[str] = None
+    message: str
 
-        @field_validator("new_tier")
-        @classmethod
+    @field_validator("new_tier")
+    @classmethod
     def validate_new_tier(cls, v):
         """Validate new tier after upgrade."""
         allowed = {"freemium", "payg", "pro", "custom"}

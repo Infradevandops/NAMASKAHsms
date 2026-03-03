@@ -145,7 +145,7 @@ class RefundService:
 
             # Get user
             user = self.db.query(User).filter(User.id == refund.user_id).first()
-        if not user:
+            if not user:
                 raise ValueError(f"User not found: {refund.user_id}")
 
             # Deduct credits
@@ -167,7 +167,7 @@ class RefundService:
                 f"Amount={refund.amount}, New Balance={user.credits}"
             )
 
-        return {
+            return {
                 "reference": reference,
                 "status": "success",
                 "amount": refund.amount,
@@ -313,30 +313,30 @@ class RefundService:
         logger.info(f"Processing refund webhook: Event={event}")
 
         try:
-        if event == "charge.refunded":
+            if event == "charge.refunded":
                 reference = payload.get("reference")
 
                 # Get payment log
                 payment_log = self.db.query(PaymentLog).filter(PaymentLog.reference == reference).first()
-
-        if not payment_log:
+                if not payment_log:
                     logger.warning(f"Payment not found for refund: {reference}")
-        return {"status": "ignored", "message": "Payment not found"}
+                    return {"status": "ignored", "message": "Payment not found"}
+                return {"status": "ignored", "message": "Payment not found"}
 
                 # Get refund
                 refund = self.db.query(Refund).filter(Refund.payment_id == payment_log.id).first()
 
-        if not refund:
+                if not refund:
                     logger.warning(f"Refund not found for payment: {reference}")
-        return {"status": "ignored", "message": "Refund not found"}
+                    return {"status": "ignored", "message": "Refund not found"}
 
                 # Process refund
-        return self.process_refund(refund.reference)
+                return self.process_refund(refund.reference)
 
-        else:
+            else:
                 logger.warning(f"Unknown refund event: {event}")
-        return {"status": "ignored", "message": f"Unknown event: {event}"}
+                return {"status": "ignored", "message": f"Unknown event: {event}"}
 
         except Exception as e:
             logger.error(f"Refund webhook processing error: {str(e)}", exc_info=True)
-        return {"status": "error", "message": str(e)}
+            return {"status": "error", "message": str(e)}

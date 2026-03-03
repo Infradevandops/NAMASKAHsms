@@ -18,9 +18,9 @@ class EncryptionManager:
         self.cipher = Fernet(self.key)
 
         @handle_encryption_exceptions
-    def encrypt(self, data: str) -> str:
+        def encrypt(self, data: str) -> str:
 
-        """Encrypt data."""
+            """Encrypt data."""
         encrypted = self.cipher.encrypt(data.encode())
         return encrypted.decode()
 
@@ -29,13 +29,13 @@ class EncryptionManager:
         """Decrypt data."""
         try:
             decrypted = self.cipher.decrypt(encrypted_data.encode())
-        return decrypted.decode()
+            return decrypted.decode()
         except InvalidToken as e:
             logger.error(f"Invalid encryption token during decryption: {e}")
-        return encrypted_data
+            return encrypted_data
         except ValueError as e:
             logger.error(f"Invalid data format during decryption: {e}")
-        return encrypted_data
+            return encrypted_data
 
     def encrypt_field(self, obj: dict, field: str) -> dict:
 

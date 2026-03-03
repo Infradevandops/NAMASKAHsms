@@ -2,21 +2,21 @@
 
 
 from typing import Dict, Optional
+
 from app.core.database import get_db
 from app.models.enterprise import EnterpriseAccount, EnterpriseTier
 
-class EnterpriseService:
 
+class EnterpriseService:
     """Enterprise account and SLA management."""
 
     async def get_user_tier(self, user_id: int) -> Optional[Dict]:
         """Get enterprise tier for user."""
         db = next(get_db())
-
         account = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
         if not account:
-        return None
+            return None
 
         return {
             "tier_name": account.tier.name,
@@ -32,13 +32,11 @@ class EnterpriseService:
     async def upgrade_to_enterprise(self, user_id: int, tier_name: str) -> Dict:
         """Upgrade user to enterprise tier."""
         db = next(get_db())
-
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
         if not tier:
             raise ValueError(f"Tier {tier_name} not found")
 
-        # Check if account already exists
         existing = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
 
         if existing:
@@ -53,11 +51,10 @@ class EnterpriseService:
     async def check_sla_compliance(self, response_time: int, tier_name: str) -> Dict:
         """Check if response time meets SLA."""
         db = next(get_db())
-
         tier = db.query(EnterpriseTier).filter(EnterpriseTier.name == tier_name).first()
 
         if not tier:
-        return {"compliant": True}
+            return {"compliant": True}
 
         compliant = response_time <= tier.max_response_time
 
@@ -69,5 +66,4 @@ class EnterpriseService:
         }
 
 
-# Global service instance
-        enterprise_service = EnterpriseService()
+enterprise_service = EnterpriseService()

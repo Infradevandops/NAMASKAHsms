@@ -3,17 +3,16 @@
 
 from datetime import datetime
 from typing import Any, Dict, List
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class EventService:
-
     """Tracks user events for analytics."""
 
     def __init__(self):
-
         self.events = []
 
     async def track_event(self, user_id: str, event_type: str, properties: Dict[str, Any] = None):
@@ -45,8 +44,8 @@ class EventService:
     async def export_events(self, user_id: str = None) -> List[Dict]:
         """Export events for data warehouse."""
         if user_id:
-        return [e for e in self.events if e["user_id"] == user_id]
+            return [e for e in self.events if e["user_id"] == user_id]
         return self.events
 
 
-        event_service = EventService()
+event_service = EventService()

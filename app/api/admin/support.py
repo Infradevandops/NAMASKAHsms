@@ -19,7 +19,6 @@ router = APIRouter(prefix="/support", tags=["Support"])
 
 
 class SupportTicketCreate(BaseModel):
-
     category: str
     priority: str = "medium"
     subject: str
@@ -27,7 +26,6 @@ class SupportTicketCreate(BaseModel):
 
 
 class SupportTicketResponse(BaseModel):
-
     id: str
     category: str
     priority: str
@@ -41,24 +39,22 @@ class SupportTicketResponse(BaseModel):
     model_config = {"from_attributes": True}
 
 
-    @router.post("/tickets", response_model=SuccessResponse)
-    async def create_support_ticket(
-        ticket_data: SupportTicketCreate,
-        user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Create a new support ticket."""
-        try:
-        # Get user information
+@router.post("/tickets", response_model=SuccessResponse)
+async def create_support_ticket(
+    ticket_data: SupportTicketCreate,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Create a new support ticket."""
+    try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Create support ticket
         ticket = SupportTicket(
             user_id=user_id,
             email=user.email,
-            name=user.email.split("@")[0],  # Use email prefix as name
+            name=user.email.split("@")[0],
             category=ticket_data.category,
             priority=ticket_data.priority,
             subject=ticket_data.subject,
@@ -70,7 +66,6 @@ class SupportTicketResponse(BaseModel):
         db.commit()
         db.refresh(ticket)
 
-        # In a real implementation, you might send an email notification here
         logger.info("Support ticket created: %s for user %s", ticket.id, user_id)
 
         return SuccessResponse(
@@ -82,20 +77,20 @@ class SupportTicketResponse(BaseModel):
             },
         )
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to create support ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to create support ticket")
 
 
-        @router.get("/tickets", response_model=List[SupportTicketResponse])
-    async def get_user_tickets(
-        user_id: str = Depends(get_current_user_id),
-        status: Optional[str] = Query(None, description="Filter by status"),
-        limit: int = Query(20, le=100, description="Number of tickets to return"),
-        db: Session = Depends(get_db),
-        ):
-        """Get user's support tickets."""
-        try:
+@router.get("/tickets", response_model=List[SupportTicketResponse])
+async def get_user_tickets(
+    user_id: str = Depends(get_current_user_id),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    limit: int = Query(20, le=100, description="Number of tickets to return"),
+    db: Session = Depends(get_db),
+):
+    """Get user's support tickets."""
+    try:
         query = db.query(SupportTicket).filter(SupportTicket.user_id == user_id)
 
         if status:
@@ -105,19 +100,19 @@ class SupportTicketResponse(BaseModel):
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get user tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
-        @router.get("/tickets/{ticket_id}", response_model=SupportTicketResponse)
-    async def get_ticket_details(
-        ticket_id: str,
-        user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Get specific ticket details."""
-        try:
+@router.get("/tickets/{ticket_id}", response_model=SupportTicketResponse)
+async def get_ticket_details(
+    ticket_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Get specific ticket details."""
+    try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
         if not ticket:
@@ -125,21 +120,21 @@ class SupportTicketResponse(BaseModel):
 
         return SupportTicketResponse.from_orm(ticket)
 
-        except HTTPException:
-        pass
-        except Exception as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         logger.error("Failed to get ticket details: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get ticket details")
 
 
-        @router.post("/tickets/{ticket_id}/close", response_model=SuccessResponse)
-    async def close_ticket(
-        ticket_id: str,
-        user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Close a support ticket."""
-        try:
+@router.post("/tickets/{ticket_id}/close", response_model=SuccessResponse)
+async def close_ticket(
+    ticket_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Close a support ticket."""
+    try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
 
         if not ticket:
@@ -157,26 +152,25 @@ class SupportTicketResponse(BaseModel):
             data={"ticket_id": ticket_id, "status": "closed"},
         )
 
-        except HTTPException:
-        pass
-        except Exception as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         logger.error("Failed to close ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to close ticket")
 
 
-        @router.get("/faq")
-    async def get_faq():
-        """Get frequently asked questions."""
-        try:
+@router.get("/faq")
+async def get_faq():
+    """Get frequently asked questions."""
+    try:
         faq_items = [
             {
                 "id": "1",
                 "category": "General",
                 "question": "How long does SMS verification take?",
                 "answer": (
-                    "Most SMS verifications complete within 30 - 60 seconds. "
-                    "Voice verifications may take 1 - 2 minutes depending on the service and \
-        country."
+                    "Most SMS verifications complete within 30-60 seconds. "
+                    "Voice verifications may take 1-2 minutes depending on the service and country."
                 ),
                 "helpful_count": 45,
             },
@@ -187,7 +181,7 @@ class SupportTicketResponse(BaseModel):
                 "answer": (
                     "If you don't receive the code within 2 minutes, you can: "
                     "1) Try voice verification instead of SMS, 2) Get a new number, "
-                    "or 3) Cancel for a full refund. Our system automatically handles failed verifications."
+                    "or 3) Cancel for a full refund."
                 ),
                 "helpful_count": 38,
             },
@@ -196,9 +190,8 @@ class SupportTicketResponse(BaseModel):
                 "category": "Pricing",
                 "question": "How much do verifications cost?",
                 "answer": (
-                    "Verification costs vary by service and \
-        country, typically ranging from $0.40 to $1.50. "
-                    "Voice verifications cost an additional $0.30. You can see exact pricing when selecting a service."
+                    "Verification costs vary by service and country, typically ranging from $0.40 to $1.50. "
+                    "Voice verifications cost an additional $0.30."
                 ),
                 "helpful_count": 52,
             },
@@ -208,7 +201,6 @@ class SupportTicketResponse(BaseModel):
                 "question": "How do I add credits to my account?",
                 "answer": (
                     "You can add credits through the Wallet section using Paystack payment gateway. "
-                    "We accept major credit cards and bank transfers. "
                     "Credits are added instantly after successful payment."
                 ),
                 "helpful_count": 29,
@@ -219,8 +211,7 @@ class SupportTicketResponse(BaseModel):
                 "question": "Which services are supported?",
                 "answer": (
                     "We support 1,800+ services including Telegram, WhatsApp, "
-                    "Google, Facebook, Instagram, Discord, Twitter, and "
-                    "many more. Service availability may vary by country."
+                    "Google, Facebook, Instagram, Discord, Twitter, and many more."
                 ),
                 "helpful_count": 41,
             },
@@ -231,8 +222,7 @@ class SupportTicketResponse(BaseModel):
                 "answer": (
                     "We offer automatic refunds for failed verifications. "
                     "If you don't receive a code within the expected timeframe, "
-                    "you can cancel the verification for a full refund. "
-                    "Manual refunds are processed within 24 hours."
+                    "you can cancel the verification for a full refund."
                 ),
                 "helpful_count": 33,
             },
@@ -240,83 +230,51 @@ class SupportTicketResponse(BaseModel):
 
         return {"faq": faq_items}
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get FAQ: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get FAQ")
 
 
-        @router.post("/faq/{faq_id}/helpful", response_model=SuccessResponse)
-    async def mark_faq_helpful(
-        faq_id: str,
-        helpful: bool = Body(..., description="Whether the FAQ was helpful"),
-        user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Mark FAQ item as helpful or not helpful."""
-        try:
-        # In a real implementation, you'd track this in the database
+@router.post("/faq/{faq_id}/helpful", response_model=SuccessResponse)
+async def mark_faq_helpful(
+    faq_id: str,
+    helpful: bool = Body(..., description="Whether the FAQ was helpful"),
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Mark FAQ item as helpful or not helpful."""
+    try:
         return SuccessResponse(message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful})
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to record FAQ feedback: %s", e)
         raise HTTPException(status_code=500, detail="Failed to record feedback")
 
 
-        @router.get("/categories")
-    async def get_support_categories():
-        """Get available support categories."""
-        try:
+@router.get("/categories")
+async def get_support_categories():
+    """Get available support categories."""
+    try:
         categories = [
-            {
-                "id": "technical",
-                "name": "Technical Issue",
-                "description": "Problems with verifications, website, or \
-        app functionality",
-                "icon": "🔧",
-            },
-            {
-                "id": "billing",
-                "name": "Billing Question",
-                "description": "Payment issues, refunds, or account credits",
-                "icon": "💳",
-            },
-            {
-                "id": "verification",
-                "name": "Verification Problem",
-                "description": "Issues with specific SMS or voice verifications",
-                "icon": "📱",
-            },
-            {
-                "id": "account",
-                "name": "Account Issue",
-                "description": "Login problems, account settings, or security concerns",
-                "icon": "👤",
-            },
-            {
-                "id": "feature",
-                "name": "Feature Request",
-                "description": "Suggestions for new features or improvements",
-                "icon": "💡",
-            },
-            {
-                "id": "other",
-                "name": "Other",
-                "description": "General questions or other topics",
-                "icon": "❓",
-            },
+            {"id": "technical", "name": "Technical Issue", "description": "Problems with verifications, website, or app functionality", "icon": "🔧"},
+            {"id": "billing", "name": "Billing Question", "description": "Payment issues, refunds, or account credits", "icon": "💳"},
+            {"id": "verification", "name": "Verification Problem", "description": "Issues with specific SMS or voice verifications", "icon": "📱"},
+            {"id": "account", "name": "Account Issue", "description": "Login problems, account settings, or security concerns", "icon": "👤"},
+            {"id": "feature", "name": "Feature Request", "description": "Suggestions for new features or improvements", "icon": "💡"},
+            {"id": "other", "name": "Other", "description": "General questions or other topics", "icon": "❓"},
         ]
 
         return {"categories": categories}
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get support categories: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get categories")
 
 
-        @router.get("/status")
-    async def get_support_status():
-        """Get current support system status."""
-        try:
+@router.get("/status")
+async def get_support_status():
+    """Get current support system status."""
+    try:
         return {
             "status": "operational",
             "average_response_time": "4 hours",
@@ -325,25 +283,22 @@ class SupportTicketResponse(BaseModel):
             "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get support status: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support status")
 
 
-# Admin endpoints for support management
-
-
-        @router.get("/admin/tickets", response_model=List[SupportTicketResponse])
-    async def get_all_tickets(
-        admin_id: str = Depends(get_admin_user_id),
-        status: Optional[str] = Query(None, description="Filter by status"),
-        priority: Optional[str] = Query(None, description="Filter by priority"),
-        category: Optional[str] = Query(None, description="Filter by category"),
-        limit: int = Query(50, le=200, description="Number of tickets to return"),
-        db: Session = Depends(get_db),
-        ):
-        """Get all support tickets (admin only)."""
-        try:
+@router.get("/admin/tickets", response_model=List[SupportTicketResponse])
+async def get_all_tickets(
+    admin_id: str = Depends(get_admin_user_id),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    priority: Optional[str] = Query(None, description="Filter by priority"),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    limit: int = Query(50, le=200, description="Number of tickets to return"),
+    db: Session = Depends(get_db),
+):
+    """Get all support tickets (admin only)."""
+    try:
         query = db.query(SupportTicket)
 
         if status:
@@ -357,20 +312,20 @@ class SupportTicketResponse(BaseModel):
 
         return [SupportTicketResponse.from_orm(ticket) for ticket in tickets]
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get all tickets: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get tickets")
 
 
-        @router.post("/admin/tickets/{ticket_id}/respond", response_model=SuccessResponse)
-    async def respond_to_ticket(
-        ticket_id: str,
-        response: str = Body(..., description="Admin response"),
-        admin_id: str = Depends(get_admin_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Respond to a support ticket (admin only)."""
-        try:
+@router.post("/admin/tickets/{ticket_id}/respond", response_model=SuccessResponse)
+async def respond_to_ticket(
+    ticket_id: str,
+    response: str = Body(..., description="Admin response"),
+    admin_id: str = Depends(get_admin_user_id),
+    db: Session = Depends(get_db),
+):
+    """Respond to a support ticket (admin only)."""
+    try:
         ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id).first()
 
         if not ticket:
@@ -381,7 +336,6 @@ class SupportTicketResponse(BaseModel):
         ticket.updated_at = datetime.now(timezone.utc)
         db.commit()
 
-        # In a real implementation, send email notification to user
         logger.info("Admin %s responded to ticket %s", admin_id, ticket_id)
 
         return SuccessResponse(
@@ -389,22 +343,21 @@ class SupportTicketResponse(BaseModel):
             data={"ticket_id": ticket_id, "status": "resolved"},
         )
 
-        except HTTPException:
-        pass
-        except Exception as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         logger.error("Failed to respond to ticket: %s", e)
         raise HTTPException(status_code=500, detail="Failed to respond to ticket")
 
 
-        @router.get("/admin/stats")
-    async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
-        """Get support statistics (admin only)."""
-        try:
+@router.get("/admin/stats")
+async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+    """Get support statistics (admin only)."""
+    try:
         total_tickets = db.query(SupportTicket).count()
         open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
         resolved_tickets = db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
 
-        # Calculate average response time (mock for now)
         avg_response_time = "4.2 hours"
 
         return {
@@ -416,6 +369,6 @@ class SupportTicketResponse(BaseModel):
             "resolution_rate": (round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0),
         }
 
-        except Exception as e:
+    except Exception as e:
         logger.error("Failed to get support stats: %s", e)
         raise HTTPException(status_code=500, detail="Failed to get support stats")

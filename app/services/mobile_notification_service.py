@@ -50,7 +50,7 @@ class MobileNotificationService:
         notification: Notification,
         device_tokens: List[str],
         platform: str = "both",
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Send push notification to user's devices.
 
         Args:
@@ -69,18 +69,18 @@ class MobileNotificationService:
         return results
 
         try:
-        if platform in ("android", "both") and self.fcm_enabled:
+            if platform in ("android", "both") and self.fcm_enabled:
                 android_tokens = [t for t in device_tokens if t.startswith("android_")]
-        if android_tokens:
+            if android_tokens:
                     fcm_result = await self._send_fcm_notification(
                         notification=notification,
                         device_tokens=android_tokens,
                     )
                     results["android"] = fcm_result
 
-        if platform in ("ios", "both") and self.apns_enabled:
+            if platform in ("ios", "both") and self.apns_enabled:
                 ios_tokens = [t for t in device_tokens if t.startswith("ios_")]
-        if ios_tokens:
+            if ios_tokens:
                     apns_result = await self._send_apns_notification(
                         notification=notification,
                         device_tokens=ios_tokens,
@@ -96,13 +96,13 @@ class MobileNotificationService:
         except Exception as e:
             logger.error(f"Failed to send push notifications for user {user_id}: {str(e)}")
 
-        return results
+            return results
 
     async def _send_fcm_notification(
         self,
         notification: Notification,
         device_tokens: List[str],
-        ) -> Dict[str, int]:
+    ) -> Dict[str, int]:
         """Send notification via Firebase Cloud Messaging.
 
         Args:
@@ -115,7 +115,7 @@ class MobileNotificationService:
         result = {"sent": 0, "failed": 0}
 
         if not self.fcm_enabled or not device_tokens:
-        return result
+            return result
 
         try:
             fcm_url = "https://fcm.googleapis.com/fcm/send"
@@ -143,12 +143,12 @@ class MobileNotificationService:
 
             async with aiohttp.ClientSession() as session:
                 async with session.post(fcm_url, json=payload, headers=headers, timeout=10) as response:
-        if response.status == 200:
+                    if response.status == 200:
                         data = await response.json()
                         result["sent"] = data.get("success", 0)
                         result["failed"] = data.get("failure", 0)
                         logger.info(f"FCM notification sent: {result['sent']} success, {result['failed']} failed")
-        else:
+                    else:
                         logger.error(f"FCM API error: {response.status}")
                         result["failed"] = len(device_tokens)
 
@@ -159,13 +159,13 @@ class MobileNotificationService:
             logger.error(f"Failed to send FCM notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
-        return result
+            return result
 
     async def _send_apns_notification(
         self,
         notification: Notification,
         device_tokens: List[str],
-        ) -> Dict[str, int]:
+    ) -> Dict[str, int]:
         """Send notification via Apple Push Notification service.
 
         Args:
@@ -178,7 +178,7 @@ class MobileNotificationService:
         result = {"sent": 0, "failed": 0}
 
         if not self.apns_enabled or not device_tokens:
-        return result
+            return result
 
         try:
             # APNs requires HTTP/2 and certificate-based authentication
@@ -192,7 +192,7 @@ class MobileNotificationService:
             logger.error(f"Failed to send APNs notification: {str(e)}")
             result["failed"] = len(device_tokens)
 
-        return result
+            return result
 
     async def register_device_token(
         self,
@@ -200,7 +200,7 @@ class MobileNotificationService:
         device_token: str,
         platform: str,
         device_name: Optional[str] = None,
-        ) -> bool:
+    ) -> bool:
         """Register device token for push notifications.
 
         Args:
@@ -228,11 +228,11 @@ class MobileNotificationService:
                 .first()
             )
 
-        if existing:
+            if existing:
                 existing.platform = platform
                 existing.device_name = device_name
                 existing.is_active = True
-        else:
+            else:
                 token = DeviceToken(
                     user_id=user_id,
                     device_token=device_token,
@@ -244,18 +244,18 @@ class MobileNotificationService:
 
             self.db.commit()
             logger.info(f"Device token registered for user {user_id} ({platform})")
-        return True
+            return True
 
         except Exception as e:
             logger.error(f"Failed to register device token: {str(e)}")
             self.db.rollback()
-        return False
+            return False
 
     async def unregister_device_token(
         self,
         user_id: str,
         device_token: str,
-        ) -> bool:
+    ) -> bool:
         """Unregister device token.
 
         Args:
@@ -280,24 +280,24 @@ class MobileNotificationService:
                 .first()
             )
 
-        if token:
+            if token:
                 token.is_active = False
                 self.db.commit()
                 logger.info(f"Device token unregistered for user {user_id}")
-        return True
+            return True
 
-        return False
+            return False
 
         except Exception as e:
             logger.error(f"Failed to unregister device token: {str(e)}")
             self.db.rollback()
-        return False
+            return False
 
     async def get_user_device_tokens(
         self,
         user_id: str,
         platform: Optional[str] = None,
-        ) -> List[str]:
+    ) -> List[str]:
         """Get active device tokens for user.
 
         Args:
@@ -318,15 +318,15 @@ class MobileNotificationService:
                 is_active=True,
             )
 
-        if platform:
+            if platform:
                 query = query.filter_by(platform=platform)
 
             tokens = query.all()
-        return [t.device_token for t in tokens]
+            return [t.device_token for t in tokens]
 
         except Exception as e:
             logger.error(f"Failed to get device tokens for user {user_id}: {str(e)}")
-        return []
+            return []
 
     async def cleanup_inactive_tokens(self, days: int = 30) -> int:
         """Clean up inactive device tokens.
@@ -357,9 +357,9 @@ class MobileNotificationService:
 
             self.db.commit()
             logger.info(f"Cleaned up {deleted} inactive device tokens")
-        return deleted
+            return deleted
 
         except Exception as e:
             logger.error(f"Failed to cleanup inactive tokens: {str(e)}")
             self.db.rollback()
-        return 0
+            return 0

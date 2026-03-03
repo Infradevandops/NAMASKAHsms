@@ -136,12 +136,12 @@ class PaymentMetrics:
 
 
 # Global metrics instance
-        payment_metrics = PaymentMetrics()
+payment_metrics = PaymentMetrics()
 
 
 class AlertSystem:
 
-        """Alert system for monitoring."""
+    """Alert system for monitoring."""
 
     def __init__(self):
 
@@ -208,4 +208,4 @@ class AlertSystem:
 
 
 # Global alert system instance
-        alert_system = AlertSystem()
+alert_system = AlertSystem()

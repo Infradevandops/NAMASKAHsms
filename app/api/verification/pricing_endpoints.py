@@ -22,7 +22,7 @@ async def get_pricing(
     """Calculate pricing with all premiums and discounts.
 
     Returns detailed pricing breakdown including:
-    - Base price for service
+        - Base price for service
     - Area code premium (if applicable)
     - Carrier premium (if applicable)
     - Tier discount (if applicable)
@@ -30,7 +30,7 @@ async def get_pricing(
     """
     # Get user
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         # Return default pricing for anonymous users
         user = User(tier="freemium")
 

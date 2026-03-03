@@ -13,7 +13,6 @@ logger = get_logger("auth_security")
 
 
 class LoginAttempt(Base):
-
     """Track login attempts for rate limiting."""
 
     __tablename__ = "login_attempts"
@@ -26,7 +25,6 @@ class LoginAttempt(Base):
 
 
 class AuthAuditLog(Base):
-
     """Audit log for authentication events."""
 
     __tablename__ = "auth_audit_logs"
@@ -41,7 +39,6 @@ class AuthAuditLog(Base):
 
 
 class AccountLockout(Base):
-
     """Track account lockouts."""
 
     __tablename__ = "account_lockouts"
@@ -53,16 +50,15 @@ class AccountLockout(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 
-    def check_rate_limit(
-
-        db: Session,
-        email: str,
-        ip_address: str,
-        max_attempts: int = 5,
-        window_minutes: int = 15,
-        ) -> bool:
-        """Check if email/IP has exceeded rate limit."""
-        try:
+def check_rate_limit(
+    db: Session,
+    email: str,
+    ip_address: str,
+    max_attempts: int = 5,
+    window_minutes: int = 15,
+) -> bool:
+    """Check if email/IP has exceeded rate limit."""
+    try:
         cutoff = datetime.utcnow() - timedelta(minutes=window_minutes)
         failed_attempts = (
             db.query(LoginAttempt)
@@ -75,15 +71,14 @@ class AccountLockout(Base):
             .count()
         )
         return failed_attempts < max_attempts
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Rate limit check error: {e}")
         return True
 
 
-    def check_account_lockout(db: Session, email: str) -> bool:
-
-        """Check if account is locked."""
-        try:
+def check_account_lockout(db: Session, email: str) -> bool:
+    """Check if account is locked."""
+    try:
         lockout = (
             db.query(AccountLockout)
             .filter(
@@ -93,20 +88,19 @@ class AccountLockout(Base):
             .first()
         )
         return lockout is not None
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Account lockout check error: {e}")
         return False
 
 
-    def lock_account(
-
-        db: Session,
-        email: str,
-        reason: str = "Too many failed login attempts",
-        duration_minutes: int = 30,
-        ):
-        """Lock account temporarily."""
-        try:
+def lock_account(
+    db: Session,
+    email: str,
+    reason: str = "Too many failed login attempts",
+    duration_minutes: int = 30,
+):
+    """Lock account temporarily."""
+    try:
         lockout = AccountLockout(
             id=str(uuid.uuid4()),
             email=email,
@@ -116,15 +110,14 @@ class AccountLockout(Base):
         db.add(lockout)
         db.commit()
         logger.warning(f"Account locked: {email} - {reason}")
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Account lock error: {e}")
         db.rollback()
 
 
-    def record_login_attempt(db: Session, email: str, ip_address: str, success: bool):
-
-        """Record login attempt."""
-        try:
+def record_login_attempt(db: Session, email: str, ip_address: str, success: bool):
+    """Record login attempt."""
+    try:
         attempt = LoginAttempt(
             id=str(uuid.uuid4()),
             email=email,
@@ -146,25 +139,24 @@ class AccountLockout(Base):
                 .count()
             )
 
-        if failed_count >= 5:
+            if failed_count >= 5:
                 lock_account(db, email)
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Login attempt record error: {e}")
         db.rollback()
 
 
-    def audit_log_auth_event(
-
-        db: Session,
-        event_type: str,
-        user_id: str = None,
-        email: str = None,
-        ip_address: str = None,
-        user_agent: str = None,
-        details: dict = None,
-        ):
-        """Log authentication event."""
-        try:
+def audit_log_auth_event(
+    db: Session,
+    event_type: str,
+    user_id: str = None,
+    email: str = None,
+    ip_address: str = None,
+    user_agent: str = None,
+    details: dict = None,
+):
+    """Log authentication event."""
+    try:
         log = AuthAuditLog(
             id=str(uuid.uuid4()),
             user_id=user_id,
@@ -177,6 +169,6 @@ class AccountLockout(Base):
         db.add(log)
         db.commit()
         logger.info(f"Auth event: {event_type} - {email or user_id}")
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Audit log error: {e}")
         db.rollback()

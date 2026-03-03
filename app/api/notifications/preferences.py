@@ -16,12 +16,8 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/api/notifications/preferences", tags=["Notification Preferences"])
 
 
-# Pydantic models for request/response
-
 class PreferenceUpdate(BaseModel):
-
     """Update notification preference."""
-
     notification_type: str = Field(..., description="Type of notification")
     enabled: bool = Field(default=True, description="Enable/disable this notification type")
     delivery_methods: List[str] = Field(default=["toast"], description="Delivery methods: toast, email, sms, webhook")
@@ -32,9 +28,7 @@ class PreferenceUpdate(BaseModel):
 
 
 class PreferenceResponse(BaseModel):
-
     """Notification preference response."""
-
     id: str
     notification_type: str
     enabled: bool
@@ -45,28 +39,18 @@ class PreferenceResponse(BaseModel):
     created_at_override: bool
 
 
-    @router.get("")
-    async def get_preferences(
-        user_id: str = Depends(get_current_user_id),
-        notification_type: Optional[str] = Query(None, description="Filter by notification type"),
-        db: Session = Depends(get_db),
-        ):
-        """Get notification preferences for user.
-
-        Query Parameters:
-        - notification_type: Optional filter by specific notification type
-
-        Returns:
-        - preferences: List of user notification preferences
-        - defaults: Default preferences for all notification types
-        """
-        try:
-        # Verify user exists
+@router.get("")
+async def get_preferences(
+    user_id: str = Depends(get_current_user_id),
+    notification_type: Optional[str] = Query(None, description="Filter by notification type"),
+    db: Session = Depends(get_db),
+):
+    """Get notification preferences for user."""
+    try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        # Get user preferences
         query = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id)
 
         if notification_type:
@@ -74,7 +58,6 @@ class PreferenceResponse(BaseModel):
 
         preferences = query.all()
 
-        # Get all defaults
         defaults = db.query(NotificationPreferenceDefaults).all()
 
         logger.info(f"Retrieved {len(preferences)} preferences for user {user_id}")
@@ -84,10 +67,10 @@ class PreferenceResponse(BaseModel):
             "defaults": [d.to_dict() for d in defaults],
         }
 
-        except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get preferences: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -95,23 +78,14 @@ class PreferenceResponse(BaseModel):
         )
 
 
-        @router.put("")
-    async def update_preferences(
-        user_id: str = Depends(get_current_user_id),
-        preferences: List[PreferenceUpdate] = Body(..., description="List of preferences to update"),
-        db: Session = Depends(get_db),
-        ):
-        """Update notification preferences for user.
-
-        Request Body:
-        - preferences: List of preference updates
-
-        Returns:
-        - updated: Number of preferences updated
-        - created: Number of preferences created
-        """
-        try:
-        # Verify user exists
+@router.put("")
+async def update_preferences(
+    user_id: str = Depends(get_current_user_id),
+    preferences: List[PreferenceUpdate] = Body(..., description="List of preferences to update"),
+    db: Session = Depends(get_db),
+):
+    """Update notification preferences for user."""
+    try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
@@ -120,29 +94,27 @@ class PreferenceResponse(BaseModel):
         created_count = 0
 
         for pref in preferences:
-            # Parse quiet hours
             quiet_hours_start = None
             quiet_hours_end = None
 
-        if pref.quiet_hours_start:
-        try:
+            if pref.quiet_hours_start:
+                try:
                     quiet_hours_start = time.fromisoformat(pref.quiet_hours_start)
-        except ValueError:
+                except ValueError:
                     raise HTTPException(
                         status_code=400,
                         detail=f"Invalid quiet_hours_start format: {pref.quiet_hours_start}",
                     )
 
-        if pref.quiet_hours_end:
-        try:
+            if pref.quiet_hours_end:
+                try:
                     quiet_hours_end = time.fromisoformat(pref.quiet_hours_end)
-        except ValueError:
+                except ValueError:
                     raise HTTPException(
                         status_code=400,
                         detail=f"Invalid quiet_hours_end format: {pref.quiet_hours_end}",
                     )
 
-            # Check if preference exists
             existing = (
                 db.query(NotificationPreference)
                 .filter(
@@ -152,7 +124,7 @@ class PreferenceResponse(BaseModel):
                 .first()
             )
 
-        if existing:
+            if existing:
                 existing.enabled = pref.enabled
                 existing.delivery_methods = ",".join(pref.delivery_methods)
                 existing.quiet_hours_start = quiet_hours_start
@@ -160,7 +132,7 @@ class PreferenceResponse(BaseModel):
                 existing.frequency = pref.frequency
                 existing.created_at_override = pref.created_at_override
                 updated_count += 1
-        else:
+            else:
                 new_pref = NotificationPreference(
                     user_id=user_id,
                     notification_type=pref.notification_type,
@@ -184,10 +156,10 @@ class PreferenceResponse(BaseModel):
             "total": updated_count + created_count,
         }
 
-        except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to update preferences: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -195,23 +167,17 @@ class PreferenceResponse(BaseModel):
         )
 
 
-        @router.post("/reset")
-    async def reset_preferences(
-        user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db),
-        ):
-        """Reset notification preferences to defaults.
-
-        Returns:
-        - reset: Number of preferences reset
-        """
-        try:
-        # Verify user exists
+@router.post("/reset")
+async def reset_preferences(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Reset notification preferences to defaults."""
+    try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        # Delete all user preferences
         deleted = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).delete()
 
         db.commit()
@@ -220,10 +186,10 @@ class PreferenceResponse(BaseModel):
 
         return {"reset": deleted}
 
-        except ValueError as e:
+    except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
         raise HTTPException(status_code=404, detail=str(e))
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to reset preferences: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -231,16 +197,12 @@ class PreferenceResponse(BaseModel):
         )
 
 
-        @router.get("/defaults")
-    async def get_default_preferences(
-        db: Session = Depends(get_db),
-        ):
-        """Get default notification preferences for all notification types.
-
-        Returns:
-        - defaults: List of default preferences
-        """
-        try:
+@router.get("/defaults")
+async def get_default_preferences(
+    db: Session = Depends(get_db),
+):
+    """Get default notification preferences for all notification types."""
+    try:
         defaults = db.query(NotificationPreferenceDefaults).all()
 
         logger.info(f"Retrieved {len(defaults)} default preferences")
@@ -249,7 +211,7 @@ class PreferenceResponse(BaseModel):
             "defaults": [d.to_dict() for d in defaults],
         }
 
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get default preferences: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -257,29 +219,17 @@ class PreferenceResponse(BaseModel):
         )
 
 
-        @router.post("/defaults")
-    async def create_default_preference(
-        notification_type: str = Query(..., description="Notification type"),
-        enabled: bool = Query(True, description="Enabled by default"),
-        delivery_methods: str = Query("toast", description="Default delivery methods (comma-separated)"),
-        frequency: str = Query("instant", description="Default frequency"),
-        description: str = Query(None, description="Description"),
-        db: Session = Depends(get_db),
-        ):
-        """Create or update default notification preference.
-
-        Query Parameters:
-        - notification_type: Type of notification
-        - enabled: Enabled by default
-        - delivery_methods: Default delivery methods
-        - frequency: Default frequency
-        - description: Description
-
-        Returns:
-        - default: Created/updated default preference
-        """
-        try:
-        # Check if exists
+@router.post("/defaults")
+async def create_default_preference(
+    notification_type: str = Query(..., description="Notification type"),
+    enabled: bool = Query(True, description="Enabled by default"),
+    delivery_methods: str = Query("toast", description="Default delivery methods (comma-separated)"),
+    frequency: str = Query("instant", description="Default frequency"),
+    description: str = Query(None, description="Description"),
+    db: Session = Depends(get_db),
+):
+    """Create or update default notification preference."""
+    try:
         existing = (
             db.query(NotificationPreferenceDefaults)
             .filter(NotificationPreferenceDefaults.notification_type == notification_type)
@@ -307,7 +257,7 @@ class PreferenceResponse(BaseModel):
 
         return {"status": "success"}
 
-        except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to create default preference: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

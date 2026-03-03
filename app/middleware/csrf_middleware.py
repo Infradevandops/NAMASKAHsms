@@ -17,7 +17,7 @@ class CSRFMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next) -> Response:
         # Skip CSRF for public endpoints
         if self._is_public_endpoint(request.url.path):
-        return await call_next(request)
+            return await call_next(request)
 
         # Generate CSRF token for GET requests
         if request.method in self.SAFE_METHODS:

@@ -37,10 +37,10 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
 @router.get("/users")
-    async def list_users(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
-        """List all users (admin only)."""
-        users = db.query(User).all()
-        return {
+async def list_users(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+    """List all users (admin only)."""
+    users = db.query(User).all()
+    return {
         "total": len(users),
         "users": [
             {
@@ -54,32 +54,31 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
             }
             for u in users
         ],
-        }
+    }
 
 
-        @router.get("/stats")
-    async def get_admin_stats(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
-        """Get admin statistics."""
-        total_users = db.query(User).count()
-        admin_users = db.query(User).filter(User.is_admin == True).count()
-    
-        return {
+@router.get("/stats")
+async def get_admin_stats(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+    """Get admin statistics."""
+    total_users = db.query(User).count()
+    admin_users = db.query(User).filter(User.is_admin == True).count()
+
+    return {
         "total_users": total_users,
         "admin_users": admin_users,
         "timestamp": datetime.now().isoformat(),
-        }
+    }
 
 
-        @router.get("/tiers")
-    async def get_tier_info(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
-        """Get tier configuration information."""
-        try:
+@router.get("/tiers")
+async def get_tier_info(user_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+    """Get tier configuration information."""
+    try:
         tiers = TierConfig.get_all_tiers(db)
         return {"tiers": tiers}
-        except Exception as e:
-        # Fallback to hardcoded tiers if database fails
+    except Exception:
         fallback_tiers = [
-            TierConfig._get_fallback_config(tier) 
+            TierConfig._get_fallback_config(tier)
             for tier in ["freemium", "payg", "pro", "custom"]
         ]
         return {"tiers": fallback_tiers, "fallback": True}

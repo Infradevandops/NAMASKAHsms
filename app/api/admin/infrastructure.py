@@ -22,7 +22,7 @@ async def get_regions_status():
 async def get_optimal_region(request: Request, country: str = None):
     """Get optimal region for user."""
     # Extract country from headers if not provided
-if not country:
+    if not country:
         country = request.headers.get("CF - IPCountry", "US")
 
     optimal = await region_manager.get_optimal_region(country)

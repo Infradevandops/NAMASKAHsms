@@ -2,51 +2,37 @@
 
 
 from sqlalchemy.orm import Session
+
 from app.core.tier_config_simple import TIER_CONFIG
 from app.models.user import User
 from app.services.quota_service import QuotaService
 
-class PricingCalculator:
 
+class PricingCalculator:
     """Calculate SMS verification costs."""
 
     @staticmethod
     def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
-
-        """Calculate total cost for SMS verification.
-
-        Args:
-            db: Database session
-            user_id: User ID
-            filters: dict with 'state', 'city', 'isp' keys (boolean)
-
-        Returns:
-            dict with base_cost, filter_charges, overage_charge, total_cost
-        """
+        """Calculate total cost for SMS verification."""
         if not filters:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()
         tier = TIER_CONFIG.get(user.subscription_tier, {})
 
-        # Base cost
         base_cost = tier.get("base_sms_cost", 2.50)
 
-        # Filter charges (only for PAYG tier)
         filter_charges = 0.0
         if user.subscription_tier == "payg":
-        if filters.get("state") or filters.get("city"):
+            if filters.get("state") or filters.get("city"):
                 filter_charges += 0.25
-        if filters.get("isp"):
+            if filters.get("isp"):
                 filter_charges += 0.50
 
-        # Check if filters allowed for tier
         if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
 
-        # Overage charge
         overage_charge = QuotaService.calculate_overage(db, user_id, base_cost + filter_charges)
-
         total_cost = base_cost + filter_charges + overage_charge
 
         return {
@@ -57,70 +43,39 @@ class PricingCalculator:
             "tier": user.subscription_tier,
         }
 
-        @staticmethod
+    @staticmethod
     def get_filter_charges(db: Session, user_id: str, filters: dict) -> float:
-
-        """Get filter charges for user's tier.
-
-        Args:
-            db: Database session
-            user_id: User ID
-            filters: dict with filter keys
-
-        Returns:
-            Total filter charges
-        """
+        """Get filter charges for user's tier."""
         user = db.query(User).filter(User.id == user_id).first()
 
         if user.subscription_tier == "freemium":
-        if any(filters.values()):
+            if any(filters.values()):
                 raise ValueError("Filters not available for Freemium tier")
-        return 0.0
+            return 0.0
 
         if user.subscription_tier == "payg":
             charges = 0.0
-        if filters.get("state") or filters.get("city"):
+            if filters.get("state") or filters.get("city"):
                 charges += 0.25
-        if filters.get("isp"):
+            if filters.get("isp"):
                 charges += 0.50
-        return charges
+            return charges
 
-        # Pro and Custom tiers include filters
         return 0.0
 
-        @staticmethod
+    @staticmethod
     def validate_balance(db: Session, user_id: str, cost: float) -> bool:
-
-        """Check if user has sufficient balance.
-
-        Args:
-            db: Database session
-            user_id: User ID
-            cost: Cost in USD
-
-        Returns:
-            True if sufficient balance
-        """
+        """Check if user has sufficient balance."""
         user = db.query(User).filter(User.id == user_id).first()
 
         if user.subscription_tier == "freemium":
-        return user.bonus_sms_balance >= 1  # At least 1 SMS
+            return user.bonus_sms_balance >= 1
 
         return user.credits >= cost
 
-        @staticmethod
+    @staticmethod
     def get_pricing_breakdown(db: Session, user_id: str, filters: dict = None) -> dict:
-
-        """Get detailed pricing breakdown.
-
-        Args:
-            db: Database session
-            user_id: User ID
-            filters: dict with filter keys
-
-        Returns:
-            dict with pricing details
-        """
+        """Get detailed pricing breakdown."""
         if not filters:
             filters = {}
 

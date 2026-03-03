@@ -9,10 +9,10 @@ def require_verified_email(user_id: str = Depends(get_current_user_id), db: Sess
 
     """Dependency to require verified email."""
     user = db.query(User).filter(User.id == user_id).first()
-if not user:
+    if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-if not user.email_verified:
+    if not user.email_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Email verification required. Check your inbox for verification link.",

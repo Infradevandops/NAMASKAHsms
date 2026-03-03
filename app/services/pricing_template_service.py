@@ -36,7 +36,7 @@ class PricingTemplateService:
             assignment = self.db.query(UserPricingAssignment).filter(UserPricingAssignment.user_id == user_id).first()
 
         if assignment:
-        return self.db.query(PricingTemplate).filter(PricingTemplate.id == assignment.template_id).first()
+            return self.db.query(PricingTemplate).filter(PricingTemplate.id == assignment.template_id).first()
 
         # Return active template for region
         return (
@@ -168,8 +168,8 @@ class PricingTemplateService:
 
         # Update fields
         for key, value in updates.items():
-        if hasattr(template, key):
-                setattr(template, key, value)
+            if hasattr(template, key):
+                    setattr(template, key, value)
 
         self.db.commit()
 

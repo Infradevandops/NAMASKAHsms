@@ -9,13 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
 from app.models.kyc import KYCAuditLog, KYCDocument, KYCProfile
-from app.schemas.kyc import (
-    KYCDocumentResponse,
-    KYCProfileCreate,
-    KYCProfileResponse,
-    KYCStatsResponse,
-    KYCVerificationDecision,
-)
+from app.schemas.kyc import KYCDocumentResponse, KYCProfileCreate, KYCProfileResponse, KYCStatsResponse, KYCVerificationDecision
 from app.services.document_service import get_document_service
 from app.services.kyc_service import get_kyc_service
 
@@ -30,10 +24,10 @@ async def create_kyc_profile(
     db: Session = Depends(get_db),
 ):
     """Submit KYC profile for verification."""
-try:
+    try:
         # Check if profile already exists
         existing_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-if existing_profile:
+        if existing_profile:
             raise HTTPException(status_code=400, detail="KYC profile already exists")
 
         kyc_service = get_kyc_service(db)
@@ -43,9 +37,9 @@ if existing_profile:
 
         return KYCProfileResponse.from_orm(kyc_profile)
 
-except HTTPException:
+    except HTTPException:
         pass
-except Exception as e:
+    except Exception as e:
         logger.error("KYC profile creation failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Profile creation failed")
 
@@ -56,7 +50,7 @@ def get_kyc_profile(user_id: str = Depends(get_current_user_id), db: Session = D
     """Get current user's KYC profile."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
-if not kyc_profile:
+    if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
     return KYCProfileResponse.from_orm(kyc_profile)
@@ -71,10 +65,10 @@ async def update_kyc_profile(
     """Update KYC profile (only if not verified)."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
-if not kyc_profile:
+    if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
-if kyc_profile.status == "verified":
+    if kyc_profile.status == "verified":
         raise HTTPException(status_code=400, detail="Cannot update verified profile")
 
     kyc_service = get_kyc_service(db)
@@ -91,10 +85,10 @@ async def upload_kyc_document(
     db: Session = Depends(get_db),
 ):
     """Upload KYC document."""
-try:
+    try:
         # Validate document type
         allowed_types = ["passport", "license", "id_card", "utility_bill", "selfie"]
-if document_type not in allowed_types:
+        if document_type not in allowed_types:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid document type. Allowed: {allowed_types}",
@@ -102,7 +96,7 @@ if document_type not in allowed_types:
 
         # Get KYC profile
         kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
-if not kyc_profile:
+        if not kyc_profile:
             raise HTTPException(status_code=404, detail="KYC profile not found. Create profile first.")
 
         document_service = get_document_service(db)
@@ -119,9 +113,9 @@ if not kyc_profile:
             "uploaded_at": document.created_at.isoformat(),
         }
 
-except HTTPException:
+    except HTTPException:
         pass
-except Exception as e:
+    except Exception as e:
         logger.error("Document upload failed: %s", str(e))
         raise HTTPException(status_code=500, detail="Document upload failed")
 
@@ -132,7 +126,7 @@ def get_kyc_documents(user_id: str = Depends(get_current_user_id), db: Session =
     """Get user's uploaded KYC documents."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
-if not kyc_profile:
+    if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
     documents = db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
@@ -145,10 +139,10 @@ async def submit_kyc_for_review(user_id: str = Depends(get_current_user_id), db:
     """Submit KYC profile for admin review."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
 
-if not kyc_profile:
+    if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
-if kyc_profile.status != "unverified":
+    if kyc_profile.status != "unverified":
         raise HTTPException(
             status_code=400,
             detail="Profile already submitted or \
@@ -203,7 +197,7 @@ async def admin_verify_kyc(
     """Admin decision on KYC verification."""
     kyc_profile = db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
 
-if not kyc_profile:
+    if not kyc_profile:
         raise HTTPException(status_code=404, detail="KYC profile not found")
 
     kyc_service = get_kyc_service(db)

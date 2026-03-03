@@ -3,18 +3,19 @@
 
 from datetime import datetime, timedelta
 from typing import Any, Dict
+
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.rental import Rental
 from app.utils.performance import async_cache
 
+
 class BusinessIntelligenceService:
-
     def __init__(self, db: AsyncSession):
-
         self.db = db
 
-        @async_cache(ttl=3600)
+    @async_cache(ttl=3600)
     async def get_revenue_metrics(self, days: int = 30) -> Dict[str, Any]:
         """Get revenue tracking metrics."""
         start_date = datetime.utcnow() - timedelta(days=days)
@@ -35,17 +36,15 @@ class BusinessIntelligenceService:
             "period_days": days,
         }
 
-        @async_cache(ttl=1800)
+    @async_cache(ttl=1800)
     async def get_user_segmentation(self) -> Dict[str, Any]:
         """Get user segmentation data."""
-        # Active users (last 30 days)
         active_query = select(func.count(func.distinct(Rental.user_id))).where(
             Rental.created_at >= datetime.utcnow() - timedelta(days=30)
         )
         active_result = await self.db.execute(active_query)
         active_users = active_result.scalar()
 
-        # High - value users (>$10 spent)
         high_value_query = select(func.count(func.distinct(Rental.user_id))).where(
             Rental.user_id.in_(select(Rental.user_id).group_by(Rental.user_id).having(func.sum(Rental.cost) > 10))
         )
@@ -58,10 +57,9 @@ class BusinessIntelligenceService:
             "user_retention_rate": round((active_users / max(high_value_users, 1)) * 100, 2),
         }
 
-        @async_cache(ttl=7200)
+    @async_cache(ttl=7200)
     async def get_predictive_analytics(self) -> Dict[str, Any]:
         """Get predictive analytics data."""
-        # Revenue trend (last 7 days vs previous 7 days)
         current_week = datetime.utcnow() - timedelta(days=7)
         previous_week = datetime.utcnow() - timedelta(days=14)
 

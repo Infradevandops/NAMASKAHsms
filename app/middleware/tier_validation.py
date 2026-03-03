@@ -21,22 +21,10 @@ TIER_FEATURES = {
 
 
 def require_tier(user: User, feature: str):
-
-    """Validate user has required tier for feature.
-
-    Args:
-        user: User object
-        feature: Feature name to check
-
-    Raises:
-        HTTPException: If user doesn't have required tier
-
-    Returns:
-        True if user has access
-    """
+    """Validate user has required tier for feature."""
     required_tiers = TIER_FEATURES.get(feature, [])
 
-if user.tier not in required_tiers:
+    if user.tier not in required_tiers:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
@@ -51,24 +39,11 @@ if user.tier not in required_tiers:
 
 
 def validate_tier_access(user: User, carrier: str = None, area_code: str = None):
-
-    """Validate tier access for verification parameters.
-
-    Args:
-        user: User object
-        carrier: Optional carrier selection
-        area_code: Optional area code selection
-
-    Raises:
-        HTTPException: If user doesn't have required tier
-
-    Returns:
-        True if user has access
-    """
-if carrier and carrier.lower() not in ["any", "", "none"]:
+    """Validate tier access for verification parameters."""
+    if carrier and carrier.lower() not in ["any", "", "none"]:
         require_tier(user, "carrier_selection")
 
-if area_code and area_code not in ["any", "", "none"]:
+    if area_code and area_code not in ["any", "", "none"]:
         require_tier(user, "area_code_selection")
 
     return True

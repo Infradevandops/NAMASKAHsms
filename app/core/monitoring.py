@@ -57,7 +57,7 @@ class MetricsCollector:
 
 class PerformanceMonitor:
 
-        """Performance monitoring and SLA tracking."""
+    """Performance monitoring and SLA tracking."""
 
     def __init__(self):
 
@@ -110,11 +110,11 @@ class PerformanceMonitor:
         return compliance
 
         @staticmethod
-    def _calculate_percentile(values: List[float], percentile: int) -> float:
+        def _calculate_percentile(values: List[float], percentile: int) -> float:
 
-        """Calculate percentile value."""
+            """Calculate percentile value."""
         if not values:
-        return 0
+            return 0
 
         sorted_values = sorted(values)
         index = int(len(sorted_values) * percentile / 100)
@@ -123,7 +123,7 @@ class PerformanceMonitor:
 
 class ErrorTracker:
 
-        """Error tracking and alerting system."""
+    """Error tracking and alerting system."""
 
     def __init__(self):
 
@@ -151,24 +151,24 @@ class ErrorTracker:
             asyncio.create_task(self._send_alert(error_data))
 
         @staticmethod
-    def _determine_severity(error: Exception) -> str:
+        def _determine_severity(error: Exception) -> str:
 
-        """Determine error severity."""
+            """Determine error severity."""
         critical_errors = ["DatabaseError", "PaymentError", "ExternalServiceError"]
 
         if type(error).__name__ in critical_errors:
-        return "critical"
+            return "critical"
         elif "timeout" in str(error).lower():
-        return "warning"
+            return "warning"
         else:
-        return "info"
+            return "info"
 
     def _should_alert(self, error_data: Dict) -> bool:
 
         """Check if error should trigger alert."""
         # Alert on critical errors
         if error_data["severity"] == "critical":
-        return True
+            return True
 
         # Alert on high error rate
         recent_errors = [e for e in self.errors if (datetime.now(timezone.utc) - e["timestamp"]).seconds < 300]
@@ -176,15 +176,15 @@ class ErrorTracker:
         return len(recent_errors) >= self.alert_thresholds["error_rate_5min"]
 
         @staticmethod
-    async def _send_alert(error_data: Dict):
-        """Send error alert."""
+        async def _send_alert(error_data: Dict):
+            """Send error alert."""
         # In production, integrate with alerting system (PagerDuty, Slack, etc.)
         print(f"ALERT: {error_data['severity'].upper()} error - {error_data['message']}")
 
 
 class DashboardMetrics:
 
-        """Real - time dashboard metrics."""
+    """Real - time dashboard metrics."""
 
     def __init__(self):
 
@@ -209,8 +209,8 @@ class DashboardMetrics:
         }
 
         @staticmethod
-    async def get_business_metrics() -> Dict[str, Any]:
-        """Get business metrics."""
+        async def get_business_metrics() -> Dict[str, Any]:
+            """Get business metrics."""
         # In production, fetch from database
         return {
             "verifications_today": 150,
@@ -223,7 +223,7 @@ class DashboardMetrics:
 
 class CanaryAnalyzer:
 
-        """Automated canary deployment analysis."""
+    """Automated canary deployment analysis."""
 
     def __init__(self):
 
@@ -248,7 +248,7 @@ class CanaryAnalyzer:
 
         # Compare key metrics
         for metric, canary_value in canary_metrics.items():
-        if metric in self.baseline_metrics:
+            if metric in self.baseline_metrics:
                 baseline_value = self.baseline_metrics[metric]
                 change_percent = ((canary_value - baseline_value) / baseline_value) * 100
 

@@ -20,13 +20,13 @@ class TierManager:
         """Get user's current subscription tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-        return "freemium"  # Default to freemium for non-existent users
+            return "freemium"  # Default to freemium for non-existent users
 
         # Check if paid tier has expired
         if user.tier in ["pro", "custom"]:
             expires = getattr(user, 'tier_expires_at', None)
         if expires:
-        if expires.tzinfo is None:
+            if expires.tzinfo is None:
                     expires = expires.replace(tzinfo=timezone.utc)
 
         if expires < datetime.now(timezone.utc):
@@ -71,12 +71,12 @@ class TierManager:
         """Upgrade user to a new tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-        return False
+            return False
 
         # Validate tier
         valid_tiers = ["freemium", "payg", "pro", "custom"]
         if new_tier not in valid_tiers:
-        return False
+            return False
 
         user.tier = new_tier
         if expires_at:
@@ -90,7 +90,7 @@ class TierManager:
         """Downgrade user to freemium tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-        return False
+            return False
 
         user.tier = "freemium"
         user.tier_expires_at = None

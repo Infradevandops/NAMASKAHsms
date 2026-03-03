@@ -8,12 +8,11 @@ from app.services.notification_service import NotificationService
 import logging
 from sqlalchemy import text
 
-class BackgroundTaskManager:
 
+class BackgroundTaskManager:
     """Background task processing manager."""
 
     def __init__(self):
-
         self.tasks = []
         self.running = False
 
@@ -37,57 +36,53 @@ class BackgroundTaskManager:
     async def _process_tasks(self):
         """Process background tasks."""
         while self.running:
-            # Clean up completed tasks
             self.tasks = [task for task in self.tasks if not task.done()]
             await asyncio.sleep(1)
 
 
 # Global task manager
-        task_manager = BackgroundTaskManager()
+task_manager = BackgroundTaskManager()
 
 
-    async def async_send_email(notification_service: NotificationService, to_email: str, subject: str, body: str):
-        """Send email asynchronously."""
-        try:
+async def async_send_email(notification_service: NotificationService, to_email: str, subject: str, body: str):
+    """Send email asynchronously."""
+    try:
         await notification_service.send_email(to_email, subject, body)
-        except Exception as e:
-
+    except Exception as e:
         logger = logging.getLogger(__name__)
         logger.error("Email sending failed: %s", e)
 
 
-    async def async_send_webhook(
-        notification_service: NotificationService,
-        user_id: str,
-        event_type: str,
-        payload: Dict[str, Any],
-        ):
-        """Send webhook asynchronously."""
-        try:
+async def async_send_webhook(
+    notification_service: NotificationService,
+    user_id: str,
+    event_type: str,
+    payload: Dict[str, Any],
+):
+    """Send webhook asynchronously."""
+    try:
         await notification_service.send_webhook(user_id, event_type, payload)
-        except Exception as e:
-
+    except Exception as e:
         logger = logging.getLogger(__name__)
         logger.error("Webhook delivery failed: %s", e)
 
 
-    async def async_process_payment_webhook(payment_service: PaymentService, webhook_data: Dict[str, Any]):
-        """Process payment webhook asynchronously."""
-        try:
+async def async_process_payment_webhook(payment_service: PaymentService, webhook_data: Dict[str, Any]):
+    """Process payment webhook asynchronously."""
+    try:
         result = payment_service.process_webhook_payment(webhook_data)
         return result
-        except Exception as e:
-
+    except Exception as e:
         logger = logging.getLogger(__name__)
         logger.error("Payment webhook processing failed: %s", e)
         return False
 
 
-    async def batch_process_notifications(notification_service: NotificationService, notifications: List[Dict[str, Any]]):
-        """Process multiple notifications in batch."""
-        tasks = []
+async def batch_process_notifications(notification_service: NotificationService, notifications: List[Dict[str, Any]]):
+    """Process multiple notifications in batch."""
+    tasks = []
 
-        for notification in notifications:
+    for notification in notifications:
         if notification["type"] == "email":
             task = async_send_email(
                 notification_service,
@@ -107,23 +102,19 @@ class BackgroundTaskManager:
 
         tasks.append(task)
 
-    # Process all notifications concurrently
-        await asyncio.gather(*tasks, return_exceptions=True)
+    await asyncio.gather(*tasks, return_exceptions=True)
 
 
 class AsyncDatabaseOperations:
+    """Async database operations."""
 
-        """Async database operations."""
-
-        @staticmethod
+    @staticmethod
     async def bulk_update_user_credits(db_session, updates: List[Dict]):
         """Bulk update user credits asynchronously."""
         try:
-        for update in updates:
+            for update in updates:
                 user_id = update["user_id"]
                 amount = update["amount"]
-
-                # Update user credits using SQLAlchemy text() for parameterized queries
 
                 db_session.execute(
                     text("UPDATE users SET credits = credits + :amount WHERE id = :user_id"),
@@ -131,15 +122,15 @@ class AsyncDatabaseOperations:
                 )
 
             db_session.commit()
-        return True
+            return True
         except Exception as e:
             db_session.rollback()
 
             logger = logging.getLogger(__name__)
             logger.error("Bulk credit update failed: %s", e)
-        return False
+            return False
 
-        @staticmethod
+    @staticmethod
     async def cleanup_old_verifications(db_session, days: int = 30):
         """Clean up old verifications asynchronously."""
         try:
@@ -151,36 +142,34 @@ class AsyncDatabaseOperations:
             )
 
             db_session.commit()
-        return result.rowcount
+            return result.rowcount
         except Exception as e:
             db_session.rollback()
 
             logger = logging.getLogger(__name__)
             logger.error("Verification cleanup failed: %s", e)
-        return 0
+            return 0
 
 
 # Utility functions for async operations
 
 
-    async def schedule_background_task(coro):
-        """Schedule a coroutine as background task."""
-        return await task_manager.add_task(coro)
+async def schedule_background_task(coro):
+    """Schedule a coroutine as background task."""
+    return await task_manager.add_task(coro)
 
 
-    async def process_heavy_operation(operation_data: Dict[str, Any]):
-        """Process heavy operations asynchronously."""
-        operation_type = operation_data.get("type")
+async def process_heavy_operation(operation_data: Dict[str, Any]):
+    """Process heavy operations asynchronously."""
+    operation_type = operation_data.get("type")
 
-        if operation_type == "user_analytics":
-        # Simulate heavy analytics calculation
+    if operation_type == "user_analytics":
         await asyncio.sleep(2)
         return {"status": "completed", "result": "analytics_data"}
 
-        elif operation_type == "report_generation":
-        # Simulate report generation
+    elif operation_type == "report_generation":
         await asyncio.sleep(5)
         return {"status": "completed", "result": "report_data"}
 
-        else:
+    else:
         return {"status": "unknown_operation"}

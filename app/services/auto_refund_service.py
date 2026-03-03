@@ -24,22 +24,13 @@ class AutoRefundService:
         self.credit_service = CreditService(db)
 
     async def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
-        """Process automatic refund for a failed verification.
-
-        Args:
-            verification_id: Verification ID
-            reason: Refund reason (timeout, cancelled, failed)
-
-        Returns:
-            Refund details or None if already refunded
-        """
+        """Process automatic refund for a failed verification."""
         verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
 
         if not verification:
             logger.error(f"Verification {verification_id} not found")
-        return None
+            return None
 
-        # Check if already refunded
         existing_refund = (
             self.db.query(Transaction)
             .filter(
@@ -52,28 +43,23 @@ class AutoRefundService:
 
         if existing_refund:
             logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
-        return None
+            return None
 
-        # Only refund if status is timeout, cancelled, or failed
         if verification.status not in ["timeout", "cancelled", "failed"]:
             logger.warning(f"Cannot refund verification {verification_id} with status: {verification.status}")
-        return None
+            return None
 
-        # Get user
         user = self.db.query(User).filter(User.id == verification.user_id).first()
         if not user:
             logger.error(f"User {verification.user_id} not found")
-        return None
+            return None
 
-        # Calculate refund amount
         refund_amount = verification.cost
 
         try:
-            # Add credits back to user
             old_balance = user.credits
             user.credits = (user.credits or 0.0) + refund_amount
 
-            # Create refund transaction
             transaction = Transaction(
                 user_id=verification.user_id,
                 amount=refund_amount,
@@ -92,7 +78,6 @@ class AutoRefundService:
                 f"Reason={reason}, Balance: ${old_balance:.2f} → ${new_balance:.2f}"
             )
 
-            # CRITICAL: Send notification using dispatcher for real-time updates
             try:
                 notification_dispatcher = NotificationDispatcher(self.db)
                 await notification_dispatcher.on_refund_completed(
@@ -101,9 +86,8 @@ class AutoRefundService:
                     reference=f"auto-refund-{verification_id}",
                     new_balance=new_balance
                 )
-                
-                # Send specific notification based on reason
-        if reason == "timeout":
+
+                if reason == "timeout":
                     await notification_dispatcher.notify_verification_timeout(
                         user_id=verification.user_id,
                         verification_id=verification_id,
@@ -117,23 +101,22 @@ class AutoRefundService:
                         service=verification.service_name,
                         refund_amount=refund_amount
                     )
-                else:  # failed
+                else:
                     await notification_dispatcher.notify_verification_failed(
                         user_id=verification.user_id,
                         verification_id=verification_id,
                         service=verification.service_name,
                         reason=f"Refunded: {reason}"
                     )
-                
+
                 logger.info(f"✓ Refund notification sent to {verification.user_id}")
             except Exception as e:
                 logger.error(
                     f"🚨 CRITICAL: Refund notification failed for {verification.user_id}: {e}",
                     exc_info=True,
                 )
-                # Don't fail the refund, but ensure it's logged
 
-        return {
+            return {
                 "verification_id": verification_id,
                 "user_id": verification.user_id,
                 "refund_amount": refund_amount,
@@ -150,21 +133,12 @@ class AutoRefundService:
                 f"Failed to process refund for verification {verification_id}: {str(e)}",
                 exc_info=True,
             )
-        return None
+            return None
 
     def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
-        """Scan for unrefunded failed verifications and process refunds.
-
-        Args:
-            days_back: Number of days to look back
-            dry_run: If True, only report without processing
-
-        Returns:
-            Reconciliation report
-        """
+        """Scan for unrefunded failed verifications and process refunds."""
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
-        # Find failed verifications without refunds
         failed_verifications = (
             self.db.query(Verification)
             .filter(
@@ -185,7 +159,6 @@ class AutoRefundService:
         }
 
         for verification in failed_verifications:
-            # Check if already refunded
             existing_refund = (
                 self.db.query(Transaction)
                 .filter(
@@ -196,7 +169,7 @@ class AutoRefundService:
                 .first()
             )
 
-        if existing_refund:
+            if existing_refund:
                 report["already_refunded"] += 1
                 continue
 
@@ -211,11 +184,10 @@ class AutoRefundService:
                 "created_at": verification.created_at.isoformat(),
             }
 
-        if not dry_run:
-                # Process refund
+            if not dry_run:
                 import asyncio
                 result = asyncio.run(self.process_verification_refund(verification.id, verification.status))
-        if result:
+                if result:
                     report["refunded_now"] += 1
                     report["total_amount_refunded"] += result["refund_amount"]
                     verification_info["refunded"] = True

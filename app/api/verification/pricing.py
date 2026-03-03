@@ -25,21 +25,21 @@ async def get_verification_pricing(
     db: Session = Depends(get_db),
 ):
     """Get pricing for verification with optional area code and carrier"""
-try:
-if not service:
+    try:
+        if not service:
             raise HTTPException(status_code=400, detail="Service required")
 
         tier_manager = TierManager(db)
 
         # Check area code access (Starter+)
-if area_code and area_code != "any":
-if not tier_manager.check_feature_access(user_id, "area_code_selection"):
+        if area_code and area_code != "any":
+            if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 user_tier = tier_manager.get_user_tier(user_id)
                 raise_tier_error(user_tier, "starter", user_id)
 
         # Check ISP/carrier access (Turbo only)
-if carrier and carrier != "any":
-if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+        if carrier and carrier != "any":
+            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
                 user_tier = tier_manager.get_user_tier(user_id)
                 raise_tier_error(user_tier, "turbo", user_id)
 
@@ -80,8 +80,8 @@ if not tier_manager.check_feature_access(user_id, "isp_filtering"):
             },
         }
 
-except HTTPException:
+    except HTTPException:
         raise
-except Exception as e:
+    except Exception as e:
         logger.error(f"Failed to get pricing: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to calculate pricing")

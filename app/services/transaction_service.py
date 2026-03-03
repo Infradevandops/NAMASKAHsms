@@ -3,23 +3,24 @@
 
 import uuid
 from datetime import datetime
+
 from sqlalchemy.orm import Session
+
 from app.models.transaction import Transaction
 
-class TransactionService:
 
+class TransactionService:
     """Log transactions for audit trail."""
 
     @staticmethod
     def log_sms_purchase(
-
         db: Session,
         user_id: str,
         cost: float,
         tier: str,
         service: str = None,
         filters: dict = None,
-        ) -> str:
+    ) -> str:
         """Log SMS purchase transaction."""
         if not filters:
             filters = {}
@@ -39,9 +40,8 @@ class TransactionService:
         db.commit()
         return transaction.id
 
-        @staticmethod
+    @staticmethod
     def log_api_key_creation(db: Session, user_id: str, key_id: str) -> str:
-
         """Log API key creation."""
         transaction = Transaction(
             id=str(uuid.uuid4()),
@@ -57,9 +57,8 @@ class TransactionService:
         db.commit()
         return transaction.id
 
-        @staticmethod
+    @staticmethod
     def log_filter_charge(db: Session, user_id: str, cost: float, filter_type: str, tier: str) -> str:
-
         """Log filter charge."""
         transaction = Transaction(
             id=str(uuid.uuid4()),
@@ -75,9 +74,8 @@ class TransactionService:
         db.commit()
         return transaction.id
 
-        @staticmethod
+    @staticmethod
     def log_overage_charge(db: Session, user_id: str, cost: float, tier: str) -> str:
-
         """Log overage charge."""
         transaction = Transaction(
             id=str(uuid.uuid4()),

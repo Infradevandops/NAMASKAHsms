@@ -12,11 +12,9 @@ logger = get_logger(__name__)
 
 
 class PaystackService:
-
     """Service for Paystack payment processing."""
 
     def __init__(self):
-
         settings = get_settings()
         self.secret_key = settings.paystack_secret_key
         self.public_key = settings.paystack_public_key
@@ -34,18 +32,8 @@ class PaystackService:
         amount_kobo: int,
         reference: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        ) -> Dict[str, Any]:
-        """Initialize a payment transaction.
-
-        Args:
-            email: Customer email
-            amount_kobo: Amount in kobo (1 naira = 100 kobo)
-            reference: Unique reference for the transaction
-            metadata: Additional metadata to store with transaction
-
-        Returns:
-            Dictionary with authorization_url and access_code
-        """
+    ) -> Dict[str, Any]:
+        """Initialize a payment transaction."""
         if not self.enabled:
             raise Exception("Paystack not configured")
 
@@ -56,10 +44,10 @@ class PaystackService:
                     "amount": amount_kobo,
                 }
 
-        if reference:
+                if reference:
                     payload["reference"] = reference
 
-        if metadata:
+                if metadata:
                     payload["metadata"] = metadata
 
                 response = await client.post(
@@ -71,15 +59,15 @@ class PaystackService:
                 response.raise_for_status()
                 data = response.json()
 
-        if not data.get("status"):
-                    raise Exception(f"Paystack error: {data.get('message')}")
+                if not data.get("status"):
+                    raise Exception("Paystack error: " + data.get("message", "Unknown"))
 
                 result = data.get("data", {})
                 logger.info(
-                    f"Payment initialized for {email}: " f"Amount={amount_kobo}, Reference={result.get('reference')}"
+                    f"Payment initialized for {email}: Amount={amount_kobo}, Reference={result.get('reference')}"
                 )
 
-        return {
+                return {
                     "authorization_url": result.get("authorization_url"),
                     "access_code": result.get("access_code"),
                     "reference": result.get("reference"),
@@ -90,14 +78,7 @@ class PaystackService:
             raise
 
     async def verify_payment(self, reference: str) -> Dict[str, Any]:
-        """Verify a payment transaction.
-
-        Args:
-            reference: Transaction reference to verify
-
-        Returns:
-            Dictionary with payment details
-        """
+        """Verify a payment transaction."""
         if not self.enabled:
             raise Exception("Paystack not configured")
 
@@ -111,8 +92,8 @@ class PaystackService:
                 response.raise_for_status()
                 data = response.json()
 
-        if not data.get("status"):
-                    raise Exception(f"Paystack error: {data.get('message')}")
+                if not data.get("status"):
+                    raise Exception("Paystack error: " + data.get("message", "Unknown"))
 
                 result = data.get("data", {})
                 logger.info(
@@ -120,7 +101,7 @@ class PaystackService:
                     f"Status={result.get('status')}, Amount={result.get('amount')}"
                 )
 
-        return {
+                return {
                     "status": result.get("status"),
                     "reference": result.get("reference"),
                     "amount": result.get("amount"),
@@ -134,16 +115,7 @@ class PaystackService:
             raise
 
     def verify_webhook_signature(self, payload: bytes, signature: str) -> bool:
-
-        """Verify webhook signature from Paystack.
-
-        Args:
-            payload: Raw request body
-            signature: X-Paystack-Signature header value
-
-        Returns:
-            True if signature is valid, False otherwise
-        """
+        """Verify webhook signature from Paystack."""
         try:
             hash_object = hmac.new(
                 self.secret_key.encode(),
@@ -151,20 +123,13 @@ class PaystackService:
                 hashlib.sha512,
             )
             computed_signature = hash_object.hexdigest()
-        return computed_signature == signature
+            return computed_signature == signature
         except Exception as e:
             logger.error(f"Webhook signature verification failed: {str(e)}")
-        return False
+            return False
 
     async def get_transaction(self, transaction_id: int) -> Dict[str, Any]:
-        """Get transaction details by ID.
-
-        Args:
-            transaction_id: Paystack transaction ID
-
-        Returns:
-            Dictionary with transaction details
-        """
+        """Get transaction details by ID."""
         if not self.enabled:
             raise Exception("Paystack not configured")
 
@@ -178,21 +143,17 @@ class PaystackService:
                 response.raise_for_status()
                 data = response.json()
 
-        if not data.get("status"):
-                    raise Exception(f"Paystack error: {data.get('message')}")
+                if not data.get("status"):
+                    raise Exception("Paystack error: " + data.get("message", "Unknown"))
 
-        return data.get("data", {})
+                return data.get("data", {})
 
         except Exception as e:
             logger.error(f"Failed to get transaction: {str(e)}")
             raise
 
     async def get_balance(self) -> Dict[str, Any]:
-        """Get account balance.
-
-        Returns:
-            Dictionary with balance information
-        """
+        """Get account balance."""
         if not self.enabled:
             raise Exception("Paystack not configured")
 
@@ -206,13 +167,13 @@ class PaystackService:
                 response.raise_for_status()
                 data = response.json()
 
-        if not data.get("status"):
-                    raise Exception(f"Paystack error: {data.get('message')}")
+                if not data.get("status"):
+                    raise Exception("Paystack error: " + data.get("message", "Unknown"))
 
                 result = data.get("data", [])
                 logger.info(f"Account balance retrieved: {result}")
 
-        return {
+                return {
                     "balance": result[0].get("balance") if result else 0,
                     "currency": "NGN",
                 }
@@ -222,17 +183,11 @@ class PaystackService:
             raise
 
     def _get_headers(self) -> Dict[str, str]:
-
-        """Get request headers for Paystack API.
-
-        Returns:
-            Dictionary with authorization headers
-        """
+        """Get request headers for Paystack API."""
         return {
             "Authorization": f"Bearer {self.secret_key}",
             "Content-Type": "application/json",
         }
 
 
-# Global instance
-        paystack_service = PaystackService()
+paystack_service = PaystackService()
