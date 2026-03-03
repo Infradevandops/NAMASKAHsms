@@ -2,16 +2,8 @@
 
 ## Changes
 
-### 1 — Wire TextVerified API for live services list
-**File:** `app/services/textverified_service.py`
-
-`get_services_list()` currently returns a hardcoded mock. Wire it to the real TextVerified API:
-```python
-services = self.client.services.list()  # actual SDK call
-```
-Return shape: `[{ id, name, price }]` where `price` is TextVerified's cost.
-
-Keep mock as fallback if API call fails.
+### ✅ 1 — Wire TextVerified API for live services list
+**File:** `app/services/textverified_service.py` — `get_services_list()` calls `client.services.list(NumberType.MOBILE, ReservationType.VERIFICATION)`. Base price fetched once via `client.verifications.pricing()` (flat rate across services). Mock is fallback on any error.
 
 ---
 
@@ -49,5 +41,4 @@ Keep mock as fallback if API call fails.
 
 ---
 
-## Remaining
-- **Task 1**: Wire TextVerified API for live services list (`app/services/textverified_service.py`)
+## All tasks complete ✅
