@@ -115,14 +115,14 @@ async def get_analytics_summary(
         # spending_by_service
         service_spend = {}
         for v in verifications:
-            svc = v.service or 'Unknown'
+            svc = v.service_name or 'Unknown'
             service_spend[svc] = service_spend.get(svc, 0) + float(v.cost or 0)
         spending_by_service = [{'name': k, 'amount': v} for k, v in sorted(service_spend.items(), key=lambda x: -x[1])[:5]]
 
         # top_services
         service_stats = {}
         for v in verifications:
-            svc = v.service or 'Unknown'
+            svc = v.service_name or 'Unknown'
             if svc not in service_stats:
                 service_stats[svc] = {'count': 0, 'success': 0, 'spent': 0.0}
             service_stats[svc]['count'] += 1

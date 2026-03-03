@@ -10,24 +10,8 @@
 - [x] Add Credits 500 error — removed `@limiter.limit` decorators (SlowAPI not configured) — `55ae2536`
 - [x] Verification flow cleanup — type-picker modal, `service_name` field fix, `activation_id` set, `GET /verify/{id}/status` endpoint, voice page polling — `927907c4`
 - [x] Broken routes — `/verify` + `/voice-verify` serve modern templates, 7 missing page routes added, 8 wrong-destination links fixed, tier modal links fixed — `afcf85fa`
-
----
-
-## 🔴 Critical
-
-- [ ] **Webhook doesn't set tier after Pro/Custom upgrade**
-  - User pays $25/$35, balance credited, but `subscription_tier` never updated
-  - Fix: `payment_endpoints.py` webhook handler — after crediting, check `metadata.get('upgrade_to')` → set `user.subscription_tier` + `db.commit()`
-  - File: `app/api/billing/payment_endpoints.py`
-
----
-
-## 🟡 Medium
-
-- [ ] **Analytics charts render empty despite real data**
-  - `dashboard_router.py` returns `daily_verifications`, `spending_by_service`, `top_services`
-  - Audit `analytics.html` JS field names against actual response shape, patch mismatches
-  - File: `templates/analytics.html`
+- [x] Webhook tier upgrade — `payment_endpoints.py` already had `upgrade_to` logic in place ✅
+- [x] Analytics charts — `dashboard_router.py` `v.service` → `v.service_name` (spending_by_service + top_services were all showing "Unknown")
 
 ---
 
