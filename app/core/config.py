@@ -103,6 +103,7 @@ class Settings(BaseSettings):
     # SMS settings
     sms_provider: str = "textverified"
     sms_timeout: int = 300  # 5 minutes
+    price_markup: float = 1.8
     
     # Payment settings
     payment_provider: str = "paystack"
