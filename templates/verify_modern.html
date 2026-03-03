@@ -17,7 +17,7 @@
 <div class="verification-container">
     <!-- Header -->
     <div class="verification-header">
-        <h1>🚀 SMS Verification</h1>
+        <h1>SMS Verification</h1>
         <p>Get instant SMS codes for any service. Fast, reliable, and secure.</p>
     </div>
 
@@ -55,24 +55,13 @@
         <p>Choose the service you want to verify</p>
         
         <div class="form-group">
-            <label class="form-label">
-                Country <span class="required">*</span>
-            </label>
-            <select class="form-select" id="country-select" onchange="updateServices()">
-                <option value="">Loading...</option>
+            <label class="form-label">Service <span class="required">*</span></label>
+            <select class="form-select" id="service-select" onchange="onServiceChange(this)">
+                <option value="">Loading services...</option>
             </select>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">
-                Service <span class="required">*</span>
-            </label>
-            <div class="service-grid" id="service-grid">
-                <div class="loading-text">
-                    <div class="loading-spinner"></div>
-                    Loading services...
-                </div>
-            </div>
+            <input type="text" class="form-input" id="custom-service-input"
+                placeholder="Enter service name" style="display:none; margin-top: 8px;"
+                oninput="onCustomServiceInput(this)">
         </div>
 
         <!-- Advanced Options -->
@@ -210,7 +199,6 @@
 // State management
 let currentStep = 1;
 let selectedService = null;
-let selectedCountry = 'US';
 let verificationId = null;
 let elapsedSeconds = 0;
 let scanInterval = null;
@@ -242,66 +230,55 @@ function updateProgress(step) {
     document.getElementById('progress-fill').style.width = progress + '%';
 }
 
-// Service selection
-function selectService(serviceName) {
-    selectedService = serviceName;
-    
-    // Update UI
-    document.querySelectorAll('.service-card').forEach(card => {
-        card.classList.remove('selected');
-    });
-    event.target.closest('.service-card').classList.add('selected');
-    
-    // Move to pricing
-    document.getElementById('pricing-service').textContent = serviceName;
-    updateProgress(2);
-    
-    // Scroll to pricing
-    setTimeout(() => {
-        document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' });
-    }, 300);
-}
+let selectedServicePrice = null;
 
-// Update services
-async function updateServices() {
-    selectedCountry = document.getElementById('country-select').value;
-    const grid = document.getElementById('service-grid');
-    grid.innerHTML = '<div class="loading-text"><div class="loading-spinner"></div>Loading services...</div>';
-
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/services', { headers: { 'Authorization': `Bearer ${token}` } });
-        const data = res.ok ? await res.json() : { services: [] };
-        const services = data.services || [];
-
-        if (services.length === 0) {
-            grid.innerHTML = '<div class="loading-text">No services available</div>';
-            return;
-        }
-
-        grid.innerHTML = services.map(s => `
-            <div class="service-card" onclick="selectService('${s.name || s.id}')">
-                <span class="service-icon">📱</span>
-                <div class="service-name">${s.name || s.id}</div>
-                <div class="service-price">$0.80</div>
-            </div>
-        `).join('');
-    } catch (e) {
-        grid.innerHTML = '<div class="loading-text">Failed to load services</div>';
+function onServiceChange(sel) {
+    const customInput = document.getElementById('custom-service-input');
+    if (sel.value === 'other') {
+        customInput.style.display = 'block';
+        customInput.focus();
+        selectedService = null;
+        selectedServicePrice = null;
+    } else if (sel.value) {
+        customInput.style.display = 'none';
+        selectedService = sel.value;
+        selectedServicePrice = parseFloat(sel.selectedOptions[0].dataset.price) || null;
+        confirmService();
+    } else {
+        customInput.style.display = 'none';
+        selectedService = null;
+        selectedServicePrice = null;
     }
 }
 
-// Update pricing
-function updatePricing() {
-    // Simulate pricing update
-    const areaCode = document.getElementById('area-code-select').value;
-    const carrier = document.getElementById('carrier-select').value;
-    
-    let cost = 0.80;
-    if (areaCode) cost += 0.10;
-    if (carrier) cost += 0.05;
-    
-    document.getElementById('pricing-cost').textContent = `$${cost.toFixed(2)}`;
+function onCustomServiceInput(input) {
+    selectedService = input.value.trim() || null;
+    selectedServicePrice = null;
+    if (selectedService) confirmService();
+}
+
+function confirmService() {
+    document.getElementById('pricing-service').textContent = selectedService;
+    const price = selectedServicePrice ? `$${selectedServicePrice.toFixed(2)}` : 'Market rate';
+    document.getElementById('pricing-cost').textContent = price;
+    updateProgress(2);
+    setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
+}
+
+async function loadServices() {
+    const sel = document.getElementById('service-select');
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = res.ok ? await res.json() : { services: [] };
+        const services = data.services || [];
+        sel.innerHTML = '<option value="">-- Select a service --</option>' +
+            services.map(s => `<option value="${s.name || s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
+            '<option value="other">Other (type service name)</option>';
+    } catch (e) {
+        sel.innerHTML = '<option value="">Failed to load — type below</option><option value="other">Other (type service name)</option>';
+        document.getElementById('custom-service-input').style.display = 'block';
+    }
 }
 
 // Create verification
@@ -320,7 +297,7 @@ async function createVerification() {
             },
             body: JSON.stringify({
                 service: selectedService,
-                country: selectedCountry,
+                country: 'US',
                 area_code: document.getElementById('area-code-select').value || null,
                 carrier: document.getElementById('carrier-select').value || null
             })
@@ -437,23 +414,8 @@ function showError(title, message) {
     window.toast.error(title);
 }
 
-// Initialize
-document.addEventListener('DOMContentLoaded', async () => {
-    // Load countries
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/countries', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (res.ok) {
-            const data = await res.json();
-            const select = document.getElementById('country-select');
-            select.innerHTML = (data.countries || []).map(c =>
-                `<option value="${c.code}">${c.name}</option>`
-            ).join('');
-            selectedCountry = select.value;
-        }
-    } catch (e) { /* keep default */ }
-
-    updateServices();
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();
     updateProgress(1);
 });
 </script>
