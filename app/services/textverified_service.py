@@ -23,7 +23,7 @@ class TextVerifiedService:
         
         # Get credentials from environment
         self.api_key = os.getenv("TEXTVERIFIED_API_KEY")
-        self.api_username = os.getenv("TEXTVERIFIED_USERNAME")
+        self.api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL")
         
         # Check if TextVerified is available
         self.enabled = textverified is not None and self._validate_credentials()
