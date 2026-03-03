@@ -204,9 +204,9 @@ async def get_verification_sms(
         sms_result = await tv_service.get_sms(verification.activation_id or str(verification.id))
         
         if sms_result.get("success") and sms_result.get("sms"):
-            # Update verification status
             verification.status = "completed"
-            verification.sms_content = sms_result["sms"]
+            verification.sms_text = sms_result["sms"]
+            verification.sms_code = sms_result.get("code")
             verification.completed_at = datetime.utcnow()
             db.commit()
 
