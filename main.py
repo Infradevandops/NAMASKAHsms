@@ -176,8 +176,10 @@ def create_app() -> FastAPI:
     # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
     from app.api.core.dashboard_activity import router as dashboard_activity_router
     from app.api.verification.services_endpoint import router as services_endpoint_router
+    from app.api.core.textverified_balance import router as textverified_balance_router
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(services_endpoint_router)
+    fastapi_app.include_router(textverified_balance_router)
     fastapi_app.include_router(admin_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
     fastapi_app.include_router(verification_router, prefix="/api", deprecated=True)
