@@ -294,28 +294,15 @@
                 isAdmin = userData.is_admin;
             }
 
-            if (isAdmin) {
-                const tvRes = await fetch('/api/textverified/balance', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (tvRes.ok) {
-                    const tvData = await tvRes.json();
-                    const balance = tvData.balance || 0;
-                    document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
-                } else {
-                    document.getElementById('wallet-balance').textContent = '$0.00';
-                }
+            const balanceRes = await fetch('/api/billing/balance', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (balanceRes.ok) {
+                const data = await balanceRes.json();
+                const balance = data.balance || data.credits || 0;
+                document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
             } else {
-                const balanceRes = await fetch('/api/billing/balance', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (balanceRes.ok) {
-                    const data = await balanceRes.json();
-                    const balance = data.balance || data.credits || 0;
-                    document.getElementById('wallet-balance').textContent = `$${parseFloat(balance).toFixed(2)}`;
-                } else {
-                    document.getElementById('wallet-balance').textContent = '$0.00';
-                }
+                document.getElementById('wallet-balance').textContent = '$0.00';
             }
 
             loadTransactions();
@@ -470,7 +457,7 @@
         const tbody = document.getElementById('credit-history-body');
         
         try {
-            let url = `/api/wallet/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
+            let url = `/api/v1/wallet/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
             if (typeFilter !== 'all') {
                 url += `&type=${typeFilter}`;
             }
@@ -596,7 +583,7 @@
         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Loading...</td></tr>';
 
         try {
-            const res = await fetch(`/api/billing/history?page=${transactionsPage}&limit=${transactionsLimit}`, {
+            const res = await fetch(`/api/v1/wallet/history?page=${transactionsPage}&limit=${transactionsLimit}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
