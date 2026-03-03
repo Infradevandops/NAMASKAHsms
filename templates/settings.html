@@ -568,11 +568,11 @@
                     return;
                 }
 
-                FrontendLogger.logApiCall('GET', '/api/tiers/current');
-                const response = await ApiRetry.fetchWithRetry('/api/tiers/current', {
+                FrontendLogger.logApiCall('GET', '/api/v1/billing/tiers/current');
+                const response = await ApiRetry.fetchWithRetry('/api/v1/billing/tiers/current', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                FrontendLogger.logApiResponse('GET', '/api/tiers/current', response.status);
+                FrontendLogger.logApiResponse('GET', '/api/v1/billing/tiers/current', response.status);
 
                 if (response.ok) {
                     const data = await response.json();
@@ -635,17 +635,17 @@
 
                 // Load basic profile
                 try {
-                    FrontendLogger.logApiCall('GET', '/api/v1/user/me');
-                    console.log('[Settings] Fetching user data from /api/v1/user/me...');
+                    FrontendLogger.logApiCall('GET', '/api/auth/me');
+                    console.log('[Settings] Fetching user data from /api/auth/me...');
 
-                    const userRes = await ApiRetry.fetchWithRetry('/api/v1/user/me', {
+                    const userRes = await ApiRetry.fetchWithRetry('/api/auth/me', {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json'
                         }
                     });
 
-                    FrontendLogger.logApiResponse('GET', '/api/v1/user/me', userRes.status);
+                    FrontendLogger.logApiResponse('GET', '/api/auth/me', userRes.status);
                     console.log('[Settings] API response status:', userRes.status);
 
                     if (userRes.ok) {
@@ -669,7 +669,7 @@
                         if (createdInput) createdInput.value = '';
 
                         // Show user-friendly error
-                        alert('Failed to load account information. Please refresh the page or try logging in again.');
+                        window.errorHandler?.showToast('Failed to load account information. Please refresh the page or try logging in again.', 'error');
                     }
                 } catch (e) {
                     FrontendLogger.error('[Settings] Error loading profile', { error: e.message, stack: e.stack });
@@ -680,7 +680,7 @@
                     if (createdInput) createdInput.value = '';
 
                     // Show user-friendly error
-                    alert('Network error loading account information. Please check your connection and try again.');
+                    window.errorHandler?.showToast('Network error loading account information. Please check your connection and try again.', 'error');
                 }
 
                 // Load Settings
@@ -731,11 +731,11 @@
             const container = document.getElementById('billing-plans');
             try {
                 const token = localStorage.getItem('access_token');
-                FrontendLogger.logApiCall('GET', '/api/tiers/');
-                const res = await ApiRetry.fetchWithRetry('/api/tiers/', {
+                FrontendLogger.logApiCall('GET', '/api/v1/billing/tiers/available');
+                const res = await ApiRetry.fetchWithRetry('/api/v1/billing/tiers/available', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                FrontendLogger.logApiResponse('GET', '/api/tiers/', res.status);
+                FrontendLogger.logApiResponse('GET', '/api/v1/billing/tiers/available', res.status);
 
                 if (res.ok) {
                     const data = await res.json();
@@ -778,11 +778,11 @@
             const container = document.getElementById('api-keys-list');
             try {
                 const token = localStorage.getItem('access_token');
-                FrontendLogger.logApiCall('GET', '/api/auth/api-keys');
-                const res = await ApiRetry.fetchWithRetry('/api/auth/api-keys', {
+                FrontendLogger.logApiCall('GET', '/api/keys/');
+                const res = await ApiRetry.fetchWithRetry('/api/keys/', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                FrontendLogger.logApiResponse('GET', '/api/auth/api-keys', res.status);
+                FrontendLogger.logApiResponse('GET', '/api/keys/', res.status);
 
                 if (res.ok) {
                     const keys = await res.json();
@@ -829,7 +829,7 @@
 
             try {
                 const res = await fetch('/api/user/settings', {
-                    method: 'PUT',
+                    method: 'PUT', credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
@@ -864,7 +864,7 @@
                         body: JSON.stringify({ email: email })
                     });
                     if (!res.ok) throw new Error("Failed to send reset email");
-                    alert("Password reset email sent!");
+                    window.errorHandler?.showToast('Password reset email sent!', 'success');
                 }
             });
         }
@@ -932,7 +932,7 @@
             const token = localStorage.getItem('access_token');
 
             try {
-                const response = await ApiRetry.fetchWithRetry('/api/billing/history', {
+                const response = await ApiRetry.fetchWithRetry('/api/v1/wallet/history', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -995,7 +995,7 @@
             const token = localStorage.getItem('access_token');
 
             try {
-                const response = await ApiRetry.fetchWithRetry('/api/billing/refunds', {
+                const response = await ApiRetry.fetchWithRetry('/api/v1/wallet/refund/history', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1063,7 +1063,7 @@
             btn.textContent = 'Submitting...';
 
             try {
-                const response = await fetch('/api/billing/refund', {
+                const response = await fetch('/api/v1/wallet/request', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1077,12 +1077,12 @@
 
                 if (response.ok) {
                     hideRefundModal();
-                    alert('Refund request submitted successfully. We will process it within 5-7 business days.');
+                    window.errorHandler?.showToast('Refund request submitted successfully. We will process it within 5-7 business days.', 'success');
                     loadPaymentHistory();
                     loadRefundHistory();
                 } else {
                     const error = await response.json();
-                    alert(error.detail || 'Failed to submit refund request');
+                    window.errorHandler?.showToast(error.detail || 'Failed to submit refund request', 'error');
                 }
             } catch (error) {
                 console.error('[Settings] Refund request failed:', error);
