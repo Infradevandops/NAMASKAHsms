@@ -124,7 +124,7 @@ async def verify_page(request: Request, user_id: str = Depends(get_current_user_
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("verify.html", {"request": request, "user": user})
+    return templates.TemplateResponse("verify_modern.html", {"request": request, "user": user})
 
 
 @router.get("/wallet", response_class=HTMLResponse)
@@ -209,7 +209,7 @@ async def voice_verify_page(request: Request, user_id: str = Depends(get_current
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("voice_verify.html", {"request": request, "user": user})
+    return templates.TemplateResponse("voice_verify_modern.html", {"request": request, "user": user})
 
 
 @router.get("/bulk-purchase", response_class=HTMLResponse)
@@ -270,5 +270,62 @@ async def admin_logging_page(request: Request, user_id: str = Depends(get_curren
 
 @router.get("/privacy-settings", response_class=HTMLResponse)
 async def privacy_settings_page(request: Request):
-    """Privacy Settings page."""
     return templates.TemplateResponse("gdpr_settings.html", {"request": request})
+
+
+@router.get("/about", response_class=HTMLResponse)
+async def about_page(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
+
+@router.get("/contact", response_class=HTMLResponse)
+async def contact_page(request: Request):
+    return templates.TemplateResponse("contact.html", {"request": request})
+
+
+@router.get("/faq", response_class=HTMLResponse)
+async def faq_page(request: Request):
+    return templates.TemplateResponse("faq.html", {"request": request})
+
+
+@router.get("/affiliate", response_class=HTMLResponse)
+async def affiliate_page(request: Request):
+    return templates.TemplateResponse("affiliate_program.html", {"request": request})
+
+
+@router.get("/status", response_class=HTMLResponse)
+async def status_page(request: Request):
+    return templates.TemplateResponse("status.html", {"request": request})
+
+
+@router.get("/password-reset", response_class=HTMLResponse)
+async def password_reset_page(request: Request):
+    return templates.TemplateResponse("password_reset.html", {"request": request})
+
+
+@router.get("/api-keys", response_class=HTMLResponse)
+async def api_keys_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return templates.TemplateResponse("api_keys.html", {"request": request, "user": user})
+
+
+@router.get("/support")
+async def support_redirect():
+    return RedirectResponse(url="/contact", status_code=302)
+
+
+@router.get("/landing")
+async def landing_redirect():
+    return RedirectResponse(url="/", status_code=302)
+
+
+@router.get("/gdpr")
+async def gdpr_redirect():
+    return RedirectResponse(url="/privacy-settings", status_code=302)
+
+
+@router.get("/auth/forgot-password")
+async def forgot_password_redirect():
+    return RedirectResponse(url="/password-reset", status_code=302)
