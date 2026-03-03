@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from starlette.middleware.gzip import GZipMiddleware
+from app.api.core.gdpr import router as gdpr_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.billing.router import router as billing_router
@@ -154,6 +155,9 @@ def create_app() -> FastAPI:
     
     # Emergency admin reset (TEMPORARY)
     fastapi_app.include_router(emergency_router, prefix="/api")
+
+    # GDPR endpoints
+    fastapi_app.include_router(gdpr_router)
 
     # Auth endpoints
     fastapi_app.include_router(auth_router)

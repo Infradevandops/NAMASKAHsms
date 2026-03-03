@@ -83,40 +83,89 @@ async def get_analytics_summary(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Get user analytics summary."""
     user = db.query(User).filter(User.id == user_id).first()
-    
-    # TODO: Query actual verification and transaction data
-    return {
-        "total_verifications": 0,
-        "successful_verifications": 0,
-        "failed_verifications": 0,
-        "total_spent": 0.0,
-        "current_balance": float(user.credits or 0.0) if user else 0.0,
-        "this_month": {
-            "verifications": 0,
-            "spent": 0.0
-        },
-        "last_30_days": {
-            "verifications": 0,
-            "spent": 0.0
+
+    try:
+        from app.models.verification import Verification
+        from app.models.transaction import Transaction
+        from sqlalchemy import case
+
+        verifications = db.query(Verification).filter(Verification.user_id == user_id).all()
+        total = len(verifications)
+        successful = sum(1 for v in verifications if v.status == 'completed')
+        failed = sum(1 for v in verifications if v.status == 'failed')
+        pending = sum(1 for v in verifications if v.status == 'pending')
+        total_spent = sum(float(v.cost or 0) for v in verifications)
+        avg_cost = total_spent / total if total else 0.0
+        success_rate = (successful / total * 100) if total else 0.0
+
+        # daily_verifications: last 30 days
+        from datetime import timedelta
+        today = datetime.utcnow().date()
+        daily_map = {}
+        for v in verifications:
+            if v.created_at:
+                d = v.created_at.date()
+                daily_map[d] = daily_map.get(d, 0) + 1
+        daily_verifications = [
+            {"date": str(today - timedelta(days=i)), "count": daily_map.get(today - timedelta(days=i), 0)}
+            for i in range(29, -1, -1)
+        ]
+
+        # spending_by_service
+        service_spend = {}
+        for v in verifications:
+            svc = v.service or 'Unknown'
+            service_spend[svc] = service_spend.get(svc, 0) + float(v.cost or 0)
+        spending_by_service = [{'name': k, 'amount': v} for k, v in sorted(service_spend.items(), key=lambda x: -x[1])[:5]]
+
+        # top_services
+        service_stats = {}
+        for v in verifications:
+            svc = v.service or 'Unknown'
+            if svc not in service_stats:
+                service_stats[svc] = {'count': 0, 'success': 0, 'spent': 0.0}
+            service_stats[svc]['count'] += 1
+            if v.status == 'completed':
+                service_stats[svc]['success'] += 1
+            service_stats[svc]['spent'] += float(v.cost or 0)
+        top_services = [
+            {
+                'name': k,
+                'count': s['count'],
+                'success_rate': (s['success'] / s['count'] * 100) if s['count'] else 0,
+                'total_spent': s['spent']
+            }
+            for k, s in sorted(service_stats.items(), key=lambda x: -x[1]['count'])[:10]
+        ]
+
+        return {
+            "total_verifications": total,
+            "successful_verifications": successful,
+            "failed_verifications": failed,
+            "pending_verifications": pending,
+            "total_spent": total_spent,
+            "avg_cost": avg_cost,
+            "success_rate": success_rate,
+            "current_balance": float(user.credits or 0.0) if user else 0.0,
+            "daily_verifications": daily_verifications,
+            "spending_by_service": spending_by_service,
+            "top_services": top_services,
         }
-    }
-
-
-@router.get("/dashboard/activity")
-async def get_dashboard_activity(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-    limit: int = 20
-):
-    """Get recent user activity."""
-    # TODO: Query actual activity log when available
-    return {
-        "activities": [],
-        "total": 0,
-        "limit": limit
-    }
+    except Exception:
+        return {
+            "total_verifications": 0,
+            "successful_verifications": 0,
+            "failed_verifications": 0,
+            "pending_verifications": 0,
+            "total_spent": 0.0,
+            "avg_cost": 0.0,
+            "success_rate": 0.0,
+            "current_balance": float(user.credits or 0.0) if user else 0.0,
+            "daily_verifications": [],
+            "spending_by_service": [],
+            "top_services": [],
+        }
 
 
 @router.get("/verify/history")
@@ -127,35 +176,33 @@ async def get_verification_history(
     offset: int = 0,
     status: Optional[str] = None
 ):
-    """Get user verification history."""
     try:
         from app.models.verification import Verification
-        
-        # Build query
+
         query = db.query(Verification).filter(Verification.user_id == user_id)
-        
-        # Add status filter if provided
         if status:
             query = query.filter(Verification.status == status)
-        
-        # Get verifications
+
         verifications = query.order_by(desc(Verification.created_at)).limit(limit).offset(offset).all()
-        
-        # Get total count
+
         total_query = db.query(func.count(Verification.id)).filter(Verification.user_id == user_id)
         if status:
             total_query = total_query.filter(Verification.status == status)
         total = total_query.scalar()
-        
+
         return {
             "verifications": [
                 {
                     "id": str(v.id),
                     "phone_number": v.phone_number,
                     "service": v.service,
+                    "service_name": v.service,
                     "country": v.country,
                     "status": v.status,
                     "cost": float(v.cost) if v.cost else 0.0,
+                    "sms_code": getattr(v, 'sms_code', None),
+                    "sms_text": getattr(v, 'sms_text', None),
+                    "carrier": getattr(v, 'carrier', None),
                     "created_at": v.created_at.isoformat() if v.created_at else None
                 }
                 for v in verifications
@@ -164,45 +211,8 @@ async def get_verification_history(
             "page": (offset // limit) + 1,
             "limit": limit
         }
-    except Exception as e:
-        # Fallback to empty if table doesn't exist
-        return {
-            "verifications": [],
-            "total": 0,
-            "page": 1,
-            "limit": limit
-        }
-
-
-@router.get("/notifications")
-async def get_notifications(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db),
-    limit: int = 50
-):
-    """Get user notifications."""
-    try:
-        notifications = db.query(Notification).filter(
-            Notification.user_id == user_id
-        ).order_by(desc(Notification.created_at)).limit(limit).all()
-        
-        return {
-            "notifications": [
-                {
-                    "id": str(n.id),
-                    "type": n.type,
-                    "title": n.title,
-                    "message": n.message,
-                    "read": n.read,
-                    "created_at": n.created_at.isoformat() if n.created_at else None
-                }
-                for n in notifications
-            ],
-            "total": len(notifications)
-        }
     except Exception:
-        # If notifications table doesn't exist yet
-        return {"notifications": [], "total": 0}
+        return {"verifications": [], "total": 0, "page": 1, "limit": limit}
 
 
 @router.get("/notifications/unread")
@@ -210,13 +220,11 @@ async def get_unread_notifications_count(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Get unread notifications count."""
     try:
         count = db.query(func.count(Notification.id)).filter(
             Notification.user_id == user_id,
-            Notification.read == False
+            Notification.is_read == False
         ).scalar()
-        
         return {"unread_count": count or 0}
     except Exception:
         return {"unread_count": 0}
@@ -227,91 +235,14 @@ async def get_unread_count_alias(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
-    """Get unread notifications count (alias endpoint)."""
     try:
         count = db.query(func.count(Notification.id)).filter(
             Notification.user_id == user_id,
-            Notification.read == False
+            Notification.is_read == False
         ).scalar()
-        
         return {"count": count or 0, "unread_count": count or 0}
     except Exception:
         return {"count": 0, "unread_count": 0}
-
-
-@router.get("/user/me")
-async def get_current_user(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Get current user info."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {"error": "User not found"}
-    
-    return {
-        "id": str(user.id),
-        "email": user.email,
-        "tier": getattr(user, 'subscription_tier', 'freemium'),
-        "credits": float(user.credits or 0.0),
-        "is_admin": user.is_admin,
-        "created_at": user.created_at.isoformat() if user.created_at else None
-    }
-
-
-@router.get("/billing/balance")
-async def get_billing_balance(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Get billing balance (alias for wallet/balance)."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {"balance": 0.0}
-    
-    return {
-        "balance": float(user.credits or 0.0),
-        "currency": "USD"
-    }
-
-
-@router.get("/tiers/current")
-async def get_current_tier(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Get current user tier."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {"tier": "freemium"}
-    
-    tier = getattr(user, 'subscription_tier', 'freemium')
-    return {
-        "tier": tier,
-        "name": tier.title(),
-        "features": []
-    }
-
-
-@router.get("/user/settings")
-async def get_user_settings(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
-):
-    """Get user settings."""
-    user = db.query(User).filter(User.id == user_id).first()
-    if not user:
-        return {}
-    
-    return {
-        "email": user.email,
-        "language": getattr(user, 'language', 'en'),
-        "currency": getattr(user, 'currency', 'USD'),
-        "notifications": {
-            "email": True,
-            "sms": False
-        }
-    }
 
 
 @router.get("/countries")

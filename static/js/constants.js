@@ -26,7 +26,7 @@ export const ENDPOINTS = {
         BALANCE: '/api/user/balance',
         ME: '/api/user/me',
         SETTINGS: '/api/user/settings',
-        CREDITS_HISTORY: '/api/user/credits/history',
+        CREDITS_HISTORY: '/api/billing/history',
         CREDITS_SUMMARY: '/api/user/credits/summary'
     },
     AUTH: {
@@ -38,7 +38,12 @@ export const ENDPOINTS = {
         SUMMARY: '/api/analytics/summary'
     },
     DASHBOARD: {
-        ACTIVITY: '/api/dashboard/activity/recent'
+        ACTIVITY: '/api/dashboard/activity'
+    },
+    WALLET: {
+        INITIALIZE: '/api/wallet/paystack/initialize',
+        VERIFY: '/api/wallet/paystack/verify',
+        HISTORY: '/api/wallet/history'
     },
     BILLING: {
         HISTORY: '/api/billing/history',

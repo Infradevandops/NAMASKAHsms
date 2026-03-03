@@ -542,11 +542,11 @@
 
             // For paid tiers, initiate upgrade
             if (tier === 'payg') {
-                window.location.href = '/dashboard?view=billing';
+                window.location.href = '/settings?tab=billing';
                 return;
             }
 
-            window.location.href = `/dashboard?view=settings&upgrade=${tier}`;
+            window.location.href = '/settings?tab=billing';
         }
     </script>
 </body>
