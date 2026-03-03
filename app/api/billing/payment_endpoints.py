@@ -165,6 +165,15 @@ async def paystack_webhook(
                 # Process with distributed lock
                 await payment_service.credit_user_with_lock(user_id, amount, reference)
                 logger.info(f"Webhook processed: {reference}")
+
+                # Set subscription tier if this was an upgrade payment
+                upgrade_to = metadata.get("upgrade_to")
+                if upgrade_to in ("pro", "custom"):
+                    user = db.query(User).filter(User.id == user_id).first()
+                    if user:
+                        user.subscription_tier = upgrade_to
+                        db.commit()
+                        logger.info(f"Tier upgraded to {upgrade_to} for user {user_id} via webhook")
         
         return {"status": "success"}
         

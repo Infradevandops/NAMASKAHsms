@@ -470,7 +470,7 @@
         const tbody = document.getElementById('credit-history-body');
         
         try {
-            let url = `/api/user/credits/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
+            let url = `/api/wallet/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
             if (typeFilter !== 'all') {
                 url += `&type=${typeFilter}`;
             }
@@ -565,7 +565,7 @@
 
     function exportCreditHistory() {
         if (creditHistoryData.length === 0) {
-            alert('No data to export');
+            window.errorHandler.showToast('No data to export', 'warning');
             return;
         }
 
