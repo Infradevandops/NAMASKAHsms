@@ -83,8 +83,19 @@ async def upgrade_tier(
         if current_tier == target_tier:
             raise HTTPException(status_code=400, detail="Already on this tier")
 
-        # For now, just return success message
-        # In a real implementation, this would handle payment processing
+        # PAYG is free — commit immediately
+        if target_tier == "payg":
+            user.subscription_tier = target_tier
+            db.commit()
+            return {
+                "message": f"Upgraded to {target_tier}",
+                "current_tier": target_tier,
+                "target_tier": target_tier,
+                "status": "success",
+                "user_id": user_id
+            }
+
+        # Paid tiers — caller must initialize payment
         return {
             "message": f"Tier upgrade initiated from {current_tier} to {target_tier}",
             "current_tier": current_tier,

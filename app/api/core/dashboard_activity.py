@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
-@router.get("/activity/recent")
+@router.get("/activity")
 async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
     """Get recent verification activity for dashboard."""
     logger.info(f"Recent activity requested by user_id: {user_id}")

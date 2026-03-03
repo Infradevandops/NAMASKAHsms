@@ -59,10 +59,7 @@
                 Country <span class="required">*</span>
             </label>
             <select class="form-select" id="country-select" onchange="updateServices()">
-                <option value="US">🇺🇸 United States</option>
-                <option value="CA">🇨🇦 Canada</option>
-                <option value="GB">🇬🇧 United Kingdom</option>
-                <option value="AU">🇦🇺 Australia</option>
+                <option value="">Loading...</option>
             </select>
         </div>
 
@@ -189,7 +186,8 @@
 
         <!-- Actions -->
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
-            <button class="btn btn-danger btn-block" onclick="cancelVerification()">Cancel</button>
+            <button class="btn btn-danger btn-block" id="cancel-btn" onclick="cancelVerification()">Cancel</button>
+            <button class="btn btn-danger btn-block" id="cancel-confirm-btn" onclick="confirmCancel()" style="display:none;">Confirm Cancel</button>
         </div>
     </div>
 
@@ -265,19 +263,32 @@ function selectService(serviceName) {
 }
 
 // Update services
-function updateServices() {
+async function updateServices() {
     selectedCountry = document.getElementById('country-select').value;
     const grid = document.getElementById('service-grid');
-    
-    const services = ['WhatsApp', 'Telegram', 'Discord', 'Instagram', 'Facebook', 'Twitter', 'TikTok', 'Snapchat'];
-    
-    grid.innerHTML = services.map(service => `
-        <div class="service-card" onclick="selectService('${service}')">
-            <span class="service-icon">📱</span>
-            <div class="service-name">${service}</div>
-            <div class="service-price">$0.80</div>
-        </div>
-    `).join('');
+    grid.innerHTML = '<div class="loading-text"><div class="loading-spinner"></div>Loading services...</div>';
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/services', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = res.ok ? await res.json() : { services: [] };
+        const services = data.services || [];
+
+        if (services.length === 0) {
+            grid.innerHTML = '<div class="loading-text">No services available</div>';
+            return;
+        }
+
+        grid.innerHTML = services.map(s => `
+            <div class="service-card" onclick="selectService('${s.name || s.id}')">
+                <span class="service-icon">📱</span>
+                <div class="service-name">${s.name || s.id}</div>
+                <div class="service-price">$0.80</div>
+            </div>
+        `).join('');
+    } catch (e) {
+        grid.innerHTML = '<div class="loading-text">Failed to load services</div>';
+    }
 }
 
 // Update pricing
@@ -301,7 +312,7 @@ async function createVerification() {
     }
     
     try {
-        const response = await fetch('/api/v1/verify/create', {
+        const response = await fetch('/api/verify/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -334,23 +345,42 @@ async function createVerification() {
     }
 }
 
-// Start scanning animation
+// Start scanning with API polling
 function startScanning() {
     elapsedSeconds = 0;
-    
-    scanInterval = setInterval(() => {
+
+    scanInterval = setInterval(async () => {
         elapsedSeconds++;
         document.getElementById('elapsed-time').textContent = elapsedSeconds;
         document.getElementById('progress-elapsed').textContent = elapsedSeconds + 's elapsed';
-        
-        const remaining = Math.max(0, 30 - elapsedSeconds);
+        const remaining = Math.max(0, 120 - elapsedSeconds);
         document.getElementById('progress-remaining').textContent = `~${remaining}s remaining`;
-        
-        if (elapsedSeconds >= 30) {
-            clearInterval(scanInterval);
-            showError('Verification Timeout', 'No SMS received within 30 seconds');
+
+        if (verificationId) {
+            try {
+                const token = localStorage.getItem('access_token');
+                const res = await fetch(`/api/verify/status/${verificationId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.status === 'completed' && data.sms_code) {
+                        clearInterval(scanInterval);
+                        document.getElementById('sms-code').textContent = data.sms_code;
+                        document.getElementById('code-received').style.display = 'block';
+                        document.querySelector('.scanning-container').style.display = 'none';
+                        window.toast.success('✅ SMS code received!');
+                        return;
+                    }
+                }
+            } catch (e) { /* continue polling */ }
         }
-    }, 1000);
+
+        if (elapsedSeconds >= 120) {
+            clearInterval(scanInterval);
+            showError('Verification Timeout', 'No SMS received within 2 minutes');
+        }
+    }, 3000);
 }
 
 // Copy phone number
@@ -369,9 +399,12 @@ function copySMSCode() {
 
 // Cancel verification
 function cancelVerification() {
-    if (confirm('Are you sure you want to cancel this verification?')) {
-        resetFlow();
-    }
+    document.getElementById('cancel-btn').style.display = 'none';
+    document.getElementById('cancel-confirm-btn').style.display = 'block';
+}
+
+function confirmCancel() {
+    resetFlow();
 }
 
 // Go back
@@ -405,7 +438,21 @@ function showError(title, message) {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load countries
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/countries', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) {
+            const data = await res.json();
+            const select = document.getElementById('country-select');
+            select.innerHTML = (data.countries || []).map(c =>
+                `<option value="${c.code}">${c.name}</option>`
+            ).join('');
+            selectedCountry = select.value;
+        }
+    } catch (e) { /* keep default */ }
+
     updateServices();
     updateProgress(1);
 });

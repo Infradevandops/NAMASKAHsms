@@ -222,7 +222,7 @@
         if (amount === null) {
             amount = parseFloat(document.getElementById('crypto-custom-amount').value);
             if (!amount || amount <= 0) {
-                alert('Please enter a valid amount');
+                window.errorHandler.showToast('Please enter a valid amount', 'error');
                 return;
             }
         }
@@ -270,7 +270,10 @@
     }
 
     function confirmCryptoPayment() {
-        alert('Thank you! Your payment is being monitored. Credits will be added automatically after 2-3 network confirmations.');
+        const btn = event.target;
+        btn.textContent = '⏳ Monitoring payment...';
+        btn.disabled = true;
+        setTimeout(() => { btn.textContent = 'I have sent the payment'; btn.disabled = false; }, 5000);
     }
 
     async function loadWalletData() {
@@ -336,7 +339,7 @@
         try {
             const idempotencyKey = crypto.randomUUID();
             
-            const res = await fetch('/api/billing/initialize-payment', {
+            const res = await fetch('/api/wallet/paystack/initialize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -441,7 +444,7 @@
             addCredits(amount);
             document.getElementById('custom-amount').value = '';
         } else {
-            alert('Please enter a valid amount');
+            window.errorHandler.showToast('Please enter a valid amount', 'error');
         }
     }
 

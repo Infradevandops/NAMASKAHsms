@@ -16,10 +16,14 @@
             SERVICES: '/api/services',
             VERIFY_CREATE: '/api/verify/create',
             VERIFY_SMS: '/api/verify/{id}/sms',
+            VERIFY_STATUS: '/api/verify/status/{id}',
             WALLET_BALANCE: '/api/wallet/balance',
             ANALYTICS: '/api/analytics/summary',
+            WALLET: '/wallet',
             PRICING: '/pricing',
-            ANALYTICS_PAGE: '/analytics'
+            ANALYTICS_PAGE: '/analytics',
+            TIER_UPGRADE: '/api/billing/tiers/upgrade',
+            PAYMENT_INIT: '/api/wallet/paystack/initialize'
         }
     };
 
@@ -106,6 +110,7 @@
     // ============================================
     
     let currentVerificationId = null;
+    let currentCapability = 'sms';
     let smsCheckInterval = null;
 
     function createVerificationModal() {
@@ -116,26 +121,33 @@
             <div class="modal-overlay"></div>
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Create SMS Verification</h2>
+                    <h2 id="modal-title">New Verification</h2>
                     <button class="modal-close" id="close-modal-btn">&times;</button>
                 </div>
                 <div class="modal-body">
-                    <div id="step-1" class="modal-step">
+                    <div id="step-0" class="modal-step">
+                        <p style="margin-bottom:16px;color:#6b7280;">Choose verification method</p>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                            <button type="button" class="type-card" id="type-sms" onclick="window.DashboardUltra.selectCapability('sms')">
+                                <div style="font-size:28px;">&#128241;</div>
+                                <div style="font-weight:600;margin:8px 0 4px;">SMS</div>
+                                <div style="font-size:12px;color:#6b7280;">~30s &middot; $2.50</div>
+                            </button>
+                            <button type="button" class="type-card" id="type-voice" onclick="window.DashboardUltra.selectCapability('voice')">
+                                <div style="font-size:28px;">&#9742;&#65039;</div>
+                                <div style="font-weight:600;margin:8px 0 4px;">Voice Call</div>
+                                <div style="font-size:12px;color:#6b7280;">2-5 min &middot; $3.50</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="step-1" class="modal-step" style="display:none;">
                         <div class="form-group">
                             <label for="service-select">Select Service *</label>
                             <select id="service-select" class="form-control" required>
                                 <option value="">Loading services...</option>
                             </select>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="country-select">Country</label>
-                            <select id="country-select" class="form-control">
-                                <option value="US" selected>🇺🇸 United States</option>
-                            </select>
-                            <small class="form-text">Currently only US numbers supported</small>
-                        </div>
-
                         <div id="pricing-info" class="alert alert-info" style="display: none;">
                             <strong>Estimated Cost:</strong> <span id="verification-cost">$2.50</span>
                         </div>
@@ -143,25 +155,23 @@
 
                     <div id="step-2" class="modal-step" style="display: none;">
                         <div class="alert alert-success">
-                            <h4>✅ Verification Created!</h4>
+                            <h4>&#9989; Verification Created!</h4>
                             <div class="verification-details">
                                 <p><strong>Phone Number:</strong> <span id="result-phone" class="phone-number"></span></p>
                                 <p><strong>Service:</strong> <span id="result-service"></span></p>
                                 <p><strong>Status:</strong> <span id="result-status" class="status-badge"></span></p>
                             </div>
                         </div>
-                        
                         <div id="sms-waiting" class="alert alert-warning">
-                            <p>⏳ Waiting for SMS... This may take 10-60 seconds.</p>
+                            <p id="waiting-text">&#9203; Waiting for SMS... This may take 10-60 seconds.</p>
                             <div class="loading-spinner"></div>
                         </div>
-
                         <div id="sms-result" style="display: none;"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="action-btn">Create Verification</button>
+                    <button type="button" class="btn btn-primary" id="action-btn" style="display:none;">Create Verification</button>
                 </div>
             </div>
         </div>
@@ -169,6 +179,17 @@
         
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         attachModalEvents();
+    }
+
+    function selectCapability(cap) {
+        currentCapability = cap;
+        const cost = cap === 'voice' ? '$3.50' : '$2.50';
+        document.getElementById('modal-title').textContent = cap === 'voice' ? 'Voice Verification' : 'SMS Verification';
+        document.getElementById('verification-cost').textContent = cost;
+        document.getElementById('step-0').style.display = 'none';
+        document.getElementById('step-1').style.display = 'block';
+        document.getElementById('action-btn').style.display = 'inline-flex';
+        loadServices();
     }
 
     function attachModalEvents() {
@@ -204,20 +225,20 @@
     async function openModal() {
         createVerificationModal();
         const modal = document.getElementById('verification-modal');
-        
-        // Reset to step 1
-        document.getElementById('step-1').style.display = 'block';
+
+        // Reset to step 0
+        currentCapability = 'sms';
+        document.getElementById('modal-title').textContent = 'New Verification';
+        document.getElementById('step-0').style.display = 'block';
+        document.getElementById('step-1').style.display = 'none';
         document.getElementById('step-2').style.display = 'none';
+        document.getElementById('action-btn').style.display = 'none';
         document.getElementById('action-btn').textContent = 'Create Verification';
-        document.getElementById('service-select').value = '';
-        document.getElementById('pricing-info').style.display = 'none';
-        
-        // Show modal
+        document.getElementById('sms-result').style.display = 'none';
+        document.getElementById('sms-waiting').style.display = 'block';
+
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
-        
-        // Load services
-        await loadServices();
     }
 
     function closeModal() {
@@ -226,14 +247,12 @@
             modal.style.display = 'none';
             document.body.style.overflow = '';
         }
-        
-        // Clear SMS check interval
         if (smsCheckInterval) {
             clearInterval(smsCheckInterval);
             smsCheckInterval = null;
         }
-        
         currentVerificationId = null;
+        currentCapability = 'sms';
     }
 
     async function loadServices() {
@@ -264,15 +283,10 @@
 
     async function handleActionButton() {
         const step1 = document.getElementById('step-1');
-        const step2 = document.getElementById('step-2');
-        
         if (step1.style.display !== 'none') {
-            // Step 1: Create verification
             await createVerification();
         } else {
-            // Step 2: Close modal
             closeModal();
-            // Reload dashboard data
             window.location.reload();
         }
     }
@@ -294,26 +308,28 @@
         try {
             const data = await apiCall(CONFIG.ENDPOINTS.VERIFY_CREATE, {
                 method: 'POST',
-                body: JSON.stringify({ service, country })
+                body: JSON.stringify({ service, country: 'US', capability: currentCapability })
             });
-            
-            // Store verification ID
+
             currentVerificationId = data.id;
-            
-            // Update UI
+
             document.getElementById('result-phone').textContent = data.phone_number;
             document.getElementById('result-service').textContent = data.service;
             document.getElementById('result-status').textContent = data.status;
-            
-            // Switch to step 2
+
+            const waitingText = document.getElementById('waiting-text');
+            if (currentCapability === 'voice') {
+                waitingText.textContent = '\u23F3 Waiting for voice call... This may take 2-5 minutes.';
+            } else {
+                waitingText.textContent = '\u23F3 Waiting for SMS... This may take 10-60 seconds.';
+            }
+
             document.getElementById('step-1').style.display = 'none';
             document.getElementById('step-2').style.display = 'block';
             actionBtn.textContent = 'Done';
             actionBtn.disabled = false;
-            
+
             showToast('Verification created successfully!', 'success');
-            
-            // Start checking for SMS
             startSMSCheck();
             
         } catch (error) {
@@ -349,32 +365,39 @@
 
     async function checkSMS() {
         if (!currentVerificationId) return;
-        
         try {
-            const url = CONFIG.ENDPOINTS.VERIFY_SMS.replace('{id}', currentVerificationId);
-            const data = await apiCall(url);
-            
+            let data;
+            if (currentCapability === 'voice') {
+                const url = CONFIG.ENDPOINTS.VERIFY_STATUS.replace('{id}', currentVerificationId);
+                data = await apiCall(url);
+                if (data.status === 'completed' && data.sms_code) {
+                    data.code = data.sms_code;
+                } else {
+                    return;
+                }
+            } else {
+                const url = CONFIG.ENDPOINTS.VERIFY_SMS.replace('{id}', currentVerificationId);
+                data = await apiCall(url);
+            }
+
             if (data.sms || data.code) {
-                // SMS received!
                 clearInterval(smsCheckInterval);
                 smsCheckInterval = null;
-                
                 document.getElementById('sms-waiting').style.display = 'none';
-                
+                const label = currentCapability === 'voice' ? '\u260E\uFE0F Voice Code Received!' : '\uD83D\uDCF1 SMS Received!';
                 const resultDiv = document.getElementById('sms-result');
                 resultDiv.style.display = 'block';
                 resultDiv.innerHTML = `
                     <div class="alert alert-success">
-                        <h4>📱 SMS Received!</h4>
+                        <h4>${label}</h4>
                         ${data.code ? `<p class="sms-code"><strong>Code:</strong> <code>${data.code}</code></p>` : ''}
                         ${data.sms ? `<p><strong>Message:</strong> ${data.sms}</p>` : ''}
                     </div>
                 `;
-                
-                showToast('SMS code received!', 'success');
+                showToast('Code received!', 'success');
             }
         } catch (error) {
-            console.error('Failed to check SMS:', error);
+            console.error('Failed to check code:', error);
         }
     }
 
@@ -407,7 +430,7 @@
         if (addCreditsBtn) {
             addCreditsBtn.onclick = function(e) {
                 e.preventDefault();
-                window.location.href = CONFIG.ENDPOINTS.PRICING;
+                window.location.href = '/wallet';
             };
             console.log('✅ Add Credits button initialized');
         }
@@ -427,9 +450,9 @@
         if (upgradeBtn) {
             upgradeBtn.onclick = function(e) {
                 e.preventDefault();
-                window.location.href = CONFIG.ENDPOINTS.PRICING;
+                openUpgradeModal();
             };
-            console.log('✅ Upgrade button initialized');
+            console.log('\u2705 Upgrade button initialized');
         }
 
         // Empty state button
@@ -440,6 +463,109 @@
                 openModal();
             };
         }
+    }
+
+    // ============================================
+    // UPGRADE MODAL
+    // ============================================
+
+    const TIER_INFO = {
+        payg:   { name: 'Pay-As-You-Go', price: 0,  desc: 'No monthly fee. Pay per SMS.',   paid: false },
+        pro:    { name: 'Pro',           price: 25, desc: '$15 monthly quota included.',     paid: true  },
+        custom: { name: 'Custom',        price: 35, desc: '$25 monthly quota + dedicated support.', paid: true }
+    };
+
+    function openUpgradeModal() {
+        if (document.getElementById('upgrade-modal')) {
+            document.getElementById('upgrade-modal').style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            renderUpgradePicker();
+            return;
+        }
+        const el = document.createElement('div');
+        el.id = 'upgrade-modal';
+        el.className = 'modal';
+        el.innerHTML = `
+            <div class="modal-overlay" onclick="window.DashboardUltra.closeUpgradeModal()"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="upgrade-modal-title">Upgrade Plan</h2>
+                    <button class="modal-close" onclick="window.DashboardUltra.closeUpgradeModal()">&times;</button>
+                </div>
+                <div class="modal-body" id="upgrade-modal-body"></div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="window.DashboardUltra.closeUpgradeModal()">Cancel</button>
+                    <button class="btn btn-primary" id="upgrade-confirm-btn" style="display:none;" onclick="window.DashboardUltra.confirmUpgrade()">Confirm</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(el);
+        el.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+        renderUpgradePicker();
+    }
+
+    let selectedUpgradeTier = null;
+
+    function renderUpgradePicker() {
+        selectedUpgradeTier = null;
+        document.getElementById('upgrade-confirm-btn').style.display = 'none';
+        document.getElementById('upgrade-modal-title').textContent = 'Upgrade Plan';
+        document.getElementById('upgrade-modal-body').innerHTML = Object.entries(TIER_INFO).map(([key, t]) => `
+            <div class="upgrade-card" id="ucard-${key}" onclick="window.DashboardUltra.selectUpgradeTier('${key}')" style="border:2px solid #e5e7eb;border-radius:10px;padding:16px;margin-bottom:12px;cursor:pointer;transition:border-color .2s;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <strong>${t.name}</strong>
+                    <span style="font-size:14px;color:#6b7280;">${t.price === 0 ? 'Free' : '$' + t.price + '/mo'}</span>
+                </div>
+                <div style="font-size:13px;color:#6b7280;margin-top:4px;">${t.desc}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectUpgradeTier(tier) {
+        selectedUpgradeTier = tier;
+        document.querySelectorAll('.upgrade-card').forEach(c => c.style.borderColor = '#e5e7eb');
+        const card = document.getElementById('ucard-' + tier);
+        if (card) card.style.borderColor = '#3b82f6';
+        const btn = document.getElementById('upgrade-confirm-btn');
+        btn.style.display = 'inline-flex';
+        btn.textContent = TIER_INFO[tier].paid ? `Pay $${TIER_INFO[tier].price}/mo` : 'Confirm Upgrade';
+    }
+
+    async function confirmUpgrade() {
+        if (!selectedUpgradeTier) return;
+        const tier = selectedUpgradeTier;
+        const btn = document.getElementById('upgrade-confirm-btn');
+        btn.disabled = true;
+        btn.textContent = 'Processing...';
+
+        try {
+            if (TIER_INFO[tier].paid) {
+                const data = await apiCall(CONFIG.ENDPOINTS.PAYMENT_INIT, {
+                    method: 'POST',
+                    body: JSON.stringify({ amount_usd: TIER_INFO[tier].price, metadata: { upgrade_to: tier } })
+                });
+                if (data.authorization_url) {
+                    window.location.href = data.authorization_url;
+                    return;
+                }
+                throw new Error('No payment URL returned');
+            } else {
+                await apiCall(`${CONFIG.ENDPOINTS.TIER_UPGRADE}?target_tier=${tier}`, { method: 'POST' });
+                showToast(`Upgraded to ${TIER_INFO[tier].name}!`, 'success');
+                closeUpgradeModal();
+                setTimeout(() => window.location.reload(), 1000);
+            }
+        } catch (err) {
+            showToast(err.message || 'Upgrade failed', 'error');
+            btn.disabled = false;
+            btn.textContent = TIER_INFO[tier].paid ? `Pay $${TIER_INFO[tier].price}/mo` : 'Confirm Upgrade';
+        }
+    }
+
+    function closeUpgradeModal() {
+        const m = document.getElementById('upgrade-modal');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
     }
 
     // ============================================
@@ -696,6 +822,21 @@
             .btn-success:hover:not(:disabled) {
                 background: #059669;
             }
+
+            .type-card {
+                background: #f9fafb;
+                border: 2px solid #e5e7eb;
+                border-radius: 10px;
+                padding: 20px 12px;
+                cursor: pointer;
+                text-align: center;
+                transition: border-color .2s, background .2s;
+                font-family: system-ui, -apple-system, sans-serif;
+            }
+            .type-card:hover {
+                border-color: #3b82f6;
+                background: #eff6ff;
+            }
         `;
         document.head.appendChild(style);
     }
@@ -727,6 +868,11 @@
         openModal,
         closeModal,
         checkSMS,
+        selectCapability,
+        openUpgradeModal,
+        closeUpgradeModal,
+        selectUpgradeTier,
+        confirmUpgrade,
         version: '2.0.0-ultra-stable'
     };
 

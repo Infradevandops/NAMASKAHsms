@@ -95,7 +95,8 @@ async def create_verification(
         purchase_result = await tv_service.purchase_number(
             service=verification_data.service,
             area_code=getattr(verification_data, 'area_code', None),
-            carrier=getattr(verification_data, 'carrier', None)
+            carrier=getattr(verification_data, 'carrier', None),
+            capability=getattr(verification_data, 'capability', 'sms')
         )
 
         if not purchase_result.get("success"):
@@ -110,6 +111,7 @@ async def create_verification(
             cost=purchase_result["cost"],
             provider="TextVerified",
             country="US",
+            capability=getattr(verification_data, 'capability', 'sms'),
             created_at=datetime.utcnow()
         )
 
