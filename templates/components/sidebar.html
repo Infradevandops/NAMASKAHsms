@@ -9,20 +9,19 @@
     <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
         <!-- Main -->
         <a href="/dashboard" class="nav-item" data-page="dashboard" data-tooltip="Dashboard" aria-current="false">
-            <span aria-hidden="true">📊</span> <span data-i18n="common.dashboard">Dashboard</span>
+            <span data-i18n="common.dashboard">Dashboard</span>
         </a>
 
         <!-- Services Section -->
         <div class="nav-divider" role="separator"></div>
         <div class="nav-section-title" role="heading" aria-level="2">Services</div>
-        
+
         <a href="/verify" class="nav-item" data-page="verify" data-tooltip="SMS Verification">
-            <span aria-hidden="true">📱</span> <span data-i18n="verify.title">SMS Verification</span>
+            <span data-i18n="verify.title">SMS Verification</span>
         </a>
-        <a href="/voice-verify" class="nav-item tier-gated" data-min-tier="payg" data-page="voice-verify"
-            data-tooltip="Voice Verification (Premium)" style="display: none;"
-            aria-label="Voice Verification - Premium feature">
-            <span aria-hidden="true">📞</span> <span>Voice Verify</span>
+        <a href="/voice-verify" class="nav-item" data-page="voice-verify" data-tooltip="Voice Verification">
+            <span>Voice Verify</span>
+            <span class="tier-badge">Premium</span>
         </a>
 
         <!-- Finance Section -->
@@ -30,35 +29,7 @@
         <div class="nav-section-title" role="heading" aria-level="2">Finance</div>
 
         <a href="/wallet" class="nav-item" data-page="wallet" data-tooltip="Wallet">
-            <span aria-hidden="true">💰</span> <span data-i18n="common.wallet">Wallet</span>
-        </a>
-        <a href="/history" class="nav-item" data-page="history" data-tooltip="History">
-            <span aria-hidden="true">📜</span> <span data-i18n="wallet.transaction_history">History</span>
-        </a>
-        <a href="/bulk-purchase" class="nav-item tier-gated" data-min-tier="pro" data-page="bulk-purchase"
-            data-tooltip="Bulk Purchase (Pro)" style="display: none;" aria-label="Bulk Purchase - Pro feature">
-            <span aria-hidden="true">📦</span> <span>Bulk Purchase</span>
-        </a>
-
-        <!-- Developers Section (Gated) -->
-        <div class="developer-section-header" style="display: none;">
-            <div class="nav-divider" role="separator"></div>
-            <div class="nav-section-title" role="heading" aria-level="2">Developers</div>
-        </div>
-
-        <a href="/settings?tab=api-keys" class="nav-item tier-gated" data-min-tier="payg" data-page="api-keys"
-            data-tooltip="API Keys (Premium)" style="display: none;" aria-label="API Keys - Premium feature">
-            <span aria-hidden="true">🔑</span> <span>API Keys</span>
-        </a>
-        <a href="/webhooks" class="nav-item tier-gated" data-min-tier="payg" data-page="webhooks"
-            data-tooltip="Webhook Builder (Premium)" style="display: none;"
-            aria-label="Webhook Builder - Premium feature">
-            <span aria-hidden="true">🔗</span> <span>Webhooks</span>
-        </a>
-        <a href="/api-docs" class="nav-item tier-gated" data-min-tier="payg" data-page="api-docs"
-            data-tooltip="API Documentation (Premium)" style="display: none;"
-            aria-label="API Documentation - Premium feature">
-            <span aria-hidden="true">📚</span> <span>API Docs</span>
+            <span data-i18n="common.wallet">Wallet</span>
         </a>
 
         <!-- General Section -->
@@ -66,31 +37,21 @@
         <div class="nav-section-title" role="heading" aria-level="2">General</div>
 
         <a href="/analytics" class="nav-item" data-page="analytics" data-tooltip="Analytics">
-            <span aria-hidden="true">📈</span> <span data-i18n="analytics.title">Analytics</span>
+            <span data-i18n="analytics.title">Analytics</span>
         </a>
         <a href="/pricing" class="nav-item" data-page="pricing" data-tooltip="Pricing">
-            <span aria-hidden="true">💳</span> <span>Pricing</span>
-        </a>
-        <a href="/referrals" class="nav-item tier-gated" data-min-tier="payg" data-page="referrals"
-            data-tooltip="Referral Program (Premium)" style="display: none;"
-            aria-label="Referral Program - Premium feature">
-            <span aria-hidden="true">🤝</span> <span>Referral Program</span>
-        </a>
-        <a href="/notifications" class="nav-item" data-page="notifications" data-tooltip="Notifications">
-            <span aria-hidden="true">🔔</span> <span data-i18n="notifications.title">Notifications</span>
-            <span id="sidebar-notif-badge" class="notif-badge" style="display: none;">0</span>
+            <span>Pricing</span>
         </a>
         <a href="/settings" class="nav-item" data-page="settings" data-tooltip="Settings">
-            <span aria-hidden="true">⚙️</span> <span data-i18n="common.settings">Settings</span>
+            <span data-i18n="common.settings">Settings</span>
+            <span id="sidebar-notif-badge" class="notif-badge" style="display: none;">0</span>
         </a>
 
 
         {% if user and user.is_admin %}
         <div class="nav-divider" role="separator"></div>
         <div class="nav-section-title" role="heading" aria-level="2">ADMIN</div>
-        <a href="/admin" class="nav-item admin-item" data-page="admin" aria-label="Admin Dashboard">
-            <span>Admin Dashboard</span>
-        </a>
+        <a href="/admin" class="nav-item admin-item" data-page="admin" aria-label="Admin Dashboard">Admin Dashboard</a>
         {% endif %}
     </nav>
     <div class="sidebar-footer">
@@ -106,54 +67,14 @@
             <option value="ar">🇸🇦 العربية</option>
             <option value="hi">🇮🇳 हिन्दी</option>
         </select>
-        <a href="/privacy-settings" class="nav-item" data-page="privacy-settings" data-tooltip="Privacy Settings"
-            aria-label="Privacy and data settings">
-            <span aria-hidden="true">🔒</span> <span data-i18n="privacy.title">Privacy</span>
-        </a>
         <a href="#" class="nav-item" data-tooltip="Logout" onclick="logout(); return false;" role="button"
             aria-label="Log out of your account">
-            <span aria-hidden="true">🚪</span> <span data-i18n="common.logout">Logout</span>
+            <span data-i18n="common.logout">Logout</span>
         </a>
     </div>
 </aside>
 
 <style>
-    /* Improved icon visibility */
-    .nav-item span[aria-hidden="true"] {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 36px;
-        height: 36px;
-        background: #F9FAFB !important;
-        border-radius: 10px;
-        font-size: 20px;
-        transition: all 0.2s;
-        flex-shrink: 0;
-    }
-
-    .nav-item:hover span[aria-hidden="true"] {
-        background: #FFE5EC !important;
-        transform: scale(1.05);
-    }
-
-    .nav-item.active span[aria-hidden="true"] {
-        background: rgba(255, 255, 255, 0.2) !important;
-        filter: brightness(0) invert(1) !important;
-    }
-
-    /* Collapsed sidebar improvements */
-    .sidebar.collapsed .nav-item {
-        padding: 16px 0;
-        justify-content: center;
-    }
-
-    .sidebar.collapsed .nav-item span[aria-hidden="true"] {
-        width: 40px;
-        height: 40px;
-        font-size: 22px;
-    }
-
     /* Active indicator for collapsed state */
     .sidebar.collapsed .nav-item.active::before {
         content: '';
@@ -165,6 +86,16 @@
         height: 40px;
         background: var(--primary);
         border-radius: 0 4px 4px 0;
+    }
+
+    .tier-badge {
+        margin-left: auto;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 10px;
+        background: #FFF0F3;
+        color: #FE3C72;
     }
 
     /* Tooltip styles for collapsed sidebar */
@@ -403,15 +334,10 @@
     async function loadUserTierForSidebar() {
         try {
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                updateSidebarVisibility('freemium');
-                return;
-            }
-
+            if (!token) { updateSidebarVisibility('freemium'); return; }
             const response = await fetch('/api/tiers/current', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-
             if (response.ok) {
                 const data = await response.json();
                 currentUserTier = data.current_tier || 'freemium';
@@ -422,40 +348,14 @@
             console.error('[Sidebar] Failed to load user tier:', error);
             currentUserTier = 'freemium';
         }
-
         updateSidebarVisibility(currentUserTier);
     }
 
-    /**
-     * Update sidebar visibility based on user tier
-     */
     function updateSidebarVisibility(userTier) {
-        // Handle individual gated items
-        const tierGatedItems = document.querySelectorAll('.nav-item.tier-gated');
-        
-        tierGatedItems.forEach(item => {
-            const requiredTier = item.dataset.minTier || 'payg';
-            const hasAccess = hasTierAccess(userTier, requiredTier);
-
-            if (hasAccess) {
-                item.style.display = 'flex';
-                item.classList.remove('locked');
-            } else {
-                item.style.display = 'none';
-                item.classList.add('locked');
-            }
+        document.querySelectorAll('.nav-item.tier-gated').forEach(item => {
+            const hasAccess = hasTierAccess(userTier, item.dataset.minTier || 'payg');
+            item.style.display = hasAccess ? 'flex' : 'none';
         });
-
-        // Handle Developers Section Visibility
-        // Show only if user has at least PAYG access (which all dev items require)
-        const devHeaders = document.querySelectorAll('.developer-section-header');
-        const canSeeDevTools = hasTierAccess(userTier, 'payg');
-        
-        devHeaders.forEach(header => {
-            header.style.display = canSeeDevTools ? 'block' : 'none';
-        });
-
-        console.log('[Sidebar] Updated visibility for tier:', userTier);
     }
 
     function toggleSidebar() {
@@ -524,7 +424,7 @@
 
             if (response.ok) {
                 const data = await response.json();
-                const unreadCount = data.unread_count || 0;
+                const unreadCount = data.unread_count || (data.notifications || []).filter(n => !n.is_read).length || 0;
                 const badge = document.getElementById('sidebar-notif-badge');
 
                 if (badge) {

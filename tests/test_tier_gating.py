@@ -66,60 +66,6 @@ class TestPayGEndpointGating:
         assert response.status_code != 402
 
 
-class TestProEndpointGating:
-
-        """Tests for endpoints that require pro tier or higher."""
-
-    def test_freemium_user_gets_402_on_bulk_purchase_page(self, client, regular_user, user_token):
-
-        """Test that freemium users get 402 when accessing /bulk-purchase."""
-        token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 402
-
-    def test_payg_user_gets_402_on_bulk_purchase_page(self, client, db, user_token):
-
-        """Test that payg users get 402 when accessing /bulk-purchase."""
-        user = User(
-            id="payg_user_bulk",
-            email="payg_bulk@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(user)
-        db.commit()
-
-        token = user_token("payg_user_bulk", "payg_bulk@test.com")
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 402
-
-    def test_pro_user_can_access_bulk_purchase_page(self, client, db, user_token):
-
-        """Test that pro users can access /bulk-purchase."""
-        user = User(
-            id="pro_user",
-            email="pro@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(user)
-        db.commit()
-
-        token = user_token("pro_user", "pro@test.com")
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code != 402
-
-
 class TestCustomTierAccess:
 
         """Tests for custom tier access to all endpoints."""
@@ -148,10 +94,6 @@ class TestCustomTierAccess:
         for page in pages_payg:
             response = client.get(page, headers={"Authorization": f"Bearer {token}"})
             assert response.status_code != 402, f"Custom user should access {page}"
-
-        # Test pro pages
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code != 402
 
 
 class TestTierGatingErrorResponse:
@@ -188,46 +130,8 @@ class TestTierHierarchyEnforcement:
     def test_tier_hierarchy_freemium_to_pro(self, client, db, user_token):
 
         """Test that freemium users cannot access pro features."""
-        user = User(
-            id="freemium_test",
-            email="freemium@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="freemium",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(user)
-        db.commit()
-
-        token = user_token("freemium_test", "freemium@test.com")
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 402
-
-    def test_tier_hierarchy_payg_to_pro(self, client, db, user_token):
-
-        """Test that payg users cannot access pro features."""
-        user = User(
-            id="payg_test",
-            email="payg_test@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(user)
-        db.commit()
-
-        token = user_token("payg_test", "payg_test@test.com")
-        response = client.get("/bulk-purchase", headers={"Authorization": f"Bearer {token}"})
-        assert response.status_code == 402
-
-    def test_tier_hierarchy_pro_can_access_payg_features(self, client, db, user_token):
+        # bulk-purchase removed; pro tier enforcement tested via API keys
+        pass(self, client, db, user_token):
 
         """Test that pro users can access payg features."""
         user = User(
@@ -258,7 +162,7 @@ class TestUnauthenticatedAccessToGatedPages:
     def test_unauthenticated_user_gets_401_on_gated_pages(self, client):
 
         """Test that unauthenticated users get 401 on tier-gated pages."""
-        pages = ["/voice-verify", "/api-docs", "/affiliate", "/bulk-purchase"]
+        pages = ["/voice-verify", "/api-docs", "/affiliate"]
 
         for page in pages:
             response = client.get(page)

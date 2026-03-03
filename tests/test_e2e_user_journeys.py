@@ -16,7 +16,6 @@ Tests complete user flows through the tier system:
 - Tier upgrades and downgrades
 - Error handling scenarios
 - KYC verification flow
-- Reseller bulk purchase flow
 """
 
 
@@ -440,50 +439,3 @@ class TestKYCJourney:
         assert data["verification_level"] == "enhanced"
         assert data["daily_limit"] >= 1000.0
 
-
-class TestResellerJourney:
-
-        """Test Reseller/Bulk Purchase flow."""
-
-    def test_bulk_purchase_flow(self, client: TestClient, db: Session):
-
-        """Pro user can make bulk purchases."""
-        # 1. Create Pro User with credits
-        user = User(
-            id="reseller_user_e2e",
-            email="reseller@e2e.test",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            subscription_tier="pro",
-            credits=500.0,  # Sufficient credits
-            created_at=datetime.now(timezone.utc),
-        )
-        db.add(user)
-        db.commit()
-
-        token = create_test_token(user.id, user.email)
-
-        # 2. Make Bulk Purchase Request
-        purchase_data = {
-            "service": "whatsapp",
-            "country": "us",
-            "quantity": 10,  # Minimum 5
-        }
-        response = client.post(
-            "/api/v1/bulk-purchase/",
-            json=purchase_data,
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "pending"
-        bulk_id = data["bulk_id"]
-
-        # 3. Check Status
-        response = client.get(
-            f"/api/v1/bulk-purchase/{bulk_id}",
-            headers={"Authorization": f"Bearer {token}"},
-        )
-        assert response.status_code == 200
-        assert response.json()["bulk_id"] == bulk_id
