@@ -27,7 +27,6 @@ logs/
 app.log
 
 # Database
-*.db
 *.sqlite
 *.sqlite3
 
