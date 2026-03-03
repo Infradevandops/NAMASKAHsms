@@ -110,6 +110,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
                 "username": user.email.split('@')[0],
                 "credits": float(user.credits) if user.credits else 0.0,
                 "is_active": user.is_active,
+                "is_admin": user.is_admin,
             }
         }
         
