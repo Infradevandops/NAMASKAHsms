@@ -16,6 +16,11 @@ from app.api.core.gdpr import router as gdpr_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
+from app.api.core.user_settings import router as user_settings_router, auth_router as user_auth_router
+from app.api.core.api_key_endpoints import router as api_key_router
+from app.api.core.forwarding import router as forwarding_router
+from app.api.core.blacklist import router as blacklist_router
+from app.api.core.referrals import router as referrals_router
 from app.api.billing.router import router as billing_router
 from app.api.compatibility_routes import router as compatibility_router
 from app.api.core.notification_endpoints import router as notification_router
@@ -163,6 +168,12 @@ def create_app() -> FastAPI:
     # Auth endpoints
     fastapi_app.include_router(auth_router)
     fastapi_app.include_router(user_settings_endpoints_router)
+    fastapi_app.include_router(user_settings_router)
+    fastapi_app.include_router(user_auth_router)
+    fastapi_app.include_router(api_key_router)
+    fastapi_app.include_router(forwarding_router)
+    fastapi_app.include_router(blacklist_router)
+    fastapi_app.include_router(referrals_router, prefix="/api")
     
     # Compatibility routes (API aliases for frontend)
     fastapi_app.include_router(compatibility_router, prefix="/api")
