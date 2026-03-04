@@ -4,6 +4,7 @@
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+from pydantic import ConfigDict
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id, require_tier
@@ -27,9 +28,7 @@ class PresetCreate(BaseModel):
 
 class PresetResponse(PresetCreate):
     id: str
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 @router.get("/", response_model=List[PresetResponse])
