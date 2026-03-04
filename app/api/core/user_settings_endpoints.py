@@ -1,4 +1,5 @@
 """User settings management endpoints."""
+from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -20,13 +21,13 @@ class UserSettingsUpdate(BaseModel):
     email_notifications: bool = True
     sms_alerts: bool = False
     # Billing fields
-    billing_email: str | None = None
-    billing_address: str | None = None
-    auto_recharge: bool | None = None
-    recharge_amount: float | None = None
-    auto_recharge_threshold: float | None = None
-    spending_limit: float | None = None
-    low_balance_alert_threshold: float | None = None
+    billing_email: Optional[str] = None
+    billing_address: Optional[str] = None
+    auto_recharge: Optional[bool] = None
+    recharge_amount: Optional[float] = None
+    auto_recharge_threshold: Optional[float] = None
+    spending_limit: Optional[float] = None
+    low_balance_alert_threshold: Optional[float] = None
 
 
 @router.get("/settings")

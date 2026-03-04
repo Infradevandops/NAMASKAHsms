@@ -37,9 +37,6 @@ from app.api.websocket_endpoints import router as websocket_router
 # from app.api.verification.carrier_endpoints import router as carrier_router
 # from app.api.verification.pricing_endpoints import router as pricing_router
 from app.api.verification.router import router as verification_router
-
-# Temporarily disabled for CI fix
-# from app.api.websocket_endpoints import router as websocket_router
 from app.core.config import get_settings
 from app.core.database import get_db
 from app.core.lifespan import lifespan
@@ -186,9 +183,6 @@ def create_app() -> FastAPI:
 
     # WebSocket endpoints (real-time notifications)
     fastapi_app.include_router(websocket_router)
-
-    # WebSocket endpoints (real-time notifications) - Temporarily disabled for CI fix
-    # fastapi_app.include_router(websocket_router)
 
     # Modular Routers (Legacy - Deprecated) - Core router disabled due to syntax errors
     from app.api.core.dashboard_activity import router as dashboard_activity_router
