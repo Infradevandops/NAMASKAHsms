@@ -159,11 +159,11 @@
 {% block scripts %}
 {{ super() }}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="{{ url_for('static', path='/js/pagination.js') }}"></script>
-<script src="{{ url_for('static', path='/js/spending-alerts.js') }}"></script>
-<script src="{{ url_for('static', path='/js/monthly-summary.js') }}"></script>
-<script src="{{ url_for('static', path='/js/auto-reload.js') }}"></script>
-<script src="{{ url_for('static', path='/js/pending-transactions.js') }}"></script>
+<script src="/static/js/pagination.js"></script>
+<script src="/static/js/spending-alerts.js"></script>
+<script src="/static/js/monthly-summary.js"></script>
+<script src="/static/js/auto-reload.js"></script>
+<script src="/static/js/pending-transactions.js"></script>
 <script>
     let cryptoAddresses = {};
     let currentCrypto = 'btc';
