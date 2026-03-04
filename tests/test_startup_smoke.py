@@ -49,7 +49,8 @@ def test_settings_aliases():
     s = get_settings()
     assert s.smtp_host == s.smtp_server
     assert s.smtp_user == s.smtp_username
-    assert s.from_email  # non-empty
+    assert s.from_email
+    assert s.jwt_expiry_hours == s.jwt_expiration_hours
 
 
 def test_hash_password_alias():

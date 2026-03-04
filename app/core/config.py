@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "your-jwt-secret-key-here-must-be-at-least-32-characters-long"
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
+
+    @property
+    def jwt_expiry_hours(self) -> int: return self.jwt_expiration_hours
     
     # Database settings
     database_url: str = "sqlite:///./namaskah.db"
