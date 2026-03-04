@@ -1,6 +1,6 @@
 """Consolidated verification endpoints - US only via TextVerified."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -112,7 +112,7 @@ async def create_verification(
             provider="TextVerified",
             country="US",
             capability=getattr(verification_data, 'capability', 'sms'),
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         db.add(verification)
@@ -207,7 +207,7 @@ async def get_verification_sms(
             verification.status = "completed"
             verification.sms_text = sms_result["sms"]
             verification.sms_code = sms_result.get("code")
-            verification.completed_at = datetime.utcnow()
+            verification.completed_at = datetime.now(timezone.utc)
             db.commit()
 
             # Send notification
@@ -263,7 +263,7 @@ async def cancel_verification(
 
         # Update status
         verification.status = "cancelled"
-        verification.completed_at = datetime.utcnow()
+        verification.completed_at = datetime.now(timezone.utc)
         
         # Process automatic refund
         try:

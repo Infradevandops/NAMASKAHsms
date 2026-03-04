@@ -1,7 +1,7 @@
 """Affiliate program service."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, List, Optional
 from sqlalchemy.orm import Session
 from app.models.affiliate import AffiliateApplication
@@ -121,7 +121,7 @@ class AffiliateService:
         application.status = status
         if admin_notes:
             application.admin_notes = admin_notes
-        application.updated_at = datetime.utcnow()
+        application.updated_at = datetime.now(timezone.utc)
 
         db.commit()
 

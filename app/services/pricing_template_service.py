@@ -1,7 +1,7 @@
 """Pricing Template Service"""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
@@ -307,7 +307,7 @@ class PricingTemplateService:
         if assignment:
             assignment.template_id = template_id
             assignment.assigned_by = assigned_by
-            assignment.assigned_at = datetime.utcnow()
+            assignment.assigned_at = datetime.now(timezone.utc)
         else:
             assignment = UserPricingAssignment(user_id=user_id, template_id=template_id, assigned_by=assigned_by)
             self.db.add(assignment)

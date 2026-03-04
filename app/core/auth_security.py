@@ -3,7 +3,7 @@
 
 import json
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Boolean, Column, DateTime, String
 from sqlalchemy.orm import Session
 from app.core.logging import get_logger
@@ -59,7 +59,7 @@ def check_rate_limit(
 ) -> bool:
     """Check if email/IP has exceeded rate limit."""
     try:
-        cutoff = datetime.utcnow() - timedelta(minutes=window_minutes)
+        cutoff = datetime.now(timezone.utc) - timedelta(minutes=window_minutes)
         failed_attempts = (
             db.query(LoginAttempt)
             .filter(
@@ -83,7 +83,7 @@ def check_account_lockout(db: Session, email: str) -> bool:
             db.query(AccountLockout)
             .filter(
                 AccountLockout.email == email,
-                AccountLockout.locked_until > datetime.utcnow(),
+                AccountLockout.locked_until > datetime.now(timezone.utc),
             )
             .first()
         )
@@ -104,7 +104,7 @@ def lock_account(
         lockout = AccountLockout(
             id=str(uuid.uuid4()),
             email=email,
-            locked_until=datetime.utcnow() + timedelta(minutes=duration_minutes),
+            locked_until=datetime.now(timezone.utc) + timedelta(minutes=duration_minutes),
             reason=reason,
         )
         db.add(lockout)
@@ -123,7 +123,7 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
             email=email,
             ip_address=ip_address,
             success=success,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         db.add(attempt)
         db.commit()
@@ -134,7 +134,7 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
                 .filter(
                     LoginAttempt.email == email,
                     LoginAttempt.success is False,
-                    LoginAttempt.timestamp > datetime.utcnow() - timedelta(minutes=15),
+                    LoginAttempt.timestamp > datetime.now(timezone.utc) - timedelta(minutes=15),
                 )
                 .count()
             )
@@ -164,7 +164,7 @@ def audit_log_auth_event(
             ip_address=ip_address,
             user_agent=user_agent,
             details=json.dumps(details or {}),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         db.add(log)
         db.commit()

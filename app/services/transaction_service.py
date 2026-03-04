@@ -2,7 +2,7 @@
 
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session
 
@@ -34,7 +34,7 @@ class TransactionService:
             service=service,
             filters=str(filters),
             status="completed",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
         db.commit()
@@ -51,7 +51,7 @@ class TransactionService:
             tier=None,
             service=key_id,
             status="completed",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
         db.commit()
@@ -68,7 +68,7 @@ class TransactionService:
             tier=tier,
             service=filter_type,
             status="completed",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
         db.commit()
@@ -84,7 +84,7 @@ class TransactionService:
             amount=cost,
             tier=tier,
             status="completed",
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(transaction)
         db.commit()

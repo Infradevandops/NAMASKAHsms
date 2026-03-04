@@ -1,7 +1,7 @@
 """TextVerified SMS endpoints."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -34,7 +34,7 @@ async def textverified_health() -> Dict[str, Any]:
                 detail={
                     "error": "Invalid credentials",
                     "details": health_status.get("error", "Invalid credentials"),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
         else:
@@ -44,7 +44,7 @@ async def textverified_health() -> Dict[str, Any]:
                 detail={
                     "error": "TextVerified service unavailable",
                     "details": health_status.get("error", "TextVerified service unavailable"),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 },
             )
     except HTTPException:
@@ -56,7 +56,7 @@ async def textverified_health() -> Dict[str, Any]:
             detail={
                 "error": "TextVerified service unavailable",
                 "details": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 
@@ -77,7 +77,7 @@ async def get_balance() -> Dict[str, Any]:
             detail={
                 "error": "Failed to retrieve balance",
                 "details": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 

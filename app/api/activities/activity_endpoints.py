@@ -1,6 +1,6 @@
 """Activity tracking API endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -118,7 +118,7 @@ async def get_activity_summary(
             summary["by_status"][status] = summary["by_status"].get(status, 0) + 1
             
             # Recent activities (last 24 hours)
-            if activity.created_at and (datetime.utcnow() - activity.created_at).days < 1:
+            if activity.created_at and (datetime.now(timezone.utc) - activity.created_at).days < 1:
                 summary["recent_count"] += 1
 
         return summary

@@ -1,7 +1,7 @@
 """Reseller management service."""
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from sqlalchemy.orm import Session
@@ -227,7 +227,7 @@ class ResellerService:
 
     async def get_usage_report(self, reseller_id: int, days: int = 30) -> Dict:
         """Get usage analytics for reseller."""
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
         sub_accounts = await self.get_sub_accounts(reseller_id)
 
         transactions = (

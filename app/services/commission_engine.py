@@ -1,7 +1,7 @@
 """Advanced commission calculation engine."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict, Optional
 
 from sqlalchemy.orm import Session
@@ -144,7 +144,7 @@ class CommissionEngine:
             partner = share.partner
             partner.referral_earnings += share.commission_amount
             share.status = "completed"
-            share.processed_at = datetime.utcnow()
+            share.processed_at = datetime.now(timezone.utc)
             processed_count += 1
             total_amount += share.commission_amount
 

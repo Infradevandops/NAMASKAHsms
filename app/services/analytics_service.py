@@ -1,6 +1,6 @@
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
 from app.models.transaction import Transaction
@@ -30,7 +30,7 @@ class AnalyticsService:
         total_revenue = self.db.query(func.sum(Transaction.amount)).filter(Transaction.type == "credit").scalar() or 0
 
         # Monthly revenue (last 30 days)
-        thirty_days_ago = datetime.utcnow() - timedelta(days=30)
+        thirty_days_ago = datetime.now(timezone.utc) - timedelta(days=30)
         monthly_revenue = (
             self.db.query(func.sum(Transaction.amount))
             .filter(
@@ -60,7 +60,7 @@ class AnalyticsService:
 
     async def get_timeseries(self, days: int = 30):
         """Get daily verification timeseries data"""
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         results = (
             self.db.query(

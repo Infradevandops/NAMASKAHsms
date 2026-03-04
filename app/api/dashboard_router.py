@@ -1,6 +1,6 @@
 """Core Dashboard API Router - Minimal Implementation"""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
@@ -101,7 +101,7 @@ async def get_analytics_summary(
 
         # daily_verifications: last 30 days
         from datetime import timedelta
-        today = datetime.utcnow().date()
+        today = datetime.now(timezone.utc).date()
         daily_map = {}
         for v in verifications:
             if v.created_at:

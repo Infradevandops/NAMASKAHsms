@@ -1,7 +1,7 @@
 """Event tracking and analytics service."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 from app.core.logging import get_logger
@@ -18,7 +18,7 @@ class EventService:
     async def track_event(self, user_id: str, event_type: str, properties: Dict[str, Any] = None):
         """Track user event."""
         event = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "event_type": event_type,
             "properties": properties or {},

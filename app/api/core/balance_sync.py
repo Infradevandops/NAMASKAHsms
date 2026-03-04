@@ -1,6 +1,6 @@
 """Balance synchronization API endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -46,7 +46,7 @@ class BalanceSyncService:
                 "available_balance": available_balance,
                 "pending_amount": pending_amount,
                 "api_balance": api_balance,
-                "last_updated": datetime.utcnow().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
                 "sync_source": "api" if api_balance is not None else "database",
             }
 
@@ -113,7 +113,7 @@ async def get_real_time_balance(
             "balance": current_balance,
             "available_balance": available_balance,
             "pending_amount": pending_amount,
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     except Exception as e:

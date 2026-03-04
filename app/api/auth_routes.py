@@ -2,7 +2,7 @@
 Consolidated Authentication System - Single Source of Truth
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -86,7 +86,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.utcnow() + timedelta(days=7)
+            "exp": datetime.now(timezone.utc) + timedelta(days=7)
         }
         
         access_token = jwt.encode(
@@ -96,7 +96,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         )
         
         # Update last login
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(timezone.utc)
         db.commit()
         
         logger.info(f"Successful login: {user.email}")
@@ -159,7 +159,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.utcnow() + timedelta(days=7)
+            "exp": datetime.now(timezone.utc) + timedelta(days=7)
         }
         
         access_token = jwt.encode(

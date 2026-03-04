@@ -2,7 +2,7 @@
 
 
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, Optional
 
 import httpx
@@ -26,7 +26,7 @@ class WebhookNotificationService:
 
         payload = {
             "event": event,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": data,
         }
 

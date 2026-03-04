@@ -1,6 +1,6 @@
 """Enhanced analytics API endpoints with comprehensive metrics."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func
@@ -34,7 +34,7 @@ async def get_analytics_summary(
     
     try:
         # Date filtering
-        end_date = datetime.utcnow()
+        end_date = datetime.now(timezone.utc)
         if to_date:
             try:
                 end_date = datetime.fromisoformat(to_date.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59)
@@ -90,7 +90,7 @@ async def get_analytics_summary(
         avg_cost = (total_spent / total_verifications) if total_verifications > 0 else 0.0
 
         # Monthly metrics
-        current_month_start = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         monthly_verifications = (
             db.query(func.count(Verification.id))
             .filter(
@@ -196,7 +196,7 @@ async def get_analytics_summary(
             "daily_verifications": daily_verifications,
             "top_services": top_services[:10],
             "spending_by_service": spending_by_service[:10],
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     except Exception as e:
@@ -242,7 +242,7 @@ async def get_real_time_stats(
         return {
             "pending_count": len(pending_verifications),
             "updates": updates,
-            "last_updated": datetime.utcnow().isoformat(),
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     except Exception as e:

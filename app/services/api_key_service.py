@@ -1,7 +1,7 @@
 """API Key management service."""
 
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from app.models.api_key import APIKey
@@ -79,8 +79,8 @@ class APIKeyService:
             key_hash=plain_key,  # In production, this should be hashed
             key_preview=f"{plain_key[:8]}...{plain_key[-4:]}",
             is_active=True,
-            created_at=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(days=365),
+            created_at=datetime.now(timezone.utc),
+            expires_at=datetime.now(timezone.utc) + timedelta(days=365),
             request_count=0
         )
 
@@ -136,9 +136,9 @@ class APIKeyService:
             APIKey.is_active.is_(True)
         ).first()
 
-        if api_key and api_key.expires_at > datetime.utcnow():
+        if api_key and api_key.expires_at > datetime.now(timezone.utc):
             # Update last used timestamp
-            api_key.last_used = datetime.utcnow()
+            api_key.last_used = datetime.now(timezone.utc)
             api_key.request_count += 1
             self.db.commit()
         return api_key

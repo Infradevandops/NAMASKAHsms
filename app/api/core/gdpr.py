@@ -1,7 +1,7 @@
 """GDPR compliance endpoints for data export and account deletion."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -55,7 +55,7 @@ async def export_user_data(user_id: str = Depends(get_current_user_id), db: Sess
             }
     for log in audit_logs
         ],
-        "export_date": datetime.utcnow().isoformat(),
+        "export_date": datetime.now(timezone.utc).isoformat(),
     }
 
     return export_data
