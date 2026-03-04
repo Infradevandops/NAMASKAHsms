@@ -62,7 +62,7 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
-                    <select class="form-select" id="area-code-select">
+                    <select class="form-select" id="area-code-select" onchange="updatePricing()">
                         <option value="">Any Area Code</option>
                         <option value="212">212 - New York</option>
                         <option value="310">310 - Los Angeles</option>
@@ -73,7 +73,7 @@
                 
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
-                    <select class="form-select" id="carrier-select">
+                    <select class="form-select" id="carrier-select" onchange="updatePricing()">
                         <option value="">Any Carrier</option>
                         <option value="att">AT&T</option>
                         <option value="verizon">Verizon</option>
@@ -422,7 +422,28 @@ function showError(title, message) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadServices();
+    loadBalance();
     updateProgress(1);
 });
+
+async function loadBalance() {
+    try {
+        const res = await fetch('/api/billing/balance', { headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` } });
+        if (res.ok) {
+            const d = await res.json();
+            const bal = d.balance ?? d.credits ?? 0;
+            document.getElementById('pricing-balance').textContent = `$${parseFloat(bal).toFixed(2)}`;
+        }
+    } catch(e) {}
+}
+
+function updatePricing() {
+    const areaCode = document.getElementById('area-code-select').value;
+    const carrier = document.getElementById('carrier-select').value;
+    let price = selectedServicePrice || 0;
+    if (areaCode) price += 0.25;
+    if (carrier) price += 0.50;
+    if (price > 0) document.getElementById('pricing-cost').textContent = `$${price.toFixed(2)}`;
+}
 </script>
 {% endblock %}
