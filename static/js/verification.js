@@ -1,4 +1,10 @@
 
+function formatPhone(raw) {
+    const d = (raw || '').replace(/\D/g, '');
+    if (d.length === 11 && d[0] === '1') return `+1 (${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+    return raw;
+}
+
 let selectedService = null;
 let currentVerification = null;
 let pollingInterval = null;
@@ -320,10 +326,12 @@ async function purchaseVerification() {
 
         if (res.data && res.data.phone_number) {
             currentVerification = res.data;
+            const formatted = formatPhone(res.data.phone_number);
             document.getElementById('phone-display').innerHTML = `
-                <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
-                    <span style="font-size: 24px;">${res.data.phone_number}</span>
-                    ${detectCarrier(res.data) ? `<span style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-weight: 500;">Please verify on 📶 ${detectCarrier(res.data)}</span>` : ''}
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+                    <span style="font-size: 24px; letter-spacing: 1px;">${formatted}</span>
+                    <button onclick="navigator.clipboard.writeText('${formatted}')" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;">Copy</button>
+                    ${detectCarrier(res.data) ? `<span style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-weight: 500;">Verify on ${detectCarrier(res.data)}</span>` : ''}
                 </div>
             `;
             if (res.data.fallback_applied) {

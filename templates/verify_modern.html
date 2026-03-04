@@ -343,7 +343,7 @@ async function createVerification() {
         const data = await response.json();
         verificationId = data.id;
 
-        document.getElementById('phone-number').textContent = data.phone_number;
+        document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
         updateProgress(3);
         startScanning();
 
@@ -434,6 +434,12 @@ function startScanning() {
 }
 
 // Copy phone number
+function formatPhone(raw) {
+    const d = (raw || '').replace(/\D/g, '');
+    if (d.length === 11 && d[0] === '1') return `+1 (${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+    return raw;
+}
+
 function copyPhoneNumber() {
     const phone = document.getElementById('phone-number').textContent;
     navigator.clipboard.writeText(phone);
