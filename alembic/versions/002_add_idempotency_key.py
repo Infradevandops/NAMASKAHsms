@@ -15,18 +15,25 @@ branch_labels = None
 depends_on = None
 
 
-def upgrade():
+def _column_exists(table, column):
+    bind = op.get_bind()
+    return bind.execute(sa.text(
+        "SELECT 1 FROM information_schema.columns WHERE table_name=:t AND column_name=:c"
+    ).bindparams(t=table, c=column)).fetchone() is not None
 
-    """Add idempotency_key column to verifications table."""
-    op.add_column(
-        "verifications", sa.Column("idempotency_key", sa.String(), nullable=True)
-    )
-    op.create_index(
-        "ix_verifications_idempotency_key",
-        "verifications",
-        ["idempotency_key"],
-        unique=False,
-    )
+
+def _index_exists(index):
+    bind = op.get_bind()
+    return bind.execute(sa.text(
+        "SELECT 1 FROM pg_indexes WHERE indexname=:i"
+    ).bindparams(i=index)).fetchone() is not None
+
+
+def upgrade():
+    if not _column_exists("verifications", "idempotency_key"):
+        op.add_column("verifications", sa.Column("idempotency_key", sa.String(), nullable=True))
+    if not _index_exists("ix_verifications_idempotency_key"):
+        op.create_index("ix_verifications_idempotency_key", "verifications", ["idempotency_key"], unique=False)
 
 
 def downgrade():
