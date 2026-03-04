@@ -71,13 +71,8 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
-                    <select class="form-select" id="area-code-select" onchange="updatePricing()">
-                        <option value="">Any Area Code</option>
-                        <option value="212">212 - New York</option>
-                        <option value="310">310 - Los Angeles</option>
-                        <option value="415">415 - San Francisco</option>
-                        <option value="479">479 - Arkansas</option>
-                    </select>
+                    <select class="form-select" id="area-code-select" onchange="onAreaCodeChange()"></select>
+                    <div id="area-code-lock-msg" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:4px;">⬆️ Upgrade to PAYG+ to select area code</div>
                 </div>
                 
                 <div>
@@ -202,32 +197,21 @@ let selectedService = null;
 let verificationId = null;
 let elapsedSeconds = 0;
 let scanInterval = null;
+let userTier = 'freemium';
+const TIER_RANK = { freemium: 0, payg: 1, pro: 2, custom: 3 };
 
 // Update progress
 function updateProgress(step) {
     currentStep = step;
-    
-    // Update step indicators
     for (let i = 1; i <= 3; i++) {
         const stepEl = document.getElementById(`step-${i}`);
         const cardEl = document.getElementById(`step-${i}-card`);
-        
-        if (i < step) {
-            stepEl.classList.add('completed');
-            stepEl.classList.remove('active');
-        } else if (i === step) {
-            stepEl.classList.add('active');
-            stepEl.classList.remove('completed');
-        } else {
-            stepEl.classList.remove('active', 'completed');
-        }
-        
+        if (i < step) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); }
+        else if (i === step) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); }
+        else { stepEl.classList.remove('active', 'completed'); }
         cardEl.style.display = i === step ? 'block' : 'none';
     }
-    
-    // Update progress bar
-    const progress = ((step - 1) / 2) * 100;
-    document.getElementById('progress-fill').style.width = progress + '%';
+    document.getElementById('progress-fill').style.width = (((step - 1) / 2) * 100) + '%';
 }
 
 let selectedServicePrice = null;
@@ -281,14 +265,75 @@ async function loadServices() {
     }
 }
 
+async function loadAreaCodes() {
+    const sel = document.getElementById('area-code-select');
+    const lockMsg = document.getElementById('area-code-lock-msg');
+    const rank = TIER_RANK[userTier] || 0;
+
+    if (rank < 1) {
+        sel.innerHTML = '<option value="">Any Area Code</option>';
+        sel.disabled = true;
+        lockMsg.style.display = 'block';
+        return;
+    }
+
+    lockMsg.style.display = 'none';
+    sel.innerHTML = '<option value="">Loading...</option>';
+    sel.disabled = true;
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/verification/area-codes/US', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = res.ok ? await res.json() : {};
+        const codes = data.area_codes || [];
+
+        sel.innerHTML = '<option value="">Any Area Code</option>' +
+            codes.map(c => {
+                const label = c.city ? `${c.area_code} — ${c.city}, ${c.state}` : `${c.area_code} — ${c.state}`;
+                return `<option value="${c.area_code}">${label}</option>`;
+            }).join('');
+        sel.disabled = false;
+
+        // Restore saved preference
+        const savedRes = await fetch('/api/user/verification/area-codes', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (savedRes.ok) {
+            const saved = await savedRes.json();
+            if (saved.preferred_area_codes && saved.preferred_area_codes.length > 0) {
+                sel.value = saved.preferred_area_codes[0];
+            }
+        }
+    } catch (e) {
+        sel.innerHTML = '<option value="">Any Area Code</option>';
+        sel.disabled = false;
+    }
+}
+
+async function onAreaCodeChange() {
+    updatePricing();
+    // Persist selection
+    const sel = document.getElementById('area-code-select');
+    const code = sel.value;
+    try {
+        const token = localStorage.getItem('access_token');
+        await fetch('/api/user/verification/area-codes', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ area_codes: code ? [code] : [] })
+        });
+    } catch (e) { /* non-critical */ }
+}
+
 // Create verification
 async function createVerification() {
     if (!selectedService) {
         window.toast.error('Please select a service');
         return;
     }
-    
+
     try {
+        const areaCode = document.getElementById('area-code-select').value || null;
+        const carrier = document.getElementById('carrier-select').value || null;
+
         const response = await fetch('/api/verify/create', {
             method: 'POST',
             headers: {
@@ -298,28 +343,53 @@ async function createVerification() {
             body: JSON.stringify({
                 service: selectedService,
                 country: 'US',
-                area_code: document.getElementById('area-code-select').value || null,
-                carrier: document.getElementById('carrier-select').value || null
+                area_code: areaCode,
+                carrier: carrier
             })
         });
-        
+
         if (!response.ok) throw new Error('Failed to create verification');
-        
+
         const data = await response.json();
         verificationId = data.id;
-        
+
         document.getElementById('phone-number').textContent = data.phone_number;
         updateProgress(3);
-        
-        // Start scanning
         startScanning();
-        
-        window.toast.success('✅ Number received! Waiting for SMS...');
-        
+
+        // Show fallback warning if area code wasn't honored
+        if (data.fallback_applied) {
+            const assignedCode = data.assigned_area_code || '?';
+            const requestedCode = data.requested_area_code || areaCode;
+            const sameState = data.same_state !== false;
+            showFallbackWarning(requestedCode, assignedCode, sameState);
+        } else {
+            window.toast.success('✅ Number received! Waiting for SMS...');
+        }
+
     } catch (error) {
         console.error('Error:', error);
         showError('Failed to create verification', error.message);
     }
+}
+
+function showFallbackWarning(requested, assigned, sameState) {
+    const container = document.getElementById('step-3-card');
+    const existing = document.getElementById('fallback-warning');
+    if (existing) existing.remove();
+    const el = document.createElement('div');
+    el.id = 'fallback-warning';
+    const msg = sameState
+        ? `⚡ <strong>${requested}</strong> unavailable — assigned nearby <strong>${assigned}</strong> (same state).`
+        : `⚠️ <strong>${requested}</strong> unavailable — assigned <strong>${assigned}</strong> (different state). <a href="/settings?tab=verification" style="color:#b45309;text-decoration:underline;">Update preferences →</a>`;
+    el.style.cssText = sameState
+        ? 'background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#166534;'
+        : 'background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;';
+    el.innerHTML = msg;
+    container.insertBefore(el, container.firstChild);
+    window.toast && (sameState
+        ? window.toast.info(`Area code ${requested} unavailable — got nearby ${assigned}`)
+        : window.toast.warning(`Area code ${requested} unavailable — got ${assigned} (different state)`));
 }
 
 // Start scanning with API polling
@@ -357,8 +427,7 @@ function startScanning() {
             clearInterval(scanInterval);
             const phone = document.getElementById('phone-number').textContent.trim();
             showError('Verification Timeout', `No SMS received within 2 minutes. Did the code not arrive?`);
-            // Show blacklist CTA
-            const errEl = document.getElementById('error-message') || document.querySelector('.error-card') || document.querySelector('[id*="error"]');
+            const errEl = document.getElementById('error-message');
             const cta = document.createElement('div');
             cta.style.cssText = 'margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
             cta.innerHTML = `
@@ -400,40 +469,32 @@ async function blacklistNumber(phone, service) {
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ phone_number: phone, service_name: service || 'unknown', reason: 'No SMS received', is_manual: true })
         });
-        if (res.ok) {
-            window.toast?.success('Number blacklisted. You won\'t receive this number again.');
-        } else {
-            window.toast?.error('Failed to blacklist number');
-        }
+        if (res.ok) window.toast?.success('Number blacklisted.');
+        else window.toast?.error('Failed to blacklist number');
     } catch(e) { window.toast?.error('Failed to blacklist number'); }
 }
 
-function confirmCancel() {
-    resetFlow();
-}
+function confirmCancel() { resetFlow(); }
 
-// Go back
 function goBack() {
     updateProgress(1);
     document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Reset flow
 function resetFlow() {
     clearInterval(scanInterval);
     currentStep = 1;
     selectedService = null;
     verificationId = null;
     elapsedSeconds = 0;
-    
     document.getElementById('error-container').style.display = 'none';
     document.getElementById('code-received').style.display = 'none';
-    
+    const fw = document.getElementById('fallback-warning');
+    if (fw) fw.remove();
     updateProgress(1);
     document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
 }
 
-// Show error
 function showError(title, message) {
     clearInterval(scanInterval);
     document.getElementById('error-title').textContent = title;
@@ -442,31 +503,34 @@ function showError(title, message) {
     window.toast.error(title);
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadServices().then(() => {
-        // Pre-select service from query param (e.g. from Re-use button)
-        const params = new URLSearchParams(window.location.search);
-        const preService = params.get('service');
-        if (preService) {
-            const sel = document.getElementById('service-select');
-            // Try to match existing option
-            const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === preService.toLowerCase());
-            if (opt) {
-                sel.value = opt.value;
-                onServiceChange(sel);
-            } else {
-                // Fall back to custom input
-                sel.value = 'other';
-                const ci = document.getElementById('custom-service-input');
-                ci.style.display = 'block';
-                ci.value = preService;
-                selectedService = preService;
-                confirmService();
-            }
-        }
-    });
+document.addEventListener('DOMContentLoaded', async () => {
+    // Load tier first so area code selector respects it
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (res.ok) { const d = await res.json(); userTier = d.current_tier || 'freemium'; }
+    } catch(e) {}
+
+    await Promise.all([loadServices(), loadAreaCodes()]);
     loadBalance();
     updateProgress(1);
+
+    // Pre-select service from query param
+    const params = new URLSearchParams(window.location.search);
+    const preService = params.get('service');
+    if (preService) {
+        const sel = document.getElementById('service-select');
+        const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === preService.toLowerCase());
+        if (opt) { sel.value = opt.value; onServiceChange(sel); }
+        else {
+            sel.value = 'other';
+            const ci = document.getElementById('custom-service-input');
+            ci.style.display = 'block';
+            ci.value = preService;
+            selectedService = preService;
+            confirmService();
+        }
+    }
 });
 
 async function loadBalance() {
@@ -474,8 +538,7 @@ async function loadBalance() {
         const res = await fetch('/api/billing/balance', { headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` } });
         if (res.ok) {
             const d = await res.json();
-            const bal = d.balance ?? d.credits ?? 0;
-            document.getElementById('pricing-balance').textContent = `$${parseFloat(bal).toFixed(2)}`;
+            document.getElementById('pricing-balance').textContent = `$${parseFloat(d.balance ?? d.credits ?? 0).toFixed(2)}`;
         }
     } catch(e) {}
 }

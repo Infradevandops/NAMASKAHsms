@@ -46,4 +46,5 @@ sendgrid==6.10.0  # For SendGrid
 # Security: FastAPI will use the most secure compatible Starlette version
 # Note: FastAPI 0.115.4 uses Starlette ~0.41.0 which includes security fixes
 Pillow==11.1.0
+reportlab==4.2.5
 fakeredis==2.23.0

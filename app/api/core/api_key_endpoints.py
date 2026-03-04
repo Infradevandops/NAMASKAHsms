@@ -6,7 +6,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
+from app.core.dependencies import get_current_user_id, require_tier, require_payment_method
 from app.models.api_key import APIKey
 from app.schemas.auth import APIKeyCreate, APIKeyListResponse, APIKeyResponse
 from app.services.api_key_service import APIKeyService
@@ -21,7 +21,7 @@ require_payg = require_tier("payg")
 
 
 @router.get("/", response_model=List[APIKeyListResponse])
-async def list_api_keys(user_id: str = Depends(require_payg), db: Session = Depends(get_db)):
+async def list_api_keys(user_id: str = Depends(require_payg), db: Session = Depends(get_db), _: str = Depends(require_payment_method)):
     """List all API keys for the current user."""
     logger.info(f"API keys list requested by user_id: {user_id}")
 
@@ -50,6 +50,7 @@ async def generate_api_key(
     key_create: APIKeyCreate,
     user_id: str = Depends(require_payg),
     db: Session = Depends(get_db),
+    _: str = Depends(require_payment_method),
 ):
     """Generate a new API key."""
     logger.info(f"API key generation requested by user_id: {user_id}, name: {key_create.name}")

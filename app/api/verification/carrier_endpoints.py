@@ -201,46 +201,24 @@ async def get_available_area_codes(
 
         # Get area codes from TextVerified (DYNAMIC)
         logger.info("Calling TextVerified API for area codes: country=%s", country)
-        codes = await tv_service.get_area_codes(country, service="telegram")
+        codes = await tv_service.get_area_codes_list()
 
-        logger.info(
-            "TextVerified API returned: %s, length=%s",
-            type(codes),
-            len(codes) if codes else 0,
-        )
-        if codes:
-            logger.info(f"First code sample: {codes[0] if len(codes) > 0 else 'none'}")
+        if not codes:
+            raise Exception("No area codes returned from API")
 
-        if not codes or len(codes) == 0:
-            logger.error("TextVerified API returned empty or None for area codes")
-            raise Exception(f"No area codes returned from API (got {type(codes)}, len={len(codes) if codes else 0})")
-
-        # Enhance with city/state data and success rates
+        # Enhance with city data from static map
         enhanced = []
         for code in codes:
             area_code_str = str(code.get("area_code", ""))
-
-            # Try to find city/state from static map
             city_data = next(
                 (ac for ac in STATIC_FALLBACK_AREA_CODES if ac["area_code"] == area_code_str),
-                {"city": "Unknown", "state": country.upper()},
+                {"city": "Unknown", "state": code.get("state", country.upper())},
             )
-
-            # Default success rate (don't query DB for each code - too slow)
-            success_rate = 90
-
-            enhanced.append(
-                {
-                    "area_code": area_code_str,
-                    "city": city_data.get("city", "Unknown"),
-                    "state": city_data.get("state", country.upper()),
-                    "available_count": code.get("available_count", 10),
-                    "success_rate": success_rate,
-                }
-            )
-
-        # Sort by success rate (highest first)
-        enhanced.sort(key=lambda x: x["success_rate"], reverse=True)
+            enhanced.append({
+                "area_code": area_code_str,
+                "city": city_data.get("city", "Unknown"),
+                "state": code.get("state") or city_data.get("state", country.upper()),
+            })
 
         # Get user tier for response
         user = db.query(User).filter(User.id == user_id).first()
@@ -263,8 +241,6 @@ async def get_available_area_codes(
 
     except Exception as e:
         logger.error(f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True)
-        logger.error("Exception type: %s", type(e).__name__)
-        logger.error("Full traceback will be in logs")
 
         # FALLBACK to static list
         user = db.query(User).filter(User.id == user_id).first()
