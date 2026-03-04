@@ -51,5 +51,5 @@ ENV PYTHONDONTWRITEBYTECODE=1
 
 EXPOSE 8000
 
-# Run migrations then start app with robust fallback
-CMD ["/bin/bash", "-c", "alembic upgrade head || true && python3 start_minimal.py"]
+# Run migrations then start app
+CMD ["/bin/bash", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
