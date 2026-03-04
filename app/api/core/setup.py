@@ -3,7 +3,7 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.core.auth_security import hash_password
+from app.utils.security import get_password_hash as hash_password
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.response import SuccessResponse
