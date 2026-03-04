@@ -19,6 +19,14 @@ router = APIRouter(prefix="/api/user", tags=["User Settings"])
 class UserSettingsUpdate(BaseModel):
     email_notifications: bool = True
     sms_alerts: bool = False
+    # Billing fields
+    billing_email: str | None = None
+    billing_address: str | None = None
+    auto_recharge: bool | None = None
+    recharge_amount: float | None = None
+    auto_recharge_threshold: float | None = None
+    spending_limit: float | None = None
+    low_balance_alert_threshold: float | None = None
 
 
 @router.get("/settings")
@@ -53,6 +61,16 @@ async def update_user_settings(settings: UserSettingsUpdate, user_id: str = Depe
             db.add(prefs)
         prefs.email_on_sms = settings.email_notifications
         prefs.email_on_low_balance = settings.sms_alerts
+        db.commit()
+        # Also save billing fields to UserPreference
+        up = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        if not up:
+            up = UserPreference(user_id=user_id)
+            db.add(up)
+        for field in ('billing_email', 'billing_address', 'auto_recharge', 'recharge_amount', 'auto_recharge_threshold', 'spending_limit', 'low_balance_alert_threshold'):
+            val = getattr(settings, field, None)
+            if val is not None:
+                setattr(up, field, val)
         db.commit()
         logger.info(f"Settings updated for user {user_id}")
         return {"success": True, "message": "Settings updated successfully", "settings": {"email_notifications": prefs.email_on_sms, "sms_alerts": prefs.email_on_low_balance}}
@@ -113,6 +131,25 @@ async def get_referrals(user_id: str = Depends(get_current_user_id), db: Session
         "total_referrals": len(referrals),
         "bonus_credits": 0,
         "referrals": [{"user_id": r.referred_id, "created_at": str(r.created_at)} for r in referrals],
+    }
+
+
+@router.get("/billing")
+async def get_billing_settings(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    return {
+        "billing_email": pref.billing_email if pref else None,
+        "billing_address": pref.billing_address if pref else None,
+        "auto_recharge": pref.auto_recharge if pref else False,
+        "recharge_amount": pref.recharge_amount if pref else 10.0,
+        "auto_recharge_threshold": pref.auto_recharge_threshold if pref else 5.0,
+        "spending_limit": pref.spending_limit if pref else None,
+        "low_balance_alert_threshold": pref.low_balance_alert_threshold if pref else None,
+        "subscription_renews_at": pref.subscription_renews_at if pref else None,
+        "has_card": bool(pref and pref.paystack_authorization_code),
+        "card_last4": pref.card_last4 if pref else None,
+        "card_type": pref.card_type if pref else None,
+        "card_expiry": pref.card_expiry if pref else None,
     }
 
 

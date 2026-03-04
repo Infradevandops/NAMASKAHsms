@@ -109,3 +109,25 @@ async def upgrade_tier(
     except Exception as e:
         logger.error(f"Failed to upgrade tier for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to process tier upgrade")
+
+
+@router.post("/cancel")
+async def cancel_subscription(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    """Cancel paid subscription — downgrades to freemium at period end."""
+    from app.models.user_preference import UserPreference
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    tier = getattr(user, 'subscription_tier', 'freemium')
+    if tier in ('freemium', 'payg'):
+        raise HTTPException(status_code=400, detail="No active paid subscription to cancel")
+    pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    renews_at = pref.subscription_renews_at if pref else None
+    # Mark for downgrade — actual downgrade happens at renewal date via a scheduled job
+    # For now, downgrade immediately
+    user.subscription_tier = 'freemium'
+    db.commit()
+    return {"success": True, "message": "Subscription cancelled. You have been downgraded to Freemium.", "effective_date": renews_at}

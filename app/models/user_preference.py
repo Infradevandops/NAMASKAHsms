@@ -22,6 +22,18 @@ class UserPreference(BaseModel):
     billing_address = Column(String, nullable=True)
     auto_recharge = Column(Boolean, default=False)
     recharge_amount = Column(Float, default=10.0)
+    auto_recharge_threshold = Column(Float, default=5.0)
+    spending_limit = Column(Float, nullable=True)
+    low_balance_alert_threshold = Column(Float, nullable=True)
+
+    # Payment Method (Paystack card on file)
+    paystack_authorization_code = Column(String, nullable=True)
+    card_last4 = Column(String, nullable=True)
+    card_type = Column(String, nullable=True)
+    card_expiry = Column(String, nullable=True)
+
+    # Subscription
+    subscription_renews_at = Column(String, nullable=True)  # ISO date string
 
     # Display Settings (Future proofing)
     theme = Column(String, default="light")

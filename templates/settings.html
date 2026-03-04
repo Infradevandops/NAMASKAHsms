@@ -277,13 +277,15 @@
 
         <!-- API Keys Tab -->
         <div id="api-keys-tab" class="settings-tab tier-gated-content" data-min-tier="payg">
+            <div id="api-keys-no-card-banner" style="display:none; background:#fef3c7; border:1px solid #f59e0b; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:14px;">
+                ⚠️ <strong>No payment method on file.</strong> Add a card in the <a href="#" onclick="switchTab('billing', event)" style="color:var(--primary);">Billing tab</a> to keep your API access uninterrupted.
+            </div>
             <div class="card">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
                     <h2>API Keys</h2>
                     <button class="btn btn-primary" onclick="generateApiKey()">Generate New Key</button>
                 </div>
                 <div id="api-keys-list">
-                    <!-- Keys injected via JS -->
                     <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span
                             class="loading-spinner"></span> Loading keys...</div>
                 </div>
@@ -372,44 +374,115 @@
 
         <!-- Billing Tab -->
         <div id="billing-tab" class="settings-tab">
+            <!-- Current Plan + Renewal -->
             <div class="card">
                 <h2>Billing & Subscription</h2>
-                <div id="billing-current-tier" style="margin-bottom: 24px;">
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm);">
-                        <div>
-                            <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span
-                                    class="loading-spinner"></span> Loading...</div>
-                            <div style="color: var(--text-muted); font-size: 14px;" id="billing-tier-features">Loading
-                                tier features...</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="window.location.href='/pricing'"
-                            id="billing-upgrade-btn">Upgrade</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--bg-body); border-radius: var(--radius-sm); margin-bottom: 8px;">
+                    <div>
+                        <div style="font-weight: 600; font-size: 18px;" id="billing-tier-name"><span class="loading-spinner"></span> Loading...</div>
+                        <div style="color: var(--text-muted); font-size: 14px;" id="billing-tier-features">Loading tier features...</div>
+                        <div style="color: var(--text-muted); font-size: 13px; margin-top: 4px;" id="billing-renews-at" style="display:none;"></div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn btn-primary" onclick="window.location.href='/pricing'" id="billing-upgrade-btn">Upgrade</button>
+                        <button class="btn btn-secondary" onclick="cancelSubscription()" id="billing-cancel-btn" style="display:none; color:#ef4444;">Cancel Plan</button>
                     </div>
                 </div>
 
                 <h3 style="margin-bottom: 16px;">Available Plans</h3>
-                <div id="billing-plans" style="display: grid; gap: 16px;">
-                    <!-- Plans loaded via JS -->
-                </div>
+                <div id="billing-plans" style="display: grid; gap: 16px;"></div>
+            </div>
 
-                <h3 style="margin-top: 32px; margin-bottom: 16px;">Payment History</h3>
-                <div id="payment-history">
-                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span
-                            class="loading-spinner"></span> Loading payment history...</div>
+            <!-- Payment Method -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Payment Method</h2>
+                <div id="billing-card-display">
+                    <div style="text-align:center; color:var(--text-muted); padding:20px;"><span class="loading-spinner"></span></div>
                 </div>
+                <button class="btn btn-primary" onclick="showAddCardModal()" id="add-card-btn" style="margin-top:12px; display:none;">+ Add Card</button>
+            </div>
 
-                <h3 style="margin-top: 32px; margin-bottom: 16px;">Refund Requests</h3>
-                <div id="refund-section">
-                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">
-                        You can request a refund for payments made within the last 14 days. Refunds are processed within
-                        5-7 business days.
-                    </p>
-                    <div id="refund-history">
-                        <div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests
-                        </div>
+            <!-- Auto-Recharge -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Auto-Recharge</h2>
+                <p style="color:var(--text-muted); font-size:14px; margin-bottom:16px;">Automatically top up your balance when it drops below a threshold. Requires a saved card.</p>
+                <div id="auto-recharge-no-card" style="display:none; color:#f59e0b; font-size:13px; margin-bottom:12px;">⚠️ Add a payment method to enable auto-recharge.</div>
+                <div class="toggle-switch">
+                    <div><strong>Enable Auto-Recharge</strong></div>
+                    <label class="switch"><input type="checkbox" id="auto-recharge-toggle" onchange="saveAutoRecharge()"><span class="slider"></span></label>
+                </div>
+                <div id="auto-recharge-fields" style="margin-top:12px; display:grid; gap:12px;">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="font-size:14px; min-width:180px;">Recharge when balance below</label>
+                        <input type="number" id="recharge-threshold" class="form-input" style="width:100px;" placeholder="5" min="1">
+                        <span style="color:var(--text-muted);">USD</span>
                     </div>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="font-size:14px; min-width:180px;">Recharge amount</label>
+                        <input type="number" id="recharge-amount" class="form-input" style="width:100px;" placeholder="10" min="1">
+                        <span style="color:var(--text-muted);">USD</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveAutoRecharge()" style="width:fit-content;">Save</button>
                 </div>
+            </div>
+
+            <!-- Spending Alerts -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Spending Alerts</h2>
+                <div style="display:grid; gap:12px;">
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="font-size:14px; min-width:180px;">Monthly spending cap</label>
+                        <input type="number" id="spending-limit" class="form-input" style="width:100px;" placeholder="None" min="0">
+                        <span style="color:var(--text-muted);">USD (0 = no limit)</span>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                        <label style="font-size:14px; min-width:180px;">Low balance alert</label>
+                        <input type="number" id="low-balance-threshold" class="form-input" style="width:100px;" placeholder="2" min="0">
+                        <span style="color:var(--text-muted);">USD</span>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSpendingAlerts()" style="width:fit-content;">Save Alerts</button>
+                </div>
+            </div>
+
+            <!-- Billing Email & Address -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Billing Details</h2>
+                <div style="display:grid; gap:12px;">
+                    <div>
+                        <label style="font-size:14px; font-weight:500;">Billing Email</label>
+                        <input type="email" id="billing-email" class="form-input" placeholder="billing@example.com" style="margin-top:6px;">
+                    </div>
+                    <div>
+                        <label style="font-size:14px; font-weight:500;">Billing Address</label>
+                        <input type="text" id="billing-address" class="form-input" placeholder="123 Main St, City, Country" style="margin-top:6px;">
+                    </div>
+                    <button class="btn btn-primary" onclick="saveBillingDetails()" style="width:fit-content;">Save Details</button>
+                </div>
+            </div>
+
+            <!-- Payment History -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Payment History</h2>
+                <div id="payment-history">
+                    <div style="text-align: center; color: var(--text-muted); padding: 20px;"><span class="loading-spinner"></span> Loading payment history...</div>
+                </div>
+            </div>
+
+            <!-- Refund Requests -->
+            <div class="card" style="margin-top: 16px;">
+                <h2>Refund Requests</h2>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Refunds for payments within the last 14 days. Processed within 5-7 business days.</p>
+                <div id="refund-history"><div style="text-align: center; color: var(--text-muted); padding: 20px;">No refund requests</div></div>
+            </div>
+        </div>
+
+        <!-- Add Card Modal -->
+        <div id="add-card-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+            <div style="background:var(--bg-card); border-radius:12px; padding:32px; max-width:480px; width:90%;">
+                <h2 style="margin:0 0 8px;">Add Payment Method</h2>
+                <p style="color:var(--text-muted); font-size:14px; margin-bottom:24px;">We'll charge a $0.50 authorization hold (refunded immediately) to verify your card via Paystack.</p>
+                <button class="btn btn-primary" onclick="initiateCardAuth()" style="width:100%;">Authorize Card via Paystack</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('add-card-modal').style.display='none'" style="width:100%; margin-top:8px;">Cancel</button>
             </div>
         </div>
 
@@ -903,6 +976,160 @@
             }
         }
 
+        // ── Billing: load all billing settings (card, auto-recharge, alerts, details) ──
+        async function loadBillingSettings() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/user/billing', { headers: { 'Authorization': `Bearer ${token}` } });
+                if (!res.ok) return;
+                const d = await res.json();
+
+                // Renewal info
+                if (d.subscription_renews_at) {
+                    const el = document.getElementById('billing-renews-at');
+                    if (el) { el.textContent = `Renews on ${new Date(d.subscription_renews_at).toLocaleDateString()}`; el.style.display = 'block'; }
+                }
+
+                // Cancel button for paid tiers
+                if (settingsUserTier === 'pro' || settingsUserTier === 'custom') {
+                    const btn = document.getElementById('billing-cancel-btn');
+                    if (btn) btn.style.display = 'inline-flex';
+                }
+
+                // Card on file
+                const cardDiv = document.getElementById('billing-card-display');
+                const addBtn = document.getElementById('add-card-btn');
+                if (d.has_card) {
+                    cardDiv.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center; padding:12px; background:var(--bg-body); border-radius:8px;">
+                        <div><strong>${escapeHtml(d.card_type || 'Card')}</strong> ending in <strong>${escapeHtml(d.card_last4 || '****')}</strong><span style="color:var(--text-muted); font-size:13px; margin-left:12px;">Exp: ${escapeHtml(d.card_expiry || '')}</span></div>
+                        <button class="btn btn-secondary" onclick="removeCard()" style="padding:6px 12px; font-size:12px; color:#ef4444;">Remove</button>
+                    </div>`;
+                    if (addBtn) addBtn.style.display = 'none';
+                } else {
+                    cardDiv.innerHTML = '<div style="color:var(--text-muted); font-size:14px;">No payment method saved.</div>';
+                    if (addBtn) addBtn.style.display = 'inline-flex';
+                    const noCard = document.getElementById('auto-recharge-no-card');
+                    if (noCard) noCard.style.display = 'block';
+                }
+
+                // Auto-recharge
+                const toggle = document.getElementById('auto-recharge-toggle');
+                if (toggle) toggle.checked = d.auto_recharge || false;
+                const thresh = document.getElementById('recharge-threshold');
+                if (thresh) thresh.value = d.auto_recharge_threshold || 5;
+                const amt = document.getElementById('recharge-amount');
+                if (amt) amt.value = d.recharge_amount || 10;
+
+                // Spending alerts
+                const sl = document.getElementById('spending-limit');
+                if (sl) sl.value = d.spending_limit || '';
+                const lb = document.getElementById('low-balance-threshold');
+                if (lb) lb.value = d.low_balance_alert_threshold || '';
+
+                // Billing details
+                const be = document.getElementById('billing-email');
+                if (be) be.value = d.billing_email || '';
+                const ba = document.getElementById('billing-address');
+                if (ba) ba.value = d.billing_address || '';
+
+            } catch(e) { console.error('[Billing] loadBillingSettings failed', e); }
+        }
+
+        async function saveAutoRecharge() {
+            const token = localStorage.getItem('access_token');
+            const enabled = document.getElementById('auto-recharge-toggle').checked;
+            const threshold = parseFloat(document.getElementById('recharge-threshold').value) || 5;
+            const amount = parseFloat(document.getElementById('recharge-amount').value) || 10;
+            try {
+                const res = await fetch('/api/user/settings', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ auto_recharge: enabled, auto_recharge_threshold: threshold, recharge_amount: amount })
+                });
+                if (res.ok) window.errorHandler?.showToast('Auto-recharge settings saved', 'success');
+                else window.errorHandler?.showToast('Failed to save', 'error');
+            } catch(e) { window.errorHandler?.showToast('Error saving', 'error'); }
+        }
+
+        async function saveSpendingAlerts() {
+            const token = localStorage.getItem('access_token');
+            const limit = parseFloat(document.getElementById('spending-limit').value) || null;
+            const threshold = parseFloat(document.getElementById('low-balance-threshold').value) || null;
+            try {
+                const res = await fetch('/api/user/settings', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ spending_limit: limit, low_balance_alert_threshold: threshold })
+                });
+                if (res.ok) window.errorHandler?.showToast('Spending alerts saved', 'success');
+                else window.errorHandler?.showToast('Failed to save', 'error');
+            } catch(e) { window.errorHandler?.showToast('Error saving', 'error'); }
+        }
+
+        async function saveBillingDetails() {
+            const token = localStorage.getItem('access_token');
+            const email = document.getElementById('billing-email').value;
+            const address = document.getElementById('billing-address').value;
+            try {
+                const res = await fetch('/api/user/settings', {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ billing_email: email, billing_address: address })
+                });
+                if (res.ok) window.errorHandler?.showToast('Billing details saved', 'success');
+                else window.errorHandler?.showToast('Failed to save', 'error');
+            } catch(e) { window.errorHandler?.showToast('Error saving', 'error'); }
+        }
+
+        function showAddCardModal() {
+            document.getElementById('add-card-modal').style.display = 'flex';
+        }
+
+        async function initiateCardAuth() {
+            const token = localStorage.getItem('access_token');
+            try {
+                // Initialize a $0.50 charge to get authorization_code from Paystack
+                const res = await fetch('/api/wallet/paystack/initialize', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount_usd: 0.50, save_card: true })
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    document.getElementById('add-card-modal').style.display = 'none';
+                    if (data.authorization_url) window.open(data.authorization_url, '_blank', 'width=600,height=700');
+                } else {
+                    window.errorHandler?.showToast('Failed to initiate card authorization', 'error');
+                }
+            } catch(e) { window.errorHandler?.showToast('Error', 'error'); }
+        }
+
+        async function removeCard() {
+            if (!confirm('Remove saved payment method?')) return;
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/billing/payment-method', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) { window.errorHandler?.showToast('Card removed', 'success'); loadBillingSettings(); }
+            } catch(e) { window.errorHandler?.showToast('Error removing card', 'error'); }
+        }
+
+        async function cancelSubscription() {
+            if (!confirm('Cancel your subscription? You will be downgraded to Freemium.')) return;
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/billing/tiers/cancel', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                if (res.ok) { window.errorHandler?.showToast(data.message, 'success'); setTimeout(() => location.reload(), 1500); }
+                else window.errorHandler?.showToast(data.detail || 'Failed to cancel', 'error');
+            } catch(e) { window.errorHandler?.showToast('Error', 'error'); }
+        }
+
         async function loadApiKeys() {
             FrontendLogger.info('[Settings] Loading API keys...');
             const container = document.getElementById('api-keys-list');
@@ -1050,8 +1277,14 @@
                     loadPaymentHistory();
                     loadRefundHistory();
                     loadBillingPlans();
+                    loadBillingSettings();
                 } else if (tabId === 'api-keys') {
                     loadApiKeys();
+                    // Show payment method gate banner if no card
+                    fetch('/api/billing/payment-method/status', { headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` } })
+                        .then(r => r.json()).then(d => {
+                            if (!d.has_card) document.getElementById('api-keys-no-card-banner').style.display = 'block';
+                        }).catch(() => {});
                 } else if (tabId === 'blacklist') {
                     loadBlacklist();
                 } else if (tabId === 'forwarding') {
@@ -1105,6 +1338,7 @@
                         <td style="padding: 12px;"><span style="color: ${statusColor}; font-size: 13px;">${escapeHtml(payment.status || 'unknown')}</span></td>
                         <td style="padding: 12px; text-align: right;">
                             ${canRefund ? `<button class="btn btn-secondary" onclick="showRefundModal('${payment.id || payment.reference}', '${payment.reference}', ${payment.amount_usd || payment.amount || 0})" style="padding: 4px 12px; font-size: 12px;">Request Refund</button>` : ''}
+                            <a href="/api/wallet/invoice/${payment.id}" download style="margin-left:4px; font-size:12px; color:var(--primary);">📄 Receipt</a>
                         </td>
                     </tr>`;
                     }
