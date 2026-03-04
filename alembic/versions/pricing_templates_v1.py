@@ -125,12 +125,12 @@ def upgrade():
             """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
-            ({template_id}, 'starter', 8.99, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
-            ({template_id}, 'pro', 25.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
-            ({template_id}, 'custom', 35.00, 25.00, 0.20, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
+            (:tid, 'starter', 8.99, 5.00, 0.50, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
+            (:tid, 'pro', 25.00, 15.00, 0.30, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
+            (:tid, 'custom', 35.00, 25.00, 0.20, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
     """
-        )
+        ).bindparams(tid=template_id)
     )
 
     # Template 2: Holiday Sale (Inactive)
@@ -152,12 +152,12 @@ def upgrade():
             """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
-            ({template_id}, 'starter', 7.19, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
-            ({template_id}, 'pro', 20.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
-            ({template_id}, 'custom', 28.00, 25.00, 0.20, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
+            (:tid, 'starter', 7.19, 5.00, 0.50, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
+            (:tid, 'pro', 20.00, 15.00, 0.30, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
+            (:tid, 'custom', 28.00, 25.00, 0.20, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
     """
-        )
+        ).bindparams(tid=template_id)
     )
 
     # Template 3: EU Pricing (Inactive)
@@ -179,12 +179,12 @@ def upgrade():
             """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            ({template_id}, 'payg_trial', 0.00, 0.00, 2.30, 1, '{{"api_access": false}}'::jsonb),
-            ({template_id}, 'starter', 8.49, 5.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
-            ({template_id}, 'pro', 23.00, 15.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
-            ({template_id}, 'custom', 32.00, 25.00, 0.18, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.30, 1, '{"api_access": false}'::jsonb),
+            (:tid, 'starter', 8.49, 5.00, 0.45, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
+            (:tid, 'pro', 23.00, 15.00, 0.28, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
+            (:tid, 'custom', 32.00, 25.00, 0.18, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
     """
-        )
+        ).bindparams(tid=template_id)
     )
 
     # Template 4: Test Pricing (Inactive)
@@ -206,12 +206,12 @@ def upgrade():
             """
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            ({template_id}, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'::jsonb),
-            ({template_id}, 'starter', 9.99, 6.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'::jsonb),
-            ({template_id}, 'pro', 27.00, 18.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'::jsonb),
-            ({template_id}, 'custom', 39.00, 30.00, 0.18, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
+            (:tid, 'starter', 9.99, 6.00, 0.45, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
+            (:tid, 'pro', 27.00, 18.00, 0.28, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
+            (:tid, 'custom', 39.00, 30.00, 0.18, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
     """
-        )
+        ).bindparams(tid=template_id)
     )
 
     print("✅ Created 4 pricing templates:")
