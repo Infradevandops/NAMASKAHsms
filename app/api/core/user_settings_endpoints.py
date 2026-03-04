@@ -115,7 +115,7 @@ async def export_data(user_id: str = Depends(get_current_user_id), db: Session =
     payload = {
         "profile": {"id": user.id, "email": user.email, "created_at": str(user.created_at)},
         "verifications": [{"id": v.id, "phone_number": v.phone_number, "status": v.status, "created_at": str(v.created_at)} for v in verifications],
-        "transactions": [{"id": t.id, "amount": t.amount, "type": t.transaction_type, "created_at": str(t.created_at)} for t in transactions],
+        "transactions": [{"id": t.id, "amount": t.amount, "type": t.type, "created_at": str(t.created_at)} for t in transactions],
     }
     return JSONResponse(content=payload, headers={"Content-Disposition": "attachment; filename=namaskah-data.json"})
 
@@ -152,6 +152,41 @@ async def get_billing_settings(user_id: str = Depends(get_current_user_id), db: 
         "card_type": pref.card_type if pref else None,
         "card_expiry": pref.card_expiry if pref else None,
     }
+
+
+@router.get("/verification/area-codes")
+async def get_preferred_area_codes(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+    """Get user's saved preferred area codes."""
+    import json
+    pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    codes = []
+    if pref and pref.preferred_area_codes:
+        try:
+            codes = json.loads(pref.preferred_area_codes)
+        except Exception:
+            codes = []
+    return {"preferred_area_codes": codes}
+
+
+class AreaCodePreferenceUpdate(BaseModel):
+    area_codes: list
+
+
+@router.put("/verification/area-codes")
+async def save_preferred_area_codes(
+    data: AreaCodePreferenceUpdate,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
+    """Persist user's preferred area codes."""
+    import json
+    pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    if not pref:
+        pref = UserPreference(user_id=user_id)
+        db.add(pref)
+    pref.preferred_area_codes = json.dumps(data.area_codes)
+    db.commit()
+    return {"success": True, "preferred_area_codes": data.area_codes}
 
 
 @router.get("/webhooks")

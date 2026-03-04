@@ -187,6 +187,11 @@ async def request_verification(
             logger.info(
                 f"TextVerified API success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
             )
+            if textverified_result.get("fallback_applied"):
+                logger.warning(
+                    f"Area code fallback for user {user_id}: requested={textverified_result['requested_area_code']}, "
+                    f"assigned={textverified_result['assigned_area_code']}"
+                )
 
             # Step 2: Create verification record with filter tracking
             actual_cost = sms_cost  # Use our pricing system cost
@@ -291,6 +296,9 @@ async def request_verification(
             "status": "pending",
             "activation_id": textverified_result["id"],
             "demo_mode": False,
+            "fallback_applied": textverified_result.get("fallback_applied", False),
+            "requested_area_code": textverified_result.get("requested_area_code"),
+            "assigned_area_code": textverified_result.get("assigned_area_code"),
         }
 
         # Cache response for idempotency (24 hours)

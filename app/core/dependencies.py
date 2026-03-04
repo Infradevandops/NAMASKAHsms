@@ -145,3 +145,22 @@ def require_tier(required_tier: str):
 require_payg = require_tier("payg")
 require_pro = require_tier("pro")
 require_custom = require_tier("custom")
+
+
+def require_payment_method(
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+) -> str:
+    """Block access if no card on file and balance is below $1."""
+    from app.models.user_preference import UserPreference
+    from app.models.user import User as _User
+    user = db.query(_User).filter(_User.id == user_id).first()
+    pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    has_card = bool(pref and pref.paystack_authorization_code)
+    balance = float(user.credits or 0) if user else 0.0
+    if not has_card and balance < 1.0:
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="A saved payment method or minimum $1.00 balance is required for API access.",
+        )
+    return user_id

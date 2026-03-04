@@ -9,7 +9,7 @@ from app.core.exceptions import InsufficientCreditsError
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
-from app.services.notification_dispatcher import NotificationDispatcher
+from app.models.user_preference import UserPreference
 
 logger = get_logger(__name__)
 
@@ -22,7 +22,6 @@ class CreditService:
 
         """Initialize credit service with database session."""
         self.db = db
-        self.notification_dispatcher = NotificationDispatcher(db)
 
     def get_balance(self, user_id: str) -> float:
 
@@ -92,14 +91,6 @@ class CreditService:
 
         new_balance = float(user.credits)
 
-        # CRITICAL: Notify user of credit addition
-        self.notification_dispatcher.on_credits_added(
-            user_id=user_id,
-            amount=amount,
-            reason=description,
-            new_balance=new_balance
-        )
-
         logger.info(
             f"Added {amount} credits to user {user_id}. "
             f"Balance: {old_balance} -> {new_balance}. "
@@ -156,6 +147,21 @@ class CreditService:
             )
             raise InsufficientCreditsError(f"Insufficient credits. Required: {amount}, Available: {current_balance}")
 
+        # Check spending limit before deducting
+        pref = self.db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        if pref and pref.spending_limit:
+            from datetime import date
+            from sqlalchemy import func, extract
+            now = datetime.now(timezone.utc)
+            monthly_spent = self.db.query(func.sum(Transaction.amount)).filter(
+                Transaction.user_id == user_id,
+                Transaction.type == "debit",
+                extract('year', Transaction.created_at) == now.year,
+                extract('month', Transaction.created_at) == now.month,
+            ).scalar() or 0.0
+            if abs(monthly_spent) + amount > pref.spending_limit:
+                raise ValueError(f"Monthly spending limit of ${pref.spending_limit} would be exceeded")
+
         # Deduct credits
         old_balance = current_balance
         user.credits = current_balance - amount
@@ -173,13 +179,20 @@ class CreditService:
 
         new_balance = float(user.credits)
 
-        # CRITICAL: Notify user of credit deduction
-        self.notification_dispatcher.on_credits_deducted_enhanced(
-            user_id=user_id,
-            amount=amount,
-            reason=description,
-            new_balance=new_balance
-        )
+        # Low-balance alert
+        if pref and pref.low_balance_alert_threshold and new_balance <= pref.low_balance_alert_threshold:
+            try:
+                import asyncio
+                from app.services.email_notification_service import EmailNotificationService
+                alert_email = pref.billing_email or user.email
+                svc = EmailNotificationService()
+                asyncio.create_task(svc.send_low_balance_alert_email(
+                    user_email=alert_email,
+                    current_balance=new_balance,
+                    threshold=pref.low_balance_alert_threshold,
+                ))
+            except Exception:
+                pass  # Never block a debit due to notification failure
 
         logger.info(
             f"Deducted {amount} credits from user {user_id}. "
