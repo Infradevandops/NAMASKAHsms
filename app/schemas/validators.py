@@ -2,7 +2,7 @@
 
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, TypeVar, Generic
+from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic
 from app.core.pydantic_compat import field_validator, BaseModel
 import json
 
@@ -205,7 +205,7 @@ def sanitize_input(value: str) -> str:
     return value.strip()
 
 
-def validate_pagination_params(page: int, size: int) -> tuple[int, int]:
+def validate_pagination_params(page: int, size: int) -> Tuple[int, int]:
     """Validate pagination parameters."""
     if page < 1:
         raise ValueError("Page must be at least 1")
