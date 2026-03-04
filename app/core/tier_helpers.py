@@ -5,7 +5,8 @@ including tier hierarchy checks, access validation, and display name mapping.
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
+from typing import Dict
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from app.models.user import User
@@ -16,10 +17,10 @@ logger = logging.getLogger(__name__)
 
 
 # Tier hierarchy - higher number = more access
-TIER_HIERARCHY: dict[str, int] = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
+TIER_HIERARCHY: Dict[str, int] = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
 
 # Human-readable tier display names
-TIER_DISPLAY_NAMES: dict[str, str] = {
+TIER_DISPLAY_NAMES: Dict[str, str] = {
     "freemium": "Freemium",
     "payg": "Pay-As-You-Go",
     "pro": "Pro",
@@ -91,7 +92,7 @@ def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None)
             message=f"This feature requires {required_tier} tier or higher",
             current_tier=current_tier,
             required_tier=required_tier,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         ).model_dump(mode="json"),
     )
 
@@ -104,6 +105,6 @@ def log_tier_check(user_id: str, endpoint: str, tier: str, allowed: bool):
             "endpoint": endpoint,
             "tier": tier,
             "allowed": allowed,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         },
     )

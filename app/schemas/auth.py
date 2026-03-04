@@ -1,7 +1,7 @@
 """Authentication and user schemas."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import EmailStr
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 from app.schemas.validators import validate_email, validate_password_strength
@@ -208,7 +208,7 @@ class APIKeyResponse(BaseModel):
 class APIKeyListResponse(BaseModel):
     """Schema for API key list response."""
 
-    keys: list[APIKeyResponse] = Field(..., description="List of API keys")
+    keys: List[APIKeyResponse] = Field(..., description="List of API keys")
     total: int = Field(..., description="Total number of keys")
 
     model_config = {
