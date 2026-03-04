@@ -39,7 +39,7 @@ async function loadBalance() {
             
             // If admin, show TextVerified API balance
             if (userData.is_admin) {
-                const tvRes = await fetch('/api/verification/textverified/balance', {
+                const tvRes = await fetch('/api/textverified/balance', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 
