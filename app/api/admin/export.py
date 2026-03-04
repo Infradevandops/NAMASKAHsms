@@ -21,7 +21,7 @@ async def require_admin(user_id: str = Depends(get_current_user_id), db: Session
 
 @router.get("/export/users")
 async def export_users(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
 ):
@@ -41,7 +41,7 @@ async def export_users(
 
 @router.get("/export/verifications")
 async def export_verifications(
-    format: str = Query("csv", regex="^(csv|json)$"),
+    format: str = Query("csv", pattern="^(csv|json)$"),
     days: int = Query(30, ge=1, le=365),
     admin_id: str = Depends(require_admin),
     db: Session = Depends(get_db),
