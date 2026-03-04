@@ -125,7 +125,7 @@ def upgrade():
         SET quota_balance = t.included_quota,
             quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
         FROM tiers t
-        WHERE u.tier_id = t.id
+        WHERE u.subscription_tier = t.tier_name
     """))
 
     # 6. Seed initial quota transaction records
@@ -134,7 +134,7 @@ def upgrade():
         SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,
                'Initial quota allocation (migration)'
         FROM users u
-        JOIN tiers t ON u.tier_id = t.id
+        JOIN tiers t ON u.subscription_tier = t.tier_name
         WHERE t.included_quota > 0
     """))
 
