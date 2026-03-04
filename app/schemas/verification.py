@@ -1,7 +1,7 @@
 """Verification request/response schemas."""
 
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
@@ -11,10 +11,10 @@ class VerificationRequest(BaseModel):
     service: str = Field(..., description="Service name (telegram, whatsapp, etc)")
     country: str = Field(default="US", description="Country code")
     capability: str = Field(default="sms", description="sms or voice")
-    area_codes: Optional[list[str]] = Field(
+    area_codes: Optional[List[str]] = Field(
         default=None, description="Preferred area codes"
     )
-    carriers: Optional[list[str]] = Field(
+    carriers: Optional[List[str]] = Field(
         default=None, description="Preferred carriers"
     )
     idempotency_key: Optional[str] = Field(
@@ -99,7 +99,7 @@ class VerificationHistoryResponse(BaseModel):
         total: int
         skip: int
         limit: int
-        verifications: list[VerificationHistory]
+        verifications: List[VerificationHistory]
 
 
 class ReleaseResponse(BaseModel):

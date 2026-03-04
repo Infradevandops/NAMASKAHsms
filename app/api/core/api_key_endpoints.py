@@ -2,6 +2,7 @@
 
 
 import logging
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -19,7 +20,7 @@ router = APIRouter(prefix="/api/keys", tags=["API Keys"])
 require_payg = require_tier("payg")
 
 
-@router.get("/", response_model=list[APIKeyListResponse])
+@router.get("/", response_model=List[APIKeyListResponse])
 async def list_api_keys(user_id: str = Depends(require_payg), db: Session = Depends(get_db)):
     """List all API keys for the current user."""
     logger.info(f"API keys list requested by user_id: {user_id}")
