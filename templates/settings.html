@@ -1012,7 +1012,7 @@
                 variant: "danger",
                 onConfirm: async () => {
                     const token = localStorage.getItem('access_token');
-                    const res = await fetch(`/api/auth/api-keys/${keyId}`, {
+                    const res = await fetch(`/api/keys/${keyId}`, {
                         method: 'DELETE',
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
@@ -1078,7 +1078,7 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    const payments = data.payments || data || [];
+                    const payments = data.transactions || data.payments || [];
 
                     if (!Array.isArray(payments) || payments.length === 0) {
                         container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">No payment history yet</div>';
