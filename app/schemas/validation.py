@@ -3,8 +3,8 @@ Input Validation Schemas
 Pydantic models for request validation
 """
 
-from pydantic import BaseModel, Field, validator, EmailStr
-from typing import Optional
+from pydantic import BaseModel, Field, field_validator, EmailStr
+from typing import Optional, List
 import re
 
 
@@ -12,7 +12,8 @@ class PaymentRequest(BaseModel):
     """Payment initialization request"""
     amount: float = Field(gt=0, le=10000, description="Amount in USD")
     
-    @validator('amount')
+    @field_validator('amount')
+    @classmethod
     def validate_amount(cls, v):
         # Must be multiple of 0.01
         if round(v, 2) != v:
@@ -25,10 +26,11 @@ class PaymentRequest(BaseModel):
 class VerificationRequest(BaseModel):
     """SMS verification request"""
     service: str = Field(min_length=2, max_length=50)
-    country: str = Field(regex="^[A-Z]{2}$", description="ISO 3166-1 alpha-2 country code")
-    capability: str = Field(default="sms", regex="^(sms|voice)$")
+    country: str = Field(pattern="^[A-Z]{2}$", description="ISO 3166-1 alpha-2 country code")
+    capability: str = Field(default="sms", pattern="^(sms|voice)$")
     
-    @validator('service')
+    @field_validator('service')
+    @classmethod
     def validate_service(cls, v):
         # Whitelist of allowed services
         allowed = ['whatsapp', 'telegram', 'facebook', 'google', 'twitter', 'instagram']
@@ -43,7 +45,8 @@ class RegisterRequest(BaseModel):
     password: str = Field(min_length=8, max_length=128)
     full_name: Optional[str] = Field(None, max_length=100)
     
-    @validator('password')
+    @field_validator('password')
+    @classmethod
     def validate_password(cls, v):
         # Must contain uppercase, lowercase, digit
         if not re.search(r'[A-Z]', v):
@@ -60,7 +63,8 @@ class RegisterRequest(BaseModel):
         
         return v
     
-    @validator('full_name')
+    @field_validator('full_name')
+    @classmethod
     def validate_name(cls, v):
         if v and not re.match(r'^[a-zA-Z\s\'-]+$', v):
             raise ValueError('Name contains invalid characters')
@@ -78,7 +82,8 @@ class WalletOperationRequest(BaseModel):
     amount: float = Field(gt=0, le=10000)
     description: Optional[str] = Field(None, max_length=200)
     
-    @validator('amount')
+    @field_validator('amount')
+    @classmethod
     def validate_amount(cls, v):
         if round(v, 2) != v:
             raise ValueError('Amount must have max 2 decimal places')
@@ -88,15 +93,17 @@ class WalletOperationRequest(BaseModel):
 class APIKeyRequest(BaseModel):
     """API key generation request"""
     name: str = Field(min_length=3, max_length=50)
-    permissions: list[str] = Field(default=["read"])
+    permissions: List[str] = Field(default=["read"])
     
-    @validator('name')
+    @field_validator('name')
+    @classmethod
     def validate_name(cls, v):
         if not re.match(r'^[a-zA-Z0-9\s_-]+$', v):
             raise ValueError('Name contains invalid characters')
         return v
     
-    @validator('permissions')
+    @field_validator('permissions')
+    @classmethod
     def validate_permissions(cls, v):
         allowed = ['read', 'write', 'admin']
         for perm in v:
@@ -108,9 +115,10 @@ class APIKeyRequest(BaseModel):
 class UpdateProfileRequest(BaseModel):
     """Profile update request"""
     full_name: Optional[str] = Field(None, max_length=100)
-    phone: Optional[str] = Field(None, regex=r'^\+?[1-9]\d{1,14}$')
+    phone: Optional[str] = Field(None, pattern=r'^\+?[1-9]\d{1,14}$')
     
-    @validator('full_name')
+    @field_validator('full_name')
+    @classmethod
     def validate_name(cls, v):
         if v and not re.match(r'^[a-zA-Z\s\'-]+$', v):
             raise ValueError('Name contains invalid characters')

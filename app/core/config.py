@@ -3,6 +3,7 @@
 from functools import lru_cache
 from typing import Optional, List, Union
 from app.core.pydantic_compat import field_validator, BaseSettings
+from pydantic import ConfigDict
 from app.core.secrets import SecretsManager
 
 
@@ -169,10 +170,7 @@ class Settings(BaseSettings):
             raise ValueError("Base URL must start with http:// or https://")
         return value
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = ConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
 
 @lru_cache()
