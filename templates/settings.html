@@ -1754,7 +1754,7 @@
         async function loadReferralsTab() {
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('/api/referrals', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/api/user/referrals', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 if (data.referral_code) document.getElementById('referral-url').value = `${window.location.origin}/register?ref=${data.referral_code}`;
                 if (data.total_earnings != null) document.getElementById('ref-total-earnings').textContent = '$' + data.total_earnings.toFixed(2);
@@ -1781,7 +1781,7 @@
             const container = document.getElementById('webhooks-container');
             const empty = document.getElementById('webhooks-empty-state');
             try {
-                const res = await fetch('/api/webhooks', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/api/user/webhooks', { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 const hooks = data.webhooks || data || [];
                 if (!hooks.length) { container.style.display = 'none'; empty.style.display = 'block'; return; }
