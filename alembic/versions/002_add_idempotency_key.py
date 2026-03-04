@@ -1,13 +1,12 @@
 """Add idempotency_key to verifications table
 
-import sqlalchemy as sa
-from alembic import op
-
 Revision ID: 002_add_idempotency_key
 Revises: 001_pricing_enforcement
 Create Date: 2026-01-22
-
 """
+
+import sqlalchemy as sa
+from alembic import op
 
 
 revision = "002_add_idempotency_key"

@@ -1,13 +1,12 @@
 """Add pricing enforcement schema.
 
-import sqlalchemy as sa
-from alembic import op
-
 Revision ID: 001_pricing_enforcement
 Revises:
 Create Date: 2025-12-27
-
 """
+
+import sqlalchemy as sa
+from alembic import op
 
 
 revision = "001_pricing_enforcement"
