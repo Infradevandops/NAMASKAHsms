@@ -443,7 +443,28 @@ function showError(title, message) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadServices();
+    loadServices().then(() => {
+        // Pre-select service from query param (e.g. from Re-use button)
+        const params = new URLSearchParams(window.location.search);
+        const preService = params.get('service');
+        if (preService) {
+            const sel = document.getElementById('service-select');
+            // Try to match existing option
+            const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === preService.toLowerCase());
+            if (opt) {
+                sel.value = opt.value;
+                onServiceChange(sel);
+            } else {
+                // Fall back to custom input
+                sel.value = 'other';
+                const ci = document.getElementById('custom-service-input');
+                ci.style.display = 'block';
+                ci.value = preService;
+                selectedService = preService;
+                confirmService();
+            }
+        }
+    });
     loadBalance();
     updateProgress(1);
 });
