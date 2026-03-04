@@ -185,7 +185,7 @@
     <nav class="settings-nav">
         <button class="settings-nav-item active" onclick="switchTab('account', event)">Account</button>
         <button class="settings-nav-item" onclick="switchTab('security', event)">Security</button>
-        <button class="settings-nav-item" onclick="switchTab('notifications', event)">Notifications</button>
+        <button class="settings-nav-item" onclick="switchTab('notifications', event)">Notification Settings</button>
         <button class="settings-nav-item" onclick="switchTab('billing', event)">Billing</button>
         <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('api-keys', event)"
             style="display: none;">API Keys</button>
@@ -193,10 +193,6 @@
             style="display: none;">SMS Forwarding</button>
         <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('blacklist', event)"
             style="display: none;">Blacklist</button>
-        <button class="settings-nav-item" onclick="switchTab('history', event)">History</button>
-        <button class="settings-nav-item" onclick="switchTab('notifications-center', event)">Notifications
-            <span id="settings-notif-badge" class="notif-badge" style="display: none;">0</span>
-        </button>
         <button class="settings-nav-item" onclick="switchTab('privacy', event)">Privacy</button>
         <button class="settings-nav-item tier-gated-tab" data-min-tier="payg" onclick="switchTab('referrals', event)"
             style="display: none;">Referrals</button>
@@ -230,14 +226,30 @@
         <div id="security-tab" class="settings-tab">
             <div class="card">
                 <h2>Password & Security</h2>
-                <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage your password and security
-                    settings.</p>
+                <p style="color: var(--text-secondary); margin-bottom: 24px;">Manage your password and security settings.</p>
 
                 <div class="form-group">
-                    <button class="btn btn-primary" onclick="requestPasswordReset()">Request Password Reset
-                        Email</button>
-                    <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">We will send a secure link to
-                        your email address.</p>
+                    <button class="btn btn-primary" onclick="requestPasswordReset()">Request Password Reset Email</button>
+                    <p style="font-size: 12px; margin-top: 8px; color: var(--text-muted);">We will send a secure link to your email address.</p>
+                </div>
+
+                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                    <h3 style="margin-bottom: 16px;">Change Password</h3>
+                    <input type="password" id="old-password" class="form-input" placeholder="Current password" style="margin-bottom: 12px;">
+                    <input type="password" id="new-password" class="form-input" placeholder="New password" style="margin-bottom: 12px;">
+                    <button class="btn btn-primary" onclick="changePassword()">Update Password</button>
+                </div>
+
+                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                    <h3 style="margin-bottom: 8px;">Sessions</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Sign out from all other devices and sessions.</p>
+                    <button class="btn btn-secondary" onclick="logoutAll()">Logout All Devices</button>
+                </div>
+
+                <div class="form-group" style="border-top: 1px solid var(--border-color); padding-top: 24px;">
+                    <h3 style="margin-bottom: 8px; color: #ef4444;">Danger Zone</h3>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 12px;">Permanently delete your account and all data. This cannot be undone.</p>
+                    <button class="btn" style="background: #ef4444; color: white;" onclick="deleteAccount()">Delete Account</button>
                 </div>
             </div>
         </div>
@@ -430,79 +442,7 @@
             </div>
         </div>
 
-        <!-- History Tab -->
-        <div id="history-tab" class="settings-tab">
-            <div class="card" style="margin-bottom: 16px;">
-                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                    <select id="filter-status" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
-                        <option value="">All Status</option>
-                        <option value="completed">Completed</option>
-                        <option value="pending">Pending</option>
-                        <option value="failed">Failed</option>
-                    </select>
-                    <input type="date" id="filter-date" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px;">
-                    <button class="btn" onclick="applyFilters()" style="padding: 8px 16px;">Filter</button>
-                    <button class="btn" onclick="clearFilters()" style="padding: 8px 16px; background: #6b7280;">Clear</button>
-                    <button class="btn" onclick="exportHistory()" style="padding: 8px 16px; background: #10b981; margin-left: auto;">📥 Export CSV</button>
-                </div>
-            </div>
-            <div class="card">
-                <table style="width: 100%; border-collapse: collapse;">
-                    <thead>
-                        <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);">
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Service</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Country</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Carrier</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Number</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Code</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Status</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Cost</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Date</th>
-                            <th style="text-align: left; padding: 12px; font-size: 14px; color: var(--text-muted);">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="history-body">
-                        <tr><td colspan="9" style="text-align: center; padding: 20px; color: var(--text-muted);">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="history-empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
-                <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
-                <h3 style="margin-bottom: 8px;">No verification history</h3>
-                <p style="margin-bottom: 24px;">Start your first verification to see it here</p>
-                <button class="btn" onclick="window.location.href='/verify'">Get SMS Code</button>
-            </div>
-        </div>
-
         <!-- Notifications Center Tab -->
-        <div id="notifications-center-tab" class="settings-tab">
-            <div class="card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                    <span id="notif-unread-count" style="font-size: 14px; color: var(--text-muted);">Loading...</span>
-                    <div style="display: flex; gap: 8px;">
-                        <button class="btn btn-secondary" onclick="markAllRead()" id="mark-all-btn" style="padding: 8px 16px;" disabled>✓ Mark All Read</button>
-                        <button class="btn btn-secondary" onclick="loadNotificationsTab()" style="padding: 8px 16px;">🔄 Refresh</button>
-                    </div>
-                </div>
-                <div class="notification-filters" role="tablist" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;">
-                    <button class="filter-btn active" data-filter="all" onclick="setNotifFilter('all')" role="tab">All <span class="count" id="notif-count-all">0</span></button>
-                    <button class="filter-btn" data-filter="unread" onclick="setNotifFilter('unread')" role="tab">Unread <span class="count" id="notif-count-unread">0</span></button>
-                    <button class="filter-btn" data-filter="system" onclick="setNotifFilter('system')" role="tab">System <span class="count" id="notif-count-system">0</span></button>
-                    <button class="filter-btn" data-filter="payment" onclick="setNotifFilter('payment')" role="tab">Payment <span class="count" id="notif-count-payment">0</span></button>
-                    <button class="filter-btn" data-filter="verification" onclick="setNotifFilter('verification')" role="tab">Verification <span class="count" id="notif-count-verification">0</span></button>
-                </div>
-                <div id="notif-list" role="list"><div style="text-align: center; padding: 40px;"><span class="loading-spinner"></span></div></div>
-                <div id="notif-empty-state" style="display: none; text-align: center; padding: 40px;">
-                    <div style="font-size: 48px;">🔔</div>
-                    <h3>No Notifications</h3>
-                    <p>You're all caught up!</p>
-                </div>
-                <div id="notif-load-more" style="display: none; text-align: center; margin-top: 16px;">
-                    <button class="btn btn-secondary" onclick="loadMoreNotifs()">Load More</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Privacy Tab -->
         <div id="privacy-tab" class="settings-tab">
             <div class="card">
@@ -903,14 +843,6 @@
                 // Load user tier for tab visibility
                 await loadUserTierForSettings();
 
-                // Load API Keys (only if user has access)
-                if (hasTierAccess(settingsUserTier, 'payg')) {
-                    loadApiKeys();
-                }
-
-                // Load billing plans
-                loadBillingPlans();
-
             } catch (e) {
                 FrontendLogger.error('[Settings] Failed to load user data', { error: e.message, stack: e.stack });
                 console.error("[Settings] Failed to load user data:", e);
@@ -1111,26 +1043,26 @@
                 console.error('[Settings] Tab not found:', tabId + '-tab');
             }
 
-            // Load tab-specific data
-            if (tabId === 'billing') {
-                loadPaymentHistory();
-                loadRefundHistory();
-            } else if (tabId === 'api-keys') {
-                loadApiKeys();
-            } else if (tabId === 'blacklist') {
-                loadBlacklist();
-            } else if (tabId === 'forwarding') {
-                loadForwardingConfig();
-            } else if (tabId === 'history') {
-                loadVerificationHistory();
-            } else if (tabId === 'notifications-center') {
-                loadNotificationsTab();
-            } else if (tabId === 'referrals') {
-                loadReferralsTab();
-            } else if (tabId === 'webhooks') {
-                loadWebhooksTab();
-            } else if (tabId === 'privacy') {
-                loadPrivacyTab();
+            // Load tab-specific data (only on first visit)
+            if (!tabElement?.dataset.loaded) {
+                if (tabElement) tabElement.dataset.loaded = '1';
+                if (tabId === 'billing') {
+                    loadPaymentHistory();
+                    loadRefundHistory();
+                    loadBillingPlans();
+                } else if (tabId === 'api-keys') {
+                    loadApiKeys();
+                } else if (tabId === 'blacklist') {
+                    loadBlacklist();
+                } else if (tabId === 'forwarding') {
+                    loadForwardingConfig();
+                } else if (tabId === 'referrals') {
+                    loadReferralsTab();
+                } else if (tabId === 'webhooks') {
+                    loadWebhooksTab();
+                } else if (tabId === 'privacy') {
+                    loadPrivacyTab();
+                }
             }
         }
 
@@ -1203,7 +1135,7 @@
             const token = localStorage.getItem('access_token');
 
             try {
-                const response = await ApiRetry.fetchWithRetry('/api/v1/wallet/refund/history', {
+                const response = await ApiRetry.fetchWithRetry('/api/wallet/refund/history', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1271,7 +1203,7 @@
             btn.textContent = 'Submitting...';
 
             try {
-                const response = await fetch('/api/v1/wallet/request', {
+                const response = await fetch('/api/wallet/refund/request', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1304,6 +1236,42 @@
         function formatDate(dateStr) {
             if (!dateStr) return '-';
             return new Date(dateStr).toLocaleDateString();
+        }
+
+        async function markAllRead() {
+            const token = localStorage.getItem('access_token');
+            try {
+                await fetch('/api/notifications/read-all', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                loadNotificationsTab();
+            } catch(e) { console.error('markAllRead failed', e); }
+        }
+
+        function loadMoreNotifs() { /* pagination not yet implemented */ }
+
+        function applyFilters() {
+            const status = document.getElementById('filter-status').value;
+            const date = document.getElementById('filter-date').value;
+            loadVerificationHistory(status, date);
+        }
+
+        function clearFilters() {
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-date').value = '';
+            loadVerificationHistory();
+        }
+
+        async function exportHistory() {
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/api/verify/history/export', { headers: { 'Authorization': `Bearer ${token}` } });
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'verification-history.csv'; a.click();
+            } catch(e) { showToast('Export failed', 'error'); }
+        }
+
+        function showToast(msg, type) {
+            window.errorHandler?.showToast(msg, type) || console.log(`[${type}] ${msg}`);
         }
 
         // Init
@@ -1440,7 +1408,7 @@
             const token = localStorage.getItem('access_token');
 
             try {
-                const response = await fetch(`/blacklist?page=${blacklistPage}&limit=${blacklistLimit}`, {
+                const response = await fetch(`/api/blacklist?page=${blacklistPage}&limit=${blacklistLimit}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -1567,7 +1535,7 @@
             btn.textContent = 'Adding...';
 
             try {
-                const response = await fetch('/blacklist', {
+                const response = await fetch('/api/blacklist', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -1601,7 +1569,7 @@
             const token = localStorage.getItem('access_token');
 
             try {
-                const response = await fetch(`/blacklist/${id}`, {
+                const response = await fetch(`/api/blacklist/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
@@ -1678,7 +1646,7 @@
 
             for (const phone of bulkImportNumbers) {
                 try {
-                    const response = await fetch('/blacklist', {
+                    const response = await fetch('/api/blacklist', {
                         method: 'POST',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -1715,12 +1683,15 @@
 
         // --- New Tab Loaders ---
 
-        async function loadVerificationHistory() {
+        async function loadVerificationHistory(statusFilter, dateFilter) {
             const token = localStorage.getItem('access_token');
             const tbody = document.getElementById('history-body');
             const empty = document.getElementById('history-empty-state');
             try {
-                const res = await fetch('/api/verify/history', { headers: { 'Authorization': `Bearer ${token}` } });
+                const params = new URLSearchParams();
+                if (statusFilter) params.set('status', statusFilter);
+                if (dateFilter) params.set('date', dateFilter);
+                const res = await fetch(`/api/verify/history${params.toString() ? '?' + params : ''}`, { headers: { 'Authorization': `Bearer ${token}` } });
                 const data = await res.json();
                 const items = data.verifications || data.items || data || [];
                 if (!items.length) { tbody.innerHTML = ''; empty.style.display = 'block'; return; }
@@ -1867,8 +1838,48 @@
         // Handle ?tab= URL param on page load
         const urlTabParam = new URLSearchParams(window.location.search).get('tab');
         if (urlTabParam) { document.addEventListener('DOMContentLoaded', () => switchTab(urlTabParam)); }
+        window.markAllRead = markAllRead;
+        window.loadMoreNotifs = loadMoreNotifs;
+        window.applyFilters = applyFilters;
+        window.clearFilters = clearFilters;
+        window.exportHistory = exportHistory;
+        async function changePassword() {
+            const oldPwd = document.getElementById('old-password').value;
+            const newPwd = document.getElementById('new-password').value;
+            if (!oldPwd || !newPwd) { showToast('Please fill in both password fields', 'error'); return; }
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/user/change-password', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ old_password: oldPwd, new_password: newPwd }) });
+                if (res.ok) { showToast('Password updated successfully', 'success'); document.getElementById('old-password').value = ''; document.getElementById('new-password').value = ''; }
+                else { const e = await res.json(); showToast(e.detail || 'Failed to update password', 'error'); }
+            } catch(e) { showToast('Failed to update password', 'error'); }
+        }
+
+        async function logoutAll() {
+            if (!confirm('Sign out from all devices?')) return;
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/user/logout-all', { method: 'POST', headers: { 'Authorization': `Bearer ${token}` } });
+                if (res.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+            } catch(e) { showToast('Failed to logout all devices', 'error'); }
+        }
+
+        async function deleteAccount() {
+            const pwd = prompt('Enter your password to confirm account deletion:');
+            if (!pwd) return;
+            const token = localStorage.getItem('access_token');
+            try {
+                const res = await fetch('/user/delete-account', { method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pwd }) });
+                if (res.ok) { localStorage.removeItem('access_token'); window.location.href = '/'; }
+                else { const e = await res.json(); showToast(e.detail || 'Failed to delete account', 'error'); }
+            } catch(e) { showToast('Failed to delete account', 'error'); }
+        }
+
         window.loadUserData = loadUserData;
         window.requestPasswordReset = requestPasswordReset;
+        window.changePassword = changePassword;
+        window.logoutAll = logoutAll;
+        window.deleteAccount = deleteAccount;
         window.updateSettings = updateSettings;
         window.generateApiKey = generateApiKey;
         window.deleteApiKey = deleteApiKey;

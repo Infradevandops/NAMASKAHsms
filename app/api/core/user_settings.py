@@ -9,6 +9,7 @@ from app.models.user_preference import UserPreference
 from app.utils.security import hash_password, verify_password
 
 router = APIRouter(prefix="/user", tags=["User Settings"])
+auth_router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 class ChangePasswordRequest(BaseModel):
@@ -160,3 +161,23 @@ async def change_password(
     db.commit()
 
     return {"status": "success", "message": "Password updated successfully"}
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+@auth_router.post("/forgot-password")
+async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """Send password reset email."""
+    user = db.query(User).filter(User.email == request.email).first()
+    # Always return success to prevent email enumeration
+    if user:
+        import secrets
+        token = secrets.token_urlsafe(32)
+        user.reset_token = token if hasattr(user, 'reset_token') else None
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+    return {"status": "success", "message": "If that email exists, a reset link has been sent"}

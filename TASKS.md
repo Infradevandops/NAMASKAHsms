@@ -1,32 +1,25 @@
-# Namaskah Task Board
+# Settings Page — Fix Tasklist
 
----
+## Already Fixed ✅
 
-## ✅ Completed
-
-- [x] Settings page — 6 bugs (API URLs, field mismatches, alert() dialogs) — `70c150d3`
-- [x] Sidebar audit — 27 bugs across 9 pages — `70c150d3`
-- [x] Dashboard bugs 1–5 (activity table, notification badge, Add Credits, Upgrade modal, Verification modal) — `70c150d3`
-- [x] Add Credits 500 error — removed `@limiter.limit` decorators (SlowAPI not configured) — `55ae2536`
-- [x] Verification flow cleanup — type-picker modal, `service_name` field fix, `activation_id` set, `GET /verify/{id}/status` endpoint, voice page polling — `927907c4`
-- [x] Broken routes — `/verify` + `/voice-verify` serve modern templates, 7 missing page routes added, 8 wrong-destination links fixed, tier modal links fixed — `afcf85fa`
-- [x] Webhook tier upgrade — `payment_endpoints.py` already had `upgrade_to` logic in place ✅
-- [x] Analytics charts — `dashboard_router.py` `v.service` → `v.service_name` (spending_by_service + top_services were all showing "Unknown")
-
----
-
-## 🟢 Low
-
-- [ ] **Unit tests — verification + tier upgrade (zero coverage)**
-  - `POST /api/verify/create` — balance check, capability stored, activation_id set
-  - `GET /api/verify/{id}/status` — returns sms_code when completed
-  - `POST /api/billing/tiers/upgrade` — PAYG commits to DB, paid returns pending_payment
-  - Files: `tests/unit/test_verification_routes.py` (new), `tests/unit/test_tier_endpoints.py` (new)
-
-- [ ] **Test coverage 23% → 50%** (Q1 roadmap)
-  - Integration tests: register→verify flow, add credits→webhook, PAYG upgrade
-  - File: `tests/integration/test_core_flows.py` (new)
-
-- [ ] **`/blog`, `/careers` links on landing page** — no content, no templates
-  - Either remove links or add placeholder pages
-  - File: `templates/landing.html`
+- [x] `GET /api/user/settings` 500 — was using wrong model (`UserPreference` instead of `NotificationSettings`)
+- [x] Duplicate tab content on reload — `data-loaded` guard added to `switchTab`
+- [x] Broken `switchTab` if/else chain — syntax error fixed
+- [x] Duplicate "Notifications" nav label — renamed to "Notification Settings" / "Notifications Center"
+- [x] Missing JS functions (`markAllRead`, `loadMoreNotifs`, `applyFilters`, `clearFilters`, `exportHistory`, `showToast`)
+- [x] History tab moved out of Settings → sidebar link to `/history`
+- [x] Notifications Center tab removed from Settings (it's an inbox, not a setting)
+- [x] Referrals added to sidebar footer
+- [x] **Register `user_settings` router** in `main.py` — exposes `POST /user/logout-all`, `/user/delete-account`, `/user/change-password`, `/user/settings/*`
+- [x] **Register API Keys router** in `main.py` — `app/api/core/api_key_endpoints.py` (prefix `/api/keys`)
+- [x] **Register Forwarding router** in `main.py` — `app/api/core/forwarding.py` (prefix `/forwarding`)
+- [x] **Register Blacklist router** in `main.py` — `app/api/core/blacklist.py` (prefix `/api/blacklist`)
+- [x] **Fix Blacklist frontend URLs** — `/blacklist` → `/api/blacklist` (all 5 occurrences in `settings.html`)
+- [x] **Fix Billing refund URLs** — `/api/v1/wallet/refund/history` → `/api/wallet/refund/history`, `/api/v1/wallet/request` → `/api/wallet/refund/request`
+- [x] **Password Reset POST** — added `POST /api/auth/forgot-password` via `auth_router` in `user_settings.py`
+- [x] **Privacy API** — added `GET /api/user/privacy` and `POST /api/user/privacy` to `user_settings_endpoints.py`
+- [x] **Data Export API** — added `POST /api/user/export` to `user_settings_endpoints.py`
+- [x] **Referrals API** — added `GET /api/user/referrals` to `user_settings_endpoints.py`
+- [x] **Webhooks API** — added `GET /api/user/webhooks` to `user_settings_endpoints.py`
+- [x] **Security tab UI** — added Change Password form, Logout All Devices button, Delete Account (danger zone)
+- [x] **Security tab JS** — added `changePassword()`, `logoutAll()`, `deleteAccount()` functions

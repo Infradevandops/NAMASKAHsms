@@ -355,7 +355,19 @@ function startScanning() {
 
         if (elapsedSeconds >= 120) {
             clearInterval(scanInterval);
-            showError('Verification Timeout', 'No SMS received within 2 minutes');
+            const phone = document.getElementById('phone-number').textContent.trim();
+            showError('Verification Timeout', `No SMS received within 2 minutes. Did the code not arrive?`);
+            // Show blacklist CTA
+            const errEl = document.getElementById('error-message') || document.querySelector('.error-card') || document.querySelector('[id*="error"]');
+            const cta = document.createElement('div');
+            cta.style.cssText = 'margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
+            cta.innerHTML = `
+                <button class="btn btn-secondary" style="font-size:13px;" onclick="blacklistNumber('${phone}', '${selectedService || ''}')">
+                    🚫 Blacklist this number
+                </button>
+                <a href="/settings?tab=blacklist" class="btn btn-secondary" style="font-size:13px;">Manage Blacklist →</a>
+            `;
+            if (errEl) errEl.appendChild(cta);
         }
     }, 3000);
 }
@@ -378,6 +390,22 @@ function copySMSCode() {
 function cancelVerification() {
     document.getElementById('cancel-btn').style.display = 'none';
     document.getElementById('cancel-confirm-btn').style.display = 'block';
+}
+
+async function blacklistNumber(phone, service) {
+    const token = localStorage.getItem('access_token');
+    try {
+        const res = await fetch('/api/blacklist', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ phone_number: phone, service_name: service || 'unknown', reason: 'No SMS received', is_manual: true })
+        });
+        if (res.ok) {
+            window.toast?.success('Number blacklisted. You won\'t receive this number again.');
+        } else {
+            window.toast?.error('Failed to blacklist number');
+        }
+    } catch(e) { window.toast?.error('Failed to blacklist number'); }
 }
 
 function confirmCancel() {
