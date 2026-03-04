@@ -1,6 +1,6 @@
 """Standalone auth endpoints - temporary solution while core_router is disabled."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -70,7 +70,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.utcnow() + timedelta(days=7)
+            "exp": datetime.now(timezone.utc) + timedelta(days=7)
         }
 
         access_token = jwt.encode(
@@ -79,7 +79,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             algorithm=settings.jwt_algorithm
         )
 
-        user.last_login = datetime.utcnow()
+        user.last_login = datetime.now(timezone.utc)
         db.commit()
 
         logger.info(f"User logged in: {user.email}")
@@ -128,7 +128,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             password_hash=password_hash,
             is_active=True,
             credits=0.0,
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         db.add(user)
@@ -138,7 +138,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.utcnow() + timedelta(days=7)
+            "exp": datetime.now(timezone.utc) + timedelta(days=7)
         }
 
         access_token = jwt.encode(

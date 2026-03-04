@@ -3,7 +3,7 @@
 
 import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 try:
@@ -47,7 +47,7 @@ class SecretsManager:
 
         if not force_refresh and secret_name in self.cache:
             cached = self.cache[secret_name]
-            if datetime.utcnow() < cached["expires_at"]:
+            if datetime.now(timezone.utc) < cached["expires_at"]:
                 logger.debug(f"Using cached secret: {secret_name}")
                 return cached["value"]
 
@@ -61,7 +61,7 @@ class SecretsManager:
 
             self.cache[secret_name] = {
                 "value": secret_value,
-                "expires_at": datetime.utcnow() + self.cache_ttl,
+                "expires_at": datetime.now(timezone.utc) + self.cache_ttl,
                 "version": response.get("VersionId"),
             }
 

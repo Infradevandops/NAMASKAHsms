@@ -2,7 +2,7 @@
 
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 from app.core.database import get_db
 from app.models.verification import Verification
@@ -35,7 +35,7 @@ class MonitoringService:
         db = next(get_db())
 
         # Performance metrics
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         hour_ago = now - timedelta(hours=1)
 
         # Request metrics
@@ -89,7 +89,7 @@ class MonitoringService:
                     "type": "performance",
                     "severity": "warning",
                     "message": f"P95 response time ({metrics['performance']['p95_response_time']}ms) exceeds threshold",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
@@ -100,7 +100,7 @@ class MonitoringService:
                     "type": "reliability",
                     "severity": "critical",
                     "message": f"Error rate ({metrics['requests']['error_rate']}%) exceeds threshold",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
 
@@ -111,7 +111,7 @@ class MonitoringService:
                     "type": "reliability",
                     "severity": "warning",
                     "message": f"Success rate ({metrics['requests']['success_rate']}%) below threshold",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
                 }
             )
 

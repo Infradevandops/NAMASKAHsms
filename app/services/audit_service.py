@@ -1,7 +1,7 @@
 """Audit logging for compliance."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 from app.core.logging import get_logger
 
@@ -19,7 +19,7 @@ class AuditService:
     async def log_action(self, user_id: str, action: str, resource: str, details: Dict[str, Any] = None):
         """Log user action."""
         entry = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "user_id": user_id,
             "action": action,
             "resource": resource,
@@ -37,7 +37,7 @@ class AuditService:
         return {
             "user_id": user_id,
             "audit_log": await self.get_user_audit_log(user_id),
-            "export_date": datetime.utcnow().isoformat(),
+            "export_date": datetime.now(timezone.utc).isoformat(),
         }
 
     async def delete_user_data(self, user_id: str):

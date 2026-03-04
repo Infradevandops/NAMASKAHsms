@@ -3,7 +3,7 @@ Handles real-time status updates for pending verifications
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -51,7 +51,7 @@ class VerificationStatusService:
                     verification.status = tv_status.get("status", verification.status)
                     verification.sms_code = tv_status.get("sms_code") or verification.sms_code
                     verification.sms_text = tv_status.get("sms_text") or verification.sms_text
-                    verification.updated_at = datetime.utcnow()
+                    verification.updated_at = datetime.now(timezone.utc)
 
                     self.db.commit()
 
@@ -145,7 +145,7 @@ async def get_status_updates(
     return {
         "updates": updates,
         "count": len(updates),
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -172,5 +172,5 @@ async def force_status_refresh(
     return {
         "message": "Status refreshed successfully",
         "data": result,
-        "refreshed_at": datetime.utcnow().isoformat(),
+        "refreshed_at": datetime.now(timezone.utc).isoformat(),
     }

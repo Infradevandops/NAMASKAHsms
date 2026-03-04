@@ -1,7 +1,7 @@
 """Smart SMS routing with AI - based provider selection."""
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict
 from sqlalchemy import case, func
 from app.core.database import get_db
@@ -37,7 +37,7 @@ class SmartRouter:
         db = next(get_db())
 
         # Get stats from last 7 days
-        week_ago = datetime.utcnow() - timedelta(days=7)
+        week_ago = datetime.now(timezone.utc) - timedelta(days=7)
 
         stats = (
             db.query(

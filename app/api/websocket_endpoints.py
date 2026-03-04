@@ -63,7 +63,7 @@ async def websocket_notifications(
                 "type": "connected",
                 "message": "WebSocket connected successfully",
                 "user_id": user_id,
-                "timestamp": __import__("datetime").datetime.utcnow().isoformat(),
+                "timestamp": __import__("datetime").datetime.now(timezone.utc).isoformat(),
             }
         )
 

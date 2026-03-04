@@ -1,7 +1,7 @@
 """Business intelligence and analytics service."""
 
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
 from sqlalchemy import and_, func, select
@@ -18,7 +18,7 @@ class BusinessIntelligenceService:
     @async_cache(ttl=3600)
     async def get_revenue_metrics(self, days: int = 30) -> Dict[str, Any]:
         """Get revenue tracking metrics."""
-        start_date = datetime.utcnow() - timedelta(days=days)
+        start_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         query = select(
             func.sum(Rental.cost).label("total_revenue"),
@@ -40,7 +40,7 @@ class BusinessIntelligenceService:
     async def get_user_segmentation(self) -> Dict[str, Any]:
         """Get user segmentation data."""
         active_query = select(func.count(func.distinct(Rental.user_id))).where(
-            Rental.created_at >= datetime.utcnow() - timedelta(days=30)
+            Rental.created_at >= datetime.now(timezone.utc) - timedelta(days=30)
         )
         active_result = await self.db.execute(active_query)
         active_users = active_result.scalar()
@@ -60,8 +60,8 @@ class BusinessIntelligenceService:
     @async_cache(ttl=7200)
     async def get_predictive_analytics(self) -> Dict[str, Any]:
         """Get predictive analytics data."""
-        current_week = datetime.utcnow() - timedelta(days=7)
-        previous_week = datetime.utcnow() - timedelta(days=14)
+        current_week = datetime.now(timezone.utc) - timedelta(days=7)
+        previous_week = datetime.now(timezone.utc) - timedelta(days=14)
 
         current_revenue_query = select(func.sum(Rental.cost)).where(Rental.created_at >= current_week)
         current_result = await self.db.execute(current_revenue_query)

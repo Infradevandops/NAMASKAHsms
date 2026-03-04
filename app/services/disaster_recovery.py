@@ -1,7 +1,7 @@
 """Disaster recovery and backup management service."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict
 
 class DisasterRecoveryService:
@@ -20,7 +20,7 @@ class DisasterRecoveryService:
 
     async def create_backup(self, backup_type: str = "full") -> Dict:
         """Create system backup."""
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(timezone.utc).isoformat()
 
         backup_manifest = {
             "backup_id": f"backup_{timestamp}",
@@ -42,9 +42,9 @@ class DisasterRecoveryService:
     async def test_recovery(self, backup_id: str) -> Dict:
         """Test disaster recovery procedure."""
         recovery_test = {
-            "test_id": f"recovery_test_{datetime.utcnow().isoformat()}",
+            "test_id": f"recovery_test_{datetime.now(timezone.utc).isoformat()}",
             "backup_id": backup_id,
-            "started_at": datetime.utcnow().isoformat(),
+            "started_at": datetime.now(timezone.utc).isoformat(),
             "steps": [
                 {
                     "step": "validate_backup",

@@ -1,7 +1,7 @@
 """SOC 2 compliance and security audit service."""
 
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Dict
 
 class ComplianceService:
@@ -38,7 +38,7 @@ class ComplianceService:
             "compliance_score": compliance_score,
             "status": "compliant" if compliance_score >= 95 else "non_compliant",
             "controls": controls_status,
-            "assessment_date": datetime.utcnow().isoformat(),
+            "assessment_date": datetime.now(timezone.utc).isoformat(),
             "next_audit": "2024 - 06-01T00:00:00Z",
         }
 
@@ -91,8 +91,8 @@ class ComplianceService:
         compliance_status = await self.assess_compliance()
 
         return {
-            "report_id": f"audit_{datetime.utcnow().strftime('%Y%m%d')}",
-            "report_date": datetime.utcnow().isoformat(),
+            "report_id": f"audit_{datetime.now(timezone.utc).strftime('%Y%m%d')}",
+            "report_date": datetime.now(timezone.utc).isoformat(),
             "compliance_framework": "SOC 2 Type II",
             "overall_status": compliance_status["status"],
             "compliance_score": compliance_status["compliance_score"],

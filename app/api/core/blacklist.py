@@ -1,6 +1,6 @@
 """Phone number blacklist API endpoints."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -76,8 +76,8 @@ async def add_to_blacklist(
         phone_number=phone_number,
         service_name=service_name,
         reason=request.reason or "Manual blacklist",
-        created_at=datetime.utcnow(),
-        expires_at=datetime.utcnow().replace(year=datetime.utcnow().year + 1),  # 1 year
+        created_at=datetime.now(timezone.utc),
+        expires_at=datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year + 1),  # 1 year
     )
 
     db.add(blacklist_entry)
@@ -160,7 +160,7 @@ async def cleanup_expired(
         db.query(NumberBlacklist)
         .filter(
             NumberBlacklist.user_id == user_id,
-            NumberBlacklist.expires_at < datetime.utcnow(),
+            NumberBlacklist.expires_at < datetime.now(timezone.utc),
         )
         .all()
     )

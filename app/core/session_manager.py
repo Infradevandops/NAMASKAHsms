@@ -54,7 +54,7 @@ def get_session(db: Session, refresh_token: str):
         .filter(
             UserSession.refresh_token == refresh_token,
             UserSession.is_active,
-            UserSession.expires_at > datetime.utcnow(),
+            UserSession.expires_at > datetime.now(timezone.utc),
         )
         .first()
     )
