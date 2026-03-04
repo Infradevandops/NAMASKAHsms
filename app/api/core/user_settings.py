@@ -6,7 +6,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import NotificationSettings, User
 from app.models.user_preference import UserPreference
-from app.utils.security import hash_password, verify_password
+from app.utils.security import get_password_hash as hash_password, verify_password
 
 router = APIRouter(prefix="/user", tags=["User Settings"])
 auth_router = APIRouter(prefix="/api/auth", tags=["Auth"])

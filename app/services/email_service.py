@@ -20,11 +20,11 @@ class EmailService:
     def __init__(self):
         """Initialize email service with SMTP configuration."""
         settings = get_settings()
-        self.smtp_host = settings.smtp_host
+        self.smtp_host = settings.smtp_server
         self.smtp_port = settings.smtp_port
-        self.smtp_user = settings.smtp_user
+        self.smtp_user = settings.smtp_username
         self.smtp_password = settings.smtp_password
-        self.from_email = settings.from_email
+        self.from_email = settings.smtp_username or "noreply@namaskah.app"
         self.enabled = bool(self.smtp_host and self.smtp_user and self.smtp_password)
 
         if self.enabled:
