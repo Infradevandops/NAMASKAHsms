@@ -48,10 +48,7 @@
 
     <!-- Step 1: Service Selection -->
     <div class="verification-card" id="step-1-card">
-        <h2>
-            <span class="icon">📱</span>
-            Select Service
-        </h2>
+        <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
         
         <div class="form-group">
@@ -72,7 +69,7 @@
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
                     <select class="form-select" id="area-code-select" onchange="onAreaCodeChange()"></select>
-                    <div id="area-code-lock-msg" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:4px;">⬆️ Upgrade to PAYG+ to select area code</div>
+                    <div id="area-code-lock-msg" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
                 </div>
                 
                 <div>
@@ -91,10 +88,7 @@
 
     <!-- Step 2: Pricing & Confirmation -->
     <div class="verification-card pricing-card" id="step-2-card" style="display: none;">
-        <h2>
-            <span class="icon">💰</span>
-            Pricing & Details
-        </h2>
+        <h2>Pricing & Details</h2>
         <p>Review the cost and details before proceeding</p>
 
         <div class="pricing-row">
@@ -133,23 +127,20 @@
 
     <!-- Step 3: Waiting for SMS -->
     <div class="verification-card" id="step-3-card" style="display: none;">
-        <h2>
-            <span class="icon">📞</span>
-            Your Phone Number
-        </h2>
+        <h2>Your Phone Number</h2>
 
         <!-- Phone Display -->
         <div class="phone-display">
             <div class="phone-label">Call or text this number:</div>
             <div class="phone-number" id="phone-number">+1 (479) 502-2832</div>
             <div class="phone-actions">
-                <button class="copy-btn" onclick="copyPhoneNumber()">📋 Copy</button>
+                <button class="copy-btn" onclick="copyPhoneNumber()">Copy</button>
             </div>
         </div>
 
         <!-- Scanning Animation -->
         <div class="scanning-container">
-            <div class="scanning-icon">📡</div>
+            <div class="scanning-icon"></div>
             <div class="scanning-text">Scanning for SMS...</div>
             <div class="scanning-time">
                 <span id="elapsed-time">0</span>s elapsed
@@ -162,9 +153,9 @@
         <!-- SMS Code Display (Hidden until received) -->
         <div id="code-received" style="display: none;">
             <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); padding: var(--spacing-lg); text-align: center;">
-                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">✅ SMS Code Received!</div>
+                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">SMS Code Received</div>
                 <div style="font-size: var(--font-size-3xl); font-weight: 700; color: var(--success); font-family: 'Courier New', monospace; letter-spacing: 4px; margin-bottom: var(--spacing-lg);" id="sms-code">123456</div>
-                <button class="btn btn-success btn-block" onclick="copySMSCode()">📋 Copy Code</button>
+                <button class="btn btn-success btn-block" onclick="copySMSCode()">Copy Code</button>
             </div>
         </div>
 
@@ -178,7 +169,6 @@
     <!-- Error State (Hidden) -->
     <div class="error-container" id="error-container" style="display: none;">
         <div class="error-title">
-            <span>❌</span>
             <span id="error-title">Verification Failed</span>
         </div>
         <div class="error-message" id="error-message">
@@ -364,7 +354,7 @@ async function createVerification() {
             const sameState = data.same_state !== false;
             showFallbackWarning(requestedCode, assignedCode, sameState);
         } else {
-            window.toast.success('✅ Number received! Waiting for SMS...');
+            window.toast.success('Number received — waiting for SMS...');
         }
 
     } catch (error) {
@@ -380,16 +370,18 @@ function showFallbackWarning(requested, assigned, sameState) {
     const el = document.createElement('div');
     el.id = 'fallback-warning';
     const msg = sameState
-        ? `⚡ <strong>${requested}</strong> unavailable — assigned nearby <strong>${assigned}</strong> (same state).`
-        : `⚠️ <strong>${requested}</strong> unavailable — assigned <strong>${assigned}</strong> (different state). <a href="/settings?tab=verification" style="color:#b45309;text-decoration:underline;">Update preferences →</a>`;
+        ? `<strong>${requested}</strong> unavailable — assigned nearby <strong>${assigned}</strong> (same state).`
+        : `<strong>${requested}</strong> unavailable — assigned <strong>${assigned}</strong> (different state). <a href="/settings?tab=verification" style="color:#b45309;text-decoration:underline;">Update preferences →</a>`;
     el.style.cssText = sameState
         ? 'background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#166534;'
         : 'background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;';
     el.innerHTML = msg;
     container.insertBefore(el, container.firstChild);
-    window.toast && (sameState
-        ? window.toast.info(`Area code ${requested} unavailable — got nearby ${assigned}`)
-        : window.toast.warning(`Area code ${requested} unavailable — got ${assigned} (different state)`));
+    if (window.toast) {
+        sameState
+            ? window.toast.info(`Area code ${requested} unavailable — assigned nearby ${assigned}`)
+            : window.toast.warning(`Area code ${requested} unavailable — assigned ${assigned} (different state)`);
+    }
 }
 
 // Start scanning with API polling
@@ -416,7 +408,7 @@ function startScanning() {
                         document.getElementById('sms-code').textContent = data.sms_code;
                         document.getElementById('code-received').style.display = 'block';
                         document.querySelector('.scanning-container').style.display = 'none';
-                        window.toast.success('✅ SMS code received!');
+                        window.toast.success('SMS code received');
                         return;
                     }
                 }
@@ -432,7 +424,7 @@ function startScanning() {
             cta.style.cssText = 'margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
             cta.innerHTML = `
                 <button class="btn btn-secondary" style="font-size:13px;" onclick="blacklistNumber('${phone}', '${selectedService || ''}')">
-                    🚫 Blacklist this number
+                    Blacklist this number
                 </button>
                 <a href="/settings?tab=blacklist" class="btn btn-secondary" style="font-size:13px;">Manage Blacklist →</a>
             `;
@@ -445,14 +437,14 @@ function startScanning() {
 function copyPhoneNumber() {
     const phone = document.getElementById('phone-number').textContent;
     navigator.clipboard.writeText(phone);
-    window.toast.success('📋 Phone number copied!');
+    window.toast.success('Phone number copied');
 }
 
 // Copy SMS code
 function copySMSCode() {
     const code = document.getElementById('sms-code').textContent;
     navigator.clipboard.writeText(code);
-    window.toast.success('📋 Code copied!');
+    window.toast.success('Code copied');
 }
 
 // Cancel verification

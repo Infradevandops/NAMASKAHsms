@@ -66,18 +66,14 @@
     <div class="card" style="padding: 20px; height: fit-content;" id="presets-card">
         <!-- Favorites Section -->
         <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
-            <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 600; color: #4b5563;">
-                <span style="font-size: 16px; margin-right: 6px;">⭐</span>Favorites
-            </h3>
+            <h3 style="font-size: 14px; margin-bottom: 12px; font-weight: 600; color: #4b5563;">Favorites</h3>
             <div id="favorites-list"></div>
         </div>
 
         <!-- Templates Section -->
         <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <h3 style="font-size: 14px; margin: 0; font-weight: 600; color: #4b5563;">
-                    <span style="font-size: 16px; margin-right: 6px;">📋</span>Templates
-                </h3>
+                <h3 style="font-size: 14px; margin: 0; font-weight: 600; color: #4b5563;">Templates</h3>
                 <button onclick="verificationTemplates.showSaveModal()" style="background: #667eea; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 11px; font-weight: 600;">+ Save</button>
             </div>
             <div id="templates-list"></div>
@@ -105,7 +101,6 @@
 
         <div id="preset-lock"
             style="display: none; padding: 15px; text-align: center; background: #f3f4f6; border-radius: 8px;">
-            <div style="font-size: 24px; margin-bottom: 8px;">🔒</div>
             <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px;">Upgrade to <b>Pro</b> to save and use
                 efficiency presets.</p>
             <a href="/settings?tab=billing" class="btn"
@@ -130,7 +125,7 @@
                         style="flex: 1; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
                         onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
                         onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                    <button id="favorite-btn" onclick="toggleFavorite()" style="padding: 10px 14px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-size: 16px; transition: all 0.2s;" title="Add to favorites">☆</button>
+                    <button id="favorite-btn" onclick="toggleFavorite()" style="padding: 10px 14px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s;" title="Add to favorites">&#9734;</button>
                 </div>
                 <div id="service-dropdown"
                     style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;">
@@ -141,7 +136,7 @@
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
                     data-i18n="verify.select_country">Country</label>
                 <div style="padding: 10px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; font-size: 14px; color: #6b7280;">
-                    🇺🇸 United States
+                    United States
                 </div>
             </div>
 
@@ -165,7 +160,7 @@
                     </div>
                     <div id="area-code-lock"
                         style="padding: 10px; background: #fff7ed; border: 1px dashed #fdba74; border-radius: 8px; font-size: 12px; color: #9a3412;">
-                        🔒 <a href="/settings?tab=billing"
+                        <a href="/settings?tab=billing"
                             style="color: #ea580c; font-weight: 700; text-decoration: none;">Upgrade to PAYG</a> to
                         select specific area codes
                     </div>
@@ -183,7 +178,7 @@
                     </div>
                     <div id="carrier-lock"
                         style="padding: 10px; background: #fff1f2; border: 1px dashed #fecdd3; border-radius: 8px; font-size: 12px; color: #9f1239;">
-                        🔒 <a href="/settings?tab=billing"
+                        <a href="/settings?tab=billing"
                             style="color: #e11d48; font-weight: 700; text-decoration: none;">Upgrade to Pro</a> to
                         filter by
                         ISP/Carrier
@@ -266,11 +261,11 @@
 
             if (favoriteServices.isFavorite(selectedService)) {
                 favoriteServices.remove(selectedService);
-                btn.textContent = '☆';
+                btn.textContent = '\u2606';
                 btn.style.color = '#6b7280';
             } else {
                 favoriteServices.add(selectedService, service.name, service.cost);
-                btn.textContent = '⭐';
+                btn.textContent = '\u2605';
                 btn.style.color = '#f59e0b';
             }
             favoriteServices.renderUI('favorites-list');
