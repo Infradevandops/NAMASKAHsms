@@ -20,7 +20,7 @@ class EmailService:
     def __init__(self):
         """Initialize email service with SMTP configuration."""
         settings = get_settings()
-        self.smtp_host = settings.smtp_server
+        self.smtp_host = settings.smtp_host
         self.smtp_port = settings.smtp_port
         self.smtp_user = settings.smtp_username
         self.smtp_password = settings.smtp_password
