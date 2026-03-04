@@ -90,11 +90,11 @@ class RefundService:
         self.db.commit()
 
         # CRITICAL: Notify user immediately
-        self.notification_dispatcher.on_refund_initiated(
+        self.notification_dispatcher.on_refund_completed(
             user_id=user_id,
             amount=payment_log.amount_usd,
-            reason=reason,
-            reference=reference
+            reference=reference,
+            new_balance=0.0,
         )
 
         logger.info(
@@ -321,7 +321,6 @@ class RefundService:
                 if not payment_log:
                     logger.warning(f"Payment not found for refund: {reference}")
                     return {"status": "ignored", "message": "Payment not found"}
-                return {"status": "ignored", "message": "Payment not found"}
 
                 # Get refund
                 refund = self.db.query(Refund).filter(Refund.payment_id == payment_log.id).first()

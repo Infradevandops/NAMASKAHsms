@@ -53,7 +53,7 @@ async def cancel_verification(
         if verification.activation_id:
             tv_service = TextVerifiedService()
             try:
-                await tv_service.cancel_activation(verification.activation_id)
+                await tv_service.cancel_verification(verification.activation_id)
                 logger.info(f"Cancelled TextVerified activation: {verification.activation_id}")
             except Exception as tv_error:
                 logger.warning(f"TextVerified cancellation failed: {tv_error}")
@@ -74,7 +74,7 @@ async def cancel_verification(
                 notif_service.create_notification(
                     user_id=user_id,
                     notification_type="verification_cancelled",
-                    title="❌ Verification Cancelled",
+                    title="Verification Cancelled",
                     message=f"${refund_result['refund_amount']:.2f} refunded instantly for {verification.service_name}. New balance: ${refund_result['new_balance']:.2f}",
                 )
             except Exception as n_error:

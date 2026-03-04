@@ -15,6 +15,7 @@ from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
 from app.services.notification_dispatcher import NotificationDispatcher
+from app.services.notification_service import NotificationService
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.pricing_calculator import PricingCalculator
@@ -223,12 +224,12 @@ async def request_verification(
 
             # CRITICAL: Notify user of credit deduction immediately
             notification_dispatcher = NotificationDispatcher(db)
-            notification_dispatcher.on_credits_deducted_enhanced(
+            await notification_dispatcher.notify_verification_started(
                 user_id=user_id,
-                amount=actual_cost,
-                reason=f"SMS verification for {request.service}",
-                new_balance=new_balance,
-                verification_id=verification.id
+                verification_id=str(verification.id),
+                service=request.service,
+                phone_number=textverified_result["phone_number"],
+                cost=actual_cost,
             )
 
         except Exception as api_error:
@@ -250,17 +251,16 @@ async def request_verification(
             # Notification: Verification Failed (Task 1.3)
             try:
                 notification_dispatcher = NotificationDispatcher(db)
-                notification_dispatcher.on_verification_failed(
-                    verification=type('obj', (object,), {
-                        'user_id': user_id,
-                        'service_name': request.service
-                    })(),
-                    reason="SMS service temporarily unavailable"
+                await notification_dispatcher.notify_verification_failed(
+                    user_id=user_id,
+                    verification_id="unknown",
+                    service=request.service,
+                    reason="SMS service temporarily unavailable",
                 )
             except Exception:
                 pass
 
-                raise HTTPException(
+            raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="SMS service temporarily unavailable. Your credits were not charged.",
             )
@@ -316,7 +316,7 @@ async def request_verification(
             notif_service.create_notification(
                 user_id=user_id,
                 notification_type="balance_update",
-                title="💳 Balance Updated",
+                title="Balance Updated",
                 message=f"${actual_cost:.2f} charged for {request.service} - New balance: ${new_balance:.2f}",
             )
         except Exception:
@@ -328,7 +328,7 @@ async def request_verification(
             notif_service.create_notification(
                 user_id=user_id,
                 notification_type="number_purchased",
-                title="📱 Number Purchased",
+                title="Number Purchased",
                 message=f"Phone: {textverified_result['phone_number']} - Waiting for SMS code...",
             )
         except Exception:
@@ -340,7 +340,7 @@ async def request_verification(
             notif_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_initiated",
-                title="🎯 Verification Started",
+                title="Verification Started",
                 message=f"Purchasing {request.service} number in {request.country} for ${actual_cost:.2f}",
             )
         except Exception:
