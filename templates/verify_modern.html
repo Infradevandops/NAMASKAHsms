@@ -336,7 +336,7 @@ function startScanning() {
         if (verificationId) {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch(`/api/verify/status/${verificationId}`, {
+                const res = await fetch(`/api/verify/${verificationId}/status`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
