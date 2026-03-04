@@ -8,7 +8,7 @@ from alembic import op
 import sqlalchemy as sa
 
 revision = 'add_preferred_area_codes'
-down_revision = 'add_user_preferences'
+down_revision = '003_payment_idempotency'
 branch_labels = None
 depends_on = None
 
