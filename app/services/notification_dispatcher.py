@@ -28,7 +28,7 @@ class NotificationDispatcher:
                 )
             )
             logger.info(
-                f"📤 Notification broadcasted to user {user_id}: {notification.get('title', 'No title')}"
+                f"Notification broadcasted to user {user_id}: {notification.get('title', 'No title')}"
             )
         except Exception as e:
             logger.error(f"Failed to broadcast notification via WebSocket: {e}")
@@ -46,7 +46,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_started",
-                title="🔄 Verification Started",
+                title="Verification Started",
                 message=f"Started {service} verification for {phone_number} (${cost:.2f})",
                 link=f"/verify?id={verification_id}",
             )
@@ -70,7 +70,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_completed",
-                title="✅ Verification Completed",
+                title="Verification Completed",
                 message=f"SMS received for {service} verification ({phone_number})",
                 link=f"/verify?id={verification_id}",
             )
@@ -94,7 +94,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_failed",
-                title="❌ Verification Failed",
+                title="Verification Failed",
                 message=f"{service} verification failed: {reason}",
                 link=f"/verify?id={verification_id}",
             )
@@ -117,7 +117,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="payment_completed",
-                title="💳 Payment Completed",
+                title="Payment Completed",
                 message=f"${amount:.2f} added to your account. New balance: ${new_balance:.2f}",
                 link="/billing",
             )
@@ -141,7 +141,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_timeout",
-                title="⏰ Verification Timeout - Refunded",
+                title="Verification Timeout - Refunded",
                 message=f"{service} verification timed out. ${refund_amount:.2f} refunded to your account.",
                 link=f"/verify?id={verification_id}",
             )
@@ -165,7 +165,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_cancelled",
-                title="🚫 Verification Cancelled - Refunded",
+                title="Verification Cancelled - Refunded",
                 message=f"{service} verification cancelled. ${refund_amount:.2f} refunded to your account.",
                 link=f"/verify?id={verification_id}",
             )
@@ -189,7 +189,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="refund_completed",
-                title="💰 Refund Completed",
+                title="Refund Completed",
                 message=f"${amount:.2f} refunded. New balance: ${new_balance:.2f}",
                 link="/billing/history",
             )
@@ -207,7 +207,7 @@ class NotificationDispatcher:
             notification = self.notification_service.create_notification(
                 user_id=verification.user_id,
                 notification_type="sms_received",
-                title="📱 SMS Code Received",
+                title="SMS Code Received",
                 message=f"Verification code received for {verification.service_name}",
                 link=f"/verify?id={verification.id}",
             )
