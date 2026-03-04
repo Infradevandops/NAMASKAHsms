@@ -1,13 +1,13 @@
 """
-import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-from alembic import op
-
 Add Pricing Templates System
 
 Revision ID: pricing_templates_v1
 Created: 2025-12-25
 """
+
+from alembic import op
+import sqlalchemy as sa
+from sqlalchemy.dialects import postgresql
 
 
 revision = "pricing_templates_v1"
@@ -32,7 +32,7 @@ def upgrade():
         sa.Column(
             "created_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
         ),
-        sa.Column("created_by", sa.Integer(), nullable=True),
+        sa.Column("created_by", sa.String(), nullable=True),
         sa.Column("effective_date", sa.TIMESTAMP(), nullable=True),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=True),
         sa.Column("metadata", postgresql.JSONB(), nullable=True),
@@ -71,7 +71,7 @@ def upgrade():
         sa.Column("template_id", sa.Integer(), nullable=True),
         sa.Column("action", sa.String(50), nullable=False),
         sa.Column("previous_template_id", sa.Integer(), nullable=True),
-        sa.Column("changed_by", sa.Integer(), nullable=True),
+        sa.Column("changed_by", sa.String(), nullable=True),
         sa.Column(
             "changed_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
         ),
@@ -90,7 +90,7 @@ def upgrade():
     # 4. Create user_pricing_assignments table (for A/B testing)
     op.create_table(
         "user_pricing_assignments",
-        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.String(), nullable=False),
         sa.Column("template_id", sa.Integer(), nullable=False),
         sa.Column(
             "assigned_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
