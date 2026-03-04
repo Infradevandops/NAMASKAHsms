@@ -40,6 +40,14 @@ class Settings(BaseSettings):
     smtp_username: Optional[str] = None
     smtp_password: Optional[str] = None
     smtp_use_tls: bool = True
+
+    # Backward-compat aliases
+    @property
+    def smtp_host(self) -> str: return self.smtp_server
+    @property
+    def smtp_user(self) -> Optional[str]: return self.smtp_username
+    @property
+    def from_email(self) -> str: return self.smtp_username or "noreply@namaskah.app"
     
     # External API settings
     textverified_api_key: Optional[str] = None
