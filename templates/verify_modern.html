@@ -498,6 +498,7 @@ async function confirmCancel() {
     resetFlow();
 }
 
+async function blacklistNumber(phone, service) {
     const token = localStorage.getItem('access_token');
     try {
         const res = await fetch('/api/blacklist', {
