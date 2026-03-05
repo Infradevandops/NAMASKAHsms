@@ -198,11 +198,99 @@
 // State management
 let currentStep = 1;
 let selectedService = null;
+let selectedServicePrice = null;
+let selectedAreaCode = null;
+let selectedCarrier = null;
 let verificationId = null;
 let elapsedSeconds = 0;
 let scanInterval = null;
 let userTier = 'freemium';
 const TIER_RANK = { freemium: 0, payg: 1, pro: 2, custom: 3 };
+
+// Modal state
+let _modalType = null;
+let _modalItems = [];
+
+function openModal(type) {
+    _modalType = type;
+    const titles = { service: 'Select Service', 'area-code': 'Select Area Code', carrier: 'Select Carrier' };
+    document.getElementById('modal-title').textContent = titles[type];
+    document.getElementById('modal-search').value = '';
+    renderModalItems(_modalItems[type] || []);
+    const modal = document.getElementById('picker-modal');
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('modal-search').focus(), 50);
+}
+
+function closeModal() {
+    document.getElementById('picker-modal').style.display = 'none';
+    _modalType = null;
+}
+
+function renderModalItems(items) {
+    const list = document.getElementById('modal-list');
+    if (!items.length) {
+        list.innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-secondary);">No results</div>';
+        return;
+    }
+    list.innerHTML = items.map(item => `
+        <div onclick="selectModalItem('${item.value.replace(/'/g, "\\'")}')"
+            style="padding:12px 20px; cursor:pointer; display:flex; justify-content:space-between; align-items:center;
+                   border-bottom:1px solid var(--border-color,#f3f4f6);"
+            onmouseover="this.style.background='var(--bg-hover,#f9fafb)'" onmouseout="this.style.background=''">
+            <span>${item.label}</span>
+            ${item.sub ? `<span style="font-size:12px; color:var(--text-secondary);">${item.sub}</span>` : ''}
+        </div>`).join('');
+}
+
+function filterModal(q) {
+    const items = _modalItems[_modalType] || [];
+    const filtered = q ? items.filter(i => i.label.toLowerCase().includes(q.toLowerCase()) || (i.sub || '').toLowerCase().includes(q.toLowerCase())) : items;
+    renderModalItems(filtered);
+}
+
+function selectModalItem(value) {
+    const items = _modalItems[_modalType] || [];
+    const item = items.find(i => i.value === value);
+    if (_modalType === 'service') {
+        if (value === '__other__') {
+            closeModal();
+            const name = window.prompt('Enter service name:');
+            if (!name) return;
+            selectedService = name.trim();
+            selectedServicePrice = null;
+            document.getElementById('service-display').textContent = selectedService;
+        } else {
+            selectedService = value;
+            selectedServicePrice = item?.price || null;
+            document.getElementById('service-display').textContent = item?.label || value;
+        }
+        updateContinueBtn();
+        updatePricing();
+        return;
+    } else if (_modalType === 'area-code') {
+        selectedAreaCode = value || null;
+        document.getElementById('area-code-display').textContent = item?.label || 'Any Area Code';
+        updatePricing();
+        // Persist
+        const token = localStorage.getItem('access_token');
+        fetch('/api/user/verification/area-codes', {
+            method: 'PUT',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ area_codes: value ? [value] : [] })
+        }).catch(() => {});
+    } else if (_modalType === 'carrier') {
+        selectedCarrier = value || null;
+        document.getElementById('carrier-display').textContent = item?.label || 'Any Carrier';
+        updatePricing();
+    }
+    closeModal();
+}
+
+// Close modal on backdrop click
+document.getElementById('picker-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
 
 // Update progress
 function updateProgress(step) {
@@ -218,38 +306,6 @@ function updateProgress(step) {
     document.getElementById('progress-fill').style.width = (((step - 1) / 2) * 100) + '%';
 }
 
-let selectedServicePrice = null;
-
-function onServiceChange(sel) {
-    const customInput = document.getElementById('custom-service-input');
-    if (sel.value === 'other') {
-        customInput.style.display = 'block';
-        customInput.focus();
-        selectedService = null;
-        selectedServicePrice = null;
-    } else if (sel.value) {
-        customInput.style.display = 'none';
-        selectedService = sel.value;
-        selectedServicePrice = parseFloat(sel.selectedOptions[0].dataset.price) || null;
-    } else {
-        customInput.style.display = 'none';
-        selectedService = null;
-        selectedServicePrice = null;
-    }
-    updateContinueBtn();
-}
-
-function onCustomServiceInput(input) {
-    selectedService = input.value.trim() || null;
-    selectedServicePrice = null;
-    updateContinueBtn();
-}
-
-function updateContinueBtn() {
-    const btn = document.getElementById('continue-btn');
-    if (btn) btn.disabled = !selectedService;
-}
-
 function confirmService() {
     if (!selectedService) return;
     document.getElementById('pricing-service').textContent = selectedService;
@@ -259,7 +315,8 @@ function confirmService() {
 }
 
 async function loadServices() {
-    const sel = document.getElementById('service-select');
+    const btn = document.getElementById('service-picker-btn');
+    document.getElementById('service-display').textContent = 'Loading...';
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -268,75 +325,58 @@ async function loadServices() {
         clearTimeout(tid);
         const data = res.ok ? await res.json() : { services: [] };
         const services = data.services || [];
-        if (services.length === 0) throw new Error('empty');
-        sel.innerHTML = '<option value="">-- Select a service --</option>' +
-            services.map(s => `<option value="${s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
-            '<option value="other">Other (type service name)</option>';
-        sel.value = '';
+        _modalItems['service'] = [
+            ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: `$${Number(s.price).toFixed(2)}`, price: s.price })),
+            { value: '__other__', label: 'Other (type name)', sub: '' }
+        ];
+        document.getElementById('service-display').textContent = '-- Select a service --';
     } catch (e) {
-        sel.innerHTML = '<option value="">-- Select a service --</option><option value="other">Other (type service name)</option>';
-        document.getElementById('custom-service-input').style.display = 'block';
+        _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
+        document.getElementById('service-display').textContent = '-- Select a service --';
     }
 }
 
 async function loadAreaCodes() {
-    const sel = document.getElementById('area-code-select');
+    const btn = document.getElementById('area-code-picker-btn');
     const lockMsg = document.getElementById('area-code-lock-msg');
     const rank = TIER_RANK[userTier] || 0;
-
-    if (rank < 1) {
-        sel.innerHTML = '<option value="">Any Area Code</option>';
-        sel.disabled = true;
-        lockMsg.style.display = 'block';
-        return;
-    }
-
+    if (rank < 1) { btn.disabled = true; lockMsg.style.display = 'block'; return; }
     lockMsg.style.display = 'none';
-    sel.innerHTML = '<option value="">Select an Area Code</option>';
-    sel.disabled = true;
-
+    btn.disabled = false;
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
         const tid = setTimeout(() => ctrl.abort(), 10000);
-        const res = await fetch(`/api/area-codes?country=US`, { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+        const res = await fetch('/api/area-codes?country=US', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const codes = data.area_codes || [];
-
-        sel.innerHTML = '<option value="">Select an Area Code</option>' +
-            codes.map(c => {
-                const label = c.state ? `${c.area_code} — ${c.state}` : c.area_code;
-                return `<option value="${c.area_code}">${label}</option>`;
-            }).join('');
-        sel.disabled = false;
-
+        _modalItems['area-code'] = [
+            { value: '', label: 'Any Area Code', sub: '' },
+            ...codes.map(c => ({ value: c.area_code, label: c.area_code, sub: c.state || '' }))
+        ];
         // Restore saved preference
         const savedRes = await fetch('/api/user/verification/area-codes', { headers: { 'Authorization': `Bearer ${token}` } });
         if (savedRes.ok) {
             const saved = await savedRes.json();
-            if (saved.preferred_area_codes && saved.preferred_area_codes.length > 0) {
-                sel.value = saved.preferred_area_codes[0];
+            if (saved.preferred_area_codes?.length) {
+                selectedAreaCode = saved.preferred_area_codes[0];
+                const item = _modalItems['area-code'].find(i => i.value === selectedAreaCode);
+                if (item) document.getElementById('area-code-display').textContent = `${item.value} — ${item.sub}`;
             }
         }
     } catch (e) {
-        sel.innerHTML = '<option value="">Select an Area Code</option>';
-        sel.disabled = false;
+        _modalItems['area-code'] = [{ value: '', label: 'Any Area Code', sub: '' }];
     }
 }
 
 async function loadCarriers() {
-    const sel = document.getElementById('carrier-select');
+    const btn = document.getElementById('carrier-picker-btn');
     const lockMsg = document.getElementById('carrier-lock-msg');
     const rank = TIER_RANK[userTier] || 0;
-
-    if (rank < 1) {
-        sel.disabled = true;
-        lockMsg.style.display = 'block';
-        return;
-    }
-
+    if (rank < 1) { btn.disabled = true; lockMsg.style.display = 'block'; return; }
     lockMsg.style.display = 'none';
+    btn.disabled = false;
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -345,26 +385,13 @@ async function loadCarriers() {
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const carriers = data.carriers || [];
-        sel.innerHTML = '<option value="">Select a Carrier</option>' +
-            carriers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+        _modalItems['carrier'] = [
+            { value: '', label: 'Any Carrier', sub: '' },
+            ...carriers.map(c => ({ value: c.id, label: c.name, sub: '' }))
+        ];
     } catch (e) {
-        sel.innerHTML = '<option value="">Select a Carrier</option>';
+        _modalItems['carrier'] = [{ value: '', label: 'Any Carrier', sub: '' }];
     }
-}
-
-async function onAreaCodeChange() {
-    updatePricing();
-    // Persist selection
-    const sel = document.getElementById('area-code-select');
-    const code = sel.value;
-    try {
-        const token = localStorage.getItem('access_token');
-        await fetch('/api/user/verification/area-codes', {
-            method: 'PUT',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ area_codes: code ? [code] : [] })
-        });
-    } catch (e) { /* non-critical */ }
 }
 
 // Create verification
@@ -375,17 +402,16 @@ async function createVerification() {
     }
 
     try {
-        const areaCode = document.getElementById('area-code-select').value || null;
-        const carrier = document.getElementById('carrier-select').value || null;
-
-        const response = await fetch('/api/verify/create', {
+        const areaCode = selectedAreaCode || null;
+        const carrier = selectedCarrier || null;
+        const serviceId = selectedService === '__other__' ? (prompt('Enter service name:') || selectedService) : selectedService;
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                service: selectedService,
+                service: serviceId,
                 country: 'US',
                 area_code: areaCode,
                 carrier: carrier
@@ -555,8 +581,15 @@ function resetFlow() {
     clearInterval(scanInterval);
     currentStep = 1;
     selectedService = null;
+    selectedServicePrice = null;
+    selectedAreaCode = null;
+    selectedCarrier = null;
     verificationId = null;
     elapsedSeconds = 0;
+    document.getElementById('service-display').textContent = '-- Select a service --';
+    document.getElementById('area-code-display').textContent = 'Any Area Code';
+    document.getElementById('carrier-display').textContent = 'Any Carrier';
+    document.getElementById('continue-btn').disabled = true;
     document.getElementById('error-container').style.display = 'none';
     document.getElementById('code-received').style.display = 'none';
     const fw = document.getElementById('fallback-warning');
@@ -592,16 +625,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const params = new URLSearchParams(window.location.search);
     const preService = params.get('service');
     if (preService) {
-        const sel = document.getElementById('service-select');
-        const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === preService.toLowerCase());
-        if (opt) { sel.value = opt.value; selectedService = opt.value; selectedServicePrice = parseFloat(opt.dataset.price) || null; }
-        else {
-            sel.value = 'other';
-            const ci = document.getElementById('custom-service-input');
-            ci.style.display = 'block';
-            ci.value = preService;
-            selectedService = preService;
-        }
+        const item = (_modalItems['service'] || []).find(i => i.value.toLowerCase() === preService.toLowerCase());
+        selectedService = item ? item.value : preService;
+        selectedServicePrice = item?.price || null;
+        document.getElementById('service-display').textContent = item?.label || preService;
         updateContinueBtn();
     }
 });
@@ -617,8 +644,8 @@ async function loadBalance() {
 }
 
 function updatePricing() {
-    const areaCode = document.getElementById('area-code-select').value;
-    const carrier = document.getElementById('carrier-select').value;
+    const areaCode = selectedAreaCode || null;
+    const carrier = selectedCarrier || null;
     let price = selectedServicePrice || 0;
     if (areaCode) price += 0.25;
     if (carrier) price += 0.50;
