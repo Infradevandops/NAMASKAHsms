@@ -21,13 +21,10 @@ async def get_area_codes(
 
     Available to all authenticated users. Selection requires PAYG+ tier.
     """
-try:
+    try:
         tv_service = TextVerifiedService()
-        area_codes = await tv_service.get_area_codes(country, service)
-
-        # Sort by availability
+        area_codes = await tv_service.get_area_codes_list()
         area_codes.sort(key=lambda x: x.get("available_count", 0), reverse=True)
-
         return {"success": True, "area_codes": area_codes}
-except Exception as e:
+    except Exception as e:
         raise HTTPException(500, f"Failed to fetch area codes: {str(e)}")
