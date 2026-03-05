@@ -1,4 +1,5 @@
 <div class="balance-chip" id="balance-display">$0.00</div>
+<a href="/settings?tab=account" class="account-cta-btn" title="Account Settings" aria-label="Account Settings">⚙️</a>
 
 <style>
 .balance-chip { 
@@ -13,6 +14,15 @@
 }
 .balance-chip:hover { background: #e8e8e8; }
 .balance-chip.loading { opacity: 0.6; }
+.account-cta-btn {
+    font-size: 18px;
+    text-decoration: none;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    line-height: 1;
+}
+.account-cta-btn:hover { background: #e8e8e8; }
 </style>
 
 <script>
