@@ -1310,6 +1310,9 @@
             // Add active class to clicked button
             if (event && event.target) {
                 event.target.classList.add('active');
+            } else {
+                const navBtn = document.querySelector(`.settings-nav-item[onclick*="'${tabId}'"]`);
+                if (navBtn) navBtn.classList.add('active');
             }
 
             // Show the selected tab
