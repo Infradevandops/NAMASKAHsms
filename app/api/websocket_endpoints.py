@@ -1,5 +1,6 @@
 """WebSocket endpoints for real-time notifications."""
 
+from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from app.websocket.manager import manager
 from app.core.logging import get_logger
@@ -63,7 +64,7 @@ async def websocket_notifications(
                 "type": "connected",
                 "message": "WebSocket connected successfully",
                 "user_id": user_id,
-                "timestamp": __import__("datetime").datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
         )
 
