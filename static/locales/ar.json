@@ -60,7 +60,8 @@
     "add_credits": "إضافة أرصدة",
     "transaction_history": "سجل المعاملات",
     "pay_with_crypto": "الدفع بالعملات المشفرة",
-    "pay_with_card": "الدفع بالبطاقة"
+    "pay_with_card": "الدفع بالبطاقة",
+    "credit_history": "Credit History"
   },
   "verify": {
     "title": "التحقق من الرسائل القصيرة",

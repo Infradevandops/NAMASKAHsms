@@ -457,14 +457,19 @@
         const tbody = document.getElementById('credit-history-body');
         
         try {
-            let url = `/api/wallet/history?page=${creditHistoryPage}&limit=${creditHistoryLimit}`;
+            const offset = (creditHistoryPage - 1) * creditHistoryLimit;
+            let url = `/api/wallet/history?offset=${offset}&limit=${creditHistoryLimit}`;
             if (typeFilter !== 'all') {
-                url += `&type=${typeFilter}`;
+                url += `&transaction_type=${typeFilter}`;
             }
 
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 5000);
             const res = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: ctrl.signal
             });
+            clearTimeout(tid);
 
             if (res.ok) {
                 const data = await res.json();
@@ -583,9 +588,14 @@
         tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">Loading...</td></tr>';
 
         try {
-            const res = await fetch(`/api/wallet/history?page=${transactionsPage}&limit=${transactionsLimit}`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+            const offset = (transactionsPage - 1) * transactionsLimit;
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 5000);
+            const res = await fetch(`/api/wallet/history?offset=${offset}&limit=${transactionsLimit}`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+                signal: ctrl.signal
             });
+            clearTimeout(tid);
 
             if (res.ok) {
                 const data = await res.json();

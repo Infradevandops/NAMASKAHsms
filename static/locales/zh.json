@@ -60,7 +60,8 @@
     "add_credits": "添加积分",
     "transaction_history": "交易历史",
     "pay_with_crypto": "使用加密货币支付",
-    "pay_with_card": "使用卡支付"
+    "pay_with_card": "使用卡支付",
+    "credit_history": "Credit History"
   },
   "verify": {
     "title": "短信验证",
