@@ -459,7 +459,24 @@ function cancelVerification() {
     document.getElementById('cancel-confirm-btn').style.display = 'block';
 }
 
-async function blacklistNumber(phone, service) {
+async function confirmCancel() {
+    if (verificationId) {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`/api/verify/${verificationId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.refund_amount > 0)
+                    window.toast && window.toast.success(`Cancelled — $${data.refund_amount.toFixed(2)} refunded`);
+            }
+        } catch (e) { /* non-critical */ }
+    }
+    resetFlow();
+}
+
     const token = localStorage.getItem('access_token');
     try {
         const res = await fetch('/api/blacklist', {
@@ -472,7 +489,6 @@ async function blacklistNumber(phone, service) {
     } catch(e) { window.toast?.error('Failed to blacklist number'); }
 }
 
-function confirmCancel() { resetFlow(); }
 
 function goBack() {
     updateProgress(1);
