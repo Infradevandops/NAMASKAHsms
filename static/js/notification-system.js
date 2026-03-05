@@ -171,9 +171,8 @@ class NotificationSystem {
         if (notifications.length === 0) {
             list.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-state-icon">🔔</div>
                     <div class="empty-state-title">No notifications</div>
-                    <div class="empty-state-message">You're all caught up!</div>
+                    <div class="empty-state-message">You're all caught up</div>
                 </div>
             `;
             return;
@@ -199,19 +198,19 @@ class NotificationSystem {
 
     getNotificationIcon(type) {
         const icons = {
-            'verification_initiated': '🚀',
-            'sms_received': '✅',
-            'verification_complete': '✅',
-            'verification_failed': '❌',
-            'credit_deducted': '💳',
-            'refund_issued': '💰',
-            'balance_low': '⚠️',
-            'verification_progress': '⏳',
-            'payment_success': '💳',
-            'payment_failed': '❌',
-            'account_update': '👤',
-            'system_alert': '🔔',
-            'default': '📢'
+            'verification_initiated': '&#9654;',
+            'sms_received': '&#10003;',
+            'verification_complete': '&#10003;',
+            'verification_failed': '&#10005;',
+            'credit_deducted': '&#36;',
+            'refund_issued': '&#36;',
+            'balance_low': '&#9888;',
+            'verification_progress': '&#8987;',
+            'payment_success': '&#36;',
+            'payment_failed': '&#10005;',
+            'account_update': '&#9881;',
+            'system_alert': '&#9888;',
+            'default': '&#8226;'
         };
         return icons[type] || icons.default;
     }
