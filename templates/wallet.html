@@ -19,7 +19,7 @@
     </div>
     <div class="card" style="cursor: pointer; transition: transform 0.2s;" onclick="monthlySummary.renderModal()" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Monthly Summary</div>
-        <div style="font-size: 24px; font-weight: 700; color: #667eea;">📊 View</div>
+        <div style="font-size: 24px; font-weight: 700; color: #667eea;">View</div>
     </div>
 </div>
 
@@ -111,7 +111,7 @@
                 <option value="bonus">Bonuses</option>
             </select>
             <button onclick="exportCreditHistory()" class="btn" style="padding: 8px 12px; font-size: 14px;">
-                <span aria-hidden="true">📥</span> Export CSV
+                <span aria-hidden="true">&#8595;</span> Export CSV
             </button>
         </div>
     </div>
@@ -271,7 +271,7 @@
 
     function confirmCryptoPayment() {
         const btn = event.target;
-        btn.textContent = '⏳ Monitoring payment...';
+        btn.textContent = 'Monitoring payment...';
         btn.disabled = true;
         setTimeout(() => { btn.textContent = 'I have sent the payment'; btn.disabled = false; }, 5000);
     }
@@ -479,11 +479,11 @@
                 if (creditHistoryData.length > 0) {
                     tbody.innerHTML = creditHistoryData.map(tx => {
                         const typeIcon = {
-                            'purchase': '💳',
-                            'usage': '📱',
-                            'refund': '↩️',
-                            'bonus': '🎁'
-                        }[tx.type] || '💰';
+                            'purchase': '+',
+                            'usage': '-',
+                            'refund': 'R',
+                            'bonus': 'B'
+                        }[tx.type] || '$';
                         
                         const amountColor = tx.amount >= 0 ? '#10b981' : '#ef4444';
                         const amountPrefix = tx.amount >= 0 ? '+' : '';
@@ -535,7 +535,7 @@
         let html = '';
         
         // Previous button
-        html += `<button onclick="changeCreditPage(${creditHistoryPage - 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === 1 ? 'disabled' : ''}>←</button>`;
+        html += `<button onclick="changeCreditPage(${creditHistoryPage - 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === 1 ? 'disabled' : ''}>&laquo;</button>`;
         
         // Page numbers
         for (let i = 1; i <= Math.min(totalPages, 5); i++) {
@@ -544,7 +544,7 @@
         }
         
         // Next button
-        html += `<button onclick="changeCreditPage(${creditHistoryPage + 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === totalPages ? 'disabled' : ''}>→</button>`;
+        html += `<button onclick="changeCreditPage(${creditHistoryPage + 1})" class="btn" style="padding: 6px 12px;" ${creditHistoryPage === totalPages ? 'disabled' : ''}>&raquo;</button>`;
         
         container.innerHTML = html;
     }
