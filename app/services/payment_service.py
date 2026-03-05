@@ -33,8 +33,9 @@ class PaymentService:
         if existing and existing.state == 'completed':
             return {
                 "payment_id": existing.reference,
+                "authorization_url": "",
+                "access_code": "",
                 "reference": existing.reference,
-                "status": "completed",
                 "cached": True
             }
         return None
@@ -84,7 +85,8 @@ class PaymentService:
                 "Content-Type": "application/json"
             }
 
-            response = requests.post(
+            response = await asyncio.to_thread(
+                requests.post,
                 "https://api.paystack.co/transaction/initialize",
                 json=payload,
                 headers=headers,
@@ -120,7 +122,8 @@ class PaymentService:
                 "Content-Type": "application/json"
             }
 
-            response = requests.get(
+            response = await asyncio.to_thread(
+                requests.get,
                 f"https://api.paystack.co/transaction/verify/{reference}",
                 headers=headers,
                 timeout=30
