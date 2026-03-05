@@ -11,18 +11,19 @@ from main import app
 from app.core.dependencies import get_current_user_id
 from main import app
 
+
 class TestVerificationEndpoints:
 
     """Test verification endpoints comprehensively."""
 
     def test_get_available_services_success(self, client):
-
         """Test getting available services."""
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.get_services = AsyncMock(
-                return_value={"services": [{"name": "telegram", "price": 0.50}, {"name": "whatsapp", "price": 0.75}]}
+                return_value={"services": [{"name": "telegram", "price": 0.50}, {
+                    "name": "whatsapp", "price": 0.75}]}
             )
             mock_tv.return_value = mock_instance
 
@@ -34,7 +35,6 @@ class TestVerificationEndpoints:
             assert data["total"] == 2
 
     def test_get_available_services_unavailable(self, client):
-
         """Test getting services when TextVerified is unavailable."""
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
@@ -46,14 +46,17 @@ class TestVerificationEndpoints:
             data = response.json()
             assert "detail" in data or "message" in data or "error" in data
 
-    def test_create_verification_success(self, authenticated_regular_client, regular_user, db):
-
+    def test_create_verification_success(
+        self, authenticated_regular_client, regular_user, db):
         """Test successful verification creation."""
         with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
-                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+                return_value={
+    "id": "tv-123",
+    "phone_number": "+12025551234",
+     "cost": 0.50}
             )
             mock_tv.return_value = mock_instance
 
@@ -68,8 +71,8 @@ class TestVerificationEndpoints:
         assert data["phone_number"] == "+12025551234"
         assert data["status"] == "pending"
 
-    def test_create_verification_insufficient_credits(self, authenticated_regular_client, regular_user, db):
-
+    def test_create_verification_insufficient_credits(
+        self, authenticated_regular_client, regular_user, db):
         """Test verification creation with insufficient credits."""
         regular_user.credits = 0.0
         regular_user.free_verifications = 0
@@ -84,8 +87,8 @@ class TestVerificationEndpoints:
         error_msg = (data.get("detail") or data.get("message") or "").lower()
         assert "insufficient" in error_msg or "credit" in error_msg
 
-    def test_create_verification_with_free_verifications(self, authenticated_regular_client, regular_user, db):
-
+    def test_create_verification_with_free_verifications(
+        self, authenticated_regular_client, regular_user, db):
         """Test verification creation using free verifications."""
         regular_user.free_verifications = 5
         regular_user.credits = 0.0
@@ -95,7 +98,10 @@ class TestVerificationEndpoints:
             mock_instance = MagicMock()
             mock_instance.enabled = True
             mock_instance.create_verification = AsyncMock(
-                return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+                return_value={
+    "id": "tv-123",
+    "phone_number": "+12025551234",
+     "cost": 0.50}
             )
             mock_tv.return_value = mock_instance
 
@@ -107,8 +113,8 @@ class TestVerificationEndpoints:
         db.refresh(regular_user)
         assert regular_user.free_verifications == 4
 
-    def test_create_verification_missing_service_name(self, authenticated_regular_client):
-
+    def test_create_verification_missing_service_name(
+        self, authenticated_regular_client):
         """Test verification creation without service name."""
         response = authenticated_regular_client.post(
             "/api/v1/verify/create", json={"country": "US", "capability": "sms"}
@@ -116,8 +122,8 @@ class TestVerificationEndpoints:
 
         assert response.status_code == 422  # Validation error
 
-    def test_create_verification_idempotency(self, authenticated_regular_client, regular_user, db):
-
+    def test_create_verification_idempotency(
+        self, authenticated_regular_client, regular_user, db):
         """Test idempotency key prevents duplicate verifications."""
         verification = Verification(
             user_id=regular_user.id,
@@ -135,7 +141,11 @@ class TestVerificationEndpoints:
 
         response = authenticated_regular_client.post(
             "/api/v1/verify/create",
-            json={"service_name": "telegram", "country": "US", "capability": "sms", "idempotency_key": "test-key-123"},
+            json={
+    "service_name": "telegram",
+    "country": "US",
+    "capability": "sms",
+     "idempotency_key": "test-key-123"},
         )
 
         assert response.status_code == 201
@@ -143,7 +153,6 @@ class TestVerificationEndpoints:
         assert data["id"] == verification.id
 
     def test_create_verification_with_area_code(self, client, payg_user, db):
-
         """Test verification creation with area code selection."""
 
     def override_get_current_user_id():
@@ -157,13 +166,20 @@ class TestVerificationEndpoints:
                 mock_instance = MagicMock()
                 mock_instance.enabled = True
                 mock_instance.create_verification = AsyncMock(
-                    return_value={"id": "tv-123", "phone_number": "+12025551234", "cost": 0.50}
+                    return_value={
+    "id": "tv-123",
+    "phone_number": "+12025551234",
+     "cost": 0.50}
                 )
                 mock_tv.return_value = mock_instance
 
                 response = client.post(
                     "/api/v1/verify/create",
-                    json={"service_name": "telegram", "country": "US", "capability": "sms", "area_code": "202"},
+                    json={
+    "service_name": "telegram",
+    "country": "US",
+    "capability": "sms",
+     "area_code": "202"},
                 )
 
             # PayG tier should have area code selection, but tier check might fail

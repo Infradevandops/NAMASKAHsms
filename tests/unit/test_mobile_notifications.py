@@ -8,19 +8,18 @@ from app.models.notification import Notification
 from app.services.mobile_notification_service import MobileNotificationService
 from datetime import datetime, timezone
 
+
 class TestMobileNotificationService:
 
     """Test mobile notification service."""
 
     @pytest.fixture
     def mock_db(self):
-
         """Create mock database session."""
         return MagicMock()
 
-        @pytest.fixture
+    @pytest.fixture
     def service(self, mock_db):
-
         """Create mobile notification service."""
         with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
             mock_settings.return_value.fcm_api_key = "test_fcm_key"
@@ -30,7 +29,7 @@ class TestMobileNotificationService:
             service = MobileNotificationService(db=mock_db)
         return service
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_push_notification_no_tokens(self, service):
         """Test sending push notification with no device tokens."""
         notification = MagicMock(spec=Notification)
@@ -49,7 +48,7 @@ class TestMobileNotificationService:
         assert result["android"]["sent"] == 0
         assert result["ios"]["sent"] == 0
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_push_notification_android(self, service):
         """Test sending push notification to Android devices."""
         notification = MagicMock(spec=Notification)
@@ -76,7 +75,7 @@ class TestMobileNotificationService:
             assert result["android"]["failed"] == 0
             mock_fcm.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_push_notification_ios(self, service):
         """Test sending push notification to iOS devices."""
         notification = MagicMock(spec=Notification)
@@ -102,7 +101,7 @@ class TestMobileNotificationService:
             assert result["ios"]["failed"] == 0
             mock_apns.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_push_notification_both_platforms(self, service):
         """Test sending push notification to both platforms."""
         notification = MagicMock(spec=Notification)
@@ -133,7 +132,7 @@ class TestMobileNotificationService:
             mock_fcm.assert_called_once()
             mock_apns.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_register_device_token_new(self, service, mock_db):
         """Test registering a new device token."""
         mock_db.query.return_value.filter_by.return_value.first.return_value = None
@@ -149,7 +148,7 @@ class TestMobileNotificationService:
         mock_db.add.assert_called_once()
         mock_db.commit.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_register_device_token_existing(self, service, mock_db):
         """Test registering an existing device token."""
         existing_token = MagicMock(spec=DeviceToken)
@@ -168,7 +167,7 @@ class TestMobileNotificationService:
         assert existing_token.is_active is True
         mock_db.commit.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_register_device_token_no_db(self):
         """Test registering device token without database session."""
         with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
@@ -186,7 +185,7 @@ class TestMobileNotificationService:
 
             assert result is False
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_unregister_device_token(self, service, mock_db):
         """Test unregistering a device token."""
         existing_token = MagicMock(spec=DeviceToken)
@@ -201,7 +200,7 @@ class TestMobileNotificationService:
         assert existing_token.is_active is False
         mock_db.commit.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_unregister_device_token_not_found(self, service, mock_db):
         """Test unregistering a non-existent device token."""
         mock_db.query.return_value.filter_by.return_value.first.return_value = None
@@ -213,7 +212,7 @@ class TestMobileNotificationService:
 
         assert result is False
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_get_user_device_tokens(self, service, mock_db):
         """Test getting user's device tokens."""
         token1 = MagicMock(spec=DeviceToken)
@@ -221,7 +220,8 @@ class TestMobileNotificationService:
         token2 = MagicMock(spec=DeviceToken)
         token2.device_token = "token_2"
 
-        mock_db.query.return_value.filter_by.return_value.all.return_value = [token1, token2]
+        mock_db.query.return_value.filter_by.return_value.all.return_value = [
+            token1, token2]
 
         result = await service.get_user_device_tokens(user_id="user_123")
 
@@ -229,13 +229,15 @@ class TestMobileNotificationService:
         assert "token_1" in result
         assert "token_2" in result
 
-        @pytest.mark.asyncio
-    async def test_get_user_device_tokens_with_platform_filter(self, service, mock_db):
+    @pytest.mark.asyncio
+    async def test_get_user_device_tokens_with_platform_filter(
+        self, service, mock_db):
         """Test getting user's device tokens with platform filter."""
         token1 = MagicMock(spec=DeviceToken)
         token1.device_token = "android_token"
 
-        mock_db.query.return_value.filter_by.return_value.filter_by.return_value.all.return_value = [token1]
+        mock_db.query.return_value.filter_by.return_value.filter_by.return_value.all.return_value = [
+            token1]
 
         result = await service.get_user_device_tokens(
             user_id="user_123",
@@ -245,7 +247,7 @@ class TestMobileNotificationService:
         assert len(result) == 1
         assert "android_token" in result
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_get_user_device_tokens_no_db(self):
         """Test getting device tokens without database session."""
         with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
@@ -259,7 +261,7 @@ class TestMobileNotificationService:
 
             assert result == []
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_cleanup_inactive_tokens(self, service, mock_db):
         """Test cleaning up inactive device tokens."""
         mock_db.query.return_value.filter.return_value.delete.return_value = 5
@@ -269,7 +271,7 @@ class TestMobileNotificationService:
         assert result == 5
         mock_db.commit.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_cleanup_inactive_tokens_no_db(self):
         """Test cleanup without database session."""
         with patch("app.services.mobile_notification_service.get_settings") as mock_settings:
@@ -283,7 +285,7 @@ class TestMobileNotificationService:
 
             assert result == 0
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_fcm_notification_success(self, service):
         """Test successful FCM notification sending."""
         notification = MagicMock(spec=Notification)
@@ -309,7 +311,7 @@ class TestMobileNotificationService:
             assert result["failed"] == 0
             mock_fcm.assert_called_once()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_fcm_notification_failure(self, service):
         """Test failed FCM notification sending."""
         notification = MagicMock(spec=Notification)
@@ -331,7 +333,7 @@ class TestMobileNotificationService:
 
             assert result["failed"] == 1
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_send_apns_notification(self, service):
         """Test APNs notification sending."""
         notification = MagicMock(spec=Notification)
@@ -348,7 +350,7 @@ class TestMobileNotificationService:
 
 class TestDeviceTokenModel:
 
-        """Test device token model."""
+    """Test device token model."""
 
     def test_device_token_to_dict(self):
 
@@ -379,9 +381,9 @@ class TestDeviceTokenModel:
 
 class TestPushNotificationIntegration:
 
-        """Integration tests for push notifications."""
+    """Integration tests for push notifications."""
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_full_push_notification_flow(self):
         """Test complete push notification flow."""
         with patch("app.services.mobile_notification_service.get_settings") as mock_settings:

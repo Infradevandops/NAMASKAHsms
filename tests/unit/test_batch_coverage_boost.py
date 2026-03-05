@@ -29,7 +29,6 @@ class TestAuthServiceCore:
     """Core authentication tests."""
 
     def test_password_hashing_verification(self, db_session):
-
         """Test password hashing and verification."""
         password = "SecurePass123!"
         hashed = hash_password(password)
@@ -44,7 +43,6 @@ class TestAuthServiceCore:
         assert verify_password("WrongPass", hashed) is False
 
     def test_jwt_token_generation_and_validation(self):
-
         """Test JWT token creation and validation."""
         user_id = "test_user_123"
         email = "test@example.com"
@@ -57,7 +55,6 @@ class TestAuthServiceCore:
         assert len(token) > 50  # JWT tokens are long
 
     def test_user_registration_flow(self, db_session):
-
         """Test complete user registration."""
         email = "newuser@test.com"
         password = "SecurePass123!"
@@ -80,7 +77,6 @@ class TestAuthServiceCore:
         assert verify_password(password, saved_user.password_hash)
 
     def test_duplicate_email_prevention(self, db_session, regular_user):
-
         """Test that duplicate emails are prevented."""
         # Try to create user with same email
         duplicate = User(
@@ -95,7 +91,6 @@ class TestAuthServiceCore:
             db_session.commit()
 
     def test_user_authentication_success(self, db_session):
-
         """Test successful user authentication."""
         email = "auth@test.com"
         password = "TestPass123!"
@@ -114,18 +109,20 @@ class TestAuthServiceCore:
         assert found_user is not None
         assert verify_password(password, found_user.password_hash)
 
-    def test_user_authentication_wrong_password(self, db_session, regular_user):
-
+    def test_user_authentication_wrong_password(
+        self, db_session, regular_user):
         """Test authentication with wrong password."""
         wrong_password = "WrongPassword123!"
 
         # Should not verify
-        assert verify_password(wrong_password, regular_user.password_hash) is False
+        assert verify_password(
+    wrong_password,
+     regular_user.password_hash) is False
 
     def test_user_authentication_nonexistent(self, db_session):
-
         """Test authentication with non-existent user."""
-        user = db_session.query(User).filter(User.email == "nonexistent@test.com").first()
+        user = db_session.query(User).filter(
+    User.email == "nonexistent@test.com").first()
         assert user is None
 
 
@@ -136,7 +133,7 @@ class TestAuthServiceCore:
 
 class TestSMSServiceCore:
 
-        """Core SMS service tests."""
+    """Core SMS service tests."""
 
     def test_sms_cost_calculation_freemium(self):
 
@@ -196,7 +193,7 @@ class TestSMSServiceCore:
 
 class TestTierServiceCore:
 
-        """Core tier service tests."""
+    """Core tier service tests."""
 
     def test_tier_hierarchy_validation(self):
 
@@ -254,7 +251,7 @@ class TestTierServiceCore:
 
 class TestTransactionServiceCore:
 
-        """Core transaction service tests."""
+    """Core transaction service tests."""
 
     def test_transaction_creation(self, db_session, regular_user):
 
@@ -329,9 +326,9 @@ class TestTransactionServiceCore:
 
 class TestWebhookServiceExtended:
 
-        """Extended webhook service tests."""
+    """Extended webhook service tests."""
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_webhook_delivery_success(self, redis_client):
         """Test successful webhook delivery."""
 
@@ -342,7 +339,7 @@ class TestWebhookServiceExtended:
 
         assert msg_id is not None
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_webhook_retry_mechanism(self, redis_client):
         """Test webhook retry logic."""
 

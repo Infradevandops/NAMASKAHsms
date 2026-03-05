@@ -3,8 +3,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from app.middleware.rate_limiting import (
-from app.middleware.security import CORSMiddleware, SecurityHeadersMiddleware
-from app.middleware.xss_protection import XSSProtectionMiddleware
 
     AdaptiveRateLimitMiddleware,
     RateLimitMiddleware,
@@ -18,11 +16,11 @@ def create_test_app():
     app = FastAPI()
 
     @app.get("/test")
-async def test_endpoint():
+    async def test_endpoint():
         return {"message": "success"}
 
     @app.get("/public")
-async def public_endpoint():
+    async def public_endpoint():
         return {"message": "public"}
 
     return app

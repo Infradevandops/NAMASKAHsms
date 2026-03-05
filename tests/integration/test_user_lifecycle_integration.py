@@ -39,8 +39,7 @@ class TestUserRegistrationFlow:
 
 
 class TestVerificationFlow:
-
-        """Test complete verification flow."""
+    """Test complete verification flow."""
 
     def test_complete_verification_flow(self, client, regular_user, db):
 
@@ -77,8 +76,7 @@ class TestVerificationFlow:
 
 
 class TestPaymentFlow:
-
-        """Test complete payment flow."""
+    """Test complete payment flow."""
 
     def test_credit_purchase_flow(self, client, regular_user):
 
@@ -100,8 +98,7 @@ class TestPaymentFlow:
 
 
 class TestNotificationFlow:
-
-        """Test complete notification flow."""
+    """Test complete notification flow."""
 
     def test_notification_delivery_flow(self, client, regular_user, db):
 
@@ -126,8 +123,7 @@ class TestNotificationFlow:
 
 
 class TestAdminWorkflow:
-
-        """Test admin workflow integration."""
+    """Test admin workflow integration."""
 
     def test_user_management_workflow(self, client, admin_user, regular_user):
 
@@ -153,8 +149,7 @@ class TestAdminWorkflow:
 
 
 class TestAPIKeyWorkflow:
-
-        """Test API key workflow."""
+    """Test API key workflow."""
 
     def test_api_key_lifecycle(self, client, payg_user, db):
 
@@ -164,7 +159,7 @@ class TestAPIKeyWorkflow:
 
         # 1. Create API key
         with patch("app.core.dependencies.get_current_user_id", return_value=payg_user.id):
-        with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
+            with patch("app.core.dependencies.require_tier", return_value=payg_user.id):
                 create_response = client.post("/api/v1/auth/api-keys", json={"name": "Test Key"})
 
         # 2. List API keys
@@ -174,8 +169,7 @@ class TestAPIKeyWorkflow:
 
 
 class TestErrorRecoveryFlow:
-
-        """Test error recovery flows."""
+    """Test error recovery flows."""
 
     def test_payment_failure_recovery(self):
 
@@ -197,8 +191,7 @@ class TestErrorRecoveryFlow:
 
 
 class TestConcurrentOperations:
-
-        """Test concurrent operation handling."""
+    """Test concurrent operation handling."""
 
     def test_concurrent_credit_deductions(self):
 

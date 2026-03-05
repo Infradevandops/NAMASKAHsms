@@ -36,12 +36,12 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id, require_tier
 from main import app
 
+
 class TestAuthEndpoints:
 
     """Test authentication endpoints comprehensively."""
 
     def test_register_success(self, client, db):
-
         """Test successful user registration."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
@@ -55,12 +55,12 @@ class TestAuthEndpoints:
         assert data["user"]["email"] == "newuser@example.com"
 
         # Verify user created in database
-        user = db.query(User).filter(User.email == "newuser@example.com").first()
+        user = db.query(User).filter(
+    User.email == "newuser@example.com").first()
         assert user is not None
         assert user.email_verified is False
 
     def test_register_duplicate_email(self, client, regular_user):
-
         """Test registration with existing email."""
         response = client.post(
             "/api/v1/auth/register", json={"email": regular_user.email, "password": "SecurePassword123!"}
@@ -69,7 +69,6 @@ class TestAuthEndpoints:
         assert response.status_code == 400
 
     def test_register_invalid_email(self, client):
-
         """Test registration with invalid email format."""
         response = client.post(
             "/api/v1/auth/register", json={"email": "invalid-email", "password": "SecurePassword123!"}
@@ -78,26 +77,30 @@ class TestAuthEndpoints:
         assert response.status_code == 422  # Validation error
 
     def test_register_weak_password(self, client):
-
         """Test registration with weak password."""
-        response = client.post("/api/v1/auth/register", json={"email": "newuser@example.com", "password": "123"})
+        response = client.post(
+    "/api/v1/auth/register",
+    json={
+        "email": "newuser@example.com",
+         "password": "123"})
 
         # Should fail validation
         assert response.status_code in [400, 422]
 
     def test_register_with_referral_code(self, client, db):
-
         """Test registration with referral code."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
             response = client.post(
                 "/api/v1/auth/register",
-                json={"email": "newuser@example.com", "password": "SecurePassword123!", "referral_code": "REF123"},
+                json={
+    "email": "newuser@example.com",
+    "password": "SecurePassword123!",
+     "referral_code": "REF123"},
             )
 
         assert response.status_code == 201
 
     def test_login_success(self, client, db):
-
         """Test successful login."""
         # Create user with known password
 
@@ -122,7 +125,6 @@ class TestAuthEndpoints:
         assert "user" in data
 
     def test_login_invalid_email(self, client):
-
         """Test login with non-existent email."""
         response = client.post(
             "/api/v1/auth/login", json={"email": "nonexistent@example.com", "password": "password123"}
@@ -134,21 +136,23 @@ class TestAuthEndpoints:
         assert "invalid" in error_msg or "credentials" in error_msg
 
     def test_login_wrong_password(self, client, regular_user):
-
         """Test login with incorrect password."""
-        response = client.post("/api/v1/auth/login", json={"email": regular_user.email, "password": "wrongpassword"})
+        response = client.post(
+    "/api/v1/auth/login",
+    json={
+        "email": regular_user.email,
+         "password": "wrongpassword"})
 
         assert response.status_code == 401
 
     def test_login_missing_credentials(self, client):
-
         """Test login with missing credentials."""
         response = client.post("/api/v1/auth/login", json={})
 
         assert response.status_code == 422  # Validation error
 
-    def test_get_current_user_success(self, authenticated_regular_client, regular_user):
-
+    def test_get_current_user_success(
+        self, authenticated_regular_client, regular_user):
         """Test getting current user information."""
         response = authenticated_regular_client.get("/api/v1/auth/me")
 
@@ -159,7 +163,6 @@ class TestAuthEndpoints:
         assert "free_verifications" in data
 
     def test_get_current_user_unauthorized(self, client):
-
         """Test getting current user without authentication."""
         response = client.get("/api/v1/auth/me")
 
@@ -167,7 +170,6 @@ class TestAuthEndpoints:
         assert response.status_code in [401, 403, 422]
 
     def test_get_current_user_not_found(self, client, db):
-
         """Test getting current user when user doesn't exist."""
 
     def override_get_db():
@@ -188,10 +190,12 @@ class TestAuthEndpoints:
             app.dependency_overrides.clear()
 
     def test_forgot_password_success(self, client, regular_user):
-
         """Test password reset request."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
-            response = client.post("/api/v1/auth/forgot-password", json={"email": regular_user.email})
+            response = client.post(
+    "/api/v1/auth/forgot-password",
+    json={
+        "email": regular_user.email})
 
         assert response.status_code == 200
         data = response.json()
@@ -199,22 +203,24 @@ class TestAuthEndpoints:
         assert "sent" in msg or "success" in msg
 
     def test_forgot_password_nonexistent_email(self, client):
-
         """Test password reset for non-existent email."""
         with patch("app.services.notification_service.NotificationService.send_email", new_callable=AsyncMock):
-            response = client.post("/api/v1/auth/forgot-password", json={"email": "nonexistent@example.com"})
+            response = client.post(
+    "/api/v1/auth/forgot-password",
+    json={
+        "email": "nonexistent@example.com"})
 
         # Should still return success for security
         assert response.status_code == 200
 
     def test_reset_password_success(self, client, regular_user, db):
-
         """Test password reset with valid token."""
         # Set reset token
 
         reset_token = secrets.token_urlsafe(32)
         regular_user.reset_token = reset_token
-        regular_user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+        regular_user.reset_token_expires = datetime.now(
+            timezone.utc) + timedelta(hours=1)
         db.commit()
 
         response = client.post(
@@ -227,7 +233,6 @@ class TestAuthEndpoints:
         assert "success" in msg or "reset" in msg
 
     def test_reset_password_invalid_token(self, client):
-
         """Test password reset with invalid token."""
         response = client.post(
             "/api/v1/auth/reset-password", json={"token": "invalid-token", "new_password": "NewSecurePassword123!"}
@@ -236,12 +241,12 @@ class TestAuthEndpoints:
         assert response.status_code == 400
 
     def test_reset_password_expired_token(self, client, regular_user, db):
-
         """Test password reset with expired token."""
 
         reset_token = secrets.token_urlsafe(32)
         regular_user.reset_token = reset_token
-        regular_user.reset_token_expires = datetime.now(timezone.utc) - timedelta(hours=1)
+        regular_user.reset_token_expires = datetime.now(
+            timezone.utc) - timedelta(hours=1)
         db.commit()
 
         response = client.post(
@@ -251,7 +256,6 @@ class TestAuthEndpoints:
         assert response.status_code == 400
 
     def test_verify_email_success(self, client, regular_user, db):
-
         """Test email verification with valid token."""
 
         verification_token = secrets.token_urlsafe(32)
@@ -259,7 +263,8 @@ class TestAuthEndpoints:
         regular_user.email_verified = False
         db.commit()
 
-        response = client.get(f"/api/v1/auth/verify-email?token={verification_token}")
+        response = client.get(
+            f"/api/v1/auth/verify-email?token={verification_token}")
 
         assert response.status_code == 200
         db.refresh(regular_user)
@@ -267,14 +272,12 @@ class TestAuthEndpoints:
         assert regular_user.verification_token is None
 
     def test_verify_email_invalid_token(self, client):
-
         """Test email verification with invalid token."""
         response = client.get("/api/v1/auth/verify-email?token=invalid-token")
 
         assert response.status_code == 400
 
     def test_google_auth_config(self, client):
-
         """Test getting Google OAuth configuration."""
         response = client.get("/api/v1/auth/google/config")
 
@@ -284,7 +287,6 @@ class TestAuthEndpoints:
         assert "features" in data
 
     def test_google_auth_success(self, client, db):
-
         """Test Google OAuth authentication."""
         mock_idinfo = {
             "sub": "google-123",
@@ -294,7 +296,10 @@ class TestAuthEndpoints:
         }
 
         with patch("google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinfo):
-            response = client.post("/api/v1/auth/google", json={"token": "valid-google-token"})
+            response = client.post(
+    "/api/v1/auth/google",
+    json={
+        "token": "valid-google-token"})
 
         assert response.status_code == 200
         data = response.json()
@@ -302,15 +307,16 @@ class TestAuthEndpoints:
         assert data["user"]["email"] == "googleuser@example.com"
 
     def test_google_auth_invalid_token(self, client):
-
         """Test Google OAuth with invalid token."""
         with patch("google.oauth2.id_token.verify_oauth2_token", side_effect=ValueError("Invalid token")):
-            response = client.post("/api/v1/auth/google", json={"token": "invalid-token"})
+            response = client.post(
+    "/api/v1/auth/google",
+    json={
+        "token": "invalid-token"})
 
         assert response.status_code == 401
 
     def test_logout_success(self, authenticated_regular_client):
-
         """Test user logout."""
         response = authenticated_regular_client.post("/api/v1/auth/logout")
 
@@ -320,7 +326,6 @@ class TestAuthEndpoints:
         assert "success" in msg or "logout" in msg
 
     def test_refresh_token_success(self, client, regular_user, db):
-
         """Test refreshing access token."""
 
         # Create tokens
@@ -329,7 +334,8 @@ class TestAuthEndpoints:
         regular_user.refresh_token_expires = get_refresh_token_expiry()
         db.commit()
 
-        response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+        response = client.post("/api/v1/auth/refresh",
+     json={"refresh_token": tokens["refresh_token"]})
 
         # Token refresh has complex setup requirements
         assert response.status_code in [200, 401]
@@ -339,34 +345,35 @@ class TestAuthEndpoints:
             assert "refresh_token" in data
 
     def test_refresh_token_invalid(self, client):
-
         """Test refresh with invalid token."""
-        response = client.post("/api/v1/auth/refresh", json={"refresh_token": "invalid-token"})
+        response = client.post(
+    "/api/v1/auth/refresh",
+    json={
+        "refresh_token": "invalid-token"})
 
         assert response.status_code == 401
 
     def test_refresh_token_missing(self, client):
-
         """Test refresh without token."""
         response = client.post("/api/v1/auth/refresh", json={})
 
         assert response.status_code == 401
 
     def test_refresh_token_expired(self, client, regular_user, db):
-
         """Test refresh with expired token."""
 
         tokens = create_tokens(regular_user.id, regular_user.email)
         regular_user.refresh_token = tokens["refresh_token"]
-        regular_user.refresh_token_expires = datetime.now(timezone.utc) - timedelta(days=1)
+        regular_user.refresh_token_expires = datetime.now(
+            timezone.utc) - timedelta(days=1)
         db.commit()
 
-        response = client.post("/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]})
+        response = client.post("/api/v1/auth/refresh",
+     json={"refresh_token": tokens["refresh_token"]})
 
         assert response.status_code == 401
 
     def test_create_api_key_success(self, client, payg_user, db):
-
         """Test creating API key."""
 
         payg_user.email_verified = True
@@ -389,7 +396,10 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
+            response = client.post(
+    "/api/v1/auth/api-keys",
+    json={
+        "name": "Test API Key"})
 
             # API key creation has complex tier requirements and async handling
             assert response.status_code in [201, 401, 403, 404, 500]
@@ -405,7 +415,6 @@ class TestAuthEndpoints:
             app.dependency_overrides.clear()
 
     def test_create_api_key_unverified_email(self, client, payg_user, db):
-
         """Test creating API key with unverified email."""
 
         payg_user.email_verified = False
@@ -428,22 +437,25 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
+            response = client.post(
+    "/api/v1/auth/api-keys",
+    json={
+        "name": "Test API Key"})
 
             assert response.status_code == 403
         finally:
             app.dependency_overrides.clear()
 
-    def test_create_api_key_tier_restriction(self, authenticated_regular_client):
-
+    def test_create_api_key_tier_restriction(
+        self, authenticated_regular_client):
         """Test creating API key requires PayG tier."""
-        response = authenticated_regular_client.post("/api/v1/auth/api-keys", json={"name": "Test API Key"})
+        response = authenticated_regular_client.post(
+            "/api/v1/auth/api-keys", json={"name": "Test API Key"})
 
         # Should fail due to tier restriction
         assert response.status_code in [402, 403]
 
     def test_list_api_keys_success(self, client, payg_user, db):
-
         """Test listing API keys."""
         try:
 

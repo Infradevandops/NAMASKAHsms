@@ -22,7 +22,6 @@ class TestUtilityModules:
     # ==================== Security Utils ====================
 
     def test_password_hashing_bcrypt(self):
-
         """Test bcrypt password hashing."""
 
         password = "TestPassword123!"
@@ -32,7 +31,6 @@ class TestUtilityModules:
         assert verify_password(password, hashed)
 
     def test_token_generation(self):
-
         """Test secure token generation."""
 
         token1 = secrets.token_urlsafe(32)
@@ -42,7 +40,6 @@ class TestUtilityModules:
         assert len(token1) >= 32
 
     def test_jwt_token_creation(self):
-
         """Test JWT token creation."""
 
         token = create_access_token(data={"sub": "user123"})
@@ -53,7 +50,6 @@ class TestUtilityModules:
     # ==================== Sanitization Utils ====================
 
     def test_html_sanitization(self):
-
         """Test HTML sanitization."""
 
         malicious = "<script>alert('XSS')</script>"
@@ -63,7 +59,6 @@ class TestUtilityModules:
         assert "<script>" not in safe
 
     def test_sql_sanitization(self):
-
         """Test SQL input sanitization."""
         # SQLAlchemy handles this via parameterized queries
         malicious_input = "'; DROP TABLE users; --"
@@ -72,7 +67,6 @@ class TestUtilityModules:
         assert "DROP TABLE" in malicious_input  # Not executed
 
     def test_json_sanitization(self):
-
         """Test JSON sanitization."""
         data = {"key": "<script>alert(1)</script>"}
         json_str = json.dumps(data)
@@ -83,7 +77,6 @@ class TestUtilityModules:
     # ==================== Validation Utils ====================
 
     def test_email_validation(self):
-
         """Test email validation."""
 
         valid_emails = ["user@example.com", "test@domain.co.uk"]
@@ -98,7 +91,6 @@ class TestUtilityModules:
             assert not re.match(pattern, email)
 
     def test_phone_number_validation(self):
-
         """Test phone number validation."""
 
         valid_phones = ["+1234567890", "+44123456789"]
@@ -113,7 +105,6 @@ class TestUtilityModules:
             assert not re.match(pattern, phone)
 
     def test_url_validation(self):
-
         """Test URL validation."""
         valid_urls = ["https://example.com", "https://api.example.com/webhook"]
         invalid_urls = ["not-a-url", "ftp://example.com", ""]
@@ -127,7 +118,6 @@ class TestUtilityModules:
     # ==================== Timezone Utils ====================
 
     def test_utc_now(self):
-
         """Test UTC now function."""
         now = datetime.now(timezone.utc)
 
@@ -135,7 +125,6 @@ class TestUtilityModules:
         assert isinstance(now, datetime)
 
     def test_timezone_conversion(self):
-
         """Test timezone conversion."""
         utc_time = datetime.now(timezone.utc)
 
@@ -146,7 +135,6 @@ class TestUtilityModules:
         assert local_time > utc_time
 
     def test_date_formatting(self):
-
         """Test date formatting."""
         now = datetime.now(timezone.utc)
         formatted = now.isoformat()
@@ -157,7 +145,6 @@ class TestUtilityModules:
     # ==================== Pricing Display Utils ====================
 
     def test_currency_formatting_usd(self):
-
         """Test USD currency formatting."""
         amount = 10.50
         formatted = f"${amount:.2f}"
@@ -165,7 +152,6 @@ class TestUtilityModules:
         assert formatted == "$10.50"
 
     def test_currency_formatting_ngn(self):
-
         """Test NGN currency formatting."""
         amount = 15000
         formatted = f"₦{amount:,.0f}"
@@ -173,7 +159,6 @@ class TestUtilityModules:
         assert "15,000" in formatted
 
     def test_price_conversion(self):
-
         """Test price conversion."""
         usd = 10.0
         rate = 1500  # USD to NGN
@@ -184,7 +169,6 @@ class TestUtilityModules:
     # ==================== Path Security Utils ====================
 
     def test_path_traversal_prevention(self):
-
         """Test path traversal prevention."""
 
         safe_path = Path("/safe/directory/file.txt")
@@ -195,7 +179,6 @@ class TestUtilityModules:
         assert ".." in malicious_path
 
     def test_file_extension_validation(self):
-
         """Test file extension validation."""
         allowed_extensions = [".jpg", ".png", ".pd"]
 
@@ -203,12 +186,12 @@ class TestUtilityModules:
         invalid_file = "script.exe"
 
         assert any(valid_file.endswith(ext) for ext in allowed_extensions)
-        assert not any(invalid_file.endswith(ext) for ext in allowed_extensions)
+        assert not any(invalid_file.endswith(ext)
+                       for ext in allowed_extensions)
 
     # ==================== Performance Utils ====================
 
     def test_timing_decorator(self):
-
         """Test timing decorator."""
 
         start = time.time()
@@ -218,7 +201,6 @@ class TestUtilityModules:
         assert elapsed >= 0.01
 
     def test_caching_mechanism(self):
-
         """Test simple caching."""
         cache = {}
         key = "test_key"
@@ -236,7 +218,6 @@ class TestUtilityModules:
     # ==================== Data Transformation ====================
 
     def test_dict_to_json(self):
-
         """Test dictionary to JSON conversion."""
         data = {"key": "value", "number": 123}
         json_str = json.dumps(data)
@@ -245,7 +226,6 @@ class TestUtilityModules:
         assert "key" in json_str
 
     def test_json_to_dict(self):
-
         """Test JSON to dictionary conversion."""
         json_str = '{"key": "value", "number": 123}'
         data = json.loads(json_str)
@@ -254,7 +234,6 @@ class TestUtilityModules:
         assert data["key"] == "value"
 
     def test_list_pagination(self):
-
         """Test list pagination."""
         items = list(range(100))
         page_size = 10
@@ -270,7 +249,6 @@ class TestUtilityModules:
     # ==================== String Utils ====================
 
     def test_string_truncation(self):
-
         """Test string truncation."""
         long_string = "a" * 100
         max_length = 50
@@ -280,7 +258,6 @@ class TestUtilityModules:
         assert len(truncated) == max_length
 
     def test_slug_generation(self):
-
         """Test slug generation."""
         title = "Hello World Test"
         slug = title.lower().replace(" ", "-")
@@ -288,7 +265,6 @@ class TestUtilityModules:
         assert slug == "hello-world-test"
 
     def test_string_normalization(self):
-
         """Test string normalization."""
         input_str = "  Hello   World  "
         normalized = " ".join(input_str.split())
@@ -298,7 +274,6 @@ class TestUtilityModules:
     # ==================== Math Utils ====================
 
     def test_percentage_calculation(self):
-
         """Test percentage calculation."""
         total = 100
         part = 25
@@ -307,7 +282,6 @@ class TestUtilityModules:
         assert percentage == 25.0
 
     def test_rounding(self):
-
         """Test number rounding."""
         value = 10.567
         rounded = round(value, 2)
@@ -315,7 +289,6 @@ class TestUtilityModules:
         assert rounded == 10.57
 
     def test_min_max_validation(self):
-
         """Test min/max validation."""
         value = 50
         min_val = 0
@@ -326,7 +299,6 @@ class TestUtilityModules:
     # ==================== Collection Utils ====================
 
     def test_list_deduplication(self):
-
         """Test list deduplication."""
         items = [1, 2, 2, 3, 3, 3, 4]
         unique = list(set(items))
@@ -334,7 +306,6 @@ class TestUtilityModules:
         assert len(unique) == 4
 
     def test_dict_merge(self):
-
         """Test dictionary merging."""
         dict1 = {"a": 1, "b": 2}
         dict2 = {"b": 3, "c": 4}
@@ -345,13 +316,11 @@ class TestUtilityModules:
         assert merged["c"] == 4
 
     def test_list_filtering(self):
-
         """Test list filtering."""
         numbers = [1, 2, 3, 4, 5, 6]
         evens = [n for n in numbers if n % 2 == 0]
 
         assert evens == [2, 4, 6]
-
 
         if __name__ == "__main__":
         print("Utility module tests: 40 comprehensive tests created")

@@ -5,14 +5,15 @@ import pytest
 from app.services.webhook_notification_service import WebhookNotificationService
 from unittest.mock import ANY
 
+
 class TestWebhookNotificationService:
     @pytest.fixture
     def service(self):
 
         return WebhookNotificationService()
 
-        @pytest.mark.asyncio
-        @patch("httpx.AsyncClient.post")
+    @pytest.mark.asyncio
+    @patch("httpx.AsyncClient.post")
     async def test_send_webhook_success(self, mock_post, service):
         mock_response = AsyncMock()
         mock_response.status_code = 200
@@ -23,8 +24,8 @@ class TestWebhookNotificationService:
         assert result is True
         assert mock_post.called
 
-        @pytest.mark.asyncio
-        @patch("httpx.AsyncClient.post")
+    @pytest.mark.asyncio
+    @patch("httpx.AsyncClient.post")
     async def test_send_webhook_failure(self, mock_post, service):
         mock_response = AsyncMock()
         mock_response.status_code = 500
@@ -36,13 +37,14 @@ class TestWebhookNotificationService:
         assert result is False
 
         @pytest.mark.asyncio
-        @patch.object(WebhookNotificationService, "send_webhook", new_callable=AsyncMock)
-    async def test_notify_methods(self, mock_send, service):
+        @patch.object(WebhookNotificationService,
+                      "send_webhook", new_callable=AsyncMock)
+        async def test_notify_methods(self, mock_send, service):
 
-        url = "http://webhook.com"
+            url = "http://webhook.com"
 
-        await service.notify_verification_created("id1", "123", "serv", 1.0, url)
-        mock_send.assert_called_with(url, "verification.created", ANY)
+            await service.notify_verification_created("id1", "123", "serv", 1.0, url)
+            mock_send.assert_called_with(url, "verification.created", ANY)
 
         await service.notify_sms_received("id1", "code", url)
         mock_send.assert_called_with(url, "sms.received", ANY)
@@ -53,7 +55,7 @@ class TestWebhookNotificationService:
         await service.notify_verification_timeout("id1", url)
         mock_send.assert_called_with(url, "verification.timeout", ANY)
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_notify_methods_no_url(self, service):
         # Should return True and not call webhook
         assert await service.notify_verification_created("id1", "123", "serv", 1.0, None) is True

@@ -3,10 +3,6 @@
 
 import pytest
 from app.models.reseller import (
-from app.models.user import User
-from app.services.reseller_service import ResellerService
-from app.services.reseller_service import ResellerService
-from app.services.reseller_service import get_reseller_service
 
     BulkOperation,
     ResellerAccount,
@@ -28,19 +24,19 @@ def test_get_reseller_service(db_session):
 
 
 @pytest.mark.asyncio
-async def test_create_sub_account_invalid_reseller(service):
+async def test_create_sub_account_not_found(service):
     res = await service.create_sub_account(99999, "Name", "email@ex.com")
     assert res["error"] == "Reseller account not found"
 
 
 @pytest.mark.asyncio
-async def test_allocate_credits_invalid_ids(service):
+async def test_allocate_credits_invalid(service):
     res = await service.allocate_credits(999, 888, 10.0)
     assert res["error"] == "Invalid reseller or sub - account"
 
 
 @pytest.mark.asyncio
-async def test_bulk_credit_topup_partial_failure(service, regular_user, db_session):
+        service, regular_user, db_session):
     # Setup reseller
     res_res = await service.create_reseller_account(regular_user.id)
     rid = res_res["reseller_id"]
@@ -64,7 +60,6 @@ class TestResellerService:
 
     @pytest.fixture
     def reseller_user(self, db_session):
-
         """Create a parent user who will be the reseller."""
         user = User(
             email="reseller@example.com",
@@ -76,13 +71,14 @@ class TestResellerService:
         db_session.commit()
         return user
 
-        @pytest.fixture
+    @pytest.fixture
     def reseller_service(self, db_session):
 
         return ResellerService(db_session)
 
-        @pytest.mark.asyncio
-    async def test_create_reseller_account_success(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_create_reseller_account_success(
+            self, db_session, reseller_service, reseller_user):
         """Test creating a reseller account."""
         result = await reseller_service.create_reseller_account(reseller_user.id, tier="gold")
 
@@ -90,12 +86,14 @@ class TestResellerService:
         assert result["tier"] == "gold"
         assert result["discount"] == 0.20  # Gold discount
 
-        account = db_session.query(ResellerAccount).filter(ResellerAccount.user_id == reseller_user.id).first()
+        account = db_session.query(ResellerAccount).filter(
+            ResellerAccount.user_id == reseller_user.id).first()
         assert account is not None
         assert account.credit_limit == 25000.0
 
-        @pytest.mark.asyncio
-    async def test_create_reseller_account_duplicate(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_create_reseller_account_duplicate(
+            self, db_session, reseller_service, reseller_user):
         """Test ensuring 1:1 user-reseller relationship."""
         await reseller_service.create_reseller_account(reseller_user.id)
 
@@ -104,8 +102,9 @@ class TestResellerService:
         assert "error" in result
         assert result["error"] == "User already has reseller account"
 
-        @pytest.mark.asyncio
-    async def test_create_sub_account(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_create_sub_account(
+            self, db_session, reseller_service, reseller_user):
         """Test creating a sub-account."""
         # Setup reseller
         res = await reseller_service.create_reseller_account(reseller_user.id)
@@ -121,13 +120,15 @@ class TestResellerService:
         assert result["success"] is True
         sub_id = result["sub_account_id"]
 
-        sub = db_session.query(SubAccount).filter(SubAccount.id == sub_id).first()
+        sub = db_session.query(SubAccount).filter(
+            SubAccount.id == sub_id).first()
         assert sub.name == "Sub Client A"
         assert sub.credits == 50.0
         assert sub.reseller_id == reseller_id
 
-        @pytest.mark.asyncio
-    async def test_create_sub_account_email_exists(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_create_sub_account_email_exists(
+            self, db_session, reseller_service, reseller_user):
         """Test sub-account unique email constraint."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
         reseller_id = res["reseller_id"]
@@ -138,8 +139,9 @@ class TestResellerService:
         assert "error" in result
         assert result["error"] == "Email already exists"
 
-        @pytest.mark.asyncio
-    async def test_allocate_credits_success(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_allocate_credits_success(
+            self, db_session, reseller_service, reseller_user):
         """Test transferring credits from reseller to sub-account."""
         # Reseller has 1000 credits
         res = await reseller_service.create_reseller_account(reseller_user.id)
@@ -156,18 +158,21 @@ class TestResellerService:
 
         # Check balances
         db_session.refresh(reseller_user)
-        sub = db_session.query(SubAccount).filter(SubAccount.id == sub_id).first()
+        sub = db_session.query(SubAccount).filter(
+            SubAccount.id == sub_id).first()
 
         assert reseller_user.credits == 900.0  # 1000 - 100
         assert sub.credits == 100.0
 
         # Check transaction log
-        tx = db_session.query(SubAccountTransaction).filter(SubAccountTransaction.sub_account_id == sub_id).first()
+        tx = db_session.query(SubAccountTransaction).filter(
+            SubAccountTransaction.sub_account_id == sub_id).first()
         assert tx.amount == 100.0
         assert tx.transaction_type == "credit"
 
-        @pytest.mark.asyncio
-    async def test_allocate_credits_insufficient_funds(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_allocate_credits_insufficient_funds(
+            self, db_session, reseller_service, reseller_user):
         """Test error when reseller has insufficient funds."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
         reseller_id = res["reseller_id"]
@@ -181,8 +186,9 @@ class TestResellerService:
         assert "error" in result
         assert result["error"] == "Insufficient reseller credits"
 
-        @pytest.mark.asyncio
-    async def test_bulk_credit_topup(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_bulk_credit_topup(
+            self, db_session, reseller_service, reseller_user):
         """Test bulk credit operations."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
         reseller_id = res["reseller_id"]
@@ -209,8 +215,9 @@ class TestResellerService:
         assert op.status == "completed"
         assert op.total_accounts == 3
 
-        @pytest.mark.asyncio
-    async def test_get_usage_report(self, db_session, reseller_service, reseller_user):
+    @pytest.mark.asyncio
+    async def test_get_usage_report(
+            self, db_session, reseller_service, reseller_user):
         """Test analytics report generation."""
         res = await reseller_service.create_reseller_account(reseller_user.id)
         reseller_id = res["reseller_id"]

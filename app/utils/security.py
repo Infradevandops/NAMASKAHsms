@@ -64,3 +64,22 @@ def verify_refresh_token(token: str) -> Optional[Dict[str, Any]]:
     if payload and payload.get("type") == "refresh":
         return payload
     return None
+
+
+def generate_api_key(length: int = 32) -> str:
+    """Generate a cryptographically secure random API key."""
+    import secrets
+    return secrets.token_hex(length // 2)
+
+
+def generate_secure_id(prefix: str = "", length: int = 16) -> str:
+    """Generate a secure random ID with optional prefix."""
+    import secrets
+    token = secrets.token_hex(length // 2)
+    return f"{prefix}_{token}" if prefix else token
+
+
+def generate_verification_code(length: int = 6) -> str:
+    """Generate a numeric verification code."""
+    import secrets
+    return "".join([str(secrets.randbelow(10)) for _ in range(length)])

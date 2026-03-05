@@ -4,26 +4,40 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 import pytest
 from app.utils.sanitization import (
-from app.utils.sql_safety import (
-from app.utils.timezone_utils import (
-
     sanitize_email_content,
     sanitize_filename,
     sanitize_html,
     sanitize_user_input,
     validate_and_sanitize_response,
 )
+from app.utils.sql_safety import (
     SQLSafetyValidator,
     audit_query_safety,
     validate_identifier,
     validate_sort_field,
     validate_sort_order,
 )
+from app.utils.timezone_utils import (
+    days_ago,
+    ensure_timezone_aware,
+    format_datetime,
+    from_utc,
+    get_end_of_day,
+    get_iso_timestamp,
+    get_start_of_day,
+    get_timestamp_filename,
+    hours_ago,
+    minutes_ago,
+    parse_date_string,
+    safe_datetime_comparison,
+    to_utc,
+    utc_now,
+)
 
 
 def test_sanitize_html():
 
-    scr = "<script>alert(1)</script>Hello"
+    scr="<script>alert(1)</script>Hello"
     assert sanitize_html(scr) == "&lt;script&gt;alert(1)&lt;/script&gt;Hello"
     assert sanitize_html("javascript:alert(1)") == "alert(1)"
     assert sanitize_html("onclick=alert(1)") == "alert(1)"
@@ -31,12 +45,12 @@ def test_sanitize_html():
 
 def test_sanitize_user_input():
 
-    data = {
+    data={
         "text": "<p>Hi</p>",
         "list": ["<script>", 123],
         "nested": {"key": "javascript:void(0)"},
     }
-    sanitized = sanitize_user_input(data)
+    sanitized=sanitize_user_input(data)
     assert sanitized["text"] == "&lt;p&gt;Hi&lt;/p&gt;"
     assert sanitized["list"][0] == "&lt;script&gt;"
     assert sanitized["nested"]["key"] == "void(0)"
@@ -44,9 +58,9 @@ def test_sanitize_user_input():
 
 def test_sanitize_email_content():
 
-    content = "<h1>Title</h1><script>alert(1)</script>"
+    content="<h1>Title</h1><script>alert(1)</script>"
     # h1 is allowed
-    sanitized = sanitize_email_content(content)
+    sanitized=sanitize_email_content(content)
     assert "<h1>" in sanitized
     assert "</h1>" in sanitized
     assert "&lt;script&gt;" in sanitized
@@ -54,8 +68,8 @@ def test_sanitize_email_content():
 
 def test_validate_and_sanitize_response():
 
-    resp = {"message": "<script>", "id": 1}
-    sanitized = validate_and_sanitize_response(resp)
+    resp={"message": "<script>", "id": 1}
+    sanitized=validate_and_sanitize_response(resp)
     assert sanitized["message"] == "&lt;script&gt;"
     assert sanitized["id"] == 1
 
@@ -63,29 +77,13 @@ def test_validate_and_sanitize_response():
 def test_sanitize_filename():
 
     assert sanitize_filename("../../../etc/passwd") == "passwd"
-    assert sanitize_filename("file name with spaces.txt") == "filenamewithspaces.txt"
+    assert sanitize_filename(
+        "file name with spaces.txt") == "filenamewithspaces.txt"
     assert sanitize_filename("") == "unnamed_file"
     assert sanitize_filename(None) == "unnamed_file"
 
 
 def test_timezone_utils():
-
-        days_ago,
-        ensure_timezone_aware,
-        format_datetime,
-        from_utc,
-        get_end_of_day,
-        get_iso_timestamp,
-        get_start_of_day,
-        get_timestamp_filename,
-        hours_ago,
-        minutes_ago,
-        parse_date_string,
-        safe_datetime_comparison,
-        to_utc,
-        utc_now,
-    )
-
     now = utc_now()
     assert now.tzinfo == timezone.utc
 
@@ -127,15 +125,17 @@ def test_timezone_utils():
 def test_sql_safety():
 
     assert validate_identifier("users") == "users"
-with pytest.raises(ValueError):
+
+
+    with pytest.raises(ValueError):
         validate_identifier("user; drop table")
 
     assert validate_sort_field("id", ["id", "name"]) == "id"
-with pytest.raises(ValueError):
+    with pytest.raises(ValueError):
         validate_sort_field("secrets", ["id", "name"])
 
     assert validate_sort_order("asc") == "ASC"
-with pytest.raises(ValueError):
+    with pytest.raises(ValueError):
         validate_sort_order("invalid")
 
     assert audit_query_safety("SELECT * FROM users") is True

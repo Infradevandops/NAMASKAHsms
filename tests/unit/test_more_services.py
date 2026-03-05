@@ -7,31 +7,33 @@ from app.services.mfa_service import MFAService
 import pyotp
 import pyotp
 
+
 class TestAffiliateService:
     @pytest.fixture
     def service(self):
 
         return AffiliateService()
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_create_application(self, service, db_session):
         email = "aff@ex.com"
         res = await service.create_application(email, "individual", ["API"], "Hello", db_session)
         assert res["status"] == "pending"
 
         # Verify DB
-        app = db_session.query(AffiliateApplication).filter(AffiliateApplication.email == email).first()
+        app = db_session.query(AffiliateApplication).filter(
+            AffiliateApplication.email == email).first()
         assert app is not None
         assert app.program_type == "individual"
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_duplicate_application(self, service, db_session):
         email = "dup@ex.com"
         await service.create_application(email, "individual", [], None, db_session)
         with pytest.raises(ValueError, match="already have a pending application"):
             await service.create_application(email, "individual", [], None, db_session)
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_update_status(self, service, db_session):
         email = "upd@ex.com"
         app_res = await service.create_application(email, "individual", [], None, db_session)

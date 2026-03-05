@@ -9,9 +9,9 @@ from app.models.notification_analytics import NotificationAnalytics
 from app.models.user import User
 from app.services.notification_analytics_service import NotificationAnalyticsService
 
+
 @pytest.fixture
 def test_user(db: Session):
-
     """Create test user."""
     user = User(
         id="test-user-123",
@@ -26,7 +26,6 @@ def test_user(db: Session):
 
 @pytest.fixture
 def test_notification(db: Session, test_user):
-
     """Create test notification."""
     notification = Notification(
         user_id=test_user.id,
@@ -41,7 +40,6 @@ def test_notification(db: Session, test_user):
 
 @pytest.fixture
 def analytics_service(db: Session):
-
     """Create analytics service."""
     return NotificationAnalyticsService(db)
 
@@ -50,8 +48,8 @@ class TestNotificationAnalyticsModel:
 
     """Test NotificationAnalytics model."""
 
-    def test_create_analytics_record(self, db: Session, test_user, test_notification):
-
+    def test_create_analytics_record(
+        self, db: Session, test_user, test_notification):
         """Test creating analytics record."""
         analytics = NotificationAnalytics(
             notification_id=test_notification.id,
@@ -68,8 +66,8 @@ class TestNotificationAnalyticsModel:
         assert analytics.notification_id == test_notification.id
         assert analytics.status == "sent"
 
-    def test_analytics_to_dict(self, db: Session, test_user, test_notification):
-
+    def test_analytics_to_dict(
+        self, db: Session, test_user, test_notification):
         """Test converting analytics to dictionary."""
         analytics = NotificationAnalytics(
             notification_id=test_notification.id,
@@ -93,7 +91,7 @@ class TestNotificationAnalyticsModel:
 
 class TestNotificationAnalyticsService:
 
-        """Test NotificationAnalyticsService."""
+    """Test NotificationAnalyticsService."""
 
     def test_track_notification_sent(self, analytics_service, test_user, test_notification):
 
@@ -312,7 +310,7 @@ class TestNotificationAnalyticsService:
 
 class TestAnalyticsEndpoints:
 
-        """Test analytics endpoints."""
+    """Test analytics endpoints."""
 
     def test_get_analytics_summary_endpoint(self, client, test_user, db: Session):
 

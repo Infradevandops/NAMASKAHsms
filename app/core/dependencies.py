@@ -124,7 +124,7 @@ def require_tier(required_tier: str):
             )
         
         # Simple tier check - you can expand this logic
-        user_tier = getattr(user, 'tier', 'freemium')
+        user_tier = getattr(user, 'subscription_tier', 'freemium')
         
         tier_hierarchy = ['freemium', 'payg', 'pro', 'custom']
         required_level = tier_hierarchy.index(required_tier) if required_tier in tier_hierarchy else 0

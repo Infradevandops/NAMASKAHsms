@@ -4,7 +4,6 @@ import time
 from unittest.mock import MagicMock
 import pytest
 from app.core.unified_rate_limiting import (
-from fastapi import FastAPI
 
     TokenBucket,
     UnifiedRateLimiter,
@@ -49,7 +48,7 @@ async def test_adaptive_load():
     current_time = time.time()
 
     # Fill request times to simulate load
-for _ in range(20):
+    for _ in range(20):
         limiter.request_times.append(current_time - 10)
 
     limiter.error_count = 5

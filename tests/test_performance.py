@@ -134,8 +134,7 @@ class TestAPIResponseTimes:
 
 
 class TestConcurrentRequests:
-
-        """Test system behavior under concurrent load."""
+    """Test system behavior under concurrent load."""
 
     def test_multiple_tier_requests(self, client: TestClient, db: Session):
 
@@ -174,8 +173,7 @@ class TestConcurrentRequests:
 
 
 class TestDatabaseQueryPerformance:
-
-        """Test database query efficiency."""
+    """Test database query efficiency."""
 
     def test_tier_query_with_user_data(self, client: TestClient, db: Session):
 
