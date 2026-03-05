@@ -8,13 +8,6 @@
 
 ---
 
-## 🟡 P2 — TODO.md Q1 2026
-
-### T7 · Payment flow hardening
-- [ ] Race condition test: concurrent credits for same reference
-
----
-
 ## ✅ Done
 
 - T1 · `require_tier` reads `subscription_tier` (fixed + verified)
@@ -23,7 +16,7 @@
 - T4 · `generate_api_key` added to `app/utils/security.py`
 - T5 · `consolidated_verification.py` stub created with `router` re-export
 - T6 · All unit + integration test files compile cleanly (0 collection errors)
-- T7 · Webhook idempotency verified (`PaymentLog.credited` + `with_for_update`); idempotency key wired through `POST /wallet/paystack/initialize`
+- T7 · Webhook idempotency verified; idempotency key wired through `POST /wallet/paystack/initialize`; race condition test passes — also fixed `IntegrityError` bug in `credit_user` (concurrent duplicate insert now handled as idempotent success)
 - T8 · `bandit` clean (0 HIGH/MEDIUM); `compare_digest` used in all 4 signature comparison sites
 - T9 · Integration suite run; `@pytest.mark.requires_db` added to PostgreSQL/Redis-dependent tests
 - Billing tab — all 7 features complete (PDF invoices, card on file, auto-recharge, spending limits, low-balance alerts, renewal info, payment method gate)

@@ -141,6 +141,7 @@ class PaymentService:
 
     def credit_user(self, user_id: str, amount: float, reference: str) -> bool:
         """Credit user account after successful payment."""
+        from sqlalchemy.exc import IntegrityError
         try:
             # Check if already credited with SELECT FOR UPDATE
             payment_log = self.db.query(PaymentLog).filter(
@@ -183,6 +184,12 @@ class PaymentService:
             self.db.commit()
             
             logger.info(f"Credited {amount} to user {user_id}")
+            return True
+
+        except IntegrityError:
+            # Concurrent request already committed the credit — idempotent success
+            self.db.rollback()
+            logger.warning(f"Payment {reference} already credited (concurrent request)")
             return True
             
         except Exception as e:
