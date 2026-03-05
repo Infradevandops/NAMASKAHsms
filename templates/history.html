@@ -16,7 +16,7 @@
         <button class="btn" onclick="applyFilters()" style="padding: 8px 16px;">Filter</button>
         <button class="btn" onclick="clearFilters()" style="padding: 8px 16px; background: #6b7280;">Clear</button>
         <button class="btn" onclick="exportHistory()"
-            style="padding: 8px 16px; background: #10b981; margin-left: auto;">📥 Export CSV</button>
+            style="padding: 8px 16px; background: #10b981; margin-left: auto;">Export CSV</button>
     </div>
 </div>
 
@@ -44,7 +44,6 @@
 </div>
 
 <div id="empty-state" style="text-align: center; padding: 60px; color: var(--text-muted); display: none;">
-    <div style="font-size: 64px; margin-bottom: 16px;">📭</div>
     <h3 style="margin-bottom: 8px;">No verification history</h3>
     <p style="margin-bottom: 24px;">Start your first verification to see it here</p>
     <button class="btn" onclick="window.location.href='/verify'">Get SMS Code</button>
@@ -55,6 +54,12 @@
 {{ super() }}
 <script>
     let allHistory = [];
+
+function formatPhone(raw) {
+        const d = (raw || '').replace(/\D/g, '');
+        if (d.length === 11 && d[0] === '1') return `+1 (${d.slice(1,4)}) ${d.slice(4,7)}-${d.slice(7)}`;
+        return raw || '-';
+    }
 
     async function loadHistory() {
         const token = localStorage.getItem('access_token');
@@ -138,9 +143,9 @@
             return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);" data-id="${item.id}">
                 <td style="padding: 12px; text-transform: capitalize;">${item.service_name || item.service || '-'}</td>
-                <td style="padding: 12px;">${item.phone_number.startsWith('+') ? '' : '🇺🇸'} ${item.phone_number || 'N/A'}</td>
+                <td style="padding: 12px;">${item.country || 'US'}</td>
                 <td style="padding: 12px;">${carrier}</td>
-                <td style="padding: 12px;">${item.phone_number}</td>
+                <td style="padding: 12px;">${formatPhone(item.phone_number)}</td>
 
                 <td style="padding: 12px;">${smsCode}</td>
                 <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${statusColor}; color: ${statusText}; text-transform: capitalize;">${status}</span></td>
