@@ -26,11 +26,11 @@
 </style>
 
 <script>
-async function loadBalance() {
+async function loadBalance(silent = false) {
     const display = document.getElementById('balance-display');
     if (!display) return;
     
-    display.classList.add('loading');
+    if (!silent) display.classList.add('loading');
     
     try {
         const token = localStorage.getItem('access_token');
@@ -96,8 +96,8 @@ if (document.readyState === 'loading') {
     loadBalance();
 }
 
-// Refresh every 30 seconds
-setInterval(loadBalance, 30000);
+// Refresh every 30 seconds (silent — no visual flicker)
+setInterval(() => loadBalance(true), 30000);
 
 // Expose globally for manual refresh
 window.refreshBalance = loadBalance;
