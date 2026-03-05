@@ -68,9 +68,11 @@ class NotificationSystem {
             this.toggleNotificationDropdown();
         });
 
+        const wrapper = bellBtn.closest('.notification-bell-wrapper') || bellBtn;
+
         // Close dropdown when clicking outside
         document.addEventListener('click', (e) => {
-            if (dropdown && !bellBtn.contains(e.target) && !dropdown.contains(e.target)) {
+            if (dropdown && !wrapper.contains(e.target)) {
                 this.closeNotificationDropdown();
             }
         });

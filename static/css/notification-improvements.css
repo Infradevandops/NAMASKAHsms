@@ -12,6 +12,11 @@
     gap: 16px;
 }
 
+.notification-bell-wrapper {
+    position: relative;
+    display: inline-flex;
+}
+
 /* Improved notification bell button */
 .notification-bell-btn {
     position: relative;
