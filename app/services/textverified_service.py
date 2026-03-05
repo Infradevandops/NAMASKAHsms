@@ -21,6 +21,8 @@ logger = get_logger(__name__)
 # Redis cache key and TTL for the live area-code-by-state index
 _AC_STATE_CACHE_KEY = "tv:area_codes_by_state"
 _AC_STATE_TTL = 3600  # 1 hour
+_SERVICES_CACHE_KEY = "tv:services_list"
+_SERVICES_TTL = 1800  # 30 minutes
 
 
 def _get_redis():
@@ -154,30 +156,43 @@ class TextVerifiedService:
         """Fetch live services from TextVerified API."""
         if not self.enabled:
             return self._mock_services()
+        # Try cache first
+        try:
+            redis = _get_redis()
+            cached = redis.get(_SERVICES_CACHE_KEY)
+            if cached:
+                return json.loads(cached)
+        except Exception:
+            pass
         try:
             services = await asyncio.wait_for(
                 asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
                 timeout=8.0
             )
+            result = []
+            for s in services:
+                try:
+                    snapshot = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            self.client.verifications.pricing,
+                            service_name=s.service_name,
+                            area_code=False,
+                            carrier=False,
+                            number_type=NumberType.MOBILE,
+                            capability=ReservationCapability.SMS,
+                        ),
+                        timeout=3.0
+                    )
+                    price = snapshot.price
+                except Exception:
+                    price = 2.50
+                result.append({"id": s.service_name, "name": s.service_name.title(), "price": price})
             try:
-                snapshot = await asyncio.wait_for(
-                    asyncio.to_thread(
-                        self.client.verifications.pricing,
-                        service_name="google",
-                        area_code=False,
-                        carrier=False,
-                        number_type=NumberType.MOBILE,
-                        capability=ReservationCapability.SMS,
-                    ),
-                    timeout=5.0
-                )
-                base_price = snapshot.price
+                redis = _get_redis()
+                redis.setex(_SERVICES_CACHE_KEY, _SERVICES_TTL, json.dumps(result))
             except Exception:
-                base_price = 2.50
-            return [
-                {"id": s.service_name, "name": s.service_name.title(), "price": base_price}
-                for s in services
-            ]
+                pass
+            return result
         except Exception as e:
             logger.error(f"Failed to get services: {e}")
             return self._mock_services()

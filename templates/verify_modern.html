@@ -75,7 +75,7 @@
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
                     <select class="form-select" id="carrier-select" onchange="updatePricing()">
-                        <option value="">Any Carrier</option>
+                        <option value="">Select a Carrier</option>
                     </select>
                     <div id="carrier-lock-msg" style="display:none; font-size:12px; color:#6b7280; margin-top:4px;">Carrier filtering requires PAYG or higher</div>
                 </div>
@@ -279,7 +279,7 @@ async function loadAreaCodes() {
     }
 
     lockMsg.style.display = 'none';
-    sel.innerHTML = '<option value="">Loading...</option>';
+    sel.innerHTML = '<option value="">Select an Area Code</option>';
     sel.disabled = true;
 
     try {
@@ -291,7 +291,7 @@ async function loadAreaCodes() {
         const data = res.ok ? await res.json() : {};
         const codes = data.area_codes || [];
 
-        sel.innerHTML = '<option value="">Any Area Code</option>' +
+        sel.innerHTML = '<option value="">Select an Area Code</option>' +
             codes.map(c => {
                 const label = c.city ? `${c.area_code} — ${c.city}, ${c.state}` : `${c.area_code} — ${c.state}`;
                 return `<option value="${c.area_code}">${label}</option>`;
@@ -307,7 +307,7 @@ async function loadAreaCodes() {
             }
         }
     } catch (e) {
-        sel.innerHTML = '<option value="">Any Area Code</option>';
+        sel.innerHTML = '<option value="">Select an Area Code</option>';
         sel.disabled = false;
     }
 }
@@ -332,10 +332,10 @@ async function loadCarriers() {
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const carriers = data.carriers || [];
-        sel.innerHTML = '<option value="">Any Carrier</option>' +
+        sel.innerHTML = '<option value="">Select a Carrier</option>' +
             carriers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
     } catch (e) {
-        sel.innerHTML = '<option value="">Any Carrier</option>';
+        sel.innerHTML = '<option value="">Select a Carrier</option>';
     }
 }
 
