@@ -26,6 +26,40 @@ class PaystackService:
         else:
             logger.warning("Paystack not configured")
 
+    async def charge_authorization(
+        self,
+        authorization_code: str,
+        email: str,
+        amount_usd: float,
+        reference: str,
+        metadata: dict = None,
+    ) -> Dict[str, Any]:
+        """Charge a saved card using its authorization code."""
+        if not self.enabled:
+            raise Exception("Paystack not configured")
+
+        amount_kobo = int(amount_usd * 100 * 1500)  # USD -> NGN at ~1500, then kobo
+        payload = {
+            "authorization_code": authorization_code,
+            "email": email,
+            "amount": amount_kobo,
+            "reference": reference,
+            "metadata": metadata or {},
+        }
+
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/transaction/charge_authorization",
+                json=payload,
+                headers=self._get_headers(),
+                timeout=30.0,
+            )
+            result = response.json()
+
+        if result.get("status") and result["data"].get("status") == "success":
+            return {"status": "success", "reference": reference, "data": result["data"]}
+        raise Exception(f"Charge failed: {result.get('message', 'Unknown error')}")
+
     async def initialize_payment(
         self,
         email: str,

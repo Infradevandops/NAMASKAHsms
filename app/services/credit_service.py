@@ -179,6 +179,14 @@ class CreditService:
 
         new_balance = float(user.credits)
 
+        # Trigger auto-recharge if balance dropped below threshold
+        try:
+            import asyncio
+            from app.services.auto_topup_service import AutoTopupService
+            asyncio.create_task(AutoTopupService(self.db).check_and_topup(user_id))
+        except Exception:
+            pass  # Never block a debit due to auto-topup failure
+
         # Low-balance alert
         if pref and pref.low_balance_alert_threshold and new_balance <= pref.low_balance_alert_threshold:
             try:

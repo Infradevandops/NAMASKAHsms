@@ -1,10 +1,12 @@
 """Auto-topup service for low balance management."""
 
+import secrets
 from typing import Optional
 from sqlalchemy.orm import Session
 from app.models.user import User
 from app.models.user_preference import UserPreference
-from app.services.payment_service import PaymentService
+from app.models.transaction import PaymentLog
+from app.services.paystack_service import PaystackService
 
 
 class AutoTopupService:
@@ -12,10 +14,10 @@ class AutoTopupService:
 
     def __init__(self, db: Session):
         self.db = db
-        self.payment_service = PaymentService(db)
+        self.paystack = PaystackService()
 
     async def check_and_topup(self, user_id: str) -> Optional[dict]:
-        """Check if user needs auto-topup and initiate if enabled."""
+        """Charge saved card if balance is below threshold and auto-recharge is enabled."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             return None
@@ -32,20 +34,34 @@ class AutoTopupService:
             return {"status": "skipped", "reason": "no_card_on_file"}
 
         topup_amount = pref.recharge_amount or 10.0
+        reference = f"auto_{user_id[:8]}_{secrets.token_hex(6)}"
 
         try:
-            result = await self.payment_service.initialize_payment(
-                user_id=user_id,
+            result = await self.paystack.charge_authorization(
+                authorization_code=pref.paystack_authorization_code,
                 email=user.email,
                 amount_usd=topup_amount,
-                metadata={"auto_recharge": True},
+                reference=reference,
+                metadata={"auto_recharge": True, "user_id": user_id},
             )
-            return {
-                "status": "initiated",
-                "amount": topup_amount,
-                "payment_url": result.get("authorization_url"),
-                "reference": result.get("reference"),
-            }
+
+            # Credit the user immediately on success
+            log = PaymentLog(
+                user_id=user_id,
+                email=user.email,
+                reference=reference,
+                amount_usd=topup_amount,
+                namaskah_amount=topup_amount,
+                status="success",
+                credited=True,
+                state="completed",
+            )
+            self.db.add(log)
+            user.credits = (user.credits or 0.0) + topup_amount
+            self.db.commit()
+
+            return {"status": "success", "amount": topup_amount, "reference": reference}
+
         except Exception as e:
             return {"status": "failed", "error": str(e)}
 
