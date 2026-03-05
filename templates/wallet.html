@@ -17,10 +17,6 @@
         <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.total_spent">Total Spent</div>
         <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0.00</div>
     </div>
-    <div class="card" style="cursor: pointer; transition: transform 0.2s;" onclick="monthlySummary.renderModal()" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">Monthly Summary</div>
-        <div style="font-size: 24px; font-weight: 700; color: #667eea;">View</div>
-    </div>
 </div>
 
 <!-- Spending Alerts Settings -->
@@ -43,14 +39,14 @@
     <!-- Card Payment Section -->
     <div id="payment-card">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
-            <button class="btn" onclick="addCredits(10)" style="background: #3b82f6;">$10</button>
-            <button class="btn" onclick="addCredits(25)" style="background: #8b5cf6;">$25</button>
-            <button class="btn" onclick="addCredits(50)" style="background: #ec4899;">$50 <span style="font-size: 10px;">+10%</span></button>
-            <button class="btn" onclick="addCredits(100)" style="background: #f59e0b;">$100 <span style="font-size: 10px;">+15%</span></button>
+            <button class="btn" onclick="addCredits(10, 0, this)" style="background: #3b82f6;">$10</button>
+            <button class="btn" onclick="addCredits(25, 0, this)" style="background: #8b5cf6;">$25</button>
+            <button class="btn" onclick="addCredits(50, 0, this)" style="background: #ec4899;">$50 <span style="font-size: 10px;">+10%</span></button>
+            <button class="btn" onclick="addCredits(100, 0, this)" style="background: #f59e0b;">$100 <span style="font-size: 10px;">+15%</span></button>
         </div>
         <div style="display: flex; gap: 8px;">
             <input type="number" id="custom-amount" placeholder="Custom amount" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-            <button class="btn" onclick="addCustomCredits()">Add Custom</button>
+            <button class="btn" onclick="addCustomCredits(this)">Add Custom</button>
         </div>
     </div>
 
@@ -101,7 +97,10 @@
 <!-- Credit History Section -->
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 18px; margin: 0;" data-i18n="wallet.credit_history">Credit History</h2>
+        <div style="display: flex; align-items: center; gap: 16px;">
+            <h2 style="font-size: 18px; margin: 0;" data-i18n="wallet.credit_history">Credit History</h2>
+            <span onclick="monthlySummary.renderModal()" style="font-size: 14px; color: #667eea; font-weight: 600; cursor: pointer;">Monthly Summary →</span>
+        </div>
         <div style="display: flex; gap: 8px; align-items: center;">
             <select id="credit-type-filter" onchange="loadCreditHistory()" style="padding: 8px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px;">
                 <option value="all">All Types</option>
@@ -311,7 +310,7 @@
         }
     }
 
-    async function addCredits(amount, retryCount = 0) {
+    async function addCredits(amount, retryCount = 0, btn = null) {
         const token = localStorage.getItem('access_token');
         if (!token) {
             window.errorHandler.showToast('Please login to add credits', 'error');
@@ -319,9 +318,8 @@
             return;
         }
 
-        const btn = event?.target;
         const originalText = btn?.textContent;
-        if (btn) btn.textContent = 'Processing...';
+        if (btn) { btn.textContent = 'Processing...'; btn.disabled = true; }
 
         try {
             const idempotencyKey = crypto.randomUUID();
@@ -330,10 +328,9 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`,
-                    'Idempotency-Key': idempotencyKey
+                    'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({ amount_usd: amount })
+                body: JSON.stringify({ amount_usd: amount, idempotency_key: idempotencyKey })
             });
 
             if (res.ok) {
@@ -379,7 +376,7 @@
                 context: 'initialize payment'
             });
         } finally {
-            if (btn && originalText) btn.textContent = originalText;
+            if (btn) { btn.textContent = originalText; btn.disabled = false; }
         }
     }
 
@@ -425,10 +422,10 @@
     `;
     document.head.appendChild(style);
 
-    function addCustomCredits() {
+    function addCustomCredits(btn) {
         const amount = parseFloat(document.getElementById('custom-amount').value);
         if (amount && amount > 0) {
-            addCredits(amount);
+            addCredits(amount, 0, btn);
             document.getElementById('custom-amount').value = '';
         } else {
             window.errorHandler.showToast('Please enter a valid amount', 'error');
