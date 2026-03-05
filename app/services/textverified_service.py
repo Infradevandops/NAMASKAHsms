@@ -227,7 +227,7 @@ class TextVerifiedService:
             service_name=service,
             capability=cap,
             area_code_select_option=area_code_options,
-            carrier_select_option=[carrier] if carrier else None,
+            carrier_select_option=self._build_carrier_preference(carrier) if carrier else None,
         )
 
         assigned_number = result.number
@@ -257,6 +257,14 @@ class TextVerifiedService:
         }
 
     # Backward compat alias used by verification_routes.py
+    def _build_carrier_preference(self, carrier: str) -> List[str]:
+        """Return ordered carrier preference list with fallbacks."""
+        all_carriers = ["verizon", "att", "tmobile", "sprint", "us_cellular"]
+        normalized = carrier.lower().replace(" ", "_").replace("&", "")
+        # Put requested first, then remaining in default order
+        others = [c for c in all_carriers if c != normalized]
+        return [normalized] + others
+
     async def purchase_number(
         self,
         service: str,
