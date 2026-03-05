@@ -39,9 +39,10 @@ async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: S
             activities.append(
                 {
                     "id": v.id,
-                    "service_name": getattr(v, 'service_name', v.service) or "Unknown",
+                    "service_name": getattr(v, 'service_name', None) or getattr(v, 'service', None) or "Unknown",
                     "phone_number": v.phone_number or "N/A",
                     "status": v.status or "pending",
+                    "cost": float(v.cost) if v.cost else 0.0,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
                 }
             )

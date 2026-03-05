@@ -613,13 +613,14 @@ let notificationSystem;
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         notificationSystem = new NotificationSystem();
+        window.notificationSystem = notificationSystem;
     });
 } else {
     notificationSystem = new NotificationSystem();
+    window.notificationSystem = notificationSystem;
 }
 
 // Expose globally for backward compatibility
-window.notificationSystem = notificationSystem;
 window.toggleNotifications = () => notificationSystem?.toggleNotificationDropdown();
 window.markAsRead = (id, link) => notificationSystem?.markAsRead(id, link);
 window.markAllRead = () => notificationSystem?.markAllAsRead();
