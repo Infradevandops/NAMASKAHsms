@@ -91,47 +91,23 @@ class NotificationSystem {
     async loadNotifications() {
         try {
             const token = localStorage.getItem('access_token');
-            if (!token) {
-                console.warn('⚠️ No auth token available');
-                return;
-            }
+            if (!token) return;
 
-            // Fetch notifications and unread count in parallel
-            const [notificationsResponse, countResponse] = await Promise.all([
-                fetch('/api/notifications', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Cache-Control': 'no-cache'
-                    }
-                }),
-                fetch('/api/notifications/unread-count', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Cache-Control': 'no-cache'
-                    }
-                })
-            ]);
+            const response = await fetch('/api/notifications', {
+                headers: { 'Authorization': `Bearer ${token}`, 'Cache-Control': 'no-cache' }
+            });
 
-            if (!notificationsResponse.ok || !countResponse.ok) {
-                throw new Error(`API error: ${notificationsResponse.status} / ${countResponse.status}`);
-            }
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-            const notificationsData = await notificationsResponse.json();
-            const countData = await countResponse.json();
-            
-            const notifications = notificationsData.notifications || [];
-            
-            // Use backend count as source of truth
-            this.unreadCount = countData.count || 0;
+            const data = await response.json();
+            const notifications = data.notifications || [];
+
+            this.unreadCount = data.unread_count || 0;
             this.updateNotificationBadge();
-            
-            // Update dropdown content
             this.updateNotificationDropdown(notifications);
-            
-            console.log(`✅ Loaded ${notifications.length} notifications (${this.unreadCount} unread)`);
-            
+
         } catch (error) {
-            console.error('❌ Failed to load notifications:', error);
+            console.error('Failed to load notifications:', error);
         }
     }
 
