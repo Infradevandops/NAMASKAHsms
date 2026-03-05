@@ -668,12 +668,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadWalletData();
             loadCreditHistory();
-            pendingTransactions.startPolling();
         });
     } else {
         loadWalletData();
         loadCreditHistory();
-        pendingTransactions.startPolling();
     }
 
     setInterval(loadWalletData, 30000);
