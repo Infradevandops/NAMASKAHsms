@@ -1,8 +1,9 @@
 
-
 from unittest.mock import AsyncMock, MagicMock, patch
+import pytest
 from app.models.user import User
 
+@pytest.mark.requires_db
 @patch("app.api.core.auth.get_notification_service")
 @patch("app.services.textverified_service.TextVerifiedService")
 def test_complete_user_journey(MockTVService, mock_get_notify, client, db_session):

@@ -91,7 +91,7 @@ async def test_deliver_webhook_retry_logic():
         assert service.webhooks[webhook_id]["active"] is True
 
         # Fail 4 times (threshold is > 3)
-for i in range(4):
+        for i in range(4):
             await service.deliver(webhook_id, "event", {}, "secret")
 
         # Should be active until AFTER 4th failure checks logic?

@@ -366,5 +366,5 @@ class TestSMSServiceComplete:
         assert saved is not None
         assert saved.amount == -2.50
 
-        if __name__ == "__main__":
-        print("SMS Service tests: 30 comprehensive tests created")
+if __name__ == "__main__":
+    print("SMS Service tests: 30 comprehensive tests created")

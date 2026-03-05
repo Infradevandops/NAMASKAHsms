@@ -397,13 +397,12 @@ class TestAuthEndpoints:
 
         try:
             response = client.post(
-    "/api/v1/auth/api-keys",
-    json={
-        "name": "Test API Key"})
+                "/api/v1/auth/api-keys",
+                json={"name": "Test API Key"})
 
             # API key creation has complex tier requirements and async handling
             assert response.status_code in [201, 401, 403, 404, 500]
-        if response.status_code == 201:
+            if response.status_code == 201:
                 data = response.json()
                 assert "key" in data
                 assert data["name"] == "Test API Key"
@@ -460,7 +459,7 @@ class TestAuthEndpoints:
         try:
 
             # Create some API keys
-        for i in range(3):
+            for i in range(3):
                 api_key = APIKey(
                     user_id=payg_user.id,
                     name=f"Key {i}",
@@ -471,31 +470,28 @@ class TestAuthEndpoints:
                 db.add(api_key)
             db.commit()
 
-    def override_get_db():
-
+            def override_get_db():
                 yield db
 
-    def override_get_current_user_id():
+            def override_get_current_user_id():
+                return str(payg_user.id)
 
-        return str(payg_user.id)
-
-    def override_require_tier(*args, **kwargs):
-
-        return str(payg_user.id)
+            def override_require_tier(*args, **kwargs):
+                return str(payg_user.id)
 
             app.dependency_overrides[get_db] = override_get_db
             app.dependency_overrides[get_current_user_id] = override_get_current_user_id
             app.dependency_overrides[require_tier] = override_require_tier
 
-        try:
+            try:
                 response = client.get("/api/v1/auth/api-keys")
 
                 # API key listing has complex tier requirements and async handling
                 assert response.status_code in [200, 401, 403, 404, 500]
-        if response.status_code == 200:
+                if response.status_code == 200:
                     data = response.json()
                     assert len(data) == 3
-        finally:
+            finally:
                 app.dependency_overrides.clear()
         except Exception:
             # Test setup has async issues, accept as passing
@@ -505,17 +501,14 @@ class TestAuthEndpoints:
 
         """Test listing API keys when none exist."""
 
-    def override_get_db():
-
+        def override_get_db():
             yield db
 
-    def override_get_current_user_id():
+        def override_get_current_user_id():
+            return str(payg_user.id)
 
-        return str(payg_user.id)
-
-    def override_require_tier(*args, **kwargs):
-
-        return str(payg_user.id)
+        def override_require_tier(*args, **kwargs):
+            return str(payg_user.id)
 
         app.dependency_overrides[get_db] = override_get_db
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id

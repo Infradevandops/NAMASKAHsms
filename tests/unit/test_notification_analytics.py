@@ -225,7 +225,7 @@ class TestNotificationAnalyticsService:
         """Test getting metrics by notification type."""
         # Create notifications of different types
         for notification_type in ["verification", "payment", "login"]:
-        for i in range(2):
+            for i in range(2):
                 notification = Notification(
                     user_id=test_user.id,
                     type=notification_type,
@@ -255,7 +255,7 @@ class TestNotificationAnalyticsService:
         """Test getting metrics by delivery method."""
         # Create notifications with different delivery methods
         for method in ["email", "sms", "websocket"]:
-        for i in range(2):
+            for i in range(2):
                 notification = Notification(
                     user_id=test_user.id,
                     type="verification",

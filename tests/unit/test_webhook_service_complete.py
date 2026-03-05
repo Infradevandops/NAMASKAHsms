@@ -306,8 +306,8 @@ class TestWebhookServiceComplete:
 
         # Simulate rate limiting
         for _ in range(10):
-        if current_count < max_per_minute:
-            current_count += 1
+            if current_count < max_per_minute:
+                current_count += 1
 
         assert current_count <= max_per_minute
 
@@ -399,5 +399,5 @@ class TestWebhookServiceComplete:
         assert "X-Webhook-Signature" in str(
             kwargs["headers"]) or "X - Webhook-Signature" in str(kwargs["headers"])
 
-        if __name__ == "__main__":
-        print("Webhook Service tests: 30 comprehensive tests created")
+if __name__ == "__main__":
+    print("Webhook Service tests: 30 comprehensive tests created")

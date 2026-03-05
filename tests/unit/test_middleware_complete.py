@@ -99,8 +99,8 @@ class TestMiddleware:
         # Public path (defined in middleware)
         # Note: /system/health is a public path in the middleware
         @app.get("/system/health")
-    async def health():
-        return {"status": "ok"}
+        async def health():
+            return {"status": "ok"}
 
         # Multiple requests to public path should not be limited
         for _ in range(5):

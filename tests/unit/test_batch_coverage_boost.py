@@ -351,12 +351,12 @@ class TestWebhookServiceExtended:
         assert msg_id is not None
 
 
-        if __name__ == "__main__":
-        print("Batch test implementation complete!")
-        print("Tests created:")
-        print("- Auth Service: 8 tests")
-        print("- SMS Service: 4 tests")
-        print("- Tier Service: 5 tests")
-        print("- Transaction Service: 3 tests")
-        print("- Webhook Service: 2 tests")
-        print("Total: 22 new tests")
+if __name__ == "__main__":
+    print("Batch test implementation complete!")
+    print("Tests created:")
+    print("- Auth Service: 8 tests")
+    print("- SMS Service: 4 tests")
+    print("- Tier Service: 5 tests")
+    print("- Transaction Service: 3 tests")
+    print("- Webhook Service: 2 tests")
+    print("Total: 22 new tests")

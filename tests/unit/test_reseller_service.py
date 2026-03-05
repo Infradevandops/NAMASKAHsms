@@ -36,6 +36,7 @@ async def test_allocate_credits_invalid(service):
 
 
 @pytest.mark.asyncio
+async def test_bulk_credit_topup_partial(
         service, regular_user, db_session):
     # Setup reseller
     res_res = await service.create_reseller_account(regular_user.id)

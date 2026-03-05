@@ -166,7 +166,7 @@ async def test_stop_polling_cancels_task(polling_service):
     """Test stop_polling removes and cancels task."""
 
     # Create a dummy task
-async def dummy_task():
+    async def dummy_task():
         await asyncio.sleep(1)
 
     task = asyncio.create_task(dummy_task())
@@ -175,9 +175,9 @@ async def dummy_task():
     await polling_service.stop_polling("v1")
 
     # Give the loop a chance to process the cancellation
-try:
+    try:
         await task
-except asyncio.CancelledError:
+    except asyncio.CancelledError:
         pass
 
     assert "v1" not in polling_service.polling_tasks
@@ -196,21 +196,21 @@ async def test_background_service_flow(db_session, polling_service, mock_setting
 
         # We need to run start_background_service but kill it after one iteration
         # Easy way: mock sleep to raise an exception or change is_running
-async def stop_after_one_loop(*args):
+        async def stop_after_one_loop(*args):
             polling_service.is_running = False
 
-    with patch("asyncio.sleep", side_effect=stop_after_one_loop):
+        with patch("asyncio.sleep", side_effect=stop_after_one_loop):
             session_mock = MagicMock(wraps=db_session)
             session_mock.close = MagicMock()
             session_mock.query = db_session.query
 
-    with patch(
+            with patch(
                 "app.services.sms_polling_service.SessionLocal",
                 return_value=session_mock,
             ):
-try:
+                try:
                     await polling_service.start_background_service()
-except Exception:
+                except Exception:
                     pass  # End of loop
 
         # Verify it found the pending verification and tried to start polling

@@ -24,6 +24,7 @@ class PaymentInitialize(BaseModel):
     amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
     payment_method: str = Field(default="paystack", description="Payment method")
     metadata: dict = Field(default_factory=dict, description="Optional metadata (e.g. upgrade_to)")
+    idempotency_key: Optional[str] = Field(default=None, description="Client-supplied idempotency key")
 
     @field_validator("amount_usd", mode="before")
     @classmethod

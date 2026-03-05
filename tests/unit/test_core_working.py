@@ -163,20 +163,20 @@ def test_datetime_operations():
 def test_class_creation():
     """Test basic class creation and usage."""
     class TestClass:
-    def __init__(self, value):
+        def __init__(self, value):
             self.value = value
-        
-    def get_value(self):
-        return self.value
-        
-    def set_value(self, new_value):
+
+        def get_value(self):
+            return self.value
+
+        def set_value(self, new_value):
             self.value = new_value
-    
-        obj = TestClass("initial")
-        assert obj.get_value() == "initial"
-    
-        obj.set_value("updated")
-        assert obj.get_value() == "updated"
+
+    obj = TestClass("initial")
+    assert obj.get_value() == "initial"
+
+    obj.set_value("updated")
+    assert obj.get_value() == "updated"
 
 
     def test_lambda_functions():
