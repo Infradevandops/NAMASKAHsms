@@ -298,14 +298,25 @@ class TextVerifiedService:
         carrier: Optional[str] = None,
     ) -> Dict[str, Any]:
         try:
+            from app.core.config import get_settings
+            settings = get_settings()
+            
             result = await self.create_verification(service=service, area_code=area_code, carrier=carrier)
+            
+            # Apply markup to cost
+            raw_cost = result["cost"]
+            marked_up_cost = round(raw_cost * settings.price_markup, 2)
+            
+            logger.info(f"Purchase cost: raw=${raw_cost:.2f}, marked_up=${marked_up_cost:.2f} (markup={settings.price_markup}x)")
+            
             return {
                 "success": True,
                 "verification_id": result["id"],
                 "phone_number": result["phone_number"],
                 "service": service,
                 "country": "US",
-                "cost": result["cost"],
+                "cost": marked_up_cost,
+                "raw_cost": raw_cost,
                 "fallback_applied": result["fallback_applied"],
                 "requested_area_code": result["requested_area_code"],
                 "assigned_area_code": result["assigned_area_code"],
