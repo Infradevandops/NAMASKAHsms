@@ -41,6 +41,11 @@ async def lifespan(app):
 
         startup_logger.info("✅ Application startup completed successfully")
 
+        # Initialize unified cache
+        from app.core.unified_cache import cache
+        await cache.connect()
+        startup_logger.info("Unified cache initialized")
+
         # Start SMS polling background service
         from app.services.sms_polling_service import sms_polling_service
         polling_task = asyncio.create_task(sms_polling_service.start_background_service())
@@ -57,4 +62,6 @@ async def lifespan(app):
     startup_logger.info("🛑 Shutting down Namaskah SMS API...")
     from app.services.sms_polling_service import sms_polling_service
     await sms_polling_service.stop_background_service()
+    from app.core.unified_cache import cache
+    await cache.disconnect()
     startup_logger.info("✅ Shutdown completed")
