@@ -108,7 +108,7 @@ async def get_notification(
             "link": notification.link,
             "icon": notification.icon,
             "is_read": notification.is_read,
-            "created_at": (notification.created_at.isoformat() if notification.created_at else None),
+            "created_at": (notification.created_at.isoformat() + 'Z' if notification.created_at else None),
         }
 
     except ValueError as e:
@@ -145,7 +145,7 @@ async def mark_as_read(
         return {
             "id": notification.id,
             "is_read": notification.is_read,
-            "updated_at": notification.updated_at.isoformat() if notification.updated_at else None,
+            "updated_at": (notification.updated_at.isoformat() + 'Z') if notification.updated_at else None,
         }
 
     except ValueError as e:
