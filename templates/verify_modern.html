@@ -209,16 +209,20 @@ const TIER_RANK = { freemium: 0, payg: 1, pro: 2, custom: 3 };
 
 // Modal state
 let _modalType = null;
-let _modalItems = [];
+let _modalItems = {};
 
 function openModal(type) {
     _modalType = type;
     const titles = { service: 'Select Service', 'area-code': 'Select Area Code', carrier: 'Select Carrier' };
     document.getElementById('modal-title').textContent = titles[type];
     document.getElementById('modal-search').value = '';
-    renderModalItems(_modalItems[type] || []);
-    const modal = document.getElementById('picker-modal');
-    modal.style.display = 'flex';
+    const items = _modalItems[type];
+    if (!items) {
+        document.getElementById('modal-list').innerHTML = '<div style="padding:20px; text-align:center; color:var(--text-secondary);">Loading...</div>';
+    } else {
+        renderModalItems(items);
+    }
+    document.getElementById('picker-modal').style.display = 'flex';
     setTimeout(() => document.getElementById('modal-search').focus(), 50);
 }
 
@@ -320,8 +324,8 @@ function confirmService() {
 }
 
 async function loadServices() {
-    const btn = document.getElementById('service-picker-btn');
-    document.getElementById('service-display').textContent = 'Loading...';
+    document.getElementById('service-display').textContent = 'Loading services...';
+    document.getElementById('service-picker-btn').disabled = false;
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -335,9 +339,11 @@ async function loadServices() {
             { value: '__other__', label: 'Other (type name)', sub: '' }
         ];
         document.getElementById('service-display').textContent = '-- Select a service --';
+        if (_modalType === 'service') renderModalItems(_modalItems['service']);
     } catch (e) {
         _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
         document.getElementById('service-display').textContent = '-- Select a service --';
+        if (_modalType === 'service') renderModalItems(_modalItems['service']);
     }
 }
 
