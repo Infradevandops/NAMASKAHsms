@@ -259,7 +259,7 @@ async function loadServices() {
         const services = data.services || [];
         if (services.length === 0) throw new Error('empty');
         sel.innerHTML = '<option value="">-- Select a service --</option>' +
-            services.map(s => `<option value="${s.name || s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
+            services.map(s => `<option value="${s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
             '<option value="other">Other (type service name)</option>';
         sel.value = '';
     } catch (e) {
@@ -288,14 +288,14 @@ async function loadAreaCodes() {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
         const tid = setTimeout(() => ctrl.abort(), 10000);
-        const res = await fetch('/api/verification/area-codes/US', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+        const res = await fetch(`/api/area-codes?country=US`, { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const codes = data.area_codes || [];
 
         sel.innerHTML = '<option value="">Select an Area Code</option>' +
             codes.map(c => {
-                const label = c.city ? `${c.area_code} — ${c.city}, ${c.state}` : `${c.area_code} — ${c.state}`;
+                const label = c.state ? `${c.area_code} — ${c.state}` : c.area_code;
                 return `<option value="${c.area_code}">${label}</option>`;
             }).join('');
         sel.disabled = false;
