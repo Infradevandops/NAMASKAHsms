@@ -293,7 +293,7 @@
                 isAdmin = userData.is_admin;
             }
 
-            const balanceRes = await fetch('/api/billing/balance', {
+            const balanceRes = await fetch('/api/wallet/balance', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (balanceRes.ok) {
