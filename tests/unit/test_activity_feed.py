@@ -8,9 +8,9 @@ from app.models.activity import Activity
 from app.models.user import User
 from app.services.activity_service import ActivityService
 
+
 @pytest.fixture
 def test_user(db: Session):
-
     """Create test user."""
     user = User(
         id="test-user-123",
@@ -25,7 +25,6 @@ def test_user(db: Session):
 
 @pytest.fixture
 def activity_service(db: Session):
-
     """Create activity service."""
     return ActivityService(db)
 
@@ -35,7 +34,6 @@ class TestActivityModel:
     """Test Activity model."""
 
     def test_create_activity(self, db: Session, test_user):
-
         """Test creating an activity."""
         activity = Activity(
             user_id=test_user.id,
@@ -57,7 +55,6 @@ class TestActivityModel:
         assert activity.status == "completed"
 
     def test_activity_to_dict(self, db: Session, test_user):
-
         """Test converting activity to dictionary."""
         activity = Activity(
             user_id=test_user.id,
@@ -83,7 +80,7 @@ class TestActivityModel:
 
 class TestActivityService:
 
-        """Test ActivityService."""
+    """Test ActivityService."""
 
     def test_log_activity(self, activity_service, test_user):
 
@@ -343,7 +340,7 @@ class TestActivityService:
 
 class TestActivityEndpoints:
 
-        """Test Activity API endpoints."""
+    """Test Activity API endpoints."""
 
     def test_get_activities_endpoint(self, client, test_user, db: Session):
 

@@ -11,7 +11,13 @@ from app.core.database import Base, get_db
 from app.models.user import User
 from app.models.verification import Verification
 from app.models.transaction import Transaction
+from app.utils.security import create_access_token
 from main import app
+
+
+def create_test_token(user_id: str, email: str = "test@example.com") -> str:
+    """Generate a JWT token for use in tests."""
+    return create_access_token({"sub": user_id, "email": email})
 
 
 @pytest.fixture(scope="session")

@@ -35,24 +35,22 @@ from app.utils.security import generate_random_string
 from app.core.constants import TIERS
 from app.core.constants import VERIFICATION_STATUSES
 
+
 class TestDatabase:
 
     """Test database operations."""
 
     def test_get_db_session(self, db):
-
         """Test getting database session."""
         assert db is not None
 
     def test_database_connection(self, db):
-
         """Test database connection is active."""
 
         users = db.query(User).limit(1).all()
         assert isinstance(users, list)
 
     def test_transaction_commit(self, db):
-
         """Test transaction commit."""
 
         user = User(email="test@example.com", password_hash="hash")
@@ -61,7 +59,6 @@ class TestDatabase:
         assert user.id is not None
 
     def test_transaction_rollback(self, db):
-
         """Test transaction rollback."""
 
         user = User(email="rollback@example.com", password_hash="hash")
@@ -73,7 +70,7 @@ class TestDatabase:
 
 class TestConfiguration:
 
-        """Test configuration management."""
+    """Test configuration management."""
 
     def test_get_settings(self):
 
@@ -105,7 +102,7 @@ class TestConfiguration:
 
 class TestTokenManager:
 
-        """Test token management."""
+    """Test token management."""
 
     def test_create_access_token(self):
 
@@ -151,7 +148,7 @@ class TestTokenManager:
 
 class TestDependencies:
 
-        """Test dependency injection."""
+    """Test dependency injection."""
 
     def test_get_current_user_id(self, regular_user):
 
@@ -177,7 +174,7 @@ class TestDependencies:
 
 class TestTierHelpers:
 
-        """Test tier helper functions."""
+    """Test tier helper functions."""
 
     def test_get_tier_features(self):
 
@@ -207,7 +204,7 @@ class TestTierHelpers:
 
 class TestCaching:
 
-        """Test caching functionality."""
+    """Test caching functionality."""
 
     def test_cache_set(self):
 
@@ -251,7 +248,7 @@ class TestCaching:
 
 class TestLogging:
 
-        """Test logging configuration."""
+    """Test logging configuration."""
 
     def test_get_logger(self):
 
@@ -287,7 +284,7 @@ class TestLogging:
 
 class TestExceptions:
 
-        """Test custom exceptions."""
+    """Test custom exceptions."""
 
     def test_authentication_error(self):
 
@@ -322,7 +319,7 @@ class TestExceptions:
 
 class TestSecurity:
 
-        """Test security utilities."""
+    """Test security utilities."""
 
     def test_hash_password(self):
 
@@ -361,7 +358,7 @@ class TestSecurity:
 
 class TestConstants:
 
-        """Test application constants."""
+    """Test application constants."""
 
     def test_tier_constants(self):
 

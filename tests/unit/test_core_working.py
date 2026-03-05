@@ -26,14 +26,16 @@ def test_environment_setup():
     """Test CI environment is properly configured."""
     # Check basic environment
     assert 'PATH' in os.environ
-    
+
     # Check if we're in CI
     is_ci = os.getenv('CI', '').lower() in ['true', '1']
-    is_github_actions = os.getenv('GITHUB_ACTIONS', '').lower() in ['true', '1']
-    
+    is_github_actions = os.getenv(
+    'GITHUB_ACTIONS', '').lower() in [
+        'true', '1']
+
     print(f"CI Environment: {is_ci}")
     print(f"GitHub Actions: {is_github_actions}")
-    
+
     # This should always pass
     assert True
 
@@ -53,14 +55,16 @@ def test_pytest_functionality():
 def test_coverage_basic():
     """Test basic coverage functionality."""
     # Simple function to ensure coverage works
+
+
 def sample_function(x):
         if x > 0:
             return "positive"
         else:
             return "non-positive"
-    
-    assert sample_function(1) == "positive"
-    assert sample_function(0) == "non-positive"
+
+        assert sample_function(1) == "positive"
+        assert sample_function(0) == "non-positive"
 
 
 def test_string_operations():

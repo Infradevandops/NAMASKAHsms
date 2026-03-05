@@ -151,8 +151,7 @@ class TestTierValidation:
 
 
 class TestAPIKeySecurity:
-
-        """Test API key security measures."""
+    """Test API key security measures."""
 
     def test_api_keys_not_logged_in_plain_text(self, client: TestClient, db: Session, caplog):
 
@@ -185,9 +184,9 @@ class TestAPIKeySecurity:
 
             # Check logs don't contain the full API key
             # (This is a basic check - full key should never appear in logs)
-        if api_key and len(api_key) > 20:
+            if api_key and len(api_key) > 20:
                 # The full key should not appear in captured logs
-        for record in caplog.records:
+                for record in caplog.records:
                     assert api_key not in record.message, "Full API key found in logs!"
 
     def test_api_keys_hashed_in_database(self, client: TestClient, db: Session):
@@ -269,8 +268,7 @@ class TestAPIKeySecurity:
 
 
 class TestAccessControl:
-
-        """Test access control mechanisms."""
+    """Test access control mechanisms."""
 
     def test_unauthenticated_access_denied(self, client: TestClient):
 
@@ -350,8 +348,7 @@ class TestAccessControl:
 
 
 class TestInputValidation:
-
-        """Test input validation and sanitization."""
+    """Test input validation and sanitization."""
 
     def test_sql_injection_prevented(self, client: TestClient, db: Session):
 

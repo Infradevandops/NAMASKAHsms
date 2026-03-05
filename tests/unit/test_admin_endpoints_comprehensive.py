@@ -3,61 +3,61 @@
 
 from app.models.verification import Verification
 
+
 class TestAdminUserManagement:
 
     """Test admin user management endpoints."""
 
     def test_list_users_success(self, authenticated_admin_client):
-
         """Test listing all users."""
         response = authenticated_admin_client.get("/api/v1/admin/users")
 
         assert response.status_code in [200, 404]
 
     def test_list_users_pagination(self, authenticated_admin_client):
-
         """Test user list pagination."""
-        response = authenticated_admin_client.get("/api/v1/admin/users?limit=10&offset=0")
+        response = authenticated_admin_client.get(
+            "/api/v1/admin/users?limit=10&offset=0")
 
         assert response.status_code in [200, 404]
 
     def test_list_users_filter_by_tier(self, authenticated_admin_client):
-
         """Test filtering users by tier."""
-        response = authenticated_admin_client.get("/api/v1/admin/users?tier=pro")
+        response = authenticated_admin_client.get(
+            "/api/v1/admin/users?tier=pro")
 
         assert response.status_code in [200, 404]
 
     def test_list_users_non_admin(self, authenticated_regular_client):
-
         """Test non-admin cannot list users."""
         response = authenticated_regular_client.get("/api/v1/admin/users")
 
         assert response.status_code in [403, 404]
 
     def test_get_user_details(self, authenticated_admin_client, regular_user):
-
         """Test getting specific user details."""
-        response = authenticated_admin_client.get(f"/api/v1/admin/users/{regular_user.id}")
+        response = authenticated_admin_client.get(
+            f"/api/v1/admin/users/{regular_user.id}")
 
         assert response.status_code in [200, 404]
 
     def test_get_user_details_not_found(self, authenticated_admin_client):
-
         """Test getting non-existent user."""
-        response = authenticated_admin_client.get("/api/v1/admin/users/nonexistent-id")
+        response = authenticated_admin_client.get(
+            "/api/v1/admin/users/nonexistent-id")
 
         assert response.status_code == 404
 
-    def test_update_user_tier(self, authenticated_admin_client, regular_user, db):
-
+    def test_update_user_tier(
+        self, authenticated_admin_client, regular_user, db):
         """Test updating user tier."""
-        response = authenticated_admin_client.patch(f"/api/v1/admin/users/{regular_user.id}/tier", json={"tier": "pro"})
+        response = authenticated_admin_client.patch(
+            f"/api/v1/admin/users/{regular_user.id}/tier", json={"tier": "pro"})
 
         assert response.status_code in [200, 404]
 
-    def test_update_user_credits(self, authenticated_admin_client, regular_user, db):
-
+    def test_update_user_credits(
+        self, authenticated_admin_client, regular_user, db):
         """Test updating user credits."""
         regular_user.credits
 
@@ -68,7 +68,6 @@ class TestAdminUserManagement:
         assert response.status_code in [200, 404]
 
     def test_suspend_user(self, authenticated_admin_client, regular_user, db):
-
         """Test suspending user account."""
         response = authenticated_admin_client.post(
             f"/api/v1/admin/users/{regular_user.id}/suspend", json={"reason": "Terms violation"}
@@ -77,27 +76,28 @@ class TestAdminUserManagement:
         # Endpoint may expect reason as query param, not body
         assert response.status_code in [200, 404, 422]
 
-    def test_unsuspend_user(self, authenticated_admin_client, regular_user, db):
-
+    def test_unsuspend_user(
+        self, authenticated_admin_client, regular_user, db):
         """Test unsuspending user account."""
         regular_user.is_active = False
         db.commit()
 
-        response = authenticated_admin_client.post(f"/api/v1/admin/users/{regular_user.id}/unsuspend")
+        response = authenticated_admin_client.post(
+            f"/api/v1/admin/users/{regular_user.id}/unsuspend")
 
         assert response.status_code in [200, 400, 404, 422]
 
     def test_delete_user(self, authenticated_admin_client, regular_user):
-
         """Test deleting user account."""
-        response = authenticated_admin_client.delete(f"/api/v1/admin/users/{regular_user.id}")
+        response = authenticated_admin_client.delete(
+            f"/api/v1/admin/users/{regular_user.id}")
 
         assert response.status_code in [200, 204, 404]
 
 
 class TestAdminVerificationManagement:
 
-        """Test admin verification management endpoints."""
+    """Test admin verification management endpoints."""
 
     def test_list_all_verifications(self, authenticated_admin_client):
 
@@ -182,7 +182,7 @@ class TestAdminVerificationManagement:
 
 class TestAdminAnalytics:
 
-        """Test admin analytics endpoints."""
+    """Test admin analytics endpoints."""
 
     def test_get_dashboard_stats(self, authenticated_admin_client):
 
@@ -238,7 +238,7 @@ class TestAdminAnalytics:
 
 class TestAdminTierManagement:
 
-        """Test admin tier management endpoints."""
+    """Test admin tier management endpoints."""
 
     def test_list_tiers(self, authenticated_admin_client):
 
@@ -286,7 +286,7 @@ class TestAdminTierManagement:
 
 class TestAdminSystemMonitoring:
 
-        """Test admin system monitoring endpoints."""
+    """Test admin system monitoring endpoints."""
 
     def test_get_system_health(self, authenticated_admin_client):
 
@@ -326,7 +326,7 @@ class TestAdminSystemMonitoring:
 
 class TestAdminActions:
 
-        """Test admin action endpoints."""
+    """Test admin action endpoints."""
 
     def test_broadcast_notification(self, authenticated_admin_client):
 

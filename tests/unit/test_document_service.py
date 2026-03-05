@@ -7,13 +7,14 @@ from fastapi import HTTPException, UploadFile
 from app.services.document_service import DocumentService
 from app.services import document_service
 
+
 class TestDocumentService:
     @pytest.fixture
     def service(self, db_session):
 
         return DocumentService(db_session)
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_validate_file_success(self, service):
         # Mock UploadFile
         mock_file = MagicMock(spec=UploadFile)
@@ -24,7 +25,7 @@ class TestDocumentService:
         # Should not raise
         await service._validate_file(mock_file, "passport")
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_validate_file_invalid_type(self, service):
         mock_file = MagicMock(spec=UploadFile)
         mock_file.content_type = "text/plain"
@@ -34,7 +35,7 @@ class TestDocumentService:
             await service._validate_file(mock_file, "passport")
         assert exc.value.status_code == 400
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_validate_file_too_large(self, service):
         mock_file = MagicMock(spec=UploadFile)
         mock_file.content_type = "image/jpeg"
@@ -52,13 +53,14 @@ class TestDocumentService:
         h = service._generate_file_hash(content)
         assert len(h) == 64  # SHA-256
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_upload_document_profile_not_found(self, service):
         mock_file = MagicMock(spec=UploadFile)
-        # Service suppresses HTTPException and returns None (based on pass block)
+        # Service suppresses HTTPException and returns None (based on pass
+        # block)
         assert await service.upload_document(mock_file, "passport", "non-existent-id") is None
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_process_image_no_pil(self, service):
         # Even if PIL is available, we can mock it as missing if we want,
         # but let's test what happens when it's called

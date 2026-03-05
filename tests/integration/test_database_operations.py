@@ -1,13 +1,12 @@
 """
+Integration Tests - Database Operations
+Comprehensive database integration tests
+"""
 import pytest
 from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
 from app.models.verification import Verification
 from app.utils.security import hash_password
-
-Integration Tests - Database Operations
-Comprehensive database integration tests
-"""
 
 
 class TestDatabaseIntegration:
@@ -299,5 +298,5 @@ class TestDatabaseIntegration:
         assert len(page_1_ids.intersection(page_2_ids)) == 0
 
 
-        if __name__ == "__main__":
-        print("Integration tests created: 15 database operation tests")
+if __name__ == "__main__":
+    print("Integration tests created: 15 database operation tests")

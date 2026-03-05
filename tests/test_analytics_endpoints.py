@@ -160,8 +160,7 @@ class TestAnalyticsSummaryEndpoint:
 
 
 class TestDashboardActivityEndpoint:
-
-        """Tests for GET /api/dashboard/activity/recent endpoint."""
+    """Tests for GET /api/dashboard/activity/recent endpoint."""
 
     def test_activity_recent_returns_array(self, client, regular_user):
 

@@ -5,42 +5,52 @@ from unittest.mock import MagicMock, patch
 from app.models.verification import Verification
 from app.models.user import User
 
+
 class TestValidationErrors:
 
     """Test input validation error handling."""
 
     def test_invalid_email_format(self, client):
-
         """Test invalid email format handling."""
-        response = client.post("/api/v1/auth/register", json={"email": "invalid-email", "password": "password123"})
+        response = client.post(
+    "/api/v1/auth/register",
+    json={
+        "email": "invalid-email",
+         "password": "password123"})
         assert response.status_code == 422
 
     def test_missing_required_field(self, client):
-
         """Test missing required field handling."""
-        response = client.post("/api/v1/auth/register", json={"email": "test@example.com"})  # Missing password
+        response = client.post(
+    "/api/v1/auth/register",
+    json={
+        "email": "test@example.com"})  # Missing password
         assert response.status_code == 422
 
     def test_invalid_data_type(self, client, regular_user):
-
         """Test invalid data type handling."""
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post("/api/v1/wallet/add-credits", json={"amount": "not-a-number"})
+            response = client.post(
+    "/api/v1/wallet/add-credits",
+    json={
+        "amount": "not-a-number"})
         # Endpoint may not exist yet
         assert response.status_code in [400, 404, 422]
 
     def test_negative_amount(self, client, regular_user):
-
         """Test negative amount validation."""
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-            response = client.post("/api/v1/wallet/add-credits", json={"amount": -10.0})
+            response = client.post(
+    "/api/v1/wallet/add-credits",
+    json={
+        "amount": -10.0})
         # Endpoint may not exist yet
         assert response.status_code in [400, 404, 422]
 
 
 class TestAuthenticationErrors:
 
-        """Test authentication error handling."""
+    """Test authentication error handling."""
 
     def test_missing_token(self, client):
 
@@ -69,7 +79,7 @@ class TestAuthenticationErrors:
 
 class TestAuthorizationErrors:
 
-        """Test authorization error handling."""
+    """Test authorization error handling."""
 
     def test_insufficient_permissions(self, client, regular_user):
 
@@ -109,7 +119,7 @@ class TestAuthorizationErrors:
 
 class TestResourceNotFoundErrors:
 
-        """Test resource not found error handling."""
+    """Test resource not found error handling."""
 
     def test_user_not_found(self, client, admin_user):
 
@@ -134,7 +144,7 @@ class TestResourceNotFoundErrors:
 
 class TestBusinessLogicErrors:
 
-        """Test business logic error handling."""
+    """Test business logic error handling."""
 
     def test_insufficient_credits(self, client, regular_user, db):
 
@@ -164,7 +174,7 @@ class TestBusinessLogicErrors:
 
 class TestExternalServiceErrors:
 
-        """Test external service error handling."""
+    """Test external service error handling."""
 
     def test_textverified_service_unavailable(self, client, regular_user):
 
@@ -194,7 +204,7 @@ class TestExternalServiceErrors:
 
 class TestDatabaseErrors:
 
-        """Test database error handling."""
+    """Test database error handling."""
 
     def test_database_connection_error(self):
 
@@ -227,7 +237,7 @@ class TestDatabaseErrors:
 
 class TestConcurrencyErrors:
 
-        """Test concurrency error handling."""
+    """Test concurrency error handling."""
 
     def test_race_condition_handling(self):
 
@@ -248,7 +258,7 @@ class TestConcurrencyErrors:
 
 class TestTimeoutErrors:
 
-        """Test timeout error handling."""
+    """Test timeout error handling."""
 
     def test_request_timeout(self):
 
@@ -268,7 +278,7 @@ class TestTimeoutErrors:
 
 class TestBoundaryConditions:
 
-        """Test boundary condition handling."""
+    """Test boundary condition handling."""
 
     def test_empty_string_input(self, client):
 
@@ -296,7 +306,7 @@ class TestBoundaryConditions:
 
 class TestErrorResponses:
 
-        """Test error response format."""
+    """Test error response format."""
 
     def test_error_response_structure(self, client):
 

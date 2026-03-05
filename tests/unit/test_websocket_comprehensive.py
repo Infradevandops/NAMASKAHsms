@@ -10,19 +10,18 @@ from app.websocket.manager import ConnectionManager
 from app.websocket.manager import ConnectionManager
 from app.websocket.manager import ConnectionManager
 
+
 class TestWebSocketManager:
 
     """Test WebSocket connection manager."""
 
     def test_connection_manager_initialization(self):
-
         """Test WebSocket manager initialization."""
 
         manager = ConnectionManager()
         assert manager is not None
 
     def test_connect_websocket(self):
-
         """Test connecting WebSocket client."""
 
         manager = ConnectionManager()
@@ -38,7 +37,6 @@ class TestWebSocketManager:
             assert True  # May not be implemented
 
     def test_disconnect_websocket(self):
-
         """Test disconnecting WebSocket client."""
 
         manager = ConnectionManager()
@@ -54,7 +52,6 @@ class TestWebSocketManager:
             assert True
 
     def test_broadcast_message(self):
-
         """Test broadcasting message to all connections."""
 
         manager = ConnectionManager()
@@ -68,7 +65,6 @@ class TestWebSocketManager:
             assert True
 
     def test_send_personal_message(self):
-
         """Test sending message to specific user."""
 
         manager = ConnectionManager()
@@ -85,7 +81,7 @@ class TestWebSocketManager:
 
 class TestWebSocketEndpoints:
 
-        """Test WebSocket endpoints."""
+    """Test WebSocket endpoints."""
 
     def test_websocket_connection_endpoint(self, client):
 
@@ -107,7 +103,7 @@ class TestWebSocketEndpoints:
 
 class TestWebSocketNotifications:
 
-        """Test WebSocket notification delivery."""
+    """Test WebSocket notification delivery."""
 
     def test_notification_broadcast(self):
 
@@ -136,7 +132,7 @@ class TestWebSocketNotifications:
 
 class TestWebSocketChannels:
 
-        """Test WebSocket channel subscriptions."""
+    """Test WebSocket channel subscriptions."""
 
     def test_subscribe_to_channel(self):
 
@@ -156,7 +152,7 @@ class TestWebSocketChannels:
 
 class TestWebSocketSecurity:
 
-        """Test WebSocket security."""
+    """Test WebSocket security."""
 
     def test_websocket_rate_limiting(self):
 
@@ -176,7 +172,7 @@ class TestWebSocketSecurity:
 
 class TestWebSocketReconnection:
 
-        """Test WebSocket reconnection handling."""
+    """Test WebSocket reconnection handling."""
 
     def test_automatic_reconnection(self):
 

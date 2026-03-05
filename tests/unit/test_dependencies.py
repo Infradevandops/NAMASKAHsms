@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException, Request
 from app.core.dependencies import (
-from app.utils.security import create_access_token
 
     get_current_user,
     get_current_user_id,
@@ -28,13 +27,14 @@ async def test_get_token_from_request():
     # 3. Test Missing
     mock_req.cookies = {}
 with pytest.raises(HTTPException):
-        get_token_from_request(mock_req, None)
+    get_token_from_request(mock_req, None)
 
 
 @pytest.mark.asyncio
 async def test_get_current_user_id(regular_user):
 
-    token = create_access_token({"user_id": str(regular_user.id), "email": regular_user.email})
+    token = create_access_token(
+        {"user_id": str(regular_user.id), "email": regular_user.email})
     assert get_current_user_id(token) == str(regular_user.id)
 
 
@@ -48,5 +48,6 @@ async def test_get_current_user(regular_user, db_session):
 async def test_get_optional_user_id():
     mock_cred = MagicMock()
     mock_cred.credentials = "test_token"
-    # This will fail decode but return None if mocked properly or if jwt is real
+    # This will fail decode but return None if mocked properly or if jwt is
+    # real
     assert get_optional_user_id(None) is None

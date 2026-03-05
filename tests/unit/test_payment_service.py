@@ -6,15 +6,17 @@ import pytest
 from app.models.transaction import PaymentLog
 from app.services.payment_service import PaymentService
 
+
 class TestPaymentService:
     @pytest.fixture
     def payment_service(self, db_session, redis_client):
 
         with patch("redis.Redis.from_url", return_value=redis_client):
-        return PaymentService(db_session)
+            return PaymentService(db_session)
 
-        @patch("app.services.payment_service.paystack_service")
-    async def test_initiate_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
+    @patch("app.services.payment_service.paystack_service")
+    async def test_initiate_payment_success(
+            self, mock_paystack, payment_service, regular_user, db_session):
         # Setup mock
         mock_paystack.enabled = True
         mock_paystack.initialize_payment = AsyncMock(
@@ -32,18 +34,21 @@ class TestPaymentService:
         assert "reference" in result
 
         # Verify PaymentLog created
-        log = db_session.query(PaymentLog).filter(PaymentLog.reference == result["reference"]).first()
+        log = db_session.query(PaymentLog).filter(
+            PaymentLog.reference == result["reference"]).first()
         assert log is not None
         assert log.user_id == regular_user.id
         assert log.amount_usd == amount_usd
         assert log.status == "pending"
 
-    async def test_initiate_payment_invalid_amount(self, payment_service, regular_user):
+    async def test_initiate_payment_invalid_amount(
+            self, payment_service, regular_user):
         with pytest.raises(ValueError, match="Amount must be positive"):
             await payment_service.initiate_payment(regular_user.id, -5.0)
 
-        @patch("app.services.payment_service.paystack_service")
-    async def test_verify_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
+    @patch("app.services.payment_service.paystack_service")
+    async def test_verify_payment_success(
+            self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a pending payment log
         reference = "ref_123"
         log = PaymentLog(
@@ -81,7 +86,8 @@ class TestPaymentService:
         db_session.refresh(regular_user)
         assert regular_user.credits == 20.0  # 10 initial + 10 added
 
-    async def test_handle_charge_success_webhook(self, payment_service, regular_user, db_session):
+    async def test_handle_charge_success_webhook(
+            self, payment_service, regular_user, db_session):
         # 1. Setup pending payment
         reference = "ref_webhook"
         log = PaymentLog(
@@ -97,12 +103,15 @@ class TestPaymentService:
         db_session.add(log)
         db_session.commit()
 
-        payload = {"reference": reference, "amount": 3000000}  # 30000 NGN in kobo
+        payload = {
+            "reference": reference,
+            "amount": 3000000}  # 30000 NGN in kobo
 
         # 2. Process webhook
         result = await payment_service.process_webhook("charge.success", payload)
 
-        # Accept either "success" (first time) or "duplicate" (if already processed)
+        # Accept either "success" (first time) or "duplicate" (if already
+        # processed)
         assert result["status"] in ["success", "duplicate"]
 
         # 3. Check DB
@@ -116,7 +125,8 @@ class TestPaymentService:
         # Credits might be 30.0 (if processed) or 10.0 (if duplicate)
         assert regular_user.credits in [10.0, 30.0]
 
-    async def test_handle_charge_failed_webhook(self, payment_service, regular_user, db_session):
+    async def test_handle_charge_failed_webhook(
+            self, payment_service, regular_user, db_session):
         reference = "ref_fail"
         log = PaymentLog(
             user_id=regular_user.id,
@@ -134,7 +144,8 @@ class TestPaymentService:
         assert log.status == "failed"
         assert log.webhook_received is True
 
-    def test_get_payment_history(self, payment_service, regular_user, db_session):
+    def test_get_payment_history(
+            self, payment_service, regular_user, db_session):
 
         log = PaymentLog(
             user_id=regular_user.id,
@@ -150,7 +161,8 @@ class TestPaymentService:
         assert len(history["payments"]) >= 1
         assert history["payments"][0]["reference"] == "ref_hist"
 
-    def test_get_payment_summary(self, payment_service, regular_user, db_session):
+    def test_get_payment_summary(
+            self, payment_service, regular_user, db_session):
         # Add a success log
         db_session.add(
             PaymentLog(
@@ -167,8 +179,9 @@ class TestPaymentService:
         assert summary["total_payments"] >= 1
         assert summary["total_paid"] >= 10.0
 
-        @patch("app.services.payment_service.paystack_service")
-    async def test_refund_payment_success(self, mock_paystack, payment_service, regular_user, db_session):
+    @patch("app.services.payment_service.paystack_service")
+    async def test_refund_payment_success(
+            self, mock_paystack, payment_service, regular_user, db_session):
         # 1. Setup a successful payment
         regular_user.credits = 10.0
         log = PaymentLog(
@@ -184,7 +197,8 @@ class TestPaymentService:
         db_session.commit()
 
         # 2. Mock Paystack refund
-        mock_paystack.refund_transaction = AsyncMock(return_value={"status": True, "data": {"status": "processed"}})
+        mock_paystack.refund_transaction = AsyncMock(
+            return_value={"status": True, "data": {"status": "processed"}})
 
         # 3. Request refund
         result = payment_service.refund_payment(log.reference, regular_user.id)
@@ -199,12 +213,14 @@ class TestPaymentService:
         result = await payment_service.process_webhook("unknown.event", {})
         assert result["status"] == "ignored"
 
-    async def test_initiate_payment_zero_amount(self, payment_service, regular_user):
+    async def test_initiate_payment_zero_amount(
+            self, payment_service, regular_user):
         """Test payment with zero amount"""
         with pytest.raises(ValueError):
             await payment_service.initiate_payment(regular_user.id, 0)
 
-    async def test_verify_payment_not_found(self, payment_service, regular_user):
+    async def test_verify_payment_not_found(
+            self, payment_service, regular_user):
         """Test verifying non-existent payment"""
         with pytest.raises(Exception):
             await payment_service.verify_payment("nonexistent_ref", regular_user.id)
@@ -215,7 +231,8 @@ class TestPaymentService:
         assert "payments" in history
         assert isinstance(history["payments"], list)
 
-    async def test_duplicate_payment_prevention(self, payment_service, regular_user, db_session):
+    async def test_duplicate_payment_prevention(
+            self, payment_service, regular_user, db_session):
         """Test that duplicate payments are prevented"""
         reference = "ref_duplicate"
         log = PaymentLog(

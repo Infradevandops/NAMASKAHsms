@@ -7,23 +7,27 @@ from app.models.verification import Verification
 from app.services.smart_routing import SmartRouter
 from app.services.sms_gateway import SMSGateway
 
+
 class TestSMSLogic:
     @pytest.fixture
     def smart_router(self):
 
         return SmartRouter()
 
-        @pytest.fixture
+    @pytest.fixture
     def sms_gateway(self):
 
         return SMSGateway()
 
-    async def test_smart_router_select_provider_default(self, smart_router, db_session):
-        # With no data, it should still return a provider (highest score based on defaults)
+    async def test_smart_router_select_provider_default(
+            self, smart_router, db_session):
+        # With no data, it should still return a provider (highest score based
+        # on defaults)
         provider = await smart_router.select_provider("telegram", "US")
         assert provider in ["5sim", "sms_activate", "getsms", "textverified"]
 
-    async def test_smart_router_logic_with_stats(self, smart_router, db_session):
+    async def test_smart_router_logic_with_stats(
+            self, smart_router, db_session):
         # 1. Seed data to make one provider look better
         # Provider A: High success, Low cost
         # Provider B: Low success, High cost
@@ -57,7 +61,8 @@ class TestSMSLogic:
         # 2. Select provider
         provider = await smart_router.select_provider("telegram", "US")
 
-        # 5sim should have higher score due to lower cost (1/0.5=2) and higher success rate (1.0 vs 0.0)
+        # 5sim should have higher score due to lower cost (1/0.5=2) and higher
+        # success rate (1.0 vs 0.0)
         assert provider == "5sim"
 
     def test_calculate_score(self, smart_router):
@@ -70,7 +75,7 @@ class TestSMSLogic:
 
         assert score_good > score_bad
 
-        @patch("httpx.AsyncClient.post")
+    @patch("httpx.AsyncClient.post")
     async def test_sms_gateway_provider_switch(self, mock_post, sms_gateway):
         # Test twilio (default)
         res = await sms_gateway.send_sms("+123456789", "Hello")

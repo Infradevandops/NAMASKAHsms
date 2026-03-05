@@ -3,6 +3,7 @@
 import pytest
 from app.services.alerting_service import AlertingService
 
+
 @pytest.fixture
 def service():
 
@@ -51,13 +52,13 @@ async def test_send_alert_exception(service):
     # Mock _send_email_alert to raise exception
     original_method = service._send_email_alert
 
-async def mock_fail(alert):
+    async def mock_fail(alert):
         raise ValueError("Simulated failure")
 
     service._send_email_alert = mock_fail
 
-try:
+    try:
         result = await service.send_alert({"message": "Fail"})
         assert result is False
-finally:
+    finally:
         service._send_email_alert = original_method

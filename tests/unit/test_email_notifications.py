@@ -9,9 +9,9 @@ from app.models.notification_preference import NotificationPreference
 from app.models.user import User
 from app.services.email_notification_service import EmailNotificationService
 
+
 @pytest.fixture
 def test_user(db: Session):
-
     """Create test user."""
     user = User(
         id="test-user-123",
@@ -26,7 +26,6 @@ def test_user(db: Session):
 
 @pytest.fixture
 def test_notification(db: Session, test_user):
-
     """Create test notification."""
     notification = Notification(
         user_id=test_user.id,
@@ -42,7 +41,6 @@ def test_notification(db: Session, test_user):
 
 @pytest.fixture
 def email_service(db: Session):
-
     """Create email notification service."""
     return EmailNotificationService(db)
 
@@ -52,7 +50,8 @@ class TestEmailNotificationService:
     """Test EmailNotificationService."""
 
     @pytest.mark.asyncio
-    async def test_send_notification_email(self, email_service, test_user, test_notification):
+    async def test_send_notification_email(
+        self, email_service, test_user, test_notification):
         """Test sending notification email."""
         with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
             mock_send.return_value = True
@@ -62,13 +61,15 @@ class TestEmailNotificationService:
                 notification=test_notification,
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
-        @pytest.mark.asyncio
-    async def test_send_notification_email_disabled(self, db: Session, test_user):
+    @pytest.mark.asyncio
+    async def test_send_notification_email_disabled(
+        self, db: Session, test_user):
         """Test sending notification email when service is disabled."""
         service = EmailNotificationService(db)
         service.enabled = False
@@ -87,8 +88,9 @@ class TestEmailNotificationService:
 
         assert result is False
 
-        @pytest.mark.asyncio
-    async def test_send_verification_initiated_email(self, email_service, test_user):
+    @pytest.mark.asyncio
+    async def test_send_verification_initiated_email(
+        self, email_service, test_user):
         """Test sending verification initiated email."""
         with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
             mock_send.return_value = True
@@ -99,13 +101,15 @@ class TestEmailNotificationService:
                 verification_id="verify-123",
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
-        @pytest.mark.asyncio
-    async def test_send_verification_completed_email(self, email_service, test_user):
+    @pytest.mark.asyncio
+    async def test_send_verification_completed_email(
+        self, email_service, test_user):
         """Test sending verification completed email."""
         with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
             mock_send.return_value = True
@@ -117,13 +121,15 @@ class TestEmailNotificationService:
                 cost=0.05,
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
-        @pytest.mark.asyncio
-    async def test_send_low_balance_alert_email(self, email_service, test_user):
+    @pytest.mark.asyncio
+    async def test_send_low_balance_alert_email(
+        self, email_service, test_user):
         """Test sending low balance alert email."""
         with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
             mock_send.return_value = True
@@ -134,13 +140,15 @@ class TestEmailNotificationService:
                 threshold=1.0,
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
-        @pytest.mark.asyncio
-    async def test_send_daily_digest_email(self, email_service, test_user, db: Session):
+    @pytest.mark.asyncio
+    async def test_send_daily_digest_email(
+        self, email_service, test_user, db: Session):
         """Test sending daily digest email."""
         # Create multiple notifications
         notifications = []
@@ -163,13 +171,15 @@ class TestEmailNotificationService:
                 notifications=notifications,
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
-        @pytest.mark.asyncio
-    async def test_send_daily_digest_email_empty(self, email_service, test_user):
+    @pytest.mark.asyncio
+    async def test_send_daily_digest_email_empty(
+        self, email_service, test_user):
         """Test sending daily digest with no notifications."""
         result = await email_service.send_daily_digest_email(
             user_email=test_user.email,
@@ -178,8 +188,9 @@ class TestEmailNotificationService:
 
         assert result is False
 
-        @pytest.mark.asyncio
-    async def test_send_weekly_digest_email(self, email_service, test_user, db: Session):
+    @pytest.mark.asyncio
+    async def test_send_weekly_digest_email(
+        self, email_service, test_user, db: Session):
         """Test sending weekly digest email."""
         # Create notifications
         notifications = []
@@ -209,13 +220,13 @@ class TestEmailNotificationService:
                 stats=stats,
             )
 
-            # Accept both True (if email configured) and False (if not configured)
+            # Accept both True (if email configured) and False (if not
+            # configured)
             assert result in [True, False]
         if result:
                 mock_send.assert_called_once()
 
     def test_create_notification_html(self, email_service, test_notification):
-
         """Test creating notification HTML."""
         html = email_service._create_notification_html(
             notification=test_notification,
@@ -227,7 +238,6 @@ class TestEmailNotificationService:
         assert "unsubscribe" in html.lower()
 
     def test_create_verification_initiated_html(self, email_service):
-
         """Test creating verification initiated HTML."""
         html = email_service._create_verification_initiated_html(
             service_name="Telegram",
@@ -239,7 +249,6 @@ class TestEmailNotificationService:
         assert "verify-123" in html
 
     def test_create_verification_completed_html(self, email_service):
-
         """Test creating verification completed HTML."""
         html = email_service._create_verification_completed_html(
             service_name="Telegram",
@@ -252,7 +261,6 @@ class TestEmailNotificationService:
         assert "0.05" in html
 
     def test_create_low_balance_alert_html(self, email_service):
-
         """Test creating low balance alert HTML."""
         html = email_service._create_low_balance_alert_html(
             current_balance=0.50,
@@ -264,7 +272,6 @@ class TestEmailNotificationService:
         assert "1.00" in html
 
     def test_create_daily_digest_html(self, email_service, test_notification):
-
         """Test creating daily digest HTML."""
         html = email_service._create_daily_digest_html(
             notifications=[test_notification],
@@ -274,7 +281,6 @@ class TestEmailNotificationService:
         assert test_notification.title in html
 
     def test_create_weekly_digest_html(self, email_service, test_notification):
-
         """Test creating weekly digest HTML."""
         stats = {
             "total_verifications": 10,
@@ -293,7 +299,7 @@ class TestEmailNotificationService:
 
 class TestEmailEndpoints:
 
-        """Test email notification endpoints."""
+    """Test email notification endpoints."""
 
     def test_send_test_email_endpoint(self, client, test_user, db: Session):
 

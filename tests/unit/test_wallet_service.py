@@ -9,14 +9,17 @@ from app.services.pricing_calculator import PricingCalculator
 from app.core.exceptions import InsufficientCreditsError
 from app.core.exceptions import InsufficientCreditsError
 
+
 class TestWalletSMSCostCalculations:
 
     """Test SMS cost calculation logic using PricingCalculator."""
 
     def test_calculate_sms_cost_payg_base(self, db_session):
-
         """Base SMS cost for PAYG: $2.50."""
-        user = User(email="payg@example.com", subscription_tier="payg", credits=10.0)
+        user = User(
+    email="payg@example.com",
+    subscription_tier="payg",
+     credits=10.0)
         db_session.add(user)
         db_session.commit()
 
@@ -26,54 +29,66 @@ class TestWalletSMSCostCalculations:
         assert result["total_cost"] == 2.50
 
     def test_calculate_sms_cost_payg_location_filter(self, db_session):
-
         """Location filter: +$0.25 for PAYG."""
-        user = User(email="payg_loc@example.com", subscription_tier="payg", credits=10.0)
+        user = User(
+    email="payg_loc@example.com",
+    subscription_tier="payg",
+     credits=10.0)
         db_session.add(user)
         db_session.commit()
 
         # filter keys: state/city trigger +0.25
-        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA"})
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {"state": "CA"})
         assert result["filter_charges"] == 0.25
         assert result["total_cost"] == 2.50 + 0.25
 
     def test_calculate_sms_cost_payg_isp_filter(self, db_session):
-
         """ISP filter: +$0.50 for PAYG."""
-        user = User(email="payg_isp@example.com", subscription_tier="payg", credits=10.0)
+        user = User(
+    email="payg_isp@example.com",
+    subscription_tier="payg",
+     credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"isp": "T-Mobile"})
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {"isp": "T-Mobile"})
         assert result["filter_charges"] == 0.50
         assert result["total_cost"] == 2.50 + 0.50
 
     def test_calculate_sms_cost_payg_all_filters(self, db_session):
-
         """All filters: +$0.75 for PAYG."""
-        user = User(email="payg_all@example.com", subscription_tier="payg", credits=10.0)
+        user = User(
+    email="payg_all@example.com",
+    subscription_tier="payg",
+     credits=10.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA", "isp": "Verizon"})
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {"state": "CA", "isp": "Verizon"})
         assert result["filter_charges"] == 0.75
         assert result["total_cost"] == 2.50 + 0.75
 
     def test_calculate_sms_cost_pro_tier_filters_included(self, db_session):
-
         """Pro tier: Filters included (no extra charge)."""
-        user = User(email="pro@example.com", subscription_tier="pro", credits=50.0)
+        user = User(
+    email="pro@example.com",
+    subscription_tier="pro",
+     credits=50.0)
         db_session.add(user)
         db_session.commit()
 
-        result = PricingCalculator.calculate_sms_cost(db_session, user.id, {"state": "CA", "isp": "Verizon"})
+        result = PricingCalculator.calculate_sms_cost(
+            db_session, user.id, {"state": "CA", "isp": "Verizon"})
         assert result["filter_charges"] == 0.0
         assert result["total_cost"] == 2.50  # Base cost only
 
 
 class TestWalletTransactions:
 
-        """Test transaction recording via CreditService."""
+    """Test transaction recording via CreditService."""
 
     def test_add_credits_transaction(self, db_session):
 
@@ -144,7 +159,7 @@ class TestWalletTransactions:
 
 class TestWalletBalanceOperations:
 
-        """Test wallet balance operations via CreditService."""
+    """Test wallet balance operations via CreditService."""
 
     def test_deduct_credits_sufficient_balance(self, db_session):
 
@@ -192,7 +207,7 @@ class TestWalletBalanceOperations:
 
 class TestCreditServiceTransfer:
 
-        """Test credit transfer functionality."""
+    """Test credit transfer functionality."""
 
     def test_transfer_credits_success(self, db_session):
 
@@ -249,7 +264,7 @@ class TestCreditServiceTransfer:
 
 class TestCreditServiceAdmin:
 
-        """Test admin credit operations."""
+    """Test admin credit operations."""
 
     def test_reset_credits(self, db_session):
 

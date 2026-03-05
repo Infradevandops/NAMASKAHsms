@@ -4,7 +4,6 @@ from unittest.mock import MagicMock
 import pytest
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
-from app.services.whitelabel_enhanced import WhiteLabelEnhancedService
 
     WhiteLabelAsset,
     WhiteLabelDomain,
@@ -52,7 +51,8 @@ async def test_update_branding(service, mock_db):
     config = WhiteLabelConfig(id=1, company_name="Old", primary_color="#fff")
     theme = WhiteLabelTheme(config_id=1, is_active=True, css_variables={})
 
-    mock_db.query.return_value.filter.return_value.first.side_effect = [config, theme]
+    mock_db.query.return_value.filter.return_value.first.side_effect = [
+        config, theme]
 
     result = await service.update_branding(config_id=1, branding_data={"company_name": "New", "primary_color": "#000"})
 
@@ -65,7 +65,8 @@ async def test_update_branding(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_verify_domain_success(service, mock_db):
-    domain_entry = WhiteLabelDomain(id=5, domain="test.com", dns_verified=False)
+    domain_entry = WhiteLabelDomain(
+    id=5, domain="test.com", dns_verified=False)
     mock_db.query.return_value.filter.return_value.first.return_value = domain_entry
 
     result = await service.verify_domain("test.com")
@@ -113,7 +114,9 @@ async def test_get_partner_config(service, mock_db):
     mock_query_asset = MagicMock()
     mock_query_asset.filter.return_value.all.return_value = [asset]
 
+
 def side_effect(model):
+
 
 if model == WhiteLabelConfig:
             return mock_query_config

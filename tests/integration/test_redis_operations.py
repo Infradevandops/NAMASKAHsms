@@ -1,11 +1,10 @@
 """
-import asyncio
-import pytest
-import time
-
 Redis Integration Tests
 Tests for Redis operations including caching, locks, and streams
 """
+import asyncio
+import pytest
+import time
 
 
 class TestRedisIntegration:
@@ -256,14 +255,14 @@ class TestRedisIntegration:
         # Cleanup
         redis_client.delete(key)
 
-        @pytest.mark.asyncio
+    @pytest.mark.asyncio
     async def test_redis_concurrent_access(self, redis_client):
         """Test concurrent Redis access."""
         key = "test:concurrent"
         redis_client.set(key, 0)
 
-    async def increment():
-        for _ in range(10):
+        async def increment():
+            for _ in range(10):
                 redis_client.incr(key)
 
         # Run concurrent increments
@@ -277,5 +276,5 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
 
-        if __name__ == "__main__":
-        print("Redis integration tests created: 15 tests")
+if __name__ == "__main__":
+    print("Redis integration tests created: 15 tests")

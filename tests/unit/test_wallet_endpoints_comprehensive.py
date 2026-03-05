@@ -3,12 +3,13 @@
 
 from app.models.transaction import Transaction
 
+
 class TestWalletEndpoints:
 
     """Test wallet and billing endpoints comprehensively."""
 
-    def test_get_balance_success(self, authenticated_regular_client, regular_user):
-
+    def test_get_balance_success(
+        self, authenticated_regular_client, regular_user):
         """Test getting user balance."""
         response = authenticated_regular_client.get("/api/v1/wallet/balance")
 
@@ -17,13 +18,12 @@ class TestWalletEndpoints:
         assert "balance" in data or "credits" in data
 
     def test_get_balance_unauthorized(self, client):
-
         """Test getting balance without authentication."""
         response = client.get("/api/v1/wallet/balance")
         assert response.status_code in [401, 403, 422]
 
-    def test_get_transactions_success(self, authenticated_regular_client, regular_user, db):
-
+    def test_get_transactions_success(
+        self, authenticated_regular_client, regular_user, db):
         """Test getting transaction history."""
         # Create some transactions
         for i in range(3):
@@ -37,14 +37,15 @@ class TestWalletEndpoints:
             db.add(transaction)
         db.commit()
 
-        response = authenticated_regular_client.get("/api/v1/wallet/transactions")
+        response = authenticated_regular_client.get(
+            "/api/v1/wallet/transactions")
 
         assert response.status_code == 200
         data = response.json()
         assert "transactions" in data or isinstance(data, list)
 
-    def test_get_transactions_pagination(self, authenticated_regular_client, regular_user, db):
-
+    def test_get_transactions_pagination(
+        self, authenticated_regular_client, regular_user, db):
         """Test transaction history pagination."""
         # Create 10 transactions
         for i in range(10):
@@ -58,43 +59,45 @@ class TestWalletEndpoints:
             db.add(transaction)
         db.commit()
 
-        response = authenticated_regular_client.get("/api/v1/wallet/transactions?limit=5&offset=0")
+        response = authenticated_regular_client.get(
+            "/api/v1/wallet/transactions?limit=5&offset=0")
 
         assert response.status_code == 200
 
     def test_get_transactions_empty(self, authenticated_regular_client):
-
         """Test getting transactions when none exist."""
-        response = authenticated_regular_client.get("/api/v1/wallet/transactions")
+        response = authenticated_regular_client.get(
+            "/api/v1/wallet/transactions")
 
         assert response.status_code == 200
 
-    def test_add_credits_success(self, authenticated_regular_client, regular_user, db):
-
+    def test_add_credits_success(
+        self, authenticated_regular_client, regular_user, db):
         """Test adding credits to wallet."""
-        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": 10.0})
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits", json={"amount": 10.0})
 
         # Endpoint may not exist yet
         assert response.status_code in [200, 201, 202, 400, 402, 404]
 
     def test_add_credits_invalid_amount(self, authenticated_regular_client):
-
         """Test adding invalid credit amount."""
-        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": -10.0})
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits", json={"amount": -10.0})
 
         assert response.status_code in [400, 404, 422]
 
     def test_add_credits_zero_amount(self, authenticated_regular_client):
-
         """Test adding zero credits."""
-        response = authenticated_regular_client.post("/api/v1/wallet/add-credits", json={"amount": 0.0})
+        response = authenticated_regular_client.post(
+            "/api/v1/wallet/add-credits", json={"amount": 0.0})
 
         assert response.status_code in [400, 404, 422]
 
 
 class TestCreditEndpoints:
 
-        """Test credit management endpoints."""
+    """Test credit management endpoints."""
 
     def test_get_credit_balance(self, authenticated_regular_client):
 
@@ -124,7 +127,7 @@ class TestCreditEndpoints:
 
 class TestPaymentEndpoints:
 
-        """Test payment endpoints."""
+    """Test payment endpoints."""
 
     def test_create_payment_intent(self, authenticated_regular_client):
 
@@ -151,7 +154,7 @@ class TestPaymentEndpoints:
 
 class TestPricingEndpoints:
 
-        """Test pricing endpoints."""
+    """Test pricing endpoints."""
 
     def test_get_pricing_tiers(self, client):
 
@@ -176,7 +179,7 @@ class TestPricingEndpoints:
 
 class TestRefundEndpoints:
 
-        """Test refund endpoints."""
+    """Test refund endpoints."""
 
     def test_request_refund(self, authenticated_regular_client, regular_user, db):
 

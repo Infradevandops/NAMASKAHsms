@@ -6,12 +6,12 @@ from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.csrf_middleware import CSRFMiddleware
 
+
 class TestCSRFMiddleware:
 
     """Test CSRF protection middleware."""
 
     def test_csrf_token_generation(self):
-
         """Test CSRF token generation."""
         # CSRF tokens are generated automatically by middleware
         # Testing the middleware class exists
@@ -19,7 +19,6 @@ class TestCSRFMiddleware:
         assert CSRFMiddleware is not None
 
     def test_csrf_token_validation_success(self):
-
         """Test successful CSRF token validation."""
         # CSRF validation happens in middleware dispatch
         # Testing the middleware class exists
@@ -27,7 +26,6 @@ class TestCSRFMiddleware:
         assert CSRFMiddleware.CSRF_HEADER == "X-CSRF-Token"
 
     def test_csrf_token_validation_failure(self):
-
         """Test failed CSRF token validation."""
         # CSRF validation happens in middleware dispatch
         # Testing the middleware class exists
@@ -35,7 +33,6 @@ class TestCSRFMiddleware:
         assert CSRFMiddleware.CSRF_COOKIE == "csrf_token"
 
     def test_csrf_exempt_routes(self):
-
         """Test CSRF exemption for specific routes."""
         # CSRF should be exempt for API endpoints
         assert True  # Placeholder
@@ -43,7 +40,7 @@ class TestCSRFMiddleware:
 
 class TestSecurityMiddleware:
 
-        """Test security headers middleware."""
+    """Test security headers middleware."""
 
     def test_security_headers_added(self, client):
 
@@ -76,7 +73,7 @@ class TestSecurityMiddleware:
 
 class TestRateLimitingMiddleware:
 
-        """Test rate limiting middleware."""
+    """Test rate limiting middleware."""
 
     def test_rate_limit_not_exceeded(self, client, regular_user):
 
@@ -105,7 +102,7 @@ class TestRateLimitingMiddleware:
 
 class TestLoggingMiddleware:
 
-        """Test request/response logging middleware."""
+    """Test request/response logging middleware."""
 
     def test_request_logging(self, client):
 
@@ -138,7 +135,7 @@ class TestLoggingMiddleware:
 
 class TestXSSProtectionMiddleware:
 
-        """Test XSS protection middleware."""
+    """Test XSS protection middleware."""
 
     def test_xss_detection_in_query_params(self):
 
@@ -159,7 +156,7 @@ class TestXSSProtectionMiddleware:
 
 class TestCORSMiddleware:
 
-        """Test CORS middleware."""
+    """Test CORS middleware."""
 
     def test_cors_headers_added(self, client):
 
@@ -177,7 +174,7 @@ class TestCORSMiddleware:
 
 class TestCompressionMiddleware:
 
-        """Test response compression middleware."""
+    """Test response compression middleware."""
 
     def test_gzip_compression(self):
 
@@ -192,7 +189,7 @@ class TestCompressionMiddleware:
 
 class TestTierValidationMiddleware:
 
-        """Test tier validation middleware."""
+    """Test tier validation middleware."""
 
     def test_tier_validation_success(self, authenticated_pro_client):
 
