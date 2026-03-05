@@ -153,7 +153,7 @@ function formatPhone(raw) {
                 <td style="padding: 12px;">${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                 <td style="padding: 12px;">
                     ${item.sms_text ? `<button onclick="viewDetails('${item.id}')" style="padding: 4px 8px; font-size: 12px; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer;">Msg</button>` : ''}
-                    <button onclick="reuseVerification('${item.service_name || item.service || ''}')" style="padding: 4px 8px; font-size: 12px; background: var(--primary, #fe3c72); color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 4px; white-space: nowrap;">Re-use</button>
+                    <button onclick="reuseVerification('${item.service_name || item.service || ''}')" style="padding: 4px 8px; font-size: 12px; background: var(--primary, #fe3c72); color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 4px; white-space: nowrap;">Verify Again</button>
                 </td>
             </tr>
         `;
