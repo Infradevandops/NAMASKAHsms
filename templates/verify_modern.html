@@ -81,6 +81,12 @@
                 </div>
             </div>
         </div>
+
+        <div style="margin-top: var(--spacing-lg);">
+            <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>
+                Continue →
+            </button>
+        </div>
     </div>
 
     <!-- Step 2: Pricing & Confirmation -->
@@ -214,24 +220,29 @@ function onServiceChange(sel) {
         customInput.style.display = 'none';
         selectedService = sel.value;
         selectedServicePrice = parseFloat(sel.selectedOptions[0].dataset.price) || null;
-        confirmService();
     } else {
         customInput.style.display = 'none';
         selectedService = null;
         selectedServicePrice = null;
     }
+    updateContinueBtn();
 }
 
 function onCustomServiceInput(input) {
     selectedService = input.value.trim() || null;
     selectedServicePrice = null;
-    if (selectedService) confirmService();
+    updateContinueBtn();
+}
+
+function updateContinueBtn() {
+    const btn = document.getElementById('continue-btn');
+    if (btn) btn.disabled = !selectedService;
 }
 
 function confirmService() {
+    if (!selectedService) return;
     document.getElementById('pricing-service').textContent = selectedService;
-    const price = selectedServicePrice ? `$${selectedServicePrice.toFixed(2)}` : 'Market rate';
-    document.getElementById('pricing-cost').textContent = price;
+    updatePricing();
     updateProgress(2);
     setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
 }
@@ -569,15 +580,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (preService) {
         const sel = document.getElementById('service-select');
         const opt = Array.from(sel.options).find(o => o.value.toLowerCase() === preService.toLowerCase());
-        if (opt) { sel.value = opt.value; onServiceChange(sel); }
+        if (opt) { sel.value = opt.value; selectedService = opt.value; selectedServicePrice = parseFloat(opt.dataset.price) || null; }
         else {
             sel.value = 'other';
             const ci = document.getElementById('custom-service-input');
             ci.style.display = 'block';
             ci.value = preService;
             selectedService = preService;
-            confirmService();
         }
+        updateContinueBtn();
     }
 });
 
@@ -597,7 +608,7 @@ function updatePricing() {
     let price = selectedServicePrice || 0;
     if (areaCode) price += 0.25;
     if (carrier) price += 0.50;
-    if (price > 0) document.getElementById('pricing-cost').textContent = `$${price.toFixed(2)}`;
+    document.getElementById('pricing-cost').textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
 }
 </script>
 {% endblock %}
