@@ -62,7 +62,7 @@ async def cancel_verification(
         db.commit()
 
         refund_service = AutoRefundService(db)
-        refund_result = refund_service.process_verification_refund(verification_id, "cancelled")
+        refund_result = await refund_service.process_verification_refund(verification_id, "cancelled")
 
         if refund_result:
             logger.info(

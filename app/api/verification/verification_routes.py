@@ -244,7 +244,6 @@ async def cancel_verification(
 ):
     """Cancel a verification."""
     try:
-        # Get verification
         verification = db.query(Verification).filter(
             Verification.id == verification_id,
             Verification.user_id == user_id
@@ -256,50 +255,55 @@ async def cancel_verification(
         if verification.status != "pending":
             raise HTTPException(status_code=400, detail="Can only cancel pending verifications")
 
-        # Cancel with TextVerified
+        # Cancel with TextVerified using activation_id, not internal UUID
         tv_service = TextVerifiedService()
-        if tv_service.enabled:
-            await tv_service.cancel_verification(verification_id)
+        if tv_service.enabled and verification.activation_id:
+            try:
+                await tv_service.cancel_verification(verification.activation_id)
+            except Exception as tv_err:
+                logger.warning(f"TextVerified cancel failed (non-critical): {tv_err}")
 
-        # Update status
         verification.status = "cancelled"
         verification.completed_at = datetime.now(timezone.utc)
-        
-        # Process automatic refund
-        try:
-            from app.services.auto_refund_service import AutoRefundService
-            refund_service = AutoRefundService(db)
-            refund_result = await refund_service.process_verification_refund(verification_id, "cancelled")
-            
-            if refund_result:
-                refund_amount = refund_result["refund_amount"]
-                logger.info(f"Auto-refund processed for cancellation: ${refund_amount:.2f}")
-            else:
-                # Fallback manual refund
-                user = db.query(User).filter(User.id == user_id).first()
-                if user:
-                    refund_amount = verification.cost * 0.5  # 50% refund for cancellation
-                    user.credits += refund_amount
-                else:
-                    refund_amount = 0.0
-        except Exception as e:
-            logger.error(f"Auto-refund failed for cancellation {verification_id}: {e}")
-            # Fallback manual refund
-            user = db.query(User).filter(User.id == user_id).first()
-            if user:
-                refund_amount = verification.cost * 0.5  # 50% refund for cancellation
-                user.credits += refund_amount
-            else:
-                refund_amount = 0.0
-
         db.commit()
 
-        logger.info(f"Verification cancelled: {verification_id}")
+        # Full refund
+        from app.services.auto_refund_service import AutoRefundService
+        from app.services.notification_service import NotificationService
+        refund_service = AutoRefundService(db)
+        refund_result = await refund_service.process_verification_refund(verification_id, "cancelled")
+
+        refund_amount = refund_result["refund_amount"] if refund_result else 0.0
+        new_balance = refund_result["new_balance"] if refund_result else None
+
+        if not refund_result:
+            # Fallback: full manual refund
+            user = db.query(User).filter(User.id == user_id).first()
+            if user:
+                refund_amount = verification.cost
+                user.credits += refund_amount
+                new_balance = user.credits
+                db.commit()
+
+        try:
+            notif_service = NotificationService(db)
+            notif_service.create_notification(
+                user_id=user_id,
+                notification_type="verification_cancelled",
+                title="Verification Cancelled",
+                message=f"${refund_amount:.2f} refunded for {verification.service_name}."
+                + (f" New balance: ${new_balance:.2f}" if new_balance is not None else ""),
+            )
+        except Exception as n_err:
+            logger.warning(f"Cancel notification failed: {n_err}")
+
+        logger.info(f"Verification {verification_id} cancelled, refund=${refund_amount:.2f}")
 
         return {
             "success": True,
             "message": "Verification cancelled",
-            "refund_amount": refund_amount
+            "refund_amount": refund_amount,
+            "new_balance": new_balance,
         }
 
     except HTTPException:
