@@ -341,5 +341,26 @@ endblock %}
     } else {
         initDashboard();
     }
+
+    // Update tier card with live data
+    (async function() {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            const ctrl = new AbortController();
+            const tid = setTimeout(() => ctrl.abort(), 8000);
+            const res = await fetch('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+            clearTimeout(tid);
+            if (!res.ok) return;
+            const d = await res.json();
+            const tier = d.current_tier || 'freemium';
+            const names = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
+            const prices = { freemium: '$0.00/month', payg: '$0.00/month', pro: '$25.00/month', custom: '$35.00/month' };
+            const features = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
+            document.getElementById('tier-name').textContent = names[tier] || tier;
+            document.getElementById('tier-price').textContent = prices[tier] || '';
+            document.getElementById('tier-features-list').textContent = features[tier] || '';
+        } catch(e) {}
+    })();
 </script>
 {% endblock %}
