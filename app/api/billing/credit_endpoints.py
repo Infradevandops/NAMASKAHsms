@@ -53,55 +53,6 @@ async def get_credit_balance(
         logger.error(f"Failed to get credit balance for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve balance")
 
-
-@router.get("/history")
-async def get_credit_history(
-    user_id: str = Depends(get_current_user_id),
-    limit: int = Query(50, ge=1, le=100),
-    offset: int = Query(0, ge=0),
-    db: Session = Depends(get_db)
-):
-    """Get credit transaction history."""
-    try:
-        transactions = (
-            db.query(Transaction)
-            .filter(Transaction.user_id == user_id)
-            .filter(Transaction.type.in_(["credit", "debit"]))
-            .order_by(Transaction.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-            .all()
-        )
-
-        total = (
-            db.query(Transaction)
-            .filter(Transaction.user_id == user_id)
-            .filter(Transaction.type.in_(["credit", "debit"]))
-            .count()
-        )
-
-        return {
-            "transactions": [
-                {
-                    "id": t.id,
-                    "type": t.type,
-                    "amount": t.amount,
-                    "description": t.description,
-                    "status": t.status,
-                    "created_at": t.created_at.isoformat() if t.created_at else None
-                }
-                for t in transactions
-            ],
-            "total": total,
-            "limit": limit,
-            "offset": offset
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to get credit history for user {user_id}: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve credit history")
-
-
 @router.post("/add")
 async def add_credits(
     amount: float,

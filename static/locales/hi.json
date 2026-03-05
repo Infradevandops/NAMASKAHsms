@@ -60,7 +60,8 @@
     "add_credits": "क्रेडिट जोड़ें",
     "transaction_history": "लेनदेन इतिहास",
     "pay_with_crypto": "क्रिप्टो से भुगतान करें",
-    "pay_with_card": "कार्ड से भुगतान करें"
+    "pay_with_card": "कार्ड से भुगतान करें",
+    "credit_history": "Credit History"
   },
   "verify": {
     "title": "एसएमएस सत्यापन",

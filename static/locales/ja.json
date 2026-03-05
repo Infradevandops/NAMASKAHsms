@@ -60,7 +60,8 @@
     "add_credits": "クレジットを追加",
     "transaction_history": "取引履歴",
     "pay_with_crypto": "暗号通貨で支払う",
-    "pay_with_card": "カードで支払う"
+    "pay_with_card": "カードで支払う",
+    "credit_history": "Credit History"
   },
   "verify": {
     "title": "SMS認証",

@@ -60,7 +60,8 @@
     "add_credits": "Guthaben hinzufügen",
     "transaction_history": "Transaktionsverlauf",
     "pay_with_crypto": "Mit Krypto bezahlen",
-    "pay_with_card": "Mit Karte bezahlen"
+    "pay_with_card": "Mit Karte bezahlen",
+    "credit_history": "Credit History"
   },
   "verify": {
     "title": "SMS-Verifizierung",
