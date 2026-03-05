@@ -156,7 +156,6 @@ class TextVerifiedService:
         """Fetch live services from TextVerified API."""
         if not self.enabled:
             return self._mock_services()
-        # Try cache first
         try:
             redis = _get_redis()
             cached = redis.get(_SERVICES_CACHE_KEY)
@@ -169,27 +168,29 @@ class TextVerifiedService:
                 asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
                 timeout=15.0
             )
-            base_price = None
-            result = []
-            for s in services:
-                price = getattr(s, 'price', None) or getattr(s, 'cost', None)
-                if price is None and base_price is None:
-                    try:
-                        snapshot = await asyncio.wait_for(
-                            asyncio.to_thread(
-                                self.client.verifications.pricing,
-                                service_name=s.service_name,
-                                area_code=False,
-                                carrier=False,
-                                number_type=NumberType.MOBILE,
-                                capability=ReservationCapability.SMS,
-                            ),
-                            timeout=5.0
-                        )
-                        base_price = snapshot.price
-                    except Exception:
-                        base_price = 2.50
-                result.append({"id": s.service_name, "name": s.service_name.title(), "price": float(price or base_price or 2.50)})
+
+            async def _price(service_name: str) -> float:
+                try:
+                    snap = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            self.client.verifications.pricing,
+                            service_name=service_name,
+                            area_code=False,
+                            carrier=False,
+                            number_type=NumberType.MOBILE,
+                            capability=ReservationCapability.SMS,
+                        ),
+                        timeout=8.0
+                    )
+                    return snap.price
+                except Exception:
+                    return 2.50
+
+            prices = await asyncio.gather(*[_price(s.service_name) for s in services])
+            result = [
+                {"id": s.service_name, "name": s.service_name.title(), "price": float(p)}
+                for s, p in zip(services, prices)
+            ]
             try:
                 redis = _get_redis()
                 redis.setex(_SERVICES_CACHE_KEY, _SERVICES_TTL, json.dumps(result))
