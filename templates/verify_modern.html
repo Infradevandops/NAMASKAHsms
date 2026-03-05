@@ -252,16 +252,17 @@ async function loadServices() {
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 10000);
+        const tid = setTimeout(() => ctrl.abort(), 20000);
         const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
         const data = res.ok ? await res.json() : { services: [] };
         const services = data.services || [];
+        if (services.length === 0) throw new Error('empty');
         sel.innerHTML = '<option value="">-- Select a service --</option>' +
             services.map(s => `<option value="${s.name || s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
             '<option value="other">Other (type service name)</option>';
     } catch (e) {
-        sel.innerHTML = '<option value="">Failed to load — type below</option><option value="other">Other (type service name)</option>';
+        sel.innerHTML = '<option value="">-- Select a service --</option><option value="other">Other (type service name)</option>';
         document.getElementById('custom-service-input').style.display = 'block';
     }
 }

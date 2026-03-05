@@ -167,26 +167,29 @@ class TextVerifiedService:
         try:
             services = await asyncio.wait_for(
                 asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
-                timeout=8.0
+                timeout=15.0
             )
+            base_price = None
             result = []
             for s in services:
-                try:
-                    snapshot = await asyncio.wait_for(
-                        asyncio.to_thread(
-                            self.client.verifications.pricing,
-                            service_name=s.service_name,
-                            area_code=False,
-                            carrier=False,
-                            number_type=NumberType.MOBILE,
-                            capability=ReservationCapability.SMS,
-                        ),
-                        timeout=3.0
-                    )
-                    price = snapshot.price
-                except Exception:
-                    price = 2.50
-                result.append({"id": s.service_name, "name": s.service_name.title(), "price": price})
+                price = getattr(s, 'price', None) or getattr(s, 'cost', None)
+                if price is None and base_price is None:
+                    try:
+                        snapshot = await asyncio.wait_for(
+                            asyncio.to_thread(
+                                self.client.verifications.pricing,
+                                service_name=s.service_name,
+                                area_code=False,
+                                carrier=False,
+                                number_type=NumberType.MOBILE,
+                                capability=ReservationCapability.SMS,
+                            ),
+                            timeout=5.0
+                        )
+                        base_price = snapshot.price
+                    except Exception:
+                        base_price = 2.50
+                result.append({"id": s.service_name, "name": s.service_name.title(), "price": float(price or base_price or 2.50)})
             try:
                 redis = _get_redis()
                 redis.setex(_SERVICES_CACHE_KEY, _SERVICES_TTL, json.dumps(result))
