@@ -496,7 +496,14 @@ async function createVerification() {
     } catch (error) {
         console.error('Error:', error);
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
-        window.toast.error(error.message || 'Failed to create verification');
+        const msg = error.message || 'Failed to create verification';
+        if (msg.includes('Out of stock') || msg.includes('unavailable')) {
+            window.toast.error(`${selectedService} is temporarily unavailable. Please try a different service.`);
+        } else if (msg.includes('Insufficient')) {
+            window.toast.error('Insufficient balance. Please add credits to your wallet.');
+        } else {
+            window.toast.error(msg);
+        }
     }
 }
 
