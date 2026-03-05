@@ -76,11 +76,8 @@
                     <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
                     <select class="form-select" id="carrier-select" onchange="updatePricing()">
                         <option value="">Any Carrier</option>
-                        <option value="att">AT&T</option>
-                        <option value="verizon">Verizon</option>
-                        <option value="tmobile">T-Mobile</option>
-                        <option value="sprint">Sprint</option>
                     </select>
+                    <div id="carrier-lock-msg" style="display:none; font-size:12px; color:#6b7280; margin-top:4px;">Carrier filtering requires PAYG or higher</div>
                 </div>
             </div>
         </div>
@@ -295,6 +292,30 @@ async function loadAreaCodes() {
     } catch (e) {
         sel.innerHTML = '<option value="">Any Area Code</option>';
         sel.disabled = false;
+    }
+}
+
+async function loadCarriers() {
+    const sel = document.getElementById('carrier-select');
+    const lockMsg = document.getElementById('carrier-lock-msg');
+    const rank = TIER_RANK[userTier] || 0;
+
+    if (rank < 1) {
+        sel.disabled = true;
+        lockMsg.style.display = 'block';
+        return;
+    }
+
+    lockMsg.style.display = 'none';
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/verification/carriers/US', { headers: { 'Authorization': `Bearer ${token}` } });
+        const data = res.ok ? await res.json() : {};
+        const carriers = data.carriers || [];
+        sel.innerHTML = '<option value="">Any Carrier</option>' +
+            carriers.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+    } catch (e) {
+        sel.innerHTML = '<option value="">Any Carrier</option>';
     }
 }
 
@@ -528,7 +549,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (res.ok) { const d = await res.json(); userTier = d.current_tier || 'freemium'; }
     } catch(e) {}
 
-    await Promise.all([loadServices(), loadAreaCodes()]);
+    await Promise.all([loadServices(), loadAreaCodes(), loadCarriers()]);
     loadBalance();
     updateProgress(1);
 
