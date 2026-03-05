@@ -162,7 +162,7 @@ class TestVerificationEndpoints:
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
         try:
-        with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
+            with patch("app.services.textverified_service.TextVerifiedService") as mock_tv:
                 mock_instance = MagicMock()
                 mock_instance.enabled = True
                 mock_instance.create_verification = AsyncMock(

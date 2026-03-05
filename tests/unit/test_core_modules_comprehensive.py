@@ -290,8 +290,7 @@ class TestExceptions:
 
         """Test authentication error."""
         try:
-
-        with pytest.raises(AuthenticationError):
+            with pytest.raises(AuthenticationError):
                 raise AuthenticationError("Invalid credentials")
         except ImportError:
             assert True  # Exception not defined
@@ -300,8 +299,7 @@ class TestExceptions:
 
         """Test validation error."""
         try:
-
-        with pytest.raises(ValidationError):
+            with pytest.raises(ValidationError):
                 raise ValidationError("Invalid input")
         except ImportError:
             assert True  # Exception not defined
@@ -310,8 +308,7 @@ class TestExceptions:
 
         """Test not found error."""
         try:
-
-        with pytest.raises(NotFoundException):
+            with pytest.raises(NotFoundException):
                 raise NotFoundException("Resource not found")
         except ImportError:
             assert True  # Exception not defined

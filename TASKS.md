@@ -47,8 +47,8 @@
   - `tests/integration/test_redis_operations.py` line 260
   - `tests/integration/test_user_lifecycle_integration.py` line 45
 - [x] Fix 3 integration files (known lines)
-- [ ] Audit and fix unit test files (run `python3 -m py_compile` across all)
-- [ ] Target: 0 collection errors
+- [x] Audit and fix unit test files (run `python3 -m py_compile` across all)
+- [x] Target: 0 collection errors
 
 ---
 
@@ -57,14 +57,14 @@
 ### T7 · Payment flow hardening
 - **Status**: `with_for_update` + `PaymentLog` state machine already in `payment_service.py` (12 references)
 - **Remaining**:
-  - [ ] Verify webhook idempotency end-to-end (duplicate webhook replays same reference → no double credit)
-  - [ ] Add idempotency key validation to `POST /api/wallet/paystack/initialize` (reject duplicate keys)
+  - [x] Verify webhook idempotency end-to-end (duplicate webhook replays same reference → no double credit)
+  - [x] Add idempotency key validation to `POST /api/wallet/paystack/initialize` (reject duplicate keys)
   - [ ] Race condition test: concurrent credits for same reference
 
 ### T8 · Security hardening
-- [ ] Install `bandit` (`pip install bandit`) and add to `requirements-dev.txt`
-- [ ] Run `bandit -r app/ -ll` and resolve HIGH/MEDIUM findings
-- [ ] Audit `hmac.new` usage in 4 files — confirmed valid but verify `compare_digest` used for all signature comparisons (timing-safe)
+- [x] Install `bandit` (`pip install bandit`) and add to `requirements-dev.txt`
+- [x] Run `bandit -r app/ -ll` and resolve HIGH/MEDIUM findings
+- [x] Audit `hmac.new` usage in 4 files — confirmed valid but verify `compare_digest` used for all signature comparisons (timing-safe)
   - `app/services/payment_service.py:193`
   - `app/services/webhook_service.py:38`
   - `app/api/core/forwarding.py:279`
@@ -73,8 +73,8 @@
 ### T9 · Enable integration tests
 - **Status**: `docker-compose.test.yml` uses SQLite — integration tests use `TestClient` (no real DB/Redis needed for most)
 - [x] Fix 3 broken integration files (covered by T6)
-- [ ] Run full integration suite and get to green
-- [ ] Document any tests that genuinely need PostgreSQL/Redis and mark with `@pytest.mark.requires_db`
+- [x] Run full integration suite and get to green
+- [x] Document any tests that genuinely need PostgreSQL/Redis and mark with `@pytest.mark.requires_db`
 
 ---
 

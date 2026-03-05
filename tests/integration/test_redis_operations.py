@@ -7,6 +7,7 @@ import pytest
 import time
 
 
+@pytest.mark.requires_db
 class TestRedisIntegration:
 
     """Redis integration tests."""

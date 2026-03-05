@@ -185,9 +185,9 @@ class TestExternalServiceErrors:
             mock_tv.return_value = mock_instance
 
         with patch("app.core.dependencies.get_current_user_id", return_value=regular_user.id):
-                response = client.post("/api/v1/verify/create", json={"service_name": "telegram", "country": "US"})
-            # May return 401 (auth), 404 (endpoint not found), or 503 (service unavailable)
-            assert response.status_code in [401, 404, 503]
+            response = client.post("/api/v1/verify/create", json={"service_name": "telegram", "country": "US"})
+        # May return 401 (auth), 404 (endpoint not found), or 503 (service unavailable)
+        assert response.status_code in [401, 404, 503]
 
     def test_payment_provider_error(self):
 

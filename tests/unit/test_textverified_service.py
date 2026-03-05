@@ -200,7 +200,7 @@ def test_circuit_breaker(service):
     assert service._circuit_breaker_failures == 0
 
     # Failure threshold
-for i in range(5):
+    for i in range(5):
         service._record_failure()
     assert service._check_circuit_breaker() is False
 

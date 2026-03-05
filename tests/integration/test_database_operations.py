@@ -9,6 +9,7 @@ from app.models.verification import Verification
 from app.utils.security import hash_password
 
 
+@pytest.mark.requires_db
 class TestDatabaseIntegration:
 
     """Database integration tests."""

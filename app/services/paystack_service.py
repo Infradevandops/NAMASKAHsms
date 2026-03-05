@@ -123,7 +123,7 @@ class PaystackService:
                 hashlib.sha512,
             )
             computed_signature = hash_object.hexdigest()
-            return computed_signature == signature
+            return hmac.compare_digest(computed_signature, signature)
         except Exception as e:
             logger.error(f"Webhook signature verification failed: {str(e)}")
             return False

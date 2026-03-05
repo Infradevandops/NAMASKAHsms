@@ -310,16 +310,16 @@ class TestEmailEndpoints:
         ) as mock_send:
             mock_send.return_value = True
 
-        with client:
+            with client:
                 response = client.post(
                     "/api/notifications/email/test",
                     headers={"Authorization": f"Bearer {test_user.id}"},
                 )
 
-            assert response.status_code in [200, 404, 405]
-        if response.status_code == 200:
-                data = response.json()
-                assert data["success"] is True
+                assert response.status_code in [200, 404, 405]
+                if response.status_code == 200:
+                    data = response.json()
+                    assert data["success"] is True
 
     def test_get_email_preferences_endpoint(self, client, test_user, db: Session):
 

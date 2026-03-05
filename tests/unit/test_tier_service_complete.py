@@ -357,5 +357,5 @@ class TestTierServiceComplete:
 
         assert custom_limit > pro_limit
 
-        if __name__ == "__main__":
-        print("Tier Service tests: 40 comprehensive tests created")
+if __name__ == "__main__":
+    print("Tier Service tests: 40 comprehensive tests created")

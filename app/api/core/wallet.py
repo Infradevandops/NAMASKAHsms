@@ -59,7 +59,8 @@ async def initialize_paystack_payment(
 
         payment_service = get_payment_service(db)
         result = await payment_service.initialize_payment(
-            user_id=user_id, email=user.email, amount_usd=payment_data.amount_usd
+            user_id=user_id, email=user.email, amount_usd=payment_data.amount_usd,
+            idempotency_key=payment_data.idempotency_key
         )
         return PaymentInitializeResponse(**result)
 

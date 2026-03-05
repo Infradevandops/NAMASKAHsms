@@ -322,5 +322,5 @@ class TestUtilityModules:
 
         assert evens == [2, 4, 6]
 
-        if __name__ == "__main__":
-        print("Utility module tests: 40 comprehensive tests created")
+if __name__ == "__main__":
+    print("Utility module tests: 40 comprehensive tests created")
