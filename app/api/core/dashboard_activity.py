@@ -1,60 +1,46 @@
 """Dashboard activity endpoints."""
 
-
-import logging
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import desc
+from fastapi import APIRouter, Depends
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
 from app.models.verification import Verification
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
 
 
 @router.get("/activity")
-async def get_recent_activity(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
-    """Get recent verification activity for dashboard."""
-    logger.info(f"Recent activity requested by user_id: {user_id}")
-
+async def get_recent_activity(
+    page: int = 1,
+    limit: int = 10,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db)
+):
+    offset = (page - 1) * limit
     try:
-        # Get user tier for logging
-        user = db.query(User).filter(User.id == user_id).first()
-        user_tier = getattr(user, 'tier', 'freemium') if user else "unknown"
-        logger.debug(f"User {user_id} tier: {user_tier}")
-
         verifications = (
             db.query(Verification)
             .filter(Verification.user_id == user_id)
             .order_by(desc(Verification.created_at))
-            .limit(10)
-            .all()
+            .limit(limit).offset(offset).all()
         )
-
-        activities = []
-        for v in verifications:
-            activities.append(
+        total = db.query(func.count(Verification.id)).filter(Verification.user_id == user_id).scalar() or 0
+        return {
+            "verifications": [
                 {
-                    "id": v.id,
-                    "service_name": getattr(v, 'service_name', None) or getattr(v, 'service', None) or "Unknown",
+                    "id": str(v.id),
+                    "service_name": v.service_name or "Unknown",
                     "phone_number": v.phone_number or "N/A",
                     "status": v.status or "pending",
                     "cost": float(v.cost) if v.cost else 0.0,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
                 }
-            )
-
-        logger.info(f"Retrieved {len(activities)} recent activities for user {user_id}")
-
-        # Return array directly for frontend compatibility
-        return activities
-
-    except Exception as e:
-        logger.error(
-            f"Failed to retrieve recent activity for user {user_id}: {str(e)}",
-            exc_info=True,
-        )
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve recent activity: {str(e)}")
+                for v in verifications
+            ],
+            "total": total,
+            "page": page,
+            "limit": limit,
+        }
+    except Exception:
+        return {"verifications": [], "total": 0, "page": page, "limit": limit}
