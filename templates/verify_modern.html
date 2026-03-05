@@ -50,42 +50,53 @@
     <div class="verification-card" id="step-1-card">
         <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
-        
+
+        <!-- Service Picker -->
         <div class="form-group">
             <label class="form-label">Service <span class="required">*</span></label>
-            <select class="form-select" id="service-select" onchange="onServiceChange(this)">
-                <option value="">Loading services...</option>
-            </select>
-            <input type="text" class="form-input" id="custom-service-input"
-                placeholder="Enter service name" style="display:none; margin-top: 8px;"
-                oninput="onCustomServiceInput(this)">
+            <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="service-picker-btn" onclick="openModal('service')">
+                <span id="service-display">Loading services...</span>
+            </button>
         </div>
 
         <!-- Advanced Options -->
         <div class="form-group">
             <label class="form-label">Advanced Options</label>
-            
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-md);">
                 <div>
-                    <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
-                    <select class="form-select" id="area-code-select" onchange="onAreaCodeChange()"></select>
+                    <label class="form-label" style="font-size:var(--font-size-sm);">Area Code (Optional)</label>
+                    <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="area-code-picker-btn" onclick="openModal('area-code')" disabled>
+                        <span id="area-code-display">Any Area Code</span>
+                    </button>
                     <div id="area-code-lock-msg" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
                 </div>
-                
                 <div>
-                    <label class="form-label" style="font-size: var(--font-size-sm);">Carrier (Optional)</label>
-                    <select class="form-select" id="carrier-select" onchange="updatePricing()">
-                        <option value="">Select a Carrier</option>
-                    </select>
+                    <label class="form-label" style="font-size:var(--font-size-sm);">Carrier (Optional)</label>
+                    <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="carrier-picker-btn" onclick="openModal('carrier')" disabled>
+                        <span id="carrier-display">Any Carrier</span>
+                    </button>
                     <div id="carrier-lock-msg" style="display:none; font-size:12px; color:#6b7280; margin-top:4px;">Carrier filtering requires PAYG or higher</div>
                 </div>
             </div>
         </div>
 
-        <div style="margin-top: var(--spacing-lg);">
-            <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>
-                Continue →
-            </button>
+        <div style="margin-top:var(--spacing-lg);">
+            <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>Continue →</button>
+        </div>
+    </div>
+
+    <!-- Picker Modal -->
+    <div id="picker-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+        <div style="background:var(--bg-card,#fff); border-radius:12px; width:min(480px,95vw); max-height:80vh; display:flex; flex-direction:column; overflow:hidden;">
+            <div style="padding:16px 20px; border-bottom:1px solid var(--border-color,#e5e7eb); display:flex; justify-content:space-between; align-items:center;">
+                <strong id="modal-title">Select Service</strong>
+                <button onclick="closeModal()" style="background:none; border:none; font-size:20px; cursor:pointer; color:var(--text-secondary);">&#x2715;</button>
+            </div>
+            <div style="padding:12px 16px; border-bottom:1px solid var(--border-color,#e5e7eb);">
+                <input type="text" id="modal-search" placeholder="Search..." oninput="filterModal(this.value)"
+                    style="width:100%; padding:8px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px; box-sizing:border-box;">
+            </div>
+            <div id="modal-list" style="overflow-y:auto; flex:1; padding:8px 0;"></div>
         </div>
     </div>
 
