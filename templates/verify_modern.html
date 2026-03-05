@@ -293,6 +293,11 @@ document.getElementById('picker-modal').addEventListener('click', function(e) {
 });
 
 // Update progress
+function updateContinueBtn() {
+    const btn = document.getElementById('continue-btn');
+    if (btn) btn.disabled = !selectedService;
+}
+
 function updateProgress(step) {
     currentStep = step;
     for (let i = 1; i <= 3; i++) {
@@ -404,7 +409,9 @@ async function createVerification() {
     try {
         const areaCode = selectedAreaCode || null;
         const carrier = selectedCarrier || null;
-        const serviceId = selectedService === '__other__' ? (prompt('Enter service name:') || selectedService) : selectedService;
+        const serviceId = selectedService;
+
+        const response = await fetch('/api/verify/create', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
