@@ -261,6 +261,7 @@ async function loadServices() {
         sel.innerHTML = '<option value="">-- Select a service --</option>' +
             services.map(s => `<option value="${s.name || s.id}" data-price="${s.price}">${s.name || s.id} — $${Number(s.price).toFixed(2)}</option>`).join('') +
             '<option value="other">Other (type service name)</option>';
+        sel.value = '';
     } catch (e) {
         sel.innerHTML = '<option value="">-- Select a service --</option><option value="other">Other (type service name)</option>';
         document.getElementById('custom-service-input').style.display = 'block';
@@ -561,11 +562,11 @@ function showError(title, message) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load tier first so area code selector respects it
+    // Load tier first — area code and carrier lock state depends on it
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 3000);
+        const tid = setTimeout(() => ctrl.abort(), 8000);
         const res = await fetch('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
         if (res.ok) { const d = await res.json(); userTier = d.current_tier || 'freemium'; }
