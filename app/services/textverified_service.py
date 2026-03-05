@@ -61,7 +61,7 @@ class TextVerifiedService:
         if not self.enabled:
             return []
         try:
-            codes = await asyncio.to_thread(self.client.services.area_codes)
+            codes = await asyncio.wait_for(asyncio.to_thread(self.client.services.area_codes), timeout=8.0)
             return [{"area_code": c.area_code, "state": c.state} for c in codes]
         except Exception as e:
             logger.error(f"Failed to get area codes: {e}")
@@ -155,17 +155,21 @@ class TextVerifiedService:
         if not self.enabled:
             return self._mock_services()
         try:
-            services = await asyncio.to_thread(
-                self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION
+            services = await asyncio.wait_for(
+                asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
+                timeout=8.0
             )
             try:
-                snapshot = await asyncio.to_thread(
-                    self.client.verifications.pricing,
-                    service_name="google",
-                    area_code=False,
-                    carrier=False,
-                    number_type=NumberType.MOBILE,
-                    capability=ReservationCapability.SMS,
+                snapshot = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self.client.verifications.pricing,
+                        service_name="google",
+                        area_code=False,
+                        carrier=False,
+                        number_type=NumberType.MOBILE,
+                        capability=ReservationCapability.SMS,
+                    ),
+                    timeout=5.0
                 )
                 base_price = snapshot.price
             except Exception:

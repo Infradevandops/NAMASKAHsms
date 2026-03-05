@@ -240,7 +240,10 @@ async function loadServices() {
     const sel = document.getElementById('service-select');
     try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` } });
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 10000);
+        const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+        clearTimeout(tid);
         const data = res.ok ? await res.json() : { services: [] };
         const services = data.services || [];
         sel.innerHTML = '<option value="">-- Select a service --</option>' +
@@ -270,7 +273,10 @@ async function loadAreaCodes() {
 
     try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/verification/area-codes/US', { headers: { 'Authorization': `Bearer ${token}` } });
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 10000);
+        const res = await fetch('/api/verification/area-codes/US', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+        clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const codes = data.area_codes || [];
 
@@ -309,7 +315,10 @@ async function loadCarriers() {
     lockMsg.style.display = 'none';
     try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/verification/carriers/US', { headers: { 'Authorization': `Bearer ${token}` } });
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 10000);
+        const res = await fetch('/api/verification/carriers/US', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
+        clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const carriers = data.carriers || [];
         sel.innerHTML = '<option value="">Any Carrier</option>' +
