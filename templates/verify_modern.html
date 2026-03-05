@@ -262,11 +262,11 @@ function selectModalItem(value) {
             closeModal();
             showOtherServiceInput();
             return;
-        } else {
-            selectedService = value;
-            selectedServicePrice = item?.price || null;
-            document.getElementById('service-display').textContent = item?.label || value;
         }
+        selectedService = value;
+        selectedServicePrice = item?.price || null;
+        document.getElementById('service-display').textContent = item?.label || value;
+        closeModal();
         updateContinueBtn();
         updatePricing();
         return;
@@ -274,7 +274,6 @@ function selectModalItem(value) {
         selectedAreaCode = value || null;
         document.getElementById('area-code-display').textContent = item?.label || 'Any Area Code';
         updatePricing();
-        // Persist
         const token = localStorage.getItem('access_token');
         fetch('/api/user/verification/area-codes', {
             method: 'PUT',
@@ -321,9 +320,36 @@ function confirmService() {
     setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
 }
 
+const _LS_SERVICES_KEY = 'nsk_services_cache';
+const _LS_AREA_CODES_KEY = 'nsk_area_codes_cache';
+const _LS_TTL = 30 * 60 * 1000; // 30 min
+
+function _lsGet(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const { ts, data } = JSON.parse(raw);
+        if (Date.now() - ts > _LS_TTL) { localStorage.removeItem(key); return null; }
+        return data;
+    } catch { return null; }
+}
+function _lsSet(key, data) {
+    try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch {}
+}
+
 async function loadServices() {
-    document.getElementById('service-display').textContent = 'Loading services...';
     document.getElementById('service-picker-btn').disabled = false;
+
+    // 1. Try localStorage first (instant)
+    const cached = _lsGet(_LS_SERVICES_KEY);
+    if (cached && cached.length > 1) {
+        _modalItems['service'] = cached;
+        document.getElementById('service-display').textContent = '-- Select a service --';
+        if (_modalType === 'service') renderModalItems(_modalItems['service']);
+        return;
+    }
+
+    document.getElementById('service-display').textContent = 'Loading services...';
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -337,8 +363,9 @@ async function loadServices() {
             ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
             { value: '__other__', label: 'Other (type name)', sub: '' }
         ];
+        _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
     } catch (e) {
-        _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
+        _modalItems['service'] = _modalItems['service'] || [{ value: '__other__', label: 'Other (type name)', sub: '' }];
     }
     document.getElementById('service-display').textContent = '-- Select a service --';
     if (_modalType === 'service') renderModalItems(_modalItems['service']);
@@ -351,6 +378,14 @@ async function loadAreaCodes() {
     if (rank < 1) { btn.disabled = true; lockMsg.style.display = 'block'; return; }
     lockMsg.style.display = 'none';
     btn.disabled = false;
+
+    // Try localStorage first
+    const cached = _lsGet(_LS_AREA_CODES_KEY);
+    if (cached && cached.length > 1) {
+        _modalItems['area-code'] = cached;
+        return;
+    }
+
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -363,19 +398,23 @@ async function loadAreaCodes() {
             { value: '', label: 'Any Area Code', sub: '' },
             ...codes.map(c => ({ value: c.area_code, label: c.area_code, sub: c.state || '' }))
         ];
-        // Restore saved preference
+        if (codes.length) _lsSet(_LS_AREA_CODES_KEY, _modalItems['area-code']);
+    } catch (e) {
+        _modalItems['area-code'] = [{ value: '', label: 'Any Area Code', sub: '' }];
+    }
+    // Restore saved preference
+    try {
+        const token = localStorage.getItem('access_token');
         const savedRes = await fetch('/api/user/verification/area-codes', { headers: { 'Authorization': `Bearer ${token}` } });
         if (savedRes.ok) {
             const saved = await savedRes.json();
             if (saved.preferred_area_codes?.length) {
                 selectedAreaCode = saved.preferred_area_codes[0];
-                const item = _modalItems['area-code'].find(i => i.value === selectedAreaCode);
-                if (item) document.getElementById('area-code-display').textContent = `${item.value} — ${item.sub}`;
+                const item = (_modalItems['area-code'] || []).find(i => i.value === selectedAreaCode);
+                if (item) document.getElementById('area-code-display').textContent = `${item.value}${item.sub ? ' — ' + item.sub : ''}`;
             }
         }
-    } catch (e) {
-        _modalItems['area-code'] = [{ value: '', label: 'Any Area Code', sub: '' }];
-    }
+    } catch {}
 }
 
 async function loadCarriers() {
