@@ -169,22 +169,25 @@ class TextVerifiedService:
                 timeout=15.0
             )
 
+            sem = asyncio.Semaphore(5)
+
             async def _price(service_name: str) -> float:
-                try:
-                    snap = await asyncio.wait_for(
-                        asyncio.to_thread(
-                            self.client.verifications.pricing,
-                            service_name=service_name,
-                            area_code=False,
-                            carrier=False,
-                            number_type=NumberType.MOBILE,
-                            capability=ReservationCapability.SMS,
-                        ),
-                        timeout=8.0
-                    )
-                    return snap.price
-                except Exception:
-                    return 2.50
+                async with sem:
+                    try:
+                        snap = await asyncio.wait_for(
+                            asyncio.to_thread(
+                                self.client.verifications.pricing,
+                                service_name=service_name,
+                                area_code=False,
+                                carrier=False,
+                                number_type=NumberType.MOBILE,
+                                capability=ReservationCapability.SMS,
+                            ),
+                            timeout=8.0
+                        )
+                        return snap.price
+                    except Exception:
+                        return 2.50
 
             prices = await asyncio.gather(*[_price(s.service_name) for s in services])
             result = [
