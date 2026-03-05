@@ -40,7 +40,7 @@
         <div class="progress-bar">
             <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
         </div>
-        <div class="progress-info">
+        <div class="progress-info" id="progress-info" style="display:none;">
             <span id="progress-elapsed">0s elapsed</span>
             <span id="progress-remaining">~30s remaining</span>
         </div>
@@ -80,7 +80,8 @@
             </div>
         </div>
 
-        <div style="margin-top:var(--spacing-lg);">
+        <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
+            <button class="btn btn-secondary" onclick="history.back()">Back</button>
             <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>Continue →</button>
         </div>
     </div>
@@ -131,11 +132,8 @@
         </div>
 
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
-            <button class="btn btn-secondary" onclick="goBack()">← Back</button>
-            <button class="btn btn-primary btn-block" onclick="createVerification()">
-                <span>Get Number</span>
-                <span>→</span>
-            </button>
+            <button class="btn btn-secondary" onclick="goBack()">Back</button>
+            <button class="btn btn-primary btn-block" id="get-number-btn" onclick="createVerification()">Get Number →</button>
         </div>
     </div>
 
@@ -177,6 +175,9 @@
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
             <button class="btn btn-danger btn-block" id="cancel-btn" onclick="cancelVerification()">Cancel</button>
             <button class="btn btn-danger btn-block" id="cancel-confirm-btn" onclick="confirmCancel()" style="display:none;">Confirm Cancel</button>
+        </div>
+        <div style="margin-top: var(--spacing-sm); text-align:center;">
+            <button class="btn btn-secondary" onclick="goBack()" style="font-size:13px;">Back to Service Selection</button>
         </div>
     </div>
 
@@ -259,11 +260,8 @@ function selectModalItem(value) {
     if (_modalType === 'service') {
         if (value === '__other__') {
             closeModal();
-            const name = window.prompt('Enter service name:');
-            if (!name) return;
-            selectedService = name.trim();
-            selectedServicePrice = null;
-            document.getElementById('service-display').textContent = selectedService;
+            showOtherServiceInput();
+            return;
         } else {
             selectedService = value;
             selectedServicePrice = item?.price || null;
@@ -329,22 +327,21 @@ async function loadServices() {
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 20000);
+        const tid = setTimeout(() => ctrl.abort(), 30000);
         const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
-        const data = res.ok ? await res.json() : { services: [] };
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
         const services = data.services || [];
         _modalItems['service'] = [
-            ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: `$${Number(s.price).toFixed(2)}`, price: s.price })),
+            ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
             { value: '__other__', label: 'Other (type name)', sub: '' }
         ];
-        document.getElementById('service-display').textContent = '-- Select a service --';
-        if (_modalType === 'service') renderModalItems(_modalItems['service']);
     } catch (e) {
         _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
-        document.getElementById('service-display').textContent = '-- Select a service --';
-        if (_modalType === 'service') renderModalItems(_modalItems['service']);
     }
+    document.getElementById('service-display').textContent = '-- Select a service --';
+    if (_modalType === 'service') renderModalItems(_modalItems['service']);
 }
 
 async function loadAreaCodes() {
@@ -412,6 +409,9 @@ async function createVerification() {
         return;
     }
 
+    const btn = document.getElementById('get-number-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Creating...'; }
+
     try {
         const areaCode = selectedAreaCode || null;
         const carrier = selectedCarrier || null;
@@ -431,12 +431,16 @@ async function createVerification() {
             })
         });
 
-        if (!response.ok) throw new Error('Failed to create verification');
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.detail || 'Failed to create verification');
+        }
 
         const data = await response.json();
         verificationId = data.id;
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
+        if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
         updateProgress(3);
         startScanning();
 
@@ -452,7 +456,8 @@ async function createVerification() {
 
     } catch (error) {
         console.error('Error:', error);
-        showError('Failed to create verification', error.message);
+        if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
+        window.toast.error(error.message || 'Failed to create verification');
     }
 }
 
@@ -487,6 +492,7 @@ function startScanning() {
         document.getElementById('progress-elapsed').textContent = elapsedSeconds + 's elapsed';
         const remaining = Math.max(0, 120 - elapsedSeconds);
         document.getElementById('progress-remaining').textContent = `~${remaining}s remaining`;
+        document.getElementById('progress-info').style.display = 'flex';
 
         if (verificationId) {
             try {
@@ -586,8 +592,49 @@ async function blacklistNumber(phone, service) {
 
 
 function goBack() {
-    updateProgress(1);
-    document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
+    if (currentStep === 3) {
+        clearInterval(scanInterval);
+        verificationId = null;
+        elapsedSeconds = 0;
+        document.getElementById('progress-info').style.display = 'none';
+        document.getElementById('code-received').style.display = 'none';
+        document.querySelector('.scanning-container').style.display = 'block';
+        document.getElementById('cancel-btn').style.display = 'block';
+        document.getElementById('cancel-confirm-btn').style.display = 'none';
+        const fw = document.getElementById('fallback-warning');
+        if (fw) fw.remove();
+    }
+    updateProgress(currentStep - 1);
+    document.getElementById(`step-${currentStep}-card`).scrollIntoView({ behavior: 'smooth' });
+}
+
+function showOtherServiceInput() {
+    const existing = document.getElementById('other-service-input-row');
+    if (existing) { existing.querySelector('input').focus(); return; }
+    const row = document.createElement('div');
+    row.id = 'other-service-input-row';
+    row.style.cssText = 'margin-top:8px; display:flex; gap:8px;';
+    row.innerHTML = `
+        <input id="other-service-input" type="text" placeholder="Enter service name" class="form-input"
+            style="flex:1; padding:8px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px;"
+            onkeydown="if(event.key==='Enter') confirmOtherService()">
+        <button class="btn btn-primary" onclick="confirmOtherService()" style="white-space:nowrap;">OK</button>
+        <button class="btn btn-secondary" onclick="this.closest('#other-service-input-row').remove()" style="white-space:nowrap;">Cancel</button>
+    `;
+    document.getElementById('service-picker-btn').insertAdjacentElement('afterend', row);
+    row.querySelector('input').focus();
+}
+
+function confirmOtherService() {
+    const input = document.getElementById('other-service-input');
+    const name = (input?.value || '').trim();
+    if (!name) return;
+    selectedService = name;
+    selectedServicePrice = null;
+    document.getElementById('service-display').textContent = name;
+    document.getElementById('other-service-input-row')?.remove();
+    updateContinueBtn();
+    updatePricing();
 }
 
 function resetFlow() {
