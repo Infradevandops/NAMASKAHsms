@@ -18,11 +18,13 @@ except ImportError:
 
 logger = get_logger(__name__)
 
-# Redis cache key and TTL for the live area-code-by-state index
+# Cache keys and TTLs
 _AC_STATE_CACHE_KEY = "tv:area_codes_by_state"
-_AC_STATE_TTL = 3600  # 1 hour
+_AC_STATE_TTL = 7200  # 2 hours
+_AREA_CODES_CACHE_KEY = "tv:area_codes_list"
+_AREA_CODES_TTL = 7200  # 2 hours
 _SERVICES_CACHE_KEY = "tv:services_list"
-_SERVICES_TTL = 1800  # 30 minutes
+_SERVICES_TTL = 7200  # 2 hours
 
 
 def _get_redis():
@@ -62,9 +64,24 @@ class TextVerifiedService:
         """Fetch live area codes from TextVerified API."""
         if not self.enabled:
             return []
+        
+        # Use unified_cache
+        from app.core.unified_cache import cache
         try:
-            codes = await asyncio.wait_for(asyncio.to_thread(self.client.services.area_codes), timeout=8.0)
-            return [{"area_code": c.area_code, "state": c.state} for c in codes]
+            cached = await cache.get(_AREA_CODES_CACHE_KEY)
+            if cached:
+                return cached
+        except Exception:
+            pass
+        
+        try:
+            codes = await asyncio.wait_for(asyncio.to_thread(self.client.services.area_codes), timeout=10.0)
+            result = [{"area_code": c.area_code, "state": c.state} for c in codes]
+            try:
+                await cache.set(_AREA_CODES_CACHE_KEY, result, _AREA_CODES_TTL)
+            except Exception:
+                pass
+            return result
         except Exception as e:
             logger.error(f"Failed to get area codes: {e}")
             return []
@@ -72,25 +89,24 @@ class TextVerifiedService:
     async def _get_area_codes_by_state(self) -> Dict[str, List[str]]:
         """
         Return {state: [area_code, ...]} built entirely from the live
-        TextVerified area-codes endpoint. Result is cached in Redis for 1 hour
-        so every purchase doesn't hit the API.
+        TextVerified area-codes endpoint. Result is cached for 2 hours.
         """
-        # 1. Try Redis cache
+        # Use unified_cache
+        from app.core.unified_cache import cache
         try:
-            redis = _get_redis()
-            cached = redis.get(_AC_STATE_CACHE_KEY)
+            cached = await cache.get(_AC_STATE_CACHE_KEY)
             if cached:
-                return json.loads(cached)
+                return cached
         except Exception:
-            pass  # cache miss is fine
+            pass
 
-        # 2. Fetch live from TextVerified
+        # Fetch live from TextVerified
         codes = await self.get_area_codes_list()
         if not codes:
             logger.warning("TextVerified returned no area codes — proximity chain unavailable")
             return {}
 
-        # 3. Group by state
+        # Group by state
         by_state: Dict[str, List[str]] = {}
         for entry in codes:
             state = entry.get("state", "").strip().upper()
@@ -98,10 +114,9 @@ class TextVerifiedService:
             if state and ac:
                 by_state.setdefault(state, []).append(ac)
 
-        # 4. Cache
+        # Cache
         try:
-            redis = _get_redis()
-            redis.setex(_AC_STATE_CACHE_KEY, _AC_STATE_TTL, json.dumps(by_state))
+            await cache.set(_AC_STATE_CACHE_KEY, by_state, _AC_STATE_TTL)
         except Exception:
             pass
 

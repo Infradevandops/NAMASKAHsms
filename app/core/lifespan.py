@@ -52,9 +52,14 @@ async def lifespan(app):
             tv = TextVerifiedService()
             if tv.enabled:
                 startup_logger.info("Pre-warming TextVerified cache...")
-                asyncio.create_task(tv.get_services_list())
-                asyncio.create_task(tv.get_area_codes_list())
-                startup_logger.info("Cache pre-warming started in background")
+                services_task = asyncio.create_task(tv.get_services_list())
+                area_codes_task = asyncio.create_task(tv.get_area_codes_list())
+                # Wait for completion with timeout
+                try:
+                    await asyncio.wait_for(asyncio.gather(services_task, area_codes_task, return_exceptions=True), timeout=30.0)
+                    startup_logger.info("Cache pre-warming completed")
+                except asyncio.TimeoutError:
+                    startup_logger.warning("Cache pre-warming timed out (will retry in background)")
         except Exception as e:
             startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
 
