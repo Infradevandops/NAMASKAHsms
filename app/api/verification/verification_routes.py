@@ -99,7 +99,18 @@ async def create_verification(
         )
 
         if not purchase_result.get("success"):
-            raise HTTPException(status_code=400, detail=purchase_result.get("error", "Failed to purchase number"))
+            error_msg = purchase_result.get("error", "Failed to purchase number")
+            # Sanitize TextVerified errors for user display
+            if "Out of stock" in error_msg or "Unavailable" in error_msg:
+                user_msg = f"{verification_data.service} is temporarily unavailable. Please try a different service."
+            elif "Insufficient" in error_msg or "balance" in error_msg.lower():
+                user_msg = "Insufficient balance. Please add credits to your wallet."
+            elif "HTTP 400" in error_msg or "HTTP 500" in error_msg:
+                user_msg = "Service temporarily unavailable. Please try again in a few moments."
+            else:
+                user_msg = "Unable to complete verification. Please try again or contact support."
+            logger.error(f"Purchase failed for {verification_data.service}: {error_msg}")
+            raise HTTPException(status_code=400, detail=user_msg)
 
         # Create verification record
         verification = Verification(
