@@ -46,6 +46,18 @@ async def lifespan(app):
         await cache.connect()
         startup_logger.info("Unified cache initialized")
 
+        # Pre-warm services and area codes cache
+        try:
+            from app.services.textverified_service import TextVerifiedService
+            tv = TextVerifiedService()
+            if tv.enabled:
+                startup_logger.info("Pre-warming TextVerified cache...")
+                asyncio.create_task(tv.get_services_list())
+                asyncio.create_task(tv.get_area_codes_list())
+                startup_logger.info("Cache pre-warming started in background")
+        except Exception as e:
+            startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
+
         # Start SMS polling background service
         from app.services.sms_polling_service import sms_polling_service
         polling_task = asyncio.create_task(sms_polling_service.start_background_service())
