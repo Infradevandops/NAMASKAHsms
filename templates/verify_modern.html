@@ -342,7 +342,7 @@ async function loadServices() {
     document.getElementById('service-picker-btn').disabled = false;
     document.getElementById('service-loading-spinner').style.display = 'block';
 
-    // 1. Try localStorage first (instant)
+    // Try localStorage cache first
     const cached = _lsGet(_LS_SERVICES_KEY);
     if (cached && cached.length > 1) {
         _modalItems['service'] = cached;
@@ -355,10 +355,10 @@ async function loadServices() {
     document.getElementById('service-display').textContent = 'Loading services...';
     try {
         const token = localStorage.getItem('access_token');
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 30000);
-        const res = await fetch('/api/countries/US/services', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
-        clearTimeout(tid);
+        const res = await fetch('/api/countries/US/services', { 
+            headers: { 'Authorization': `Bearer ${token}` },
+            signal: AbortSignal.timeout(45000)
+        });
         if (!res.ok) throw new Error('fetch failed');
         const data = await res.json();
         const services = data.services || [];
@@ -366,9 +366,10 @@ async function loadServices() {
             ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
             { value: '__other__', label: 'Other (type name)', sub: '' }
         ];
-        _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
+        if (services.length) _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
     } catch (e) {
-        _modalItems['service'] = _modalItems['service'] || [{ value: '__other__', label: 'Other (type name)', sub: '' }];
+        console.error('Failed to load services:', e);
+        _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
     }
     document.getElementById('service-display').textContent = '-- Select a service --';
     document.getElementById('service-loading-spinner').style.display = 'none';
