@@ -8,7 +8,7 @@ from app.core.unified_cache import cache
 router = APIRouter(prefix="/api/countries", tags=["Services"])
 _tv = TextVerifiedService()
 _CACHE_KEY = "services:US"
-_CACHE_TTL = 1800  # 30 min
+_CACHE_TTL = 7200  # 2 hours
 
 
 @router.get("/{country}/services")
