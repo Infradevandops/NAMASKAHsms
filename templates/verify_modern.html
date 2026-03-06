@@ -359,9 +359,16 @@ async function loadServices() {
             headers: { 'Authorization': `Bearer ${token}` },
             signal: AbortSignal.timeout(45000)
         });
-        if (!res.ok) throw new Error('fetch failed');
+        if (!res.ok) {
+            console.error('Services API error:', res.status, res.statusText);
+            throw new Error('fetch failed');
+        }
         const data = await res.json();
+        console.log('Services loaded:', data.services?.length || 0, 'services');
         const services = data.services || [];
+        if (!services.length) {
+            console.warn('No services returned from API');
+        }
         _modalItems['service'] = [
             ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
             { value: '__other__', label: 'Other (type name)', sub: '' }
