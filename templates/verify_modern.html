@@ -54,8 +54,9 @@
         <!-- Service Picker -->
         <div class="form-group">
             <label class="form-label">Service <span class="required">*</span></label>
-            <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="service-picker-btn" onclick="openModal('service')">
+            <button type="button" class="form-select" style="text-align:left; cursor:pointer; position:relative;" id="service-picker-btn" onclick="openModal('service')">
                 <span id="service-display">Loading services...</span>
+                <span id="service-loading-spinner" style="display:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; border:2px solid #e5e7eb; border-top-color:#6366f1; border-radius:50%; animation:spin 0.6s linear infinite;"></span>
             </button>
         </div>
 
@@ -339,12 +340,14 @@ function _lsSet(key, data) {
 
 async function loadServices() {
     document.getElementById('service-picker-btn').disabled = false;
+    document.getElementById('service-loading-spinner').style.display = 'block';
 
     // 1. Try localStorage first (instant)
     const cached = _lsGet(_LS_SERVICES_KEY);
     if (cached && cached.length > 1) {
         _modalItems['service'] = cached;
         document.getElementById('service-display').textContent = '-- Select a service --';
+        document.getElementById('service-loading-spinner').style.display = 'none';
         if (_modalType === 'service') renderModalItems(_modalItems['service']);
         return;
     }
@@ -368,6 +371,7 @@ async function loadServices() {
         _modalItems['service'] = _modalItems['service'] || [{ value: '__other__', label: 'Other (type name)', sub: '' }];
     }
     document.getElementById('service-display').textContent = '-- Select a service --';
+    document.getElementById('service-loading-spinner').style.display = 'none';
     if (_modalType === 'service') renderModalItems(_modalItems['service']);
 }
 
