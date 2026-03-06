@@ -156,13 +156,16 @@ class TextVerifiedService:
         """Fetch live services from TextVerified API."""
         if not self.enabled:
             return self._mock_services()
+        
+        # Use unified_cache (has in-memory fallback)
+        from app.core.unified_cache import cache
         try:
-            redis = _get_redis()
-            cached = redis.get(_SERVICES_CACHE_KEY)
+            cached = await cache.get(_SERVICES_CACHE_KEY)
             if cached:
-                return json.loads(cached)
+                return cached
         except Exception:
             pass
+        
         try:
             services = await asyncio.wait_for(
                 asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
@@ -194,11 +197,13 @@ class TextVerifiedService:
                 {"id": s.service_name, "name": s.service_name.title(), "price": float(p)}
                 for s, p in zip(services, prices)
             ]
+            
+            # Cache with unified_cache (in-memory fallback)
             try:
-                redis = _get_redis()
-                redis.setex(_SERVICES_CACHE_KEY, _SERVICES_TTL, json.dumps(result))
+                await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
             except Exception:
                 pass
+            
             return result
         except Exception as e:
             logger.error(f"Failed to get services: {e}")
