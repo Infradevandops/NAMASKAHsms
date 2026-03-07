@@ -119,17 +119,17 @@
             <div style="margin-bottom: 12px; position: relative;">
                 <label style="display: block; margin-bottom: 6px; font-size: 13px; font-weight: 600;"
                     data-i18n="verify.select_service">Service</label>
-                <div style="display: flex; gap: 8px;">
-                    <input type="text" id="service-search" placeholder="Search services (e.g., Telegram, WhatsApp)..."
-                        autocomplete="off"
-                        style="flex: 1; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; transition: all 0.2s;"
-                        onfocus="this.style.borderColor='#667eea'; this.style.boxShadow='0 0 0 3px rgba(102, 126, 234, 0.1)'"
-                        onblur="this.style.borderColor='#e5e7eb'; this.style.boxShadow='none'">
-                    <button id="favorite-btn" onclick="toggleFavorite()" style="padding: 10px 14px; background: white; border: 2px solid #e5e7eb; border-radius: 8px; cursor: pointer; font-size: 14px; transition: all 0.2s;" title="Add to favorites">&#9734;</button>
+                <!-- Service selector trigger -->
+                <div id="service-selected-display"
+                    onclick="openServiceModal()"
+                    style="display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border: 2px solid #e5e7eb; border-radius: 8px; font-size: 14px; cursor: pointer; background: white; transition: all 0.2s;"
+                    onmouseover="this.style.borderColor='#667eea'" onmouseout="this.style.borderColor='#e5e7eb'">
+                    <span id="service-selected-label" style="color: #9ca3af;">Select a service...</span>
+                    <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
                 </div>
-                <div id="service-dropdown"
-                    style="display: none; position: absolute; background: white; border: 1px solid #e5e7eb; border-radius: 8px; max-height: 250px; overflow-y: auto; width: 100%; margin-top: 4px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15); z-index: 100;">
-                </div>
+                <!-- Hidden inputs kept for JS compatibility -->
+                <input type="text" id="service-search" style="display:none;" autocomplete="off">
+                <div id="service-dropdown" style="display:none;"></div>
             </div>
 
             <div style="margin-bottom: 12px;">
@@ -276,4 +276,112 @@
             verificationTemplates.renderUI('templates-list');
         });
     </script>
+
+    <!-- Service Selection Modal -->
+    <div id="service-modal" style="display:none; position:fixed; inset:0; z-index:1000; background:rgba(0,0,0,0.5); backdrop-filter:blur(4px);" onclick="if(event.target===this)closeServiceModal()">
+        <div style="position:absolute; bottom:0; left:0; right:0; background:white; border-radius:20px 20px 0 0; max-height:85vh; display:flex; flex-direction:column; animation:slideUp 0.25s ease;">
+            <!-- Header -->
+            <div style="padding:16px 20px 12px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; gap:12px;">
+                <div style="flex:1; display:flex; align-items:center; gap:8px; background:#f9fafb; border:1.5px solid #e5e7eb; border-radius:10px; padding:10px 14px;">
+                    <svg width="16" height="16" fill="none" stroke="#9ca3af" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                    <input id="modal-service-search" type="text" placeholder="Search Telegram, WhatsApp, Gmail..."
+                        style="border:none; outline:none; background:transparent; font-size:15px; flex:1; color:#111;"
+                        oninput="filterModalServices(this.value)" autofocus>
+                    <button onclick="document.getElementById('modal-service-search').value=''; filterModalServices('')" style="border:none; background:none; cursor:pointer; color:#9ca3af; font-size:18px; line-height:1;">×</button>
+                </div>
+                <button onclick="closeServiceModal()" style="border:none; background:none; cursor:pointer; color:#6b7280; font-size:14px; font-weight:600;">Cancel</button>
+            </div>
+            <!-- Popular label -->
+            <div id="modal-section-label" style="padding:12px 20px 4px; font-size:11px; font-weight:700; color:#9ca3af; text-transform:uppercase; letter-spacing:0.5px;">Popular</div>
+            <!-- List -->
+            <div id="modal-service-list" style="overflow-y:auto; flex:1; padding:0 8px 20px;"></div>
+        </div>
+    </div>
+
+    <style>
+    @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+    .modal-service-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 12px; border-radius: 10px; cursor: pointer;
+        transition: background 0.15s;
+    }
+    .modal-service-item:hover { background: #f9fafb; }
+    .modal-service-item .svc-icon {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 18px; flex-shrink: 0;
+    }
+    .modal-service-item .svc-name { font-size: 15px; font-weight: 500; color: #111; }
+    .modal-service-item .svc-price { font-size: 13px; color: #6b7280; margin-top: 1px; }
+    </style>
+
+    <script>
+    const SERVICE_ICONS = {
+        telegram: '✈️', whatsapp: '💬', gmail: '📧', google: '🔍',
+        facebook: '👤', instagram: '📸', twitter: '🐦', tiktok: '🎵',
+        discord: '🎮', snapchat: '👻', uber: '🚗', amazon: '📦',
+        apple: '🍎', microsoft: '🪟', netflix: '🎬', paypal: '💳',
+        default: '📱'
+    };
+
+    function getServiceIcon(name) {
+        const key = name.toLowerCase();
+        for (const [k, v] of Object.entries(SERVICE_ICONS)) {
+            if (key.includes(k)) return v;
+        }
+        return SERVICE_ICONS.default;
+    }
+
+    function openServiceModal() {
+        const modal = document.getElementById('service-modal');
+        modal.style.display = 'block';
+        renderModalServices(allServices.slice(0, 50));
+        setTimeout(() => document.getElementById('modal-service-search').focus(), 100);
+    }
+
+    function closeServiceModal() {
+        document.getElementById('service-modal').style.display = 'none';
+        document.getElementById('modal-service-search').value = '';
+        document.getElementById('modal-section-label').textContent = 'Popular';
+    }
+
+    function filterModalServices(query) {
+        const label = document.getElementById('modal-section-label');
+        if (!query) {
+            label.textContent = 'Popular';
+            renderModalServices(allServices.slice(0, 50));
+        } else {
+            label.textContent = 'Results';
+            const filtered = allServices.filter(s => s.name.toLowerCase().includes(query.toLowerCase()));
+            renderModalServices(filtered.slice(0, 50));
+        }
+    }
+
+    function renderModalServices(services) {
+        const list = document.getElementById('modal-service-list');
+        if (!services.length) {
+            list.innerHTML = '<div style="padding:40px; text-align:center; color:#9ca3af;">No services found</div>';
+            return;
+        }
+        list.innerHTML = services.map(s => `
+            <div class="modal-service-item" onclick="pickService('${s.name.replace(/'/g, "\\'")}',' ${s.id || s.name}', ${s.cost || 0})">
+                <div class="svc-icon">${getServiceIcon(s.name)}</div>
+                <div>
+                    <div class="svc-name">${s.name}</div>
+                    <div class="svc-price">$${(s.cost || 0).toFixed(2)}</div>
+                </div>
+            </div>`).join('');
+    }
+
+    function pickService(name, id, cost) {
+        // Update display
+        document.getElementById('service-selected-label').textContent = name;
+        document.getElementById('service-selected-label').style.color = '#111';
+        // Call existing selectService function
+        selectService(name, id);
+        closeServiceModal();
+    }
+    </script>
+
     {% endblock %}
