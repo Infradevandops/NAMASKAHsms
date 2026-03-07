@@ -46,24 +46,7 @@ async function loadBalance(silent = false) {
         
         if (userRes.ok) {
             const userData = await userRes.json();
-            
-            // If admin, show TextVerified API balance
-            if (userData.is_admin) {
-                const tvRes = await fetch('/api/textverified/balance', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                
-                if (tvRes.ok) {
-                    const tvData = await tvRes.json();
-                    const balance = tvData.balance || 0;
-                    display.textContent = `$${parseFloat(balance).toFixed(2)}`;
-                    display.title = 'TextVerified API Balance';
-                    return;
-                } else {
-                    // Fallback to database balance if TextVerified fails
-                    console.warn('TextVerified API not available, using database balance');
-                }
-            }
+            // Always show account credit balance for consistency with notifications
         }
         
         // For non-admin users, show their account balance

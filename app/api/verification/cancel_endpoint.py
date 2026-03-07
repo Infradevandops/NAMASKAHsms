@@ -9,7 +9,6 @@ from app.core.logging import get_logger
 from app.models.verification import Verification
 from app.services.auto_refund_service import AutoRefundService
 from app.services.textverified_service import TextVerifiedService
-from app.services.notification_service import NotificationService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -70,18 +69,6 @@ async def cancel_verification(
             logger.info(
                 f"Verification {verification_id} cancelled with refund: ${refund_result['refund_amount']:.2f}"
             )
-
-            try:
-                notif_service = NotificationService(db)
-                notif_service.create_notification(
-                    user_id=user_id,
-                    notification_type="verification_cancelled",
-                    title="Verification Cancelled",
-                    message=f"${refund_result['refund_amount']:.2f} refunded instantly for {verification.service_name}. New balance: ${refund_result['new_balance']:.2f}",
-                )
-            except Exception as n_error:
-                logger.warning(f"Failed to send cancellation notification: {n_error}")
-
             return {
                 "success": True,
                 "message": "Verification cancelled and refunded",

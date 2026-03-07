@@ -80,13 +80,6 @@ class AutoRefundService:
 
             try:
                 notification_dispatcher = NotificationDispatcher(self.db)
-                await notification_dispatcher.on_refund_completed(
-                    user_id=verification.user_id,
-                    amount=refund_amount,
-                    reference=f"auto-refund-{verification_id}",
-                    new_balance=new_balance
-                )
-
                 if reason == "timeout":
                     await notification_dispatcher.notify_verification_timeout(
                         user_id=verification.user_id,
@@ -99,7 +92,8 @@ class AutoRefundService:
                         user_id=verification.user_id,
                         verification_id=verification_id,
                         service=verification.service_name,
-                        refund_amount=refund_amount
+                        refund_amount=refund_amount,
+                        new_balance=new_balance
                     )
                 else:
                     await notification_dispatcher.notify_verification_failed(
