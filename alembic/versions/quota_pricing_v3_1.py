@@ -48,11 +48,12 @@ def upgrade():
             op.add_column("tiers", sa.Column("single_sms_rate", sa.DECIMAL(10, 2), nullable=True))
 
     # 2. Add quota tracking columns to users table
-    user_cols = [c["name"] for c in inspector.get_columns("users")]
-    if "quota_balance" not in user_cols:
-        op.add_column("users", sa.Column("quota_balance", sa.DECIMAL(10, 2), server_default="0.00"))
-    if "quota_reset_date" not in user_cols:
-        op.add_column("users", sa.Column("quota_reset_date", sa.TIMESTAMP, nullable=True))
+    if "users" in existing_tables:
+        user_cols = [c["name"] for c in inspector.get_columns("users")]
+        if "quota_balance" not in user_cols:
+            op.add_column("users", sa.Column("quota_balance", sa.DECIMAL(10, 2), server_default="0.00"))
+        if "quota_reset_date" not in user_cols:
+            op.add_column("users", sa.Column("quota_reset_date", sa.TIMESTAMP, nullable=True))
     if "total_overage_charges" not in user_cols:
         op.add_column("users", sa.Column("total_overage_charges", sa.DECIMAL(10, 2), server_default="0.00"))
 
