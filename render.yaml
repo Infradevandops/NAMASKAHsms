@@ -5,7 +5,7 @@ services:
     env: python
     plan: free
     buildCommand: pip install --cache-dir /opt/render/.cache/pip -r requirements.txt
-    startCommand: python -c "from app.core.database import engine; from app.models.base import Base; import app.models; Base.metadata.create_all(bind=engine)" && alembic upgrade head && gunicorn main:app -k uvicorn.workers.UvicornWorker
+    startCommand: python -c "from app.core.database import create_tables; create_tables()" && alembic upgrade head && gunicorn main:app -k uvicorn.workers.UvicornWorker
     envVars:
       - key: DATABASE_URL
         fromDatabase:

@@ -20,6 +20,11 @@ def upgrade():
 
     """Create pricing templates tables"""
 
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    if "users" not in inspector.get_table_names():
+        return
+
     # 1. Create pricing_templates table
     op.create_table(
         "pricing_templates",
