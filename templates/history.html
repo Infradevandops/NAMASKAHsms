@@ -241,6 +241,18 @@ function formatPhone(raw) {
         window.location.href = `/verify?service=${encodeURIComponent(service)}`;
     }
 
-    document.addEventListener('DOMContentLoaded', loadHistory);
+    document.addEventListener('DOMContentLoaded', async () => {
+        await loadHistory();
+        const targetId = new URLSearchParams(window.location.search).get('id');
+        if (targetId) {
+            const row = document.querySelector(`[data-id="${targetId}"]`);
+            if (row) {
+                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                row.style.transition = 'background 0.3s';
+                row.style.background = 'rgba(99, 102, 241, 0.12)';
+                setTimeout(() => row.style.background = '', 2500);
+            }
+        }
+    });
 </script>
 {% endblock %}
