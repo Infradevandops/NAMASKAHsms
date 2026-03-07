@@ -48,7 +48,7 @@ class NotificationDispatcher:
                 notification_type="verification_started",
                 title="Verification Started",
                 message=f"Started {service} verification for {phone_number} (${cost:.2f})",
-                link=f"/verify?id={verification_id}",
+                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -72,7 +72,7 @@ class NotificationDispatcher:
                 notification_type="verification_completed",
                 title="Verification Completed",
                 message=f"SMS received for {service} verification ({phone_number})",
-                link=f"/verify?id={verification_id}",
+                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -96,7 +96,7 @@ class NotificationDispatcher:
                 notification_type="verification_failed",
                 title="Verification Failed",
                 message=f"{service} verification failed: {reason}",
-                link=f"/verify?id={verification_id}",
+                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -143,7 +143,7 @@ class NotificationDispatcher:
                 notification_type="verification_timeout",
                 title="Verification Timeout - Refunded",
                 message=f"{service} verification timed out. ${refund_amount:.2f} refunded to your account.",
-                link=f"/verify?id={verification_id}",
+                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -169,7 +169,7 @@ class NotificationDispatcher:
                 notification_type="verification_cancelled",
                 title="Verification Cancelled",
                 message=f"${refund_amount:.2f} refunded for {service}.{balance_str}",
-                link=f"/verify?id={verification_id}",
+                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -211,7 +211,7 @@ class NotificationDispatcher:
                 notification_type="sms_received",
                 title="SMS Code Received",
                 message=f"Verification code received for {verification.service_name}",
-                link=f"/verify?id={verification.id}",
+                link=f"/history?id={verification.id}",
             )
 
             self._broadcast_notification(verification.user_id, notification)
