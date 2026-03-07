@@ -54,8 +54,8 @@ def upgrade():
             op.add_column("users", sa.Column("quota_balance", sa.DECIMAL(10, 2), server_default="0.00"))
         if "quota_reset_date" not in user_cols:
             op.add_column("users", sa.Column("quota_reset_date", sa.TIMESTAMP, nullable=True))
-    if "total_overage_charges" not in user_cols:
-        op.add_column("users", sa.Column("total_overage_charges", sa.DECIMAL(10, 2), server_default="0.00"))
+        if "total_overage_charges" not in user_cols:
+            op.add_column("users", sa.Column("total_overage_charges", sa.DECIMAL(10, 2), server_default="0.00"))
 
     # 3. Create quota_transactions table
     if "quota_transactions" not in existing_tables:
