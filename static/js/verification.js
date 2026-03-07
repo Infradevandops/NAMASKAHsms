@@ -174,6 +174,21 @@ function setupSearchListener() {
     const searchInput = document.getElementById('service-search');
     const dropdown = document.getElementById('service-dropdown');
 
+    searchInput.addEventListener('focus', () => {
+        if (!servicesLoaded) return;
+        const query = searchInput.value.toLowerCase().trim();
+        if (!query) {
+            const top = allServices.slice(0, 10);
+            if (top.length > 0) {
+                dropdown.innerHTML = top.map(s => {
+                    const safeName = s.name.replace(/'/g, "\\'");
+                    return `<div class="service-option" onclick="selectService('${safeName}', '${s.id || s.name}')">${s.name}</div>`;
+                }).join('');
+                dropdown.style.display = 'block';
+            }
+        }
+    });
+
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase().trim();
 

@@ -30,7 +30,7 @@ def init_admin_user():
         if user:
             # Update existing user
             db.execute(
-                text("UPDATE users SET password_hash = :hash, is_admin = true, is_active = true WHERE email = :email"),
+                text("UPDATE users SET password_hash = :hash, is_admin = true, is_active = true, subscription_tier = 'custom' WHERE email = :email"),
                 {"hash": password_hash, "email": ADMIN_EMAIL}
             )
             db.commit()
@@ -47,7 +47,7 @@ def init_admin_user():
                     )
                     VALUES (
                         gen_random_uuid(), :email, :hash, true, false, true, false, false, false, false,
-                        1000, 1.0, true, 'freemium', 
+                        1000, 1.0, true, 'custom', 
                         0.0, 0.0, 0.0, 
                         'email', 0, 'en', 'USD', CURRENT_TIMESTAMP
                     )
