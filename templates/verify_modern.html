@@ -127,6 +127,16 @@
             <span class="pricing-value success" id="pricing-success">95%</span>
         </div>
 
+        <div class="pricing-row" id="pricing-area-code-row" style="display:none;">
+            <span class="pricing-label">Area Code</span>
+            <span class="pricing-value" id="pricing-area-code">-</span>
+        </div>
+
+        <div class="pricing-row" id="pricing-carrier-row" style="display:none;">
+            <span class="pricing-label">Carrier</span>
+            <span class="pricing-value" id="pricing-carrier">-</span>
+        </div>
+
         <div class="pricing-row">
             <span class="pricing-label">Your Balance</span>
             <span class="pricing-value" id="pricing-balance">$100.00</span>
@@ -315,7 +325,27 @@ function updateProgress(step) {
 
 function confirmService() {
     if (!selectedService) return;
-    document.getElementById('pricing-service').textContent = selectedService;
+    const item = (_modalItems['service'] || []).find(i => i.value === selectedService);
+    document.getElementById('pricing-service').textContent = item?.label || selectedService;
+
+    // Show area code if selected
+    if (selectedAreaCode) {
+        const acItem = (_modalItems['area-code'] || []).find(i => i.value === selectedAreaCode);
+        document.getElementById('pricing-area-code').textContent = acItem ? `${acItem.value}${acItem.sub ? ' — ' + acItem.sub : ''}` : selectedAreaCode;
+        document.getElementById('pricing-area-code-row').style.display = '';
+    } else {
+        document.getElementById('pricing-area-code-row').style.display = 'none';
+    }
+
+    // Show carrier if selected
+    if (selectedCarrier) {
+        const cItem = (_modalItems['carrier'] || []).find(i => i.value === selectedCarrier);
+        document.getElementById('pricing-carrier').textContent = cItem?.label || selectedCarrier;
+        document.getElementById('pricing-carrier-row').style.display = '';
+    } else {
+        document.getElementById('pricing-carrier-row').style.display = 'none';
+    }
+
     updatePricing();
     updateProgress(2);
     setTimeout(() => document.getElementById('step-2-card').scrollIntoView({ behavior: 'smooth' }), 300);
@@ -574,6 +604,14 @@ function startScanning() {
 
         if (elapsedSeconds >= 120) {
             clearInterval(scanInterval);
+            // Record timeout outcome
+            if (verificationId) {
+                fetch(`/api/verify/${verificationId}/outcome`, {
+                    method: 'PATCH',
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ outcome: 'timeout', error_message: 'No SMS received within 2 minutes' })
+                }).catch(() => {});
+            }
             const phone = document.getElementById('phone-number').textContent.trim();
             showError('Verification Timeout', `No SMS received within 2 minutes. Did the code not arrive?`);
             const errEl = document.getElementById('error-message');
