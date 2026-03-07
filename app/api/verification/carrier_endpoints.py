@@ -37,7 +37,7 @@ async def get_available_carriers(
             db.query(
                 Verification.operator,
                 func.count(Verification.id).label("total"),
-                func.sum(case([(Verification.status == "completed", 1)], else_=0)).label("completed"),
+                func.sum(case((Verification.status == "completed", 1), else_=0)).label("completed"),
             )
             .filter(
                 Verification.country == country,

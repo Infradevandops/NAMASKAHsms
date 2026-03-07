@@ -40,6 +40,11 @@ class Verification(BaseModel):
     # Idempotency
     idempotency_key = Column(String, index=True, nullable=True)
 
+    # Outcome tracking
+    outcome = Column(String, nullable=True)  # completed, cancelled, timeout, error
+    cancel_reason = Column(String, nullable=True)
+    error_message = Column(String, nullable=True)
+
 
 class NumberRental(BaseModel):
     """Number rental for extended use."""

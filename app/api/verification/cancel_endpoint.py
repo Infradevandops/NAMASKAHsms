@@ -59,6 +59,8 @@ async def cancel_verification(
                 logger.warning(f"TextVerified cancellation failed: {tv_error}")
 
         verification.status = "cancelled"
+        verification.outcome = "cancelled"
+        verification.cancel_reason = "User cancelled"
         db.commit()
 
         refund_service = AutoRefundService(db)
