@@ -30,6 +30,9 @@ def _index_exists(index):
 
 
 def upgrade():
+    bind = op.get_bind()
+    if bind.execute(sa.text("SELECT 1 FROM information_schema.tables WHERE table_name='verifications'")).fetchone() is None:
+        return
     if not _column_exists("verifications", "idempotency_key"):
         op.add_column("verifications", sa.Column("idempotency_key", sa.String(), nullable=True))
     if not _index_exists("ix_verifications_idempotency_key"):

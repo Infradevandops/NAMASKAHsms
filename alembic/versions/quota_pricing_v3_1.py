@@ -124,24 +124,24 @@ def upgrade():
         ON CONFLICT (tier_name) DO UPDATE SET overage_rate = 2.00
     """))
 
-    # 5. Initialize quota for existing users
-    connection.execute(sa.text("""
-        UPDATE users u
-        SET quota_balance = t.included_quota,
-            quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
-        FROM tiers t
-        WHERE u.subscription_tier = t.tier_name
-    """))
-
-    # 6. Seed initial quota transaction records
-    connection.execute(sa.text("""
-        INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
-        SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,
-               'Initial quota allocation (migration)'
-        FROM users u
-        JOIN tiers t ON u.subscription_tier = t.tier_name
-        WHERE t.included_quota > 0
-    """))
+    # 5+6. Only seed user quotas if subscription_tier column already exists
+    user_cols = [c["name"] for c in inspector.get_columns("users")]
+    if "subscription_tier" in user_cols:
+        connection.execute(sa.text("""
+            UPDATE users u
+            SET quota_balance = t.included_quota,
+                quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+            FROM tiers t
+            WHERE u.subscription_tier = t.tier_name
+        """))
+        connection.execute(sa.text("""
+            INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
+            SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,
+                   'Initial quota allocation (migration)'
+            FROM users u
+            JOIN tiers t ON u.subscription_tier = t.tier_name
+            WHERE t.included_quota > 0
+        """))
 
     print("✅ Migration to quota-based pricing completed successfully")
 

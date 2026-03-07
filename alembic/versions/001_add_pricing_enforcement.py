@@ -32,6 +32,8 @@ def _table_exists(table):
 
 
 def upgrade():
+    if not _table_exists("users"):
+        return
     if not _column_exists("users", "bonus_sms_balance"):
         op.add_column("users", sa.Column("bonus_sms_balance", sa.Float(), nullable=False, server_default="0.0"))
     if not _column_exists("users", "monthly_quota_used"):
