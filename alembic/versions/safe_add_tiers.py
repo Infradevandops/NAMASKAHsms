@@ -19,6 +19,9 @@ def upgrade():
     """Safely add subscription tier columns if they don't exist."""
     bind = op.get_bind()
     inspector = inspect(bind)
+    # Guard: skip if users table doesn't exist yet
+    if "users" not in inspector.get_table_names():
+        return
     # Get existing columns in users table
     existing_columns = [col["name"] for col in inspector.get_columns("users")]
     # Add subscription_tier if missing
