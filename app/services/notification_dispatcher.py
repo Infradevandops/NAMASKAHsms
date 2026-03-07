@@ -158,15 +158,17 @@ class NotificationDispatcher:
         user_id: str, 
         verification_id: str, 
         service: str, 
-        refund_amount: float
+        refund_amount: float,
+        new_balance: float = None
         ) -> bool:
         """Notify when verification is cancelled with refund."""
         try:
+            balance_str = f" New balance: ${new_balance:.2f}" if new_balance is not None else ""
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_cancelled",
-                title="Verification Cancelled - Refunded",
-                message=f"{service} verification cancelled. ${refund_amount:.2f} refunded to your account.",
+                title="Verification Cancelled",
+                message=f"${refund_amount:.2f} refunded for {service}.{balance_str}",
                 link=f"/verify?id={verification_id}",
             )
 
