@@ -102,8 +102,14 @@ class I18n {
 
 const i18n = new I18n();
 
-// Initialize on load
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize on load — guard against DOMContentLoaded already fired
+async function initI18n() {
     await i18n.loadTranslations();
     i18n.translatePage();
-});
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initI18n);
+} else {
+    initI18n();
+}
