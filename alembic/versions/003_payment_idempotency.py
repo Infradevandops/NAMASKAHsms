@@ -28,6 +28,9 @@ def _index_exists(index):
 
 
 def upgrade():
+    bind = op.get_bind()
+    if bind.execute(sa.text("SELECT 1 FROM information_schema.tables WHERE table_name='transactions'")).fetchone() is None:
+        return
     for col in ["reference", "idempotency_key", "payment_log_id"]:
         if not _column_exists("transactions", col):
             op.add_column("transactions", sa.Column(col, sa.String(), nullable=True))
