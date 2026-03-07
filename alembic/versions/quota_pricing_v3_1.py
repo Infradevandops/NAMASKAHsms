@@ -22,6 +22,10 @@ def upgrade():
     inspector = sa.inspect(bind)
     existing_tables = inspector.get_table_names()
 
+    # Skip entirely if base tables don't exist yet (fresh DB - lifespan will create them)
+    if "users" not in existing_tables:
+        return
+
     # 1. Create tiers table if missing, otherwise add new columns
     if "tiers" not in existing_tables:
         op.create_table(
