@@ -19,6 +19,8 @@ depends_on = None
 def upgrade():
     bind = op.get_bind()
     inspector = inspect(bind)
+    if "users" not in inspector.get_table_names():
+        return
     existing_columns = [col["name"] for col in inspector.get_columns("users")]
     if "language" not in existing_columns:
         op.add_column(
