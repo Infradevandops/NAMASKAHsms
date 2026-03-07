@@ -25,10 +25,12 @@ class XSSProtectionMiddleware(BaseHTTPMiddleware):
                     sanitized_data = validate_and_sanitize_response(data)
                     sanitized_body = json.dumps(sanitized_data).encode()
 
+                    new_headers = dict(response.headers)
+                    new_headers.pop("content-length", None)
                     return Response(
                         content=sanitized_body,
                         status_code=response.status_code,
-                        headers=dict(response.headers),
+                        headers=new_headers,
                         media_type="application/json",
                     )
             except (json.JSONDecodeError, UnicodeDecodeError):
