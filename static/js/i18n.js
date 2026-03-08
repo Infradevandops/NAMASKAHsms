@@ -2,6 +2,7 @@ class I18n {
     constructor() {
         this.locale = localStorage.getItem('language') || 'en';
         this.translations = {};
+        this.fallback = {};
         this.loaded = false;
         this.supportedLanguages = ['en', 'es', 'fr', 'de', 'pt', 'zh', 'ja', 'ar', 'hi'];
     }
@@ -13,6 +14,22 @@ class I18n {
             console.warn(`Unsupported language: ${this.locale}, falling back to English`);
             this.locale = 'en';
             localStorage.setItem('language', 'en');
+        }
+
+        // Always load English as fallback
+        if (!this.fallback || Object.keys(this.fallback).length === 0) {
+            try {
+                const res = await fetch('/static/locales/en.json');
+                if (res.ok) this.fallback = await res.json();
+            } catch (e) {
+                console.error('Failed to load English fallback:', e);
+            }
+        }
+
+        if (this.locale === 'en') {
+            this.translations = this.fallback;
+            this.loaded = true;
+            return;
         }
 
         try {
@@ -29,7 +46,8 @@ class I18n {
                 localStorage.setItem('language', 'en');
                 const selector = document.getElementById('lang-switcher');
                 if (selector) selector.value = 'en';
-                await this.loadTranslations();
+                this.translations = this.fallback;
+                this.loaded = true;
                 if (typeof showToast === 'function') {
                     showToast('Language not available. Using English.', 'warning');
                 }
@@ -38,8 +56,9 @@ class I18n {
     }
 
     t(key, params = {}) {
-        const value = this.getNestedValue(this.translations, key);
-        if (!value) return key; // Fallback to key
+        const value = this.getNestedValue(this.translations, key)
+            || this.getNestedValue(this.fallback, key);
+        if (!value) return key;
         return this.interpolate(value, params);
     }
 

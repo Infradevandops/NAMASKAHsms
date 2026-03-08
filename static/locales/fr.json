@@ -14,6 +14,43 @@
     "date": "Date",
     "status": "Statut"
   },
+  "dashboard": {
+    "title": "Tableau de bord",
+    "subtitle": "Aperçu de votre activité de vérification SMS",
+    "total_sms": "Total SMS",
+    "successful": "Réussis",
+    "total_spent": "Total dépensé",
+    "success_rate": "Taux de réussite",
+    "recent_activity": "Activité récente",
+    "no_activity": "Aucune activité récente",
+    "start_verification": "Démarrer la vérification",
+    "service": "Service",
+    "number": "Numéro",
+    "time": "Heure",
+    "your_plan": "Votre forfait",
+    "upgrade": "Mettre à niveau",
+    "features": "Fonctionnalités"
+  },
+  "tiers": {
+    "freemium": "Freemium",
+    "payg": "Paiement à l'usage",
+    "pro": "Pro",
+    "custom": "Personnalisé",
+    "current_plan": "Forfait actuel",
+    "upgrade_to": "Passer à",
+    "features": {
+      "random_numbers": "Numéros aléatoires uniquement",
+      "no_api": "Pas d'accès API",
+      "no_filters": "Pas de filtres de localisation",
+      "location_filters": "Filtres de localisation",
+      "isp_filters": "Filtres ISP",
+      "api_access": "Accès API",
+      "all_filters": "Tous les filtres inclus",
+      "affiliate": "Programme d'affiliation",
+      "priority_support": "Support prioritaire",
+      "unlimited_api": "API illimitée"
+    }
+  },
   "wallet": {
     "title": "Portefeuille",
     "subtitle": "Gérez vos crédits et votre facturation",
