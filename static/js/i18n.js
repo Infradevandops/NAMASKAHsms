@@ -8,7 +8,7 @@ class I18n {
     }
 
     async loadTranslations() {
-        if (this.loaded && this.translations[this.locale]) return;
+        if (this.loaded) return;
 
         if (!this.supportedLanguages.includes(this.locale)) {
             console.warn(`Unsupported language: ${this.locale}, falling back to English`);
