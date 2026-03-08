@@ -81,7 +81,11 @@ class Settings(BaseSettings):
     @field_validator("cors_origins", mode="before")
     @classmethod
     def parse_cors_origins(cls, value):
-        """Parse CORS origins from string or list."""
+        """Parse CORS origins — reject wildcard in production."""
+        import os
+        if value == "*" and os.getenv("ENVIRONMENT", "development") == "production":
+            base = os.getenv("BASE_URL", "")
+            return [base] if base else []
         if isinstance(value, str):
             return [origin.strip() for origin in value.split(",")]
         return value

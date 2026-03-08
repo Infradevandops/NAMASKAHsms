@@ -22,11 +22,27 @@
             const balanceAmount = document.getElementById('balance-amount');
             const balanceDisplay = document.getElementById('balance-display');
             
-            if (headerBalance) headerBalance.textContent = 'Balance: ' + formatted;
-            if (statBalance) statBalance.textContent = formatted;
-            if (walletBalance) walletBalance.textContent = formatted;
-            if (balanceAmount) balanceAmount.textContent = formatted;
-            if (balanceDisplay) balanceDisplay.textContent = formatted;
+            // Use i18n-aware updates - preserve data-i18n attributes
+            if (headerBalance) {
+                headerBalance.removeAttribute('data-i18n');
+                headerBalance.textContent = 'Balance: ' + formatted;
+            }
+            if (statBalance) {
+                statBalance.removeAttribute('data-i18n');
+                statBalance.textContent = formatted;
+            }
+            if (walletBalance) {
+                walletBalance.removeAttribute('data-i18n');
+                walletBalance.textContent = formatted;
+            }
+            if (balanceAmount) {
+                balanceAmount.removeAttribute('data-i18n');
+                balanceAmount.textContent = formatted;
+            }
+            if (balanceDisplay) {
+                balanceDisplay.removeAttribute('data-i18n');
+                balanceDisplay.textContent = formatted;
+            }
         } catch (error) {
             console.error('Balance load failed:', error);
         }

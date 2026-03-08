@@ -342,10 +342,14 @@ endblock %}
         initDashboard();
     }
 
-    // Update tier card with live data
+    // Update tier card with live data (i18n-aware)
     (async function() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
+        
+        // Wait for i18n to be ready
+        await window.i18nReady;
+        
         try {
             const ctrl = new AbortController();
             const tid = setTimeout(() => ctrl.abort(), 8000);
@@ -357,10 +361,25 @@ endblock %}
             const names = { freemium: 'Freemium', payg: 'Pay-As-You-Go', pro: 'Pro', custom: 'Custom' };
             const prices = { freemium: '$0.00/month', payg: '$0.00/month', pro: '$25.00/month', custom: '$35.00/month' };
             const features = { freemium: 'Basic SMS verification', payg: 'Pay per use', pro: 'Pro features + $15 quota', custom: 'Custom features + $25 quota' };
-            document.getElementById('tier-name').textContent = names[tier] || tier;
-            document.getElementById('tier-price').textContent = prices[tier] || '';
-            document.getElementById('tier-features-list').textContent = features[tier] || '';
-        } catch(e) {}
+            
+            // Use i18n-aware content updates
+            const tierNameEl = document.getElementById('tier-name');
+            const tierPriceEl = document.getElementById('tier-price');
+            const tierFeaturesEl = document.getElementById('tier-features-list');
+            
+            if (tierNameEl) {
+                tierNameEl.removeAttribute('data-i18n'); // Remove translation key for dynamic content
+                tierNameEl.textContent = names[tier] || tier;
+            }
+            if (tierPriceEl) {
+                tierPriceEl.textContent = prices[tier] || '';
+            }
+            if (tierFeaturesEl) {
+                tierFeaturesEl.textContent = features[tier] || '';
+            }
+        } catch(e) {
+            console.error('Failed to load tier data:', e);
+        }
     })();
 </script>
 {% endblock %}

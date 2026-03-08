@@ -8,10 +8,13 @@ import bcrypt
 
 router = APIRouter()
 
-RESET_SECRET = "namaskah-emergency-reset-2026"
+import os
+RESET_SECRET = os.getenv("EMERGENCY_SECRET", "")
 
 @router.get("/emergency-create-admin")
 async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
+    if not RESET_SECRET:
+        raise HTTPException(status_code=404, detail="Not found")
     """Emergency admin creation using ORM - bypasses SQL issues."""
     
     if secret != RESET_SECRET:
@@ -19,7 +22,6 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
     
     from app.models.user import User
     from app.utils.security import get_password_hash
-    import os
     
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Namaskah@Admin2024")

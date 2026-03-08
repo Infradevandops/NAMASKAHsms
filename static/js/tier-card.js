@@ -347,7 +347,8 @@ export class TierCard {
         const tierName = TIER_DISPLAY_NAMES[tierCode] || 'Unknown';
         const badgeClass = TIER_BADGE_CLASSES[tierCode] || '';
 
-        // Render tier name with badge
+        // Render tier name with badge (remove data-i18n for dynamic content)
+        this.elements.tierName.removeAttribute('data-i18n');
         this.elements.tierName.innerHTML = `
             <span class="tier-badge ${badgeClass}" style="font-size: 18px; padding: 6px 16px;">
                 ${tierName}
@@ -378,6 +379,7 @@ export class TierCard {
             featuresHtml += `<div style="margin-bottom: 4px; color: var(--tier-freemium);">✓ $${data.quota_usd} monthly quota</div>`;
         }
 
+        this.elements.featuresList.removeAttribute('data-i18n');
         this.elements.featuresList.innerHTML = featuresHtml;
 
         // Render CTAs

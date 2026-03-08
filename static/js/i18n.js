@@ -119,6 +119,118 @@ class I18n {
             }
         });
     }
+
+    /**
+     * Set element content while preserving i18n attributes
+     * Use this instead of direct textContent assignment
+     */
+    setContent(elementOrId, content, translationKey = null) {
+        const el = typeof elementOrId === 'string' 
+            ? document.getElementById(elementOrId) 
+            : elementOrId;
+        
+        if (!el) return;
+
+        if (translationKey) {
+            // Set translation key and translate
+            el.setAttribute('data-i18n', translationKey);
+            el.textContent = this.t(translationKey);
+        } else {
+            // Direct content, remove translation key
+            el.removeAttribute('data-i18n');
+            el.textContent = content;
+        }
+    }
+
+    /**
+     * Set element HTML while preserving i18n for child elements
+     */
+    setHTML(elementOrId, html) {
+        const el = typeof elementOrId === 'string' 
+            ? document.getElementById(elementOrId) 
+            : elementOrId;
+        
+        if (!el) return;
+
+        el.innerHTML = html;
+        // Re-translate any new elements with data-i18n
+        if (this.loaded) {
+            el.querySelectorAll('[data-i18n]').forEach(child => {
+                const key = child.getAttribute('data-i18n');
+                const params = child.getAttribute('data-i18n-params')
+                    ? JSON.parse(child.getAttribute('data-i18n-params'))
+                    : {};
+                child.textContent = this.t(key, params);
+            });
+        }
+    }
+
+    /**
+     * Update element content and re-translate if it has data-i18n
+     */
+    updateContent(elementOrId, content) {
+        const el = typeof elementOrId === 'string' 
+            ? document.getElementById(elementOrId) 
+            : elementOrId;
+        
+        if (!el) return;
+
+        const hasI18n = el.hasAttribute('data-i18n');
+        
+        if (hasI18n) {
+            // Element has translation key, preserve it
+            const key = el.getAttribute('data-i18n');
+            el.textContent = this.t(key);
+        } else {
+            // No translation key, set content directly
+            el.textContent = content;
+        }
+    }
+
+    /**
+     * Setup MutationObserver to auto-translate dynamically added content
+     */
+    observeDOM() {
+        if (this.observer) return; // Already observing
+
+        this.observer = new MutationObserver((mutations) => {
+            if (!this.loaded) return;
+
+            for (const mutation of mutations) {
+                // Check added nodes
+                mutation.addedNodes.forEach(node => {
+                    if (node.nodeType === 1) { // Element node
+                        // Translate if it has data-i18n
+                        if (node.hasAttribute && node.hasAttribute('data-i18n')) {
+                            const key = node.getAttribute('data-i18n');
+                            const params = node.getAttribute('data-i18n-params')
+                                ? JSON.parse(node.getAttribute('data-i18n-params'))
+                                : {};
+                            node.textContent = this.t(key, params);
+                        }
+                        // Translate children with data-i18n
+                        if (node.querySelectorAll) {
+                            node.querySelectorAll('[data-i18n]').forEach(el => {
+                                const key = el.getAttribute('data-i18n');
+                                const params = el.getAttribute('data-i18n-params')
+                                    ? JSON.parse(el.getAttribute('data-i18n-params'))
+                                    : {};
+                                el.textContent = this.t(key, params);
+                            });
+                        }
+                    }
+                });
+            }
+        });
+
+        // Start observing
+        this.observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        console.log('✓ i18n DOM observer active');
+    }
 }
 
 const i18n = new I18n();
@@ -126,8 +238,12 @@ const i18n = new I18n();
 async function initI18n() {
     await i18n.loadTranslations();
     i18n.translatePage();
+    i18n.observeDOM(); // Start observing for dynamic content
 }
 
 window.i18nReady = (document.readyState === 'loading')
     ? new Promise(r => document.addEventListener('DOMContentLoaded', () => initI18n().then(r)))
     : initI18n();
+
+// Expose i18n globally for use in other scripts
+window.i18n = i18n;
