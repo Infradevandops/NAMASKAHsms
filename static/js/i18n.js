@@ -18,84 +18,130 @@ class I18n {
 
         console.log('[i18n] Loading translations for locale:', this.locale);
 
-        // Always load English as fallback with retry logic
-        if (!this.fallback || Object.keys(this.fallback).length === 0) {
-            let retries = 3;
-            while (retries > 0) {
-                try {
-                    console.log(`[i18n] Fetching fallback (en.json)... (attempt ${4 - retries}/3)`);
-                    const res = await fetch('/static/locales/en.json', {
-                        cache: 'no-cache',
-                        headers: {
-                            'Cache-Control': 'no-cache',
-                            'Pragma': 'no-cache'
-                        }
-                    });
-                    
-                    if (res.ok) {
-                        this.fallback = await res.json();
-                        console.log('[i18n] ✅ Fallback loaded:', Object.keys(this.fallback).length, 'top-level keys');
-                        console.log('[i18n] Fallback keys:', Object.keys(this.fallback));
-                        break; // Success, exit retry loop
-                    } else {
-                        console.error(`[i18n] Failed to fetch en.json: ${res.status}`);
-                        retries--;
-                        if (retries > 0) {
-                            console.log(`[i18n] Retrying in 500ms...`);
-                            await new Promise(resolve => setTimeout(resolve, 500));
-                        }
+        // STRATEGY 1: Try embedded translations first (fastest, most reliable)
+        if (window.EMBEDDED_TRANSLATIONS) {
+            console.log('[i18n] ✅ Using embedded translations');
+            this.translations = window.EMBEDDED_TRANSLATIONS;
+            this.fallback = window.EMBEDDED_TRANSLATIONS;
+            this.loaded = true;
+            
+            // Cache in localStorage for future visits
+            try {
+                localStorage.setItem(`translations_${this.locale}`, JSON.stringify(this.translations));
+                localStorage.setItem('translations_cached_at', Date.now().toString());
+                console.log('[i18n] Cached translations in localStorage');
+            } catch (e) {
+                console.warn('[i18n] Failed to cache translations:', e);
+            }
+            
+            this._logSuccess();
+            return;
+        }
+
+        // STRATEGY 2: Try localStorage cache (instant load)
+        const cached = localStorage.getItem(`translations_${this.locale}`);
+        const cachedAt = localStorage.getItem('translations_cached_at');
+        const cacheAge = cachedAt ? Date.now() - parseInt(cachedAt) : Infinity;
+        const cacheMaxAge = 24 * 60 * 60 * 1000; // 24 hours
+
+        if (cached && cacheAge < cacheMaxAge) {
+            try {
+                this.translations = JSON.parse(cached);
+                this.fallback = this.translations;
+                this.loaded = true;
+                console.log('[i18n] ✅ Using cached translations from localStorage');
+                this._logSuccess();
+                
+                // Fetch fresh copy in background for next visit
+                this._fetchAndCacheInBackground();
+                return;
+            } catch (e) {
+                console.warn('[i18n] Failed to parse cached translations:', e);
+                localStorage.removeItem(`translations_${this.locale}`);
+            }
+        }
+
+        // STRATEGY 3: Fetch from server with retry logic (fallback)
+        await this._fetchTranslations();
+    }
+
+    async _fetchTranslations() {
+        console.log('[i18n] Fetching translations from server...');
+        
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                console.log(`[i18n] Fetching fallback (en.json)... (attempt ${4 - retries}/3)`);
+                const res = await fetch('/static/locales/en.json', {
+                    cache: 'no-cache',
+                    headers: {
+                        'Cache-Control': 'no-cache',
+                        'Pragma': 'no-cache'
                     }
-                } catch (e) {
-                    console.error('[i18n] Failed to load English fallback:', e);
+                });
+                
+                if (res.ok) {
+                    this.fallback = await res.json();
+                    this.translations = this.fallback;
+                    this.loaded = true;
+                    console.log('[i18n] ✅ Fetched translations from server');
+                    
+                    // Cache for future visits
+                    try {
+                        localStorage.setItem(`translations_${this.locale}`, JSON.stringify(this.translations));
+                        localStorage.setItem('translations_cached_at', Date.now().toString());
+                        console.log('[i18n] Cached translations in localStorage');
+                    } catch (e) {
+                        console.warn('[i18n] Failed to cache translations:', e);
+                    }
+                    
+                    this._logSuccess();
+                    return;
+                } else {
+                    console.error(`[i18n] Failed to fetch en.json: ${res.status}`);
                     retries--;
                     if (retries > 0) {
                         console.log(`[i18n] Retrying in 500ms...`);
                         await new Promise(resolve => setTimeout(resolve, 500));
                     }
                 }
-            }
-            
-            if (Object.keys(this.fallback).length === 0) {
-                console.error('[i18n] ❌ Failed to load translations after 3 attempts!');
-                return;
-            }
-        }
-
-        if (this.locale === 'en') {
-            this.translations = this.fallback;
-            this.loaded = true;
-            console.log('[i18n] Using English, translations:', Object.keys(this.translations).length, 'keys');
-            
-            // Test a few translations
-            const testKeys = ['dashboard.title', 'common.dashboard', 'tiers.current_plan'];
-            testKeys.forEach(key => {
-                const value = this.t(key);
-                console.log(`[i18n] Test: ${key} = "${value}"`);
-            });
-            return;
-        }
-
-        try {
-            const response = await fetch(`/static/locales/${this.locale}.json`);
-            if (!response.ok) throw new Error(`Failed to load ${this.locale}`);
-            this.translations = await response.json();
-            this.loaded = true;
-            console.log(`✓ Loaded ${this.locale} translations`);
-        } catch (error) {
-            console.error('Translation load error:', error);
-            if (this.locale !== 'en') {
-                console.warn(`⚠ Falling back to English from ${this.locale}`);
-                this.locale = 'en';
-                localStorage.setItem('language', 'en');
-                const selector = document.getElementById('lang-switcher');
-                if (selector) selector.value = 'en';
-                this.translations = this.fallback;
-                this.loaded = true;
-                if (typeof showToast === 'function') {
-                    showToast('Language not available. Using English.', 'warning');
+            } catch (e) {
+                console.error('[i18n] Failed to load translations:', e);
+                retries--;
+                if (retries > 0) {
+                    console.log(`[i18n] Retrying in 500ms...`);
+                    await new Promise(resolve => setTimeout(resolve, 500));
                 }
             }
         }
+        
+        console.error('[i18n] ❌ Failed to load translations after 3 attempts!');
+    }
+
+    async _fetchAndCacheInBackground() {
+        // Silently fetch fresh translations for next visit
+        try {
+            const res = await fetch('/static/locales/en.json', { cache: 'no-cache' });
+            if (res.ok) {
+                const fresh = await res.json();
+                localStorage.setItem(`translations_${this.locale}`, JSON.stringify(fresh));
+                localStorage.setItem('translations_cached_at', Date.now().toString());
+                console.log('[i18n] Updated cache in background');
+            }
+        } catch (e) {
+            // Silently fail
+        }
+    }
+
+    _logSuccess() {
+        console.log('[i18n] Translations loaded:', Object.keys(this.translations).length, 'top-level keys');
+        
+        // Test a few translations
+        const testKeys = ['dashboard.title', 'common.dashboard', 'tiers.current_plan'];
+        testKeys.forEach(key => {
+            const value = this.t(key);
+            console.log(`[i18n] Test: ${key} = "${value}"`);
+        });
     }
 
     t(key, params = {}) {

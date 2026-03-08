@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
+from app.utils.i18n import get_translations_for_template
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["Pages"])
@@ -50,7 +51,21 @@ async def dashboard_page(request: Request, user_id: str = Depends(get_current_us
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+    # Get user's preferred language (default to English)
+    user_locale = getattr(user, 'language', 'en') or 'en'
+    
+    # Load translations for embedding
+    translations_json = get_translations_for_template(user_locale)
+
+    return templates.TemplateResponse(
+        "dashboard.html", 
+        {
+            "request": request, 
+            "user": user,
+            "translations": translations_json,
+            "locale": user_locale
+        }
+    )
 
 
 @router.get("/login", response_class=HTMLResponse)
