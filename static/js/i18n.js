@@ -104,8 +104,15 @@ class I18n {
     }
 
     translatePage() {
-        if (!this.loaded) return;
-        document.querySelectorAll('[data-i18n]').forEach(el => {
+        if (!this.loaded) {
+            console.warn('[i18n] translatePage() called but translations not loaded yet');
+            return;
+        }
+        
+        const elements = document.querySelectorAll('[data-i18n]');
+        console.log(`[i18n] Translating ${elements.length} elements`);
+        
+        elements.forEach(el => {
             const key = el.getAttribute('data-i18n');
             const params = el.getAttribute('data-i18n-params')
                 ? JSON.parse(el.getAttribute('data-i18n-params'))
@@ -115,9 +122,13 @@ class I18n {
             if (el.tagName === 'INPUT' && el.getAttribute('placeholder')) {
                 // If we want to translate placeholder, maybe use data-i18n-placeholder
             } else {
-                el.textContent = this.t(key, params);
+                const translated = this.t(key, params);
+                console.log(`[i18n] ${key} → "${translated}"`);
+                el.textContent = translated;
             }
         });
+        
+        console.log('[i18n] Translation complete');
     }
 
     /**
@@ -236,14 +247,35 @@ class I18n {
 const i18n = new I18n();
 
 async function initI18n() {
+    console.log('[i18n] Initializing...');
     await i18n.loadTranslations();
+    console.log('[i18n] Translations loaded, translating page...');
     i18n.translatePage();
+    console.log('[i18n] Starting DOM observer...');
     i18n.observeDOM(); // Start observing for dynamic content
+    console.log('[i18n] Initialization complete!');
 }
 
-window.i18nReady = (document.readyState === 'loading')
-    ? new Promise(r => document.addEventListener('DOMContentLoaded', () => initI18n().then(r)))
-    : initI18n();
+// Initialize immediately if DOM is ready, otherwise wait
+if (document.readyState === 'loading') {
+    console.log('[i18n] DOM still loading, waiting for DOMContentLoaded...');
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('[i18n] DOMContentLoaded fired');
+        initI18n();
+    });
+} else {
+    console.log('[i18n] DOM already loaded, initializing immediately');
+    initI18n();
+}
+
+// Create promise for other scripts to wait on
+window.i18nReady = new Promise((resolve) => {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => initI18n().then(resolve));
+    } else {
+        initI18n().then(resolve);
+    }
+});
 
 // Expose i18n globally for use in other scripts
 window.i18n = i18n;
