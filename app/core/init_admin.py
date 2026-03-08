@@ -58,7 +58,6 @@ def init_admin_user():
             logger.info(f"✅ Admin user created: {ADMIN_EMAIL}")
         
         db.close()
-        logger.info(f"✅ Password: {ADMIN_PASSWORD}")
         
     except Exception as e:
         logger.error(f"Failed to init admin user: {e}")
