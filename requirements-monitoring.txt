@@ -1,0 +1,11 @@
+# Monitoring & Observability
+# Lightweight alternative to Datadog
+
+# Error tracking (FREE tier: 5K errors/month)
+sentry-sdk[fastapi]==1.40.0
+
+# Structured logging
+structlog==24.1.0
+
+# Optional: Prometheus metrics (if needed later)
+# prometheus-client==0.19.0

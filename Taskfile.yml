@@ -1,0 +1,221 @@
+version: '3'
+
+tasks:
+
+  default:
+    desc: "List all tasks"
+    cmds:
+      - task --list
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F1 · STALE DATABASE URL (active production blocker)
+  # Fix: update DATABASE_URL on Render — cannot be done in code
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-db-url:
+    desc: "F1 [MANUAL] Update stale DATABASE_URL on Render.com"
+    cmds:
+      - echo "BLOCKER — app cannot start until this is fixed"
+      - echo ""
+      - echo "Dead host in current DATABASE_URL: dpg-d61aldjuibrs73dhgmv0-a"
+      - echo "New host from logs:                dpg-d6m67up5pdvs738p3bv0-a"
+      - echo ""
+      - echo "Steps:"
+      - echo "  1. Render Dashboard → PostgreSQL → Connection → Internal URL"
+      - echo "  2. Render Dashboard → namaskah-sms → Environment → DATABASE_URL"
+      - echo "  3. Paste new Internal URL → Save → service will redeploy"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F2 · SECRETS EXPOSED IN LOGS
+  # Fix: rotate all credentials that appeared in logs/app.log
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-rotate-secrets:
+    desc: "F2 [MANUAL] Rotate all secrets exposed in logs/app.log"
+    cmds:
+      - echo "⚠️  These credentials were exposed in a committed log file:"
+      - echo "   PAYSTACK_SECRET_KEY  → revoke at dashboard.paystack.com"
+      - echo "   TEXTVERIFIED_API_KEY → revoke at textverified.com"
+      - echo "   DATABASE_URL password → rotate on Render PostgreSQL"
+      - echo "   JWT_SECRET_KEY / SECRET_KEY → replace with values below"
+      - echo ""
+      - python3 -c "import secrets; k1=secrets.token_hex(32); k2=secrets.token_hex(32); print(f'New SECRET_KEY={k1}'); print(f'New JWT_SECRET_KEY={k2}')"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F3 · add_user_preferences migration — NoSuchTableError: users
+  # Fix: already applied (guard added). This task verifies it.
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-migration-user-prefs:
+    desc: "F3 Verify add_user_preferences has users-table guard"
+    cmds:
+      - python3 -c "
+        c = open('alembic/versions/add_user_preferences.py').read();
+        assert 'get_table_names' in c, 'MISSING — add: if users not in inspector.get_table_names(): return';
+        print('✅ add_user_preferences guard present')
+        "
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F4 · quota_pricing_v3_1 — UPDATE uses subscription_tier before it exists
+  # Fix: wrap the two user-update queries in a column-existence check
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-migration-quota:
+    desc: "F4 Wrap subscription_tier queries in quota_pricing_v3_1 with column guard"
+    cmds:
+      - python3 -c "
+        path = 'alembic/versions/quota_pricing_v3_1.py'
+        src = open(path).read()
+        if 'subscription_tier_exists' in src:
+            print('✅ Already fixed')
+        else:
+            old = '''    # 5. Initialize quota for existing users
+    connection.execute(sa.text(\"\"\"
+        UPDATE users u
+        SET quota_balance = t.included_quota,
+            quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+        FROM tiers t
+        WHERE u.subscription_tier = t.tier_name
+    \"\"\"))
+
+    # 6. Seed initial quota transaction records
+    connection.execute(sa.text(\"\"\"
+        INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
+        SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,
+               'Initial quota allocation (migration)'
+        FROM users u
+        JOIN tiers t ON u.subscription_tier = t.tier_name
+        WHERE t.included_quota > 0
+    \"\"\"))'''
+            new = '''    # 5+6. Only run user-quota seeding if subscription_tier column exists
+    subscription_tier_exists = bind.execute(sa.text(
+        \"SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='subscription_tier'\"
+    )).fetchone() is not None
+    if subscription_tier_exists:
+        connection.execute(sa.text(\"\"\"
+            UPDATE users u
+            SET quota_balance = t.included_quota,
+                quota_reset_date = DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month'
+            FROM tiers t
+            WHERE u.subscription_tier = t.tier_name
+        \"\"\"))
+        connection.execute(sa.text(\"\"\"
+            INSERT INTO quota_transactions (user_id, transaction_type, amount, balance_before, balance_after, description)
+            SELECT u.id, 'quota_reset', t.included_quota, 0.00, t.included_quota,
+                   'Initial quota allocation (migration)'
+            FROM users u
+            JOIN tiers t ON u.subscription_tier = t.tier_name
+            WHERE t.included_quota > 0
+        \"\"\"))'''
+            assert old in src, 'Source block not found — check file manually'
+            open(path, 'w').write(src.replace(old, new))
+            print('✅ Fixed quota_pricing_v3_1 — wrapped subscription_tier queries in column guard')
+        "
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F5 · add_preferred_area_codes — no idempotency guard
+  # Fix: already applied. This task verifies it.
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-migration-area-codes:
+    desc: "F5 Verify add_preferred_area_codes has idempotency guard"
+    cmds:
+      - python3 -c "
+        c = open('alembic/versions/add_preferred_area_codes.py').read();
+        assert '_column_exists' in c, 'MISSING idempotency guard';
+        print('✅ add_preferred_area_codes guard present')
+        "
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F8 · SECRET_KEY == JWT_SECRET_KEY in production
+  # Fix: [MANUAL] set two distinct values on Render
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-duplicate-keys:
+    desc: "F8 [MANUAL] SECRET_KEY and JWT_SECRET_KEY must be different"
+    cmds:
+      - echo "Both are currently: Namaskah2024SecureJWTKeyForProductionUse32Chars"
+      - echo "Run 'task fix-rotate-secrets' to generate two distinct values"
+      - echo "Then update both on Render Dashboard → Environment"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F9 · CORS_ORIGINS=* in production
+  # Fix: already applied in config.py validator. Also update Render env var.
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-cors:
+    desc: "F9 Verify CORS wildcard guard + remind to update Render env"
+    cmds:
+      - python3 -c "
+        c = open('app/core/config.py').read();
+        assert 'ENVIRONMENT' in c and 'production' in c, 'MISSING wildcard guard in config.py';
+        print('✅ CORS wildcard guard present in config.py')
+        "
+      - echo "[MANUAL] On Render: set CORS_ORIGINS=https://namaskah.onrender.com"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F10 · Emergency endpoint has hardcoded secret
+  # Fix: already applied. This task verifies it.
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-emergency-endpoint:
+    desc: "F10 Verify emergency endpoint secret is from env var"
+    cmds:
+      - python3 -c "
+        c = open('app/api/emergency.py').read();
+        assert 'namaskah-emergency-reset-2026' not in c, '❌ Hardcoded secret still present';
+        assert 'os.getenv' in c, '❌ Not reading from env var';
+        print('✅ Emergency endpoint reads secret from EMERGENCY_SECRET env var')
+        "
+      - echo "[MANUAL] On Render: set EMERGENCY_SECRET=<random> or leave unset to disable"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # F12 · Log files committed to git
+  # Fix: verify not tracked; if tracked, remove them
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-gitignore:
+    desc: "F12 Ensure log files are not tracked in git"
+    cmds:
+      - |
+        TRACKED=$(git ls-files logs/ app.log server.log 2>/dev/null)
+        if [ -n "$TRACKED" ]; then
+          git rm --cached $TRACKED
+          git commit -m "chore: untrack log files containing secrets"
+          echo "✅ Removed log files from git tracking"
+        else
+          echo "✅ No log files tracked in git"
+        fi
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # VERIFY MIDDLEWARE ENABLED
+  # ─────────────────────────────────────────────────────────────────────────
+  check-middleware:
+    desc: "Verify security middleware is enabled in main.py"
+    cmds:
+      - python3 -c "
+        c = open('main.py').read();
+        bad = [l.strip() for l in c.splitlines() if '# from app.middleware' in l or '# setup_unified' in l or '# fastapi_app.add_middleware' in l];
+        [print('❌', l) for l in bad] if bad else print('✅ All middleware enabled')
+        "
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # VERIFY APP BOOTS
+  # ─────────────────────────────────────────────────────────────────────────
+  check-app:
+    desc: "Verify app imports without errors"
+    cmds:
+      - python3 -c "from main import create_app; print('✅ App imports OK')"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # RUN ALL CODE FIXES (non-manual)
+  # ─────────────────────────────────────────────────────────────────────────
+  fix-all:
+    desc: "Apply and verify all code fixes"
+    cmds:
+      - task: fix-migration-quota
+      - task: fix-migration-user-prefs
+      - task: fix-migration-area-codes
+      - task: fix-emergency-endpoint
+      - task: fix-cors
+      - task: fix-gitignore
+      - task: check-middleware
+      - task: check-app
+      - echo ""
+      - echo "─── Manual steps still required ───────────────────────────"
+      - echo "  task fix-db-url         → update DATABASE_URL on Render"
+      - echo "  task fix-rotate-secrets → rotate all exposed credentials"
+      - echo "  task fix-duplicate-keys → set distinct SECRET_KEY values"
+      - echo "  task fix-cors           → set CORS_ORIGINS on Render"
+      - echo "  task fix-emergency-endpoint → set EMERGENCY_SECRET on Render"

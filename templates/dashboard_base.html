@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
-<script src="/static/js/i18n.js?v=20260308d"></script>
+<script src="/static/js/i18n.js?v=20260308e"></script>
 <link rel="stylesheet" href="/static/css/notification_center_modal.css">
 <link rel="stylesheet" href="/static/css/notification-improvements.css">
 <link rel="stylesheet" href="/static/css/responsive.css">
@@ -207,13 +207,16 @@
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->
 <script>
-    // Load tier badge in header
+    // Load tier badge in header (i18n-aware)
     (async function loadHeaderTierBadge() {
         const badge = document.getElementById('header-tier-badge');
         if (!badge) return;
         
         const token = localStorage.getItem('access_token');
         if (!token) return;
+        
+        // Wait for i18n to be ready
+        await window.i18nReady;
         
         try {
             const response = await fetch('/api/tiers/current', {
