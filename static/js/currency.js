@@ -1,4 +1,4 @@
-export class CurrencyFormatter {
+class CurrencyFormatter {
     constructor() {
         this.currency = localStorage.getItem('currency') || 'USD';
         this.rates = {};
@@ -99,4 +99,4 @@ export class CurrencyFormatter {
 }
 
 const currency = new CurrencyFormatter();
-export default currency;
+window.currency = currency;
