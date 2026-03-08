@@ -1,7 +1,37 @@
 {% extends "base.html" %}
 
 {% block head_extra %}
-<script src="/static/js/i18n.js?v=20260308e"></script>
+<!-- Force cache clear for i18n fix (one-time) -->
+<script>
+(function() {
+    const I18N_FIX_VERSION = '20260308f';
+    const lastVersion = localStorage.getItem('i18n_version');
+    
+    if (lastVersion !== I18N_FIX_VERSION) {
+        console.log('🔄 Clearing old i18n cache...');
+        
+        // Clear service worker caches
+        if ('caches' in window) {
+            caches.keys().then(names => {
+                names.forEach(name => {
+                    if (name.includes('namaskah')) {
+                        caches.delete(name);
+                        console.log('✓ Deleted cache:', name);
+                    }
+                });
+            });
+        }
+        
+        // Mark as updated
+        localStorage.setItem('i18n_version', I18N_FIX_VERSION);
+        console.log('✓ Cache cleared, reloading...');
+        
+        // Force reload without cache
+        setTimeout(() => window.location.reload(true), 100);
+    }
+})();
+</script>
+<script src="/static/js/i18n.js?v=20260308f"></script>
 <link rel="stylesheet" href="/static/css/notification_center_modal.css">
 <link rel="stylesheet" href="/static/css/notification-improvements.css">
 <link rel="stylesheet" href="/static/css/responsive.css">

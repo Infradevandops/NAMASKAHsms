@@ -1,5 +1,5 @@
 // Service Worker for PWA
-const CACHE_NAME = 'namaskah-v3';
+const CACHE_NAME = 'namaskah-v4-i18n-fix';
 const URLS_TO_CACHE = [
   '/',
   '/static/css/design-system.css',
