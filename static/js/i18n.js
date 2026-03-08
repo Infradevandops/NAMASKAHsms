@@ -18,20 +18,46 @@ class I18n {
 
         console.log('[i18n] Loading translations for locale:', this.locale);
 
-        // Always load English as fallback
+        // Always load English as fallback with retry logic
         if (!this.fallback || Object.keys(this.fallback).length === 0) {
-            try {
-                console.log('[i18n] Fetching fallback (en.json)...');
-                const res = await fetch('/static/locales/en.json');
-                if (res.ok) {
-                    this.fallback = await res.json();
-                    console.log('[i18n] Fallback loaded:', Object.keys(this.fallback).length, 'top-level keys');
-                    console.log('[i18n] Fallback keys:', Object.keys(this.fallback));
-                } else {
-                    console.error('[i18n] Failed to fetch en.json:', res.status);
+            let retries = 3;
+            while (retries > 0) {
+                try {
+                    console.log(`[i18n] Fetching fallback (en.json)... (attempt ${4 - retries}/3)`);
+                    const res = await fetch('/static/locales/en.json', {
+                        cache: 'no-cache',
+                        headers: {
+                            'Cache-Control': 'no-cache',
+                            'Pragma': 'no-cache'
+                        }
+                    });
+                    
+                    if (res.ok) {
+                        this.fallback = await res.json();
+                        console.log('[i18n] ✅ Fallback loaded:', Object.keys(this.fallback).length, 'top-level keys');
+                        console.log('[i18n] Fallback keys:', Object.keys(this.fallback));
+                        break; // Success, exit retry loop
+                    } else {
+                        console.error(`[i18n] Failed to fetch en.json: ${res.status}`);
+                        retries--;
+                        if (retries > 0) {
+                            console.log(`[i18n] Retrying in 500ms...`);
+                            await new Promise(resolve => setTimeout(resolve, 500));
+                        }
+                    }
+                } catch (e) {
+                    console.error('[i18n] Failed to load English fallback:', e);
+                    retries--;
+                    if (retries > 0) {
+                        console.log(`[i18n] Retrying in 500ms...`);
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                    }
                 }
-            } catch (e) {
-                console.error('[i18n] Failed to load English fallback:', e);
+            }
+            
+            if (Object.keys(this.fallback).length === 0) {
+                console.error('[i18n] ❌ Failed to load translations after 3 attempts!');
+                return;
             }
         }
 
@@ -39,7 +65,13 @@ class I18n {
             this.translations = this.fallback;
             this.loaded = true;
             console.log('[i18n] Using English, translations:', Object.keys(this.translations).length, 'keys');
-            console.log('[i18n] Sample translation test: dashboard.title =', this.t('dashboard.title'));
+            
+            // Test a few translations
+            const testKeys = ['dashboard.title', 'common.dashboard', 'tiers.current_plan'];
+            testKeys.forEach(key => {
+                const value = this.t(key);
+                console.log(`[i18n] Test: ${key} = "${value}"`);
+            });
             return;
         }
 
