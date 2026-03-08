@@ -103,6 +103,7 @@ class I18n {
     }
 
     translatePage() {
+        if (!this.fallback || Object.keys(this.fallback).length === 0) return;
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             const params = el.getAttribute('data-i18n-params')
