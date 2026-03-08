@@ -29,6 +29,7 @@ class I18n {
         if (this.locale === 'en') {
             this.translations = this.fallback;
             this.loaded = true;
+            console.log('✓ Loaded en translations');
             return;
         }
 
@@ -103,7 +104,7 @@ class I18n {
     }
 
     translatePage() {
-        if (!this.fallback || Object.keys(this.fallback).length === 0) return;
+        if (!this.loaded) return;
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             const params = el.getAttribute('data-i18n-params')
