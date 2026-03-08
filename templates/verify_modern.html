@@ -387,7 +387,7 @@ async function loadServices() {
         const token = localStorage.getItem('access_token');
         const res = await fetch('/api/countries/US/services', { 
             headers: { 'Authorization': `Bearer ${token}` },
-            signal: AbortSignal.timeout(45000)
+            signal: AbortSignal.timeout(90000)
         });
         if (!res.ok) {
             console.error('Services API error:', res.status, res.statusText);
