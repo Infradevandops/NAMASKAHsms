@@ -351,8 +351,8 @@ class ErrorHandler {
 }
 
 // Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
+const errorHandlerStyle = document.createElement('style');
+errorHandlerStyle.textContent = `
     @keyframes slideIn {
         from { transform: translateX(400px); opacity: 0; }
         to { transform: translateX(0); opacity: 1; }
@@ -374,7 +374,7 @@ style.textContent = `
         to { opacity: 1; }
     }
 `;
-document.head.appendChild(style);
+document.head.appendChild(errorHandlerStyle);
 
 // Initialize global error handler
 window.errorHandler = new ErrorHandler();
