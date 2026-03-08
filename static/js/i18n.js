@@ -69,7 +69,14 @@ class I18n {
     t(key, params = {}) {
         const value = this.getNestedValue(this.translations, key)
             || this.getNestedValue(this.fallback, key);
-        if (!value) return key;
+        
+        if (!value) {
+            console.warn(`[i18n] Translation not found for key: ${key}`);
+            console.log('[i18n] translations keys:', Object.keys(this.translations));
+            console.log('[i18n] fallback keys:', Object.keys(this.fallback));
+            return key;
+        }
+        
         return this.interpolate(value, params);
     }
 
