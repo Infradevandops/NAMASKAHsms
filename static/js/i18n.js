@@ -16,20 +16,30 @@ class I18n {
             localStorage.setItem('language', 'en');
         }
 
+        console.log('[i18n] Loading translations for locale:', this.locale);
+
         // Always load English as fallback
         if (!this.fallback || Object.keys(this.fallback).length === 0) {
             try {
+                console.log('[i18n] Fetching fallback (en.json)...');
                 const res = await fetch('/static/locales/en.json');
-                if (res.ok) this.fallback = await res.json();
+                if (res.ok) {
+                    this.fallback = await res.json();
+                    console.log('[i18n] Fallback loaded:', Object.keys(this.fallback).length, 'top-level keys');
+                    console.log('[i18n] Fallback keys:', Object.keys(this.fallback));
+                } else {
+                    console.error('[i18n] Failed to fetch en.json:', res.status);
+                }
             } catch (e) {
-                console.error('Failed to load English fallback:', e);
+                console.error('[i18n] Failed to load English fallback:', e);
             }
         }
 
         if (this.locale === 'en') {
             this.translations = this.fallback;
             this.loaded = true;
-            console.log('✓ Loaded en translations');
+            console.log('[i18n] Using English, translations:', Object.keys(this.translations).length, 'keys');
+            console.log('[i18n] Sample translation test: dashboard.title =', this.t('dashboard.title'));
             return;
         }
 
