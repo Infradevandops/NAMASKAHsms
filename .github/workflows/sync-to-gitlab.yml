@@ -1,0 +1,44 @@
+name: Sync to GitLab Backup
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  sync:
+    name: Mirror to GitLab
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for proper sync
+      
+      - name: Mirror to GitLab
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          # Configure git
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Add GitLab as remote
+          git remote add gitlab https://oauth2:${GITLAB_TOKEN}@gitlab.com/oghenesuvwe-group/NAMASKAHsms.git || true
+          
+          # Push to GitLab
+          git push gitlab main --force
+          
+          # Also push develop if it exists
+          git push gitlab develop --force || true
+          
+          echo "✅ Successfully synced to GitLab backup"
+      
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Failed to sync to GitLab"
+          echo "Check GitLab token and repository access"
