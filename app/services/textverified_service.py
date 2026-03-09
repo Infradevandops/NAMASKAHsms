@@ -24,7 +24,9 @@ _AC_STATE_TTL = 7200  # 2 hours
 _AREA_CODES_CACHE_KEY = "tv:area_codes_list"
 _AREA_CODES_TTL = 7200  # 2 hours
 _SERVICES_CACHE_KEY = "tv:services_list"
-_SERVICES_TTL = 7200  # 2 hours
+_SERVICES_TTL = 86400  # 24 hours
+_SERVICES_NAMES_CACHE_KEY = "tv:services_names"
+_SERVICES_NAMES_TTL = 86400  # 24 hours
 
 
 def _get_redis():
@@ -168,61 +170,86 @@ class TextVerifiedService:
             return {"balance": 0.0, "error": str(e)}
 
     async def get_services_list(self) -> List[Dict[str, Any]]:
-        """Fetch live services from TextVerified API."""
+        """Fetch live services from TextVerified API.
+        
+        Phase 1: Return service names immediately (fast, <2s).
+        Pricing is fetched separately via get_services_with_pricing() and cached 24h.
+        """
         if not self.enabled:
             return self._mock_services()
-        
-        # Use unified_cache (has in-memory fallback)
+
         from app.core.unified_cache import cache
+
+        # Return full cached result (names + prices) if available
         try:
             cached = await cache.get(_SERVICES_CACHE_KEY)
             if cached:
                 return cached
         except Exception:
             pass
-        
+
+        # Fast path: fetch only service names (no per-service pricing calls)
+        try:
+            cached_names = await cache.get(_SERVICES_NAMES_CACHE_KEY)
+            if cached_names:
+                return cached_names
+        except Exception:
+            pass
+
         try:
             services = await asyncio.wait_for(
                 asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
                 timeout=15.0
             )
-
-            sem = asyncio.Semaphore(5)
-
-            async def _price(service_name: str) -> float:
-                async with sem:
-                    try:
-                        snap = await asyncio.wait_for(
-                            asyncio.to_thread(
-                                self.client.verifications.pricing,
-                                service_name=service_name,
-                                area_code=False,
-                                carrier=False,
-                                number_type=NumberType.MOBILE,
-                                capability=ReservationCapability.SMS,
-                            ),
-                            timeout=8.0
-                        )
-                        return snap.price
-                    except Exception:
-                        return 2.50
-
-            prices = await asyncio.gather(*[_price(s.service_name) for s in services])
+            # Return with default price immediately — pricing populated async via batch
             result = [
-                {"id": s.service_name, "name": s.service_name.title(), "price": float(p)}
-                for s, p in zip(services, prices)
+                {"id": s.service_name, "name": s.service_name.title(), "price": 2.50, "cost": 2.50}
+                for s in services
             ]
-            
-            # Cache with unified_cache (in-memory fallback)
             try:
-                await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
+                await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
             except Exception:
                 pass
-            
+            # Kick off background pricing fetch without blocking
+            asyncio.create_task(self._fetch_and_cache_pricing(services))
             return result
         except Exception as e:
             logger.error(f"Failed to get services: {e}")
             return self._mock_services()
+
+    async def _fetch_and_cache_pricing(self, services) -> None:
+        """Background task: fetch all service prices and update 24h cache."""
+        from app.core.unified_cache import cache
+        sem = asyncio.Semaphore(20)
+
+        async def _price(service_name: str) -> float:
+            async with sem:
+                try:
+                    snap = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            self.client.verifications.pricing,
+                            service_name=service_name,
+                            area_code=False,
+                            carrier=False,
+                            number_type=NumberType.MOBILE,
+                            capability=ReservationCapability.SMS,
+                        ),
+                        timeout=8.0
+                    )
+                    return snap.price
+                except Exception:
+                    return 2.50
+
+        try:
+            prices = await asyncio.gather(*[_price(s.service_name) for s in services])
+            result = [
+                {"id": s.service_name, "name": s.service_name.title(), "price": float(p), "cost": float(p)}
+                for s, p in zip(services, prices)
+            ]
+            await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
+            logger.info(f"Background pricing cache updated: {len(result)} services")
+        except Exception as e:
+            logger.error(f"Background pricing fetch failed: {e}")
 
     def _mock_services(self) -> List[Dict[str, Any]]:
         return [
