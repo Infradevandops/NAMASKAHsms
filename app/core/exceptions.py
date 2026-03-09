@@ -92,6 +92,10 @@ class ExternalAPIError(NamaskahException):
         )
 
 
+# Backwards-compatible alias
+ExternalServiceError = ExternalAPIError
+
+
 class TextVerifiedAPIError(ExternalAPIError):
     """Raised when TextVerified API fails."""
     
