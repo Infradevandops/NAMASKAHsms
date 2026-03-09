@@ -20,6 +20,7 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 @router.get("/", response_class=HTMLResponse)
+@router.head("/")
 async def home_page(request: Request):
     """Home page - landing page for visitors."""
     # Get services list
