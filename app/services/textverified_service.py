@@ -5,6 +5,8 @@ import json
 import os
 from typing import Any, Dict, List, Optional
 from app.core.logging import get_logger
+import requests
+from requests.adapters import HTTPAdapter
 
 try:
     import textverified
@@ -49,6 +51,11 @@ class TextVerifiedService:
                     api_key=self.api_key,
                     api_username=self.api_username,
                 )
+                # Increase connection pool to handle concurrent polling
+                adapter = HTTPAdapter(pool_connections=1, pool_maxsize=30)
+                if hasattr(self.client, '_session'):
+                    self.client._session.mount('https://', adapter)
+                    self.client._session.mount('http://', adapter)
                 logger.info("TextVerified client initialized successfully")
             except Exception as e:
                 logger.error(f"TextVerified client initialization failed: {e}")
@@ -220,7 +227,7 @@ class TextVerifiedService:
     async def _fetch_and_cache_pricing(self, services) -> None:
         """Background task: fetch all service prices and update 24h cache."""
         from app.core.unified_cache import cache
-        sem = asyncio.Semaphore(20)
+        sem = asyncio.Semaphore(10)
 
         async def _price(service_name: str) -> float:
             async with sem:
