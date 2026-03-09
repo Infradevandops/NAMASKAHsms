@@ -1,128 +1,221 @@
-"""Database connection and session management."""
+"""Database connection and session management with resilience patterns."""
 
 import os
+import time
 import logging
+from typing import Optional
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import OperationalError, DisconnectionError
 from app.models.base import Base
 from .config import settings
 
 logger = logging.getLogger(__name__)
 
-def create_database_engine():
-    """Create database engine with fallback mechanism."""
-    database_url = settings.database_url
+class DatabaseConnectionManager:
+    """Manages database connections with retry logic and circuit breaker."""
     
-    # Try to connect to the configured database
-    if "sqlite" in database_url:
-        # SQLite for development
-        logger.info("Using SQLite database for development")
-        return create_engine(database_url, connect_args={"check_same_thread": False})
-    else:
-        # PostgreSQL for production with fallback
-        try:
-            logger.info(f"Attempting to connect to PostgreSQL: {database_url.split('@')[1] if '@' in database_url else 'unknown'}")
-            engine = create_engine(
-                database_url,
-                poolclass=QueuePool,
-                pool_size=20,
-                max_overflow=30,
-                pool_pre_ping=True,
-                pool_recycle=3600,
-                echo=False,
-            )
+    def __init__(self):
+        self.engine = None
+        self.SessionLocal = None
+        self.circuit_breaker_failures = 0
+        self.circuit_breaker_last_failure = 0
+        self.circuit_breaker_threshold = 5
+        self.circuit_breaker_timeout = 60  # seconds
+        self.max_retries = 3
+        self.retry_delays = [1, 2, 4]  # exponential backoff
+        
+    def is_circuit_breaker_open(self) -> bool:
+        """Check if circuit breaker is open."""
+        if self.circuit_breaker_failures < self.circuit_breaker_threshold:
+            return False
             
-            logger.info("✅ PostgreSQL engine created (connection will be tested on first use)")
-            return engine
+        time_since_failure = time.time() - self.circuit_breaker_last_failure
+        if time_since_failure > self.circuit_breaker_timeout:
+            # Reset circuit breaker
+            self.circuit_breaker_failures = 0
+            return False
+            
+        return True
+        
+    def record_failure(self):
+        """Record a connection failure."""
+        self.circuit_breaker_failures += 1
+        self.circuit_breaker_last_failure = time.time()
+        logger.warning(f"Database failure recorded. Count: {self.circuit_breaker_failures}")
+        
+    def record_success(self):
+        """Record a successful connection."""
+        if self.circuit_breaker_failures > 0:
+            logger.info("Database connection recovered. Resetting circuit breaker.")
+        self.circuit_breaker_failures = 0
+        
+    def create_engine_with_retry(self) -> Optional[object]:
+        """Create database engine with retry logic."""
+        database_url = settings.database_url
+        
+        for attempt in range(self.max_retries):
+            try:
+                if "sqlite" in database_url:
+                    engine = create_engine(
+                        database_url, 
+                        connect_args={"check_same_thread": False}
+                    )
+                else:
+                    engine = create_engine(
+                        database_url,
+                        poolclass=QueuePool,
+                        pool_size=10,
+                        max_overflow=20,
+                        pool_pre_ping=True,
+                        pool_recycle=3600,
+                        echo=False,
+                        connect_args={
+                            "connect_timeout": 10,
+                            "application_name": "namaskah_sms"
+                        }
+                    )
+                
+                # Test connection
+                with engine.connect() as conn:
+                    conn.execute(text("SELECT 1"))
+                    
+                logger.info(f"Database engine created successfully on attempt {attempt + 1}")
+                self.record_success()
+                return engine
+                
+            except Exception as e:
+                logger.error(f"Database connection attempt {attempt + 1} failed: {e}")
+                
+                if attempt < self.max_retries - 1:
+                    delay = self.retry_delays[attempt]
+                    logger.info(f"Retrying in {delay} seconds...")
+                    time.sleep(delay)
+                else:
+                    self.record_failure()
+                    
+        return None
+        
+    def initialize(self):
+        """Initialize database connection with fallback."""
+        if self.is_circuit_breaker_open():
+            logger.warning("Circuit breaker is open. Using fallback connection.")
+            return self._create_fallback_engine()
+            
+        engine = self.create_engine_with_retry()
+        
+        if engine is None:
+            logger.error("All connection attempts failed. Using fallback.")
+            return self._create_fallback_engine()
+            
+        self.engine = engine
+        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        return True
+        
+    def _create_fallback_engine(self):
+        """Create SQLite fallback engine."""
+        if settings.environment == "production" and not os.getenv("ALLOW_SQLITE_FALLBACK"):
+            logger.error("Production requires PostgreSQL. Set ALLOW_SQLITE_FALLBACK=true for fallback.")
+            raise RuntimeError("Database connection failed and fallback not allowed")
+            
+        fallback_db = "sqlite:///./namaskah_fallback.db"
+        logger.warning(f"Using SQLite fallback: {fallback_db}")
+        
+        try:
+            self.engine = create_engine(
+                fallback_db, 
+                connect_args={"check_same_thread": False}
+            )
+            self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+            
+            # Test fallback connection
+            with self.engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+                
+            logger.info("SQLite fallback connection successful")
+            return True
             
         except Exception as e:
-            logger.error(f"❌ PostgreSQL engine creation failed: {e}")
+            logger.error(f"SQLite fallback failed: {e}")
+            raise RuntimeError("Both primary and fallback database connections failed")
             
-            # Check if we're in production and should fail hard
-            if settings.environment == "production" and not os.getenv("ALLOW_SQLITE_FALLBACK"):
-                logger.error("Production environment requires PostgreSQL. Set ALLOW_SQLITE_FALLBACK=true to use SQLite fallback.")
-                raise
+    def get_session(self):
+        """Get database session with connection validation."""
+        if not self.engine or not self.SessionLocal:
+            self.initialize()
             
-            # Fallback to SQLite
-            fallback_db = "sqlite:///./namaskah_fallback.db"
-            logger.warning(f"🔄 Falling back to SQLite: {fallback_db}")
+        session = self.SessionLocal()
+        
+        try:
+            # Validate connection
+            session.execute(text("SELECT 1"))
+            return session
+        except (OperationalError, DisconnectionError) as e:
+            logger.error(f"Session validation failed: {e}")
+            session.close()
             
-            return create_engine(fallback_db, connect_args={"check_same_thread": False})
+            # Try to reinitialize
+            if self.initialize():
+                return self.SessionLocal()
+            else:
+                raise RuntimeError("Database session creation failed")
 
-# Create engine with fallback (no connection test during import)
-engine = create_database_engine()
+# Global connection manager
+db_manager = DatabaseConnectionManager()
+db_manager.initialize()
 
-# Session factory
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
+# Legacy compatibility
+engine = db_manager.engine
+SessionLocal = db_manager.SessionLocal
 
 def get_db():
-    """Dependency to get database session."""
-    db = SessionLocal()
+    """Dependency to get database session with resilience."""
+    session = None
     try:
-        yield db
+        session = db_manager.get_session()
+        yield session
+    except Exception as e:
+        logger.error(f"Database session error: {e}")
+        if session:
+            session.rollback()
+        raise
     finally:
-        db.close()
+        if session:
+            session.close()
 
 
 def create_tables():
-    """Create all database tables."""
-    try:
-        # Import all models to ensure they're registered
-        # Configure the registry to resolve relationships
-        Base.registry.configure()
-        Base.metadata.create_all(bind=engine)
-        logger.info("✅ Database tables created successfully")
-    except Exception as e:
-        logger.error(f"❌ Failed to create database tables: {e}")
-        raise
-
-
-def drop_tables():
-    """Drop all database tables."""
-    Base.metadata.drop_all(bind=engine)
-
+    """Create all database tables with retry logic."""
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            Base.registry.configure()
+            Base.metadata.create_all(bind=db_manager.engine)
+            logger.info("Database tables created successfully")
+            return
+        except Exception as e:
+            logger.error(f"Failed to create tables (attempt {attempt + 1}): {e}")
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)  # exponential backoff
+            else:
+                raise
 
 def test_database_connection():
-    """Test database connection and return status."""
+    """Test database connection and return detailed status."""
     try:
-        with engine.connect() as conn:
+        with db_manager.engine.connect() as conn:
             conn.execute(text("SELECT 1"))
-        return {"status": "connected", "engine": str(engine.url).split('@')[0] + '@***'}
+        return {
+            "status": "connected", 
+            "engine": str(db_manager.engine.url).split('@')[0] + '@***',
+            "circuit_breaker_failures": db_manager.circuit_breaker_failures,
+            "circuit_breaker_open": db_manager.is_circuit_breaker_open()
+        }
     except Exception as e:
-        return {"status": "failed", "error": str(e)}
-
-
-def ensure_database_connection():
-    """Ensure database connection is working, with fallback if needed."""
-    global engine, SessionLocal
-    
-    try:
-        # Test the current engine
-        with engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("✅ Database connection verified")
-        return True
-    except Exception as e:
-        logger.error(f"❌ Database connection failed: {e}")
-        
-        # If we're using PostgreSQL and fallback is allowed, switch to SQLite
-        if "postgresql" in str(engine.url) and os.getenv("ALLOW_SQLITE_FALLBACK"):
-            logger.warning("🔄 Switching to SQLite fallback")
-            
-            fallback_db = "sqlite:///./namaskah_fallback.db"
-            engine = create_engine(fallback_db, connect_args={"check_same_thread": False})
-            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-            
-            try:
-                with engine.connect() as conn:
-                    conn.execute(text("SELECT 1"))
-                logger.info("✅ SQLite fallback connection successful")
-                return True
-            except Exception as fallback_error:
-                logger.error(f"❌ SQLite fallback also failed: {fallback_error}")
-                return False
-        
-        return False
+        return {
+            "status": "failed", 
+            "error": str(e),
+            "circuit_breaker_failures": db_manager.circuit_breaker_failures,
+            "circuit_breaker_open": db_manager.is_circuit_breaker_open()
+        }

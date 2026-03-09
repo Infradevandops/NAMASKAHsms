@@ -51,34 +51,55 @@
         <h2>Select Service</h2>
         <p>Choose the service you want to verify</p>
 
-        <!-- Service Picker -->
-        <div class="form-group">
+        <!-- Inline Service Search (Issue #6 fix) -->
+        <div class="form-group" style="position:relative;">
             <label class="form-label">Service <span class="required">*</span></label>
-            <button type="button" class="form-select" style="text-align:left; cursor:pointer; position:relative;" id="service-picker-btn" onclick="openModal('service')">
-                <span id="service-display">Loading services...</span>
-                <span id="service-loading-spinner" style="display:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); width:16px; height:16px; border:2px solid #e5e7eb; border-top-color:#6366f1; border-radius:50%; animation:spin 0.6s linear infinite;"></span>
-            </button>
+            <div style="position:relative;">
+                <input type="text" id="service-search-input" placeholder="Search services e.g. Telegram, WhatsApp..."
+                    autocomplete="off"
+                    style="width:100%; padding:10px 36px 10px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px; box-sizing:border-box;"
+                    oninput="filterServicesInline(this.value)" onfocus="showServiceDropdown()" />
+                <span id="service-loading-spinner" style="display:none; position:absolute; right:10px; top:50%; transform:translateY(-50%); width:16px; height:16px; border:2px solid #e5e7eb; border-top-color:#6366f1; border-radius:50%; animation:spin 0.6s linear infinite;"></span>
+            </div>
+            <div id="service-inline-dropdown" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100; max-height:280px; overflow-y:auto; margin-top:2px;"></div>
+            <div id="service-selected-display" style="display:none; margin-top:8px; padding:10px 12px; background:#f0f9ff; border:1px solid #bfdbfe; border-radius:8px; font-size:14px; display:flex; justify-content:space-between; align-items:center;">
+                <span id="service-display"></span>
+                <button onclick="clearServiceSelection()" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:16px;">&#x2715;</button>
+            </div>
         </div>
 
-        <!-- Advanced Options -->
-        <div class="form-group">
-            <label class="form-label">Advanced Options</label>
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-md);">
-                <div>
-                    <label class="form-label" style="font-size:var(--font-size-sm);">Area Code <span style="font-size:10px; font-weight:600; color:#7c3aed; background:#ede9fe; padding:1px 6px; border-radius:4px; vertical-align:middle;">PREMIUM</span></label>
-                    <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="area-code-picker-btn" onclick="openModal('area-code')" disabled>
-                        <span id="area-code-display">Any Area Code</span>
-                    </button>
-                    <div id="area-code-lock-msg" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
-                </div>
-                <div>
-                    <label class="form-label" style="font-size:var(--font-size-sm);">Carrier <span style="font-size:10px; font-weight:600; color:#7c3aed; background:#ede9fe; padding:1px 6px; border-radius:4px; vertical-align:middle;">PREMIUM</span></label>
-                    <button type="button" class="form-select" style="text-align:left; cursor:pointer;" id="carrier-picker-btn" onclick="openModal('carrier')" disabled>
-                        <span id="carrier-display">Any Carrier</span>
-                    </button>
-                    <div id="carrier-lock-msg" style="display:none; font-size:12px; color:#6b7280; margin-top:4px;">Carrier filtering requires PAYG or higher</div>
+        <!-- Advanced Options (collapsed, premium only) -->
+        <div id="advanced-options-section" style="display:none;">
+            <div style="margin:var(--spacing-md) 0 var(--spacing-sm); font-size:13px; font-weight:600; color:var(--text-secondary); cursor:pointer; display:flex; align-items:center; gap:6px;" onclick="toggleAdvanced()">
+                <span id="advanced-toggle-icon">▶</span> Advanced Options
+            </div>
+            <div id="advanced-options-body" style="display:none;">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-md);">
+                    <div>
+                        <label class="form-label" style="font-size:var(--font-size-sm);">Area Code <span style="font-size:10px; font-weight:600; color:#7c3aed; background:#ede9fe; padding:1px 6px; border-radius:4px;">PREMIUM</span></label>
+                        <div style="position:relative;">
+                            <input type="text" id="area-code-search-input" placeholder="e.g. 212, 415..." autocomplete="off"
+                                style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box;"
+                                oninput="filterAreaCodesInline(this.value)" onfocus="showAreaCodeDropdown()" disabled />
+                            <div id="area-code-inline-dropdown" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100; max-height:200px; overflow-y:auto; margin-top:2px;"></div>
+                        </div>
+                        <div id="area-code-lock-msg" style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
+                    </div>
+                    <div>
+                        <label class="form-label" style="font-size:var(--font-size-sm);">Carrier <span style="font-size:10px; font-weight:600; color:#7c3aed; background:#ede9fe; padding:1px 6px; border-radius:4px;">PREMIUM</span></label>
+                        <select id="carrier-select-inline" disabled
+                            style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box; background:#fff;">
+                            <option value="">Any Carrier</option>
+                        </select>
+                        <div id="carrier-lock-msg" style="display:none; font-size:11px; color:#6b7280; margin-top:4px;">Requires PAYG or higher</div>
+                    </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Freemium upsell -->
+        <div id="freemium-upsell" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#faf5ff; border:1px solid #e9d5ff; border-radius:8px; font-size:13px; color:#6b21a8;">
+            💡 Want specific area codes? <a href="/pricing" style="color:#7c3aed; font-weight:600;">Upgrade to PAYG</a>
         </div>
 
         <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
@@ -276,14 +297,13 @@ function selectModalItem(value) {
         }
         selectedService = value;
         selectedServicePrice = item?.price || null;
-        document.getElementById('service-display').textContent = item?.label || value;
+        selectServiceInline(value);
         closeModal();
-        updateContinueBtn();
-        updatePricing();
         return;
     } else if (_modalType === 'area-code') {
         selectedAreaCode = value || null;
-        document.getElementById('area-code-display').textContent = item?.label || 'Any Area Code';
+        const acInput = document.getElementById('area-code-search-input');
+        if (acInput) acInput.value = value || '';
         updatePricing();
         const token = localStorage.getItem('access_token');
         fetch('/api/user/verification/area-codes', {
@@ -293,7 +313,8 @@ function selectModalItem(value) {
         }).catch(() => {});
     } else if (_modalType === 'carrier') {
         selectedCarrier = value || null;
-        document.getElementById('carrier-display').textContent = item?.label || 'Any Carrier';
+        const cSel = document.getElementById('carrier-select-inline');
+        if (cSel) cSel.value = value || '';
         updatePricing();
     }
     closeModal();
@@ -352,15 +373,17 @@ function confirmService() {
 }
 
 const _LS_SERVICES_KEY = 'nsk_services_cache';
+const _LS_SERVICES_PRICED_KEY = 'nsk_services_priced_cache';
 const _LS_AREA_CODES_KEY = 'nsk_area_codes_cache';
-const _LS_TTL = 30 * 60 * 1000; // 30 min
+const _LS_TTL = 30 * 60 * 1000;       // 30 min for names
+const _LS_PRICED_TTL = 24 * 60 * 60 * 1000; // 24h for priced cache
 
-function _lsGet(key) {
+function _lsGet(key, ttl) {
     try {
         const raw = localStorage.getItem(key);
         if (!raw) return null;
         const { ts, data } = JSON.parse(raw);
-        if (Date.now() - ts > _LS_TTL) { localStorage.removeItem(key); return null; }
+        if (Date.now() - ts > (ttl || _LS_TTL)) { localStorage.removeItem(key); return null; }
         return data;
     } catch { return null; }
 }
@@ -368,65 +391,85 @@ function _lsSet(key, data) {
     try { localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data })); } catch {}
 }
 
+function _buildServiceItems(services) {
+    return [
+        ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
+        { value: '__other__', label: 'Other (type name)', sub: '' }
+    ];
+}
+
 async function loadServices() {
-    document.getElementById('service-picker-btn').disabled = false;
     document.getElementById('service-loading-spinner').style.display = 'block';
 
-    // Try localStorage cache first
-    const cached = _lsGet(_LS_SERVICES_KEY);
-    if (cached && cached.length > 1) {
-        _modalItems['service'] = cached;
-        document.getElementById('service-display').textContent = '-- Select a service --';
+    // 1. Try 24h priced cache first
+    const pricedCached = _lsGet(_LS_SERVICES_PRICED_KEY, _LS_PRICED_TTL);
+    if (pricedCached && pricedCached.length > 1) {
+        _modalItems['service'] = pricedCached;
         document.getElementById('service-loading-spinner').style.display = 'none';
-        if (_modalType === 'service') renderModalItems(_modalItems['service']);
         return;
     }
 
-    document.getElementById('service-display').textContent = 'Loading services...';
+    // 2. Try 30min names cache
+    const namesCached = _lsGet(_LS_SERVICES_KEY);
+    if (namesCached && namesCached.length > 1) {
+        _modalItems['service'] = namesCached;
+        document.getElementById('service-loading-spinner').style.display = 'none';
+        _refreshPricedCache();
+        return;
+    }
+
     try {
         const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/countries/US/services', { 
+        const ctrl = new AbortController();
+        const tid = setTimeout(() => ctrl.abort(), 15000);
+        const res = await fetch('/api/countries/US/services', {
             headers: { 'Authorization': `Bearer ${token}` },
-            signal: AbortSignal.timeout(90000)
+            signal: ctrl.signal
         });
-        if (!res.ok) {
-            console.error('Services API error:', res.status, res.statusText);
-            throw new Error('fetch failed');
-        }
+        clearTimeout(tid);
+        if (!res.ok) throw new Error('fetch failed');
         const data = await res.json();
-        console.log('Services loaded:', data.services?.length || 0, 'services');
         const services = data.services || [];
-        if (!services.length) {
-            console.warn('No services returned from API');
+        _modalItems['service'] = _buildServiceItems(services);
+        if (services.length) {
+            _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
+            if (data.source === 'cache') _lsSet(_LS_SERVICES_PRICED_KEY, _modalItems['service']);
+            else _refreshPricedCache();
         }
-        _modalItems['service'] = [
-            ...services.map(s => ({ value: s.id, label: s.name || s.id, sub: s.price ? `$${Number(s.price).toFixed(2)}` : '', price: s.price })),
-            { value: '__other__', label: 'Other (type name)', sub: '' }
-        ];
-        if (services.length) _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
     } catch (e) {
         console.error('Failed to load services:', e);
-        _modalItems['service'] = [{ value: '__other__', label: 'Other (type name)', sub: '' }];
+        _modalItems['service'] = [];
+        const input = document.getElementById('service-search-input');
+        if (input) { input.placeholder = 'Failed to load — tap to retry'; input.onclick = () => { input.placeholder = 'Search services...'; input.onclick = null; loadServices(); }; }
     }
-    document.getElementById('service-display').textContent = '-- Select a service --';
     document.getElementById('service-loading-spinner').style.display = 'none';
-    if (_modalType === 'service') renderModalItems(_modalItems['service']);
+}
+
+async function _refreshPricedCache() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/countries/US/services/batch-pricing', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.source === 'cache' && data.services?.length) {
+            const items = _buildServiceItems(data.services);
+            _lsSet(_LS_SERVICES_PRICED_KEY, items);
+            _modalItems['service'] = items;
+        }
+    } catch {}
 }
 
 async function loadAreaCodes() {
-    const btn = document.getElementById('area-code-picker-btn');
-    const lockMsg = document.getElementById('area-code-lock-msg');
     const rank = TIER_RANK[userTier] || 0;
-    if (rank < 1) { btn.disabled = true; lockMsg.style.display = 'block'; return; }
-    lockMsg.style.display = 'none';
-    btn.disabled = false;
+    const input = document.getElementById('area-code-search-input');
+    const lockMsg = document.getElementById('area-code-lock-msg');
+    if (rank < 1) { input.disabled = true; lockMsg.style.display = 'block'; return; }
+    input.disabled = false; lockMsg.style.display = 'none';
 
-    // Try localStorage first
     const cached = _lsGet(_LS_AREA_CODES_KEY);
-    if (cached && cached.length > 1) {
-        _modalItems['area-code'] = cached;
-        return;
-    }
+    if (cached && cached.length > 1) { _modalItems['area-code'] = cached; return; }
 
     try {
         const token = localStorage.getItem('access_token');
@@ -436,36 +479,29 @@ async function loadAreaCodes() {
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const codes = data.area_codes || [];
-        _modalItems['area-code'] = [
-            { value: '', label: 'Any Area Code', sub: '' },
-            ...codes.map(c => ({ value: c.area_code, label: c.area_code, sub: c.state || '' }))
-        ];
+        _modalItems['area-code'] = codes.map(c => ({ value: c.area_code, label: c.area_code, sub: `${c.city || ''}, ${c.state || ''}`.trim().replace(/^,\s*/, '') }));
         if (codes.length) _lsSet(_LS_AREA_CODES_KEY, _modalItems['area-code']);
     } catch (e) {
-        _modalItems['area-code'] = [{ value: '', label: 'Any Area Code', sub: '' }];
+        _modalItems['area-code'] = [];
     }
-    // Restore saved preference
-    try {
-        const token = localStorage.getItem('access_token');
-        const savedRes = await fetch('/api/user/verification/area-codes', { headers: { 'Authorization': `Bearer ${token}` } });
-        if (savedRes.ok) {
-            const saved = await savedRes.json();
-            if (saved.preferred_area_codes?.length) {
-                selectedAreaCode = saved.preferred_area_codes[0];
-                const item = (_modalItems['area-code'] || []).find(i => i.value === selectedAreaCode);
-                if (item) document.getElementById('area-code-display').textContent = `${item.value}${item.sub ? ' — ' + item.sub : ''}`;
-            }
-        }
-    } catch {}
 }
 
 async function loadCarriers() {
-    const btn = document.getElementById('carrier-picker-btn');
-    const lockMsg = document.getElementById('carrier-lock-msg');
     const rank = TIER_RANK[userTier] || 0;
-    if (rank < 1) { btn.disabled = true; lockMsg.style.display = 'block'; return; }
-    lockMsg.style.display = 'none';
-    btn.disabled = false;
+    const sel = document.getElementById('carrier-select-inline');
+    if (!sel) return;
+    if (rank < 1) { sel.disabled = true; return; }
+    sel.disabled = false;
+
+    // Issue #7: carrier caching (24h localStorage)
+    const _LS_CARRIERS_KEY = 'nsk_carriers_cache';
+    const cached = _lsGet(_LS_CARRIERS_KEY, 24 * 60 * 60 * 1000);
+    if (cached) {
+        sel.innerHTML = cached;
+        sel.onchange = () => { selectedCarrier = sel.value || null; updatePricing(); };
+        return;
+    }
+
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
@@ -474,13 +510,17 @@ async function loadCarriers() {
         clearTimeout(tid);
         const data = res.ok ? await res.json() : {};
         const carriers = data.carriers || [];
-        _modalItems['carrier'] = [
-            { value: '', label: 'Any Carrier', sub: '' },
-            ...carriers.map(c => ({ value: c.id, label: c.name, sub: '' }))
-        ];
-    } catch (e) {
-        _modalItems['carrier'] = [{ value: '', label: 'Any Carrier', sub: '' }];
-    }
+        // Issue #5: show pricing impact inline
+        const html = '<option value="">Any Carrier</option>' +
+            carriers.map(c => {
+                const rate = c.success_rate >= 90 ? '\u2705' : '\u23f3';
+                const price = c.price_impact ? ` (+$${c.price_impact.toFixed(2)})` : ' (Free)';
+                return `<option value="${c.id}">${c.name} ${rate} ${c.success_rate}%${price}</option>`;
+            }).join('');
+        sel.innerHTML = html;
+        _lsSet(_LS_CARRIERS_KEY, html); // cache the rendered HTML string
+        sel.onchange = () => { selectedCarrier = sel.value || null; updatePricing(); };
+    } catch (e) {}
 }
 
 // Create verification
@@ -573,13 +613,23 @@ function showFallbackWarning(requested, assigned, sameState) {
 // Start scanning with API polling
 function startScanning() {
     elapsedSeconds = 0;
+    // Issue #4 fix: correct backoff — stepIdx tracks CURRENT delay, incremented AFTER use
+    const backoffMs = [2000, 3000, 5000, 8000, 10000];
+    let stepIdx = 0;
 
-    scanInterval = setInterval(async () => {
-        elapsedSeconds++;
-        document.getElementById('elapsed-time').textContent = elapsedSeconds;
-        document.getElementById('progress-elapsed').textContent = elapsedSeconds + 's elapsed';
+    function scheduleNext() {
+        const delay = backoffMs[stepIdx];
+        if (stepIdx < backoffMs.length - 1) stepIdx++;
+        scanInterval = setTimeout(poll, delay);
+    }
+
+    async function poll() {
+        // Elapsed tracks actual delay used (before stepIdx was incremented)
+        elapsedSeconds += backoffMs[Math.max(0, stepIdx - 1)] / 1000;
+        document.getElementById('elapsed-time').textContent = Math.round(elapsedSeconds);
+        document.getElementById('progress-elapsed').textContent = Math.round(elapsedSeconds) + 's elapsed';
         const remaining = Math.max(0, 120 - elapsedSeconds);
-        document.getElementById('progress-remaining').textContent = `~${remaining}s remaining`;
+        document.getElementById('progress-remaining').textContent = `~${Math.round(remaining)}s remaining`;
         document.getElementById('progress-info').style.display = 'flex';
 
         if (verificationId) {
@@ -591,7 +641,6 @@ function startScanning() {
                 if (res.ok) {
                     const data = await res.json();
                     if (data.status === 'completed' && data.sms_code) {
-                        clearInterval(scanInterval);
                         document.getElementById('sms-code').textContent = data.sms_code;
                         document.getElementById('code-received').style.display = 'block';
                         document.querySelector('.scanning-container').style.display = 'none';
@@ -599,12 +648,11 @@ function startScanning() {
                         return;
                     }
                 }
-            } catch (e) { /* continue polling */ }
+            } catch (e) { /* continue */ }
         }
 
         if (elapsedSeconds >= 120) {
-            clearInterval(scanInterval);
-            // Record timeout outcome
+            clearTimeout(scanInterval);
             if (verificationId) {
                 fetch(`/api/verify/${verificationId}/outcome`, {
                     method: 'PATCH',
@@ -624,8 +672,12 @@ function startScanning() {
                 <a href="/settings?tab=blacklist" class="btn btn-secondary" style="font-size:13px;">Manage Blacklist →</a>
             `;
             if (errEl) errEl.appendChild(cta);
+            return;
         }
-    }, 3000);
+        scheduleNext();
+    }
+
+    scheduleNext();
 }
 
 // Copy phone number
@@ -717,7 +769,7 @@ function showOtherServiceInput() {
         <button class="btn btn-primary" onclick="confirmOtherService()" style="white-space:nowrap;">OK</button>
         <button class="btn btn-secondary" onclick="this.closest('#other-service-input-row').remove()" style="white-space:nowrap;">Cancel</button>
     `;
-    document.getElementById('service-picker-btn').insertAdjacentElement('afterend', row);
+    document.getElementById('service-search-input').insertAdjacentElement('afterend', row);
     row.querySelector('input').focus();
 }
 
@@ -727,9 +779,11 @@ function confirmOtherService() {
     if (!name) return;
     selectedService = name;
     selectedServicePrice = null;
+    document.getElementById('service-search-input').value = name;
     document.getElementById('service-display').textContent = name;
+    document.getElementById('service-selected-display').style.display = 'flex';
     document.getElementById('other-service-input-row')?.remove();
-    updateContinueBtn();
+    document.getElementById('continue-btn').disabled = false;
     updatePricing();
 }
 
@@ -742,9 +796,11 @@ function resetFlow() {
     selectedCarrier = null;
     verificationId = null;
     elapsedSeconds = 0;
-    document.getElementById('service-display').textContent = '-- Select a service --';
-    document.getElementById('area-code-display').textContent = 'Any Area Code';
-    document.getElementById('carrier-display').textContent = 'Any Carrier';
+    clearServiceSelection();
+    const acInput = document.getElementById('area-code-search-input');
+    if (acInput) acInput.value = '';
+    const cSel = document.getElementById('carrier-select-inline');
+    if (cSel) cSel.value = '';
     document.getElementById('continue-btn').disabled = true;
     document.getElementById('error-container').style.display = 'none';
     document.getElementById('code-received').style.display = 'none';
@@ -762,18 +818,182 @@ function showError(title, message) {
     window.toast.error(title);
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-    // Load tier first — area code and carrier lock state depends on it
+// --- Issue #6 + #2: Inline service search & area code search ---
+const POPULAR_AREA_CODES = [
+    { area_code: '212', state: 'NY', city: 'New York City' },
+    { area_code: '213', state: 'CA', city: 'Los Angeles' },
+    { area_code: '310', state: 'CA', city: 'Los Angeles' },
+    { area_code: '415', state: 'CA', city: 'San Francisco' },
+    { area_code: '646', state: 'NY', city: 'New York City' },
+    { area_code: '312', state: 'IL', city: 'Chicago' },
+    { area_code: '404', state: 'GA', city: 'Atlanta' },
+    { area_code: '512', state: 'TX', city: 'Austin' },
+];
+
+let _svcDebounce = null;
+function filterServicesInline(q) {
+    clearTimeout(_svcDebounce);
+    _svcDebounce = setTimeout(() => _renderServiceDropdown(q), 300);
+}
+
+function showServiceDropdown() {
+    _renderServiceDropdown(document.getElementById('service-search-input').value);
+}
+
+function _renderServiceDropdown(q) {
+    const dd = document.getElementById('service-inline-dropdown');
+    const items = (_modalItems['service'] || []).filter(i => i.value !== '__other__');
+    if (!items.length) {
+        dd.innerHTML = '<div style="padding:12px;color:#9ca3af;text-align:center;">Loading services...</div>';
+        dd.style.display = 'block';
+        return;
+    }
+    // Issue #8: show favorites at top when no query
+    const favIds = (typeof favoriteServices !== 'undefined') ? favoriteServices.getAll().map(f => f.id) : [];
+    let filtered;
+    if (!q) {
+        const favItems = items.filter(i => favIds.includes(i.value)).slice(0, 3);
+        const rest = items.filter(i => !favIds.includes(i.value)).slice(0, 10 - favItems.length);
+        filtered = [...favItems, ...rest];
+    } else {
+        filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase())).slice(0, 10);
+    }
+    if (!filtered.length) {
+        dd.innerHTML = '<div style="padding:12px;color:#9ca3af;text-align:center;">No services found</div>';
+        dd.style.display = 'block';
+        return;
+    }
+    const favSection = (!q && favIds.length) ? '<div style="padding:4px 14px;font-size:11px;color:#9ca3af;font-weight:600;">FAVORITES</div>' : '';
+    dd.innerHTML = favSection + filtered.map(i => {
+        const isFav = favIds.includes(i.value);
+        return `<div onclick="selectServiceInline('${i.value.replace(/'/g,"\\'")}')"
+            style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f4f6;"
+            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+            <span style="font-weight:500;">${isFav ? '\u2605 ' : ''}${i.label}</span>
+            <span style="color:#6b7280;font-size:13px;">${i.sub || ''}</span>
+        </div>`;
+    }).join('');
+    dd.style.display = 'block';
+}
+
+function selectServiceInline(value) {
+    const items = _modalItems['service'] || [];
+    const item = items.find(i => i.value === value);
+    if (!item) return;
+    selectedService = value;
+    selectedServicePrice = item.price || null;
+    document.getElementById('service-search-input').value = item.label;
+    document.getElementById('service-display').textContent = item.label + (item.sub ? '  ' + item.sub : '');
+    document.getElementById('service-selected-display').style.display = 'flex';
+    document.getElementById('service-inline-dropdown').style.display = 'none';
+    document.getElementById('continue-btn').disabled = false;
+    updatePricing();
+    // Show advanced options & freemium upsell based on tier
+    const rank = TIER_RANK[userTier] || 0;
+    document.getElementById('advanced-options-section').style.display = rank >= 1 ? 'block' : 'none';
+    document.getElementById('freemium-upsell').style.display = rank < 1 ? 'block' : 'none';
+}
+
+function clearServiceSelection() {
+    selectedService = null; selectedServicePrice = null;
+    document.getElementById('service-search-input').value = '';
+    document.getElementById('service-selected-display').style.display = 'none';
+    document.getElementById('continue-btn').disabled = true;
+    document.getElementById('advanced-options-section').style.display = 'none';
+    document.getElementById('freemium-upsell').style.display = 'none';
+}
+
+function toggleAdvanced() {
+    const body = document.getElementById('advanced-options-body');
+    const icon = document.getElementById('advanced-toggle-icon');
+    const open = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    icon.textContent = open ? '▶' : '▼';
+}
+
+// Area code inline search (Issue #2)
+let _acDebounce = null;
+function filterAreaCodesInline(q) {
+    clearTimeout(_acDebounce);
+    _acDebounce = setTimeout(() => _renderAreaCodeDropdown(q), 300);
+}
+
+function showAreaCodeDropdown() {
+    _renderAreaCodeDropdown(document.getElementById('area-code-search-input').value);
+}
+
+function _renderAreaCodeDropdown(q) {
+    const dd = document.getElementById('area-code-inline-dropdown');
+    const all = (_modalItems['area-code'] || []).filter(i => i.value);
+    const pool = q
+        ? all.filter(i => i.value.includes(q) || (i.sub || '').toLowerCase().includes(q.toLowerCase()) || (i.label || '').toLowerCase().includes(q.toLowerCase())).slice(0, 10)
+        : POPULAR_AREA_CODES.map(p => ({ value: p.area_code, label: p.area_code, sub: `${p.city}, ${p.state}` }));
+    if (!pool.length) { dd.style.display = 'none'; return; }
+    dd.innerHTML = (!q ? '<div style="padding:6px 14px;font-size:11px;color:#9ca3af;font-weight:600;">POPULAR</div>' : '') +
+        pool.map(i => `
+        <div onclick="selectAreaCodeInline('${i.value}')"
+            style="padding:10px 14px;cursor:pointer;display:flex;justify-content:space-between;border-bottom:1px solid #f3f4f6;"
+            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+            <span style="font-weight:500;">${i.value}</span>
+            <span style="color:#6b7280;font-size:12px;">${i.sub || ''}</span>
+        </div>`).join('');
+    dd.style.display = 'block';
+}
+
+function selectAreaCodeInline(value) {
+    selectedAreaCode = value || null;
+    document.getElementById('area-code-search-input').value = value;
+    document.getElementById('area-code-inline-dropdown').style.display = 'none';
+    updatePricing();
+}
+
+// Close dropdowns on outside click
+document.addEventListener('click', e => {
+    if (!e.target.closest('#service-search-input') && !e.target.closest('#service-inline-dropdown'))
+        document.getElementById('service-inline-dropdown').style.display = 'none';
+    if (!e.target.closest('#area-code-search-input') && !e.target.closest('#area-code-inline-dropdown'))
+        document.getElementById('area-code-inline-dropdown').style.display = 'none';
+});
+
+async function loadTier() {
+    // Issue #3 fix: apply cached tier immediately, then validate in background
+    let hasCached = false;
+    try {
+        const cached = localStorage.getItem('nsk_tier_cache');
+        if (cached) {
+            const { ts, tier } = JSON.parse(cached);
+            if (Date.now() - ts < 3600000) {
+                userTier = tier;
+                hasCached = true;
+                loadAreaCodes(); // unblock UI immediately from cache
+                loadCarriers();
+            }
+        }
+    } catch {}
+    // Always revalidate in background (non-blocking regardless of cache)
     try {
         const token = localStorage.getItem('access_token');
         const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 8000);
+        const tid = setTimeout(() => ctrl.abort(), 5000);
         const res = await fetch('/api/tiers/current', { headers: { 'Authorization': `Bearer ${token}` }, signal: ctrl.signal });
         clearTimeout(tid);
-        if (res.ok) { const d = await res.json(); userTier = d.current_tier || 'freemium'; }
+        if (res.ok) {
+            const d = await res.json();
+            const freshTier = d.current_tier || 'freemium';
+            localStorage.setItem('nsk_tier_cache', JSON.stringify({ ts: Date.now(), tier: freshTier }));
+            if (freshTier !== userTier) {
+                userTier = freshTier;
+                loadAreaCodes();
+                loadCarriers();
+            }
+        }
     } catch(e) {}
+    if (!hasCached) { loadAreaCodes(); loadCarriers(); }
+}
 
-    await Promise.all([loadServices(), loadAreaCodes(), loadCarriers()]);
+document.addEventListener('DOMContentLoaded', () => {
+    loadServices();   // immediate — no blocking
+    loadTier();       // async: unlocks area code + carrier after resolving
     loadBalance();
     updateProgress(1);
 
@@ -782,10 +1002,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const preService = params.get('service');
     if (preService) {
         const item = (_modalItems['service'] || []).find(i => i.value.toLowerCase() === preService.toLowerCase());
-        selectedService = item ? item.value : preService;
-        selectedServicePrice = item?.price || null;
-        document.getElementById('service-display').textContent = item?.label || preService;
-        updateContinueBtn();
+        if (item) {
+            selectServiceInline(item.value);
+        } else {
+            selectedService = preService;
+            document.getElementById('service-search-input').value = preService;
+            document.getElementById('service-display').textContent = preService;
+            document.getElementById('service-selected-display').style.display = 'flex';
+            document.getElementById('continue-btn').disabled = false;
+        }
     }
 });
 

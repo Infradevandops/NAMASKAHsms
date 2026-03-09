@@ -22,7 +22,7 @@ tasks:
       - echo "Steps:"
       - echo "  1. Render Dashboard → PostgreSQL → Connection → Internal URL"
       - echo "  2. Render Dashboard → namaskah-sms → Environment → DATABASE_URL"
-      - echo "  3. Paste new Internal URL → Save → service will redeploy"
+      - echbo "  3. Paste new Internal URL → Save → service will redeploy"
 
   # ─────────────────────────────────────────────────────────────────────────
   # F2 · SECRETS EXPOSED IN LOGS
