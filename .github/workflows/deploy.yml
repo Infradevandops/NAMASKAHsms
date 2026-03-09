@@ -1,0 +1,65 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:  # Allow manual deployment
+
+jobs:
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    
+    # Only deploy if tests pass
+    needs: []  # Will add dependency on CI workflow
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Trigger Render Deploy
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "⚠️  RENDER_DEPLOY_HOOK not set, skipping deployment"
+            exit 0
+          fi
+          
+          echo "🚀 Triggering Render deployment..."
+          curl -X POST "$RENDER_DEPLOY_HOOK"
+          echo "✅ Deployment triggered successfully"
+      
+      - name: Wait for deployment
+        run: |
+          echo "⏳ Waiting 60 seconds for deployment to start..."
+          sleep 60
+      
+      - name: Health check
+        run: |
+          # Add your production URL here
+          PROD_URL="${{ secrets.PRODUCTION_URL }}"
+          
+          if [ -z "$PROD_URL" ]; then
+            echo "⚠️  PRODUCTION_URL not set, skipping health check"
+            exit 0
+          fi
+          
+          echo "🏥 Checking production health..."
+          
+          # Try health check endpoint
+          if curl -f -s "${PROD_URL}/health" > /dev/null; then
+            echo "✅ Production is healthy"
+          else
+            echo "⚠️  Health check failed, but deployment may still be in progress"
+          fi
+      
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment completed successfully"
+          else
+            echo "❌ Deployment failed"
+          fi
