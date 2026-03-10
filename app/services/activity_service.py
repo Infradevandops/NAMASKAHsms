@@ -1,30 +1,26 @@
 """Activity service for tracking user events."""
 
-
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.activity import Activity
 from app.models.user import User
-from datetime import timedelta
-from datetime import timedelta
 
 logger = get_logger(__name__)
 
 
 class ActivityService:
-
     """Service for managing user activities."""
 
     def __init__(self, db: Session):
-
         """Initialize activity service with database session."""
         self.db = db
 
     def log_activity(
-
         self,
         user_id: str,
         activity_type: str,
@@ -37,7 +33,7 @@ class ActivityService:
         metadata: Optional[Dict[str, Any]] = None,
         ip_address: Optional[str] = None,
         user_agent: Optional[str] = None,
-        ) -> Activity:
+    ) -> Activity:
         """Log a user activity.
 
         Args:
@@ -90,7 +86,6 @@ class ActivityService:
         return activity
 
     def get_user_activities(
-
         self,
         user_id: str,
         activity_type: Optional[str] = None,
@@ -98,7 +93,7 @@ class ActivityService:
         status: Optional[str] = None,
         skip: int = 0,
         limit: int = 20,
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Get activities for user with filtering.
 
         Args:
@@ -137,7 +132,9 @@ class ActivityService:
         total = query.count()
 
         # Order by newest first and apply pagination
-        activities = query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
+        activities = (
+            query.order_by(desc(Activity.created_at)).offset(skip).limit(limit).all()
+        )
 
         logger.info(
             f"Retrieved {len(activities)} activities for user {user_id} "
@@ -152,7 +149,6 @@ class ActivityService:
         }
 
     def get_activity_by_id(self, user_id: str, activity_id: str) -> Optional[Activity]:
-
         """Get activity by ID for user.
 
         Args:
@@ -170,7 +166,11 @@ class ActivityService:
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        activity = self.db.query(Activity).filter(Activity.id == activity_id, Activity.user_id == user_id).first()
+        activity = (
+            self.db.query(Activity)
+            .filter(Activity.id == activity_id, Activity.user_id == user_id)
+            .first()
+        )
 
         if activity:
             logger.info(f"Retrieved activity {activity_id} for user {user_id}")
@@ -179,8 +179,9 @@ class ActivityService:
 
         return activity
 
-    def get_activities_by_resource(self, user_id: str, resource_type: str, resource_id: str) -> List[Activity]:
-
+    def get_activities_by_resource(
+        self, user_id: str, resource_type: str, resource_id: str
+    ) -> List[Activity]:
         """Get all activities for a specific resource.
 
         Args:
@@ -211,13 +212,13 @@ class ActivityService:
         )
 
         logger.info(
-            f"Retrieved {len(activities)} activities for resource {resource_type}/{resource_id} " f"for user {user_id}"
+            f"Retrieved {len(activities)} activities for resource {resource_type}/{resource_id} "
+            f"for user {user_id}"
         )
 
         return activities
 
     def get_activity_summary(self, user_id: str, days: int = 30) -> Dict[str, Any]:
-
         """Get activity summary for user.
 
         Args:
@@ -240,7 +241,11 @@ class ActivityService:
         threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
         # Get activities within timeframe
-        activities = self.db.query(Activity).filter(Activity.user_id == user_id, Activity.created_at >= threshold).all()
+        activities = (
+            self.db.query(Activity)
+            .filter(Activity.user_id == user_id, Activity.created_at >= threshold)
+            .all()
+        )
 
         # Build summary
         summary = {
@@ -252,20 +257,25 @@ class ActivityService:
 
         for activity in activities:
             # Count by type
-            summary["by_type"][activity.activity_type] = summary["by_type"].get(activity.activity_type, 0) + 1
+            summary["by_type"][activity.activity_type] = (
+                summary["by_type"].get(activity.activity_type, 0) + 1
+            )
 
             # Count by status
-            summary["by_status"][activity.status] = summary["by_status"].get(activity.status, 0) + 1
+            summary["by_status"][activity.status] = (
+                summary["by_status"].get(activity.status, 0) + 1
+            )
 
             # Count by resource
-            summary["by_resource"][activity.resource_type] = summary["by_resource"].get(activity.resource_type, 0) + 1
+            summary["by_resource"][activity.resource_type] = (
+                summary["by_resource"].get(activity.resource_type, 0) + 1
+            )
 
         logger.info(f"Generated activity summary for user {user_id} (last {days} days)")
 
         return summary
 
     def cleanup_old_activities(self, days: int = 90) -> int:
-
         """Delete activities older than specified days.
 
         Args:
@@ -277,7 +287,9 @@ class ActivityService:
 
         threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
-        deleted_count = self.db.query(Activity).filter(Activity.created_at < threshold).delete()
+        deleted_count = (
+            self.db.query(Activity).filter(Activity.created_at < threshold).delete()
+        )
 
         self.db.commit()
 

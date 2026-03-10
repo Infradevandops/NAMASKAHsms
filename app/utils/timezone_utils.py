@@ -1,6 +1,5 @@
 """Timezone utilities for consistent datetime handling across the application."""
 
-
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Union
 from zoneinfo import ZoneInfo

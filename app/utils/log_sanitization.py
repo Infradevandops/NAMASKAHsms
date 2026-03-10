@@ -1,6 +1,5 @@
 """Log sanitization utilities to prevent log injection attacks."""
 
-
 import re
 from typing import Any, Dict, Union
 

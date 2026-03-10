@@ -1,6 +1,5 @@
 """Transaction logging service."""
 
-
 import uuid
 from datetime import datetime, timezone
 
@@ -58,7 +57,9 @@ class TransactionService:
         return transaction.id
 
     @staticmethod
-    def log_filter_charge(db: Session, user_id: str, cost: float, filter_type: str, tier: str) -> str:
+    def log_filter_charge(
+        db: Session, user_id: str, cost: float, filter_type: str, tier: str
+    ) -> str:
         """Log filter charge."""
         transaction = Transaction(
             id=str(uuid.uuid4()),

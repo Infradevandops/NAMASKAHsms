@@ -1,6 +1,5 @@
 """Translation service for multi-language support."""
 
-
 import json
 from pathlib import Path
 
@@ -15,7 +14,12 @@ class TranslationService:
     def _load_translations(self) -> dict:
         """Load translation file for language."""
         try:
-            path = Path(__file__).parent.parent / "translations" / self.language / "messages.json"
+            path = (
+                Path(__file__).parent.parent
+                / "translations"
+                / self.language
+                / "messages.json"
+            )
             with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
         except FileNotFoundError:

@@ -1,11 +1,11 @@
 """API endpoints for managing verification presets (Tier 3 feature)."""
 
-
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
-from pydantic import ConfigDict
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id, require_tier
 from app.core.logging import get_logger
@@ -32,13 +32,17 @@ class PresetResponse(PresetCreate):
 
 
 @router.get("/", response_model=List[PresetResponse])
-async def get_presets(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_presets(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get all saved presets for the current user."""
     tier_manager = TierManager(db)
     if not tier_manager.check_feature_access(user_id, "isp_filtering"):
         pass
 
-    presets = db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).all()
+    presets = (
+        db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).all()
+    )
     return presets
 
 
@@ -49,7 +53,11 @@ async def create_preset(
     db: Session = Depends(get_db),
 ):
     """Create a new verification preset."""
-    count = db.query(VerificationPreset).filter(VerificationPreset.user_id == user_id).count()
+    count = (
+        db.query(VerificationPreset)
+        .filter(VerificationPreset.user_id == user_id)
+        .count()
+    )
     if count >= 10:
         raise HTTPException(status_code=400, detail="Maximum of 10 presets allowed")
 
@@ -79,7 +87,9 @@ async def delete_preset(
     """Delete a preset."""
     preset = (
         db.query(VerificationPreset)
-        .filter(VerificationPreset.id == preset_id, VerificationPreset.user_id == user_id)
+        .filter(
+            VerificationPreset.id == preset_id, VerificationPreset.user_id == user_id
+        )
         .first()
     )
 

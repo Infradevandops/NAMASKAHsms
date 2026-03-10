@@ -1,6 +1,7 @@
 """Notification dispatcher for real-time notifications."""
 
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
 from app.core.logging import get_logger
 from app.services.notification_service import NotificationService
 
@@ -18,8 +19,9 @@ class NotificationDispatcher:
         """Broadcast notification via WebSocket."""
         try:
             # Import here to avoid circular dependency
-            from app.websocket.manager import manager
             import asyncio
+
+            from app.websocket.manager import manager
 
             # Send via WebSocket in background
             asyncio.create_task(
@@ -34,13 +36,13 @@ class NotificationDispatcher:
             logger.error(f"Failed to broadcast notification via WebSocket: {e}")
 
     async def notify_verification_started(
-        self, 
-        user_id: str, 
-        verification_id: str, 
-        service: str, 
-        phone_number: str, 
-        cost: float
-        ) -> bool:
+        self,
+        user_id: str,
+        verification_id: str,
+        service: str,
+        phone_number: str,
+        cost: float,
+    ) -> bool:
         """Notify when verification is started."""
         try:
             notification = self.notification_service.create_notification(
@@ -59,12 +61,8 @@ class NotificationDispatcher:
         return False
 
     async def notify_verification_completed(
-        self, 
-        user_id: str, 
-        verification_id: str, 
-        service: str, 
-        phone_number: str
-        ) -> bool:
+        self, user_id: str, verification_id: str, service: str, phone_number: str
+    ) -> bool:
         """Notify when verification is completed."""
         try:
             notification = self.notification_service.create_notification(
@@ -83,12 +81,8 @@ class NotificationDispatcher:
         return False
 
     async def notify_verification_failed(
-        self, 
-        user_id: str, 
-        verification_id: str, 
-        service: str, 
-        reason: str
-        ) -> bool:
+        self, user_id: str, verification_id: str, service: str, reason: str
+    ) -> bool:
         """Notify when verification fails."""
         try:
             notification = self.notification_service.create_notification(
@@ -107,11 +101,8 @@ class NotificationDispatcher:
         return False
 
     async def notify_payment_completed(
-        self, 
-        user_id: str, 
-        amount: float, 
-        new_balance: float
-        ) -> bool:
+        self, user_id: str, amount: float, new_balance: float
+    ) -> bool:
         """Notify when payment is completed."""
         try:
             notification = self.notification_service.create_notification(
@@ -130,12 +121,8 @@ class NotificationDispatcher:
         return False
 
     async def notify_verification_timeout(
-        self, 
-        user_id: str, 
-        verification_id: str, 
-        service: str, 
-        refund_amount: float
-        ) -> bool:
+        self, user_id: str, verification_id: str, service: str, refund_amount: float
+    ) -> bool:
         """Notify when verification times out with auto-refund."""
         try:
             notification = self.notification_service.create_notification(
@@ -154,16 +141,18 @@ class NotificationDispatcher:
         return False
 
     async def notify_verification_cancelled(
-        self, 
-        user_id: str, 
-        verification_id: str, 
-        service: str, 
+        self,
+        user_id: str,
+        verification_id: str,
+        service: str,
         refund_amount: float,
-        new_balance: float = None
-        ) -> bool:
+        new_balance: float = None,
+    ) -> bool:
         """Notify when verification is cancelled with refund."""
         try:
-            balance_str = f" New balance: ${new_balance:.2f}" if new_balance is not None else ""
+            balance_str = (
+                f" New balance: ${new_balance:.2f}" if new_balance is not None else ""
+            )
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_cancelled",
@@ -180,12 +169,8 @@ class NotificationDispatcher:
         return False
 
     async def on_refund_completed(
-        self, 
-        user_id: str, 
-        amount: float, 
-        reference: str, 
-        new_balance: float
-        ) -> bool:
+        self, user_id: str, amount: float, reference: str, new_balance: float
+    ) -> bool:
         """Notify when any refund is completed."""
         try:
             notification = self.notification_service.create_notification(

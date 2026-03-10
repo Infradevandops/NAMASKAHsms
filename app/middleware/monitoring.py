@@ -1,13 +1,14 @@
 """Monitoring middleware for request tracking."""
 
-
 import time
+
 from fastapi import HTTPException, Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.monitoring import error_tracker, performance_monitor
 
-class MonitoringMiddleware(BaseHTTPMiddleware):
 
+class MonitoringMiddleware(BaseHTTPMiddleware):
     """Middleware to track request metrics and errors."""
 
     @staticmethod

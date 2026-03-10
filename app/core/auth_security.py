@@ -1,11 +1,12 @@
 """Authentication security: rate limiting, lockout, audit logging."""
 
-
 import json
 import uuid
 from datetime import datetime, timedelta, timezone
+
 from sqlalchemy import Boolean, Column, DateTime, String
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.base import Base
 
@@ -104,7 +105,8 @@ def lock_account(
         lockout = AccountLockout(
             id=str(uuid.uuid4()),
             email=email,
-            locked_until=datetime.now(timezone.utc) + timedelta(minutes=duration_minutes),
+            locked_until=datetime.now(timezone.utc)
+            + timedelta(minutes=duration_minutes),
             reason=reason,
         )
         db.add(lockout)
@@ -134,7 +136,8 @@ def record_login_attempt(db: Session, email: str, ip_address: str, success: bool
                 .filter(
                     LoginAttempt.email == email,
                     LoginAttempt.success is False,
-                    LoginAttempt.timestamp > datetime.now(timezone.utc) - timedelta(minutes=15),
+                    LoginAttempt.timestamp
+                    > datetime.now(timezone.utc) - timedelta(minutes=15),
                 )
                 .count()
             )

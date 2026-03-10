@@ -1,12 +1,13 @@
 """Admin endpoint to audit unreceived verifications."""
 
-
 from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, get_admin_user_id
+from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
@@ -83,7 +84,9 @@ async def get_unreceived_verifications(
             "status": v.status,
             "cost": float(v.cost),
             "created_at": v.created_at.isoformat(),
-            "minutes_elapsed": int((datetime.now(timezone.utc) - v.created_at).total_seconds() / 60),
+            "minutes_elapsed": int(
+                (datetime.now(timezone.utc) - v.created_at).total_seconds() / 60
+            ),
         }
         for v in sorted(unreceived, key=lambda x: x.created_at, reverse=True)[:10]
     ]
@@ -165,7 +168,9 @@ async def get_refund_candidates(
                     "created_at": v.created_at.isoformat(),
                     "phone_number": v.phone_number,
                     "refund_reason": (
-                        "Timeout - No SMS received" if v.status == "pending" else f"Failed - Status: {v.status}"
+                        "Timeout - No SMS received"
+                        if v.status == "pending"
+                        else f"Failed - Status: {v.status}"
                     ),
                 }
             )

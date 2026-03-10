@@ -1,18 +1,13 @@
 """Reseller management service."""
 
-
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
 
 from sqlalchemy.orm import Session
 
-from app.models.reseller import (
-    BulkOperation,
-    CreditAllocation,
-    ResellerAccount,
-    SubAccount,
-    SubAccountTransaction,
-)
+from app.models.reseller import (BulkOperation, CreditAllocation,
+                                 ResellerAccount, SubAccount,
+                                 SubAccountTransaction)
 
 
 class ResellerService:
@@ -23,7 +18,11 @@ class ResellerService:
 
     async def create_reseller_account(self, user_id: int, tier: str = "bronze") -> Dict:
         """Create new reseller account."""
-        existing = self.db.query(ResellerAccount).filter(ResellerAccount.user_id == user_id).first()
+        existing = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.user_id == user_id)
+            .first()
+        )
 
         if existing:
             return {"error": "User already has reseller account"}
@@ -57,7 +56,11 @@ class ResellerService:
         features: Dict = None,
     ) -> Dict:
         """Create new sub-account."""
-        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
+        reseller = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.id == reseller_id)
+            .first()
+        )
 
         if not reseller:
             return {"error": "Reseller account not found"}
@@ -107,10 +110,16 @@ class ResellerService:
         notes: str = None,
     ) -> Dict:
         """Allocate credits to sub-account."""
-        reseller = self.db.query(ResellerAccount).filter(ResellerAccount.id == reseller_id).first()
+        reseller = (
+            self.db.query(ResellerAccount)
+            .filter(ResellerAccount.id == reseller_id)
+            .first()
+        )
         sub_account = (
             self.db.query(SubAccount)
-            .filter(SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id)
+            .filter(
+                SubAccount.id == sub_account_id, SubAccount.reseller_id == reseller_id
+            )
             .first()
         )
 
@@ -175,13 +184,18 @@ class ResellerService:
             for account in sub_accounts
         ]
 
-    async def bulk_credit_topup(self, reseller_id: int, account_ids: List[int], amount_per_account: float) -> Dict:
+    async def bulk_credit_topup(
+        self, reseller_id: int, account_ids: List[int], amount_per_account: float
+    ) -> Dict:
         """Bulk credit top-up for multiple accounts."""
         bulk_op = BulkOperation(
             reseller_id=reseller_id,
             operation_type="credit_topup",
             total_accounts=len(account_ids),
-            operation_data={"amount_per_account": amount_per_account, "account_ids": account_ids},
+            operation_data={
+                "amount_per_account": amount_per_account,
+                "account_ids": account_ids,
+            },
         )
 
         self.db.add(bulk_op)
@@ -240,8 +254,12 @@ class ResellerService:
             .all()
         )
 
-        total_usage = sum(t.amount for t in transactions if t.transaction_type == "debit")
-        total_credits_allocated = sum(t.amount for t in transactions if t.transaction_type == "credit")
+        total_usage = sum(
+            t.amount for t in transactions if t.transaction_type == "debit"
+        )
+        total_credits_allocated = sum(
+            t.amount for t in transactions if t.transaction_type == "credit"
+        )
 
         usage_by_account = {}
         for transaction in transactions:
@@ -275,10 +293,26 @@ class ResellerService:
     def _get_tier_config(self, tier: str) -> Dict:
         """Get configuration for reseller tier."""
         tiers = {
-            "bronze": {"discount": 0.05, "credit_limit": 1000.0, "rates": {"sms": 0.45, "whatsapp": 0.55}},
-            "silver": {"discount": 0.10, "credit_limit": 5000.0, "rates": {"sms": 0.40, "whatsapp": 0.50}},
-            "gold": {"discount": 0.20, "credit_limit": 25000.0, "rates": {"sms": 0.35, "whatsapp": 0.45}},
-            "platinum": {"discount": 0.35, "credit_limit": 100000.0, "rates": {"sms": 0.30, "whatsapp": 0.40}},
+            "bronze": {
+                "discount": 0.05,
+                "credit_limit": 1000.0,
+                "rates": {"sms": 0.45, "whatsapp": 0.55},
+            },
+            "silver": {
+                "discount": 0.10,
+                "credit_limit": 5000.0,
+                "rates": {"sms": 0.40, "whatsapp": 0.50},
+            },
+            "gold": {
+                "discount": 0.20,
+                "credit_limit": 25000.0,
+                "rates": {"sms": 0.35, "whatsapp": 0.45},
+            },
+            "platinum": {
+                "discount": 0.35,
+                "credit_limit": 100000.0,
+                "rates": {"sms": 0.30, "whatsapp": 0.40},
+            },
         }
         return tiers.get(tier, tiers["bronze"])
 

@@ -1,10 +1,9 @@
 """Pricing Service for SMS Verification."""
 
-
 from app.models.user import User
 
-class PricingService:
 
+class PricingService:
     """Calculate SMS verification pricing with premiums and discounts."""
 
     BASE_PRICES = {
@@ -50,13 +49,12 @@ class PricingService:
     }
 
     def calculate_price(
-
         self,
         service: str,
         user: User,
         area_code: str = None,
         carrier: str = None,
-        ) -> dict:
+    ) -> dict:
         """Calculate total price with all premiums and discounts.
 
         Args:

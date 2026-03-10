@@ -1,12 +1,11 @@
 """Path security utilities to prevent path traversal attacks."""
 
-
 import os
 from pathlib import Path
 from typing import Union
 
-def validate_safe_path(user_path: str, base_directory: Union[str, Path]) -> Path:
 
+def validate_safe_path(user_path: str, base_directory: Union[str, Path]) -> Path:
     """
     Validate that a user - provided path is safe and within the base directory.
 

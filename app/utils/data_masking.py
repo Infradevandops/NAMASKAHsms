@@ -1,6 +1,5 @@
 """Data masking utilities for sensitive information protection."""
 
-
 import re
 from typing import Any, Dict, List
 
@@ -33,7 +32,9 @@ class DataMasker:
     ]
 
     @classmethod
-    def mask_sensitive_data(cls, data: Any, mask_char: str = "*", preserve_length: bool = False) -> Any:
+    def mask_sensitive_data(
+        cls, data: Any, mask_char: str = "*", preserve_length: bool = False
+    ) -> Any:
         """Recursively mask sensitive data in dictionaries, lists, and strings."""
         if isinstance(data, dict):
             return cls._mask_dict(data, mask_char, preserve_length)
@@ -44,7 +45,9 @@ class DataMasker:
         return data
 
     @classmethod
-    def _mask_dict(cls, data: Dict[str, Any], mask_char: str, preserve_length: bool) -> Dict[str, Any]:
+    def _mask_dict(
+        cls, data: Dict[str, Any], mask_char: str, preserve_length: bool
+    ) -> Dict[str, Any]:
         """Mask sensitive data in dictionary."""
         masked = {}
         for key, value in data.items():
@@ -55,12 +58,18 @@ class DataMasker:
         return masked
 
     @classmethod
-    def _mask_list(cls, data: List[Any], mask_char: str, preserve_length: bool) -> List[Any]:
+    def _mask_list(
+        cls, data: List[Any], mask_char: str, preserve_length: bool
+    ) -> List[Any]:
         """Mask sensitive data in list."""
-        return [cls.mask_sensitive_data(item, mask_char, preserve_length) for item in data]
+        return [
+            cls.mask_sensitive_data(item, mask_char, preserve_length) for item in data
+        ]
 
     @classmethod
-    def _mask_string_value(cls, value: str, mask_char: str, preserve_length: bool) -> str:
+    def _mask_string_value(
+        cls, value: str, mask_char: str, preserve_length: bool
+    ) -> str:
         """Mask sensitive patterns in string values."""
         if cls._contains_sensitive_pattern(value):
             return cls._create_mask(value, mask_char, preserve_length)
@@ -70,7 +79,10 @@ class DataMasker:
     def _is_sensitive_key(cls, key: str) -> bool:
         """Check if a key name indicates sensitive data."""
         key_lower = key.lower()
-        return any(re.search(pattern, key_lower, re.IGNORECASE) for pattern in cls.SENSITIVE_PATTERNS.values())
+        return any(
+            re.search(pattern, key_lower, re.IGNORECASE)
+            for pattern in cls.SENSITIVE_PATTERNS.values()
+        )
 
     @classmethod
     def _contains_sensitive_pattern(cls, value: str) -> bool:
@@ -79,7 +91,11 @@ class DataMasker:
             return True
         if re.match(r"^[A-Za-z0-9]{20,}$", value):
             return True
-        if re.match(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$", value, re.IGNORECASE):
+        if re.match(
+            r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+            value,
+            re.IGNORECASE,
+        ):
             return True
         return False
 
@@ -115,7 +131,9 @@ class DataMasker:
         error_msg = re.sub(r"postgresql://[^\s]*", "[DB_CONNECTION]", error_msg)
         error_msg = re.sub(r"mysql://[^\s]*", "[DB_CONNECTION]", error_msg)
         error_msg = re.sub(r"arn:aws:[^\s]*", "[AWS_RESOURCE]", error_msg)
-        error_msg = re.sub(r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "[IP_ADDRESS]", error_msg)
+        error_msg = re.sub(
+            r"\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b", "[IP_ADDRESS]", error_msg
+        )
         error_msg = re.sub(r"\b[A-Za-z0-9]{20,}\b", "[REDACTED]", error_msg)
         error_msg = re.sub(
             r"\b[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_]*\b",
@@ -152,7 +170,7 @@ class DataMasker:
         for i, char in enumerate(phone):
             if char.isdigit():
                 if digit_index < len(masked):
-                    result = result[:i] + masked[digit_index] + result[i + 1:]
+                    result = result[:i] + masked[digit_index] + result[i + 1 :]
                     digit_index += 1
 
         return result
@@ -171,7 +189,9 @@ def sanitize_log_data(log_data: Dict[str, Any]) -> Dict[str, Any]:
         sanitized["headers"] = DataMasker.mask_headers(sanitized["headers"])
 
     if "query_params" in sanitized:
-        sanitized["query_params"] = DataMasker.mask_query_params(sanitized["query_params"])
+        sanitized["query_params"] = DataMasker.mask_query_params(
+            sanitized["query_params"]
+        )
 
     return sanitized
 

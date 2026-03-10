@@ -1,6 +1,7 @@
 """Tier response schemas for validation."""
 
 from typing import List, Optional
+
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 

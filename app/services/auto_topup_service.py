@@ -2,10 +2,12 @@
 
 import secrets
 from typing import Optional
+
 from sqlalchemy.orm import Session
+
+from app.models.transaction import PaymentLog
 from app.models.user import User
 from app.models.user_preference import UserPreference
-from app.models.transaction import PaymentLog
 from app.services.paystack_service import PaystackService
 
 
@@ -22,7 +24,11 @@ class AutoTopupService:
         if not user:
             return None
 
-        pref = self.db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        pref = (
+            self.db.query(UserPreference)
+            .filter(UserPreference.user_id == user_id)
+            .first()
+        )
         if not pref or not pref.auto_recharge:
             return None
 
@@ -65,8 +71,14 @@ class AutoTopupService:
         except Exception as e:
             return {"status": "failed", "error": str(e)}
 
-    def enable_auto_topup(self, user_id: str, amount: float = 10.0, threshold: float = 5.0) -> bool:
-        pref = self.db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+    def enable_auto_topup(
+        self, user_id: str, amount: float = 10.0, threshold: float = 5.0
+    ) -> bool:
+        pref = (
+            self.db.query(UserPreference)
+            .filter(UserPreference.user_id == user_id)
+            .first()
+        )
         if not pref:
             pref = UserPreference(user_id=user_id)
             self.db.add(pref)
@@ -77,7 +89,11 @@ class AutoTopupService:
         return True
 
     def disable_auto_topup(self, user_id: str) -> bool:
-        pref = self.db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        pref = (
+            self.db.query(UserPreference)
+            .filter(UserPreference.user_id == user_id)
+            .first()
+        )
         if pref:
             pref.auto_recharge = False
             self.db.commit()

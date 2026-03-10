@@ -1,9 +1,10 @@
 """Services endpoint for verification system."""
 
 from fastapi import APIRouter, BackgroundTasks
-from app.services.textverified_service import TextVerifiedService
+
 from app.core.config import get_settings
 from app.core.unified_cache import cache
+from app.services.textverified_service import TextVerifiedService
 
 router = APIRouter(prefix="/api/countries", tags=["Services"])
 _tv = TextVerifiedService()
@@ -16,7 +17,12 @@ async def get_services(country: str):
     raw = await _tv.get_services_list()
     return {
         "services": [
-            {"id": s["id"], "name": s["name"], "price": round(s["price"] * settings.price_markup, 2), "cost": round(s["price"] * settings.price_markup, 2)}
+            {
+                "id": s["id"],
+                "name": s["name"],
+                "price": round(s["price"] * settings.price_markup, 2),
+                "cost": round(s["price"] * settings.price_markup, 2),
+            }
             for s in raw
         ],
         "total": len(raw),
@@ -31,7 +37,12 @@ async def get_services_batch_pricing(country: str):
     if cached:
         return {
             "services": [
-                {"id": s["id"], "name": s["name"], "price": round(s["price"] * settings.price_markup, 2), "cost": round(s["price"] * settings.price_markup, 2)}
+                {
+                    "id": s["id"],
+                    "name": s["name"],
+                    "price": round(s["price"] * settings.price_markup, 2),
+                    "cost": round(s["price"] * settings.price_markup, 2),
+                }
                 for s in cached
             ],
             "total": len(cached),
@@ -41,7 +52,12 @@ async def get_services_batch_pricing(country: str):
     raw = await _tv.get_services_list()
     return {
         "services": [
-            {"id": s["id"], "name": s["name"], "price": round(s["price"] * settings.price_markup, 2), "cost": round(s["price"] * settings.price_markup, 2)}
+            {
+                "id": s["id"],
+                "name": s["name"],
+                "price": round(s["price"] * settings.price_markup, 2),
+                "cost": round(s["price"] * settings.price_markup, 2),
+            }
             for s in raw
         ],
         "total": len(raw),

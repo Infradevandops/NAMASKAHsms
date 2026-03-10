@@ -1,6 +1,7 @@
 """KYC (Know Your Customer) database models."""
 
-from sqlalchemy import JSON, Boolean, Column, Date, DateTime, Float, String, Text
+from sqlalchemy import (JSON, Boolean, Column, Date, DateTime, Float, String,
+                        Text)
 
 from app.models.base import BaseModel
 
@@ -11,8 +12,12 @@ class KYCProfile(BaseModel):
     __tablename__ = "kyc_profiles"
 
     user_id = Column(String, unique=True, nullable=False, index=True)
-    status = Column(String, default="unverified", nullable=False, index=True)  # unverified/pending/verified/rejected
-    verification_level = Column(String, default="basic", nullable=False)  # basic/enhanced/premium
+    status = Column(
+        String, default="unverified", nullable=False, index=True
+    )  # unverified/pending/verified/rejected
+    verification_level = Column(
+        String, default="basic", nullable=False
+    )  # basic/enhanced/premium
 
     # Personal Information
     full_name = Column(String)
@@ -51,7 +56,9 @@ class KYCDocument(BaseModel):
     __tablename__ = "kyc_documents"
 
     kyc_profile_id = Column(String, nullable=False, index=True)
-    document_type = Column(String, nullable=False)  # passport/license/id_card/utility_bill/selfie
+    document_type = Column(
+        String, nullable=False
+    )  # passport/license/id_card/utility_bill/selfie
     document_number = Column(String)
     document_expiry = Column(Date)
 
@@ -63,7 +70,9 @@ class KYCDocument(BaseModel):
     mime_type = Column(String)
 
     # Verification Status
-    verification_status = Column(String, default="pending", nullable=False)  # pending/verified/rejected
+    verification_status = Column(
+        String, default="pending", nullable=False
+    )  # pending/verified/rejected
     verification_method = Column(String)  # manual/automated/hybrid
     confidence_score = Column(Float, default=0.0)
 
@@ -103,7 +112,9 @@ class KYCAuditLog(BaseModel):
     __tablename__ = "kyc_audit_logs"
 
     user_id = Column(String, nullable=False, index=True)
-    action = Column(String, nullable=False)  # profile_created/document_uploaded/status_changed/etc
+    action = Column(
+        String, nullable=False
+    )  # profile_created/document_uploaded/status_changed/etc
 
     # Status Changes
     old_status = Column(String)

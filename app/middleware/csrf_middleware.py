@@ -1,13 +1,13 @@
 """CSRF protection middleware."""
 
-
 import secrets
+
 from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import Response
 
-class CSRFMiddleware(BaseHTTPMiddleware):
 
+class CSRFMiddleware(BaseHTTPMiddleware):
     """CSRF token validation middleware."""
 
     SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
@@ -40,15 +40,18 @@ class CSRFMiddleware(BaseHTTPMiddleware):
             token_from_cookie = request.cookies.get(self.CSRF_COOKIE)
 
         if not token_from_header or not token_from_cookie:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token missing"
+            )
 
         if token_from_header != token_from_cookie:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="CSRF token invalid"
+            )
 
         return await call_next(request)
 
     def _is_public_endpoint(self, path: str) -> bool:
-
         """Check if endpoint is public (no CSRF required)."""
         public_paths = [
             "/",

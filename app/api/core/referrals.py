@@ -1,7 +1,6 @@
-
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
@@ -11,7 +10,9 @@ router = APIRouter(prefix="/referrals", tags=["Referrals"])
 
 
 @router.get("/stats", response_model=SuccessResponse)
-async def get_referral_stats(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def get_referral_stats(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
     """Get referral statistics for current user."""
     # Count referrals
     referral_count = db.query(User).filter(User.referred_by == current_user.id).count()
@@ -29,7 +30,9 @@ async def get_referral_stats(current_user: User = Depends(get_current_user), db:
 
 
 @router.get("/list", response_model=SuccessResponse)
-async def list_referrals(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+async def list_referrals(
+    current_user: User = Depends(get_current_user), db: Session = Depends(get_db)
+):
     """List users referred by current user."""
     referrals = db.query(User).filter(User.referred_by == current_user.id).all()
 
@@ -42,6 +45,6 @@ async def list_referrals(current_user: User = Depends(get_current_user), db: Ses
                 "created_at": r.created_at.isoformat() if r.created_at else None,
                 "status": "Active" if r.email_verified else "Pending",
             }
-for r in referrals
+            for r in referrals
         ],
     )

@@ -1,6 +1,5 @@
 """Role-Based Access Control (RBAC) system."""
 
-
 from enum import Enum
 
 from fastapi import Depends, HTTPException, status
@@ -40,7 +39,12 @@ def require_role(required_role: Role):
     def check_role(db: Session = Depends(get_db)):
         def inner(user_id: str):
             role = get_user_role(db, user_id)
-            role_hierarchy = {Role.GUEST: 0, Role.USER: 1, Role.MODERATOR: 2, Role.ADMIN: 3}
+            role_hierarchy = {
+                Role.GUEST: 0,
+                Role.USER: 1,
+                Role.MODERATOR: 2,
+                Role.ADMIN: 3,
+            }
 
             if role_hierarchy.get(role, 0) < role_hierarchy.get(required_role, 0):
                 raise HTTPException(

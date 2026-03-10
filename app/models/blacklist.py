@@ -33,16 +33,17 @@ class NumberBlacklist(BaseModel):
 
         @classmethod
         def create_blacklist_entry(
-        cls,
-        user_id: str,
-        phone_number: str,
-        service_name: str,
-        country: str = None,
-        reason: str = "failed_verification",
-        is_manual: bool = False,
-        days: int = 30,
+            cls,
+            user_id: str,
+            phone_number: str,
+            service_name: str,
+            country: str = None,
+            reason: str = "failed_verification",
+            is_manual: bool = False,
+            days: int = 30,
         ):
             """Create a new blacklist entry."""
+
         return cls(
             user_id=user_id,
             phone_number=phone_number,

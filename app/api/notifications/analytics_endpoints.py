@@ -1,23 +1,29 @@
 """Notification analytics endpoints."""
 
-
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
-from app.services.notification_analytics_service import NotificationAnalyticsService
+from app.services.notification_analytics_service import \
+    NotificationAnalyticsService
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/notifications/analytics", tags=["Notification Analytics"])
+router = APIRouter(
+    prefix="/api/notifications/analytics", tags=["Notification Analytics"]
+)
 
 
 @router.get("/summary")
 async def get_analytics_summary(
     user_id: str = Depends(get_current_user_id),
-    notification_type: Optional[str] = Query(None, description="Filter by notification type"),
+    notification_type: Optional[str] = Query(
+        None, description="Filter by notification type"
+    ),
     days: int = Query(30, ge=1, le=365, description="Number of days to include"),
     db: Session = Depends(get_db),
 ):
@@ -63,7 +69,9 @@ async def get_analytics_summary(
         raise
     except Exception as e:
         logger.error(f"Error retrieving analytics summary: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve analytics summary")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve analytics summary"
+        )
 
 
 @router.get("/by-type")
@@ -105,7 +113,9 @@ async def get_analytics_by_type(
         raise
     except Exception as e:
         logger.error(f"Error retrieving analytics by type: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve analytics by type")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve analytics by type"
+        )
 
 
 @router.get("/by-method")
@@ -147,7 +157,9 @@ async def get_analytics_by_method(
         raise
     except Exception as e:
         logger.error(f"Error retrieving analytics by method: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve analytics by method")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve analytics by method"
+        )
 
 
 @router.get("/timeline")
@@ -183,10 +195,14 @@ async def get_analytics_timeline(
 
         # Validate interval
         if interval not in ["day", "hour"]:
-            raise HTTPException(status_code=400, detail="Invalid interval. Must be 'day' or 'hour'")
+            raise HTTPException(
+                status_code=400, detail="Invalid interval. Must be 'day' or 'hour'"
+            )
 
         service = NotificationAnalyticsService(db)
-        metrics = service.get_timeline_metrics(user_id=user_id, days=days, interval=interval)
+        metrics = service.get_timeline_metrics(
+            user_id=user_id, days=days, interval=interval
+        )
 
         logger.info(f"Analytics timeline retrieved for user {user_id}")
 
@@ -196,4 +212,6 @@ async def get_analytics_timeline(
         raise
     except Exception as e:
         logger.error(f"Error retrieving analytics timeline: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve analytics timeline")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve analytics timeline"
+        )

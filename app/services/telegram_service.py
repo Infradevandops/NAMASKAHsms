@@ -1,12 +1,13 @@
 """Telegram Bot integration service."""
 
-
 from typing import Dict
+
 import httpx
+
 from app.core.config import settings
 
-class TelegramService:
 
+class TelegramService:
     """Telegram Bot API service."""
 
     def __init__(self):

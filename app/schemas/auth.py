@@ -1,8 +1,10 @@
 """Authentication and user schemas."""
 
 from datetime import datetime
-from typing import Optional, List
+from typing import List, Optional
+
 from pydantic import EmailStr
+
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 from app.schemas.validators import validate_email, validate_password_strength
 
@@ -38,7 +40,7 @@ class UserCreate(BaseModel):
             "example": {
                 "email": "user@example.com",
                 "password": "SecurePass123!",
-                "referral_code": "ABC123"
+                "referral_code": "ABC123",
             }
         }
     }
@@ -52,10 +54,7 @@ class LoginRequest(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "example": {
-                "email": "user@example.com",
-                "password": "SecurePass123!"
-            }
+            "example": {"email": "user@example.com", "password": "SecurePass123!"}
         }
     }
 
@@ -91,9 +90,9 @@ class UserResponse(BaseModel):
                 "email": "user@example.com",
                 "tier": "pro",
                 "credits": 25.50,
-                "created_at": "2024-01-20T10:00:00Z"
+                "created_at": "2024-01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
@@ -109,7 +108,7 @@ class TokenResponse(BaseModel):
             "example": {
                 "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
                 "token_type": "bearer",
-                "expires_in": 2592000
+                "expires_in": 2592000,
             }
         }
     }
@@ -120,11 +119,7 @@ class PasswordResetRequest(BaseModel):
 
     email: EmailStr = Field(..., description="User email address")
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"email": "user@example.com"}
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"email": "user@example.com"}}}
 
 
 class PasswordResetConfirm(BaseModel):
@@ -140,10 +135,7 @@ class PasswordResetConfirm(BaseModel):
 
     model_config = {
         "json_schema_extra": {
-            "example": {
-                "token": "reset_token_123",
-                "new_password": "NewSecurePass123!"
-            }
+            "example": {"token": "reset_token_123", "new_password": "NewSecurePass123!"}
         }
     }
 
@@ -153,11 +145,7 @@ class EmailVerificationRequest(BaseModel):
 
     email: EmailStr = Field(..., description="Email to verify")
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"email": "user@example.com"}
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"email": "user@example.com"}}}
 
 
 class GoogleAuthRequest(BaseModel):
@@ -166,9 +154,7 @@ class GoogleAuthRequest(BaseModel):
     id_token: str = Field(..., description="Google ID token")
 
     model_config = {
-        "json_schema_extra": {
-            "example": {"id_token": "google_id_token_here"}
-        }
+        "json_schema_extra": {"example": {"id_token": "google_id_token_here"}}
     }
 
 
@@ -177,11 +163,7 @@ class APIKeyCreate(BaseModel):
 
     name: str = Field(..., min_length=3, max_length=50, description="API key name")
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {"name": "My API Key"}
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"name": "My API Key"}}}
 
 
 class APIKeyResponse(BaseModel):
@@ -199,9 +181,9 @@ class APIKeyResponse(BaseModel):
                 "id": "key_123",
                 "name": "My API Key",
                 "key": "nsk_live_1234567890abcdef",
-                "created_at": "2024-01-20T10:00:00Z"
+                "created_at": "2024-01-20T10:00:00Z",
             }
-        }
+        },
     }
 
 
@@ -211,11 +193,4 @@ class APIKeyListResponse(BaseModel):
     keys: List[APIKeyResponse] = Field(..., description="List of API keys")
     total: int = Field(..., description="Total number of keys")
 
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "keys": [],
-                "total": 0
-            }
-        }
-    }
+    model_config = {"json_schema_extra": {"example": {"keys": [], "total": 0}}}

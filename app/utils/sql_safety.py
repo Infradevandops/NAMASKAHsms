@@ -1,8 +1,8 @@
 """SQL injection prevention utilities."""
 
-
 import re
 from typing import Any, List
+
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
@@ -84,7 +84,9 @@ class SQLSafetyValidator:
         return value
 
     @staticmethod
-    def validate_numeric_input(value: Any, min_val: int = None, max_val: int = None) -> int:
+    def validate_numeric_input(
+        value: Any, min_val: int = None, max_val: int = None
+    ) -> int:
         """Validate numeric input."""
         try:
             num = int(value)

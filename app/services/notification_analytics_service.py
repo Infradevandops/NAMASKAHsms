@@ -1,10 +1,11 @@
 """Notification analytics service for tracking delivery and engagement metrics."""
 
-
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.notification_analytics import NotificationAnalytics
 
@@ -12,11 +13,9 @@ logger = get_logger(__name__)
 
 
 class NotificationAnalyticsService:
-
     """Service for tracking and analyzing notification metrics."""
 
     def __init__(self, db: Session):
-
         """Initialize notification analytics service.
 
         Args:
@@ -25,7 +24,6 @@ class NotificationAnalyticsService:
         self.db = db
 
     def track_notification_sent(
-
         self,
         notification_id: str,
         user_id: str,
@@ -71,7 +69,6 @@ class NotificationAnalyticsService:
             raise
 
     def track_notification_delivered(
-
         self,
         notification_id: str,
         user_id: str,
@@ -114,7 +111,9 @@ class NotificationAnalyticsService:
             # Calculate delivery time
             if analytics.sent_at:
                 sent_time = datetime.fromisoformat(analytics.sent_at)
-                analytics.delivery_time_ms = int((now - sent_time).total_seconds() * 1000)
+                analytics.delivery_time_ms = int(
+                    (now - sent_time).total_seconds() * 1000
+                )
 
             self.db.commit()
 
@@ -130,7 +129,6 @@ class NotificationAnalyticsService:
             return False
 
     def track_notification_read(
-
         self,
         notification_id: str,
         user_id: str,
@@ -157,7 +155,9 @@ class NotificationAnalyticsService:
             )
 
             if not analytics:
-                logger.warning(f"Analytics record not found for notification {notification_id}")
+                logger.warning(
+                    f"Analytics record not found for notification {notification_id}"
+                )
                 return False
 
             now = datetime.now(timezone.utc)
@@ -167,7 +167,9 @@ class NotificationAnalyticsService:
             # Calculate read time
             if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
-                analytics.read_time_ms = int((now - delivered_time).total_seconds() * 1000)
+                analytics.read_time_ms = int(
+                    (now - delivered_time).total_seconds() * 1000
+                )
 
             self.db.commit()
 
@@ -183,7 +185,6 @@ class NotificationAnalyticsService:
             return False
 
     def track_notification_clicked(
-
         self,
         notification_id: str,
         user_id: str,
@@ -210,7 +211,9 @@ class NotificationAnalyticsService:
             )
 
             if not analytics:
-                logger.warning(f"Analytics record not found for notification {notification_id}")
+                logger.warning(
+                    f"Analytics record not found for notification {notification_id}"
+                )
                 return False
 
             now = datetime.now(timezone.utc)
@@ -220,7 +223,9 @@ class NotificationAnalyticsService:
             # Calculate click time
             if analytics.delivered_at:
                 delivered_time = datetime.fromisoformat(analytics.delivered_at)
-                analytics.click_time_ms = int((now - delivered_time).total_seconds() * 1000)
+                analytics.click_time_ms = int(
+                    (now - delivered_time).total_seconds() * 1000
+                )
 
             self.db.commit()
 
@@ -236,7 +241,6 @@ class NotificationAnalyticsService:
             return False
 
     def track_notification_failed(
-
         self,
         notification_id: str,
         user_id: str,
@@ -268,7 +272,9 @@ class NotificationAnalyticsService:
             )
 
             if not analytics:
-                logger.warning(f"Analytics record not found for notification {notification_id}")
+                logger.warning(
+                    f"Analytics record not found for notification {notification_id}"
+                )
                 return False
 
             analytics.status = "failed"
@@ -290,7 +296,6 @@ class NotificationAnalyticsService:
             return False
 
     def get_delivery_metrics(
-
         self,
         user_id: Optional[str] = None,
         notification_type: Optional[str] = None,
@@ -309,20 +314,32 @@ class NotificationAnalyticsService:
         try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
-            query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
+            query = self.db.query(NotificationAnalytics).filter(
+                NotificationAnalytics.created_at >= threshold
+            )
 
             if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
 
                 if notification_type:
-                    query = query.filter(NotificationAnalytics.notification_type == notification_type)
+                    query = query.filter(
+                        NotificationAnalytics.notification_type == notification_type
+                    )
 
             analytics = query.all()
 
             # Calculate metrics
             total = len(analytics)
-            sent = len([a for a in analytics if a.status in ["sent", "delivered", "read", "clicked"]])
-            delivered = len([a for a in analytics if a.status in ["delivered", "read", "clicked"]])
+            sent = len(
+                [
+                    a
+                    for a in analytics
+                    if a.status in ["sent", "delivered", "read", "clicked"]
+                ]
+            )
+            delivered = len(
+                [a for a in analytics if a.status in ["delivered", "read", "clicked"]]
+            )
             read = len([a for a in analytics if a.status in ["read", "clicked"]])
             clicked = len([a for a in analytics if a.status == "clicked"])
             failed = len([a for a in analytics if a.status == "failed"])
@@ -334,11 +351,15 @@ class NotificationAnalyticsService:
             failure_rate = (failed / total * 100) if total > 0 else 0
 
             # Calculate average times
-            delivery_times = [a.delivery_time_ms for a in analytics if a.delivery_time_ms]
+            delivery_times = [
+                a.delivery_time_ms for a in analytics if a.delivery_time_ms
+            ]
             read_times = [a.read_time_ms for a in analytics if a.read_time_ms]
             click_times = [a.click_time_ms for a in analytics if a.click_time_ms]
 
-            avg_delivery_time = sum(delivery_times) / len(delivery_times) if delivery_times else 0
+            avg_delivery_time = (
+                sum(delivery_times) / len(delivery_times) if delivery_times else 0
+            )
             avg_read_time = sum(read_times) / len(read_times) if read_times else 0
             avg_click_time = sum(click_times) / len(click_times) if click_times else 0
 
@@ -368,7 +389,6 @@ class NotificationAnalyticsService:
             return {}
 
     def get_metrics_by_type(
-
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -385,7 +405,9 @@ class NotificationAnalyticsService:
         try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
-            query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
+            query = self.db.query(NotificationAnalytics).filter(
+                NotificationAnalytics.created_at >= threshold
+            )
 
             if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
@@ -403,7 +425,9 @@ class NotificationAnalyticsService:
             result = {}
             for notification_type, records in by_type.items():
                 total = len(records)
-                delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
+                delivered = len(
+                    [r for r in records if r.status in ["delivered", "read", "clicked"]]
+                )
                 read = len([r for r in records if r.status in ["read", "clicked"]])
                 clicked = len([r for r in records if r.status == "clicked"])
                 failed = len([r for r in records if r.status == "failed"])
@@ -414,9 +438,15 @@ class NotificationAnalyticsService:
                     "read": read,
                     "clicked": clicked,
                     "failed": failed,
-                    "delivery_rate": round((delivered / total * 100) if total > 0 else 0, 2),
-                    "read_rate": round((read / delivered * 100) if delivered > 0 else 0, 2),
-                    "click_rate": round((clicked / delivered * 100) if delivered > 0 else 0, 2),
+                    "delivery_rate": round(
+                        (delivered / total * 100) if total > 0 else 0, 2
+                    ),
+                    "read_rate": round(
+                        (read / delivered * 100) if delivered > 0 else 0, 2
+                    ),
+                    "click_rate": round(
+                        (clicked / delivered * 100) if delivered > 0 else 0, 2
+                    ),
                 }
 
             logger.info(f"Metrics by type calculated: {len(result)} types")
@@ -428,7 +458,6 @@ class NotificationAnalyticsService:
             return {}
 
     def get_metrics_by_method(
-
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -445,7 +474,9 @@ class NotificationAnalyticsService:
         try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
-            query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
+            query = self.db.query(NotificationAnalytics).filter(
+                NotificationAnalytics.created_at >= threshold
+            )
 
             if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
@@ -463,7 +494,9 @@ class NotificationAnalyticsService:
             result = {}
             for method, records in by_method.items():
                 total = len(records)
-                delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
+                delivered = len(
+                    [r for r in records if r.status in ["delivered", "read", "clicked"]]
+                )
                 read = len([r for r in records if r.status in ["read", "clicked"]])
                 clicked = len([r for r in records if r.status == "clicked"])
                 failed = len([r for r in records if r.status == "failed"])
@@ -474,9 +507,15 @@ class NotificationAnalyticsService:
                     "read": read,
                     "clicked": clicked,
                     "failed": failed,
-                    "delivery_rate": round((delivered / total * 100) if total > 0 else 0, 2),
-                    "read_rate": round((read / delivered * 100) if delivered > 0 else 0, 2),
-                    "click_rate": round((clicked / delivered * 100) if delivered > 0 else 0, 2),
+                    "delivery_rate": round(
+                        (delivered / total * 100) if total > 0 else 0, 2
+                    ),
+                    "read_rate": round(
+                        (read / delivered * 100) if delivered > 0 else 0, 2
+                    ),
+                    "click_rate": round(
+                        (clicked / delivered * 100) if delivered > 0 else 0, 2
+                    ),
                 }
 
             logger.info(f"Metrics by method calculated: {len(result)} methods")
@@ -488,7 +527,6 @@ class NotificationAnalyticsService:
             return {}
 
     def get_timeline_metrics(
-
         self,
         user_id: Optional[str] = None,
         days: int = 30,
@@ -507,7 +545,9 @@ class NotificationAnalyticsService:
         try:
             threshold = datetime.now(timezone.utc) - timedelta(days=days)
 
-            query = self.db.query(NotificationAnalytics).filter(NotificationAnalytics.created_at >= threshold)
+            query = self.db.query(NotificationAnalytics).filter(
+                NotificationAnalytics.created_at >= threshold
+            )
 
             if user_id:
                 query = query.filter(NotificationAnalytics.user_id == user_id)
@@ -520,18 +560,22 @@ class NotificationAnalyticsService:
                 if interval == "day":
                     period = a.created_at.date().isoformat()
             else:  # hour
-                    period = a.created_at.replace(minute=0, second=0, microsecond=0).isoformat()
+                period = a.created_at.replace(
+                    minute=0, second=0, microsecond=0
+                ).isoformat()
 
-                    if period not in by_period:
-                        by_period[period] = []
-                    by_period[period].append(a)
+                if period not in by_period:
+                    by_period[period] = []
+                by_period[period].append(a)
 
             # Calculate metrics for each period
             result = []
             for period in sorted(by_period.keys()):
                 records = by_period[period]
                 total = len(records)
-                delivered = len([r for r in records if r.status in ["delivered", "read", "clicked"]])
+                delivered = len(
+                    [r for r in records if r.status in ["delivered", "read", "clicked"]]
+                )
                 read = len([r for r in records if r.status in ["read", "clicked"]])
                 clicked = len([r for r in records if r.status == "clicked"])
                 failed = len([r for r in records if r.status == "failed"])
@@ -544,9 +588,15 @@ class NotificationAnalyticsService:
                         "read": read,
                         "clicked": clicked,
                         "failed": failed,
-                        "delivery_rate": round((delivered / total * 100) if total > 0 else 0, 2),
-                        "read_rate": round((read / delivered * 100) if delivered > 0 else 0, 2),
-                        "click_rate": round((clicked / delivered * 100) if delivered > 0 else 0, 2),
+                        "delivery_rate": round(
+                            (delivered / total * 100) if total > 0 else 0, 2
+                        ),
+                        "read_rate": round(
+                            (read / delivered * 100) if delivered > 0 else 0, 2
+                        ),
+                        "click_rate": round(
+                            (clicked / delivered * 100) if delivered > 0 else 0, 2
+                        ),
                     }
                 )
 

@@ -1,9 +1,8 @@
 """Alerting and notification service."""
 
-
+import logging
 from datetime import datetime
 from typing import Dict, List
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -40,15 +39,21 @@ class AlertingService:
 
     async def _send_email_alert(self, alert: Dict):
         """Send email alert."""
-        logger.info("Email alert", extra={"message": alert['message']})
+        logger.info("Email alert", extra={"message": alert["message"]})
 
     async def _send_slack_alert(self, alert: Dict):
         """Send Slack alert."""
-        logger.info("Slack alert", extra={"severity": alert.get('severity'), "message": alert['message']})
+        logger.info(
+            "Slack alert",
+            extra={"severity": alert.get("severity"), "message": alert["message"]},
+        )
 
     async def _send_webhook_alert(self, alert: Dict):
         """Send webhook alert."""
-        logger.info("Webhook alert", extra={"type": alert.get('type'), "message": alert['message']})
+        logger.info(
+            "Webhook alert",
+            extra={"type": alert.get("type"), "message": alert["message"]},
+        )
 
     async def process_alert_batch(self, alerts: List[Dict]) -> Dict:
         """Process multiple alerts with deduplication."""
@@ -68,7 +73,9 @@ class AlertingService:
         for group, group_alerts in grouped_alerts.items():
             if len(group_alerts) > 1:
                 summary_alert = group_alerts[0].copy()
-                summary_alert["message"] = f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                summary_alert["message"] = (
+                    f"{len(group_alerts)} similar alerts: {group_alerts[0]['message']}"
+                )
                 await self.send_alert(summary_alert)
                 deduplicated_count += len(group_alerts) - 1
             else:

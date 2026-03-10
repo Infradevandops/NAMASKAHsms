@@ -1,6 +1,7 @@
 """System schemas for health checks and monitoring."""
 
 from typing import Any, Dict, Optional
+
 from pydantic import BaseModel
 
 

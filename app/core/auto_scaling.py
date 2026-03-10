@@ -1,6 +1,7 @@
 """Auto - scaling configuration."""
 
 from typing import Any, Dict
+
 import psutil
 
 
@@ -23,7 +24,10 @@ class AutoScaler:
     def should_scale_up(self) -> bool:
         """Check if system should scale up."""
         metrics = self.get_system_metrics()
-        return metrics["cpu_percent"] > self.cpu_threshold or metrics["memory_percent"] > self.memory_threshold
+        return (
+            metrics["cpu_percent"] > self.cpu_threshold
+            or metrics["memory_percent"] > self.memory_threshold
+        )
 
     def should_scale_down(self) -> bool:
         """Check if system can scale down."""

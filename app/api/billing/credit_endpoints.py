@@ -2,13 +2,15 @@
 
 from datetime import datetime, timezone
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.user import User
 from app.models.transaction import Transaction
+from app.models.user import User
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -16,8 +18,7 @@ router = APIRouter()
 
 @router.get("/balance")
 async def get_credit_balance(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     """Get current credit balance. For admin, returns TextVerified API balance."""
     try:
@@ -27,24 +28,27 @@ async def get_credit_balance(
 
         if user.is_admin:
             from app.services.textverified_service import TextVerifiedService
+
             tv = TextVerifiedService()
             bal_data = await tv.get_balance()
             balance = bal_data.get("balance", 0.0)
-            logger.info(f"Retrieved TextVerified balance for admin {user_id}: {balance}")
+            logger.info(
+                f"Retrieved TextVerified balance for admin {user_id}: {balance}"
+            )
             return {
                 "credits": balance,
-                "free_verifications": getattr(user, 'free_verifications', 0),
+                "free_verifications": getattr(user, "free_verifications", 0),
                 "currency": "USD",
                 "source": "textverified",
-                "last_updated": datetime.now(timezone.utc).isoformat()
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
         logger.info(f"Retrieved balance for user {user_id}: {user.credits}")
         return {
             "credits": user.credits or 0.0,
-            "free_verifications": getattr(user, 'free_verifications', 0),
+            "free_verifications": getattr(user, "free_verifications", 0),
             "currency": "USD",
-            "last_updated": datetime.now(timezone.utc).isoformat()
+            "last_updated": datetime.now(timezone.utc).isoformat(),
         }
 
     except HTTPException:
@@ -53,11 +57,12 @@ async def get_credit_balance(
         logger.error(f"Failed to get credit balance for user {user_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve balance")
 
+
 @router.post("/add")
 async def add_credits(
     amount: float,
     user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     """Add credits to user account (admin only for now)."""
     try:
@@ -78,7 +83,7 @@ async def add_credits(
             amount=amount,
             description=f"Manual credit addition",
             status="completed",
-            created_at=datetime.now(timezone.utc)
+            created_at=datetime.now(timezone.utc),
         )
 
         db.add(transaction)
@@ -91,7 +96,7 @@ async def add_credits(
             "success": True,
             "amount_added": amount,
             "new_balance": user.credits,
-            "transaction_id": transaction.id
+            "transaction_id": transaction.id,
         }
 
     except HTTPException:

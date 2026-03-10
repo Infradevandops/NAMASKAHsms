@@ -1,13 +1,12 @@
 """Input sanitization utilities to prevent XSS attacks."""
 
-
 import html
 import os
 import re
 from typing import Any, Dict, List, Union
 
-def sanitize_html(text: str) -> str:
 
+def sanitize_html(text: str) -> str:
     """Sanitize HTML content to prevent XSS attacks."""
     if not isinstance(text, str):
         return str(text)
@@ -16,7 +15,9 @@ def sanitize_html(text: str) -> str:
     sanitized = html.escape(text)
 
     # Remove any remaining script tags or javascript
-    sanitized = re.sub(r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL)
+    sanitized = re.sub(
+        r"<script[^>]*>.*?</script>", "", sanitized, flags=re.IGNORECASE | re.DOTALL
+    )
     sanitized = re.sub(r"javascript:", "", sanitized, flags=re.IGNORECASE)
     sanitized = re.sub(r"on\w+\s*=", "", sanitized, flags=re.IGNORECASE)
 
@@ -24,7 +25,6 @@ def sanitize_html(text: str) -> str:
 
 
 def sanitize_user_input(
-
     data: Union[str, Dict, List, Any],
 ) -> Union[str, Dict, List, Any]:
     """Recursively sanitize user input data."""
@@ -39,7 +39,6 @@ def sanitize_user_input(
 
 
 def sanitize_email_content(content: str) -> str:
-
     """Sanitize email content while preserving basic HTML formatting."""
     if not isinstance(content, str):
         return str(content)
@@ -72,7 +71,6 @@ def sanitize_email_content(content: str) -> str:
 
 
 def validate_and_sanitize_response(response_data: Dict) -> Dict:
-
     """Validate and sanitize API response data."""
     if not isinstance(response_data, dict):
         return response_data
@@ -92,7 +90,6 @@ def validate_and_sanitize_response(response_data: Dict) -> Dict:
 
 
 def sanitize_filename(filename: str) -> str:
-
     """Sanitize filename to prevent directory traversal and invalid characters."""
     if not isinstance(filename, str):
         return "unnamed_file"

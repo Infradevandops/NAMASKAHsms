@@ -1,10 +1,11 @@
 """Credit system service for managing user credits and transactions."""
 
-
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
+
 from app.core.exceptions import InsufficientCreditsError
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
@@ -15,16 +16,13 @@ logger = get_logger(__name__)
 
 
 class CreditService:
-
     """Service for managing user credits and transactions."""
 
     def __init__(self, db: Session):
-
         """Initialize credit service with database session."""
         self.db = db
 
     def get_balance(self, user_id: str) -> float:
-
         """Get current credit balance for user.
 
         Args:
@@ -44,13 +42,12 @@ class CreditService:
         return float(user.credits or 0.0)
 
     def add_credits(
-
         self,
         user_id: str,
         amount: float,
         description: str = "Manual credit addition",
         transaction_type: str = "credit",
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Add credits to user account.
 
         Args:
@@ -108,13 +105,12 @@ class CreditService:
         }
 
     def deduct_credits(
-
         self,
         user_id: str,
         amount: float,
         description: str = "Service charge",
         transaction_type: str = "debit",
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Deduct credits from user account.
 
         Args:
@@ -143,24 +139,40 @@ class CreditService:
         current_balance = float(user.credits or 0.0)
         if current_balance < amount:
             logger.warning(
-                f"Insufficient credits for user {user_id}. " f"Required: {amount}, Available: {current_balance}"
+                f"Insufficient credits for user {user_id}. "
+                f"Required: {amount}, Available: {current_balance}"
             )
-            raise InsufficientCreditsError(f"Insufficient credits. Required: {amount}, Available: {current_balance}")
+            raise InsufficientCreditsError(
+                f"Insufficient credits. Required: {amount}, Available: {current_balance}"
+            )
 
         # Check spending limit before deducting
-        pref = self.db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
+        pref = (
+            self.db.query(UserPreference)
+            .filter(UserPreference.user_id == user_id)
+            .first()
+        )
         if pref and pref.spending_limit:
             from datetime import date
-            from sqlalchemy import func, extract
+
+            from sqlalchemy import extract, func
+
             now = datetime.now(timezone.utc)
-            monthly_spent = self.db.query(func.sum(Transaction.amount)).filter(
-                Transaction.user_id == user_id,
-                Transaction.type == "debit",
-                extract('year', Transaction.created_at) == now.year,
-                extract('month', Transaction.created_at) == now.month,
-            ).scalar() or 0.0
+            monthly_spent = (
+                self.db.query(func.sum(Transaction.amount))
+                .filter(
+                    Transaction.user_id == user_id,
+                    Transaction.type == "debit",
+                    extract("year", Transaction.created_at) == now.year,
+                    extract("month", Transaction.created_at) == now.month,
+                )
+                .scalar()
+                or 0.0
+            )
             if abs(monthly_spent) + amount > pref.spending_limit:
-                raise ValueError(f"Monthly spending limit of ${pref.spending_limit} would be exceeded")
+                raise ValueError(
+                    f"Monthly spending limit of ${pref.spending_limit} would be exceeded"
+                )
 
         # Deduct credits
         old_balance = current_balance
@@ -182,23 +194,34 @@ class CreditService:
         # Trigger auto-recharge if balance dropped below threshold
         try:
             import asyncio
+
             from app.services.auto_topup_service import AutoTopupService
+
             asyncio.create_task(AutoTopupService(self.db).check_and_topup(user_id))
         except Exception:
             pass  # Never block a debit due to auto-topup failure
 
         # Low-balance alert
-        if pref and pref.low_balance_alert_threshold and new_balance <= pref.low_balance_alert_threshold:
+        if (
+            pref
+            and pref.low_balance_alert_threshold
+            and new_balance <= pref.low_balance_alert_threshold
+        ):
             try:
                 import asyncio
-                from app.services.email_notification_service import EmailNotificationService
+
+                from app.services.email_notification_service import \
+                    EmailNotificationService
+
                 alert_email = pref.billing_email or user.email
                 svc = EmailNotificationService()
-                asyncio.create_task(svc.send_low_balance_alert_email(
-                    user_email=alert_email,
-                    current_balance=new_balance,
-                    threshold=pref.low_balance_alert_threshold,
-                ))
+                asyncio.create_task(
+                    svc.send_low_balance_alert_email(
+                        user_email=alert_email,
+                        current_balance=new_balance,
+                        threshold=pref.low_balance_alert_threshold,
+                    )
+                )
             except Exception:
                 pass  # Never block a debit due to notification failure
 
@@ -219,13 +242,12 @@ class CreditService:
         }
 
     def get_transaction_history(
-
         self,
         user_id: str,
         transaction_type: Optional[str] = None,
         skip: int = 0,
         limit: int = 20,
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Get transaction history for user.
 
         Args:
@@ -253,7 +275,12 @@ class CreditService:
         total = query.count()
 
         # Apply pagination and sorting
-        transactions = query.order_by(desc(Transaction.created_at)).offset(skip).limit(min(limit, 100)).all()
+        transactions = (
+            query.order_by(desc(Transaction.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
+        )
 
         logger.info(
             f"Retrieved {len(transactions)} transactions for user {user_id} "
@@ -273,12 +300,11 @@ class CreditService:
                     "description": t.description,
                     "created_at": t.created_at.isoformat() if t.created_at else None,
                 }
-        for t in transactions
+                for t in transactions
             ],
         }
 
     def get_transaction_summary(self, user_id: str) -> Dict[str, Any]:
-
         """Get summary of transactions for user.
 
         Args:
@@ -293,7 +319,9 @@ class CreditService:
             raise ValueError(f"User {user_id} not found")
 
         # Get all transactions
-        transactions = self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
+        transactions = (
+            self.db.query(Transaction).filter(Transaction.user_id == user_id).all()
+        )
 
         # Calculate totals by type
         summary = {
@@ -309,26 +337,25 @@ class CreditService:
         for t in transactions:
             amount = float(t.amount)
         if t.type == "credit":
-                summary["total_credits_added"] += max(0, amount)
+            summary["total_credits_added"] += max(0, amount)
         elif t.type == "debit":
-                summary["total_credits_deducted"] += abs(min(0, amount))
+            summary["total_credits_deducted"] += abs(min(0, amount))
         elif t.type == "bonus":
-                summary["total_bonuses"] += max(0, amount)
+            summary["total_bonuses"] += max(0, amount)
         elif t.type == "refund":
-                summary["total_refunds"] += max(0, amount)
+            summary["total_refunds"] += max(0, amount)
 
         logger.info(f"Generated transaction summary for user {user_id}")
 
         return summary
 
     def transfer_credits(
-
         self,
         from_user_id: str,
         to_user_id: str,
         amount: float,
         description: str = "Credit transfer",
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Transfer credits from one user to another.
 
         Args:
@@ -360,7 +387,8 @@ class CreditService:
         # Check sufficient credits
         if (from_user.credits or 0.0) < amount:
             raise InsufficientCreditsError(
-                "Insufficient credits for transfer. " f"Required: {amount}, Available: {from_user.credits}"
+                "Insufficient credits for transfer. "
+                f"Required: {amount}, Available: {from_user.credits}"
             )
 
         # Perform transfer
@@ -386,7 +414,10 @@ class CreditService:
         self.db.add(to_transaction)
         self.db.commit()
 
-        logger.info(f"Transferred {amount} credits from {from_user_id} to {to_user_id}. " f"Description: {description}")
+        logger.info(
+            f"Transferred {amount} credits from {from_user_id} to {to_user_id}. "
+            f"Description: {description}"
+        )
 
         return {
             "from_user_id": from_user_id,
@@ -399,7 +430,6 @@ class CreditService:
         }
 
     def reset_credits(self, user_id: str, new_amount: float = 0.0) -> Dict[str, Any]:
-
         """Reset user credits (admin only).
 
         Args:
@@ -435,7 +465,10 @@ class CreditService:
         self.db.add(transaction)
         self.db.commit()
 
-        logger.warning(f"Admin reset credits for user {user_id}. " f"Balance: {old_balance} -> {new_amount}")
+        logger.warning(
+            f"Admin reset credits for user {user_id}. "
+            f"Balance: {old_balance} -> {new_amount}"
+        )
 
         return {
             "user_id": user_id,

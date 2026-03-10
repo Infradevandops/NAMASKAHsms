@@ -1,6 +1,5 @@
 """Utilities for function refactoring and code organization."""
 
-
 import logging
 from functools import wraps
 from typing import Callable, Dict

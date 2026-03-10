@@ -1,7 +1,7 @@
 """Tier Validation Middleware for Feature Access Control."""
 
-
 from fastapi import HTTPException, status
+
 from app.models.user import User
 
 TIER_HIERARCHY = {

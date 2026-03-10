@@ -1,6 +1,5 @@
 """Token management with refresh tokens and HttpOnly cookies."""
 
-
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional

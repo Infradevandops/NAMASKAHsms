@@ -1,8 +1,8 @@
 """User profile API endpoints."""
 
-
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -11,7 +11,9 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 
 @router.get("/me")
-async def get_current_user(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_current_user(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get current user profile."""
     user = db.query(User).filter(User.id == user_id).first()
 

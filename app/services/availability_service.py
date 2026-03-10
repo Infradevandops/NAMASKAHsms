@@ -1,10 +1,11 @@
 """Service availability tracking for SMS verification success rates."""
 
-
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.verification import Verification
 
@@ -12,15 +13,15 @@ logger = get_logger(__name__)
 
 
 class AvailabilityService:
-
     """Track and report SMS verification success rates."""
 
     def __init__(self, db: Session):
 
         self.db = db
 
-    def get_service_availability(self, service: str, country: str = None, hours: int = 24) -> Dict:
-
+    def get_service_availability(
+        self, service: str, country: str = None, hours: int = 24
+    ) -> Dict:
         """Get availability stats for a service.
 
         Returns:
@@ -60,7 +61,9 @@ class AvailabilityService:
                 delta = (v.completed_at - v.created_at).total_seconds()
                 delivery_times.append(delta)
 
-        avg_delivery = sum(delivery_times) / len(delivery_times) if delivery_times else 0
+        avg_delivery = (
+            sum(delivery_times) / len(delivery_times) if delivery_times else 0
+        )
 
         # Determine status
         if success_rate >= 90:
@@ -89,12 +92,13 @@ class AvailabilityService:
         }
 
     def get_country_availability(self, country: str, hours: int = 24) -> Dict:
-
         """Get availability stats for a country."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
         verifications = (
-            self.db.query(Verification).filter(Verification.country == country, Verification.created_at >= cutoff).all()
+            self.db.query(Verification)
+            .filter(Verification.country == country, Verification.created_at >= cutoff)
+            .all()
         )
 
         if not verifications:
@@ -119,12 +123,15 @@ class AvailabilityService:
             "status": status,
         }
 
-    def get_carrier_availability(self, carrier: str, country: str = None, hours: int = 24) -> Dict:
-
+    def get_carrier_availability(
+        self, carrier: str, country: str = None, hours: int = 24
+    ) -> Dict:
         """Get availability stats for a carrier."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
-        query = self.db.query(Verification).filter(Verification.operator == carrier, Verification.created_at >= cutoff)
+        query = self.db.query(Verification).filter(
+            Verification.operator == carrier, Verification.created_at >= cutoff
+        )
 
         if country:
             query = query.filter(Verification.country == country)
@@ -151,8 +158,9 @@ class AvailabilityService:
             "status": status,
         }
 
-    def get_area_code_availability(self, area_code: str, country: str = None, hours: int = 24) -> Dict:
-
+    def get_area_code_availability(
+        self, area_code: str, country: str = None, hours: int = 24
+    ) -> Dict:
         """Get availability stats for an area code."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
 
@@ -187,21 +195,24 @@ class AvailabilityService:
         }
 
     def get_top_services(self, country: str = None, limit: int = 10) -> List[Dict]:
-
         """Get top performing services by success rate."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=24)
 
         query = self.db.query(
             Verification.service_name,
             func.count(Verification.id).label("total"),
-            func.sum(func.case((Verification.status == "completed", 1), else_=0)).label("completed"),
+            func.sum(func.case((Verification.status == "completed", 1), else_=0)).label(
+                "completed"
+            ),
         ).filter(Verification.created_at >= cutoff)
 
         if country:
             query = query.filter(Verification.country == country)
 
         results = (
-            query.group_by(Verification.service_name).having(func.count(Verification.id) >= 5).all()  # Min 5 attempts
+            query.group_by(Verification.service_name)
+            .having(func.count(Verification.id) >= 5)
+            .all()  # Min 5 attempts
         )
 
         services = []
@@ -219,8 +230,9 @@ class AvailabilityService:
         services.sort(key=lambda x: x["success_rate"], reverse=True)
         return services[:limit]
 
-    def get_availability_summary(self, service: str, country: str, carrier: str = None) -> Dict:
-
+    def get_availability_summary(
+        self, service: str, country: str, carrier: str = None
+    ) -> Dict:
         """Get comprehensive availability summary for UI display."""
         service_stats = self.get_service_availability(service, country)
         country_stats = self.get_country_availability(country)

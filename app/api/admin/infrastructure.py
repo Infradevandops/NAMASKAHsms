@@ -1,7 +1,7 @@
 """Infrastructure management API endpoints."""
 
-
 from fastapi import APIRouter, Depends, Request
+
 from app.core.dependencies import get_current_admin_user
 from app.core.region_manager import region_manager
 from app.models.user import User
@@ -49,4 +49,7 @@ async def get_cdn_configuration():
 @router.get("/cdn/asset-url")
 async def get_asset_url(asset_path: str, region: str = None):
     """Get optimized CDN URL for asset."""
-    return {"asset_url": f"/static/{asset_path}", "message": "CDN service not implemented yet"}
+    return {
+        "asset_url": f"/static/{asset_path}",
+        "message": "CDN service not implemented yet",
+    }

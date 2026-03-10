@@ -2,8 +2,10 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -11,7 +13,9 @@ from app.models.user import User
 router = APIRouter()
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -32,22 +36,20 @@ async def get_audit_logs(
     """Get audit logs for compliance tracking."""
     try:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
-        
+
         # For now, return empty results since AuditLog model may not exist
         return {
             "logs": [],
             "total": 0,
             "page": offset // limit + 1,
             "pages": 0,
-            "filters": {
-                "action": action,
-                "admin_id": admin_id_filter,
-                "days": days
-            }
+            "filters": {"action": action, "admin_id": admin_id_filter, "days": days},
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to retrieve audit logs: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve audit logs: {str(e)}"
+        )
 
 
 @router.get("/compliance-report")
@@ -65,9 +67,11 @@ async def get_compliance_report(
                 "total_users": 0,
                 "active_users": 0,
                 "admin_actions": 0,
-                "compliance_score": 100
-            }
+                "compliance_score": 100,
+            },
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate compliance report: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to generate compliance report: {str(e)}"
+        )

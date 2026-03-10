@@ -3,9 +3,11 @@ Automatic refund service for failed verifications.
 CRITICAL FIX: Implements automatic refunds for failed/timeout/cancelled verifications.
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
+
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.transaction import Transaction
 from app.models.user import User
@@ -23,9 +25,15 @@ class AutoRefundService:
         self.db = db
         self.credit_service = CreditService(db)
 
-    async def process_verification_refund(self, verification_id: str, reason: str) -> Optional[dict]:
+    async def process_verification_refund(
+        self, verification_id: str, reason: str
+    ) -> Optional[dict]:
         """Process automatic refund for a failed verification."""
-        verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
+        verification = (
+            self.db.query(Verification)
+            .filter(Verification.id == verification_id)
+            .first()
+        )
 
         if not verification:
             logger.error(f"Verification {verification_id} not found")
@@ -42,11 +50,15 @@ class AutoRefundService:
         )
 
         if existing_refund:
-            logger.info(f"Verification {verification_id} already refunded: {existing_refund.id}")
+            logger.info(
+                f"Verification {verification_id} already refunded: {existing_refund.id}"
+            )
             return None
 
         if verification.status not in ["timeout", "cancelled", "failed"]:
-            logger.warning(f"Cannot refund verification {verification_id} with status: {verification.status}")
+            logger.warning(
+                f"Cannot refund verification {verification_id} with status: {verification.status}"
+            )
             return None
 
         user = self.db.query(User).filter(User.id == verification.user_id).first()
@@ -85,7 +97,7 @@ class AutoRefundService:
                         user_id=verification.user_id,
                         verification_id=verification_id,
                         service=verification.service_name,
-                        refund_amount=refund_amount
+                        refund_amount=refund_amount,
                     )
                 elif reason == "cancelled":
                     await notification_dispatcher.notify_verification_cancelled(
@@ -93,14 +105,14 @@ class AutoRefundService:
                         verification_id=verification_id,
                         service=verification.service_name,
                         refund_amount=refund_amount,
-                        new_balance=new_balance
+                        new_balance=new_balance,
                     )
                 else:
                     await notification_dispatcher.notify_verification_failed(
                         user_id=verification.user_id,
                         verification_id=verification_id,
                         service=verification.service_name,
-                        reason=f"Refunded: {reason}"
+                        reason=f"Refunded: {reason}",
                     )
 
                 logger.info(f"✓ Refund notification sent to {verification.user_id}")
@@ -129,7 +141,9 @@ class AutoRefundService:
             )
             return None
 
-    def reconcile_unrefunded_verifications(self, days_back: int = 30, dry_run: bool = True) -> dict:
+    def reconcile_unrefunded_verifications(
+        self, days_back: int = 30, dry_run: bool = True
+    ) -> dict:
         """Scan for unrefunded failed verifications and process refunds."""
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_back)
 
@@ -180,7 +194,12 @@ class AutoRefundService:
 
             if not dry_run:
                 import asyncio
-                result = asyncio.run(self.process_verification_refund(verification.id, verification.status))
+
+                result = asyncio.run(
+                    self.process_verification_refund(
+                        verification.id, verification.status
+                    )
+                )
                 if result:
                     report["refunded_now"] += 1
                     report["total_amount_refunded"] += result["refund_amount"]

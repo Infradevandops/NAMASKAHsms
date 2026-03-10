@@ -70,13 +70,17 @@ class SecurityHardening:
             return False
         return secrets.compare_digest(stored_token, token)
 
-    def check_rate_limit(self, identifier: str, max_requests: int = 100, window_seconds: int = 60) -> bool:
+    def check_rate_limit(
+        self, identifier: str, max_requests: int = 100, window_seconds: int = 60
+    ) -> bool:
         """Check if identifier has exceeded rate limit"""
         now = time.time()
         if identifier not in self.rate_limits:
             self.rate_limits[identifier] = []
 
-        self.rate_limits[identifier] = [t for t in self.rate_limits[identifier] if now - t < window_seconds]
+        self.rate_limits[identifier] = [
+            t for t in self.rate_limits[identifier] if now - t < window_seconds
+        ]
 
         if len(self.rate_limits[identifier]) >= max_requests:
             return False

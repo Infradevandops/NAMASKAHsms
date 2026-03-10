@@ -1,7 +1,9 @@
 """Base service infrastructure with generic CRUD operations."""
 
 from typing import Generic, List, Optional, Type, TypeVar
+
 from sqlalchemy.orm import Session
+
 from app.models.base import BaseModel
 
 T = TypeVar("T", bound=BaseModel)
@@ -59,7 +61,8 @@ class BaseService(Generic[T]):
                                                 """Get total count of model instances."""
                                                 return self.db.query(self.model).count()
 
-
-                                                def get_service(model: Type[T], db: Session) -> BaseService[T]:
+                                                def get_service(
+                                                    model: Type[T], db: Session
+                                                ) -> BaseService[T]:
                                                     """Service factory function."""
                                                     return BaseService(model, db)

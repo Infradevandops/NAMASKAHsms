@@ -1,6 +1,5 @@
 """Persistent webhook queue using Redis Streams."""
 
-
 import json
 from typing import Any, Dict
 
@@ -45,7 +44,9 @@ class WebhookQueue:
     async def process_batch(self, batch_size: int = 10):
         """Process webhooks from queue."""
         try:
-            self.redis.xgroup_create(self.stream, "webhook-workers", id="0", mkstream=True)
+            self.redis.xgroup_create(
+                self.stream, "webhook-workers", id="0", mkstream=True
+            )
         except Exception:
             pass
 
@@ -81,6 +82,8 @@ class WebhookQueue:
                 self.redis.xadd(self.stream, payload)
             else:
                 self.redis.xadd(self.dlq_stream, payload)
-                logger.error(f"Webhook {webhook_id} moved to DLQ after {retry_count} retries")
+                logger.error(
+                    f"Webhook {webhook_id} moved to DLQ after {retry_count} retries"
+                )
 
             self.redis.xack(self.stream, "webhook-workers", message_id)

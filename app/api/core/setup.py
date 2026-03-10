@@ -1,20 +1,20 @@
 """Setup and initialization endpoints."""
 
+import os
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from app.utils.security import get_password_hash as hash_password
+
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.response import SuccessResponse
-import os
+from app.utils.security import get_password_hash as hash_password
 
 router = APIRouter(prefix="/setup", tags=["Setup"])
 
 
 @router.get("/init - admin", response_model=SuccessResponse)
 def initialize_admin(db: Session = Depends(get_db)):
-
     """Initialize admin user - public endpoint for first - time setup."""
 
     admin_email = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
@@ -43,7 +43,9 @@ def initialize_admin(db: Session = Depends(get_db)):
             existing_user.credits = 1000.0
             existing_user.email_verified = True
             db.commit()
-            return SuccessResponse(message="User upgraded to admin", data={"email": admin_email})
+            return SuccessResponse(
+                message="User upgraded to admin", data={"email": admin_email}
+            )
 
         # Create new admin
         admin_user = User(

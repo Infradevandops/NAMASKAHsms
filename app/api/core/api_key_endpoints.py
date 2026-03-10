@@ -1,12 +1,14 @@
 """API Key management endpoints."""
 
-
 import logging
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier, require_payment_method
+from app.core.dependencies import (get_current_user_id, require_payment_method,
+                                   require_tier)
 from app.models.api_key import APIKey
 from app.schemas.auth import APIKeyCreate, APIKeyListResponse, APIKeyResponse
 from app.services.api_key_service import APIKeyService
@@ -21,7 +23,11 @@ require_payg = require_tier("payg")
 
 
 @router.get("/", response_model=List[APIKeyListResponse])
-async def list_api_keys(user_id: str = Depends(require_payg), db: Session = Depends(get_db), _: str = Depends(require_payment_method)):
+async def list_api_keys(
+    user_id: str = Depends(require_payg),
+    db: Session = Depends(get_db),
+    _: str = Depends(require_payment_method),
+):
     """List all API keys for the current user."""
     logger.info(f"API keys list requested by user_id: {user_id}")
 
@@ -41,11 +47,13 @@ async def list_api_keys(user_id: str = Depends(require_payg), db: Session = Depe
             created_at=key.created_at,
             expires_at=key.expires_at,
         )
-for key in keys
+        for key in keys
     ]
 
 
-@router.post("/generate", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/generate", response_model=APIKeyResponse, status_code=status.HTTP_201_CREATED
+)
 async def generate_api_key(
     key_create: APIKeyCreate,
     user_id: str = Depends(require_payg),
@@ -53,7 +61,9 @@ async def generate_api_key(
     _: str = Depends(require_payment_method),
 ):
     """Generate a new API key."""
-    logger.info(f"API key generation requested by user_id: {user_id}, name: {key_create.name}")
+    logger.info(
+        f"API key generation requested by user_id: {user_id}, name: {key_create.name}"
+    )
 
     tier_manager = TierManager(db)
 
@@ -61,13 +71,19 @@ async def generate_api_key(
     can_create, error_msg = tier_manager.can_create_api_key(user_id)
     if not can_create:
         logger.warning(f"API key generation denied for user {user_id}: {error_msg}")
-        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=error_msg)
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=error_msg
+        )
 
     # Generate the key
     api_key_service = APIKeyService(db)
-    plain_key, api_key_model = api_key_service.generate_api_key(user_id, key_create.name)
+    plain_key, api_key_model = api_key_service.generate_api_key(
+        user_id, key_create.name
+    )
 
-    logger.info(f"API key generated successfully for user {user_id}, key_id: {api_key_model.id}")
+    logger.info(
+        f"API key generated successfully for user {user_id}, key_id: {api_key_model.id}"
+    )
 
     return APIKeyResponse(
         id=api_key_model.id,
@@ -94,7 +110,9 @@ async def revoke_api_key(
     success = api_key_service.revoke_api_key(key_id, user_id)
 
     if not success:
-        logger.warning(f"API key revocation failed - key not found: user_id={user_id}, key_id={key_id}")
+        logger.warning(
+            f"API key revocation failed - key not found: user_id={user_id}, key_id={key_id}"
+        )
         raise HTTPException(status_code=404, detail="API key not found")
 
     logger.info(f"API key revoked successfully: user_id={user_id}, key_id={key_id}")
@@ -135,7 +153,9 @@ async def get_api_key_usage(
     db: Session = Depends(get_db),
 ):
     """Get usage statistics for an API key."""
-    api_key = db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+    api_key = (
+        db.query(APIKey).filter(APIKey.id == key_id, APIKey.user_id == user_id).first()
+    )
 
     if not api_key:
         raise HTTPException(status_code=404, detail="API key not found")

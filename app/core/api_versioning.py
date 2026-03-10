@@ -1,6 +1,5 @@
 """API versioning support."""
 
-
 from typing import Optional
 
 from fastapi import Header, HTTPException

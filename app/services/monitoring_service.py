@@ -1,11 +1,12 @@
 """Advanced monitoring and observability service."""
 
-
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List
+
 from app.core.database import get_db
 from app.models.verification import Verification
+
 
 @dataclass
 class MetricPoint:
@@ -16,7 +17,6 @@ class MetricPoint:
 
 
 class MonitoringService:
-
     """Advanced monitoring and metrics collection."""
 
     def __init__(self):
@@ -39,16 +39,24 @@ class MonitoringService:
         hour_ago = now - timedelta(hours=1)
 
         # Request metrics
-        total_requests = db.query(Verification).filter(Verification.created_at >= hour_ago).count()
+        total_requests = (
+            db.query(Verification).filter(Verification.created_at >= hour_ago).count()
+        )
 
         successful_requests = (
             db.query(Verification)
-            .filter(Verification.created_at >= hour_ago, Verification.status == "completed")
+            .filter(
+                Verification.created_at >= hour_ago, Verification.status == "completed"
+            )
             .count()
         )
 
         failed_requests = (
-            db.query(Verification).filter(Verification.created_at >= hour_ago, Verification.status == "failed").count()
+            db.query(Verification)
+            .filter(
+                Verification.created_at >= hour_ago, Verification.status == "failed"
+            )
+            .count()
         )
 
         # Calculate rates
@@ -83,7 +91,10 @@ class MonitoringService:
         alerts = []
 
         # Response time alert
-        if metrics["performance"]["p95_response_time"] > self.thresholds["response_time_p95"]:
+        if (
+            metrics["performance"]["p95_response_time"]
+            > self.thresholds["response_time_p95"]
+        ):
             alerts.append(
                 {
                     "type": "performance",
@@ -128,7 +139,6 @@ class MonitoringService:
         return 1650.2
 
     def _get_uptime(self) -> str:
-
         """Get system uptime."""
         # Simulated uptime
         return "15d 8h 32m"
@@ -165,6 +175,5 @@ class MonitoringService:
             },
         }
 
-
-# Global monitoring service instance
+        # Global monitoring service instance
         monitoring_service = MonitoringService()

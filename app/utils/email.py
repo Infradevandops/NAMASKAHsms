@@ -1,6 +1,5 @@
 """Email utilities for SMTP configuration and template management."""
 
-
 import logging
 import re
 import smtplib

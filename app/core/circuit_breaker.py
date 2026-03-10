@@ -1,6 +1,5 @@
 """Circuit breaker for external API calls."""
 
-
 import time
 from typing import Any, Callable
 
@@ -56,7 +55,9 @@ class CircuitBreaker:
 
         if self.failure_count >= self.failure_threshold:
             self.state = "open"
-            logger.error(f"Circuit breaker OPEN - {self.failure_count} failures detected")
+            logger.error(
+                f"Circuit breaker OPEN - {self.failure_count} failures detected"
+            )
 
 
 textverified_circuit_breaker = CircuitBreaker(

@@ -1,10 +1,11 @@
 """KYC service for identity verification and compliance."""
 
-
 from datetime import date, datetime, timezone
 from typing import Dict, Optional
+
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
+
 from app.core.exceptions import ValidationError
 from app.core.logging import get_logger
 from app.models.kyc import AMLScreening, KYCAuditLog, KYCDocument, KYCProfile
@@ -21,13 +22,35 @@ class KYCService:
     def __init__(self, db: Session):
         self.db = db
         self.kyc_limits = {
-            "unverified": {"daily": 10.0, "monthly": 50.0, "annual": 200.0, "services": ["basic"]},
-            "basic": {"daily": 100.0, "monthly": 500.0, "annual": 2000.0, "services": ["basic", "premium"]},
-            "enhanced": {"daily": 1000.0, "monthly": 5000.0, "annual": 20000.0, "services": ["basic", "premium", "enterprise"]},
-            "premium": {"daily": 10000.0, "monthly": 50000.0, "annual": 200000.0, "services": ["all"]},
+            "unverified": {
+                "daily": 10.0,
+                "monthly": 50.0,
+                "annual": 200.0,
+                "services": ["basic"],
+            },
+            "basic": {
+                "daily": 100.0,
+                "monthly": 500.0,
+                "annual": 2000.0,
+                "services": ["basic", "premium"],
+            },
+            "enhanced": {
+                "daily": 1000.0,
+                "monthly": 5000.0,
+                "annual": 20000.0,
+                "services": ["basic", "premium", "enterprise"],
+            },
+            "premium": {
+                "daily": 10000.0,
+                "monthly": 50000.0,
+                "annual": 200000.0,
+                "services": ["all"],
+            },
         }
 
-    async def create_profile(self, user_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
+    async def create_profile(
+        self, user_id: str, profile_data: KYCProfileCreate
+    ) -> KYCProfile:
         """Create new KYC profile."""
         try:
             user = self.db.query(User).filter(User.id == user_id).first()
@@ -53,7 +76,9 @@ class KYCService:
             self.db.commit()
             self.db.refresh(kyc_profile)
 
-            await self._log_action(user_id=user_id, action="profile_created", new_status="unverified")
+            await self._log_action(
+                user_id=user_id, action="profile_created", new_status="unverified"
+            )
 
             return kyc_profile
 
@@ -62,10 +87,16 @@ class KYCService:
             logger.error("KYC profile creation failed: %s", str(e))
             raise
 
-    async def update_profile(self, kyc_profile_id: str, profile_data: KYCProfileCreate) -> KYCProfile:
+    async def update_profile(
+        self, kyc_profile_id: str, profile_data: KYCProfileCreate
+    ) -> KYCProfile:
         """Update existing KYC profile."""
         try:
-            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
+            kyc_profile = (
+                self.db.query(KYCProfile)
+                .filter(KYCProfile.id == kyc_profile_id)
+                .first()
+            )
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -104,18 +135,28 @@ class KYCService:
     async def submit_for_review(self, kyc_profile_id: str) -> KYCProfile:
         """Submit KYC profile for admin review."""
         try:
-            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
+            kyc_profile = (
+                self.db.query(KYCProfile)
+                .filter(KYCProfile.id == kyc_profile_id)
+                .first()
+            )
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
             required_docs = ["id_card", "selfie"]
-            uploaded_docs = self.db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile_id).all()
+            uploaded_docs = (
+                self.db.query(KYCDocument)
+                .filter(KYCDocument.kyc_profile_id == kyc_profile_id)
+                .all()
+            )
 
             uploaded_types = [doc.document_type for doc in uploaded_docs]
             missing_docs = [doc for doc in required_docs if doc not in uploaded_types]
 
             if missing_docs:
-                raise ValidationError("Missing required documents: " + ", ".join(missing_docs))
+                raise ValidationError(
+                    "Missing required documents: " + ", ".join(missing_docs)
+                )
 
             old_status = kyc_profile.status
             kyc_profile.status = "pending"
@@ -150,7 +191,11 @@ class KYCService:
     ) -> KYCProfile:
         """Admin verification decision."""
         try:
-            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
+            kyc_profile = (
+                self.db.query(KYCProfile)
+                .filter(KYCProfile.id == kyc_profile_id)
+                .first()
+            )
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -183,7 +228,9 @@ class KYCService:
                 reason=notes,
             )
 
-            await self._send_verification_notification(kyc_profile.user_id, decision, verification_level)
+            await self._send_verification_notification(
+                kyc_profile.user_id, decision, verification_level
+            )
 
             return kyc_profile
 
@@ -208,9 +255,15 @@ class KYCService:
             if kyc_profile.country in high_risk_countries:
                 risk_score += 0.5
 
-            documents = self.db.query(KYCDocument).filter(KYCDocument.kyc_profile_id == kyc_profile.id).all()
+            documents = (
+                self.db.query(KYCDocument)
+                .filter(KYCDocument.kyc_profile_id == kyc_profile.id)
+                .all()
+            )
 
-            verified_docs = sum(1 for doc in documents if doc.verification_status == "verified")
+            verified_docs = sum(
+                1 for doc in documents if doc.verification_status == "verified"
+            )
             total_docs = len(documents)
 
             if total_docs > 0:
@@ -228,7 +281,11 @@ class KYCService:
     async def perform_aml_screening(self, kyc_profile_id: str) -> AMLScreening:
         """Perform AML screening."""
         try:
-            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.id == kyc_profile_id).first()
+            kyc_profile = (
+                self.db.query(KYCProfile)
+                .filter(KYCProfile.id == kyc_profile_id)
+                .first()
+            )
             if not kyc_profile:
                 raise ValidationError("KYC profile not found")
 
@@ -236,7 +293,10 @@ class KYCService:
                 kyc_profile_id=kyc_profile_id,
                 screening_type="sanctions",
                 status="pending",
-                search_terms=[kyc_profile.full_name, kyc_profile.date_of_birth.isoformat()],
+                search_terms=[
+                    kyc_profile.full_name,
+                    kyc_profile.date_of_birth.isoformat(),
+                ],
                 screening_provider="internal",
             )
 
@@ -261,7 +321,9 @@ class KYCService:
     def get_user_limits(self, user_id: str) -> Dict:
         """Get user's current KYC limits."""
         try:
-            kyc_profile = self.db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
+            kyc_profile = (
+                self.db.query(KYCProfile).filter(KYCProfile.user_id == user_id).first()
+            )
 
             if not kyc_profile or kyc_profile.status != "verified":
                 level = "unverified"
@@ -276,20 +338,38 @@ class KYCService:
 
             daily_usage = (
                 self.db.query(func.sum(Verification.cost))
-                .filter(and_(Verification.user_id == user_id, func.date(Verification.created_at) == today))
-                .scalar() or 0.0
+                .filter(
+                    and_(
+                        Verification.user_id == user_id,
+                        func.date(Verification.created_at) == today,
+                    )
+                )
+                .scalar()
+                or 0.0
             )
 
             monthly_usage = (
                 self.db.query(func.sum(Verification.cost))
-                .filter(and_(Verification.user_id == user_id, func.date(Verification.created_at) >= month_start))
-                .scalar() or 0.0
+                .filter(
+                    and_(
+                        Verification.user_id == user_id,
+                        func.date(Verification.created_at) >= month_start,
+                    )
+                )
+                .scalar()
+                or 0.0
             )
 
             annual_usage = (
                 self.db.query(func.sum(Verification.cost))
-                .filter(and_(Verification.user_id == user_id, func.date(Verification.created_at) >= year_start))
-                .scalar() or 0.0
+                .filter(
+                    and_(
+                        Verification.user_id == user_id,
+                        func.date(Verification.created_at) >= year_start,
+                    )
+                )
+                .scalar()
+                or 0.0
             )
 
             return {
@@ -360,10 +440,14 @@ class KYCService:
         except Exception as e:
             logger.error("Failed to log KYC action: %s", str(e))
 
-    async def _send_verification_notification(self, user_id: str, decision: str, level: str):
+    async def _send_verification_notification(
+        self, user_id: str, decision: str, level: str
+    ):
         """Send verification result notification to user."""
         try:
-            logger.info("Sending KYC notification to user %s: %s (%s)", user_id, decision, level)
+            logger.info(
+                "Sending KYC notification to user %s: %s (%s)", user_id, decision, level
+            )
         except Exception as e:
             logger.error("Failed to send KYC notification: %s", str(e))
 

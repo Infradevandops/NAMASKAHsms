@@ -1,21 +1,22 @@
 """SMS forwarding configuration API."""
 
-
 import asyncio
 import hashlib
 import hmac
 import json
 from datetime import datetime, timezone
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.forwarding import ForwardingConfig
 from app.services.email_service import email_service
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 
 logger = get_logger(__name__)
 
@@ -35,7 +36,11 @@ async def configure_forwarding(
 ):
     """Configure SMS forwarding settings."""
     try:
-        config = db.query(ForwardingConfig).filter(ForwardingConfig.user_id == user_id).first()
+        config = (
+            db.query(ForwardingConfig)
+            .filter(ForwardingConfig.user_id == user_id)
+            .first()
+        )
 
         if not config:
             config = ForwardingConfig(user_id=user_id)
@@ -76,7 +81,11 @@ async def get_forwarding_config(
 ):
     """Get forwarding configuration."""
     try:
-        config = db.query(ForwardingConfig).filter(ForwardingConfig.user_id == user_id).first()
+        config = (
+            db.query(ForwardingConfig)
+            .filter(ForwardingConfig.user_id == user_id)
+            .first()
+        )
 
         if not config:
             return {
@@ -111,7 +120,11 @@ async def test_forwarding(
 ):
     """Test forwarding configuration."""
     try:
-        config = db.query(ForwardingConfig).filter(ForwardingConfig.user_id == user_id).first()
+        config = (
+            db.query(ForwardingConfig)
+            .filter(ForwardingConfig.user_id == user_id)
+            .first()
+        )
 
         if not config or not config.is_active:
             raise HTTPException(status_code=400, detail="Forwarding not configured")
@@ -247,7 +260,9 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
 
         if email_service.enabled:
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, email_service._send_smtp, email_address, message.as_string())
+            await loop.run_in_executor(
+                None, email_service._send_smtp, email_address, message.as_string()
+            )
             logger.info(f"SMS forwarding email sent to {email_address}")
             return True
         else:
@@ -259,7 +274,9 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
         return False
 
 
-async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_data: dict) -> bool:
+async def _send_forwarding_webhook(
+    webhook_url: str, webhook_secret: str, sms_data: dict
+) -> bool:
     """Send SMS forwarding webhook."""
     try:
         payload = {
@@ -276,7 +293,9 @@ async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_da
         }
 
         if webhook_secret:
-            signature = hmac.new(webhook_secret.encode(), payload_json.encode(), hashlib.sha256).hexdigest()
+            signature = hmac.new(
+                webhook_secret.encode(), payload_json.encode(), hashlib.sha256
+            ).hexdigest()
             headers["X-Webhook-Signature"] = signature
             headers["X-Webhook-Signature-Algorithm"] = "sha256"
 
@@ -286,13 +305,17 @@ async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_da
         for attempt in range(max_retries):
             try:
                 async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(webhook_url, content=payload_json, headers=headers)
+                    response = await client.post(
+                        webhook_url, content=payload_json, headers=headers
+                    )
 
                     if response.status_code in [200, 201, 202, 204]:
                         logger.info(f"SMS forwarding webhook sent to {webhook_url}")
                         return True
                     else:
-                        logger.warning(f"Webhook returned status {response.status_code}")
+                        logger.warning(
+                            f"Webhook returned status {response.status_code}"
+                        )
                         if attempt < max_retries - 1:
                             await asyncio.sleep(2**attempt)
                             continue
@@ -321,7 +344,11 @@ async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_da
 async def forward_sms_message(user_id: str, sms_data: dict, db: Session) -> dict:
     """Forward SMS message to configured destinations."""
     try:
-        config = db.query(ForwardingConfig).filter(ForwardingConfig.user_id == user_id).first()
+        config = (
+            db.query(ForwardingConfig)
+            .filter(ForwardingConfig.user_id == user_id)
+            .first()
+        )
 
         if not config or not config.is_active:
             return {"forwarded": False, "reason": "Forwarding not configured"}
@@ -333,7 +360,9 @@ async def forward_sms_message(user_id: str, sms_data: dict, db: Session) -> dict
             results.append({"type": "email", "success": email_sent})
 
         if config.webhook_enabled and config.webhook_url:
-            webhook_sent = await _send_forwarding_webhook(config.webhook_url, config.webhook_secret, sms_data)
+            webhook_sent = await _send_forwarding_webhook(
+                config.webhook_url, config.webhook_secret, sms_data
+            )
             results.append({"type": "webhook", "success": webhook_sent})
 
         return {

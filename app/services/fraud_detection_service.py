@@ -1,14 +1,13 @@
 """Fraud detection ML service."""
 
-
 from typing import Any, Dict, Tuple
+
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
 class FraudDetectionService:
-
     """Detects fraudulent verification attempts."""
 
     def __init__(self):
@@ -16,7 +15,9 @@ class FraudDetectionService:
         self.model = None
         self.threshold = 0.7
 
-    async def score_verification(self, user_id: str, country: str, service: str, ip: str) -> Tuple[float, bool]:
+    async def score_verification(
+        self, user_id: str, country: str, service: str, ip: str
+    ) -> Tuple[float, bool]:
         """Score verification for fraud risk."""
         # Feature extraction
         features = {
@@ -34,7 +35,6 @@ class FraudDetectionService:
         return score, is_fraud
 
     def _calculate_score(self, features: Dict[str, Any]) -> float:
-
         """Calculate fraud score."""
         score = 0.0
 
@@ -50,6 +50,5 @@ class FraudDetectionService:
     async def get_model_metrics(self) -> Dict[str, float]:
         """Get model performance metrics."""
         return {"accuracy": 0.95, "precision": 0.92, "recall": 0.88, "f1_score": 0.90}
-
 
         fraud_detection_service = FraudDetectionService()

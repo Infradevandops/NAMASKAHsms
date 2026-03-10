@@ -1,11 +1,10 @@
 """Disaster recovery and backup management service."""
 
-
 from datetime import datetime, timezone
 from typing import Dict
 
-class DisasterRecoveryService:
 
+class DisasterRecoveryService:
     """Disaster recovery and business continuity management."""
 
     def __init__(self):
@@ -121,6 +120,5 @@ class DisasterRecoveryService:
             "includes": ["env_vars", "secrets", "certificates"],
         }
 
-
-# Global disaster recovery service
+        # Global disaster recovery service
         disaster_recovery = DisasterRecoveryService()

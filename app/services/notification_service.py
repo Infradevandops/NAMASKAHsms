@@ -1,36 +1,33 @@
 """Notification service for managing in-app notifications."""
 
-
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.notification import Notification
 from app.models.user import User
-from datetime import timedelta
 
 logger = get_logger(__name__)
 
 
 class NotificationService:
-
     """Service for managing notifications."""
 
     def __init__(self, db: Session):
-
         """Initialize notification service with database session."""
         self.db = db
 
     def create_notification(
-
         self,
         user_id: str,
         notification_type: str,
         title: str,
         message: str,
         data: Optional[Dict[str, Any]] = None,
-        ) -> Notification:
+    ) -> Notification:
         """Create a new notification.
 
         Args:
@@ -54,19 +51,23 @@ class NotificationService:
         # Create notification
         # Create notification
         # Note: Model does not support 'data' field currently
-        notification = Notification(user_id=user_id, type=notification_type, title=title, message=message)
+        notification = Notification(
+            user_id=user_id, type=notification_type, title=title, message=message
+        )
 
         self.db.add(notification)
         self.db.commit()
 
-        logger.info(f"Notification created: User={user_id}, Type={notification_type}, " f"Title={title}")
+        logger.info(
+            f"Notification created: User={user_id}, Type={notification_type}, "
+            f"Title={title}"
+        )
 
         return notification
 
     def get_notifications(
-
         self, user_id: str, unread_only: bool = False, skip: int = 0, limit: int = 20
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """Get notifications for user.
 
         Args:
@@ -97,7 +98,12 @@ class NotificationService:
         total = query.count()
 
         # Get notifications
-        notifications = query.order_by(desc(Notification.created_at)).offset(skip).limit(min(limit, 100)).all()
+        notifications = (
+            query.order_by(desc(Notification.created_at))
+            .offset(skip)
+            .limit(min(limit, 100))
+            .all()
+        )
 
         logger.info(
             f"Retrieved {len(notifications)} notifications for user {user_id} "
@@ -118,12 +124,11 @@ class NotificationService:
                     "is_read": n.is_read,
                     "created_at": n.created_at.isoformat() if n.created_at else None,
                 }
-        for n in notifications
+                for n in notifications
             ],
         }
 
     def get_notification(self, notification_id: str, user_id: str) -> Notification:
-
         """Get a specific notification.
 
         Args:
@@ -150,7 +155,6 @@ class NotificationService:
         return notification
 
     def mark_as_read(self, notification_id: str, user_id: str) -> Notification:
-
         """Mark notification as read.
 
         Args:
@@ -175,7 +179,6 @@ class NotificationService:
         return notification
 
     def mark_all_as_read(self, user_id: str) -> int:
-
         """Mark all notifications as read for user.
 
         Args:
@@ -206,7 +209,6 @@ class NotificationService:
         return count
 
     def delete_notification(self, notification_id: str, user_id: str) -> bool:
-
         """Delete a notification.
 
         Args:
@@ -229,7 +231,6 @@ class NotificationService:
         return True
 
     def delete_all_notifications(self, user_id: str) -> int:
-
         """Delete all notifications for user.
 
         Args:
@@ -247,7 +248,9 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         # Delete all notifications
-        count = self.db.query(Notification).filter(Notification.user_id == user_id).delete()
+        count = (
+            self.db.query(Notification).filter(Notification.user_id == user_id).delete()
+        )
 
         self.db.commit()
 
@@ -256,7 +259,6 @@ class NotificationService:
         return count
 
     def get_unread_count(self, user_id: str) -> int:
-
         """Get count of unread notifications for user.
 
         Args:
@@ -274,7 +276,9 @@ class NotificationService:
             raise ValueError(f"User {user_id} not found")
 
         count = (
-            self.db.query(Notification).filter(Notification.user_id == user_id, Notification.is_read.is_(False)).count()
+            self.db.query(Notification)
+            .filter(Notification.user_id == user_id, Notification.is_read.is_(False))
+            .count()
         )
 
         logger.info(f"Unread notification count for user {user_id}: {count}")
@@ -282,7 +286,6 @@ class NotificationService:
         return count
 
     def cleanup_old_notifications(self, days: int = 30) -> int:
-
         """Delete notifications older than specified days.
 
         Args:
@@ -295,7 +298,9 @@ class NotificationService:
         cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         count = (
-            self.db.query(Notification).filter(Notification.created_at < cutoff_date).delete(synchronize_session=False)
+            self.db.query(Notification)
+            .filter(Notification.created_at < cutoff_date)
+            .delete(synchronize_session=False)
         )
 
         self.db.commit()
@@ -311,7 +316,7 @@ class NotificationService:
         body: str,
         template: str = None,
         data: dict = None,
-        ) -> bool:
+    ) -> bool:
         """Send an email notification."""
         logger.info(f"Sending email to {to_email}. Subject: {subject}")
         # In a real app, this would use an email backend (SES, SendGrid, SMTP)
@@ -319,7 +324,6 @@ class NotificationService:
         return True
 
     def get_unread_count(self, user_id: str) -> int:
-
         """Get unread notification count for user.
 
         Args:

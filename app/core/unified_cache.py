@@ -1,13 +1,15 @@
 """Unified caching system with Redis and in-memory fallback."""
 
+import fnmatch
 import functools
 import json
 import time
 from typing import Any, Callable, Dict, Optional
+
 import redis.asyncio as aioredis
+
 from app.core.config import settings
 from app.core.logging import get_logger
-import fnmatch
 
 logger = get_logger(__name__)
 
@@ -269,13 +271,17 @@ async def invalidate_user_cache(user_id: str):
     await cache.invalidate_pattern(f"verification:{user_id}*")
 
 
-async def cache_verification(verification_id: str, data: Any, ttl: Optional[int] = None):
+async def cache_verification(
+    verification_id: str, data: Any, ttl: Optional[int] = None
+):
     """Cache verification data."""
     key = cache.cache_key("verification", verification_id)
     await cache.set(key, data, ttl or cache.ttl_defaults["verification"])
 
 
-async def cache_provider_data(provider: str, data_type: str, data: Any, ttl: Optional[int] = None):
+async def cache_provider_data(
+    provider: str, data_type: str, data: Any, ttl: Optional[int] = None
+):
     """Cache provider-specific data."""
     key = cache.cache_key("provider", provider, data_type)
     await cache.set(key, data, ttl or cache.ttl_defaults["provider"])

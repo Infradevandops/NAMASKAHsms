@@ -1,10 +1,12 @@
 """Consolidated routing - all pages and redirects."""
 
 from pathlib import Path
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -46,26 +48,30 @@ async def home_page(request: Request):
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def dashboard_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def dashboard_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Dashboard page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     # Get user's preferred language (default to English)
-    user_locale = getattr(user, 'language', 'en') or 'en'
-    
+    user_locale = getattr(user, "language", "en") or "en"
+
     # Load translations for embedding
     translations_json = get_translations_for_template(user_locale)
 
     return templates.TemplateResponse(
-        "dashboard.html", 
+        "dashboard.html",
         {
-            "request": request, 
+            "request": request,
             "user": user,
             "translations": translations_json,
-            "locale": user_locale
-        }
+            "locale": user_locale,
+        },
     )
 
 
@@ -134,17 +140,28 @@ async def signup_redirect():
 # DASHBOARD PAGES (Phase 1 Implementation)
 # ============================================
 
+
 @router.get("/verify", response_class=HTMLResponse)
-async def verify_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def verify_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """SMS Verification page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("verify_modern.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "verify_modern.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/wallet", response_class=HTMLResponse)
-async def wallet_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def wallet_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Wallet & Payments page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -153,126 +170,206 @@ async def wallet_page(request: Request, user_id: str = Depends(get_current_user_
 
 
 @router.get("/history", response_class=HTMLResponse)
-async def history_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def history_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Verification History page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("history.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "history.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/analytics", response_class=HTMLResponse)
-async def analytics_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def analytics_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Analytics & Usage page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("analytics.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "analytics.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/notifications", response_class=HTMLResponse)
-async def notifications_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def notifications_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Notifications page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("notifications.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "notifications.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/settings", response_class=HTMLResponse)
-async def settings_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def settings_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Settings page."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("settings.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "settings.html", {"request": request, "user": user}
+    )
 
 
 # ============================================
 # TIER-GATED PAGES (Premium Features)
 # ============================================
 
+
 @router.get("/webhooks", response_class=HTMLResponse)
-async def webhooks_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def webhooks_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Webhooks page (PAYG+ only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("webhooks.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "webhooks.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/api-docs", response_class=HTMLResponse)
-async def api_docs_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def api_docs_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """API Documentation page (PAYG+ only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("api_docs.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "api_docs.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/referrals", response_class=HTMLResponse)
-async def referrals_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def referrals_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Referral Program page (PAYG+ only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("referrals.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "referrals.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/voice-verify", response_class=HTMLResponse)
-async def voice_verify_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def voice_verify_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Voice Verification page (PAYG+ only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("voice_verify_modern.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "voice_verify_modern.html", {"request": request, "user": user}
+    )
 
 
 # ============================================
 # ADDITIONAL PAGES
 # ============================================
 
+
 @router.get("/admin", response_class=HTMLResponse)
-async def admin_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def admin_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     """Admin Dashboard page (Admin only)."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/dashboard.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/admin/tier-management", response_class=HTMLResponse)
-async def admin_tier_management_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def admin_tier_management_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/tier_management.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/tier_management.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/admin/pricing-templates", response_class=HTMLResponse)
-async def admin_pricing_templates_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def admin_pricing_templates_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/pricing_templates.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/pricing_templates.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/admin/verification-history", response_class=HTMLResponse)
-async def admin_verification_history_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def admin_verification_history_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/verification_history.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/verification_history.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/admin/logging", response_class=HTMLResponse)
-async def admin_logging_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def admin_logging_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
-    return templates.TemplateResponse("admin/logging_dashboard.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "admin/logging_dashboard.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/privacy-settings", response_class=HTMLResponse)
@@ -311,11 +408,17 @@ async def password_reset_page(request: Request):
 
 
 @router.get("/api-keys", response_class=HTMLResponse)
-async def api_keys_page(request: Request, user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def api_keys_page(
+    request: Request,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return templates.TemplateResponse("api_keys.html", {"request": request, "user": user})
+    return templates.TemplateResponse(
+        "api_keys.html", {"request": request, "user": user}
+    )
 
 
 @router.get("/support")

@@ -1,10 +1,10 @@
 """Enhanced authentication with HttpOnly cookies and refresh tokens."""
 
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.token_manager import create_tokens, verify_refresh_token

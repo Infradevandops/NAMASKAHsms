@@ -1,6 +1,5 @@
 """Pricing calculation service."""
 
-
 from sqlalchemy.orm import Session
 
 from app.core.tier_config_simple import TIER_CONFIG
@@ -32,7 +31,9 @@ class PricingCalculator:
         if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
 
-        overage_charge = QuotaService.calculate_overage(db, user_id, base_cost + filter_charges)
+        overage_charge = QuotaService.calculate_overage(
+            db, user_id, base_cost + filter_charges
+        )
         total_cost = base_cost + filter_charges + overage_charge
 
         return {
@@ -96,6 +97,10 @@ class PricingCalculator:
             "quota_used": quota_info["quota_used"],
             "quota_remaining": quota_info["remaining"],
             "user_balance": user.credits,
-            "bonus_sms": (user.bonus_sms_balance if user.subscription_tier == "freemium" else 0),
-            "sufficient_balance": PricingCalculator.validate_balance(db, user_id, cost_info["total_cost"]),
+            "bonus_sms": (
+                user.bonus_sms_balance if user.subscription_tier == "freemium" else 0
+            ),
+            "sufficient_balance": PricingCalculator.validate_balance(
+                db, user_id, cost_info["total_cost"]
+            ),
         }

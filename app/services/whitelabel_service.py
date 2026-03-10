@@ -1,12 +1,12 @@
 """White - label platform service."""
 
-
 from typing import Dict, Optional
+
 from app.core.database import get_db
 from app.models.whitelabel import WhiteLabelConfig
 
-class WhiteLabelService:
 
+class WhiteLabelService:
     """White - label platform management."""
 
     async def get_config_by_domain(self, domain: str) -> Optional[Dict]:
@@ -15,7 +15,9 @@ class WhiteLabelService:
 
         try:
             config = (
-                db.query(WhiteLabelConfig).filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active).first()
+                db.query(WhiteLabelConfig)
+                .filter(WhiteLabelConfig.domain == domain, WhiteLabelConfig.is_active)
+                .first()
             )
         except Exception:
             # Table doesn't exist, return None
@@ -25,13 +27,13 @@ class WhiteLabelService:
                 return None
 
             return {
-            "company_name": config.company_name,
-            "logo_url": config.logo_url,
-            "primary_color": config.primary_color,
-            "secondary_color": config.secondary_color,
-            "custom_css": config.custom_css,
-            "features": config.features,
-        }
+                "company_name": config.company_name,
+                "logo_url": config.logo_url,
+                "primary_color": config.primary_color,
+                "secondary_color": config.secondary_color,
+                "custom_css": config.custom_css,
+                "features": config.features,
+            }
 
     async def create_config(self, domain: str, config_data: Dict) -> Dict:
         """Create new white - label configuration."""
@@ -56,6 +58,5 @@ class WhiteLabelService:
 
         return {"success": True, "domain": domain}
 
-
-# Global service instance
+        # Global service instance
         whitelabel_service = WhiteLabelService()
