@@ -1,7 +1,7 @@
 # CI/CD Improvement Tasks
 
 **Goal**: Consolidate pipelines, enforce quality gates, automate rollback, and reach coverage targets  
-**Status**: 🔄 In Progress (Phase 0 - Syntax Fixes)  
+**Status**: ✅ Phase 0 Complete | 🔄 Phase 1 In Progress  
 **Secrets confirmed**: `GITLAB_TOKEN`, `PRODUCTION_URL`, `RENDER_DEPLOY_HOOK`, `RENDER_ROLLBACK_HOOK` ✅
 
 ---
@@ -84,13 +84,13 @@
 - Alternatively delete them if they have no unique value
 
 **Checks**:
-- [ ] Push to `develop` triggers exactly 1 CI pipeline run (not 3)
-- [ ] `ci.yml` is the only workflow running on push/PR
+- [x] Push to `develop` triggers exactly 1 CI pipeline run (not 3)
+- [x] `ci.yml` is the only workflow running on push/PR
 
 **Acceptance Criteria**:
-- [ ] GitHub Actions tab shows a single CI workflow per push
-- [ ] No duplicate job names in the run list
-- [ ] `ci-simple.yml` and `ci-strict.yml` are either disabled or removed
+- [x] GitHub Actions tab shows a single CI workflow per push
+- [x] No duplicate job names in the run list
+- [x] `ci-simple.yml` and `ci-strict.yml` are either disabled or removed
 
 ---
 
@@ -101,14 +101,14 @@
 **How**: In `ci.yml`, remove `continue-on-error: true` from the `code-quality` and `security` jobs
 
 **Checks**:
-- [ ] A PR with unformatted code fails the `code-quality` job
-- [ ] A PR with a known vulnerable dependency fails the `security` job
-- [ ] `bandit` high/medium findings block the pipeline
+- [x] A PR with unformatted code fails the `code-quality` job
+- [x] A PR with a known vulnerable dependency fails the `security` job
+- [x] `bandit` high/medium findings block the pipeline
 
 **Acceptance Criteria**:
-- [ ] `ci.yml` `code-quality` job fails on `black`/`isort` violations
-- [ ] `ci.yml` `security` job fails on `bandit -ll` findings and `safety` CVEs
-- [ ] Existing codebase passes all newly blocking checks (fix any pre-existing violations first)
+- [x] `ci.yml` `code-quality` job fails on `black`/`isort` violations
+- [x] `ci.yml` `security` job fails on `bandit -ll` findings and `safety` CVEs
+- [x] Existing codebase passes all newly blocking checks (fix any pre-existing violations first)
 
 ---
 
@@ -133,8 +133,8 @@
 ```
 
 **Checks**:
-- [ ] `RENDER_ROLLBACK_HOOK` is referenced in `deploy.yml`
-- [ ] Rollback step only runs `if: failure()`
+- [x] `RENDER_ROLLBACK_HOOK` is referenced in `deploy.yml`
+- [x] Rollback step only runs `if: failure()`
 - [ ] Manual test: simulate a failed health check and confirm rollback hook fires
 
 **Acceptance Criteria**:
@@ -160,9 +160,9 @@ exit 1
 ```
 
 **Checks**:
-- [ ] Health check retries 5 times with 15s intervals
-- [ ] Pipeline fails if all retries exhausted
-- [ ] `PRODUCTION_URL` not set → step is skipped with a warning (not failed)
+- [x] Health check retries 5 times with 15s intervals
+- [x] Pipeline fails if all retries exhausted
+- [x] `PRODUCTION_URL` not set → step is skipped with a warning (not failed)
 
 **Acceptance Criteria**:
 - A broken production deployment fails the `deploy` job
@@ -186,9 +186,9 @@ on:
 Add condition: `if: github.event.workflow_run.conclusion == 'success'`
 
 **Checks**:
-- [ ] A push to `main` that fails CI does not trigger deployment
-- [ ] A push to `main` that passes CI triggers deployment automatically
-- [ ] Manual `workflow_dispatch` still works as override
+- [x] A push to `main` that fails CI does not trigger deployment
+- [x] A push to `main` that passes CI triggers deployment automatically
+- [x] Manual `workflow_dispatch` still works as override
 
 **Acceptance Criteria**:
 - `deploy.yml` only runs after `ci.yml` completes successfully on `main`
@@ -212,6 +212,8 @@ Add condition: `if: github.event.workflow_run.conclusion == 'success'`
 - [ ] `pytest` run locally passes with `--cov-fail-under=50`
 - [ ] CI pipeline passes with new threshold
 - [ ] Coverage report shows ≥ 50% before merging this change
+
+> ⚠️ **Blocked**: Current coverage must be measured first. Gate is at 36% — raise incrementally.
 
 **Acceptance Criteria**:
 - `ci.yml` fails any PR that drops coverage below 50%
@@ -290,8 +292,8 @@ secrets-scan:
 ```
 
 **Checks**:
-- [ ] Gitleaks runs on every push/PR
-- [ ] `tools/gitleaks.toml` config is picked up (add `--config tools/gitleaks.toml`)
+- [x] Gitleaks runs on every push/PR
+- [x] `tools/gitleaks.toml` config is picked up (add `--config tools/gitleaks.toml`)
 - [ ] A test branch with a fake secret pattern triggers a failure
 - [ ] `.env` and `.env.local` are in `.gitignore` (confirm not committed)
 
@@ -313,8 +315,8 @@ semgrep --config=auto app/ --severity=ERROR --error
 ```
 
 **Checks**:
-- [ ] `semgrep` runs in `ci.yml` security job
-- [ ] Only `ERROR` severity findings block (warnings are informational)
+- [x] `semgrep` runs in `ci.yml` security job
+- [x] Only `ERROR` severity findings block (warnings are informational)
 - [ ] Existing codebase has zero `ERROR`-level semgrep findings before enabling
 
 **Acceptance Criteria**:

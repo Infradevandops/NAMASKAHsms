@@ -4,8 +4,8 @@ import logging
 from typing import Any, Dict, Optional
 
 from app.core.config import Settings
-from app.core.secrets_manager import get_secrets_manager
 from app.core.secrets_audit import get_audit
+from app.core.secrets_manager import get_secrets_manager
 
 logger = logging.getLogger(__name__)
 

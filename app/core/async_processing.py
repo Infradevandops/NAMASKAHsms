@@ -7,8 +7,8 @@ from typing import Any, Dict, List
 
 from sqlalchemy import text
 
-from app.services.payment_service import PaymentService
 from app.services.notification_service import NotificationService
+from app.services.payment_service import PaymentService
 
 
 class BackgroundTaskManager:
