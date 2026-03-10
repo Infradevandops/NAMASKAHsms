@@ -105,7 +105,8 @@ def get_optional_user_id(
     try:
         auth_service = AuthService(db)
         return auth_service.verify_token(token)
-    except:
+    except Exception as e:
+        logger.warning("Token verification failed", extra={"error": str(e)})
         return None
 
 

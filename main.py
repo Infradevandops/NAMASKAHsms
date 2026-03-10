@@ -92,7 +92,7 @@ def create_app() -> FastAPI:
     # Create FastAPI app with lifespan
     fastapi_app = FastAPI(
         title="Namaskah SMS API",
-        version="2.5.0",
+        version="4.0.0",
         description="Modular SMS Verification Service",
         lifespan=lifespan,
     )
@@ -187,9 +187,9 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(dashboard_activity_router)
     fastapi_app.include_router(services_endpoint_router)
     fastapi_app.include_router(textverified_balance_router)
-    fastapi_app.include_router(admin_router, prefix="/api", deprecated=True)
-    fastapi_app.include_router(billing_router, prefix="/api", deprecated=True)
-    fastapi_app.include_router(verification_router, prefix="/api", deprecated=True)
+    fastapi_app.include_router(admin_router, prefix="/api")
+    fastapi_app.include_router(billing_router, prefix="/api")
+    fastapi_app.include_router(verification_router, prefix="/api")
 
     # Verification Feature Routers - Temporarily disabled for CI fix
     fastapi_app.include_router(area_code_router, prefix="/api")
@@ -217,7 +217,7 @@ def create_app() -> FastAPI:
         return {
             "timestamp": datetime.now().isoformat(),
             "environment": settings.environment,
-            "version": "2.5.0",
+            "version": "4.0.0",
             "database": db_status,
             "static_files": {"mounted": STATIC_DIR.exists()},
             "templates": {"count": (len(list(TEMPLATES_DIR.glob("*.html"))) if TEMPLATES_DIR.exists() else 0)},

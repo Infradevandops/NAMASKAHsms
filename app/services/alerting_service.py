@@ -3,6 +3,9 @@
 
 from datetime import datetime
 from typing import Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AlertingService:
@@ -32,21 +35,20 @@ class AlertingService:
                 await self._send_webhook_alert(alert)
             return True
         except Exception as e:
-            print(f"Alert sending failed: {e}")
+            logger.error("Alert sending failed", extra={"error": str(e)})
             return False
 
     async def _send_email_alert(self, alert: Dict):
         """Send email alert."""
-        print(f"📧 Email Alert: {alert['message']}")
+        logger.info("Email alert", extra={"message": alert['message']})
 
     async def _send_slack_alert(self, alert: Dict):
         """Send Slack alert."""
-        emoji = {"critical": "🚨", "warning": "⚠️", "info": "ℹ️"}
-        print(f"💬 Slack Alert: {emoji.get(alert['severity'], '📢')} {alert['message']}")
+        logger.info("Slack alert", extra={"severity": alert.get('severity'), "message": alert['message']})
 
     async def _send_webhook_alert(self, alert: Dict):
         """Send webhook alert."""
-        print(f"🔗 Webhook Alert: {alert['type']} - {alert['message']}")
+        logger.info("Webhook alert", extra={"type": alert.get('type'), "message": alert['message']})
 
     async def process_alert_batch(self, alerts: List[Dict]) -> Dict:
         """Process multiple alerts with deduplication."""

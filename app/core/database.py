@@ -201,6 +201,15 @@ def create_tables():
             else:
                 raise
 
+def drop_tables():
+    """Drop all database tables."""
+    try:
+        Base.metadata.drop_all(bind=db_manager.engine)
+        logger.info("Database tables dropped successfully")
+    except Exception as e:
+        logger.error(f"Failed to drop tables: {e}")
+        raise
+
 def test_database_connection():
     """Test database connection and return detailed status."""
     try:

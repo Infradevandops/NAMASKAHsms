@@ -2,11 +2,14 @@
 
 
 import asyncio
+import logging
 
 from redis import Redis
 
 from app.core.config import get_settings
 from app.services.webhook_queue import WebhookQueue
+
+logger = logging.getLogger(__name__)
 
 
 async def run_webhook_worker():
@@ -19,7 +22,7 @@ async def run_webhook_worker():
         try:
             await queue.process_batch(batch_size=10)
         except Exception as e:
-            print(f"Worker error: {e}")
+            logger.error("Worker error", extra={"error": str(e)})
             await asyncio.sleep(5)
 
 

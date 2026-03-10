@@ -5,31 +5,61 @@ on:
     branches:
       - main
   workflow_dispatch:  # Allow manual deployment
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if checks fail'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
     name: Deploy to Render
     runs-on: ubuntu-latest
     
-    # Only deploy if tests pass
-    needs: []  # Will add dependency on CI workflow
+    # Only run on main branch
+    if: github.ref == 'refs/heads/main'
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      
+      - name: Validate deployment prerequisites
+        run: |
+          echo "🔍 Validating deployment prerequisites..."
+          
+          # Check critical files
+          test -f render.yaml || (echo "❌ render.yaml missing" && exit 1)
+          test -f main.py || (echo "❌ main.py missing" && exit 1)
+          test -f requirements.txt || (echo "❌ requirements.txt missing" && exit 1)
+          
+          echo "✅ All required files present"
       
       - name: Trigger Render Deploy
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
           if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-            echo "⚠️  RENDER_DEPLOY_HOOK not set, skipping deployment"
-            exit 0
+            echo "❌ RENDER_DEPLOY_HOOK not set"
+            echo "ℹ️  Add your Render deploy hook to GitHub secrets:"
+            echo "ℹ️  Settings → Secrets → Actions → New repository secret"
+            echo "ℹ️  Name: RENDER_DEPLOY_HOOK"
+            echo "ℹ️  Value: https://api.render.com/deploy/srv-xxxxx?key=xxxxx"
+            exit 1
           fi
           
           echo "🚀 Triggering Render deployment..."
-          curl -X POST "$RENDER_DEPLOY_HOOK"
-          echo "✅ Deployment triggered successfully"
+          
+          # Use curl with better error handling
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK")
+          
+          if [ "$HTTP_CODE" -eq 200 ] || [ "$HTTP_CODE" -eq 201 ]; then
+            echo "✅ Deployment triggered successfully (HTTP $HTTP_CODE)"
+          else
+            echo "❌ Deployment trigger failed (HTTP $HTTP_CODE)"
+            echo "Check your RENDER_DEPLOY_HOOK URL and permissions"
+            exit 1
+          fi
       
       - name: Wait for deployment
         run: |

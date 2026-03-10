@@ -24,7 +24,7 @@ class MigrationManager:
         try:
             alembic_path = shutil.which("alembic")
             if not alembic_path:
-                print("Alembic not found in PATH")
+                logger.error("Alembic not found in PATH")
                 return False
 
             result = subprocess.run(
@@ -51,7 +51,7 @@ class MigrationManager:
         try:
             alembic_path = shutil.which("alembic")
             if not alembic_path:
-                print("Alembic not found in PATH")
+                logger.error("Alembic not found in PATH")
                 return False
 
             safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[:100]
@@ -78,12 +78,12 @@ class MigrationManager:
         try:
             alembic_path = shutil.which("alembic")
             if not alembic_path:
-                print("Alembic not found in PATH")
+                logger.error("Alembic not found in PATH")
                 return False
 
             target = revision or "-1"
             if revision and not revision.replace("-", "").replace("_", "").isalnum():
-                print("Invalid revision format")
+                logger.warning("Invalid revision format")
                 return False
 
             result = subprocess.run(

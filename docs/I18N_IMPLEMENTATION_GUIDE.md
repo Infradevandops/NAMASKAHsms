@@ -259,13 +259,13 @@ The DOM observer is lightweight and only processes:
 
 For existing code that updates DOM dynamically:
 
-- [ ] Identify all `textContent =` assignments
-- [ ] Identify all `innerHTML =` assignments
-- [ ] Check if element has `data-i18n` attribute
-- [ ] Add `removeAttribute('data-i18n')` or use helpers
-- [ ] Add `await window.i18nReady` if needed
-- [ ] Test with language switcher
-- [ ] Verify no translation key regression
+- [x] Identify all `textContent =` assignments
+- [x] Identify all `innerHTML =` assignments
+- [~] Check if element has `data-i18n` attribute — `activity_feed.js` and `real-time-dashboard.js` have bare assignments; safe only because those elements have no `data-i18n`, but not formally audited
+- [x] Add `removeAttribute('data-i18n')` or use helpers — done in `global-balance.js`, `tier-card.js`, `dashboard.html`
+- [x] Add `await window.i18nReady` if needed — done in `dashboard_base.html` and `dashboard.html`
+- [x] Test with language switcher — `sidebar.html` calls `i18n.changeLanguage()`
+- [~] Verify no translation key regression — core paths fixed; `activity_feed.js` / `real-time-dashboard.js` not yet audited
 
 ---
 

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import and_, or_
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_user_id, get_admin_user_id
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
@@ -18,7 +18,7 @@ router = APIRouter(prefix="/admin/audit", tags=["Admin Audit"])
 async def get_unreceived_verifications(
     days: int = Query(7, ge=1, le=30),
     min_age_minutes: int = Query(10, ge=5, le=60),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
     """Get verifications that were charged but never received SMS.
@@ -30,10 +30,6 @@ async def get_unreceived_verifications(
     Returns:
         Summary of unreceived verifications and refund candidates
     """
-    # TODO: Add admin role check
-    # if not is_admin(user_id, db):
-    #     raise HTTPException(403, "Admin access required")
-
     cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
     pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=min_age_minutes)
 
@@ -108,7 +104,7 @@ async def get_unreceived_verifications(
 @router.get("/refund-candidates")
 async def get_refund_candidates(
     days: int = Query(7, ge=1, le=30),
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
 ):
     """Get list of verifications that need refunds (no existing refund transaction).
@@ -116,8 +112,6 @@ async def get_refund_candidates(
     Returns:
         List of verifications needing refund with user details
     """
-    # TODO: Add admin role check
-
     cutoff_time = datetime.now(timezone.utc) - timedelta(days=days)
     pending_cutoff = datetime.now(timezone.utc) - timedelta(minutes=10)
 

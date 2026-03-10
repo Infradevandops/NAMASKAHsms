@@ -1,535 +1,154 @@
-# Tier Management API & Dashboard
+# Tier Management
 
-## Overview
-
-The tier management system provides **3 ways** to manage user subscription tiers:
-
-1. **Web Dashboard** - Visual UI for admins
-2. **REST API** - Programmatic access  
-3. **CLI Tool** - Command-line management
+Manage user subscription tiers through web dashboard or API.
 
 
-## Tier Structure & Feature Matrix
+## Tier Types
 
-| Feature | Freemium | Pay-As-You-Go | Pro | Custom |
-|---------|----------|---------------|-----|--------|
-| **Price** | $0/mo | $0/mo | $25/mo | $35/mo |
-| **SMS Rate** | $2.22/SMS | $2.50/SMS | $0.30 overage | $0.20 overage |
-| **Monthly Quota** | None | None | $15 | $25 |
-| **API Access** | No | No | 10 keys | Unlimited |
-| **Location Filters** | No | Yes +$0.25 | Included | Included |
-| **ISP Filters** | No | Yes +$0.50 | Included | Included |
-| **Affiliate Program** | No | No | Standard | Enhanced |
-| **Priority Support** | No | No | Yes | Yes |
-| **Bulk Purchase** | No | No | Yes | Yes |
+**Freemium** - Free forever
+- $2.22 per SMS
+- No API access
+- No special features
 
+**Pay-As-You-Go** - No monthly fee  
+- $2.50 per SMS
+- Area code selection costs extra
+- No API access
 
-### Tier Hierarchy
+**Pro** - $25/month
+- $15 monthly SMS credit
+- 10 API keys included
+- All features included
+- Priority support
 
-```
-custom (3) → pro (2) → payg (1) → freemium (0)
-```
-
-
-### Tier-Gated Endpoints
-
-**Requires: payg or higher**
-- `GET /api/verification/area-codes/{country}`
-- `GET /api/verification/carriers/{country}`
-
-**Requires: pro or higher**
-- `GET /api/keys`
-- `POST /api/keys/generate`
-- `DELETE /api/keys/{id}`
-- `GET /api/affiliate/stats`
+**Custom** - $35/month
+- $25 monthly SMS credit  
+- Unlimited API keys
+- All features included
+- Dedicated support
 
 
 ## Web Dashboard
 
-### Access
+**Access:** Go to /admin/tier-management (admin only)
 
+**What you can do:**
+- See how many users are on each tier
+- Search for users by email
+- Change a user's tier
+- Update multiple users at once
+- See which tiers are expiring soon
+
+
+## API Endpoints
+
+**Base URL:** /api/admin/tiers
+
+**Authentication:** Add admin token to headers
+
+### Get Statistics
 ```
-URL: http://localhost:8000/admin/tier-management
-Requires: Admin account
+GET /stats
 ```
+Shows user count for each tier.
 
-### Features
-
-- View tier distribution statistics
-- Search & filter users by email, ID, or tier
-- Edit individual user tiers with custom duration
-- Bulk update multiple users
-- Monitor tier expiration dates
-- Real-time statistics refresh
-
-### Usage
-
-1. **View Tier Distribution** - Dashboard loads with tier statistics
-
-2. **Search Users** - Use search box to find by email or user ID
-
-3. **Change User Tier** - Click "Edit", select new tier and duration, click "Save Changes"
-
-4. **Bulk Update** - Click "Bulk Update", enter comma-separated user IDs, select tier and duration
-
-5. **Reset to Pay-As-You-Go** - Click "Reset" button on user row
-
-
-## REST API
-
-### Base URL
-
+### List Users  
 ```
-http://localhost:8000/api/admin/tiers
+GET /users?tier=pro&limit=50
 ```
+Shows users on specific tier.
 
-### Authentication
-
-All endpoints require admin access token:
-
-```bash
-Authorization: Bearer <admin_access_token>
+### Change User Tier
 ```
-
-
-### Endpoints
-
-#### Get Tier Statistics
-
-```bash
-GET /api/admin/tiers/stats
-
-Response:
-{
-  "stats": [
-    {"tier": "payg", "user_count": 150, "percentage": 45.5},
-    ...
-  ],
-  "total_users": 330
-}
+POST /users/{user_id}/tier
+Body: {"tier": "pro", "duration_days": 30}
 ```
+Upgrades or downgrades a user.
 
-
-#### List Users
-
-```bash
-GET /api/admin/tiers/users?tier=starter&limit=50&offset=0
-
-Query Parameters:
-- tier: Filter by tier (payg, starter, pro, custom)
-- limit: Results per page (1-500, default 50)
-- offset: Pagination offset (default 0)
-
-Response:
-{
-  "total": 100,
-  "limit": 50,
-  "offset": 0,
-  "users": [
-    {
-      "id": "user123",
-      "email": "user@example.com",
-      "tier": "starter",
-      "tier_expires_at": "2025-01-15T00:00:00Z",
-      "credits": 25.50,
-      "created_at": "2024-12-01T10:30:00Z"
-    }
-  ]
-}
+### Bulk Update
 ```
-
-
-#### Get User Tier Info
-
-```bash
-GET /api/admin/tiers/users/{user_id}/tier
-
-Response:
-{
-  "user_id": "user123",
-  "email": "user@example.com",
-  "current_tier": "pro",
-  "tier_name": "Pro",
-  "expires_at": "2025-01-15T00:00:00Z",
-  "is_expired": false,
-  "tier_config": {
-    "price_monthly": 2500,
-    "quota_usd": 30,
-    "api_key_limit": 10,
-    "has_api_access": true,
-    "has_area_code_selection": true,
-    "has_isp_filtering": true,
-    "support_level": "priority"
-  }
-}
+POST /users/bulk/tier  
+Body: {"user_ids": ["user1", "user2"], "tier": "pro", "duration_days": 30}
 ```
+Updates multiple users at once.
 
-
-#### Set User Tier
-
-```bash
-POST /api/admin/tiers/users/{user_id}/tier
-
-Request Body:
-{
-  "tier": "pro",
-  "duration_days": 30
-}
-
-Response:
-{
-  "success": true,
-  "message": "User tier updated from starter to pro",
-  "user_id": "user123",
-  "new_tier": "pro",
-  "expires_at": "2025-01-15T00:00:00Z"
-}
+### Reset User
 ```
-
-
-#### Bulk Update Tiers
-
-```bash
-POST /api/admin/tiers/users/bulk/tier
-
-Request Body:
-{
-  "user_ids": ["user1", "user2", "user3"],
-  "tier": "pro",
-  "duration_days": 30
-}
-
-Response:
-{
-  "success": true,
-  "message": "Updated 3 users to pro tier",
-  "updated_count": 3,
-  "total_requested": 3
-}
+DELETE /users/{user_id}/tier
 ```
-
-
-#### Reset User Tier
-
-```bash
-DELETE /api/admin/tiers/users/{user_id}/tier
-
-Response:
-{
-  "success": true,
-  "message": "User tier reset from pro to Pay-As-You-Go",
-  "user_id": "user123",
-  "new_tier": "payg"
-}
-```
-
-
-#### Extend Tier Expiry
-
-```bash
-POST /api/admin/tiers/users/{user_id}/tier/extend?days=30
-
-Response:
-{
-  "success": true,
-  "message": "Tier extended by 30 days",
-  "user_id": "user123",
-  "old_expiry": "2025-01-15T00:00:00Z",
-  "new_expiry": "2025-02-14T00:00:00Z"
-}
-```
-
-
-#### Get Expiring Tiers
-
-```bash
-GET /api/admin/tiers/expiring?days=7
-
-Query Parameters:
-- days: Threshold in days (1-90, default 7)
-
-Response:
-{
-  "expiring_in_days": 7,
-  "count": 5,
-  "users": [
-    {
-      "id": "user123",
-      "email": "user@example.com",
-      "tier": "starter",
-      "expires_at": "2025-01-10T00:00:00Z",
-      "days_until_expiry": 3
-    }
-  ]
-}
-```
-
-
-### Example cURL Commands
-
-```bash
-# Get tier statistics
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  http://localhost:8000/api/admin/tiers/stats
-
-# List Pro tier users
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  "http://localhost:8000/api/admin/tiers/users?tier=pro&limit=20"
-
-# Set user to Pro tier
-curl -X POST \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"tier":"pro","duration_days":30}' \
-  http://localhost:8000/api/admin/tiers/users/user123/tier
-
-# Bulk update users
-curl -X POST \
-  -H "Authorization: Bearer YOUR_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"user_ids":["user1","user2","user3"],"tier":"starter","duration_days":30}' \
-  http://localhost:8000/api/admin/tiers/users/bulk/tier
-
-# Get expiring tiers
-curl -H "Authorization: Bearer YOUR_TOKEN" \
-  "http://localhost:8000/api/admin/tiers/expiring?days=14"
-```
+Resets user back to Pay-As-You-Go.
 
 
 ## API Key Management
 
-### List API Keys
+**Who can use:** Pro and Custom tier users only
 
-```bash
+### List Keys
+```
 GET /api/keys
-
-Authentication: Required
-Tier Requirement: Starter or higher
-
-Response:
-[
-  {
-    "id": "key-id-123",
-    "name": "Production API Key",
-    "key_preview": "...a1b2",
-    "is_active": true,
-    "request_count": 1523,
-    "last_used": "2025-12-07T19:30:00Z",
-    "created_at": "2025-11-01T10:00:00Z"
-  }
-]
 ```
+Shows user's API keys.
 
-
-### Generate API Key
-
-```bash
+### Create Key
+```
 POST /api/keys/generate
-
-Request Body:
-{
-  "name": "My Development Key"
-}
-
-Response (201):
-{
-  "id": "key-id-456",
-  "name": "My Development Key",
-  "key": "nmsk_aBcDeFgHiJkLmNoPqRsTuVwXyZ123456",
-  "key_preview": "...3456",
-  "created_at": "2025-12-07T20:57:00Z"
-}
+Body: {"name": "My API Key"}
 ```
+Creates new API key. Save the key - you only see it once!
 
-**IMPORTANT:** The full API key is only returned once during creation. Store it securely!
-
-
-### Revoke API Key
-
-```bash
+### Delete Key
+```
 DELETE /api/keys/{key_id}
-
-Response:
-{
-  "success": true,
-  "message": "API key revoked successfully"
-}
 ```
-
-
-### Rotate API Key
-
-```bash
-POST /api/keys/{key_id}/rotate
-
-Response:
-{
-  "id": "new-key-id",
-  "name": "My Development Key",
-  "key": "nmsk_newKeyGoesHere123",
-  "key_preview": "...e123",
-  "created_at": "2025-12-07T21:00:00Z"
-}
-```
+Removes an API key.
 
 
 ## Feature Access
 
-### Get Available Area Codes
+**Area Codes** - Requires Pay-As-You-Go or higher
+```
+GET /api/verification/area-codes/US
+```
 
-```bash
-GET /api/verification/area-codes/{country}
-
-Tier Requirement: Starter or higher
-
-Example: GET /api/verification/area-codes/US
-
-Response:
-{
-  "success": true,
-  "country": "US",
-  "area_codes": ["212", "310", "415", "646", "917"],
-  "tier": "starter"
-}
+**Carrier Selection** - Requires Pro or higher  
+```
+GET /api/verification/carriers/US
 ```
 
 
-### Get Available Carriers
+## Security
 
-```bash
-GET /api/verification/carriers/{country}
-
-Tier Requirement: Pro or higher
-
-Example: GET /api/verification/carriers/US
-
-Response:
-{
-  "success": true,
-  "country": "US",
-  "carriers": ["Verizon", "AT&T", "T-Mobile", "Sprint"],
-  "tier": "pro"
-}
-```
+- Only admins can manage tiers
+- All changes are logged
+- Tier names are validated
+- Duration limited to 90 days max
+- Bulk operations limited to 1000 users
 
 
-## Security & Permissions
+## Common Tasks
 
-- All tier management endpoints require `is_admin = true`
-- Web dashboard checks admin status before rendering
-- API returns 403 Forbidden for non-admin users
-- All tier changes are logged with admin ID and timestamp
-- Tier names validated against allowed values
-- Duration limited to 1-90 days
-- Bulk operations limited to 1000 users per request
+**Upgrade user to Pro for 30 days:**
+Use web dashboard or POST to /users/{id}/tier with tier="pro" and duration_days=30
 
+**Find expiring tiers:**
+GET /expiring?days=7 shows tiers expiring in next 7 days
 
-## Common Workflows
-
-### Upgrade User to Pro
-
-```bash
-# Via API
-curl -X POST \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"tier":"pro","duration_days":30}' \
-  http://localhost:8000/api/admin/tiers/users/user123/tier
-```
+**Reset user to free tier:**
+DELETE /users/{id}/tier
 
 
-### Bulk Upgrade Users
+## Response Codes
 
-```bash
-curl -X POST \
-  -H "Authorization: Bearer TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{"user_ids":["user1","user2","user3"],"tier":"starter","duration_days":30}' \
-  http://localhost:8000/api/admin/tiers/users/bulk/tier
-```
+- 200 = Success
+- 400 = Bad request  
+- 403 = Admin access required
+- 404 = User not found
+- 500 = Server error
 
 
-### Monitor Expiring Tiers
+## System Details
 
-```bash
-curl -H "Authorization: Bearer TOKEN" \
-  "http://localhost:8000/api/admin/tiers/expiring?days=7"
-```
-
-
-## API Response Codes
-
-| Code | Meaning |
-|------|----------|
-| 200 | Success |
-| 400 | Bad request (invalid tier, duration, etc.) |
-| 403 | Admin access required |
-| 404 | User not found |
-| 500 | Server error |
-
-
-## Integration Examples
-
-### Python
-
-```python
-import requests
-
-headers = {
-    "Authorization": f"Bearer {admin_token}",
-    "Content-Type": "application/json"
-}
-
-response = requests.post(
-    "http://localhost:8000/api/admin/tiers/users/user123/tier",
-    headers=headers,
-    json={"tier": "pro", "duration_days": 30}
-)
-print(response.json())
-```
-
-
-### JavaScript
-
-```javascript
-const adminToken = localStorage.getItem('access_token');
-
-fetch('/api/admin/tiers/stats', {
-    headers: { 'Authorization': `Bearer ${adminToken}` }
-})
-.then(r => r.json())
-.then(data => console.log(data.stats));
-```
-
-
-## System Architecture
-
-### Data Model
-
-**Single Source of Truth**: `users.subscription_tier`
-
-```sql
-subscription_tier VARCHAR(50) NOT NULL DEFAULT 'freemium'
-CHECK (subscription_tier IN ('freemium', 'payg', 'pro', 'custom'))
-INDEX idx_users_subscription_tier
-```
-
-
-### Access Control Flow
-
-1. Request → JWT decode → user_id
-2. Fetch tier from DB (cached 60s)
-3. Check: `has_tier_access(user_tier, required_tier)`
-4. If fail: 402 with `TierAccessDenied`
-5. If pass: proceed
-
-
-### Performance Metrics
-
-- Tier check: < 1ms (cached)
-- DB query: < 10ms (indexed)
-- Cache TTL: 60s
-
-
-**Last Updated**: 2025-01-08  
-**Version**: 2.1.0 (Consolidated)
+**Database:** User tier stored in users.subscription_tier field
+**Caching:** Tier checks cached for 60 seconds  
+**Performance:** Tier check takes less than 1ms
+**Hierarchy:** custom > pro > payg > freemium
