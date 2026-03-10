@@ -4,6 +4,8 @@ from fastapi import Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.core.dependencies import get_current_user_id
+from app.models.user import User
 
 
 def require_verified_email(

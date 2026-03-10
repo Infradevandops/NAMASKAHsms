@@ -12,14 +12,11 @@ class EncryptionManager:
     """Manages data encryption/decryption."""
 
     def __init__(self):
-        # Generate or load encryption key
         self.key = settings.encryption_key or Fernet.generate_key()
         self.cipher = Fernet(self.key)
 
-        @handle_encryption_exceptions
-        def encrypt(self, data: str) -> str:
-            """Encrypt data."""
-
+    def encrypt(self, data: str) -> str:
+        """Encrypt data."""
         encrypted = self.cipher.encrypt(data.encode())
         return encrypted.decode()
 
@@ -47,4 +44,4 @@ class EncryptionManager:
             obj[field] = self.decrypt(obj[field])
         return obj
 
-        encryption_manager = EncryptionManager()
+encryption_manager = EncryptionManager()

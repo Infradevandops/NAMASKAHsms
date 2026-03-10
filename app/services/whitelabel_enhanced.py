@@ -257,16 +257,18 @@ class WhiteLabelEnhancedService:
             "theme_color": config.primary_color,
             "icons": [
                 {
-                    "src": config.logo_url or "/static/icons/icon - 192x192.png",
+                    "src": config.logo_url or "/static/icons/icon-192x192.png",
                     "sizes": "192x192",
                     "type": "image/png",
                 }
             ],
         }
 
-        # Global service instance
-        whitelabel_enhanced_service = None
 
-    def get_whitelabel_enhanced_service(db: Session) -> WhiteLabelEnhancedService:
-        """Get enhanced white - label service instance."""
-        return WhiteLabelEnhancedService(db)
+# Global service instance
+whitelabel_enhanced_service = None
+
+
+def get_whitelabel_enhanced_service(db: Session) -> WhiteLabelEnhancedService:
+    """Get enhanced white-label service instance."""
+    return WhiteLabelEnhancedService(db)
