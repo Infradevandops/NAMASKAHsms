@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from app.core.custom_exceptions import InvalidInputError, PaymentError, ResourceNotFoundError
+from app.core.exceptions import ValidationError, PaymentError, NamaskahException
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -31,14 +31,14 @@ def get_wallet_balance(user_id: str = Depends(get_current_user_id), db: Session 
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise ResourceNotFoundError("User not found")
+            raise NamaskahException("User not found")
 
         return WalletBalanceResponse(
             credits=user.credits,
             credits_usd=user.credits,
             free_verifications=user.free_verifications,
         )
-    except ResourceNotFoundError as e:
+    except NamaskahException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to get wallet balance: {str(e)}")
@@ -55,7 +55,7 @@ async def initialize_paystack_payment(
     try:
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
-            raise ResourceNotFoundError("User not found")
+            raise NamaskahException("User not found")
 
         payment_service = get_payment_service(db)
         result = await payment_service.initialize_payment(
@@ -64,9 +64,9 @@ async def initialize_paystack_payment(
         )
         return PaymentInitializeResponse(**result)
 
-    except ResourceNotFoundError as e:
+    except NamaskahException as e:
         raise HTTPException(status_code=404, detail=str(e))
-    except InvalidInputError as e:
+    except ValidationError as e:
         logger.warning(f"Invalid payment input: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except PaymentError as e:
@@ -120,23 +120,23 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
     try:
         signature = request.headers.get("x-paystack-signature")
         if not signature:
-            raise InvalidInputError("Missing signature")
+            raise ValidationError("Missing signature")
 
         body = await request.body()
         webhook_service = WebhookService(db)
 
         if not webhook_service.verify_signature(body, signature):
-            raise InvalidInputError("Invalid signature")
+            raise ValidationError("Invalid signature")
 
         try:
             webhook_data = await request.json()
         except (ValueError, TypeError):
-            raise InvalidInputError("Invalid JSON")
+            raise ValidationError("Invalid JSON")
 
         success = webhook_service.process_payment_webhook(webhook_data)
         return {"status": "success" if success else "ignored"}
 
-    except InvalidInputError as e:
+    except ValidationError as e:
         logger.warning(f"Invalid webhook: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
@@ -180,7 +180,7 @@ async def export_transactions(
     """Export user's transaction history."""
     try:
         if export_format not in ["csv", "json"]:
-            raise InvalidInputError("Invalid format. Use 'csv' or 'json'")
+            raise ValidationError("Invalid format. Use 'csv' or 'json'")
 
         transactions = (
             db.query(Transaction).filter(Transaction.user_id == user_id).order_by(Transaction.created_at.desc()).all()
@@ -225,7 +225,7 @@ async def export_transactions(
                 headers={"Content-Disposition": f"attachment; filename=transactions_{user_id}.json"},
             )
 
-    except InvalidInputError as e:
+    except ValidationError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Export failed: {str(e)}")

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
 
 from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
+from app.core.dependencies import get_current_user_id, get_admin_user_id
 from app.models.user import User
 from app.models.notification import Notification
 
@@ -287,12 +287,10 @@ async def get_services():
 # Admin endpoints (require admin check in production)
 @router.get("/admin/kyc")
 async def get_kyc_requests(
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
     limit: int = 50
 ):
-    """Get KYC verification requests (admin only)."""
-    # TODO: Add admin check
     return {
         "kyc_requests": [],
         "total": 0,
@@ -304,12 +302,10 @@ async def get_kyc_requests(
 
 @router.get("/admin/support")
 async def get_support_tickets(
-    user_id: str = Depends(get_current_user_id),
+    user_id: str = Depends(get_admin_user_id),
     db: Session = Depends(get_db),
     limit: int = 50
 ):
-    """Get support tickets (admin only)."""
-    # TODO: Add admin check
     return {
         "tickets": [],
         "total": 0,

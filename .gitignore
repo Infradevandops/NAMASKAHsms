@@ -58,3 +58,6 @@ htmlcov/
 *_ASSESSMENT*.md
 !DASHBOARD_DEEP_ASSESSMENT.md
 !COMPLETE_FEATURE_INVENTORY.md
+
+# Added by ggshield
+.cache_ggshield

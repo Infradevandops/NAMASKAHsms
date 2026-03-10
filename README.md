@@ -581,24 +581,15 @@ services:
 ## 📚 Documentation
 
 ### 🚀 Getting Started
-- **[WHATS_NEXT.md](./WHATS_NEXT.md)** - Executive summary of next steps
-- **[IMMEDIATE_ACTION_PLAN.md](./IMMEDIATE_ACTION_PLAN.md)** - Day-by-day action plan (2 weeks)
+- **[SETUP.md](./SETUP.md)** - Complete setup and deployment guide
+- **[README.md](./README.md)** - Project overview and architecture
+- **[PROJECT_STATUS.md](./PROJECT_STATUS.md)** - Current status (98% complete)
 
-### 🎯 Roadmaps & Planning
-- [DASHBOARD_ROADMAP.md](./DASHBOARD_ROADMAP.md) - Dashboard feature roadmap
-- [WORKFLOW_IMPROVEMENT_ROADMAP.md](./WORKFLOW_IMPROVEMENT_ROADMAP.md) - CI/CD improvements
-- [WORKFLOW_QUICK_FIXES.md](./WORKFLOW_QUICK_FIXES.md) - Week 1-2 critical fixes
-
-### 🧪 Testing & Security
-- **[TESTING_PLAN.md](./TESTING_PLAN.md)** - Comprehensive testing strategy (23% → 50%)
-- **[SECURITY_HARDENING_PLAN.md](./SECURITY_HARDENING_PLAN.md)** - Security improvements
-- [Testing Guide](.kiro/TESTING_IMPROVEMENT_PLAN.md) - Original testing strategy
-
-### 📖 Technical Guides
-- [API Guide](docs/API_GUIDE.md) - Complete API reference
-- [Deployment Guide](.kiro/PRODUCTION_DEPLOYMENT_PLAN.md) - Deployment instructions
-- [Security Guide](docs/SECURITY_AND_COMPLIANCE.md) - Security details
-- [Database Guide](.kiro/PRODUCTION_DATABASE_GUIDE.md) - Database management
+### 🎯 Reference
+- **[CODEBASE_AUDIT_FINDINGS.md](./CODEBASE_AUDIT_FINDINGS.md)** - Comprehensive audit
+- **[DEPLOYMENT_STRATEGY.md](./DEPLOYMENT_STRATEGY.md)** - CI/CD architecture
+- **[CHANGELOG.md](./CHANGELOG.md)** - Version history
+- **[CLEANUP_SUMMARY.md](./CLEANUP_SUMMARY.md)** - Recent improvements
 
 ---
 

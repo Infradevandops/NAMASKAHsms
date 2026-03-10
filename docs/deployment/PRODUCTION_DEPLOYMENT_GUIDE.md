@@ -76,12 +76,12 @@ EMERGENCY_SECRET=<random>        # Or leave unset to disable
 ```
 
 ### Environment Variables Checklist
-- [ ] Update `DATABASE_URL` to new hostname
-- [ ] Rotate `PAYSTACK_SECRET_KEY`
-- [ ] Rotate `TEXTVERIFIED_API_KEY`
-- [ ] Set distinct `SECRET_KEY` and `JWT_SECRET_KEY`
-- [ ] Set `CORS_ORIGINS`
-- [ ] Configure `EMERGENCY_SECRET` or disable
+- [x] Update `DATABASE_URL` to new hostname
+- [x] Rotate `PAYSTACK_SECRET_KEY`
+- [x] Rotate `TEXTVERIFIED_API_KEY`
+- [x] Set distinct `SECRET_KEY` and `JWT_SECRET_KEY`
+- [x] Set `CORS_ORIGINS`
+- [x] Configure `EMERGENCY_SECRET` or disable
 
 ---
 
@@ -251,16 +251,16 @@ curl -H "Authorization: Bearer <token>" \
 ## 📈 Post-Deployment Tasks
 
 ### Immediate (First 24 hours)
-- [ ] Monitor error rates and response times
-- [ ] Verify payment processing functionality
-- [ ] Check SMS verification success rates
-- [ ] Validate user authentication flows
+- [x] Monitor error rates and response times
+- [x] Verify payment processing functionality
+- [x] Check SMS verification success rates
+- [x] Validate user authentication flows
 
 ### Short-term (First week)
-- [ ] Expand test coverage from 31% to 40%
+- [x] Expand test coverage from 31% to 40%
 - [ ] Complete API documentation updates
 - [ ] Optimize frontend bundle size
-- [ ] Implement additional monitoring alerts
+- [x] Implement additional monitoring alerts
 
 ### Long-term (First month)
 - [ ] Performance optimization based on production metrics

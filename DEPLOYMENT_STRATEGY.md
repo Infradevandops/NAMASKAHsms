@@ -90,11 +90,13 @@ Go to: **GitHub Repo → Settings → Secrets and variables → Actions**
 
 Add these secrets:
 
-| Secret Name | Value | Required |
-|-------------|-------|----------|
-| `GITLAB_TOKEN` | `glpat-Oxf0N5r_-ehxfRhM86DOnG86MQp1Omg5MmxqCw.01.1202lxyp0` | ✅ Yes |
-| `RENDER_DEPLOY_HOOK` | Get from Render dashboard | Optional |
-| `PRODUCTION_URL` | `https://your-app.onrender.com` | Optional |
+| Secret Name | How to Get | Required |
+|-------------|------------|----------|
+| `GITLAB_TOKEN` | Create at gitlab.com/-/user_settings/personal_access_tokens | Optional |
+| `RENDER_DEPLOY_HOOK` | Get from Render dashboard → Settings → Deploy Hook | Optional |
+| `PRODUCTION_URL` | Your production URL (e.g., https://your-app.onrender.com) | Optional |
+
+**Note:** Never commit tokens or secrets to git. Use GitHub Secrets for CI/CD.
 
 #### 2. Push Workflows to GitHub
 

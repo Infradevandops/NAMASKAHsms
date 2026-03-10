@@ -2,8 +2,11 @@
 i18n Utilities for Server-Side Translation Support
 """
 import json
+import logging
 from pathlib import Path
 from typing import Dict, Any
+
+logger = logging.getLogger(__name__)
 
 # Cache translations in memory
 _translations_cache: Dict[str, Dict[str, Any]] = {}
@@ -38,7 +41,7 @@ def load_translations(locale: str = "en") -> Dict[str, Any]:
             _translations_cache[locale] = translations
             return translations
     except Exception as e:
-        print(f"[i18n] Failed to load {locale}.json: {e}")
+        logger.warning("Failed to load locale file", extra={"locale": locale, "error": str(e)})
         if locale != "en":
             return load_translations("en")
         return {}

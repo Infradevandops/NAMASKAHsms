@@ -9,8 +9,10 @@ from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
+from app.core.logging import get_logger
 from app.models.user import User
 
+logger = get_logger(__name__)
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -34,34 +36,25 @@ class AuthService:
     def authenticate_user(self, email: str, password: str) -> Optional[User]:
         """Authenticate user with email and password."""
         try:
-            print(f"[AUTH] Querying user: {email}")
+            logger.debug("Querying user by email")
             user = self.db.query(User).filter(User.email == email).first()
-            print(f"[AUTH] User found: {user is not None}")
+            logger.debug("User lookup complete", extra={"found": user is not None})
             
             if not user:
-                print("[AUTH] User not found")
                 return None
 
-            # Handle users without password hash (OAuth users)
             if not user.password_hash:
-                print("[AUTH] No password hash")
                 return None
 
-            # Verify password with proper error handling
-            print(f"[AUTH] Verifying password, hash starts with: {user.password_hash[:30]}")
             verified = verify_password(password, user.password_hash)
-            print(f"[AUTH] Password verified: {verified}")
             
             if not verified:
-                print("[AUTH] Password verification failed")
                 return None
 
-            print("[AUTH] Authentication successful")
             return user
 
         except Exception as e:
-            # Log authentication error but don't expose details
-            print(f"[AUTH] Exception: {e}")
+            logger.error("Authentication error", extra={"error": str(e)})
             traceback.print_exc()
             return None
 
@@ -83,11 +76,11 @@ class AuthService:
                 algorithm=settings.jwt_algorithm
             )
             
-            print(f"[AUTH] Token created for user {user.id}, expires: {expire}")
+            logger.debug("Token created", extra={"user_id": str(user.id)})
             return token
             
         except Exception as e:
-            print(f"[AUTH] Token creation failed: {e}")
+            logger.error("Token creation failed", extra={"error": str(e)})
             traceback.print_exc()
             raise
 
@@ -103,25 +96,21 @@ class AuthService:
             # Support both 'sub' and 'user_id' for backwards compatibility
             user_id = payload.get("sub") or payload.get("user_id")
             if not user_id:
-                print("[AUTH] No user ID in token")
                 return None
                 
-            # Verify user still exists
             user = self.db.query(User).filter(User.id == user_id).first()
             if not user:
-                print(f"[AUTH] User {user_id} not found")
                 return None
                 
             return user_id
             
         except jwt.ExpiredSignatureError:
-            print("[AUTH] Token expired")
             return None
         except jwt.InvalidTokenError as e:
-            print(f"[AUTH] Invalid token: {e}")
+            logger.debug("Invalid token", extra={"error": str(e)})
             return None
         except Exception as e:
-            print(f"[AUTH] Token verification error: {e}")
+            logger.error("Token verification error", extra={"error": str(e)})
             return None
 
     def create_user(self, email: str, password: str, **kwargs) -> User:
@@ -144,12 +133,12 @@ class AuthService:
             self.db.commit()
             self.db.refresh(user)
             
-            print(f"[AUTH] User created: {user.id}")
+            logger.info("User created", extra={"user_id": str(user.id)})
             return user
             
         except Exception as e:
             self.db.rollback()
-            print(f"[AUTH] User creation failed: {e}")
+            logger.error("User creation failed", extra={"error": str(e)})
             raise
 
     def update_password(self, user_id: str, new_password: str) -> bool:
@@ -162,10 +151,10 @@ class AuthService:
             user.password_hash = get_password_hash(new_password)
             self.db.commit()
             
-            print(f"[AUTH] Password updated for user {user_id}")
+            logger.info("Password updated", extra={"user_id": user_id})
             return True
             
         except Exception as e:
             self.db.rollback()
-            print(f"[AUTH] Password update failed: {e}")
+            logger.error("Password update failed", extra={"error": str(e)})
             return False

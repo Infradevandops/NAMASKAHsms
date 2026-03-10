@@ -103,17 +103,17 @@ This document tracks accessibility improvements made to the Namaskah frontend.
 
 ### High Priority
 
-- [ ] Add `lang` attribute to `<html>` element
+- [x] Add `lang` attribute to `<html>` element
 - [ ] Test with screen readers (NVDA, VoiceOver)
 - [ ] Test keyboard navigation end-to-end
 - [ ] Verify color contrast in dark mode
 
 ### Medium Priority
 
-- [ ] Add focus management for modals
-- [ ] Add live regions for toast notifications
-- [ ] Improve error message announcements
-- [ ] Add landmark roles to all pages
+- [x] Add focus management for modals
+- [x] Add live regions for toast notifications
+- [x] Improve error message announcements
+- [x] Add landmark roles to all pages
 
 ### Low Priority
 
