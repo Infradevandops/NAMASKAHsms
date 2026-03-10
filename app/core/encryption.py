@@ -44,4 +44,5 @@ class EncryptionManager:
             obj[field] = self.decrypt(obj[field])
         return obj
 
+
 encryption_manager = EncryptionManager()

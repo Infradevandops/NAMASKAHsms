@@ -138,9 +138,9 @@ class DatabaseOptimizer:
             for table in tables:
                 try:
                     with self.engine.connect() as conn:
-                        # Get row count
+                        # Get row count - table name is from internal whitelist, not user input
                         count_result = conn.execute(
-                            text(f"SELECT COUNT(*) FROM {table}")
+                            text(f"SELECT COUNT(*) FROM {table}")  # noqa: S608
                         )
                         row_count = count_result.scalar()
 
