@@ -16,8 +16,8 @@
 **Strategy**: Add missing model/schema imports
 
 **Checklist**:
-- [ ] `app/api/core/waitlist.py` - Add `Waitlist`, `WaitlistJoin`, `WaitlistResponse` imports
-- [ ] `app/api/core/webhooks.py` - Fix indentation, add missing parameter names
+- [x] `app/api/core/waitlist.py` - Add `Waitlist`, `WaitlistJoin`, `WaitlistResponse` imports
+- [x] `app/api/core/webhooks.py` - Fix indentation, add missing parameter names
 
 ---
 
@@ -28,8 +28,8 @@
 **Strategy**: Add Pydantic/SQLAlchemy imports, fix classmethod parameters
 
 **Checklist**:
-- [ ] `app/models/pricing_template.py` - Add `BaseModel` import from Pydantic
-- [ ] `app/models/blacklist.py` - Fix classmethod signature (add `cls` parameter properly)
+- [x] `app/models/pricing_template.py` - Add `BaseModel` import from Pydantic
+- [x] `app/models/blacklist.py` - Fix classmethod signature (add `cls` parameter properly)
 
 ---
 
@@ -40,11 +40,11 @@
 **Strategy**: Add service/utility imports
 
 **Checklist**:
-- [ ] `app/core/async_processing.py` - Add `PaymentService` import
-- [ ] `app/core/config_secrets.py` - Add `get_secrets_manager`, `get_audit` imports
-- [ ] `app/core/email_verification.py` - Add `get_current_user_id`, `User` imports
-- [ ] `app/core/encryption.py` - Fix decorator and variable references
-- [ ] `app/core/migration.py` - Add `get_settings`, `engine` imports
+- [x] `app/core/async_processing.py` - Add `PaymentService` import
+- [x] `app/core/config_secrets.py` - Add `get_secrets_manager`, `get_audit` imports
+- [x] `app/core/email_verification.py` - Add `get_current_user_id`, `User` imports
+- [x] `app/core/encryption.py` - Fix decorator and variable references
+- [x] `app/core/migration.py` - Add `get_settings`, `engine` imports
 
 ---
 
@@ -55,17 +55,17 @@
 **Strategy**: Add exception imports, fix return type
 
 **Checklist**:
-- [ ] `app/middleware/monitoring.py` - Add `StarletteHTTPException`, `NamaskahException` imports
-- [ ] `app/services/whitelabel_enhanced.py` - Fix return type annotation
+- [x] `app/middleware/monitoring.py` - Add `StarletteHTTPException`, `NamaskahException` imports
+- [x] `app/services/whitelabel_enhanced.py` - Fix return type annotation
 
 ---
 
 ### Task 0.5 — Verify All Syntax Fixes
 
 **Checklist**:
-- [ ] Run `flake8 app/ --count --select=E9,F63,F7,F82` → 0 errors
+- [x] Run `flake8 app/ --count --select=E9,F63,F7,F82` → 0 errors ✅
 - [ ] Run `pytest tests/ -x` → No import errors
-- [ ] Commit all fixes with message: "fix: resolve all 41 F821 syntax errors"
+- [x] Commit all fixes with message: "fix: resolve all 41 F821 syntax errors"
 - [ ] Push and verify CI passes syntax check
 
 ---

@@ -8,6 +8,8 @@ from typing import Optional
 
 from sqlalchemy import text
 
+from app.core.config import get_settings
+from app.core.database import engine
 from app.utils.timezone_utils import utc_now
 
 logger = logging.getLogger(__name__)
