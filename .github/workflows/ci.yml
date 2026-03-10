@@ -1,4 +1,4 @@
-name: CI - Simplified Pipeline
+name: CI - Balanced Pipeline
 
 on:
   push:
@@ -10,9 +10,55 @@ env:
   PYTHON_VERSION: '3.11'
   
 jobs:
-  # Essential checks only
-  basic-checks:
-    name: Basic Quality & Tests
+  # Fast feedback - syntax and basic checks
+  code-quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install linting tools
+        run: |
+          pip install flake8 black isort
+          pip install -r requirements.txt
+      
+      - name: Critical syntax check (blocking)
+        run: |
+          # Block on critical syntax errors only
+          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+      
+      - name: Code formatting (informational)
+        run: |
+          black --check app/ --diff || echo "⚠️ Code formatting issues found"
+          isort --check-only app/ --diff || echo "⚠️ Import sorting issues found"
+        continue-on-error: true
+
+  # Security scanning
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install security tools
+        run: pip install bandit safety
+      
+      - name: Security scan (informational)
+        run: |
+          bandit -r app/ -ll || echo "⚠️ Security issues found - review required"
+          safety check || echo "⚠️ Dependency vulnerabilities found"
+        continue-on-error: true
+
+  # Core functionality tests
+  tests:
+    name: Tests
     runs-on: ubuntu-latest
     
     services:
@@ -51,15 +97,9 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 || true
+          pip install -r requirements-test.txt
       
-      - name: Basic syntax check
-        run: |
-          # Only check for critical syntax errors
-          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "Syntax issues found but continuing..."
-        continue-on-error: true
-      
-      - name: Run core tests
+      - name: Run tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
           REDIS_URL: redis://localhost:6379/0
@@ -69,37 +109,55 @@ jobs:
           TEXTVERIFIED_API_KEY: test-key
           PAYSTACK_SECRET_KEY: test-key
         run: |
-          # Run tests without strict coverage requirements
-          pytest tests/ -v --maxfail=10 --tb=short || echo "Some tests failed but continuing..."
-        continue-on-error: true
+          # Run tests with reasonable coverage target
+          pytest tests/ -v \
+            --cov=app \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --cov-fail-under=18 \
+            --maxfail=10 \
+            --tb=short
       
-      - name: Basic security scan
-        run: |
-          pip install bandit || true
-          bandit -r app/ -ll || echo "Security issues found but continuing..."
-        continue-on-error: true
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
 
-  # Only run deployment checks on main branch
+  # Deployment readiness (main branch only)
   deployment-readiness:
-    name: Deployment Checks
+    name: Deployment Readiness
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: [basic-checks]
+    needs: [code-quality, tests]
     
     steps:
       - uses: actions/checkout@v4
       
-      - name: Check deployment files
+      - name: Validate deployment files
         run: |
-          test -f render.yaml || echo "⚠️ render.yaml missing"
-          test -f main.py || echo "⚠️ main.py missing"
-          test -f requirements.txt || echo "⚠️ requirements.txt missing"
-          echo "✅ Basic deployment check complete"
+          echo "🔍 Checking deployment configuration..."
+          
+          # Critical files must exist
+          test -f render.yaml || (echo "❌ render.yaml missing" && exit 1)
+          test -f main.py || (echo "❌ main.py missing" && exit 1)
+          test -f requirements.txt || (echo "❌ requirements.txt missing" && exit 1)
+          
+          echo "✅ Deployment files validated"
       
-      - name: Validate secrets
+      - name: Check secrets configuration
         run: |
+          echo "🔐 Validating secrets..."
+          
           if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
             echo "⚠️ RENDER_DEPLOY_HOOK not configured"
+            echo "ℹ️ Add deploy hook to enable auto-deployment"
           else
             echo "✅ RENDER_DEPLOY_HOOK configured"
+          fi
+          
+          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "⚠️ PRODUCTION_URL not configured"
+          else
+            echo "✅ PRODUCTION_URL configured"
           fi
