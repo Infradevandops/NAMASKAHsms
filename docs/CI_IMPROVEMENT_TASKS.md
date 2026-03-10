@@ -64,9 +64,25 @@
 
 **Checklist**:
 - [x] Run `flake8 app/ --count --select=E9,F63,F7,F82` → 0 errors ✅
-- [ ] Run `pytest tests/ -x` → No import errors
-- [x] Commit all fixes with message: "fix: resolve all 41 F821 syntax errors"
-- [ ] Push and verify CI passes syntax check
+- [x] Commit all fixes
+- [x] Push and verify CI passes syntax check
+- [x] Run `pytest tests/ -x` → **FAILED** — 48 test files have IndentationError/SyntaxError
+
+> ⚠️ **This task was marked complete prematurely. pytest was never run locally.**
+
+---
+
+### Task 0.6 — Fix Broken Test Files (48 IndentationErrors)
+
+**What**: 48 test files have `IndentationError` / `SyntaxError` — pytest cannot collect them at all.  
+**Root cause**: Same black auto-format run that fixed `app/` also exposed pre-existing indentation issues in `tests/`.  
+**Strategy**: Batch-fix by pattern (same as Phase 0 batches)
+
+**Checklist**:
+- [ ] Run `python3 -m pytest tests/ --collect-only -q 2>&1 | grep "^ERROR"` → 0 errors
+- [ ] Fix all 48 broken test files
+- [ ] Run `pytest tests/ -x --tb=short` → no collection errors
+- [ ] Commit and push
 
 ---
 
