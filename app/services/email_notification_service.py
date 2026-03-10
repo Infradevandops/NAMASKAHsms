@@ -1,13 +1,14 @@
 """Email notification service for sending notification emails."""
 
-
 import asyncio
 import smtplib
 from datetime import datetime, timezone
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import Any, Dict, List, Optional
+
 from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.models.notification import Notification
@@ -16,11 +17,9 @@ logger = get_logger(__name__)
 
 
 class EmailNotificationService:
-
     """Service for sending notification emails."""
 
     def __init__(self, db: Optional[Session] = None):
-
         """Initialize email notification service.
 
         Args:
@@ -67,9 +66,13 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
-            logger.info(f"Notification email sent to {user_email} (type: {notification.type})")
+            logger.info(
+                f"Notification email sent to {user_email} (type: {notification.type})"
+            )
             return True
 
         except Exception as e:
@@ -106,9 +109,13 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
-            logger.info(f"Verification initiated email sent to {user_email} for {service_name}")
+            logger.info(
+                f"Verification initiated email sent to {user_email} for {service_name}"
+            )
             return True
 
         except Exception as e:
@@ -148,9 +155,13 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
-            logger.info(f"Verification completed email sent to {user_email} for {service_name}")
+            logger.info(
+                f"Verification completed email sent to {user_email} for {service_name}"
+            )
             return True
 
         except Exception as e:
@@ -187,7 +198,9 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
             logger.info(f"Low balance alert sent to {user_email}")
             return True
@@ -227,9 +240,13 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
-            logger.info(f"Daily digest sent to {user_email} with {len(notifications)} notifications")
+            logger.info(
+                f"Daily digest sent to {user_email} with {len(notifications)} notifications"
+            )
             return True
 
         except Exception as e:
@@ -270,7 +287,9 @@ class EmailNotificationService:
                 unsubscribe_token=unsubscribe_token,
             )
 
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
 
             logger.info(f"Weekly digest sent to {user_email}")
             return True
@@ -303,7 +322,9 @@ class EmailNotificationService:
 
             # Send email asynchronously
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
+            await loop.run_in_executor(
+                None, self._send_smtp, to_email, message.as_string()
+            )
 
             return True
 
@@ -312,7 +333,6 @@ class EmailNotificationService:
             return False
 
     def _send_smtp(self, to_email: str, message: str) -> None:
-
         """Send email via SMTP (blocking operation).
 
         Args:
@@ -329,7 +349,6 @@ class EmailNotificationService:
             raise
 
     def _create_notification_html(
-
         self,
         notification: Notification,
         unsubscribe_token: Optional[str] = None,
@@ -345,7 +364,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -371,7 +390,6 @@ class EmailNotificationService:
     """
 
     def _create_verification_initiated_html(
-
         self,
         service_name: str,
         verification_id: str,
@@ -389,7 +407,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -427,7 +445,6 @@ class EmailNotificationService:
     """
 
     def _create_verification_completed_html(
-
         self,
         service_name: str,
         verification_id: str,
@@ -447,7 +464,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -489,7 +506,6 @@ class EmailNotificationService:
     """
 
     def _create_low_balance_alert_html(
-
         self,
         current_balance: float,
         threshold: float,
@@ -507,7 +523,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -549,7 +565,6 @@ class EmailNotificationService:
     """
 
     def _create_daily_digest_html(
-
         self,
         notifications: List[Notification],
         unsubscribe_token: Optional[str] = None,
@@ -565,7 +580,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -578,7 +593,7 @@ class EmailNotificationService:
                 <p style="margin: 8px 0 0 0; font-size: 12px; color: #9ca3af;">{n.created_at.strftime('%Y-%m-%d %H:%M:%S') if n.created_at else 'N/A'}</p>
             </div>
             """
-        for n in notifications
+                for n in notifications
             ]
         )
 
@@ -611,7 +626,6 @@ class EmailNotificationService:
     """
 
     def _create_weekly_digest_html(
-
         self,
         notifications: List[Notification],
         stats: Dict[str, Any],
@@ -629,7 +643,7 @@ class EmailNotificationService:
         """
         unsubscribe_link = (
             f"https://namaskah.app/unsubscribe?token={unsubscribe_token}"
-        if unsubscribe_token
+            if unsubscribe_token
             else "https://namaskah.app/preferences"
         )
 
@@ -641,7 +655,7 @@ class EmailNotificationService:
                 <p style="margin: 0; color: #6b7280; font-size: 14px;">{n.message}</p>
             </div>
             """
-        for n in notifications[:10]
+                for n in notifications[:10]
             ]
         )
 
@@ -653,7 +667,7 @@ class EmailNotificationService:
                 <td style="padding: 10px; border-bottom: 1px solid #e5e7eb;">{value}</td>
             </tr>
             """
-        for key, value in stats.items()
+                for key, value in stats.items()
             ]
         )
 

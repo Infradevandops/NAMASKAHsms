@@ -1,9 +1,11 @@
 """Admin tier management endpoints."""
 
 from datetime import datetime, timedelta, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -11,7 +13,9 @@ from app.models.user import User
 router = APIRouter()
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
         raise HTTPException(status_code=403, detail="Admin access required")
@@ -31,7 +35,9 @@ async def list_tiers(admin_id: str = Depends(require_admin)):
 
 
 @router.get("/tiers/stats")
-async def get_tier_stats(admin_id: str = Depends(require_admin), db: Session = Depends(get_db)):
+async def get_tier_stats(
+    admin_id: str = Depends(require_admin), db: Session = Depends(get_db)
+):
     """Tier distribution stats for admin dashboard."""
     users = db.query(User).filter(User.is_active == True).all()
     counts = {}
@@ -99,7 +105,9 @@ async def get_expiring_tiers(
                 "id": u.id,
                 "email": u.email,
                 "tier": u.subscription_tier,
-                "expires_at": u.tier_expires_at.isoformat() if u.tier_expires_at else None,
+                "expires_at": (
+                    u.tier_expires_at.isoformat() if u.tier_expires_at else None
+                ),
             }
             for u in users
         ],
@@ -123,7 +131,9 @@ async def update_user_tier(
         raise HTTPException(status_code=404, detail="User not found")
     valid_tiers = {"freemium", "payg", "pro", "custom"}
     if body.tier not in valid_tiers:
-        raise HTTPException(status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid tier. Must be one of: {valid_tiers}"
+        )
     user.subscription_tier = body.tier
     db.commit()
     return {"success": True, "user_id": user_id, "new_tier": body.tier}
@@ -144,8 +154,10 @@ async def bulk_update_tier(
     valid_tiers = {"freemium", "payg", "pro", "custom"}
     if body.tier not in valid_tiers:
         raise HTTPException(status_code=400, detail=f"Invalid tier")
-    updated = db.query(User).filter(User.id.in_(body.user_ids)).update(
-        {"subscription_tier": body.tier}, synchronize_session=False
+    updated = (
+        db.query(User)
+        .filter(User.id.in_(body.user_ids))
+        .update({"subscription_tier": body.tier}, synchronize_session=False)
     )
     db.commit()
     return {"success": True, "updated": updated, "tier": body.tier}

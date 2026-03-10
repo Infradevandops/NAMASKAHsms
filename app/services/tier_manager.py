@@ -2,7 +2,9 @@
 
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
+
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.core.tier_config import TierConfig
 from app.models.user import User
@@ -24,15 +26,15 @@ class TierManager:
 
         # Check if paid tier has expired
         if user.tier in ["pro", "custom"]:
-            expires = getattr(user, 'tier_expires_at', None)
+            expires = getattr(user, "tier_expires_at", None)
         if expires:
             if expires.tzinfo is None:
-                    expires = expires.replace(tzinfo=timezone.utc)
+                expires = expires.replace(tzinfo=timezone.utc)
 
         if expires < datetime.now(timezone.utc):
-                    logger.warning(f"User {user_id} tier expired, downgrading to freemium")
-                    user.tier = "freemium"
-                    self.db.commit()
+            logger.warning(f"User {user_id} tier expired, downgrading to freemium")
+            user.tier = "freemium"
+            self.db.commit()
         return "freemium"
 
         return user.tier or "freemium"
@@ -41,33 +43,39 @@ class TierManager:
         """Check if user has access to a specific feature."""
         tier = self.get_user_tier(user_id)
         config = TierConfig.get_tier_config(tier, self.db)
-        
+
         # Check specific features
         feature_map = {
             "api_access": config.get("has_api_access", False),
             "area_code_selection": config.get("has_area_code_selection", False),
             "isp_filtering": config.get("has_isp_filtering", False),
             "webhooks": config.get("features", {}).get("webhooks", False),
-            "priority_routing": config.get("features", {}).get("priority_routing", False),
+            "priority_routing": config.get("features", {}).get(
+                "priority_routing", False
+            ),
             "custom_branding": config.get("features", {}).get("custom_branding", False),
         }
-        
+
         return feature_map.get(feature, False)
 
     def get_tier_limits(self, user_id: str) -> Dict:
         """Get tier limits for user."""
         tier = self.get_user_tier(user_id)
         config = TierConfig.get_tier_config(tier, self.db)
-        
+
         return {
             "daily_verification_limit": config.get("daily_verification_limit", 100),
-            "monthly_verification_limit": config.get("monthly_verification_limit", 3000),
+            "monthly_verification_limit": config.get(
+                "monthly_verification_limit", 3000
+            ),
             "api_key_limit": config.get("api_key_limit", 0),
             "rate_limit_per_minute": config.get("rate_limit_per_minute", 10),
             "rate_limit_per_hour": config.get("rate_limit_per_hour", 100),
         }
 
-    def upgrade_user_tier(self, user_id: str, new_tier: str, expires_at: Optional[datetime] = None) -> bool:
+    def upgrade_user_tier(
+        self, user_id: str, new_tier: str, expires_at: Optional[datetime] = None
+    ) -> bool:
         """Upgrade user to a new tier."""
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
@@ -105,14 +113,9 @@ class TierManager:
 
     def check_tier_hierarchy(self, current_tier: str, required_tier: str) -> bool:
         """Check if current tier meets or exceeds required tier."""
-        tier_hierarchy = {
-            "freemium": 0,
-            "payg": 1,
-            "pro": 2,
-            "custom": 3
-        }
-        
+        tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
+
         current_level = tier_hierarchy.get(current_tier, 0)
         required_level = tier_hierarchy.get(required_tier, 0)
-        
+
         return current_level >= required_level

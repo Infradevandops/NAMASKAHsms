@@ -1,9 +1,10 @@
 """Area Code Endpoints for Verification."""
 
 from fastapi import APIRouter, Depends, Query
+
 from app.core.dependencies import get_current_user_id
-from app.services.textverified_service import TextVerifiedService
 from app.core.unified_cache import cache
+from app.services.textverified_service import TextVerifiedService
 
 router = APIRouter(prefix="/area-codes", tags=["Area Codes"])
 _tv = TextVerifiedService()

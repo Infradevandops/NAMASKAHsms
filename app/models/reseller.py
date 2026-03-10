@@ -1,15 +1,7 @@
 """Reseller program models."""
 
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-)
+from sqlalchemy import (JSON, Boolean, Column, DateTime, Float, ForeignKey,
+                        Integer, String)
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -88,11 +80,15 @@ class BulkOperation(BaseModel):
     __tablename__ = "bulk_operations"
 
     reseller_id = Column(String, ForeignKey("reseller_accounts.id"), nullable=False)
-    operation_type = Column(String(50), nullable=False)  # credit_topup, account_create, config_update
+    operation_type = Column(
+        String(50), nullable=False
+    )  # credit_topup, account_create, config_update
     total_accounts = Column(Integer, nullable=False)
     processed_accounts = Column(Integer, default=0)
     failed_accounts = Column(Integer, default=0)
-    status = Column(String(50), default="pending")  # pending, processing, completed, failed
+    status = Column(
+        String(50), default="pending"
+    )  # pending, processing, completed, failed
     operation_data = Column(JSON, default=lambda: {})
     error_log = Column(JSON, default=lambda: {})
 

@@ -1,6 +1,5 @@
 """WhatsApp Business API integration."""
 
-
 from typing import Dict, Optional
 
 import httpx

@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user_preference import UserPreference
@@ -19,8 +20,7 @@ class SaveCardRequest(BaseModel):
 
 @router.get("/status")
 async def payment_method_status(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
     has_card = bool(pref and pref.paystack_authorization_code)
@@ -37,7 +37,7 @@ async def payment_method_status(
 async def save_payment_method(
     data: SaveCardRequest,
     user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
     if not pref:
@@ -53,8 +53,7 @@ async def save_payment_method(
 
 @router.delete("")
 async def remove_payment_method(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
     if pref:

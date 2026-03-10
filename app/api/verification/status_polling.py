@@ -5,14 +5,15 @@ Handles real-time status updates for pending verifications
 import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,11 @@ class VerificationStatusService:
     async def poll_verification_status(self, verification_id: str) -> Dict[str, Any]:
         """Poll verification status from TextVerified API."""
         try:
-            verification = self.db.query(Verification).filter(Verification.id == verification_id).first()
+            verification = (
+                self.db.query(Verification)
+                .filter(Verification.id == verification_id)
+                .first()
+            )
 
             if not verification:
                 raise HTTPException(status_code=404, detail="Verification not found")
@@ -40,17 +45,27 @@ class VerificationStatusService:
                     "phone_number": verification.phone_number,
                     "sms_code": verification.sms_code,
                     "sms_text": verification.sms_text,
-                    "updated_at": (verification.updated_at.isoformat() if verification.updated_at else None),
+                    "updated_at": (
+                        verification.updated_at.isoformat()
+                        if verification.updated_at
+                        else None
+                    ),
                 }
 
             if verification.activation_id:
                 try:
-                    tv_status = await self.textverified.get_verification_status(verification.activation_id)
+                    tv_status = await self.textverified.get_verification_status(
+                        verification.activation_id
+                    )
 
                     old_status = verification.status
                     verification.status = tv_status.get("status", verification.status)
-                    verification.sms_code = tv_status.get("sms_code") or verification.sms_code
-                    verification.sms_text = tv_status.get("sms_text") or verification.sms_text
+                    verification.sms_code = (
+                        tv_status.get("sms_code") or verification.sms_code
+                    )
+                    verification.sms_text = (
+                        tv_status.get("sms_text") or verification.sms_text
+                    )
                     verification.updated_at = datetime.now(timezone.utc)
 
                     self.db.commit()
@@ -61,7 +76,9 @@ class VerificationStatusService:
                         )
 
                 except Exception as e:
-                    logger.error(f"TextVerified API polling failed for {verification_id}: {e}")
+                    logger.error(
+                        f"TextVerified API polling failed for {verification_id}: {e}"
+                    )
 
             return {
                 "id": verification.id,
@@ -71,12 +88,18 @@ class VerificationStatusService:
                 "sms_text": verification.sms_text,
                 "service_name": verification.service_name,
                 "created_at": verification.created_at.isoformat(),
-                "updated_at": (verification.updated_at.isoformat() if verification.updated_at else None),
+                "updated_at": (
+                    verification.updated_at.isoformat()
+                    if verification.updated_at
+                    else None
+                ),
             }
 
         except Exception as e:
             logger.error(f"Status polling failed for {verification_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Status polling failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Status polling failed: {str(e)}"
+            )
 
     async def poll_user_verifications(self, user_id: str) -> List[Dict[str, Any]]:
         """Poll status for all pending verifications for a user."""
@@ -110,7 +133,9 @@ class VerificationStatusService:
 
         except Exception as e:
             logger.error(f"User verification polling failed for {user_id}: {e}")
-            raise HTTPException(status_code=500, detail=f"User verification polling failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"User verification polling failed: {str(e)}"
+            )
 
 
 @router.get("/status/{verification_id}")
@@ -124,7 +149,9 @@ async def get_verification_status(
 
     verification = (
         db.query(Verification)
-        .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
+        .filter(
+            Verification.id == verification_id, Verification.user_id == current_user.id
+        )
         .first()
     )
 
@@ -160,7 +187,9 @@ async def force_status_refresh(
 
     verification = (
         db.query(Verification)
-        .filter(Verification.id == verification_id, Verification.user_id == current_user.id)
+        .filter(
+            Verification.id == verification_id, Verification.user_id == current_user.id
+        )
         .first()
     )
 

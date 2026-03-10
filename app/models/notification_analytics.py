@@ -10,20 +10,32 @@ class NotificationAnalytics(BaseModel):
 
     __tablename__ = "notification_analytics"
 
-    notification_id = Column(String, ForeignKey("notifications.id"), nullable=False, index=True)
+    notification_id = Column(
+        String, ForeignKey("notifications.id"), nullable=False, index=True
+    )
     user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     notification_type = Column(String(50), nullable=False, index=True)
-    delivery_method = Column(String(50), nullable=False)  # email, sms, toast, webhook, websocket
-    status = Column(String(20), default="sent", nullable=False, index=True)  # sent, delivered, read, clicked, failed
+    delivery_method = Column(
+        String(50), nullable=False
+    )  # email, sms, toast, webhook, websocket
+    status = Column(
+        String(20), default="sent", nullable=False, index=True
+    )  # sent, delivered, read, clicked, failed
     sent_at = Column(String, nullable=True)
     delivered_at = Column(String, nullable=True)
     read_at = Column(String, nullable=True)
     clicked_at = Column(String, nullable=True)
     failed_at = Column(String, nullable=True)
     failure_reason = Column(String(255), nullable=True)
-    delivery_time_ms = Column(Integer, nullable=True)  # Time from sent to delivered in milliseconds
-    read_time_ms = Column(Integer, nullable=True)  # Time from delivered to read in milliseconds
-    click_time_ms = Column(Integer, nullable=True)  # Time from delivered to clicked in milliseconds
+    delivery_time_ms = Column(
+        Integer, nullable=True
+    )  # Time from sent to delivered in milliseconds
+    read_time_ms = Column(
+        Integer, nullable=True
+    )  # Time from delivered to read in milliseconds
+    click_time_ms = Column(
+        Integer, nullable=True
+    )  # Time from delivered to clicked in milliseconds
     retry_count = Column(Integer, default=0, nullable=False)
     tracking_data = Column(JSON, nullable=True)  # Additional tracking data
 

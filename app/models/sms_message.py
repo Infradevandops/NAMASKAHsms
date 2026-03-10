@@ -20,4 +20,6 @@ class SMSMessage(BaseModel):
     received_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     is_read = Column(Boolean, default=False, index=True)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
-    updated_at = Column(DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
+    updated_at = Column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )

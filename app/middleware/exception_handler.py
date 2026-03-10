@@ -3,19 +3,16 @@
 import traceback
 import uuid
 from typing import Callable, Optional
+
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.middleware.base import BaseHTTPMiddleware
-from app.core.exceptions import (
-    NamaskahException, 
-    PaymentError, 
-    SMSVerificationError,
-    ExternalAPIError,
-    DatabaseError,
-    get_error_code
-)
+
+from app.core.exceptions import (DatabaseError, ExternalAPIError,
+                                 NamaskahException, PaymentError,
+                                 SMSVerificationError, get_error_code)
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
@@ -28,13 +25,13 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
         """Handle exceptions with comprehensive logging and error recovery."""
         request_id = str(uuid.uuid4())
         request.state.request_id = request_id
-        
+
         # Add request context for logging
         log_context = {
             "request_id": request_id,
             "method": request.method,
             "path": request.url.path,
-            "user_agent": request.headers.get("user-agent", "unknown")
+            "user_agent": request.headers.get("user-agent", "unknown"),
         }
 
         try:
@@ -45,11 +42,11 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             # Handle custom application exceptions
             logger.warning(
                 f"Application error: {e.message}",
-                extra={**log_context, "error_code": e.error_code, "details": e.details}
+                extra={**log_context, "error_code": e.error_code, "details": e.details},
             )
-            
+
             status_code = self._get_status_code_for_exception(e)
-            
+
             return JSONResponse(
                 status_code=status_code,
                 content={
@@ -58,25 +55,27 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "code": e.error_code,
                         "message": e.message,
                         "details": e.details,
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
 
         except ValidationError as e:
             # Handle Pydantic validation errors
             logger.warning(
                 "Validation error",
-                extra={**log_context, "validation_errors": e.errors()}
+                extra={**log_context, "validation_errors": e.errors()},
             )
 
             details = []
             for error in e.errors():
-                details.append({
-                    "field": ".".join(str(x) for x in error.get("loc", [])),
-                    "message": error.get("msg", "Validation failed"),
-                    "type": error.get("type", "validation_error")
-                })
+                details.append(
+                    {
+                        "field": ".".join(str(x) for x in error.get("loc", [])),
+                        "message": error.get("msg", "Validation failed"),
+                        "type": error.get("type", "validation_error"),
+                    }
+                )
 
             return JSONResponse(
                 status_code=400,
@@ -86,9 +85,9 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "code": "VALIDATION_ERROR",
                         "message": "Request validation failed",
                         "details": details,
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
 
         except SQLAlchemyError as e:
@@ -96,7 +95,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             logger.error(
                 "Database error",
                 extra={**log_context, "db_error": str(e)},
-                exc_info=True
+                exc_info=True,
             )
 
             return JSONResponse(
@@ -106,17 +105,14 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "type": "DatabaseError",
                         "code": "DATABASE_ERROR",
                         "message": "Database operation failed",
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
 
         except ValueError as e:
             # Handle value errors (often from invalid input)
-            logger.warning(
-                f"Value error: {str(e)}",
-                extra=log_context
-            )
+            logger.warning(f"Value error: {str(e)}", extra=log_context)
 
             return JSONResponse(
                 status_code=400,
@@ -125,17 +121,14 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "type": "ValueError",
                         "code": "INVALID_INPUT",
                         "message": str(e),
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
 
         except KeyError as e:
             # Handle missing required fields
-            logger.warning(
-                f"Missing required field: {str(e)}",
-                extra=log_context
-            )
+            logger.warning(f"Missing required field: {str(e)}", extra=log_context)
 
             return JSONResponse(
                 status_code=400,
@@ -144,9 +137,9 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "type": "KeyError",
                         "code": "MISSING_FIELD",
                         "message": f"Missing required field: {str(e)}",
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
 
         except Exception as e:
@@ -154,7 +147,7 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
             logger.error(
                 f"Unhandled exception: {str(e)}",
                 extra={**log_context, "exception_type": type(e).__name__},
-                exc_info=True
+                exc_info=True,
             )
 
             # Log full traceback for debugging
@@ -167,11 +160,11 @@ class ExceptionHandlerMiddleware(BaseHTTPMiddleware):
                         "type": "InternalError",
                         "code": "INTERNAL_ERROR",
                         "message": "An unexpected error occurred",
-                        "request_id": request_id
+                        "request_id": request_id,
                     }
-                }
+                },
             )
-    
+
     def _get_status_code_for_exception(self, exc: NamaskahException) -> int:
         """Get appropriate HTTP status code for custom exceptions."""
         if isinstance(exc, PaymentError):

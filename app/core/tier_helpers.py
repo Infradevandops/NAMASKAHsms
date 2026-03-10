@@ -7,11 +7,12 @@ including tier hierarchy checks, access validation, and display name mapping.
 import logging
 from datetime import datetime, timezone
 from typing import Dict
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.schemas.tier_response import TierAccessDenied
-
 
 logger = logging.getLogger(__name__)
 
@@ -84,7 +85,9 @@ def get_tier_display_name(tier: str) -> str:
 
 
 def raise_tier_error(current_tier: str, required_tier: str, user_id: str = None):
-    logger.warning(f"Tier access denied: user={user_id}, current={current_tier}, required={required_tier}")
+    logger.warning(
+        f"Tier access denied: user={user_id}, current={current_tier}, required={required_tier}"
+    )
 
     raise HTTPException(
         status_code=402,

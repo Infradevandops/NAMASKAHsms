@@ -36,7 +36,9 @@ class UserPreference(BaseModel):
     subscription_renews_at = Column(String, nullable=True)  # ISO date string
 
     # Verification preferences
-    preferred_area_codes = Column(String, nullable=True)  # JSON array stored as string e.g. '["212","415"]'
+    preferred_area_codes = Column(
+        String, nullable=True
+    )  # JSON array stored as string e.g. '["212","415"]'
 
     # Display Settings (Future proofing)
     theme = Column(String, default="light")

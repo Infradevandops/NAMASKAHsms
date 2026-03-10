@@ -2,15 +2,17 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import and_, func
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/analytics", tags=["Analytics Enhanced"])
@@ -31,22 +33,24 @@ async def get_analytics_summary(
     logger.info(
         f"Analytics summary requested by user_id: {current_user.id}, tier: {current_user.tier or 'freemium'}"
     )
-    
+
     try:
         # Date filtering
         end_date = datetime.now(timezone.utc)
         if to_date:
             try:
-                end_date = datetime.fromisoformat(to_date.replace("Z", "+00:00")).replace(hour=23, minute=59, second=59)
+                end_date = datetime.fromisoformat(
+                    to_date.replace("Z", "+00:00")
+                ).replace(hour=23, minute=59, second=59)
             except ValueError:
                 pass
 
         start_date = end_date - timedelta(days=30)
         if from_date:
             try:
-                start_date = datetime.fromisoformat(from_date.replace("Z", "+00:00")).replace(
-                    hour=0, minute=0, second=0
-                )
+                start_date = datetime.fromisoformat(
+                    from_date.replace("Z", "+00:00")
+                ).replace(hour=0, minute=0, second=0)
             except ValueError:
                 pass
 
@@ -63,12 +67,20 @@ async def get_analytics_summary(
 
         # Calculate totals
         total_verifications = len(verifications)
-        successful_verifications = len([v for v in verifications if v.status == "completed"])
+        successful_verifications = len(
+            [v for v in verifications if v.status == "completed"]
+        )
         failed_verifications = len([v for v in verifications if v.status == "failed"])
-        pending_verifications = len([v for v in verifications if v.status in ["pending", "processing"]])
+        pending_verifications = len(
+            [v for v in verifications if v.status in ["pending", "processing"]]
+        )
 
         # Success rate
-        success_rate = (successful_verifications / total_verifications) if total_verifications > 0 else 0.0
+        success_rate = (
+            (successful_verifications / total_verifications)
+            if total_verifications > 0
+            else 0.0
+        )
 
         # Calculate total spent in period
         spent_transactions = (
@@ -87,10 +99,14 @@ async def get_analytics_summary(
         total_spent = abs(spent_transactions)
 
         # Average cost per verification
-        avg_cost = (total_spent / total_verifications) if total_verifications > 0 else 0.0
+        avg_cost = (
+            (total_spent / total_verifications) if total_verifications > 0 else 0.0
+        )
 
         # Monthly metrics
-        current_month_start = datetime.now(timezone.utc).replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        current_month_start = datetime.now(timezone.utc).replace(
+            day=1, hour=0, minute=0, second=0, microsecond=0
+        )
         monthly_verifications = (
             db.query(func.count(Verification.id))
             .filter(
@@ -128,13 +144,15 @@ async def get_analytics_summary(
         )
 
         for v in recent_verifications:
-            recent_activity.append({
-                "id": v.id,
-                "service_name": getattr(v, 'service_name', v.service),
-                "phone_number": v.phone_number,
-                "status": v.status,
-                "created_at": v.created_at.isoformat(),
-            })
+            recent_activity.append(
+                {
+                    "id": v.id,
+                    "service_name": getattr(v, "service_name", v.service),
+                    "phone_number": v.phone_number,
+                    "status": v.status,
+                    "created_at": v.created_at.isoformat(),
+                }
+            )
 
         # Daily verifications for chart
         daily_stats = {}
@@ -148,12 +166,14 @@ async def get_analytics_summary(
             if day in daily_stats:
                 daily_stats[day] += 1
 
-        daily_verifications = [{"date": k, "count": v} for k, v in sorted(daily_stats.items())]
+        daily_verifications = [
+            {"date": k, "count": v} for k, v in sorted(daily_stats.items())
+        ]
 
         # Top Services & Spending by Service
         services_map = {}
         for v in verifications:
-            svc = getattr(v, 'service_name', v.service) or "Unknown"
+            svc = getattr(v, "service_name", v.service) or "Unknown"
             if svc not in services_map:
                 services_map[svc] = {"count": 0, "success": 0, "spent": 0.0}
 
@@ -165,15 +185,19 @@ async def get_analytics_summary(
         spending_by_service = []
 
         for name, stats in services_map.items():
-            s_rate = (stats["success"] / stats["count"] * 100) if stats["count"] > 0 else 0
+            s_rate = (
+                (stats["success"] / stats["count"] * 100) if stats["count"] > 0 else 0
+            )
             estimated_spend = stats["count"] * avg_cost
 
-            top_services.append({
-                "name": name,
-                "count": stats["count"],
-                "success_rate": s_rate,
-                "total_spent": estimated_spend,
-            })
+            top_services.append(
+                {
+                    "name": name,
+                    "count": stats["count"],
+                    "success_rate": s_rate,
+                    "total_spent": estimated_spend,
+                }
+            )
 
             spending_by_service.append({"name": name, "amount": estimated_spend})
 
@@ -204,13 +228,14 @@ async def get_analytics_summary(
             f"Analytics calculation failed for user {current_user.id}: {str(e)}",
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Analytics calculation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Analytics calculation failed: {str(e)}"
+        )
 
 
 @router.get("/real-time-stats")
 async def get_real_time_stats(
-    user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ) -> Dict[str, Any]:
     """Get real-time statistics for dashboard updates."""
     current_user = db.query(User).filter(User.id == user_id).first()
@@ -224,7 +249,7 @@ async def get_real_time_stats(
             .filter(
                 and_(
                     Verification.user_id == current_user.id,
-                    Verification.status.in_(["pending", "processing"])
+                    Verification.status.in_(["pending", "processing"]),
                 )
             )
             .all()
@@ -232,12 +257,14 @@ async def get_real_time_stats(
 
         updates = []
         for verification in pending_verifications:
-            updates.append({
-                "id": verification.id,
-                "status": verification.status,
-                "phone_number": verification.phone_number,
-                "created_at": verification.created_at.isoformat(),
-            })
+            updates.append(
+                {
+                    "id": verification.id,
+                    "status": verification.status,
+                    "phone_number": verification.phone_number,
+                    "created_at": verification.created_at.isoformat(),
+                }
+            )
 
         return {
             "pending_count": len(pending_verifications),

@@ -39,7 +39,7 @@ class AuthService:
             logger.debug("Querying user by email")
             user = self.db.query(User).filter(User.email == email).first()
             logger.debug("User lookup complete", extra={"found": user is not None})
-            
+
             if not user:
                 return None
 
@@ -47,7 +47,7 @@ class AuthService:
                 return None
 
             verified = verify_password(password, user.password_hash)
-            
+
             if not verified:
                 return None
 
@@ -67,18 +67,16 @@ class AuthService:
                 "email": user.email,
                 "exp": expire,
                 "iat": datetime.now(timezone.utc),
-                "type": "access"
+                "type": "access",
             }
-            
+
             token = jwt.encode(
-                payload,
-                settings.jwt_secret_key,
-                algorithm=settings.jwt_algorithm
+                payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
             )
-            
+
             logger.debug("Token created", extra={"user_id": str(user.id)})
             return token
-            
+
         except Exception as e:
             logger.error("Token creation failed", extra={"error": str(e)})
             traceback.print_exc()
@@ -88,22 +86,20 @@ class AuthService:
         """Verify JWT token and return user ID."""
         try:
             payload = jwt.decode(
-                token,
-                settings.jwt_secret_key,
-                algorithms=[settings.jwt_algorithm]
+                token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
             )
-            
+
             # Support both 'sub' and 'user_id' for backwards compatibility
             user_id = payload.get("sub") or payload.get("user_id")
             if not user_id:
                 return None
-                
+
             user = self.db.query(User).filter(User.id == user_id).first()
             if not user:
                 return None
-                
+
             return user_id
-            
+
         except jwt.ExpiredSignatureError:
             return None
         except jwt.InvalidTokenError as e:
@@ -123,19 +119,15 @@ class AuthService:
 
             # Create new user
             password_hash = get_password_hash(password)
-            user = User(
-                email=email,
-                password_hash=password_hash,
-                **kwargs
-            )
-            
+            user = User(email=email, password_hash=password_hash, **kwargs)
+
             self.db.add(user)
             self.db.commit()
             self.db.refresh(user)
-            
+
             logger.info("User created", extra={"user_id": str(user.id)})
             return user
-            
+
         except Exception as e:
             self.db.rollback()
             logger.error("User creation failed", extra={"error": str(e)})
@@ -147,13 +139,13 @@ class AuthService:
             user = self.db.query(User).filter(User.id == user_id).first()
             if not user:
                 return False
-                
+
             user.password_hash = get_password_hash(new_password)
             self.db.commit()
-            
+
             logger.info("Password updated", extra={"user_id": user_id})
             return True
-            
+
         except Exception as e:
             self.db.rollback()
             logger.error("Password update failed", extra={"error": str(e)})

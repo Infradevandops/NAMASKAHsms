@@ -1,9 +1,10 @@
 """Event broadcaster for sending notifications via WebSocket."""
 
-
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional
+
 from sqlalchemy.orm import Session
+
 from app.core.logging import get_logger
 from app.models.notification import Notification
 from app.websocket.manager import connection_manager
@@ -12,11 +13,9 @@ logger = get_logger(__name__)
 
 
 class EventBroadcaster:
-
     """Service for broadcasting events to connected users via WebSocket."""
 
     def __init__(self, db: Optional[Session] = None):
-
         """Initialize event broadcaster.
 
         Args:
@@ -28,7 +27,7 @@ class EventBroadcaster:
         self,
         user_id: str,
         notification: Notification,
-        ) -> bool:
+    ) -> bool:
         """Broadcast notification to user via WebSocket.
 
         Args:
@@ -56,7 +55,9 @@ class EventBroadcaster:
             if success:
                 logger.info(f"Notification broadcasted to user {user_id} via WebSocket")
             else:
-                logger.debug(f"User {user_id} not connected, notification not broadcasted")
+                logger.debug(
+                    f"User {user_id} not connected, notification not broadcasted"
+                )
 
             return success
 
@@ -71,7 +72,7 @@ class EventBroadcaster:
         title: str,
         description: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-        ) -> bool:
+    ) -> bool:
         """Broadcast activity event to user via WebSocket.
 
         Args:
@@ -116,7 +117,7 @@ class EventBroadcaster:
         reference: str,
         status: str,
         metadata: Optional[Dict[str, Any]] = None,
-        ) -> bool:
+    ) -> bool:
         """Broadcast payment event to user via WebSocket.
 
         Args:
@@ -145,9 +146,13 @@ class EventBroadcaster:
             success = await connection_manager.broadcast_to_user(user_id, message)
 
             if success:
-                logger.info(f"Payment event broadcasted to user {user_id} via WebSocket")
+                logger.info(
+                    f"Payment event broadcasted to user {user_id} via WebSocket"
+                )
             else:
-                logger.debug(f"User {user_id} not connected, payment event not broadcasted")
+                logger.debug(
+                    f"User {user_id} not connected, payment event not broadcasted"
+                )
 
             return success
 
@@ -163,7 +168,7 @@ class EventBroadcaster:
         verification_id: str,
         status: str,
         metadata: Optional[Dict[str, Any]] = None,
-        ) -> bool:
+    ) -> bool:
         """Broadcast verification event to user via WebSocket.
 
         Args:
@@ -192,9 +197,13 @@ class EventBroadcaster:
             success = await connection_manager.broadcast_to_user(user_id, message)
 
             if success:
-                logger.info(f"Verification event broadcasted to user {user_id} via WebSocket")
+                logger.info(
+                    f"Verification event broadcasted to user {user_id} via WebSocket"
+                )
             else:
-                logger.debug(f"User {user_id} not connected, verification event not broadcasted")
+                logger.debug(
+                    f"User {user_id} not connected, verification event not broadcasted"
+                )
 
             return success
 
@@ -209,7 +218,7 @@ class EventBroadcaster:
         title: str,
         content: str,
         metadata: Optional[Dict[str, Any]] = None,
-        ) -> int:
+    ) -> int:
         """Broadcast message to all users on a channel.
 
         Args:
@@ -234,7 +243,9 @@ class EventBroadcaster:
 
             recipients = await connection_manager.broadcast_to_channel(channel, message)
 
-            logger.info(f"Channel broadcast sent to {recipients} users on channel {channel}")
+            logger.info(
+                f"Channel broadcast sent to {recipients} users on channel {channel}"
+            )
 
             return recipients
 
@@ -243,7 +254,6 @@ class EventBroadcaster:
         return 0
 
     def get_connection_stats(self) -> Dict[str, Any]:
-
         """Get WebSocket connection statistics.
 
         Returns:
@@ -262,10 +272,10 @@ class EventBroadcaster:
         except Exception as e:
             logger.error(f"Failed to get connection stats: {e}")
         return {
-                "active_connections": 0,
-                "active_users": 0,
-                "user_ids": [],
-            }
+            "active_connections": 0,
+            "active_users": 0,
+            "user_ids": [],
+        }
 
 
 # Global event broadcaster instance

@@ -1,28 +1,24 @@
 """Mobile notification service for push notifications."""
 
-
 import asyncio
+from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
+
 import aiohttp
 from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.models.device_token import DeviceToken
 from app.models.notification import Notification
-from app.models.device_token import DeviceToken
-from app.models.device_token import DeviceToken
-from app.models.device_token import DeviceToken
-from datetime import datetime, timedelta, timezone
-from app.models.device_token import DeviceToken
 
 logger = get_logger(__name__)
 
 
 class MobileNotificationService:
-
     """Service for sending push notifications to mobile devices."""
 
     def __init__(self, db: Optional[Session] = None):
-
         """Initialize mobile notification service.
 
         Args:
@@ -34,7 +30,9 @@ class MobileNotificationService:
         self.apns_key_id = settings.apns_key_id
         self.apns_team_id = settings.apns_team_id
         self.apns_bundle_id = settings.apns_bundle_id
-        self.apns_enabled = bool(self.apns_key_id and self.apns_team_id and self.apns_bundle_id)
+        self.apns_enabled = bool(
+            self.apns_key_id and self.apns_team_id and self.apns_bundle_id
+        )
         self.db = db
 
         if self.fcm_enabled:
@@ -72,20 +70,20 @@ class MobileNotificationService:
             if platform in ("android", "both") and self.fcm_enabled:
                 android_tokens = [t for t in device_tokens if t.startswith("android_")]
             if android_tokens:
-                    fcm_result = await self._send_fcm_notification(
-                        notification=notification,
-                        device_tokens=android_tokens,
-                    )
-                    results["android"] = fcm_result
+                fcm_result = await self._send_fcm_notification(
+                    notification=notification,
+                    device_tokens=android_tokens,
+                )
+                results["android"] = fcm_result
 
             if platform in ("ios", "both") and self.apns_enabled:
                 ios_tokens = [t for t in device_tokens if t.startswith("ios_")]
             if ios_tokens:
-                    apns_result = await self._send_apns_notification(
-                        notification=notification,
-                        device_tokens=ios_tokens,
-                    )
-                    results["ios"] = apns_result
+                apns_result = await self._send_apns_notification(
+                    notification=notification,
+                    device_tokens=ios_tokens,
+                )
+                results["ios"] = apns_result
 
             logger.info(
                 f"Push notifications sent for user {user_id}: "
@@ -94,7 +92,9 @@ class MobileNotificationService:
             )
 
         except Exception as e:
-            logger.error(f"Failed to send push notifications for user {user_id}: {str(e)}")
+            logger.error(
+                f"Failed to send push notifications for user {user_id}: {str(e)}"
+            )
 
             return results
 
@@ -142,12 +142,16 @@ class MobileNotificationService:
             }
 
             async with aiohttp.ClientSession() as session:
-                async with session.post(fcm_url, json=payload, headers=headers, timeout=10) as response:
+                async with session.post(
+                    fcm_url, json=payload, headers=headers, timeout=10
+                ) as response:
                     if response.status == 200:
                         data = await response.json()
                         result["sent"] = data.get("success", 0)
                         result["failed"] = data.get("failure", 0)
-                        logger.info(f"FCM notification sent: {result['sent']} success, {result['failed']} failed")
+                        logger.info(
+                            f"FCM notification sent: {result['sent']} success, {result['failed']} failed"
+                        )
                     else:
                         logger.error(f"FCM API error: {response.status}")
                         result["failed"] = len(device_tokens)
@@ -213,7 +217,9 @@ class MobileNotificationService:
             True if registration successful, False otherwise
         """
         if not self.db:
-            logger.warning("Database session not available for device token registration")
+            logger.warning(
+                "Database session not available for device token registration"
+            )
         return False
 
         try:
@@ -266,7 +272,9 @@ class MobileNotificationService:
             True if unregistration successful, False otherwise
         """
         if not self.db:
-            logger.warning("Database session not available for device token unregistration")
+            logger.warning(
+                "Database session not available for device token unregistration"
+            )
         return False
 
         try:
@@ -342,7 +350,6 @@ class MobileNotificationService:
         return 0
 
         try:
-
 
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 

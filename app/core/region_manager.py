@@ -1,6 +1,5 @@
 """Multi-region deployment and load balancing."""
 
-
 import asyncio
 from dataclasses import dataclass
 from typing import Dict
@@ -23,7 +22,9 @@ class RegionManager:
             "us-east": Region("US East", "https://us-east.namaskah.app", active=True),
             "us-west": Region("US West", "https://us-west.namaskah.app", active=True),
             "eu-west": Region("EU West", "https://eu-west.namaskah.app", active=True),
-            "asia-pacific": Region("Asia Pacific", "https://ap.namaskah.app", active=True),
+            "asia-pacific": Region(
+                "Asia Pacific", "https://ap.namaskah.app", active=True
+            ),
         }
         self.primary_region = "us-east"
 

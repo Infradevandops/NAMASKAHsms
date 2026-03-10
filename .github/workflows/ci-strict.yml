@@ -1,163 +1,17 @@
-name: CI - Enhanced Pipeline
+name: CI - Enhanced Pipeline [DISABLED - use ci.yml]
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'This workflow is disabled. Use ci.yml instead.'
+        required: false
 
-env:
-  PYTHON_VERSION: '3.11'
-  
+# Disabled: redundant with ci.yml — see docs/CI_IMPROVEMENT_TASKS.md Task 1.1
 jobs:
-  # Fast feedback - run in parallel
-  lint-and-format:
-    name: Code Quality
+  disabled:
+    name: Disabled
     runs-on: ubuntu-latest
+    if: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      
-      - name: Install linting tools
-        run: |
-          pip install flake8 black isort mypy pylint
-          pip install -r requirements.txt
-      
-      - name: Run linting (fail-fast)
-        run: |
-          # Critical syntax errors - fail immediately
-          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          
-          # Code quality checks
-          black --check app/ --diff
-          isort --check-only app/ --diff
-          mypy app/ --ignore-missing-imports --no-error-summary
-          pylint app/ --fail-under=7.0 --disable=C0114,C0115,C0116
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-      
-      - name: Install security tools
-        run: pip install bandit safety semgrep
-      
-      - name: Run security scans
-        run: |
-          # High/Medium severity issues fail the build
-          bandit -r app/ -ll -f json -o bandit-report.json
-          safety check --json --output safety-report.json
-          
-      - name: Upload security reports
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: security-reports
-          path: "*-report.json"
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: namaskah_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: test_password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements-test.txt
-      
-      - name: Run tests with coverage
-        env:
-          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
-          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
-          ENVIRONMENT: testing
-          TEXTVERIFIED_API_KEY: test-key
-          PAYSTACK_SECRET_KEY: test-key
-        run: |
-          # Run tests with strict coverage requirements
-          pytest tests/ -v \
-            --cov=app \
-            --cov-report=xml \
-            --cov-report=term-missing \
-            --cov-fail-under=20 \
-            --maxfail=5 \
-            --tb=short
-      
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: true
-
-  # Only run deployment checks on main branch
-  deployment-readiness:
-    name: Deployment Checks
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: [lint-and-format, security-scan, test]
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Check deployment configuration
-        run: |
-          # Verify critical files exist
-          test -f render.yaml || (echo "❌ render.yaml missing" && exit 1)
-          test -f requirements.txt || (echo "❌ requirements.txt missing" && exit 1)
-          test -f main.py || (echo "❌ main.py missing" && exit 1)
-          
-          echo "✅ Deployment files verified"
-      
-      - name: Validate secrets (non-blocking)
-        run: |
-          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
-            echo "⚠️  RENDER_DEPLOY_HOOK not configured"
-          else
-            echo "✅ RENDER_DEPLOY_HOOK configured"
-          fi
-          
-          if [ -z "${{ secrets.PRODUCTION_URL }}" ]; then
-            echo "⚠️  PRODUCTION_URL not configured"
-          else
-            echo "✅ PRODUCTION_URL configured"
-          fi
+      - run: echo "disabled"

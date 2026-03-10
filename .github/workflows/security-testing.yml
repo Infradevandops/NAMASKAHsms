@@ -5,45 +5,48 @@ on:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  # Task 5.2 — Weekly scheduled accessibility audit
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday 9am UTC
 
 jobs:
   security-scan:
     runs-on: ubuntu-latest
     name: Security Scanning
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         pip install bandit safety semgrep
         pip install -r requirements.txt
-    
+
     - name: Run Bandit Security Scan
       run: |
         bandit -r app/ -f json -o bandit-report.json || true
         bandit -r app/ -f txt
-    
+
     - name: Run Safety Dependency Scan
       run: |
         safety check --json --output safety-report.json || true
         safety check
-    
+
     - name: Run Semgrep Security Scan
       run: |
         semgrep --config=auto app/ --json --output=semgrep-report.json || true
         semgrep --config=auto app/
-    
+
     - name: Upload Security Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: security-reports
+        name: security-reports-${{ github.run_id }}
         path: |
           bandit-report.json
           safety-report.json
@@ -52,7 +55,7 @@ jobs:
   test-suite:
     runs-on: ubuntu-latest
     name: Test Suite
-    
+
     services:
       postgres:
         image: postgres:15
@@ -64,7 +67,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      
+
       redis:
         image: redis:7
         options: >-
@@ -72,20 +75,20 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
         pip install pytest pytest-cov pytest-asyncio
-    
+
     - name: Run Unit Tests
       env:
         DATABASE_URL: postgresql://postgres:test@localhost:5432/test
@@ -94,7 +97,7 @@ jobs:
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
       run: |
         pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=html
-    
+
     - name: Run Integration Tests
       env:
         DATABASE_URL: postgresql://postgres:test@localhost:5432/test
@@ -103,35 +106,35 @@ jobs:
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
       run: |
         pytest tests/integration/ -v
-    
+
     - name: Upload Coverage Reports
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
         name: codecov-umbrella
+        fail_ci_if_error: true
 
   e2e-tests:
     runs-on: ubuntu-latest
     name: E2E Tests
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Install Python dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest playwright
-    
+        pip install pytest pytest-playwright
+
     - name: Install Playwright
-      run: |
-        playwright install chromium
-    
+      run: playwright install chromium
+
     - name: Start Application
       env:
         DATABASE_URL: sqlite:///./test.db
@@ -141,69 +144,73 @@ jobs:
         uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
         curl -f http://localhost:8000/health || exit 1
-    
+
     - name: Run Smoke Tests
-      run: |
-        pytest tests/e2e/ -m smoke -v --html=smoke-report.html
-    
+      run: pytest tests/e2e/ -m smoke -v --html=smoke-report.html
+
     - name: Run Full E2E Suite (main branch only)
       if: github.ref == 'refs/heads/main'
-      run: |
-        pytest tests/e2e/ -v --html=e2e-report.html
-    
+      run: pytest tests/e2e/ -v --html=e2e-report.html
+
     - name: Upload E2E Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: e2e-reports
+        name: e2e-reports-${{ github.run_id }}
         path: |
           smoke-report.html
           e2e-report.html
 
+  # Task 5.2 — Accessibility audit (push + weekly schedule)
   accessibility-audit:
     runs-on: ubuntu-latest
     name: Accessibility Audit
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Set up Node.js
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-    
+
     - name: Install accessibility tools
-      run: |
-        npm install -g @axe-core/cli pa11y lighthouse
-    
+      run: npm install -g @axe-core/cli pa11y lighthouse
+
     - name: Set up Python and start app
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: '3.11'
-    
+
     - name: Start application for testing
       run: |
         pip install -r requirements.txt
         uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
-    
+
+    # Task 5.2 — Use PRODUCTION_URL for scheduled runs, localhost for push/PR
+    - name: Set audit target URL
+      run: |
+        if [ "${{ github.event_name }}" == "schedule" ] && [ -n "${{ secrets.PRODUCTION_URL }}" ]; then
+          echo "AUDIT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
+        else
+          echo "AUDIT_URL=http://localhost:8000" >> $GITHUB_ENV
+        fi
+
     - name: Run axe accessibility scan
-      run: |
-        axe http://localhost:8000 --save axe-report.json || true
-    
+      run: axe ${{ env.AUDIT_URL }} --save axe-report.json || true
+
     - name: Run pa11y accessibility test
-      run: |
-        pa11y http://localhost:8000 --reporter json > pa11y-report.json || true
-    
+      run: pa11y ${{ env.AUDIT_URL }} --reporter json > pa11y-report.json || true
+
     - name: Run Lighthouse accessibility audit
-      run: |
-        lighthouse http://localhost:8000 --only-categories=accessibility --output json --output-path lighthouse-a11y.json || true
-    
+      run: lighthouse ${{ env.AUDIT_URL }} --only-categories=accessibility --output json --output-path lighthouse-a11y.json || true
+
     - name: Upload Accessibility Reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: accessibility-reports
+        name: accessibility-reports-${{ github.run_id }}
         path: |
           axe-report.json
           pa11y-report.json
@@ -214,15 +221,14 @@ jobs:
     name: Deployment Readiness
     needs: [security-scan, test-suite, e2e-tests]
     if: github.ref == 'refs/heads/main'
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Deployment Readiness Check
       run: |
         echo "🚀 Deployment Readiness Check"
         echo "============================="
-        echo ""
         echo "✅ Security scans completed"
         echo "✅ Test suite passed"
         echo "✅ E2E tests passed"

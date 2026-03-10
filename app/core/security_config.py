@@ -1,6 +1,5 @@
 """Security configuration and utilities."""
 
-
 import re
 import secrets
 from typing import Any
@@ -12,18 +11,42 @@ class SecurityConfig:
     """Security configuration management."""
 
     SENSITIVE_PATTERNS = [
-        "password", "token", "secret", "key", "api_key", "auth_token",
-        "bearer", "authorization", "credit_card", "ssn", "social_security",
-        "private_key", "certificate", "credentials", "session_id",
+        "password",
+        "token",
+        "secret",
+        "key",
+        "api_key",
+        "auth_token",
+        "bearer",
+        "authorization",
+        "credit_card",
+        "ssn",
+        "social_security",
+        "private_key",
+        "certificate",
+        "credentials",
+        "session_id",
     ]
 
     SENSITIVE_HEADERS = [
-        "authorization", "x-api-key", "cookie", "x-auth-token",
-        "bearer", "x-session-id", "x-csrf-token",
+        "authorization",
+        "x-api-key",
+        "cookie",
+        "x-auth-token",
+        "bearer",
+        "x-session-id",
+        "x-csrf-token",
     ]
 
     SENSITIVE_PARAMS = [
-        "password", "token", "key", "secret", "api_key", "auth", "session", "signature",
+        "password",
+        "token",
+        "key",
+        "secret",
+        "api_key",
+        "auth",
+        "session",
+        "signature",
     ]
 
     ALLOWED_HOSTS = [
@@ -45,7 +68,9 @@ class SecurityConfig:
     def is_sensitive_key(key: str) -> bool:
         """Check if a key contains sensitive information."""
         key_lower = key.lower()
-        return any(pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS)
+        return any(
+            pattern in key_lower for pattern in SecurityConfig.SENSITIVE_PATTERNS
+        )
 
     @staticmethod
     def sanitize_data(data: Any) -> Any:

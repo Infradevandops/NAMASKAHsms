@@ -1,6 +1,7 @@
 """Response schema validators for tier-related API endpoints."""
 
 from typing import Any, Dict, List, Optional
+
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 

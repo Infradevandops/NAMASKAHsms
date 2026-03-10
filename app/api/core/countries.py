@@ -1,7 +1,9 @@
 """Country and area code API endpoints - US only via TextVerified."""
 
 from typing import Any, Dict, List
+
 from fastapi import APIRouter, HTTPException
+
 from app.core.logging import get_logger
 from app.services.textverified_service import TextVerifiedService
 
@@ -18,11 +20,11 @@ async def get_countries() -> Dict[str, Any]:
             "code": "US",
             "name": "United States",
             "flag": "🇺🇸",
-       "supported": True,
+            "supported": True,
             "area_codes_available": True,
             "carriers_available": True,
             "default": True,
-            "note": "Primary supported country via TextVerified API"
+            "note": "Primary supported country via TextVerified API",
         }
     ]
 
@@ -31,7 +33,7 @@ async def get_countries() -> Dict[str, Any]:
         "countries": countries,
         "total": len(countries),
         "provider": "TextVerified",
-        "note": "Currently only US numbers are supported through our TextVerified integration"
+        "note": "Currently only US numbers are supported through our TextVerified integration",
     }
 
 
@@ -47,25 +49,31 @@ async def get_usa_area_codes() -> Dict[str, Any]:
         for code_data in raw_codes:
             # Extract code and name (handle different possible fields)
             area_code = code_data.get("code") or code_data.get("area_code")
-            name = code_data.get("name") or code_data.get("region") or code_data.get("state")
+            name = (
+                code_data.get("name")
+                or code_data.get("region")
+                or code_data.get("state")
+            )
 
             # Skip if code or name is missing/null
             if not area_code or not name:
                 continue
 
-            area_codes.append({
-                "code": str(area_code),
-                "name": str(name),
-                "country": "US",
-                "available": code_data.get("available", True),
-            })
+            area_codes.append(
+                {
+                    "code": str(area_code),
+                    "name": str(name),
+                    "country": "US",
+                    "available": code_data.get("available", True),
+                }
+            )
 
         result = {
             "success": True,
             "country": "United States",
             "area_codes": area_codes,
             "total": len(area_codes),
-            "provider": "TextVerified"
+            "provider": "TextVerified",
         }
 
         return result
@@ -93,7 +101,7 @@ async def get_usa_carriers() -> Dict[str, Any]:
             "country": "United States",
             "carriers": carriers,
             "total": len(carriers),
-            "provider": "TextVerified"
+            "provider": "TextVerified",
         }
 
     except Exception as e:
@@ -118,11 +126,11 @@ async def get_us_info() -> Dict[str, Any]:
             "provider": "TextVerified",
             "features": [
                 "Area code selection",
-                "Carrier filtering", 
+                "Carrier filtering",
                 "Real-time SMS delivery",
-                "Multiple service support"
-            ]
-        }
+                "Multiple service support",
+            ],
+        },
     }
 
 
@@ -130,7 +138,7 @@ async def get_us_info() -> Dict[str, Any]:
 async def get_country_info(country_code: str) -> Dict[str, Any]:
     """Get information about a specific country - Only US is supported."""
     country_code = country_code.upper()
-    
+
     if country_code == "US":
         return {
             "success": True,
@@ -141,11 +149,11 @@ async def get_country_info(country_code: str) -> Dict[str, Any]:
                 "supported": True,
                 "area_codes_available": True,
                 "carriers_available": True,
-                "provider": "TextVerified"
-            }
+                "provider": "TextVerified",
+            },
         }
     else:
         raise HTTPException(
-            status_code=404, 
-            detail=f"Country '{country_code}' is not supported. Only US numbers are available through TextVerified."
+            status_code=404,
+            detail=f"Country '{country_code}' is not supported. Only US numbers are available through TextVerified.",
         )

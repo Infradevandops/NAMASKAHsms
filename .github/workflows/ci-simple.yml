@@ -1,105 +1,17 @@
-name: CI - Simplified Pipeline
+name: CI - Simplified Pipeline [DISABLED - use ci.yml]
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'This workflow is disabled. Use ci.yml instead.'
+        required: false
 
-env:
-  PYTHON_VERSION: '3.11'
-  
+# Disabled: redundant with ci.yml — see docs/CI_IMPROVEMENT_TASKS.md Task 1.1
 jobs:
-  # Essential checks only
-  basic-checks:
-    name: Basic Quality & Tests
+  disabled:
+    name: Disabled
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_DB: namaskah_test
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: test_password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-      
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    
+    if: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
-      
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 || true
-      
-      - name: Basic syntax check
-        run: |
-          # Only check for critical syntax errors
-          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "Syntax issues found but continuing..."
-        continue-on-error: true
-      
-      - name: Run core tests
-        env:
-          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
-          REDIS_URL: redis://localhost:6379/0
-          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
-          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
-          ENVIRONMENT: testing
-          TEXTVERIFIED_API_KEY: test-key
-          PAYSTACK_SECRET_KEY: test-key
-        run: |
-          # Run tests without strict coverage requirements
-          pytest tests/ -v --maxfail=10 --tb=short || echo "Some tests failed but continuing..."
-        continue-on-error: true
-      
-      - name: Basic security scan
-        run: |
-          pip install bandit || true
-          bandit -r app/ -ll || echo "Security issues found but continuing..."
-        continue-on-error: true
-
-  # Only run deployment checks on main branch
-  deployment-readiness:
-    name: Deployment Checks
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    needs: [basic-checks]
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Check deployment files
-        run: |
-          test -f render.yaml || echo "⚠️ render.yaml missing"
-          test -f main.py || echo "⚠️ main.py missing"
-          test -f requirements.txt || echo "⚠️ requirements.txt missing"
-          echo "✅ Basic deployment check complete"
-      
-      - name: Validate secrets
-        run: |
-          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK }}" ]; then
-            echo "⚠️ RENDER_DEPLOY_HOOK not configured"
-          else
-            echo "✅ RENDER_DEPLOY_HOOK configured"
-          fi
+      - run: echo "disabled"

@@ -1,6 +1,5 @@
 """Event tracking and analytics service."""
 
-
 from datetime import datetime, timezone
 from typing import Any, Dict, List
 
@@ -15,7 +14,9 @@ class EventService:
     def __init__(self):
         self.events = []
 
-    async def track_event(self, user_id: str, event_type: str, properties: Dict[str, Any] = None):
+    async def track_event(
+        self, user_id: str, event_type: str, properties: Dict[str, Any] = None
+    ):
         """Track user event."""
         event = {
             "timestamp": datetime.now(timezone.utc).isoformat(),

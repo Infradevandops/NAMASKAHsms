@@ -1,13 +1,14 @@
 """Affiliate program service."""
 
-
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
+
 from sqlalchemy.orm import Session
+
 from app.models.affiliate import AffiliateApplication
 
-class AffiliateService:
 
+class AffiliateService:
     """Affiliate program management service."""
 
     async def create_application(
@@ -17,7 +18,7 @@ class AffiliateService:
         program_options: List[str],
         message: Optional[str],
         db: Session,
-        ) -> Dict:
+    ) -> Dict:
         """Create new affiliate application."""
 
         # Check for existing application
@@ -92,7 +93,11 @@ class AffiliateService:
 
     async def get_all_applications(self, db: Session) -> List[Dict]:
         """Get all affiliate applications."""
-        applications = db.query(AffiliateApplication).order_by(AffiliateApplication.created_at.desc()).all()
+        applications = (
+            db.query(AffiliateApplication)
+            .order_by(AffiliateApplication.created_at.desc())
+            .all()
+        )
 
         return [
             {
@@ -106,14 +111,18 @@ class AffiliateService:
                 "created_at": app.created_at,
                 "updated_at": app.updated_at,
             }
-        for app in applications
+            for app in applications
         ]
 
     async def update_application_status(
         self, application_id: int, status: str, admin_notes: Optional[str], db: Session
-        ) -> Dict:
+    ) -> Dict:
         """Update affiliate application status."""
-        application = db.query(AffiliateApplication).filter(AffiliateApplication.id == application_id).first()
+        application = (
+            db.query(AffiliateApplication)
+            .filter(AffiliateApplication.id == application_id)
+            .first()
+        )
 
         if not application:
             raise ValueError("Application not found")

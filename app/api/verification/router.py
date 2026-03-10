@@ -1,6 +1,7 @@
 """Verification router - Minimal version for CI fix."""
 
 from fastapi import APIRouter
+
 from app.api.verification.purchase_endpoints import router as purchase_router
 from app.api.verification.services_endpoint import router as services_router
 

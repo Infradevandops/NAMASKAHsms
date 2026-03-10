@@ -1,11 +1,10 @@
 """SOC 2 compliance and security audit service."""
 
-
 from datetime import datetime, timezone
 from typing import Dict
 
-class ComplianceService:
 
+class ComplianceService:
     """SOC 2 compliance management and audit tracking."""
 
     def __init__(self):
@@ -31,7 +30,9 @@ class ComplianceService:
             controls_status[control_id] = await self._assess_control(control_id)
 
         # Calculate overall compliance score
-        compliant_controls = sum(1 for status in controls_status.values() if status["compliant"])
+        compliant_controls = sum(
+            1 for status in controls_status.values() if status["compliant"]
+        )
         compliance_score = (compliant_controls / len(self.soc2_controls)) * 100
 
         return {
@@ -98,8 +99,14 @@ class ComplianceService:
             "compliance_score": compliance_status["compliance_score"],
             "controls_summary": {
                 "total_controls": len(self.soc2_controls),
-                "compliant_controls": sum(1 for c in compliance_status["controls"].values() if c["compliant"]),
-                "non_compliant_controls": sum(1 for c in compliance_status["controls"].values() if not c["compliant"]),
+                "compliant_controls": sum(
+                    1 for c in compliance_status["controls"].values() if c["compliant"]
+                ),
+                "non_compliant_controls": sum(
+                    1
+                    for c in compliance_status["controls"].values()
+                    if not c["compliant"]
+                ),
             },
             "recommendations": [
                 "Continue regular security training",
@@ -113,6 +120,5 @@ class ComplianceService:
             ],
         }
 
-
-# Global compliance service
+        # Global compliance service
         compliance_service = ComplianceService()

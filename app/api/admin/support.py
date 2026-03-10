@@ -1,11 +1,12 @@
 """Support API router for customer support and help desk functionality."""
 
-
 from datetime import datetime, timezone
 from typing import List, Optional
+
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_admin_user_id, get_current_user_id
 from app.core.logging import get_logger
@@ -113,7 +114,11 @@ async def get_ticket_details(
 ):
     """Get specific ticket details."""
     try:
-        ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
+        ticket = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id)
+            .first()
+        )
 
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
@@ -135,7 +140,11 @@ async def close_ticket(
 ):
     """Close a support ticket."""
     try:
-        ticket = db.query(SupportTicket).filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id).first()
+        ticket = (
+            db.query(SupportTicket)
+            .filter(SupportTicket.id == ticket_id, SupportTicket.user_id == user_id)
+            .first()
+        )
 
         if not ticket:
             raise HTTPException(status_code=404, detail="Ticket not found")
@@ -244,7 +253,9 @@ async def mark_faq_helpful(
 ):
     """Mark FAQ item as helpful or not helpful."""
     try:
-        return SuccessResponse(message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful})
+        return SuccessResponse(
+            message="Feedback recorded", data={"faq_id": faq_id, "helpful": helpful}
+        )
 
     except Exception as e:
         logger.error("Failed to record FAQ feedback: %s", e)
@@ -256,12 +267,42 @@ async def get_support_categories():
     """Get available support categories."""
     try:
         categories = [
-            {"id": "technical", "name": "Technical Issue", "description": "Problems with verifications, website, or app functionality", "icon": "🔧"},
-            {"id": "billing", "name": "Billing Question", "description": "Payment issues, refunds, or account credits", "icon": "💳"},
-            {"id": "verification", "name": "Verification Problem", "description": "Issues with specific SMS or voice verifications", "icon": "📱"},
-            {"id": "account", "name": "Account Issue", "description": "Login problems, account settings, or security concerns", "icon": "👤"},
-            {"id": "feature", "name": "Feature Request", "description": "Suggestions for new features or improvements", "icon": "💡"},
-            {"id": "other", "name": "Other", "description": "General questions or other topics", "icon": "❓"},
+            {
+                "id": "technical",
+                "name": "Technical Issue",
+                "description": "Problems with verifications, website, or app functionality",
+                "icon": "🔧",
+            },
+            {
+                "id": "billing",
+                "name": "Billing Question",
+                "description": "Payment issues, refunds, or account credits",
+                "icon": "💳",
+            },
+            {
+                "id": "verification",
+                "name": "Verification Problem",
+                "description": "Issues with specific SMS or voice verifications",
+                "icon": "📱",
+            },
+            {
+                "id": "account",
+                "name": "Account Issue",
+                "description": "Login problems, account settings, or security concerns",
+                "icon": "👤",
+            },
+            {
+                "id": "feature",
+                "name": "Feature Request",
+                "description": "Suggestions for new features or improvements",
+                "icon": "💡",
+            },
+            {
+                "id": "other",
+                "name": "Other",
+                "description": "General questions or other topics",
+                "icon": "❓",
+            },
         ]
 
         return {"categories": categories}
@@ -351,12 +392,18 @@ async def respond_to_ticket(
 
 
 @router.get("/admin/stats")
-async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)):
+async def get_support_stats(
+    admin_id: str = Depends(get_admin_user_id), db: Session = Depends(get_db)
+):
     """Get support statistics (admin only)."""
     try:
         total_tickets = db.query(SupportTicket).count()
-        open_tickets = db.query(SupportTicket).filter(SupportTicket.status == "open").count()
-        resolved_tickets = db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
+        open_tickets = (
+            db.query(SupportTicket).filter(SupportTicket.status == "open").count()
+        )
+        resolved_tickets = (
+            db.query(SupportTicket).filter(SupportTicket.status == "resolved").count()
+        )
 
         avg_response_time = "4.2 hours"
 
@@ -366,7 +413,11 @@ async def get_support_stats(admin_id: str = Depends(get_admin_user_id), db: Sess
             "resolved_tickets": resolved_tickets,
             "closed_tickets": total_tickets - open_tickets - resolved_tickets,
             "avg_response_time": avg_response_time,
-            "resolution_rate": (round((resolved_tickets / total_tickets * 100), 1) if total_tickets > 0 else 0),
+            "resolution_rate": (
+                round((resolved_tickets / total_tickets * 100), 1)
+                if total_tickets > 0
+                else 0
+            ),
         }
 
     except Exception as e:

@@ -1,14 +1,15 @@
 """Unified rate limiting system."""
 
-
 import asyncio
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Any, Dict, Optional, Tuple
+
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 
@@ -87,9 +88,20 @@ class UnifiedRateLimiter:
         }
 
         self.public_paths = [
-            "/", "/app", "/services", "/pricing", "/about", "/contact",
-            "/admin", "/docs", "/redoc", "/openapi.json", "/system/health",
-            "/api/health", "/static", "/api/diagnostics",
+            "/",
+            "/app",
+            "/services",
+            "/pricing",
+            "/about",
+            "/contact",
+            "/admin",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/system/health",
+            "/api/health",
+            "/static",
+            "/api/diagnostics",
         ]
 
     def should_skip_rate_limiting(self, path: str) -> bool:
@@ -123,7 +135,9 @@ class UnifiedRateLimiter:
 
         return request.client.host if request.client else "unknown"
 
-    def check_token_bucket_limit(self, user_id: Optional[str], ip: str) -> Tuple[bool, int]:
+    def check_token_bucket_limit(
+        self, user_id: Optional[str], ip: str
+    ) -> Tuple[bool, int]:
         """Check rate limit using token bucket algorithm."""
         if ip not in self.ip_buckets:
             self.ip_buckets[ip] = TokenBucket(capacity=20, refill_rate=2.0)
@@ -166,7 +180,9 @@ class UnifiedRateLimiter:
 
         return True, 0
 
-    def _clean_old_requests(self, request_times: deque, window: int, current_time: float):
+    def _clean_old_requests(
+        self, request_times: deque, window: int, current_time: float
+    ):
         """Remove old requests outside the window."""
         while request_times and request_times[0] <= current_time - window:
             request_times.popleft()
@@ -228,7 +244,9 @@ class UnifiedRateLimiter:
                     {"limit_type": "burst", "retry_after": bucket_retry},
                 )
 
-            window_allowed, window_retry = self.check_sliding_window_limit(user_id, ip, config, current_time)
+            window_allowed, window_retry = self.check_sliding_window_limit(
+                user_id, ip, config, current_time
+            )
             if not window_allowed:
                 return (
                     False,
@@ -324,7 +342,9 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
         """Apply unified rate limiting."""
         user_id = getattr(request.state, "user_id", None)
 
-        allowed, retry_after, metadata = await self.rate_limiter.check_rate_limit(request, user_id)
+        allowed, retry_after, metadata = await self.rate_limiter.check_rate_limit(
+            request, user_id
+        )
 
         if not allowed:
             logger.warning(
@@ -351,7 +371,9 @@ class UnifiedRateLimitMiddleware(BaseHTTPMiddleware):
 
         if metadata:
             response.headers["X-RateLimit-Limit"] = str(metadata.get("limit", ""))
-            response.headers["X-RateLimit-Remaining"] = str(metadata.get("remaining", ""))
+            response.headers["X-RateLimit-Remaining"] = str(
+                metadata.get("remaining", "")
+            )
             response.headers["X-RateLimit-Reset"] = str(metadata.get("reset", ""))
             response.headers["X-System-Load"] = f"{metadata.get('system_load', 0):.2f}"
 

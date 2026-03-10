@@ -1,11 +1,13 @@
 """WebSocket endpoints for real-time notifications."""
 
 from datetime import datetime, timezone
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
-from app.websocket.manager import manager
-from app.core.logging import get_logger
+
 import jwt
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+
 from app.core.config import get_settings
+from app.core.logging import get_logger
+from app.websocket.manager import manager
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["WebSocket"])
@@ -35,10 +37,11 @@ async def authenticate_websocket(token: str) -> str:
 
 @router.websocket("/ws/notifications")
 async def websocket_notifications(
-    websocket: WebSocket, token: str = Query(..., description="JWT token for authentication")
+    websocket: WebSocket,
+    token: str = Query(..., description="JWT token for authentication"),
 ):
     """WebSocket endpoint for real-time notifications.
-    
+
     Usage:
         ws://localhost:8000/ws/notifications?token=YOUR_JWT_TOKEN
     """

@@ -2,8 +2,10 @@
 
 from datetime import datetime, timezone
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -11,7 +13,9 @@ from app.models.user import User
 router = APIRouter()
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -32,9 +36,9 @@ async def export_users(
             "format": format,
             "status": "completed",
             "download_url": f"/api/admin/download/users_export_{int(datetime.now().timestamp())}.{format}",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to export users: {str(e)}")
 
@@ -54,8 +58,10 @@ async def export_verifications(
             "status": "completed",
             "days": days,
             "download_url": f"/api/admin/download/verifications_export_{int(datetime.now().timestamp())}.{format}",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to export verifications: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to export verifications: {str(e)}"
+        )

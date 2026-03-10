@@ -1,6 +1,5 @@
 """Email service for sending payment notifications."""
 
-
 import asyncio
 import smtplib
 from datetime import datetime, timezone
@@ -32,7 +31,9 @@ class EmailService:
         else:
             logger.warning("Email service not configured")
 
-    async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
+    async def send_payment_receipt(
+        self, user_email: str, payment_details: Dict[str, Any]
+    ) -> bool:
         """Send payment receipt email."""
         if not self.enabled:
             logger.warning("Email service not configured, skipping receipt email")
@@ -41,14 +42,18 @@ class EmailService:
         try:
             subject = "Payment Receipt - Namaskah SMS"
             html_body = self._create_receipt_html(payment_details)
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
             logger.info(f"Payment receipt sent to {user_email}")
             return True
         except Exception as e:
             logger.error(f"Failed to send payment receipt: {str(e)}")
             return False
 
-    async def send_payment_failed_alert(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
+    async def send_payment_failed_alert(
+        self, user_email: str, payment_details: Dict[str, Any]
+    ) -> bool:
         """Send payment failed alert email."""
         if not self.enabled:
             logger.warning("Email service not configured, skipping failed alert email")
@@ -57,14 +62,18 @@ class EmailService:
         try:
             subject = "Payment Failed - Namaskah SMS"
             html_body = self._create_failed_alert_html(payment_details)
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
             logger.info(f"Payment failed alert sent to {user_email}")
             return True
         except Exception as e:
             logger.error(f"Failed to send payment failed alert: {str(e)}")
             return False
 
-    async def send_refund_notification(self, user_email: str, refund_details: Dict[str, Any]) -> bool:
+    async def send_refund_notification(
+        self, user_email: str, refund_details: Dict[str, Any]
+    ) -> bool:
         """Send refund notification email."""
         if not self.enabled:
             logger.warning("Email service not configured, skipping refund email")
@@ -73,7 +82,9 @@ class EmailService:
         try:
             subject = "Refund Processed - Namaskah SMS"
             html_body = self._create_refund_html(refund_details)
-            await self._send_email(to_email=user_email, subject=subject, html_body=html_body)
+            await self._send_email(
+                to_email=user_email, subject=subject, html_body=html_body
+            )
             logger.info(f"Refund notification sent to {user_email}")
             return True
         except Exception as e:
@@ -90,7 +101,9 @@ class EmailService:
             html_part = MIMEText(html_body, "html")
             message.attach(html_part)
             loop = asyncio.get_event_loop()
-            await loop.run_in_executor(None, self._send_smtp, to_email, message.as_string())
+            await loop.run_in_executor(
+                None, self._send_smtp, to_email, message.as_string()
+            )
             return True
         except Exception as e:
             logger.error(f"Failed to send email to {to_email}: {str(e)}")
@@ -113,7 +126,9 @@ class EmailService:
         amount_usd = payment_details.get("amount_usd", 0)
         credits_added = payment_details.get("credits_added", 0)
         new_balance = payment_details.get("new_balance", 0)
-        timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
+        timestamp = payment_details.get(
+            "timestamp", datetime.now(timezone.utc).isoformat()
+        )
 
         return f"""
         <html><body style="font-family: Arial, sans-serif; color: #333;">
@@ -138,7 +153,9 @@ class EmailService:
         reference = payment_details.get("reference", "N/A")
         amount_usd = payment_details.get("amount_usd", 0)
         reason = payment_details.get("reason", "Unknown reason")
-        timestamp = payment_details.get("timestamp", datetime.now(timezone.utc).isoformat())
+        timestamp = payment_details.get(
+            "timestamp", datetime.now(timezone.utc).isoformat()
+        )
 
         return f"""
         <html><body style="font-family: Arial, sans-serif; color: #333;">
@@ -163,7 +180,9 @@ class EmailService:
         amount = refund_details.get("amount", 0)
         reason = refund_details.get("reason", "Refund processed")
         new_balance = refund_details.get("new_balance", 0)
-        timestamp = refund_details.get("timestamp", datetime.now(timezone.utc).isoformat())
+        timestamp = refund_details.get(
+            "timestamp", datetime.now(timezone.utc).isoformat()
+        )
 
         return f"""
         <html><body style="font-family: Arial, sans-serif; color: #333;">

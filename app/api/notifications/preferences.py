@@ -1,34 +1,50 @@
 """Notification preferences endpoints for user customization."""
 
-
 from datetime import time
 from typing import List, Optional
+
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.notification_preference import NotificationPreference, NotificationPreferenceDefaults
+from app.models.notification_preference import (NotificationPreference,
+                                                NotificationPreferenceDefaults)
 from app.models.user import User
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/notifications/preferences", tags=["Notification Preferences"])
+router = APIRouter(
+    prefix="/api/notifications/preferences", tags=["Notification Preferences"]
+)
 
 
 class PreferenceUpdate(BaseModel):
     """Update notification preference."""
+
     notification_type: str = Field(..., description="Type of notification")
-    enabled: bool = Field(default=True, description="Enable/disable this notification type")
-    delivery_methods: List[str] = Field(default=["toast"], description="Delivery methods: toast, email, sms, webhook")
-    quiet_hours_start: Optional[str] = Field(None, description="Quiet hours start (HH:MM)")
+    enabled: bool = Field(
+        default=True, description="Enable/disable this notification type"
+    )
+    delivery_methods: List[str] = Field(
+        default=["toast"], description="Delivery methods: toast, email, sms, webhook"
+    )
+    quiet_hours_start: Optional[str] = Field(
+        None, description="Quiet hours start (HH:MM)"
+    )
     quiet_hours_end: Optional[str] = Field(None, description="Quiet hours end (HH:MM)")
-    frequency: str = Field(default="instant", description="Frequency: instant, daily, weekly, never")
-    created_at_override: bool = Field(default=False, description="Allow override of quiet hours")
+    frequency: str = Field(
+        default="instant", description="Frequency: instant, daily, weekly, never"
+    )
+    created_at_override: bool = Field(
+        default=False, description="Allow override of quiet hours"
+    )
 
 
 class PreferenceResponse(BaseModel):
     """Notification preference response."""
+
     id: str
     notification_type: str
     enabled: bool
@@ -42,7 +58,9 @@ class PreferenceResponse(BaseModel):
 @router.get("")
 async def get_preferences(
     user_id: str = Depends(get_current_user_id),
-    notification_type: Optional[str] = Query(None, description="Filter by notification type"),
+    notification_type: Optional[str] = Query(
+        None, description="Filter by notification type"
+    ),
     db: Session = Depends(get_db),
 ):
     """Get notification preferences for user."""
@@ -51,10 +69,14 @@ async def get_preferences(
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        query = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id)
+        query = db.query(NotificationPreference).filter(
+            NotificationPreference.user_id == user_id
+        )
 
         if notification_type:
-            query = query.filter(NotificationPreference.notification_type == notification_type)
+            query = query.filter(
+                NotificationPreference.notification_type == notification_type
+            )
 
         preferences = query.all()
 
@@ -81,7 +103,9 @@ async def get_preferences(
 @router.put("")
 async def update_preferences(
     user_id: str = Depends(get_current_user_id),
-    preferences: List[PreferenceUpdate] = Body(..., description="List of preferences to update"),
+    preferences: List[PreferenceUpdate] = Body(
+        ..., description="List of preferences to update"
+    ),
     db: Session = Depends(get_db),
 ):
     """Update notification preferences for user."""
@@ -148,7 +172,9 @@ async def update_preferences(
 
         db.commit()
 
-        logger.info(f"Updated {updated_count} and created {created_count} preferences for user {user_id}")
+        logger.info(
+            f"Updated {updated_count} and created {created_count} preferences for user {user_id}"
+        )
 
         return {
             "updated": updated_count,
@@ -178,7 +204,11 @@ async def reset_preferences(
         if not user:
             raise ValueError(f"User {user_id} not found")
 
-        deleted = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).delete()
+        deleted = (
+            db.query(NotificationPreference)
+            .filter(NotificationPreference.user_id == user_id)
+            .delete()
+        )
 
         db.commit()
 
@@ -223,7 +253,9 @@ async def get_default_preferences(
 async def create_default_preference(
     notification_type: str = Query(..., description="Notification type"),
     enabled: bool = Query(True, description="Enabled by default"),
-    delivery_methods: str = Query("toast", description="Default delivery methods (comma-separated)"),
+    delivery_methods: str = Query(
+        "toast", description="Default delivery methods (comma-separated)"
+    ),
     frequency: str = Query("instant", description="Default frequency"),
     description: str = Query(None, description="Description"),
     db: Session = Depends(get_db),
@@ -232,7 +264,9 @@ async def create_default_preference(
     try:
         existing = (
             db.query(NotificationPreferenceDefaults)
-            .filter(NotificationPreferenceDefaults.notification_type == notification_type)
+            .filter(
+                NotificationPreferenceDefaults.notification_type == notification_type
+            )
             .first()
         )
 

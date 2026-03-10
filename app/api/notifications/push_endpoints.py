@@ -1,16 +1,16 @@
 """Push notification endpoints for mobile devices."""
 
-
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
+
 from app.core.dependencies import get_current_user_id, get_db
 from app.core.logging import get_logger
 from app.models.device_token import DeviceToken
-from app.services.mobile_notification_service import MobileNotificationService
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
-from app.models.notification_preference import NotificationPreference
+from app.services.mobile_notification_service import MobileNotificationService
 
 logger = get_logger(__name__)
 
@@ -300,7 +300,11 @@ async def get_push_preferences(
         )
 
         # Filter for push-enabled preferences
-        push_preferences = [p.to_dict() for p in preferences if "push" in (p.delivery_methods or "").lower()]
+        push_preferences = [
+            p.to_dict()
+            for p in preferences
+            if "push" in (p.delivery_methods or "").lower()
+        ]
 
         return {
             "success": True,

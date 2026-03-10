@@ -1,8 +1,9 @@
 """WebSocket connection manager for real-time notifications."""
 
-from typing import Dict, Set
-from fastapi import WebSocket
 import logging
+from typing import Dict, Set
+
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 

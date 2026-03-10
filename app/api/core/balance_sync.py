@@ -2,13 +2,15 @@
 
 from datetime import datetime, timezone
 from typing import Any, Dict
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.user import User
 from app.models.transaction import Transaction
+from app.models.user import User
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/balance", tags=["Balance Sync"])
@@ -38,7 +40,9 @@ class BalanceSyncService:
             if api_balance is not None and abs(db_balance - api_balance) > 0.01:
                 user.credits = api_balance
                 self.db.commit()
-                logger.info(f"Updated admin user {user.id} balance from {db_balance} to {api_balance}")
+                logger.info(
+                    f"Updated admin user {user.id} balance from {db_balance} to {api_balance}"
+                )
                 db_balance = api_balance
 
             return {
@@ -52,7 +56,9 @@ class BalanceSyncService:
 
         except Exception as e:
             logger.error(f"Balance sync failed for user {user.id}: {e}")
-            raise HTTPException(status_code=500, detail=f"Balance sync failed: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Balance sync failed: {str(e)}"
+            )
 
     async def get_textverified_balance(self) -> float:
         """Get balance from TextVerified API."""

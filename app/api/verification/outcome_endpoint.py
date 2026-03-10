@@ -1,9 +1,11 @@
 """Record verification outcome for history and analytics."""
 
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
-from typing import Optional
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.verification import Verification
@@ -24,10 +26,14 @@ async def record_outcome(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id),
 ):
-    v = db.query(Verification).filter(
-        Verification.id == verification_id,
-        Verification.user_id == user_id,
-    ).first()
+    v = (
+        db.query(Verification)
+        .filter(
+            Verification.id == verification_id,
+            Verification.user_id == user_id,
+        )
+        .first()
+    )
 
     if not v:
         raise HTTPException(status_code=404, detail="Verification not found")

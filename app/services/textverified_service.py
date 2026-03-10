@@ -4,17 +4,16 @@ import asyncio
 import json
 import os
 from typing import Any, Dict, List, Optional
-from app.core.logging import get_logger
+
 import requests
 from requests.adapters import HTTPAdapter
 
+from app.core.logging import get_logger
+
 try:
     import textverified
-    from textverified.data import (
-        NumberType,
-        ReservationCapability,
-        ReservationType,
-    )
+    from textverified.data import (NumberType, ReservationCapability,
+                                   ReservationType)
 except ImportError:
     textverified = None
 
@@ -34,6 +33,7 @@ _SERVICES_NAMES_TTL = 86400  # 24 hours
 def _get_redis():
     """Lazy import to avoid circular deps."""
     from app.core.cache import get_redis
+
     return get_redis()
 
 
@@ -42,8 +42,12 @@ class TextVerifiedService:
 
     def __init__(self):
         self.api_key = os.getenv("TEXTVERIFIED_API_KEY")
-        self.api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv("TEXTVERIFIED_EMAIL")
-        self.enabled = textverified is not None and bool(self.api_key and self.api_username)
+        self.api_username = os.getenv("TEXTVERIFIED_USERNAME") or os.getenv(
+            "TEXTVERIFIED_EMAIL"
+        )
+        self.enabled = textverified is not None and bool(
+            self.api_key and self.api_username
+        )
 
         if self.enabled:
             try:
@@ -53,16 +57,18 @@ class TextVerifiedService:
                 )
                 # Increase connection pool to handle concurrent polling
                 adapter = HTTPAdapter(pool_connections=1, pool_maxsize=30)
-                if hasattr(self.client, '_session'):
-                    self.client._session.mount('https://', adapter)
-                    self.client._session.mount('http://', adapter)
+                if hasattr(self.client, "_session"):
+                    self.client._session.mount("https://", adapter)
+                    self.client._session.mount("http://", adapter)
                 logger.info("TextVerified client initialized successfully")
             except Exception as e:
                 logger.error(f"TextVerified client initialization failed: {e}")
                 self.enabled = False
                 self.client = None
         else:
-            logger.warning("TextVerified service disabled - missing credentials or library")
+            logger.warning(
+                "TextVerified service disabled - missing credentials or library"
+            )
             self.client = None
 
     # ------------------------------------------------------------------
@@ -73,18 +79,21 @@ class TextVerifiedService:
         """Fetch live area codes from TextVerified API."""
         if not self.enabled:
             return []
-        
+
         # Use unified_cache
         from app.core.unified_cache import cache
+
         try:
             cached = await cache.get(_AREA_CODES_CACHE_KEY)
             if cached:
                 return cached
         except Exception:
             pass
-        
+
         try:
-            codes = await asyncio.wait_for(asyncio.to_thread(self.client.services.area_codes), timeout=10.0)
+            codes = await asyncio.wait_for(
+                asyncio.to_thread(self.client.services.area_codes), timeout=10.0
+            )
             result = [{"area_code": c.area_code, "state": c.state} for c in codes]
             try:
                 await cache.set(_AREA_CODES_CACHE_KEY, result, _AREA_CODES_TTL)
@@ -102,6 +111,7 @@ class TextVerifiedService:
         """
         # Use unified_cache
         from app.core.unified_cache import cache
+
         try:
             cached = await cache.get(_AC_STATE_CACHE_KEY)
             if cached:
@@ -112,7 +122,9 @@ class TextVerifiedService:
         # Fetch live from TextVerified
         codes = await self.get_area_codes_list()
         if not codes:
-            logger.warning("TextVerified returned no area codes — proximity chain unavailable")
+            logger.warning(
+                "TextVerified returned no area codes — proximity chain unavailable"
+            )
             return {}
 
         # Group by state
@@ -152,7 +164,9 @@ class TextVerifiedService:
         )
 
         if not state:
-            logger.debug(f"Area code {requested} not found in live index — sending as sole preference")
+            logger.debug(
+                f"Area code {requested} not found in live index — sending as sole preference"
+            )
             return [requested]
 
         siblings = [c for c in by_state[state] if c != requested]
@@ -178,7 +192,7 @@ class TextVerifiedService:
 
     async def get_services_list(self) -> List[Dict[str, Any]]:
         """Fetch live services from TextVerified API.
-        
+
         Phase 1: Return service names immediately (fast, <2s).
         Pricing is fetched separately via get_services_with_pricing() and cached 24h.
         """
@@ -205,12 +219,21 @@ class TextVerifiedService:
 
         try:
             services = await asyncio.wait_for(
-                asyncio.to_thread(self.client.services.list, NumberType.MOBILE, ReservationType.VERIFICATION),
-                timeout=15.0
+                asyncio.to_thread(
+                    self.client.services.list,
+                    NumberType.MOBILE,
+                    ReservationType.VERIFICATION,
+                ),
+                timeout=15.0,
             )
             # Return with default price immediately — pricing populated async via batch
             result = [
-                {"id": s.service_name, "name": s.service_name.title(), "price": 2.50, "cost": 2.50}
+                {
+                    "id": s.service_name,
+                    "name": s.service_name.title(),
+                    "price": 2.50,
+                    "cost": 2.50,
+                }
                 for s in services
             ]
             try:
@@ -227,6 +250,7 @@ class TextVerifiedService:
     async def _fetch_and_cache_pricing(self, services) -> None:
         """Background task: fetch all service prices and update 24h cache."""
         from app.core.unified_cache import cache
+
         sem = asyncio.Semaphore(10)
 
         async def _price(service_name: str) -> float:
@@ -241,7 +265,7 @@ class TextVerifiedService:
                             number_type=NumberType.MOBILE,
                             capability=ReservationCapability.SMS,
                         ),
-                        timeout=8.0
+                        timeout=8.0,
                     )
                     return snap.price
                 except Exception:
@@ -250,7 +274,12 @@ class TextVerifiedService:
         try:
             prices = await asyncio.gather(*[_price(s.service_name) for s in services])
             result = [
-                {"id": s.service_name, "name": s.service_name.title(), "price": float(p), "cost": float(p)}
+                {
+                    "id": s.service_name,
+                    "name": s.service_name.title(),
+                    "price": float(p),
+                    "cost": float(p),
+                }
                 for s, p in zip(services, prices)
             ]
             await cache.set(_SERVICES_CACHE_KEY, result, _SERVICES_TTL)
@@ -290,7 +319,11 @@ class TextVerifiedService:
         if not self.enabled:
             raise RuntimeError("TextVerified service not available")
 
-        cap = ReservationCapability.SMS if capability == "sms" else ReservationCapability.VOICE
+        cap = (
+            ReservationCapability.SMS
+            if capability == "sms"
+            else ReservationCapability.VOICE
+        )
 
         # Build preference list from live TextVerified data
         area_code_options: Optional[List[str]] = None
@@ -307,19 +340,30 @@ class TextVerifiedService:
             service_name=service,
             capability=cap,
             area_code_select_option=area_code_options,
-            carrier_select_option=self._build_carrier_preference(carrier) if carrier else None,
+            carrier_select_option=(
+                self._build_carrier_preference(carrier) if carrier else None
+            ),
         )
 
         assigned_number = result.number
-        assigned_area_code = assigned_number[2:5] if assigned_number.startswith("+1") else None
-        fallback_applied = bool(area_code and assigned_area_code and assigned_area_code != area_code)
+        assigned_area_code = (
+            assigned_number[2:5] if assigned_number.startswith("+1") else None
+        )
+        fallback_applied = bool(
+            area_code and assigned_area_code and assigned_area_code != area_code
+        )
 
         # Determine same-state using the live index (already cached from above)
         same_state = True
         if fallback_applied and area_code and assigned_area_code:
             by_state = await self._get_area_codes_by_state()
-            req_state = next((s for s, codes in by_state.items() if area_code in codes), None)
-            asgn_state = next((s for s, codes in by_state.items() if assigned_area_code in codes), None)
+            req_state = next(
+                (s for s, codes in by_state.items() if area_code in codes), None
+            )
+            asgn_state = next(
+                (s for s, codes in by_state.items() if assigned_area_code in codes),
+                None,
+            )
             same_state = req_state is not None and req_state == asgn_state
             logger.warning(
                 f"Area code fallback: requested={area_code}({req_state}), "
@@ -353,16 +397,21 @@ class TextVerifiedService:
     ) -> Dict[str, Any]:
         try:
             from app.core.config import get_settings
+
             settings = get_settings()
-            
-            result = await self.create_verification(service=service, area_code=area_code, carrier=carrier)
-            
+
+            result = await self.create_verification(
+                service=service, area_code=area_code, carrier=carrier
+            )
+
             # Apply markup to cost
             raw_cost = result["cost"]
             marked_up_cost = round(raw_cost * settings.price_markup, 2)
-            
-            logger.info(f"Purchase cost: raw=${raw_cost:.2f}, marked_up=${marked_up_cost:.2f} (markup={settings.price_markup}x)")
-            
+
+            logger.info(
+                f"Purchase cost: raw=${raw_cost:.2f}, marked_up=${marked_up_cost:.2f} (markup={settings.price_markup}x)"
+            )
+
             return {
                 "success": True,
                 "verification_id": result["id"],

@@ -1,6 +1,5 @@
 """Background worker for webhook processing."""
 
-
 import asyncio
 import logging
 

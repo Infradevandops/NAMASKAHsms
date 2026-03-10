@@ -1,7 +1,7 @@
 """Data encryption utilities."""
 
-
 from cryptography.fernet import Fernet, InvalidToken
+
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -9,7 +9,6 @@ logger = get_logger(__name__)
 
 
 class EncryptionManager:
-
     """Manages data encryption/decryption."""
 
     def __init__(self):
@@ -19,13 +18,12 @@ class EncryptionManager:
 
         @handle_encryption_exceptions
         def encrypt(self, data: str) -> str:
-
             """Encrypt data."""
+
         encrypted = self.cipher.encrypt(data.encode())
         return encrypted.decode()
 
     def decrypt(self, encrypted_data: str) -> str:
-
         """Decrypt data."""
         try:
             decrypted = self.cipher.decrypt(encrypted_data.encode())
@@ -38,18 +36,15 @@ class EncryptionManager:
             return encrypted_data
 
     def encrypt_field(self, obj: dict, field: str) -> dict:
-
         """Encrypt specific field in object."""
         if field in obj and obj[field]:
             obj[field] = self.encrypt(str(obj[field]))
         return obj
 
     def decrypt_field(self, obj: dict, field: str) -> dict:
-
         """Decrypt specific field in object."""
         if field in obj and obj[field]:
             obj[field] = self.decrypt(obj[field])
         return obj
-
 
         encryption_manager = EncryptionManager()

@@ -1,6 +1,6 @@
 """Transaction and payment - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, JSON, String
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 
 from app.models.base import BaseModel
 
@@ -12,13 +12,15 @@ class Transaction(BaseModel):
 
     user_id = Column(String, nullable=False, index=True)
     amount = Column(Float, nullable=False)
-    type = Column(String, nullable=False, index=True)  # credit, debit, sms_purchase, etc.
+    type = Column(
+        String, nullable=False, index=True
+    )  # credit, debit, sms_purchase, etc.
     description = Column(String)
     tier = Column(String)
     service = Column(String)
     filters = Column(String)
     status = Column(String, default="completed")
-    
+
     # Idempotency and linking
     reference = Column(String, unique=True, index=True)
     idempotency_key = Column(String, unique=True, index=True)
@@ -41,11 +43,13 @@ class PaymentLog(BaseModel):
     webhook_received = Column(Boolean, default=False, nullable=False)
     credited = Column(Boolean, default=False, nullable=False)
     error_message = Column(String)
-    
+
     # Idempotency and state machine
     idempotency_key = Column(String, unique=True, index=True)
     processing_started_at = Column(DateTime)
     processing_completed_at = Column(DateTime)
-    state = Column(String(20), default="pending", index=True)  # pending, processing, completed, failed, refunded
+    state = Column(
+        String(20), default="pending", index=True
+    )  # pending, processing, completed, failed, refunded
     state_transitions = Column(JSON)  # Audit trail
     lock_version = Column(Integer, default=0, nullable=False)  # Optimistic locking

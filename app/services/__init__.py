@@ -1,8 +1,10 @@
 """Services package with dependency injection support."""
 
 from sqlalchemy.orm import Session
-from .base import BaseService
+
 from .auth_service import AuthService
+from .base import BaseService
+
 # Temporarily disabled due to syntax errors
 # from .payment_service import PaymentService
 
@@ -34,7 +36,7 @@ def get_auth_service(db: Session):
 
 __all__ = [
     "BaseService",
-    "ServiceFactory", 
+    "ServiceFactory",
     "get_service_factory",
     "get_auth_service",
 ]

@@ -1,15 +1,15 @@
 """Carrier/ISP filtering endpoints."""
 
-
 from fastapi import APIRouter, Depends
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.user import User
-from sqlalchemy import case, func
-from app.models.verification import Verification
 from app.core.unified_cache import cache
+from app.models.user import User
+from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -32,12 +32,13 @@ async def get_available_carriers(
     try:
         # Get unique carriers from past verifications
 
-
         carriers_query = (
             db.query(
                 Verification.operator,
                 func.count(Verification.id).label("total"),
-                func.sum(case((Verification.status == "completed", 1), else_=0)).label("completed"),
+                func.sum(case((Verification.status == "completed", 1), else_=0)).label(
+                    "completed"
+                ),
             )
             .filter(
                 Verification.country == country,
@@ -211,14 +212,21 @@ async def get_available_area_codes(
         for code in codes:
             area_code_str = str(code.get("area_code", ""))
             city_data = next(
-                (ac for ac in STATIC_FALLBACK_AREA_CODES if ac["area_code"] == area_code_str),
+                (
+                    ac
+                    for ac in STATIC_FALLBACK_AREA_CODES
+                    if ac["area_code"] == area_code_str
+                ),
                 {"city": "Unknown", "state": code.get("state", country.upper())},
             )
-            enhanced.append({
-                "area_code": area_code_str,
-                "city": city_data.get("city", "Unknown"),
-                "state": code.get("state") or city_data.get("state", country.upper()),
-            })
+            enhanced.append(
+                {
+                    "area_code": area_code_str,
+                    "city": city_data.get("city", "Unknown"),
+                    "state": code.get("state")
+                    or city_data.get("state", country.upper()),
+                }
+            )
 
         # Get user tier for response
         user = db.query(User).filter(User.id == user_id).first()
@@ -236,11 +244,15 @@ async def get_available_area_codes(
         # Cache for 5 minutes
         await cache.set(cache_key, result, ttl=300)
 
-        logger.info(f"Retrieved {len(enhanced)} area codes from TextVerified API for {country}")
+        logger.info(
+            f"Retrieved {len(enhanced)} area codes from TextVerified API for {country}"
+        )
         return result
 
     except Exception as e:
-        logger.error(f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True)
+        logger.error(
+            f"Failed to get area codes from TextVerified API: {str(e)}", exc_info=True
+        )
 
         # FALLBACK to static list
         user = db.query(User).filter(User.id == user_id).first()

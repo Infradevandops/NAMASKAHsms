@@ -1,8 +1,10 @@
 """Admin actions endpoints."""
 
 from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
@@ -10,7 +12,9 @@ from app.models.user import User
 router = APIRouter()
 
 
-async def require_admin(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def require_admin(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Verify admin access."""
     user = db.query(User).filter(User.id == user_id).first()
     if not user or not user.is_admin:
@@ -29,10 +33,12 @@ async def trigger_system_maintenance(
             "action": "system_maintenance",
             "status": "initiated",
             "admin_id": admin_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to trigger maintenance: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Failed to trigger maintenance: {str(e)}"
+        )
 
 
 @router.post("/actions/clear-cache")
@@ -46,7 +52,7 @@ async def clear_system_cache(
             "action": "clear_cache",
             "status": "completed",
             "admin_id": admin_id,
-            "timestamp": datetime.now(timezone.utc).isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")

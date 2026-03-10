@@ -2,8 +2,10 @@
 
 from datetime import datetime, timezone
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -27,7 +29,7 @@ async def get_user_activities(
     date_to: Optional[str] = Query(None),
 ):
     """Get user activities with filtering and pagination.
-    
+
     Returns:
         - limit: Number of records returned
         - activities: List of activities
@@ -53,21 +55,22 @@ async def get_user_activities(
                 date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
                 query = query.filter(Activity.created_at >= date_from_obj)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)")
+                raise HTTPException(
+                    status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)"
+                )
 
         if date_to:
             try:
                 date_to_obj = datetime.strptime(date_to, "%Y-%m-%d")
                 query = query.filter(Activity.created_at <= date_to_obj)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)")
+                raise HTTPException(
+                    status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)"
+                )
 
         # Apply pagination and ordering
         activities = (
-            query.order_by(Activity.created_at.desc())
-            .offset(offset)
-            .limit(limit)
-            .all()
+            query.order_by(Activity.created_at.desc()).offset(offset).limit(limit).all()
         )
 
         logger.info(f"Retrieved {len(activities)} activities for user {user_id}")
@@ -99,26 +102,31 @@ async def get_activity_summary(
     try:
         # Get activity counts by type
         activities = db.query(Activity).filter(Activity.user_id == user_id).all()
-        
+
         summary = {
             "total_activities": len(activities),
             "by_resource_type": {},
             "by_status": {},
-            "recent_count": 0
+            "recent_count": 0,
         }
 
         # Count by resource type and status
         for activity in activities:
             # By resource type
             resource_type = activity.resource_type or "unknown"
-            summary["by_resource_type"][resource_type] = summary["by_resource_type"].get(resource_type, 0) + 1
-            
+            summary["by_resource_type"][resource_type] = (
+                summary["by_resource_type"].get(resource_type, 0) + 1
+            )
+
             # By status
             status = activity.status or "unknown"
             summary["by_status"][status] = summary["by_status"].get(status, 0) + 1
-            
+
             # Recent activities (last 24 hours)
-            if activity.created_at and (datetime.now(timezone.utc) - activity.created_at).days < 1:
+            if (
+                activity.created_at
+                and (datetime.now(timezone.utc) - activity.created_at).days < 1
+            ):
                 summary["recent_count"] += 1
 
         return summary

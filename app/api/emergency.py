@@ -1,35 +1,38 @@
 """Emergency admin reset endpoint."""
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
-from app.core.database import get_db
 import bcrypt
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+
+from app.core.database import get_db
 
 router = APIRouter()
 
 import os
+
 RESET_SECRET = os.getenv("EMERGENCY_SECRET", "")
+
 
 @router.get("/emergency-create-admin")
 async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
     if not RESET_SECRET:
         raise HTTPException(status_code=404, detail="Not found")
     """Emergency admin creation using ORM - bypasses SQL issues."""
-    
+
     if secret != RESET_SECRET:
         raise HTTPException(status_code=403, detail="Invalid secret")
-    
+
     from app.models.user import User
     from app.utils.security import get_password_hash
-    
+
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Namaskah@Admin2024")
-    
+
     try:
         # Check if user exists
         existing = db.query(User).filter(User.email == ADMIN_EMAIL).first()
-        
+
         if existing:
             # Update existing user
             existing.password_hash = get_password_hash(ADMIN_PASSWORD)
@@ -43,7 +46,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
                 "status": "updated",
                 "email": ADMIN_EMAIL,
                 "id": existing.id,
-                "message": "Admin user updated successfully"
+                "message": "Admin user updated successfully",
             }
         else:
             # Create new admin user using ORM
@@ -64,7 +67,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
                 provider="email",
                 failed_login_attempts=0,
                 language="en",
-                currency="USD"
+                currency="USD",
             )
             db.add(admin)
             db.commit()
@@ -73,7 +76,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
                 "status": "created",
                 "email": ADMIN_EMAIL,
                 "id": admin.id,
-                "message": "Admin user created successfully"
+                "message": "Admin user created successfully",
             }
     except Exception as e:
         db.rollback()

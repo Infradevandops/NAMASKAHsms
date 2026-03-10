@@ -1,10 +1,11 @@
 """Custom validation utilities for Pydantic schemas."""
 
+import json
 import re
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple, TypeVar, Generic
-from app.core.pydantic_compat import field_validator, BaseModel
-import json
+from typing import Any, Dict, Generic, List, Optional, Tuple, TypeVar
+
+from app.core.pydantic_compat import BaseModel, field_validator
 
 
 def validate_phone_number(phone: str) -> str:
@@ -57,7 +58,7 @@ def validate_email(email: str) -> str:
         raise ValueError("Invalid email format")
 
     # Basic email validation
-    email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
     if not re.match(email_pattern, email):
         raise ValueError("Invalid email format")
 
@@ -70,13 +71,13 @@ def validate_password_strength(password: str) -> str:
         raise ValueError("Password must be at least 8 characters long")
 
     # Check for at least one uppercase, lowercase, digit, and special character
-    if not re.search(r'[A-Z]', password):
+    if not re.search(r"[A-Z]", password):
         raise ValueError("Password must contain at least one uppercase letter")
 
-    if not re.search(r'[a-z]', password):
+    if not re.search(r"[a-z]", password):
         raise ValueError("Password must contain at least one lowercase letter")
 
-    if not re.search(r'\d', password):
+    if not re.search(r"\d", password):
         raise ValueError("Password must contain at least one digit")
 
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
@@ -106,8 +107,10 @@ def validate_api_key_name(name: str) -> str:
     if len(name) < 3 or len(name) > 50:
         raise ValueError("API key name must be between 3 and 50 characters")
 
-    if not re.match(r'^[a-zA-Z0-9_\-\s]+$', name):
-        raise ValueError("API key name can only contain letters, numbers, spaces, underscores, and hyphens")
+    if not re.match(r"^[a-zA-Z0-9_\-\s]+$", name):
+        raise ValueError(
+            "API key name can only contain letters, numbers, spaces, underscores, and hyphens"
+        )
 
     return name
 
@@ -118,7 +121,7 @@ def validate_webhook_url(url: str) -> str:
         return url
 
     url = url.strip()
-    if not re.match(r'^https?://', url):
+    if not re.match(r"^https?://", url):
         raise ValueError("Webhook URL must start with http:// or https://")
 
     return url
@@ -141,7 +144,7 @@ def validate_area_code(area_code: str) -> str:
         return area_code
 
     # Remove non-digits
-    cleaned = re.sub(r'\D', '', area_code)
+    cleaned = re.sub(r"\D", "", area_code)
 
     if len(cleaned) != 3:
         raise ValueError("Area code must be 3 digits")
@@ -198,9 +201,9 @@ def sanitize_input(value: str) -> str:
         return value
 
     # Remove HTML tags and script content
-    value = re.sub(r'<[^>]*>', '', value)
-    value = re.sub(r'javascript:', '', value, flags=re.IGNORECASE)
-    value = re.sub(r'on\w+\s*=', '', value, flags=re.IGNORECASE)
+    value = re.sub(r"<[^>]*>", "", value)
+    value = re.sub(r"javascript:", "", value, flags=re.IGNORECASE)
+    value = re.sub(r"on\w+\s*=", "", value, flags=re.IGNORECASE)
 
     return value.strip()
 
@@ -219,7 +222,7 @@ def validate_pagination_params(page: int, size: int) -> Tuple[int, int]:
     return page, size
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class PaginationResponse(BaseModel, Generic[T]):
@@ -233,20 +236,13 @@ class PaginationResponse(BaseModel, Generic[T]):
 
 
 def create_pagination_response(
-    items: List[T],
-    total: int,
-    page: int,
-    size: int
+    items: List[T], total: int, page: int, size: int
 ) -> PaginationResponse[T]:
     """Create a pagination response."""
     pages = (total + size - 1) // size  # Ceiling division
 
     return PaginationResponse(
-        items=items,
-        total=total,
-        page=page,
-        size=size,
-        pages=pages
+        items=items, total=total, page=page, size=size, pages=pages
     )
 
 

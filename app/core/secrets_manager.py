@@ -1,6 +1,5 @@
 """AWS Secrets Manager integration for secure secrets management."""
 
-
 import json
 import logging
 from datetime import datetime, timedelta, timezone
@@ -9,6 +8,7 @@ from typing import Any, Dict, Optional
 try:
     import boto3
     from botocore.exceptions import BotoCoreError, ClientError
+
     HAS_BOTO = True
 except ImportError:
     HAS_BOTO = False
@@ -35,11 +35,15 @@ class SecretsManager:
             return
         try:
             self.client = boto3.client("secretsmanager", region_name=self.region_name)
-            logger.info(f"AWS Secrets Manager client initialized for region {self.region_name}")
+            logger.info(
+                f"AWS Secrets Manager client initialized for region {self.region_name}"
+            )
         except Exception as e:
             logger.error(f"Failed to initialize Secrets Manager client: {e}")
 
-    def get_secret(self, secret_name: str, force_refresh: bool = False) -> Optional[Dict[str, Any]]:
+    def get_secret(
+        self, secret_name: str, force_refresh: bool = False
+    ) -> Optional[Dict[str, Any]]:
         """Get secret from AWS Secrets Manager with caching."""
         if not self.client:
             logger.error("Secrets Manager client not initialized")
@@ -55,7 +59,9 @@ class SecretsManager:
             response = self.client.get_secret_value(SecretId=secret_name)
 
             if "SecretString" in response:
-                secret_value = safe_json_parse(response["SecretString"], {}, f"secret_{secret_name}")
+                secret_value = safe_json_parse(
+                    response["SecretString"], {}, f"secret_{secret_name}"
+                )
             else:
                 secret_value = response["SecretBinary"]
 
@@ -74,7 +80,9 @@ class SecretsManager:
                 if error_code == "ResourceNotFoundException":
                     logger.warning(f"Secret not found: {secret_name}")
                 else:
-                    logger.error(f"Failed to retrieve secret {secret_name}: {error_code} - {e}")
+                    logger.error(
+                        f"Failed to retrieve secret {secret_name}: {error_code} - {e}"
+                    )
             else:
                 logger.error(f"Error retrieving secret {secret_name}: {e}")
             return None
@@ -89,10 +97,16 @@ class SecretsManager:
             secret_string = json.dumps(secret_value)
 
             try:
-                self.client.update_secret(SecretId=secret_name, SecretString=secret_string)
+                self.client.update_secret(
+                    SecretId=secret_name, SecretString=secret_string
+                )
                 logger.info(f"Updated secret: {secret_name}")
             except Exception as e:
-                if HAS_BOTO and isinstance(e, ClientError) and e.response["Error"]["Code"] == "ResourceNotFoundException":
+                if (
+                    HAS_BOTO
+                    and isinstance(e, ClientError)
+                    and e.response["Error"]["Code"] == "ResourceNotFoundException"
+                ):
                     self.client.create_secret(
                         Name=secret_name,
                         SecretString=secret_string,
@@ -117,7 +131,9 @@ class SecretsManager:
             return False
 
         try:
-            self.client.delete_secret(SecretId=secret_name, RecoveryWindowInDays=recovery_window_days)
+            self.client.delete_secret(
+                SecretId=secret_name, RecoveryWindowInDays=recovery_window_days
+            )
             logger.info(f"Scheduled deletion of secret: {secret_name}")
 
             if secret_name in self.cache:
@@ -135,7 +151,9 @@ class SecretsManager:
 
         try:
             secret_string = json.dumps(new_secret_value)
-            self.client.put_secret_value(SecretId=secret_name, SecretString=secret_string)
+            self.client.put_secret_value(
+                SecretId=secret_name, SecretString=secret_string
+            )
             logger.info(f"Rotated secret: {secret_name}")
 
             if secret_name in self.cache:

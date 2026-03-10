@@ -1,8 +1,8 @@
 """Notification API endpoints."""
 
-
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.notification import Notification
@@ -10,38 +10,47 @@ from app.models.notification import Notification
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 try:
-    from app.api.notifications.notification_center import router as notification_center_router
+    from app.api.notifications.notification_center import \
+        router as notification_center_router
+
     router.include_router(notification_center_router)
 except SyntaxError:
     pass
 
 try:
     from app.api.notifications.preferences import router as preferences_router
+
     router.include_router(preferences_router)
 except SyntaxError:
     pass
 
 try:
     from app.api.notifications.email_endpoints import router as email_router
+
     router.include_router(email_router)
 except SyntaxError:
     pass
 
 try:
-    from app.api.notifications.analytics_endpoints import router as analytics_router
+    from app.api.notifications.analytics_endpoints import \
+        router as analytics_router
+
     router.include_router(analytics_router)
 except SyntaxError:
     pass
 
 try:
     from app.api.notifications.push_endpoints import router as push_router
+
     router.include_router(push_router)
 except SyntaxError:
     pass
 
 
 @router.get("")
-async def get_notifications(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def get_notifications(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Get user notifications."""
     notifications = (
         db.query(Notification)
@@ -65,7 +74,9 @@ async def mark_notification_read(
 ):
     """Mark notification as read."""
     notification = (
-        db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
+        db.query(Notification)
+        .filter(Notification.id == notification_id, Notification.user_id == user_id)
+        .first()
     )
 
     if not notification:
@@ -78,11 +89,13 @@ async def mark_notification_read(
 
 
 @router.post("/mark-all-read")
-async def mark_all_read(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def mark_all_read(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Mark all notifications as read."""
-    db.query(Notification).filter(Notification.user_id == user_id, Notification.is_read == False).update(
-        {"is_read": True}
-    )
+    db.query(Notification).filter(
+        Notification.user_id == user_id, Notification.is_read == False
+    ).update({"is_read": True})
 
     db.commit()
 
@@ -97,7 +110,9 @@ async def delete_notification(
 ):
     """Delete a notification."""
     notification = (
-        db.query(Notification).filter(Notification.id == notification_id, Notification.user_id == user_id).first()
+        db.query(Notification)
+        .filter(Notification.id == notification_id, Notification.user_id == user_id)
+        .first()
     )
 
     if not notification:

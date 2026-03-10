@@ -2,11 +2,13 @@
 
 from datetime import datetime
 from typing import Any, Dict, List, Optional
+
 from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
 class AddCreditsRequest(BaseModel):
     """Schema for adding credits request."""
+
     amount: float = Field(..., gt=0, description="Amount to add (minimum $5)")
 
     @field_validator("amount", mode="before")
@@ -21,10 +23,15 @@ class AddCreditsRequest(BaseModel):
 
 class PaymentInitialize(BaseModel):
     """Schema for payment initialization."""
+
     amount_usd: float = Field(..., gt=0, description="Amount in USD (minimum $5)")
     payment_method: str = Field(default="paystack", description="Payment method")
-    metadata: dict = Field(default_factory=dict, description="Optional metadata (e.g. upgrade_to)")
-    idempotency_key: Optional[str] = Field(default=None, description="Client-supplied idempotency key")
+    metadata: dict = Field(
+        default_factory=dict, description="Optional metadata (e.g. upgrade_to)"
+    )
+    idempotency_key: Optional[str] = Field(
+        default=None, description="Client-supplied idempotency key"
+    )
 
     @field_validator("amount_usd", mode="before")
     @classmethod
@@ -51,6 +58,7 @@ class PaymentInitialize(BaseModel):
 
 class PaymentInitializeResponse(BaseModel):
     """Schema for payment initialization response."""
+
     payment_id: str = Field(..., description="Payment ID")
     authorization_url: str = Field(..., description="Payment authorization URL")
     access_code: str = Field(..., description="Payment access code")
@@ -70,6 +78,7 @@ class PaymentInitializeResponse(BaseModel):
 
 class PaymentVerify(BaseModel):
     """Schema for payment verification request."""
+
     reference: str = Field(..., description="Payment reference to verify")
 
     model_config = {
@@ -79,6 +88,7 @@ class PaymentVerify(BaseModel):
 
 class PaymentVerifyResponse(BaseModel):
     """Schema for payment verification response."""
+
     status: str = Field(..., description="Payment verification status")
     amount_credited: float = Field(..., description="Amount credited to wallet")
     new_balance: float = Field(..., description="New wallet balance after credit")
@@ -100,6 +110,7 @@ class PaymentVerifyResponse(BaseModel):
 
 class TransactionResponse(BaseModel):
     """Schema for individual transaction response."""
+
     id: str = Field(..., description="Transaction ID")
     type: str = Field(..., description="Transaction type")
     amount: float = Field(..., description="Transaction amount")
@@ -124,7 +135,10 @@ class TransactionResponse(BaseModel):
 
 class TransactionHistoryResponse(BaseModel):
     """Schema for transaction history response."""
-    transactions: List[TransactionResponse] = Field(..., description="List of transactions")
+
+    transactions: List[TransactionResponse] = Field(
+        ..., description="List of transactions"
+    )
     total_count: int = Field(..., description="Total number of transactions")
 
     model_config = {
@@ -148,6 +162,7 @@ class TransactionHistoryResponse(BaseModel):
 
 class WalletBalanceResponse(BaseModel):
     """Schema for wallet balance response."""
+
     credits: float = Field(..., description="Current wallet credits")
     credits_usd: float = Field(..., description="Credits in USD")
     free_verifications: int = Field(..., description="Free verifications remaining")
@@ -166,6 +181,7 @@ class WalletBalanceResponse(BaseModel):
 
 class WebhookPayload(BaseModel):
     """Schema for webhook payload."""
+
     event: str = Field(..., description="Webhook event type")
     data: Dict[str, Any] = Field(..., description="Webhook data")
 
@@ -186,6 +202,7 @@ class WebhookPayload(BaseModel):
 
 class SubscriptionPlan(BaseModel):
     """Schema for subscription plan."""
+
     id: str = Field(..., description="Plan ID")
     name: str = Field(..., description="Plan name")
     price: float = Field(..., description="Plan price")
@@ -209,6 +226,7 @@ class SubscriptionPlan(BaseModel):
 
 class SubscriptionRequest(BaseModel):
     """Schema for subscription request."""
+
     plan_id: str = Field(..., description="Plan ID to subscribe to")
     payment_method: str = Field(default="paystack", description="Payment method")
 
@@ -221,6 +239,7 @@ class SubscriptionRequest(BaseModel):
 
 class SubscriptionResponse(BaseModel):
     """Schema for subscription response."""
+
     subscription_id: str = Field(..., description="Subscription ID")
     plan_id: str = Field(..., description="Plan ID")
     status: str = Field(..., description="Subscription status")
@@ -245,6 +264,7 @@ class SubscriptionResponse(BaseModel):
 
 class RefundRequest(BaseModel):
     """Schema for refund request."""
+
     transaction_id: str = Field(..., description="Transaction ID to refund")
     amount: Optional[float] = Field(
         None, description="Partial refund amount (full refund if not specified)"
@@ -271,6 +291,7 @@ class RefundRequest(BaseModel):
 
 class RefundResponse(BaseModel):
     """Schema for refund response."""
+
     refund_id: str = Field(..., description="Refund ID")
     status: str = Field(..., description="Refund status")
     amount: float = Field(..., description="Refund amount")

@@ -9,20 +9,34 @@ from collections import Counter, defaultdict
 from typing import Any, Dict
 
 import psutil
-from prometheus_client import CONTENT_TYPE_LATEST, Counter as PrometheusCounter, Gauge, Histogram, generate_latest
+from prometheus_client import CONTENT_TYPE_LATEST
+from prometheus_client import Counter as PrometheusCounter
+from prometheus_client import Gauge, Histogram, generate_latest
 
 from app.core.config import settings
 from app.core.logging import get_logger, log_business_event, log_performance
 
 logger = get_logger("metrics")
 
-REQUEST_COUNT = PrometheusCounter("http_requests_total", "Total HTTP requests", ["method", "endpoint", "status_code"])
-REQUEST_DURATION = Histogram("http_request_duration_seconds", "HTTP request duration in seconds", ["method", "endpoint"])
+REQUEST_COUNT = PrometheusCounter(
+    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status_code"]
+)
+REQUEST_DURATION = Histogram(
+    "http_request_duration_seconds",
+    "HTTP request duration in seconds",
+    ["method", "endpoint"],
+)
 ACTIVE_CONNECTIONS = Gauge("active_connections_total", "Number of active connections")
-DATABASE_CONNECTIONS = Gauge("database_connections_active", "Active database connections")
+DATABASE_CONNECTIONS = Gauge(
+    "database_connections_active", "Active database connections"
+)
 REDIS_CONNECTIONS = Gauge("redis_connections_active", "Active Redis connections")
-BUSINESS_EVENTS = PrometheusCounter("business_events_total", "Business events counter", ["event_type", "status"])
-ERROR_COUNT = PrometheusCounter("errors_total", "Total errors", ["error_type", "severity"])
+BUSINESS_EVENTS = PrometheusCounter(
+    "business_events_total", "Business events counter", ["event_type", "status"]
+)
+ERROR_COUNT = PrometheusCounter(
+    "errors_total", "Total errors", ["error_type", "severity"]
+)
 SYSTEM_CPU = Gauge("system_cpu_usage_percent", "System CPU usage percentage")
 SYSTEM_MEMORY = Gauge("system_memory_usage_percent", "System memory usage percentage")
 SYSTEM_DISK = Gauge("system_disk_usage_percent", "System disk usage percentage")
@@ -37,9 +51,13 @@ class MetricsCollector:
         self.error_stats = Counter()
         self.business_stats = Counter()
 
-    def record_request(self, method: str, endpoint: str, status_code: int, duration: float):
+    def record_request(
+        self, method: str, endpoint: str, status_code: int, duration: float
+    ):
         """Record HTTP request metrics."""
-        REQUEST_COUNT.labels(method=method, endpoint=endpoint, status_code=status_code).inc()
+        REQUEST_COUNT.labels(
+            method=method, endpoint=endpoint, status_code=status_code
+        ).inc()
         REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
 
         key = f"{method}:{endpoint}"
@@ -75,7 +93,9 @@ class MetricsCollector:
         total_requests = sum(stats["count"] for stats in self.request_stats.values())
         avg_response_time = 0
         if total_requests > 0:
-            total_time = sum(stats["total_time"] for stats in self.request_stats.values())
+            total_time = sum(
+                stats["total_time"] for stats in self.request_stats.values()
+            )
             avg_response_time = total_time / total_requests
 
         return {
@@ -130,7 +150,11 @@ class MetricsCollector:
 
             return {
                 "health_score": health_score,
-                "status": ("healthy" if health_score >= 80 else "degraded" if health_score >= 60 else "unhealthy"),
+                "status": (
+                    "healthy"
+                    if health_score >= 80
+                    else "degraded" if health_score >= 60 else "unhealthy"
+                ),
                 "factors": {
                     "cpu_usage": cpu_percent,
                     "memory_usage": memory_percent,
@@ -168,7 +192,9 @@ class MetricsMiddleware:
             if message["type"] == "http.response.start":
                 duration = time.time() - start_time
                 status_code = message["status"]
-                metrics_collector.record_request(method, normalized_path, status_code, duration)
+                metrics_collector.record_request(
+                    method, normalized_path, status_code, duration
+                )
                 ACTIVE_CONNECTIONS.inc()
             await send(message)
 
@@ -183,7 +209,11 @@ class MetricsMiddleware:
     @staticmethod
     def _normalize_path(path: str) -> str:
         """Normalize path for metrics grouping."""
-        path = re.sub(r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", "/{uuid}", path)
+        path = re.sub(
+            r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            "/{uuid}",
+            path,
+        )
         path = re.sub(r"/\d+", "/{id}", path)
         path = re.sub(r"/[A-Z0-9]{6,}", "/{code}", path)
         return path
@@ -209,7 +239,9 @@ async def record_business_event(event_type: str, status: str = "success", **kwar
 
 async def record_performance_metric(operation: str, duration: float, **kwargs):
     """Record performance metrics."""
-    operation_histogram = Histogram("operation_duration_seconds", "Operation duration in seconds", ["operation"])
+    operation_histogram = Histogram(
+        "operation_duration_seconds", "Operation duration in seconds", ["operation"]
+    )
     operation_histogram.labels(operation=operation).observe(duration)
     performance_logger = get_logger("performance")
     log_performance(performance_logger, operation, duration, kwargs)

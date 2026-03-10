@@ -1,10 +1,11 @@
 """Paystack payment service for handling payments and webhooks."""
 
-
 import hashlib
 import hmac
 from typing import Any, Dict, Optional
+
 import httpx
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 

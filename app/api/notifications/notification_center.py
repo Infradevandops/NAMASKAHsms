@@ -1,18 +1,19 @@
 """Notification center endpoints for advanced notification management."""
 
-
+import csv
+import io
 from datetime import datetime, timedelta
 from typing import List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import desc, or_
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.notification import Notification
 from app.models.user import User
-import csv
-import io
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/notifications", tags=["Notification Center"])
@@ -68,14 +69,18 @@ async def get_notification_center(
                 date_from_obj = datetime.strptime(date_from, "%Y-%m-%d")
                 query = query.filter(Notification.created_at >= date_from_obj)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)")
+                raise HTTPException(
+                    status_code=400, detail="Invalid date_from format (use YYYY-MM-DD)"
+                )
 
         if date_to:
             try:
                 date_to_obj = datetime.strptime(date_to, "%Y-%m-%d") + timedelta(days=1)
                 query = query.filter(Notification.created_at < date_to_obj)
             except ValueError:
-                raise HTTPException(status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)")
+                raise HTTPException(
+                    status_code=400, detail="Invalid date_to format (use YYYY-MM-DD)"
+                )
 
         # Get total count before pagination
         total = query.count()
@@ -131,7 +136,9 @@ async def get_notification_categories(
             raise ValueError(f"User {user_id} not found")
 
         # Get all notification types for this user
-        notifications = db.query(Notification).filter(Notification.user_id == user_id).all()
+        notifications = (
+            db.query(Notification).filter(Notification.user_id == user_id).all()
+        )
 
         # Group by type and count
         categories = {}
@@ -142,9 +149,16 @@ async def get_notification_categories(
             if not notif.is_read:
                 categories[notif.type]["unread"] += 1
 
-        logger.info(f"Retrieved {len(categories)} notification categories for user {user_id}")
+        logger.info(
+            f"Retrieved {len(categories)} notification categories for user {user_id}"
+        )
 
-        return {"categories": [{"type": k, "total": v["total"], "unread": v["unread"]} for k, v in categories.items()]}
+        return {
+            "categories": [
+                {"type": k, "total": v["total"], "unread": v["unread"]}
+                for k, v in categories.items()
+            ]
+        }
 
     except ValueError as e:
         logger.error(f"Validation error: {str(e)}")
@@ -193,9 +207,16 @@ async def search_notifications(
         )
 
         total = search.count()
-        notifications = search.order_by(desc(Notification.created_at)).offset(skip).limit(limit).all()
+        notifications = (
+            search.order_by(desc(Notification.created_at))
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
 
-        logger.info(f"Search for '{query}' returned {len(notifications)} results for user {user_id}")
+        logger.info(
+            f"Search for '{query}' returned {len(notifications)} results for user {user_id}"
+        )
 
         return {
             "total": total,
@@ -219,7 +240,9 @@ async def search_notifications(
 @router.post("/bulk-read")
 async def bulk_mark_as_read(
     user_id: str = Depends(get_current_user_id),
-    notification_ids: List[str] = Query(..., description="List of notification IDs to mark as read"),
+    notification_ids: List[str] = Query(
+        ..., description="List of notification IDs to mark as read"
+    ),
     db: Session = Depends(get_db),
 ):
     """Mark multiple notifications as read.
@@ -266,7 +289,9 @@ async def bulk_mark_as_read(
 @router.post("/bulk-delete")
 async def bulk_delete_notifications(
     user_id: str = Depends(get_current_user_id),
-    notification_ids: List[str] = Query(..., description="List of notification IDs to delete"),
+    notification_ids: List[str] = Query(
+        ..., description="List of notification IDs to delete"
+    ),
     db: Session = Depends(get_db),
 ):
     """Delete multiple notifications.
@@ -332,7 +357,10 @@ async def export_notifications(
 
         # Get all notifications
         notifications = (
-            db.query(Notification).filter(Notification.user_id == user_id).order_by(desc(Notification.created_at)).all()
+            db.query(Notification)
+            .filter(Notification.user_id == user_id)
+            .order_by(desc(Notification.created_at))
+            .all()
         )
 
         if format == "csv":
@@ -351,7 +379,9 @@ async def export_notifications(
                         "title": n.title,
                         "message": n.message,
                         "is_read": n.is_read,
-                        "created_at": n.created_at.isoformat() if n.created_at else None,
+                        "created_at": (
+                            n.created_at.isoformat() if n.created_at else None
+                        ),
                     }
                 )
             return {"format": "csv", "data": output.getvalue()}

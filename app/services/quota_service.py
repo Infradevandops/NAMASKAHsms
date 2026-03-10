@@ -1,6 +1,5 @@
 """Quota tracking and overage calculation service."""
 
-
 import uuid
 from datetime import date, datetime
 
@@ -22,7 +21,9 @@ class QuotaService:
 
         usage = (
             db.query(MonthlyQuotaUsage)
-            .filter(MonthlyQuotaUsage.user_id == user_id, MonthlyQuotaUsage.month == month)
+            .filter(
+                MonthlyQuotaUsage.user_id == user_id, MonthlyQuotaUsage.month == month
+            )
             .first()
         )
 
@@ -46,14 +47,18 @@ class QuotaService:
         }
 
     @staticmethod
-    def add_quota_usage(db: Session, user_id: str, amount: float, month: str = None) -> None:
+    def add_quota_usage(
+        db: Session, user_id: str, amount: float, month: str = None
+    ) -> None:
         """Add to quota usage."""
         if not month:
             month = datetime.now().strftime("%Y-%m")
 
         usage = (
             db.query(MonthlyQuotaUsage)
-            .filter(MonthlyQuotaUsage.user_id == user_id, MonthlyQuotaUsage.month == month)
+            .filter(
+                MonthlyQuotaUsage.user_id == user_id, MonthlyQuotaUsage.month == month
+            )
             .first()
         )
 
@@ -71,7 +76,9 @@ class QuotaService:
         db.commit()
 
     @staticmethod
-    def calculate_overage(db: Session, user_id: str, cost: float, month: str = None) -> float:
+    def calculate_overage(
+        db: Session, user_id: str, cost: float, month: str = None
+    ) -> float:
         """Calculate overage charge if quota exceeded."""
         if not month:
             month = datetime.now().strftime("%Y-%m")

@@ -1,9 +1,11 @@
 """Security utilities for password hashing and JWT tokens."""
 
-import jwt
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
+
+import jwt
 from passlib.context import CryptContext
+
 from app.core.config import get_settings
 
 settings = get_settings()
@@ -26,23 +28,31 @@ def get_password_hash(password: str) -> str:
 hash_password = get_password_hash
 
 
-def create_access_token(data: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(
+    data: Dict[str, Any], expires_delta: Optional[timedelta] = None
+) -> str:
     """Create a JWT access token."""
     to_encode = data.copy()
-    
+
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours)
+        expire = datetime.now(timezone.utc) + timedelta(
+            hours=settings.jwt_expiration_hours
+        )
 
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(
+        to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
 
 
 def verify_token(token: str) -> Optional[Dict[str, Any]]:
     """Verify and decode a JWT token."""
     try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        payload = jwt.decode(
+            token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+        )
         return payload
     except jwt.ExpiredSignatureError:
         return None
@@ -55,7 +65,9 @@ def create_refresh_token(data: Dict[str, Any]) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(days=30)
     to_encode.update({"exp": expire, "type": "refresh"})
-    return jwt.encode(to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(
+        to_encode, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+    )
 
 
 def verify_refresh_token(token: str) -> Optional[Dict[str, Any]]:
@@ -69,12 +81,14 @@ def verify_refresh_token(token: str) -> Optional[Dict[str, Any]]:
 def generate_api_key(length: int = 32) -> str:
     """Generate a cryptographically secure random API key."""
     import secrets
+
     return secrets.token_hex(length // 2)
 
 
 def generate_secure_id(prefix: str = "", length: int = 16) -> str:
     """Generate a secure random ID with optional prefix."""
     import secrets
+
     token = secrets.token_hex(length // 2)
     return f"{prefix}_{token}" if prefix else token
 
@@ -82,4 +96,5 @@ def generate_secure_id(prefix: str = "", length: int = 16) -> str:
 def generate_verification_code(length: int = 6) -> str:
     """Generate a numeric verification code."""
     import secrets
+
     return "".join([str(secrets.randbelow(10)) for _ in range(length)])

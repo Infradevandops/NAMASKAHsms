@@ -1,6 +1,5 @@
 """Health check utilities for system monitoring."""
 
-
 from typing import Any, Dict
 
 from sqlalchemy import text
@@ -15,7 +14,10 @@ def check_database_health(db: Session) -> Dict[str, Any]:
         if result and result[0] == 1:
             return {"status": "healthy", "message": "Database connection successful"}
         else:
-            return {"status": "unhealthy", "error": "Database query returned unexpected result"}
+            return {
+                "status": "unhealthy",
+                "error": "Database query returned unexpected result",
+            }
     except SQLAlchemyError as e:
         return {"status": "unhealthy", "error": f"Database error: {str(e)}"}
     except Exception as e:

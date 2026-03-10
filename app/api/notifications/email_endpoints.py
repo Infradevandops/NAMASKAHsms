@@ -1,9 +1,10 @@
 """Email notification endpoints."""
 
-
 from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -75,12 +76,18 @@ async def get_email_preferences(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Get preferences
-        preferences = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).all()
+        preferences = (
+            db.query(NotificationPreference)
+            .filter(NotificationPreference.user_id == user_id)
+            .all()
+        )
 
         # Build response
         notification_types = {}
         for pref in preferences:
-            delivery_methods = pref.delivery_methods.split(",") if pref.delivery_methods else []
+            delivery_methods = (
+                pref.delivery_methods.split(",") if pref.delivery_methods else []
+            )
             notification_types[pref.notification_type] = {
                 "enabled": pref.enabled,
                 "email_enabled": "email" in delivery_methods,
@@ -98,7 +105,9 @@ async def get_email_preferences(
         raise
     except Exception as e:
         logger.error(f"Error retrieving email preferences: {e}")
-        raise HTTPException(status_code=500, detail="Failed to retrieve email preferences")
+        raise HTTPException(
+            status_code=500, detail="Failed to retrieve email preferences"
+        )
 
 
 @router.put("/preferences")
@@ -135,10 +144,16 @@ async def update_email_preferences(
         )
 
         if not preference:
-            raise HTTPException(status_code=404, detail="Notification preference not found")
+            raise HTTPException(
+                status_code=404, detail="Notification preference not found"
+            )
 
         # Update delivery methods
-        delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
+        delivery_methods = (
+            preference.delivery_methods.split(",")
+            if preference.delivery_methods
+            else []
+        )
 
         if email_enabled and "email" not in delivery_methods:
             delivery_methods.append("email")
@@ -149,7 +164,8 @@ async def update_email_preferences(
         db.commit()
 
         logger.info(
-            f"Updated email preferences for user {user_id}, type {notification_type}: " f"email_enabled={email_enabled}"
+            f"Updated email preferences for user {user_id}, type {notification_type}: "
+            f"email_enabled={email_enabled}"
         )
 
         return {
@@ -161,13 +177,17 @@ async def update_email_preferences(
         raise
     except Exception as e:
         logger.error(f"Error updating email preferences: {e}")
-        raise HTTPException(status_code=500, detail="Failed to update email preferences")
+        raise HTTPException(
+            status_code=500, detail="Failed to update email preferences"
+        )
 
 
 @router.post("/unsubscribe")
 async def unsubscribe_from_emails(
     user_id: str = Depends(get_current_user_id),
-    notification_type: Optional[str] = Query(None, description="Specific type to unsubscribe from"),
+    notification_type: Optional[str] = Query(
+        None, description="Specific type to unsubscribe from"
+    ),
     db: Session = Depends(get_db),
 ):
     """Unsubscribe from email notifications.
@@ -197,19 +217,33 @@ async def unsubscribe_from_emails(
             )
 
             if preference:
-                delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
+                delivery_methods = (
+                    preference.delivery_methods.split(",")
+                    if preference.delivery_methods
+                    else []
+                )
                 if "email" in delivery_methods:
                     delivery_methods.remove("email")
                 preference.delivery_methods = ",".join(delivery_methods)
                 db.commit()
 
-            logger.info(f"User {user_id} unsubscribed from email for {notification_type}")
+            logger.info(
+                f"User {user_id} unsubscribed from email for {notification_type}"
+            )
         else:
             # Unsubscribe from all
-            preferences = db.query(NotificationPreference).filter(NotificationPreference.user_id == user_id).all()
+            preferences = (
+                db.query(NotificationPreference)
+                .filter(NotificationPreference.user_id == user_id)
+                .all()
+            )
 
             for preference in preferences:
-                delivery_methods = preference.delivery_methods.split(",") if preference.delivery_methods else []
+                delivery_methods = (
+                    preference.delivery_methods.split(",")
+                    if preference.delivery_methods
+                    else []
+                )
                 if "email" in delivery_methods:
                     delivery_methods.remove("email")
                 preference.delivery_methods = ",".join(delivery_methods)

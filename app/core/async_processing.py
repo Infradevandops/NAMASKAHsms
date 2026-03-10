@@ -1,12 +1,13 @@
 """Async processing implementation for task 12.3."""
 
-
 import asyncio
+import logging
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List
-from app.services.notification_service import NotificationService
-import logging
+
 from sqlalchemy import text
+
+from app.services.notification_service import NotificationService
 
 
 class BackgroundTaskManager:
@@ -44,7 +45,9 @@ class BackgroundTaskManager:
 task_manager = BackgroundTaskManager()
 
 
-async def async_send_email(notification_service: NotificationService, to_email: str, subject: str, body: str):
+async def async_send_email(
+    notification_service: NotificationService, to_email: str, subject: str, body: str
+):
     """Send email asynchronously."""
     try:
         await notification_service.send_email(to_email, subject, body)
@@ -67,7 +70,9 @@ async def async_send_webhook(
         logger.error("Webhook delivery failed: %s", e)
 
 
-async def async_process_payment_webhook(payment_service: PaymentService, webhook_data: Dict[str, Any]):
+async def async_process_payment_webhook(
+    payment_service: PaymentService, webhook_data: Dict[str, Any]
+):
     """Process payment webhook asynchronously."""
     try:
         result = payment_service.process_webhook_payment(webhook_data)
@@ -78,7 +83,9 @@ async def async_process_payment_webhook(payment_service: PaymentService, webhook
         return False
 
 
-async def batch_process_notifications(notification_service: NotificationService, notifications: List[Dict[str, Any]]):
+async def batch_process_notifications(
+    notification_service: NotificationService, notifications: List[Dict[str, Any]]
+):
     """Process multiple notifications in batch."""
     tasks = []
 
@@ -117,7 +124,9 @@ class AsyncDatabaseOperations:
                 amount = update["amount"]
 
                 db_session.execute(
-                    text("UPDATE users SET credits = credits + :amount WHERE id = :user_id"),
+                    text(
+                        "UPDATE users SET credits = credits + :amount WHERE id = :user_id"
+                    ),
                     {"amount": amount, "user_id": user_id},
                 )
 
@@ -137,7 +146,9 @@ class AsyncDatabaseOperations:
             cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
             result = db_session.execute(
-                text("DELETE FROM verifications WHERE created_at < :cutoff AND status IN ('completed', 'failed')"),
+                text(
+                    "DELETE FROM verifications WHERE created_at < :cutoff AND status IN ('completed', 'failed')"
+                ),
                 {"cuto": cutoff_date},
             )
 

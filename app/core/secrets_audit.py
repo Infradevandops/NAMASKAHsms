@@ -1,6 +1,5 @@
 """Audit logging for secrets access and management."""
 
-
 import json
 import logging
 from datetime import datetime, timezone
@@ -51,25 +50,85 @@ class SecretsAudit:
         }
         self.audit_logger.info(json.dumps(audit_entry))
 
-    def log_get(self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None, cached: bool = False):
+    def log_get(
+        self,
+        secret_name: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        cached: bool = False,
+    ):
         """Log secret retrieval."""
-        self.log_action(action=AuditAction.GET, secret_name=secret_name, user_id=user_id, ip_address=ip_address, metadata={"cached": cached})
+        self.log_action(
+            action=AuditAction.GET,
+            secret_name=secret_name,
+            user_id=user_id,
+            ip_address=ip_address,
+            metadata={"cached": cached},
+        )
 
-    def log_set(self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None, created: bool = False):
+    def log_set(
+        self,
+        secret_name: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        created: bool = False,
+    ):
         """Log secret creation or update."""
-        self.log_action(action=AuditAction.SET, secret_name=secret_name, user_id=user_id, ip_address=ip_address, metadata={"created": created})
+        self.log_action(
+            action=AuditAction.SET,
+            secret_name=secret_name,
+            user_id=user_id,
+            ip_address=ip_address,
+            metadata={"created": created},
+        )
 
-    def log_delete(self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None, recovery_window_days: int = 7):
+    def log_delete(
+        self,
+        secret_name: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        recovery_window_days: int = 7,
+    ):
         """Log secret deletion."""
-        self.log_action(action=AuditAction.DELETE, secret_name=secret_name, user_id=user_id, ip_address=ip_address, metadata={"recovery_window_days": recovery_window_days})
+        self.log_action(
+            action=AuditAction.DELETE,
+            secret_name=secret_name,
+            user_id=user_id,
+            ip_address=ip_address,
+            metadata={"recovery_window_days": recovery_window_days},
+        )
 
-    def log_rotate(self, secret_name: str, user_id: Optional[str] = None, ip_address: Optional[str] = None):
+    def log_rotate(
+        self,
+        secret_name: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+    ):
         """Log secret rotation."""
-        self.log_action(action=AuditAction.ROTATE, secret_name=secret_name, user_id=user_id, ip_address=ip_address)
+        self.log_action(
+            action=AuditAction.ROTATE,
+            secret_name=secret_name,
+            user_id=user_id,
+            ip_address=ip_address,
+        )
 
-    def log_error(self, action: AuditAction, secret_name: str, error: str, user_id: Optional[str] = None, ip_address: Optional[str] = None):
+    def log_error(
+        self,
+        action: AuditAction,
+        secret_name: str,
+        error: str,
+        user_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+    ):
         """Log failed secrets operation."""
-        self.log_action(action=action, secret_name=secret_name, user_id=user_id, ip_address=ip_address, status="error", error=error)
+        self.log_action(
+            action=action,
+            secret_name=secret_name,
+            user_id=user_id,
+            ip_address=ip_address,
+            status="error",
+            error=error,
+        )
 
 
 _audit: Optional[SecretsAudit] = None

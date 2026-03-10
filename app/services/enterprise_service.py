@@ -1,6 +1,5 @@
 """Enterprise SLA and account management service."""
 
-
 from typing import Dict, Optional
 
 from app.core.database import get_db
@@ -13,7 +12,11 @@ class EnterpriseService:
     async def get_user_tier(self, user_id: int) -> Optional[Dict]:
         """Get enterprise tier for user."""
         db = next(get_db())
-        account = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
+        account = (
+            db.query(EnterpriseAccount)
+            .filter(EnterpriseAccount.user_id == user_id)
+            .first()
+        )
 
         if not account:
             return None
@@ -37,7 +40,11 @@ class EnterpriseService:
         if not tier:
             raise ValueError(f"Tier {tier_name} not found")
 
-        existing = db.query(EnterpriseAccount).filter(EnterpriseAccount.user_id == user_id).first()
+        existing = (
+            db.query(EnterpriseAccount)
+            .filter(EnterpriseAccount.user_id == user_id)
+            .first()
+        )
 
         if existing:
             existing.tier_id = tier.id

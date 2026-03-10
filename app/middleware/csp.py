@@ -1,8 +1,8 @@
 """Content Security Policy middleware."""
 
-
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+
 
 class CSPMiddleware(BaseHTTPMiddleware):
 

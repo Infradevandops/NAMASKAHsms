@@ -3,10 +3,12 @@
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional, Tuple
+
 from sqlalchemy.orm import Session
+
+from app.core.tier_config import TierConfig
 from app.models.api_key import APIKey
 from app.models.user import User
-from app.core.tier_config import TierConfig
 
 # Tier configuration for API key limits
 TIER_CONFIG = {
@@ -38,10 +40,11 @@ class APIKeyService:
         if limit == -1:
             return True
 
-        current_count = self.db.query(APIKey).filter(
-            APIKey.user_id == user_id, 
-            APIKey.is_active.is_(True)
-        ).count()
+        current_count = (
+            self.db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
+            .count()
+        )
 
         return current_count < limit
 
@@ -60,10 +63,11 @@ class APIKeyService:
         if limit == -1:
             return 999  # Unlimited
 
-        current_count = self.db.query(APIKey).filter(
-            APIKey.user_id == user_id, 
-            APIKey.is_active.is_(True)
-        ).count()
+        current_count = (
+            self.db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
+            .count()
+        )
 
         return max(0, limit - current_count)
 
@@ -71,7 +75,7 @@ class APIKeyService:
         """Generate a new API key for user."""
         # Generate secure key
         plain_key = f"nsk_{secrets.token_urlsafe(32)}"
-        
+
         # Create API key record
         api_key = APIKey(
             user_id=user_id,
@@ -81,7 +85,7 @@ class APIKeyService:
             is_active=True,
             created_at=datetime.now(timezone.utc),
             expires_at=datetime.now(timezone.utc) + timedelta(days=365),
-            request_count=0
+            request_count=0,
         )
 
         self.db.add(api_key)
@@ -92,16 +96,20 @@ class APIKeyService:
 
     def get_user_keys(self, user_id: str) -> List[APIKey]:
         """Get all API keys for user."""
-        return self.db.query(APIKey).filter(
-            APIKey.user_id == user_id
-        ).order_by(APIKey.created_at.desc()).all()
+        return (
+            self.db.query(APIKey)
+            .filter(APIKey.user_id == user_id)
+            .order_by(APIKey.created_at.desc())
+            .all()
+        )
 
     def revoke_api_key(self, key_id: str, user_id: str) -> bool:
         """Revoke an API key."""
-        api_key = self.db.query(APIKey).filter(
-            APIKey.id == key_id,
-            APIKey.user_id == user_id
-        ).first()
+        api_key = (
+            self.db.query(APIKey)
+            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
+            .first()
+        )
 
         if not api_key:
             return False
@@ -112,10 +120,11 @@ class APIKeyService:
 
     def rotate_api_key(self, key_id: str, user_id: str) -> Optional[Tuple[str, APIKey]]:
         """Rotate an API key (generate new key, deactivate old)."""
-        old_key = self.db.query(APIKey).filter(
-            APIKey.id == key_id,
-            APIKey.user_id == user_id
-        ).first()
+        old_key = (
+            self.db.query(APIKey)
+            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
+            .first()
+        )
 
         if not old_key:
             return None
@@ -131,10 +140,11 @@ class APIKeyService:
 
     def validate_api_key(self, key: str) -> Optional[APIKey]:
         """Validate an API key and return the associated record."""
-        api_key = self.db.query(APIKey).filter(
-            APIKey.key_hash == key,
-            APIKey.is_active.is_(True)
-        ).first()
+        api_key = (
+            self.db.query(APIKey)
+            .filter(APIKey.key_hash == key, APIKey.is_active.is_(True))
+            .first()
+        )
 
         if api_key and api_key.expires_at > datetime.now(timezone.utc):
             # Update last used timestamp

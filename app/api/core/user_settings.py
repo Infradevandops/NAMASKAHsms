@@ -1,12 +1,15 @@
 from typing import Any, Dict
+
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import NotificationSettings, User
 from app.models.user_preference import UserPreference
-from app.utils.security import get_password_hash as hash_password, verify_password
+from app.utils.security import get_password_hash as hash_password
+from app.utils.security import verify_password
 
 router = APIRouter(prefix="/user", tags=["User Settings"])
 auth_router = APIRouter(prefix="/api/auth", tags=["Auth"])
@@ -28,7 +31,11 @@ async def save_notifications(
     db: Session = Depends(get_db),
 ):
     """Save notification settings."""
-    settings = db.query(NotificationSettings).filter(NotificationSettings.user_id == user_id).first()
+    settings = (
+        db.query(NotificationSettings)
+        .filter(NotificationSettings.user_id == user_id)
+        .first()
+    )
 
     if not settings:
         settings = NotificationSettings(
@@ -39,7 +46,9 @@ async def save_notifications(
         db.add(settings)
     else:
         settings.email_on_sms = data.get("verification_alerts", settings.email_on_sms)
-        settings.email_on_low_balance = data.get("payment_receipts", settings.email_on_low_balance)
+        settings.email_on_low_balance = data.get(
+            "payment_receipts", settings.email_on_low_balance
+        )
 
     db.commit()
     return {"status": "success", "message": "Notification preferences saved"}
@@ -92,7 +101,9 @@ async def save_billing(
 
     pref.billing_email = data.get("billing_email", pref.billing_email)
     pref.billing_address = data.get("billing_address", pref.billing_address)
-    pref.auto_recharge = data.get("auto_recharge", pref.auto_recharge if pref.auto_recharge is not None else False)
+    pref.auto_recharge = data.get(
+        "auto_recharge", pref.auto_recharge if pref.auto_recharge is not None else False
+    )
 
     recharge_amount = data.get("recharge_amount")
     if recharge_amount:
@@ -106,7 +117,9 @@ async def save_billing(
 
 
 @router.post("/logout-all")
-async def logout_all(user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)):
+async def logout_all(
+    user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
+):
     """Logout all devices by clearing refresh token."""
     user = db.query(User).filter(User.id == user_id).first()
     if user:
@@ -168,16 +181,22 @@ class ForgotPasswordRequest(BaseModel):
 
 
 @auth_router.post("/forgot-password")
-async def forgot_password(request: ForgotPasswordRequest, db: Session = Depends(get_db)):
+async def forgot_password(
+    request: ForgotPasswordRequest, db: Session = Depends(get_db)
+):
     """Send password reset email."""
     user = db.query(User).filter(User.email == request.email).first()
     # Always return success to prevent email enumeration
     if user:
         import secrets
+
         token = secrets.token_urlsafe(32)
-        user.reset_token = token if hasattr(user, 'reset_token') else None
+        user.reset_token = token if hasattr(user, "reset_token") else None
         try:
             db.commit()
         except Exception:
             db.rollback()
-    return {"status": "success", "message": "If that email exists, a reset link has been sent"}
+    return {
+        "status": "success",
+        "message": "If that email exists, a reset link has been sent",
+    }

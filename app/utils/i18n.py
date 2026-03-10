@@ -1,10 +1,11 @@
 """
 i18n Utilities for Server-Side Translation Support
 """
+
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -15,33 +16,37 @@ _translations_cache: Dict[str, Dict[str, Any]] = {}
 def load_translations(locale: str = "en") -> Dict[str, Any]:
     """
     Load translations from JSON file.
-    
+
     Args:
         locale: Language code (en, es, fr, etc.)
-        
+
     Returns:
         Dictionary of translations
     """
     # Check cache first
     if locale in _translations_cache:
         return _translations_cache[locale]
-    
+
     # Load from file
-    translations_file = Path(__file__).parent.parent.parent / "static" / "locales" / f"{locale}.json"
-    
+    translations_file = (
+        Path(__file__).parent.parent.parent / "static" / "locales" / f"{locale}.json"
+    )
+
     if not translations_file.exists():
         # Fallback to English
         if locale != "en":
             return load_translations("en")
         return {}
-    
+
     try:
         with open(translations_file, "r", encoding="utf-8") as f:
             translations = json.load(f)
             _translations_cache[locale] = translations
             return translations
     except Exception as e:
-        logger.warning("Failed to load locale file", extra={"locale": locale, "error": str(e)})
+        logger.warning(
+            "Failed to load locale file", extra={"locale": locale, "error": str(e)}
+        )
         if locale != "en":
             return load_translations("en")
         return {}
@@ -50,10 +55,10 @@ def load_translations(locale: str = "en") -> Dict[str, Any]:
 def get_translations_for_template(locale: str = "en") -> str:
     """
     Get translations as JSON string for embedding in HTML.
-    
+
     Args:
         locale: Language code
-        
+
     Returns:
         JSON string of translations
     """

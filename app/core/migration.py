@@ -1,13 +1,14 @@
 """Database migration utilities."""
 
-
 import logging
 import os
+import shutil
 import subprocess
 from typing import Optional
+
 from sqlalchemy import text
+
 from app.utils.timezone_utils import utc_now
-import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,9 @@ class MigrationManager:
                 logger.error("Alembic not found in PATH")
                 return False
 
-            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[:100]
+            safe_message = "".join(c for c in message if c.isalnum() or c in " _-")[
+                :100
+            ]
 
             result = subprocess.run(
                 [alembic_path, "revision", "--autogenerate", "-m", safe_message],
@@ -161,7 +164,9 @@ class MigrationManager:
 
                 for table in expected_tables:
                     result = conn.execute(
-                        text("SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"),
+                        text(
+                            "SELECT name FROM sqlite_master WHERE type='table' AND name=:table_name"
+                        ),
                         {"table_name": table},
                     )
                     if not result.fetchone():

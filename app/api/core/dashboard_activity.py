@@ -3,6 +3,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.verification import Verification
@@ -15,7 +16,7 @@ async def get_recent_activity(
     page: int = 1,
     limit: int = 10,
     user_id: str = Depends(get_current_user_id),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
     offset = (page - 1) * limit
     try:
@@ -23,9 +24,16 @@ async def get_recent_activity(
             db.query(Verification)
             .filter(Verification.user_id == user_id)
             .order_by(desc(Verification.created_at))
-            .limit(limit).offset(offset).all()
+            .limit(limit)
+            .offset(offset)
+            .all()
         )
-        total = db.query(func.count(Verification.id)).filter(Verification.user_id == user_id).scalar() or 0
+        total = (
+            db.query(func.count(Verification.id))
+            .filter(Verification.user_id == user_id)
+            .scalar()
+            or 0
+        )
         return {
             "verifications": [
                 {

@@ -2,15 +2,15 @@
 
 try:
     # Try Pydantic v2 first
-    from pydantic import field_validator, Field, BaseModel
+    from pydantic import BaseModel, Field, field_validator
     from pydantic_settings import BaseSettings
-    
+
     PYDANTIC_V2 = True
-    
+
 except ImportError:
     try:
         # Pydantic v1 fallback
-        from pydantic import validator, Field, BaseModel, BaseSettings
+        from pydantic import BaseModel, BaseSettings, Field, validator
 
         PYDANTIC_V2 = False
 

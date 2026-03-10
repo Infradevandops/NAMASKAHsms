@@ -1,14 +1,15 @@
 """Smart SMS routing with AI - based provider selection."""
 
-
 from datetime import datetime, timedelta, timezone
 from typing import Dict
+
 from sqlalchemy import case, func
+
 from app.core.database import get_db
 from app.models.verification import Verification
 
-class SmartRouter:
 
+class SmartRouter:
     """AI - powered SMS provider routing."""
 
     def __init__(self):
@@ -32,7 +33,9 @@ class SmartRouter:
         # Return provider with highest score
         return max(scores, key=scores.get)
 
-    async def _get_provider_stats(self, provider: str, service: str, country: str) -> Dict:
+    async def _get_provider_stats(
+        self, provider: str, service: str, country: str
+    ) -> Dict:
         """Get provider performance statistics."""
         db = next(get_db())
 
@@ -43,7 +46,9 @@ class SmartRouter:
             db.query(
                 func.count(Verification.id).label("total"),
                 func.avg(Verification.cost).label("avg_cost"),
-                func.sum(case((Verification.status == "completed", 1), else_=0)).label("success_count"),
+                func.sum(case((Verification.status == "completed", 1), else_=0)).label(
+                    "success_count"
+                ),
             )
             .filter(
                 Verification.provider == provider,
@@ -65,7 +70,6 @@ class SmartRouter:
         }
 
     def _calculate_score(self, stats: Dict) -> float:
-
         """Calculate provider score using weighted metrics."""
         cost_score = 1 / max(stats["avg_cost"], 0.1)  # Lower cost = higher score
         success_score = stats["success_rate"]
@@ -77,6 +81,5 @@ class SmartRouter:
             + speed_score * self.routing_rules["speed_weight"]
         )
 
-
-# Global router instance
+        # Global router instance
         smart_router = SmartRouter()

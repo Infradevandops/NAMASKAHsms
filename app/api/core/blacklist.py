@@ -2,8 +2,10 @@
 
 from datetime import datetime, timezone
 from typing import List
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -77,14 +79,18 @@ async def add_to_blacklist(
         service_name=service_name,
         reason=request.reason or "Manual blacklist",
         created_at=datetime.now(timezone.utc),
-        expires_at=datetime.now(timezone.utc).replace(year=datetime.now(timezone.utc).year + 1),  # 1 year
+        expires_at=datetime.now(timezone.utc).replace(
+            year=datetime.now(timezone.utc).year + 1
+        ),  # 1 year
     )
 
     db.add(blacklist_entry)
     db.commit()
     db.refresh(blacklist_entry)
 
-    logger.info(f"Number {phone_number} blacklisted by user {user_id} for service {service_name}")
+    logger.info(
+        f"Number {phone_number} blacklisted by user {user_id} for service {service_name}"
+    )
 
     return {
         "success": True,
@@ -146,7 +152,9 @@ async def check_blacklist(
         "service_name": service_name,
         "is_blacklisted": is_blacklisted,
         "reason": blacklist_entry.reason if blacklist_entry else None,
-        "expires_at": blacklist_entry.expires_at.isoformat() if blacklist_entry else None,
+        "expires_at": (
+            blacklist_entry.expires_at.isoformat() if blacklist_entry else None
+        ),
     }
 
 

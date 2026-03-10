@@ -1,8 +1,8 @@
 """Verification cancellation endpoint with automatic refund."""
 
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
@@ -53,7 +53,9 @@ async def cancel_verification(
             tv_service = TextVerifiedService()
             try:
                 await tv_service.cancel_verification(verification.activation_id)
-                logger.info(f"Cancelled TextVerified activation: {verification.activation_id}")
+                logger.info(
+                    f"Cancelled TextVerified activation: {verification.activation_id}"
+                )
             except Exception as tv_error:
                 logger.warning(f"TextVerified cancellation failed: {tv_error}")
 
@@ -63,7 +65,9 @@ async def cancel_verification(
         db.commit()
 
         refund_service = AutoRefundService(db)
-        refund_result = await refund_service.process_verification_refund(verification_id, "cancelled")
+        refund_result = await refund_service.process_verification_refund(
+            verification_id, "cancelled"
+        )
 
         if refund_result:
             logger.info(
@@ -77,7 +81,9 @@ async def cancel_verification(
                 "new_balance": refund_result["new_balance"],
             }
         else:
-            logger.warning(f"Refund failed for cancelled verification {verification_id}")
+            logger.warning(
+                f"Refund failed for cancelled verification {verification_id}"
+            )
             return {
                 "success": True,
                 "message": "Verification cancelled (refund pending)",
