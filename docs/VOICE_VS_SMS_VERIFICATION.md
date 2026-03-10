@@ -5,19 +5,19 @@ This document outlines the differences between Voice and SMS verification flows 
 
 ## Feature Comparison
 
-| Feature | SMS Verification | Voice Verification |
-|---------|-----------------|-------------------|
-| **Capability** | SMS codes via text | Voice codes via phone call |
-| **Countries** | 50+ countries | US only (TextVerified limitation) |
-| **Tier Access** | All tiers | Starter+ (Freemium blocked) |
-| **Area Code Selection** | Turbo tier | Turbo tier |
-| **ISP/Carrier Filter** | Turbo tier | Turbo tier |
-| **Polling Interval** | 5s initial, 10s later | 5s constant |
-| **Timeout** | 20 minutes | 5 minutes |
-| **Estimated Cost** | $2.00-$4.00 | $3.50 |
-| **Notifications** | ✅ All events | ✅ All events |
-| **Auto-Polling** | ✅ Background service | ✅ Background service |
-| **Retry Logic** | ✅ 3 attempts | ✅ 3 attempts |
+Feature | SMS Verification | Voice Verification
+---------|-----------------|-------------------
+**Capability** | SMS codes via text | Voice codes via phone call
+**Countries** 50+ countries US only (TextVerified limitation)
+**Tier Access** All tiers Starter+ (Freemium blocked)
+**Area Code Selection** | Turbo tier | Turbo tier
+**ISP/Carrier Filter** | Turbo tier | Turbo tier 
+**Polling Interval** | 5s initial, 10s later | 5s constant 
+**Timeout** | 20 minutes | 5 minutes 
+**Estimated Cost** | $2.00-$4.00 | $3.50 
+**Notifications** | ✅ All events | ✅ All events 
+**Auto-Polling** | ✅ Background service | ✅ Background service 
+**Retry Logic** | ✅ 3 attempts | ✅ 3 attempts 
 
 ## API Endpoints
 

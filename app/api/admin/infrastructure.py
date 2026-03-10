@@ -43,12 +43,10 @@ async def perform_health_check(admin_user: User = Depends(get_current_admin_user
 @router.get("/cdn/config")
 async def get_cdn_configuration():
     """Get CDN configuration."""
-    # TODO: Implement cdn_service
-    return {}
+    return {"message": "CDN service not implemented yet"}
 
 
-@router.get("/cdn/asset - url")
+@router.get("/cdn/asset-url")
 async def get_asset_url(asset_path: str, region: str = None):
     """Get optimized CDN URL for asset."""
-    # TODO: Implement cdn_service
-    return {"asset_url": asset_path}
+    return {"asset_url": f"/static/{asset_path}", "message": "CDN service not implemented yet"}

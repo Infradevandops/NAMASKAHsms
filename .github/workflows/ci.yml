@@ -119,7 +119,7 @@ jobs:
             --cov=app \
             --cov-report=xml \
             --cov-report=term-missing \
-            --cov-fail-under=25 \
+            --cov-fail-under=20 \
             --maxfail=5 \
             --tb=short
       

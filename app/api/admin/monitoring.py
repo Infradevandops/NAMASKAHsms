@@ -34,8 +34,7 @@ async def test_alerting_system(
     admin_user: User = Depends(get_current_admin_user),
 ):
     """Test alerting system (admin only)."""
-    # TODO: Implement alerting_service
-    return {"message": "Test alert queued"}
+    return {"message": "Alerting system test not implemented yet", "status": "pending"}
 
 
 @router.get("/sla")
