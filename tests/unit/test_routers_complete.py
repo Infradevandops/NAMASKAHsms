@@ -1,5 +1,3 @@
-
-
 from fastapi import FastAPI
 from app.api.core.router import router as core_router
 
@@ -25,10 +23,10 @@ def test_core_router_inclusion():
         "/api/referrals",
     ]
 
-
-for prefix in expected_prefixes:
-        assert any(route.startswith(prefix)
-                   for route in routes), f"Prefix {prefix} not found in routes"
+    for prefix in expected_prefixes:
+        assert any(
+            route.startswith(prefix) for route in routes
+        ), f"Prefix {prefix} not found in routes"
 
 
 def test_router_tags():
@@ -39,7 +37,6 @@ def test_router_tags():
     # Check tags for some routes
     key_routes = [r for r in app.routes if r.path.startswith("/api/keys")]
     assert len(key_routes) > 0
-
 
     for route in key_routes:
         assert "API Keys" in route.tags

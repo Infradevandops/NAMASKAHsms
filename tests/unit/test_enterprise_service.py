@@ -1,5 +1,3 @@
-
-
 from unittest.mock import patch
 import pytest
 from app.models.enterprise import EnterpriseAccount, EnterpriseTier
@@ -27,46 +25,54 @@ class TestEnterpriseService:
         db_session.commit()
 
         # Patch get_db to return our session
-        with patch("app.services.enterprise_service.get_db", return_value=iter([db_session])):
+        with patch(
+            "app.services.enterprise_service.get_db", return_value=iter([db_session])
+        ):
             res = await service.get_user_tier(regular_user.id)
             assert res is not None
             assert res["tier_name"] == "Gold"
 
     @pytest.mark.asyncio
     async def test_get_user_tier_none(self, service, db_session):
-        with patch("app.services.enterprise_service.get_db", return_value=iter([db_session])):
+        with patch(
+            "app.services.enterprise_service.get_db", return_value=iter([db_session])
+        ):
             res = await service.get_user_tier("non-existant")
             assert res is None
 
     @pytest.mark.asyncio
-    async def test_upgrade_to_enterprise(
-            self, service, db_session, regular_user):
+    async def test_upgrade_to_enterprise(self, service, db_session, regular_user):
         tier = EnterpriseTier(name="Platinum", min_monthly_spend=500.0)
         db_session.add(tier)
         db_session.commit()
 
-        with patch("app.services.enterprise_service.get_db", return_value=iter([db_session])):
+        with patch(
+            "app.services.enterprise_service.get_db", return_value=iter([db_session])
+        ):
             res = await service.upgrade_to_enterprise(regular_user.id, "Platinum")
             assert res["success"] is True
 
             # Verify update
-            acct = db_session.query(EnterpriseAccount).filter(
-                EnterpriseAccount.user_id == regular_user.id).first()
+            acct = (
+                db_session.query(EnterpriseAccount)
+                .filter(EnterpriseAccount.user_id == regular_user.id)
+                .first()
+            )
             assert acct.tier_id == tier.id
 
     @pytest.mark.asyncio
-    async def test_upgrade_invalid_tier(
-            self, service, db_session, regular_user):
-        with patch("app.services.enterprise_service.get_db", return_value=iter([db_session])):
+    async def test_upgrade_invalid_tier(self, service, db_session, regular_user):
+        with patch(
+            "app.services.enterprise_service.get_db", return_value=iter([db_session])
+        ):
             with pytest.raises(ValueError):
                 await service.upgrade_to_enterprise(regular_user.id, "InvalidTier")
 
     @pytest.mark.asyncio
     async def test_check_sla_compliance(self, service, db_session):
         tier = EnterpriseTier(
-            name="Silver",
-            max_response_time=500,
-            min_monthly_spend=50.0)
+            name="Silver", max_response_time=500, min_monthly_spend=50.0
+        )
         db_session.add(tier)
         db_session.commit()
 

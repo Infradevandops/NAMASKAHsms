@@ -1,15 +1,12 @@
-
-
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from app.middleware.rate_limiting import (
-
-    AdaptiveRateLimitMiddleware,
     RateLimitMiddleware,
 )
 
 
 # Mock app for testing middleware
+
 
 def create_test_app():
 
@@ -27,11 +24,9 @@ def create_test_app():
 
 
 class TestMiddleware:
-
     """Tests for various middleware components."""
 
     def test_security_headers_middleware(self):
-
         """Test that security headers are added to responses."""
         app = create_test_app()
         app.add_middleware(SecurityHeadersMiddleware)
@@ -45,7 +40,6 @@ class TestMiddleware:
         assert response.headers["X-XSS-Protection"] == "1; mode=block"
 
     def test_cors_middleware(self):
-
         """Test CORS middleware headers."""
         app = create_test_app()
         app.add_middleware(CORSMiddleware, allowed_origins=["https://example.com"])
@@ -58,17 +52,19 @@ class TestMiddleware:
 
         # Test OPTIONS preflight
         response = client.options(
-            "/test",
-            headers={
-                "Origin": "https://example.com",
-                "Access-Control-Request-Method": "GET",
-            },
+        "/test",
+        headers={
+            "Origin": "https://example.com",
+            "Access-Control-Request-Method": "GET",
+        },
         )
         assert response.status_code == 200
-        assert response.headers["Access-Control-Allow-Methods"] == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        assert (
+        response.headers["Access-Control-Allow-Methods"]
+        == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+        )
 
     def test_rate_limit_middleware(self):
-
         """Test rate limiting middleware."""
         app = create_test_app()
         # Set very low limit for testing
@@ -90,7 +86,6 @@ class TestMiddleware:
         assert response.json()["error"] == "Rate limit exceeded"
 
     def test_rate_limit_public_paths(self):
-
         """Test that public paths are excluded from rate limiting."""
         app = create_test_app()
         app.add_middleware(RateLimitMiddleware, default_requests=1, default_window=60)
@@ -105,10 +100,9 @@ class TestMiddleware:
         # Multiple requests to public path should not be limited
         for _ in range(5):
             response = client.get("/system/health")
-            assert response.status_code == 200
+        assert response.status_code == 200
 
     def test_xss_protection_middleware(self):
-
         """Test XSS protection middleware."""
         app = create_test_app()
         app.add_middleware(XSSProtectionMiddleware)
@@ -121,10 +115,11 @@ class TestMiddleware:
         assert response.status_code == 200
 
     def test_adaptive_rate_limit(self):
-
         """Test adaptive rate limiting."""
         app = create_test_app()
-        app.add_middleware(AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1)
+        app.add_middleware(
+        AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1
+        )
         client = TestClient(app)
 
         # Make requests to trigger rate limit

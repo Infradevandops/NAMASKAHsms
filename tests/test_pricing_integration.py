@@ -11,21 +11,20 @@ from app.services.quota_service import QuotaService
 from app.services.transaction_service import TransactionService
 from app.services.verification_pricing_service import VerificationPricingService
 
+
 @pytest.fixture
 def db(db_session):
-
     """Get database session from conftest."""
     return db_session
 
 
 @pytest.fixture
 def users(db: Session):
-
     """Create test users for all tiers."""
     users = {}
     tiers = ["freemium", "payg", "pro", "custom"]
 
-for tier in tiers:
+    for tier in tiers:
         user = User(
             id=str(uuid.uuid4()),
             email=f"{tier}_{uuid.uuid4()}@test.com",
@@ -35,9 +34,7 @@ for tier in tiers:
             credits=100.0 if tier != "freemium" else 0.0,
         )
         db.add(user)
-        users[tier] = user
-
-    db.commit()
+        db.commit()
     return users
 
 

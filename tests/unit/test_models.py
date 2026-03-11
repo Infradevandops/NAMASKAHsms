@@ -1,8 +1,5 @@
-
-
 from datetime import datetime, timezone
 from app.models.user import (
-
     NotificationSettings,
     Referral,
     Subscription,
@@ -49,7 +46,9 @@ class TestModels:
 
     def test_subscription_model(self, db_session):
 
-        sub = Subscription(user_id="u1", plan="pro", price=25.0, expires_at=datetime.now(timezone.utc))
+        sub = Subscription(
+            user_id="u1", plan="pro", price=25.0, expires_at=datetime.now(timezone.utc)
+        )
         db_session.add(sub)
         db_session.commit()
         assert sub.status == "active"

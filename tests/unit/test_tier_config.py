@@ -1,6 +1,5 @@
-
-
 from app.core.tier_config import TierConfig
+
 
 class TestTierConfig:
 

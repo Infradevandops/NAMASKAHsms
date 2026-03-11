@@ -1,23 +1,14 @@
+"""Batch Test Implementation Script
+Implements multiple high-value tests across services to reach 90% coverage
 """
+
+
 import pytest
 from app.models.user import User
 from app.utils.security import create_access_token, hash_password, verify_password
 from app.core.tier_config_simple import TIER_CONFIG
-from app.core.tier_config_simple import TIER_CONFIG
-from app.core.tier_config_simple import TIER_CONFIG
-from app.core.tier_config_simple import TIER_CONFIG
-from app.core.tier_config_simple import TIER_CONFIG
-from app.core.tier_config_simple import TIER_CONFIG
-from app.models.transaction import Transaction
-from app.models.transaction import Transaction
 from app.models.transaction import Transaction
 from app.services.webhook_queue import WebhookQueue
-from app.services.webhook_queue import WebhookQueue
-
-Batch Test Implementation Script
-Implements multiple high-value tests across services to reach 90% coverage
-"""
-
 
 # ============================================================================
 # AUTH SERVICE TESTS - Target: 40%+ coverage
@@ -25,7 +16,6 @@ Implements multiple high-value tests across services to reach 90% coverage
 
 
 class TestAuthServiceCore:
-
     """Core authentication tests."""
 
     def test_password_hashing_verification(self, db_session):
@@ -61,10 +51,10 @@ class TestAuthServiceCore:
 
         # Create user
         user = User(
-            email=email,
-            password_hash=hash_password(password),
-            subscription_tier="freemium",
-            email_verified=False,
+        email=email,
+        password_hash=hash_password(password),
+        subscription_tier="freemium",
+        email_verified=False,
         )
         db_session.add(user)
         db_session.commit()
@@ -80,9 +70,9 @@ class TestAuthServiceCore:
         """Test that duplicate emails are prevented."""
         # Try to create user with same email
         duplicate = User(
-            email=regular_user.email,
-            password_hash=hash_password("password"),
-            subscription_tier="freemium",
+        email=regular_user.email,
+        password_hash=hash_password("password"),
+        subscription_tier="freemium",
         )
         db_session.add(duplicate)
 
@@ -97,9 +87,9 @@ class TestAuthServiceCore:
 
         # Create user
         user = User(
-            email=email,
-            password_hash=hash_password(password),
-            subscription_tier="freemium",
+        email=email,
+        password_hash=hash_password(password),
+        subscription_tier="freemium",
         )
         db_session.add(user)
         db_session.commit()
@@ -109,20 +99,18 @@ class TestAuthServiceCore:
         assert found_user is not None
         assert verify_password(password, found_user.password_hash)
 
-    def test_user_authentication_wrong_password(
-        self, db_session, regular_user):
+    def test_user_authentication_wrong_password(self, db_session, regular_user):
         """Test authentication with wrong password."""
         wrong_password = "WrongPassword123!"
 
         # Should not verify
-        assert verify_password(
-    wrong_password,
-     regular_user.password_hash) is False
+        assert verify_password(wrong_password, regular_user.password_hash) is False
 
     def test_user_authentication_nonexistent(self, db_session):
         """Test authentication with non-existent user."""
-        user = db_session.query(User).filter(
-    User.email == "nonexistent@test.com").first()
+        user = (
+        db_session.query(User).filter(User.email == "nonexistent@test.com").first()
+        )
         assert user is None
 
 
@@ -132,11 +120,9 @@ class TestAuthServiceCore:
 
 
 class TestSMSServiceCore:
-
     """Core SMS service tests."""
 
     def test_sms_cost_calculation_freemium(self):
-
         """Test SMS cost for freemium tier."""
 
         tier = "freemium"
@@ -146,7 +132,6 @@ class TestSMSServiceCore:
         assert config["has_api_access"] is False
 
     def test_sms_cost_calculation_pro(self):
-
         """Test SMS cost for pro tier."""
 
         tier = "pro"
@@ -157,7 +142,6 @@ class TestSMSServiceCore:
         assert config["has_api_access"] is True
 
     def test_sms_balance_deduction(self, db_session, regular_user):
-
         """Test SMS balance deduction."""
         initial_balance = regular_user.credits
         cost = 2.50
@@ -171,13 +155,12 @@ class TestSMSServiceCore:
         assert regular_user.credits == initial_balance - cost
 
     def test_insufficient_balance_check(self, db_session):
-
         """Test insufficient balance detection."""
         user = User(
-            email="broke@test.com",
-            password_hash=hash_password("pass"),
-            credits=1.0,  # Not enough for SMS
-            subscription_tier="freemium",
+        email="broke@test.com",
+        password_hash=hash_password("pass"),
+        credits=1.0,  # Not enough for SMS
+        subscription_tier="freemium",
         )
         db_session.add(user)
         db_session.commit()
@@ -192,11 +175,9 @@ class TestSMSServiceCore:
 
 
 class TestTierServiceCore:
-
     """Core tier service tests."""
 
     def test_tier_hierarchy_validation(self):
-
         """Test tier hierarchy."""
 
         tiers = list(TIER_CONFIG.keys())
@@ -206,7 +187,6 @@ class TestTierServiceCore:
         assert "custom" in tiers
 
     def test_tier_upgrade_freemium_to_pro(self, db_session, regular_user):
-
         """Test upgrading from freemium to pro."""
         assert regular_user.subscription_tier == "freemium"
 
@@ -218,7 +198,6 @@ class TestTierServiceCore:
         assert regular_user.subscription_tier == "pro"
 
     def test_tier_features_freemium(self):
-
         """Test freemium tier features."""
 
         config = TIER_CONFIG["freemium"]
@@ -227,7 +206,6 @@ class TestTierServiceCore:
         assert config["price_monthly"] == 0
 
     def test_tier_features_pro(self):
-
         """Test pro tier features."""
 
         config = TIER_CONFIG["pro"]
@@ -236,7 +214,6 @@ class TestTierServiceCore:
         assert config["price_monthly"] == 2500
 
     def test_quota_limits_by_tier(self):
-
         """Test quota limits for each tier."""
 
         assert TIER_CONFIG["freemium"]["quota_usd"] == 0
@@ -250,70 +227,80 @@ class TestTierServiceCore:
 
 
 class TestTransactionServiceCore:
-
     """Core transaction service tests."""
 
     def test_transaction_creation(self, db_session, regular_user):
-
         """Test creating a transaction."""
 
         tx = Transaction(
-            user_id=regular_user.id,
-            amount=10.0,
-            type="credit",
-            description="Test credit",
+        user_id=regular_user.id,
+        amount=10.0,
+        type="credit",
+        description="Test credit",
         )
         db_session.add(tx)
         db_session.commit()
 
         # Verify
-        saved_tx = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).first()
+        saved_tx = (
+        db_session.query(Transaction)
+        .filter(Transaction.user_id == regular_user.id)
+        .first()
+        )
         assert saved_tx is not None
         assert saved_tx.amount == 10.0
         assert saved_tx.type == "credit"
 
     def test_transaction_history_retrieval(self, db_session, regular_user):
-
         """Test retrieving transaction history."""
 
         # Create multiple transactions
         for i in range(3):
             tx = Transaction(
-                user_id=regular_user.id,
-                amount=10.0 + i,
-                type="credit",
-                description=f"Test {i}",
-            )
-            db_session.add(tx)
+            user_id=regular_user.id,
+            amount=10.0 + i,
+            type="credit",
+            description=f"Test {i}",
+        )
+        db_session.add(tx)
         db_session.commit()
 
         # Retrieve
-        txs = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).all()
+        txs = (
+        db_session.query(Transaction)
+        .filter(Transaction.user_id == regular_user.id)
+        .all()
+        )
 
         assert len(txs) >= 3
 
     def test_transaction_balance_calculation(self, db_session, regular_user):
-
         """Test balance calculation from transactions."""
 
         regular_user.credits
 
         # Add credit
         tx1 = Transaction(
-            user_id=regular_user.id,
-            amount=50.0,
-            type="credit",
-            description="Add credit",
+        user_id=regular_user.id,
+        amount=50.0,
+        type="credit",
+        description="Add credit",
         )
         db_session.add(tx1)
 
         # Deduct
-        tx2 = Transaction(user_id=regular_user.id, amount=-20.0, type="debit", description="Deduct")
+        tx2 = Transaction(
+        user_id=regular_user.id, amount=-20.0, type="debit", description="Deduct"
+        )
         db_session.add(tx2)
         db_session.commit()
 
         # Calculate
-        txs = db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).all()
+        txs = (
+        db_session.query(Transaction)
+        .filter(Transaction.user_id == regular_user.id)
+        .all()
+        )
 
         total = sum(tx.amount for tx in txs)
         assert total == 30.0  # 50 - 20
@@ -325,7 +312,6 @@ class TestTransactionServiceCore:
 
 
 class TestWebhookServiceExtended:
-
     """Extended webhook service tests."""
 
     @pytest.mark.asyncio
@@ -335,7 +321,9 @@ class TestWebhookServiceExtended:
         queue = WebhookQueue(redis_client)
 
         # Enqueue
-        msg_id = await queue.enqueue(webhook_id="wh_test", event="test.event", data={"test": "data"})
+        msg_id = await queue.enqueue(
+        webhook_id="wh_test", event="test.event", data={"test": "data"}
+        )
 
         assert msg_id is not None
 
@@ -346,7 +334,9 @@ class TestWebhookServiceExtended:
         queue = WebhookQueue(redis_client)
 
         # Enqueue with retry
-        msg_id = await queue.enqueue(webhook_id="wh_retry", event="retry.event", data={"retry": True})
+        msg_id = await queue.enqueue(
+        webhook_id="wh_retry", event="retry.event", data={"retry": True}
+        )
 
         assert msg_id is not None
 

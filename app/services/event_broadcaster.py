@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.models.notification import Notification
-from app.websocket.manager import connection_manager
+from app.websocket.manager import manager as connection_manager
 
 logger = get_logger(__name__)
 

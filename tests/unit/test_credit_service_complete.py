@@ -1,23 +1,19 @@
-
-
 import pytest
 from app.core.exceptions import InsufficientCreditsError
 from app.models.transaction import Transaction
 from app.services.credit_service import CreditService
 
-class TestCreditServiceComplete:
 
+class TestCreditServiceComplete:
     """Comprehensive tests for CreditService."""
 
     def test_get_balance(self, db_session, regular_user):
-
         """Test getting user balance."""
         service = CreditService(db_session)
         balance = service.get_balance(regular_user.id)
         assert balance == regular_user.credits
 
     def test_add_credits(self, db_session, regular_user):
-
         """Test adding credits."""
         service = CreditService(db_session)
         initial_balance = regular_user.credits
@@ -26,10 +22,14 @@ class TestCreditServiceComplete:
         result = service.add_credits(regular_user.id, amount, "Test credit")
 
         assert result["new_balance"] == initial_balance + amount
-        assert db_session.query(Transaction).filter(Transaction.user_id == regular_user.id).count() == 1
+        assert (
+            db_session.query(Transaction)
+            .filter(Transaction.user_id == regular_user.id)
+            .count()
+            == 1
+        )
 
     def test_deduct_credits_success(self, db_session, regular_user):
-
         """Test successful credit deduction."""
         service = CreditService(db_session)
         # Give some credits first
@@ -43,7 +43,6 @@ class TestCreditServiceComplete:
         assert result["new_balance"] == initial_balance - amount
 
     def test_deduct_credits_insufficient(self, db_session, regular_user):
-
         """Test deduction fails with insufficient credits."""
         service = CreditService(db_session)
         # Set balance to 10
@@ -54,7 +53,6 @@ class TestCreditServiceComplete:
             service.deduct_credits(regular_user.id, 20.0)
 
     def test_transfer_credits(self, db_session, regular_user, admin_user):
-
         """Test transferring credits between users."""
         service = CreditService(db_session)
 
@@ -73,12 +71,16 @@ class TestCreditServiceComplete:
         # Check transaction records (one for each user)
         reg_trans = (
             db_session.query(Transaction)
-            .filter(Transaction.user_id == regular_user.id, Transaction.type == "transfer")
+            .filter(
+                Transaction.user_id == regular_user.id, Transaction.type == "transfer"
+            )
             .first()
         )
         admin_trans = (
             db_session.query(Transaction)
-            .filter(Transaction.user_id == admin_user.id, Transaction.type == "transfer")
+            .filter(
+                Transaction.user_id == admin_user.id, Transaction.type == "transfer"
+            )
             .first()
         )
 
@@ -86,7 +88,6 @@ class TestCreditServiceComplete:
         assert admin_trans.amount == amount
 
     def test_get_transaction_history(self, db_session, regular_user):
-
         """Test retrieving transaction history."""
         service = CreditService(db_session)
 

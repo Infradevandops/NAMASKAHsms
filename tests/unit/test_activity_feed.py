@@ -1,6 +1,5 @@
 """Tests for activity feed system."""
 
-
 from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy.orm import Session
@@ -30,7 +29,6 @@ def activity_service(db: Session):
 
 
 class TestActivityModel:
-
     """Test Activity model."""
 
     def test_create_activity(self, db: Session, test_user):
@@ -79,11 +77,9 @@ class TestActivityModel:
 
 
 class TestActivityService:
-
     """Test ActivityService."""
 
     def test_log_activity(self, activity_service, test_user):
-
         """Test logging an activity."""
         activity = activity_service.log_activity(
             user_id=test_user.id,
@@ -102,7 +98,6 @@ class TestActivityService:
         assert activity.title == "Verification Started"
 
     def test_log_activity_user_not_found(self, activity_service):
-
         """Test logging activity for non-existent user."""
         with pytest.raises(ValueError, match="User .* not found"):
             activity_service.log_activity(
@@ -114,7 +109,6 @@ class TestActivityService:
             )
 
     def test_get_user_activities(self, db: Session, activity_service, test_user):
-
         """Test retrieving user activities."""
         # Create multiple activities
         for i in range(5):
@@ -134,8 +128,9 @@ class TestActivityService:
         assert result["skip"] == 0
         assert result["limit"] == 20
 
-    def test_get_user_activities_with_filters(self, db: Session, activity_service, test_user):
-
+    def test_get_user_activities_with_filters(
+        self, db: Session, activity_service, test_user
+    ):
         """Test retrieving activities with filters."""
         # Create activities of different types
         activity_service.log_activity(
@@ -162,7 +157,9 @@ class TestActivityService:
         )
 
         # Filter by type
-        result = activity_service.get_user_activities(test_user.id, activity_type="verification")
+        result = activity_service.get_user_activities(
+            test_user.id, activity_type="verification"
+        )
         assert result["total"] == 2
 
         # Filter by status
@@ -170,11 +167,14 @@ class TestActivityService:
         assert result["total"] == 1
 
         # Filter by resource type
-        result = activity_service.get_user_activities(test_user.id, resource_type="payment")
+        result = activity_service.get_user_activities(
+            test_user.id, resource_type="payment"
+        )
         assert result["total"] == 1
 
-    def test_get_user_activities_pagination(self, db: Session, activity_service, test_user):
-
+    def test_get_user_activities_pagination(
+        self, db: Session, activity_service, test_user
+    ):
         """Test pagination of activities."""
         # Create 25 activities
         for i in range(25):
@@ -200,7 +200,6 @@ class TestActivityService:
         assert len(result["activities"]) == 5
 
     def test_get_activity_by_id(self, db: Session, activity_service, test_user):
-
         """Test retrieving activity by ID."""
         activity = activity_service.log_activity(
             user_id=test_user.id,
@@ -217,13 +216,11 @@ class TestActivityService:
         assert retrieved.title == "Test Activity"
 
     def test_get_activity_by_id_not_found(self, activity_service, test_user):
-
         """Test retrieving non-existent activity."""
         retrieved = activity_service.get_activity_by_id(test_user.id, "non-existent-id")
         assert retrieved is None
 
     def test_get_activities_by_resource(self, db: Session, activity_service, test_user):
-
         """Test retrieving activities for a specific resource."""
         resource_id = "verify-123"
 
@@ -248,13 +245,14 @@ class TestActivityService:
             title="Different Resource",
         )
 
-        activities = activity_service.get_activities_by_resource(test_user.id, "verification", resource_id)
+        activities = activity_service.get_activities_by_resource(
+            test_user.id, "verification", resource_id
+        )
 
         assert len(activities) == 3
         assert all(a.resource_id == resource_id for a in activities)
 
     def test_get_activity_summary(self, db: Session, activity_service, test_user):
-
         """Test getting activity summary."""
         # Create activities of different types and statuses
         activity_service.log_activity(
@@ -303,7 +301,6 @@ class TestActivityService:
         assert summary["by_resource"]["user"] == 1
 
     def test_cleanup_old_activities(self, db: Session, activity_service, test_user):
-
         """Test cleaning up old activities."""
         # Create recent activity
         activity_service.log_activity(
@@ -339,11 +336,9 @@ class TestActivityService:
 
 
 class TestActivityEndpoints:
-
     """Test Activity API endpoints."""
 
     def test_get_activities_endpoint(self, client, test_user, db: Session):
-
         """Test GET /api/activities endpoint."""
         # Create test activities
         service = ActivityService(db)
@@ -370,7 +365,6 @@ class TestActivityEndpoints:
             assert len(data["activities"]) == 3
 
     def test_get_activity_by_id_endpoint(self, client, test_user, db: Session):
-
         """Test GET /api/activities/{activity_id} endpoint."""
         service = ActivityService(db)
         activity = service.log_activity(
@@ -394,7 +388,6 @@ class TestActivityEndpoints:
             assert data["title"] == "Test Activity"
 
     def test_get_activity_summary_endpoint(self, client, test_user, db: Session):
-
         """Test GET /api/activities/summary/overview endpoint."""
         service = ActivityService(db)
         for i in range(5):
@@ -421,7 +414,6 @@ class TestActivityEndpoints:
             assert "by_resource" in data
 
     def test_export_activities_json(self, client, test_user, db: Session):
-
         """Test exporting activities as JSON."""
         service = ActivityService(db)
         for i in range(3):
@@ -447,7 +439,6 @@ class TestActivityEndpoints:
             assert len(data["data"]) == 3
 
     def test_export_activities_csv(self, client, test_user, db: Session):
-
         """Test exporting activities as CSV."""
         service = ActivityService(db)
         for i in range(3):

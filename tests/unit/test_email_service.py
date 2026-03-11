@@ -1,5 +1,3 @@
-
-
 from unittest.mock import patch
 import pytest
 from app.services.email_service import EmailService
@@ -33,10 +31,7 @@ class TestEmailService:
     @pytest.mark.asyncio
     @patch("app.services.email_service.EmailService._send_email")
     async def test_send_payment_failed_alert(self, mock_send, service):
-        details = {
-            "reference": "REF123",
-            "amount_usd": 10.0,
-            "reason": "Declined"}
+        details = {"reference": "REF123", "amount_usd": 10.0, "reason": "Declined"}
         res = await service.send_payment_failed_alert("user@example.com", details)
         assert res is True
         assert mock_send.called

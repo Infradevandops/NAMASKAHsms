@@ -6,31 +6,28 @@ class TestProviderStatusEndpoints:
     """Test provider status API endpoints."""
 
     def test_get_provider_health_public(self, client):
-
         """Provider health endpoint should be accessible."""
         response = client.get("/api/providers/health")
         # May require auth or be public
         assert response.status_code in [200, 401, 404, 501]
 
     def test_get_provider_health_authenticated(self, client, auth_headers):
-
         """Should return provider health for authenticated user."""
         response = client.get("/api/providers/health", headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
     def test_provider_health_response_format(self, client, auth_headers):
-
         """Provider health response should have expected format."""
         response = client.get("/api/providers/health", headers=auth_headers)
         if response.status_code == 200:
             data = response.json()
-            # Should have providers array
-            assert "providers" in data or isinstance(data, list)
+        # Should have providers array
+        assert "providers" in data or isinstance(data, list)
 
 
 class TestProviderStatusPage:
 
-        """Test provider status page."""
+    """Test provider status page."""
 
     def test_status_page_loads_public(self, client):
 
@@ -71,19 +68,19 @@ class TestProviderStatusPage:
 
 class TestProviderStatusData:
 
-        """Test provider status data format."""
+    """Test provider status data format."""
 
     def test_provider_has_required_fields(self):
 
         """Provider status should have required fields."""
         expected_fields = ["name", "status", "uptime_percent", "response_time_ms"]
         sample_provider = {
-            "name": "TextVerified",
-            "provider_id": "textverified",
-            "status": "operational",
-            "uptime_percent": 99.9,
-            "response_time_ms": 150,
-            "success_rate": 98.5,
+        "name": "TextVerified",
+        "provider_id": "textverified",
+        "status": "operational",
+        "uptime_percent": 99.9,
+        "response_time_ms": 150,
+        "success_rate": 98.5,
         }
         for field in expected_fields:
             assert field in sample_provider or field.replace("_", "") in str(sample_provider)
@@ -104,16 +101,16 @@ class TestProviderStatusData:
 
 class TestProviderStatusUI:
 
-        """Test provider status UI elements."""
+    """Test provider status UI elements."""
 
     def test_status_badge_classes(self):
 
         """Status badges should have correct CSS classes."""
         status_classes = {
-            "operational": "status-operational",
-            "degraded": "status-degraded",
-            "down": "status-down",
-            "unknown": "status-unknown",
+        "operational": "status-operational",
+        "degraded": "status-degraded",
+        "down": "status-down",
+        "unknown": "status-unknown",
         }
         for status, css_class in status_classes.items():
             assert css_class.startswith("status-")
@@ -125,9 +122,9 @@ class TestProviderStatusUI:
     def get_uptime_color(uptime):
 
         if uptime >= 99:
-        return "#10b981"  # Green
+            return "#10b981"  # Green
         if uptime >= 95:
-        return "#f59e0b"  # Yellow
+            return "#f59e0b"  # Yellow
         return "#ef4444"  # Red
 
         assert get_uptime_color(99.9) == "#10b981"

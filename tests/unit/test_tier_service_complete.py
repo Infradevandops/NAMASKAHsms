@@ -9,7 +9,6 @@ Comprehensive subscription tier management tests
 
 
 class TestTierServiceComplete:
-
     """Complete tier service test suite."""
 
     # ==================== Tier Configuration ====================
@@ -356,6 +355,7 @@ class TestTierServiceComplete:
         pro_limit = TIER_CONFIG["pro"]["rate_limit_per_minute"]
 
         assert custom_limit > pro_limit
+
 
 if __name__ == "__main__":
     print("Tier Service tests: 40 comprehensive tests created")

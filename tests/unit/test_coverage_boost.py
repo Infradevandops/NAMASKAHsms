@@ -1,6 +1,5 @@
 """Quick coverage boost tests for CI."""
 
-
 # Service initialization tests
 
 from app.services.payment_service import PaymentService
@@ -19,6 +18,7 @@ from app.core.logging import get_logger
 from app.core.tier_helpers import has_tier_access
 from app.core.tier_helpers import TIER_HIERARCHY
 from app.core.tier_helpers import has_tier_access
+
 
 def test_payment_service_init():
 
@@ -47,6 +47,7 @@ def test_notification_service_init():
 
 # Utility function tests
 
+
 def test_sanitize_filename():
 
     result = sanitize_filename("test file.txt")
@@ -60,6 +61,7 @@ def test_path_security():
 
 
 # Model tests
+
 
 def test_user_model_import():
 
@@ -82,6 +84,7 @@ def test_subscription_tier_model_import():
 
 
 # Core functionality tests
+
 
 def test_config_loading():
 

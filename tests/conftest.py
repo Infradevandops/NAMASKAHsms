@@ -34,7 +34,7 @@ def db(engine):
     """Create test database session."""
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     session = TestingSessionLocal()
-    
+
     try:
         yield session
     finally:
@@ -44,6 +44,7 @@ def db(engine):
 @pytest.fixture
 def client(db):
     """Create FastAPI test client with test database."""
+
     def override_get_db():
         yield db
 
@@ -68,7 +69,7 @@ def test_user(db, test_user_id):
         credits=100.0,
         tier="pro",
         is_admin=False,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(user)
     db.commit()
@@ -86,7 +87,7 @@ def admin_user(db):
         credits=1000.0,
         tier="custom",
         is_admin=True,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(user)
     db.commit()
@@ -104,7 +105,7 @@ def regular_user(db):
         credits=50.0,
         tier="freemium",
         is_admin=False,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(user)
     db.commit()
@@ -128,7 +129,7 @@ def test_verification(db, test_user):
         service="test_service",
         status="pending",
         cost=2.50,
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(verification)
     db.commit()
@@ -146,7 +147,7 @@ def test_transaction(db, test_user):
         amount=20.0,
         description="Test credit",
         status="completed",
-        created_at=datetime.now(timezone.utc)
+        created_at=datetime.now(timezone.utc),
     )
     db.add(transaction)
     db.commit()
@@ -157,6 +158,7 @@ def test_transaction(db, test_user):
 @pytest.fixture
 def authenticated_client(client, test_user, db):
     """Create an authenticated test client."""
+
     def override_get_db():
         yield db
 
@@ -174,6 +176,7 @@ def authenticated_client(client, test_user, db):
 @pytest.fixture
 def admin_client(client, admin_user, db):
     """Create an admin test client."""
+
     def override_get_db():
         yield db
 
@@ -191,6 +194,7 @@ def admin_client(client, admin_user, db):
 @pytest.fixture
 def regular_client(client, regular_user, db):
     """Create a regular user test client."""
+
     def override_get_db():
         yield db
 
@@ -214,8 +218,8 @@ def mock_paystack_response():
         "data": {
             "authorization_url": "https://checkout.paystack.com/test123",
             "access_code": "test_access_code",
-            "reference": "test_reference_123"
-        }
+            "reference": "test_reference_123",
+        },
     }
 
 
@@ -227,5 +231,5 @@ def mock_verification_response():
         "verification_id": "test_verification_123",
         "phone_number": "+1234567890",
         "service": "test_service",
-        "cost": 2.50
+        "cost": 2.50,
     }

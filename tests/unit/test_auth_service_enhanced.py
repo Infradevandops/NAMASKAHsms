@@ -12,35 +12,34 @@ import bcrypt
 
 class MockAuthService:
     """Mock auth service for testing"""
-    
+
     SECRET_KEY = "test_secret_key_12345"
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 15
-    
+
     def hash_password(self, password: str) -> str:
         """Hash password using bcrypt"""
         return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
-    
+
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         """Verify password against hash"""
         return bcrypt.checkpw(plain_password.encode(), hashed_password.encode())
-    
+
     def create_access_token(self, data: dict, expires_delta: timedelta = None) -> str:
         """Create JWT access token"""
         to_encode = data.copy()
-        
+
         if expires_delta:
             expire = datetime.utcnow() + expires_delta
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES)
-        
-        to_encode.update({
-            "exp": expire,
-            "iat": datetime.utcnow()
-        })
-        
+            expire = datetime.utcnow() + timedelta(
+                minutes=self.ACCESS_TOKEN_EXPIRE_MINUTES
+            )
+
+        to_encode.update({"exp": expire, "iat": datetime.utcnow()})
+
         return jwt.encode(to_encode, self.SECRET_KEY, algorithm=self.ALGORITHM)
-    
+
     def verify_token(self, token: str) -> dict:
         """Verify and decode JWT token"""
         try:
@@ -48,7 +47,7 @@ class MockAuthService:
             return payload
         except jwt.JWTError as e:
             raise ValueError(f"Invalid token: {e}")
-    
+
     def create_refresh_token(self, user_id: str) -> str:
         """Create refresh token"""
         data = {"sub": user_id, "type": "refresh"}
@@ -68,7 +67,7 @@ class TestAuthService:
         """Test password hashing"""
         password = "test_password_123"
         hashed = auth_service.hash_password(password)
-        
+
         assert hashed != password
         assert len(hashed) > 0
         assert hashed.startswith("$2b$")  # bcrypt prefix
@@ -77,24 +76,24 @@ class TestAuthService:
         """Test password verification with correct password"""
         password = "correct_password"
         hashed = auth_service.hash_password(password)
-        
+
         assert auth_service.verify_password(password, hashed) is True
 
     def test_verify_password_incorrect(self, auth_service):
         """Test password verification with incorrect password"""
         password = "correct_password"
         hashed = auth_service.hash_password(password)
-        
+
         assert auth_service.verify_password("wrong_password", hashed) is False
 
     def test_create_access_token(self, auth_service):
         """Test JWT access token creation"""
         data = {"sub": "user_123", "email": "test@example.com"}
         token = auth_service.create_access_token(data)
-        
+
         assert isinstance(token, str)
         assert len(token) > 0
-        
+
         # Verify token can be decoded
         payload = auth_service.verify_token(token)
         assert payload["sub"] == "user_123"
@@ -107,13 +106,13 @@ class TestAuthService:
         data = {"sub": "user_123"}
         expires_delta = timedelta(minutes=30)
         token = auth_service.create_access_token(data, expires_delta)
-        
+
         payload = auth_service.verify_token(token)
-        
+
         # Verify expiration is approximately 30 minutes from now
         exp_time = datetime.fromtimestamp(payload["exp"])
         expected_exp = datetime.utcnow() + expires_delta
-        
+
         # Allow 5 second tolerance
         assert abs((exp_time - expected_exp).total_seconds()) < 5
 
@@ -121,9 +120,9 @@ class TestAuthService:
         """Test verifying valid token"""
         data = {"sub": "user_123", "role": "user"}
         token = auth_service.create_access_token(data)
-        
+
         payload = auth_service.verify_token(token)
-        
+
         assert payload["sub"] == "user_123"
         assert payload["role"] == "user"
 
@@ -133,7 +132,7 @@ class TestAuthService:
         # Create token that expires immediately
         expires_delta = timedelta(seconds=-1)
         token = auth_service.create_access_token(data, expires_delta)
-        
+
         with pytest.raises(ValueError, match="Invalid token"):
             auth_service.verify_token(token)
 
@@ -142,7 +141,7 @@ class TestAuthService:
         # Create token with different secret
         data = {"sub": "user_123"}
         invalid_token = jwt.encode(data, "wrong_secret", algorithm="HS256")
-        
+
         with pytest.raises(ValueError, match="Invalid token"):
             auth_service.verify_token(invalid_token)
 
@@ -155,9 +154,9 @@ class TestAuthService:
         """Test refresh token creation"""
         user_id = "user_123"
         token = auth_service.create_refresh_token(user_id)
-        
+
         assert isinstance(token, str)
-        
+
         payload = auth_service.verify_token(token)
         assert payload["sub"] == user_id
         assert payload["type"] == "refresh"
@@ -165,13 +164,13 @@ class TestAuthService:
     def test_refresh_token_longer_expiry(self, auth_service):
         """Test refresh token has longer expiry than access token"""
         user_id = "user_123"
-        
+
         access_token = auth_service.create_access_token({"sub": user_id})
         refresh_token = auth_service.create_refresh_token(user_id)
-        
+
         access_payload = auth_service.verify_token(access_token)
         refresh_payload = auth_service.verify_token(refresh_token)
-        
+
         # Refresh token should expire later
         assert refresh_payload["exp"] > access_payload["exp"]
 
@@ -188,7 +187,7 @@ class TestAuthServiceSecurity:
         password = "same_password"
         hash1 = auth_service.hash_password(password)
         hash2 = auth_service.hash_password(password)
-        
+
         assert hash1 != hash2  # Different due to salt
         assert auth_service.verify_password(password, hash1)
         assert auth_service.verify_password(password, hash2)
@@ -197,9 +196,9 @@ class TestAuthServiceSecurity:
         """Test token doesn't contain sensitive data"""
         data = {"sub": "user_123", "email": "test@example.com"}
         token = auth_service.create_access_token(data)
-        
+
         payload = auth_service.verify_token(token)
-        
+
         # Should not contain password or other sensitive data
         assert "password" not in payload
         assert "password_hash" not in payload
@@ -209,10 +208,10 @@ class TestAuthServiceSecurity:
         """Test token tampering is detected"""
         data = {"sub": "user_123", "role": "user"}
         token = auth_service.create_access_token(data)
-        
+
         # Tamper with token (change last character)
         tampered_token = token[:-1] + ("a" if token[-1] != "a" else "b")
-        
+
         with pytest.raises(ValueError, match="Invalid token"):
             auth_service.verify_token(tampered_token)
 
@@ -243,11 +242,11 @@ class TestAuthServiceEdgeCases:
         data = {
             "sub": "user_123",
             "email": "test+special@example.com",
-            "name": "Test User™"
+            "name": "Test User™",
         }
         token = auth_service.create_access_token(data)
         payload = auth_service.verify_token(token)
-        
+
         assert payload["email"] == "test+special@example.com"
         assert payload["name"] == "Test User™"
 
@@ -256,7 +255,7 @@ class TestAuthServiceEdgeCases:
         data = {"sub": "user_123", "name": "用户"}
         token = auth_service.create_access_token(data)
         payload = auth_service.verify_token(token)
-        
+
         assert payload["name"] == "用户"
 
     def test_very_long_password(self, auth_service):

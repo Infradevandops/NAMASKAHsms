@@ -30,7 +30,9 @@ async def test_retry_with_backoff_success():
 
 @pytest.mark.asyncio
 async def test_retry_with_backoff_retries():
-    mock_func = AsyncMock(side_effect=[httpx.HTTPError("Fail"), httpx.ReadTimeout("Timeout"), "Success"])
+    mock_func = AsyncMock(
+        side_effect=[httpx.HTTPError("Fail"), httpx.ReadTimeout("Timeout"), "Success"]
+    )
 
     @retry_with_backoff(RetryConfig(max_retries=3, initial_delay=0.01))
     async def decorated():
@@ -70,8 +72,13 @@ def test_retry_sync():
 
 def test_api_error_handler_messages():
     assert APIErrorHandler.get_user_message(404) == "Resource not found."
-    assert APIErrorHandler.get_user_message(404, "Details") == "Resource not found. (Details)"
-    assert APIErrorHandler.get_user_message(999) == "An error occurred. Please try again."
+    assert (
+        APIErrorHandler.get_user_message(404, "Details")
+        == "Resource not found. (Details)"
+    )
+    assert (
+        APIErrorHandler.get_user_message(999) == "An error occurred. Please try again."
+    )
     assert APIErrorHandler.is_retryable(503) is True
     assert APIErrorHandler.is_retryable(404) is False
 

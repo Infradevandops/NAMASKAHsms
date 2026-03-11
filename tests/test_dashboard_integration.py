@@ -15,49 +15,54 @@ class TestDashboardLoading:
 
     """Tests for dashboard page loading."""
 
-    def test_dashboard_loads_without_errors_for_authenticated_user(self, client, regular_user, user_token):
-
+    def test_dashboard_loads_without_errors_for_authenticated_user(
+        self, client, regular_user, user_token):
         """Test that dashboard page loads successfully for authenticated users."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
-        assert "dashboard" in response.text.lower() or "current plan" in response.text.lower()
+        assert "dashboard" in response.text.lower(
+        ) or "current plan" in response.text.lower()
 
     def test_dashboard_requires_authentication(self, client):
-
         """Test that dashboard requires authentication."""
         response = client.get("/dashboard")
         assert response.status_code == 401
 
     def test_dashboard_loads_for_all_tier_levels(self, client, db, user_token):
-
         """Test that dashboard loads for users of all tier levels."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
 
         for tier in tiers_to_test:
             user = User(
-                id=f"dashboard_{tier}",
-                email=f"dashboard_{tier}@test.com",
-                password_hash=hash_password("password123"),
-                email_verified=True,
-                is_admin=False,
-                credits=10.0,
-                subscription_tier=tier,
-                is_active=True,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(user)
+            id=f"dashboard_{tier}",
+            email=f"dashboard_{tier}@test.com",
+            password_hash=hash_password("password123"),
+            email_verified=True,
+            is_admin=False,
+            credits=10.0,
+            subscription_tier=tier,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
         db.commit()
 
         for tier in tiers_to_test:
-            token = user_token(f"dashboard_{tier}", f"dashboard_{tier}@test.com")
-            response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
-            assert response.status_code == 200, f"Dashboard should load for {tier} tier"
+            token = user_token(
+    f"dashboard_{tier}",
+     f"dashboard_{tier}@test.com")
+        response = client.get("/dashboard",
+     headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 200, f"Dashboard should load for {tier} tier"
 
 
 class TestDashboardTierInfo:
 
-        """Tests for tier information display on dashboard."""
+    """Tests for tier information display on dashboard."""
 
     def test_tier_info_displays_current_tier_name(self, client, regular_user, user_token):
 
@@ -72,15 +77,15 @@ class TestDashboardTierInfo:
 
         """Test that dashboard displays correct tier for payg users."""
         user = User(
-            id="payg_dashboard",
-            email="payg_dashboard@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_dashboard",
+        email="payg_dashboard@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -104,15 +109,15 @@ class TestDashboardTierInfo:
 
         """Test that dashboard displays pricing information for paid tiers."""
         user = User(
-            id="pro_pricing",
-            email="pro_pricing@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="pro_pricing",
+        email="pro_pricing@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="pro",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -126,7 +131,7 @@ class TestDashboardTierInfo:
 
 class TestDashboardQuotaMeter:
 
-        """Tests for quota meter display on dashboard."""
+    """Tests for quota meter display on dashboard."""
 
     def test_quota_meter_hidden_for_freemium_users(self, client, regular_user, user_token):
 
@@ -142,15 +147,15 @@ class TestDashboardQuotaMeter:
 
         """Test that quota meter is displayed for subscribed users."""
         user = User(
-            id="payg_quota",
-            email="payg_quota@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_quota",
+        email="payg_quota@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -165,16 +170,16 @@ class TestDashboardQuotaMeter:
 
         """Test that quota meter displays both usage and limit."""
         user = User(
-            id="pro_quota_display",
-            email="pro_quota_display@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            monthly_quota_used=50.0,
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="pro_quota_display",
+        email="pro_quota_display@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="pro",
+        monthly_quota_used=50.0,
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -188,7 +193,7 @@ class TestDashboardQuotaMeter:
 
 class TestDashboardAPIStats:
 
-        """Tests for API statistics display on dashboard."""
+    """Tests for API statistics display on dashboard."""
 
     def test_api_stats_hidden_for_freemium_users(self, client, regular_user, user_token):
 
@@ -203,15 +208,15 @@ class TestDashboardAPIStats:
 
         """Test that API stats are displayed for subscribed users."""
         user = User(
-            id="payg_api_stats",
-            email="payg_api_stats@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_api_stats",
+        email="payg_api_stats@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -226,15 +231,15 @@ class TestDashboardAPIStats:
 
         """Test that API stats display SMS count."""
         user = User(
-            id="pro_sms_count",
-            email="pro_sms_count@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="pro_sms_count",
+        email="pro_sms_count@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="pro",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -242,17 +247,17 @@ class TestDashboardAPIStats:
         # Create some SMS verifications
         for i in range(3):
             verification = Verification(
-                id=f"sms_stat_{i}",
-                user_id=user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"sms_stat_{i}",
+            user_id=user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token("pro_sms_count", "pro_sms_count@test.com")
@@ -264,7 +269,7 @@ class TestDashboardAPIStats:
 
 class TestDashboardUpgradeButton:
 
-        """Tests for upgrade button visibility on dashboard."""
+    """Tests for upgrade button visibility on dashboard."""
 
     def test_upgrade_button_visible_for_freemium_users(self, client, regular_user, user_token):
 
@@ -279,15 +284,15 @@ class TestDashboardUpgradeButton:
 
         """Test that upgrade button is visible for payg users."""
         user = User(
-            id="payg_upgrade_btn",
-            email="payg_upgrade_btn@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_upgrade_btn",
+        email="payg_upgrade_btn@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -302,15 +307,15 @@ class TestDashboardUpgradeButton:
 
         """Test that upgrade button is hidden for custom tier users."""
         user = User(
-            id="custom_no_upgrade",
-            email="custom_no_upgrade@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="custom",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="custom_no_upgrade",
+        email="custom_no_upgrade@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="custom",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -333,7 +338,7 @@ class TestDashboardUpgradeButton:
 
 class TestDashboardComparisonModal:
 
-        """Tests for tier comparison modal on dashboard."""
+    """Tests for tier comparison modal on dashboard."""
 
     def test_compare_plans_button_visible_for_freemium_users(self, client, regular_user, user_token):
 
@@ -348,15 +353,15 @@ class TestDashboardComparisonModal:
 
         """Test that compare plans button is visible for subscribed users."""
         user = User(
-            id="payg_compare",
-            email="payg_compare@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_compare",
+        email="payg_compare@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -379,7 +384,7 @@ class TestDashboardComparisonModal:
 
 class TestDashboardAnalyticsDisplay:
 
-        """Tests for analytics display on dashboard."""
+    """Tests for analytics display on dashboard."""
 
     def test_dashboard_displays_total_sms_count(self, client, regular_user, user_token, db):
 
@@ -387,17 +392,17 @@ class TestDashboardAnalyticsDisplay:
         # Create some verifications
         for i in range(5):
             verification = Verification(
-                id=f"dash_sms_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"dash_sms_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token(regular_user.id, regular_user.email)
@@ -412,17 +417,17 @@ class TestDashboardAnalyticsDisplay:
         # Create successful verifications
         for i in range(3):
             verification = Verification(
-                id=f"dash_success_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"dash_success_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token(regular_user.id, regular_user.email)
@@ -437,31 +442,31 @@ class TestDashboardAnalyticsDisplay:
         # Create mix of successful and failed verifications
         for i in range(7):
             verification = Verification(
-                id=f"dash_rate_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"dash_rate_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
 
         for i in range(3):
             verification = Verification(
-                id=f"dash_rate_fail_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="failed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"dash_rate_fail_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="failed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token(regular_user.id, regular_user.email)
@@ -476,17 +481,17 @@ class TestDashboardAnalyticsDisplay:
         # Create verifications with costs
         for i in range(5):
             verification = Verification(
-                id=f"dash_spent_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.10,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
+            id=f"dash_spent_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.10,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token(regular_user.id, regular_user.email)
@@ -498,7 +503,7 @@ class TestDashboardAnalyticsDisplay:
 
 class TestDashboardRecentActivity:
 
-        """Tests for recent activity display on dashboard."""
+    """Tests for recent activity display on dashboard."""
 
     def test_dashboard_displays_recent_activity_table(self, client, regular_user, user_token, db):
 
@@ -506,17 +511,17 @@ class TestDashboardRecentActivity:
         # Create some verifications
         for i in range(3):
             verification = Verification(
-                id=f"activity_dash_{i}",
-                user_id=regular_user.id,
-                phone_number=f"+1234567890{i}",
-                country="US",
-                service_name="sms",
-                capability="sms",
-                status="completed",
-                cost=0.05,
-                created_at=datetime.now(timezone.utc) - timedelta(hours=i),
-            )
-            db.add(verification)
+            id=f"activity_dash_{i}",
+            user_id=regular_user.id,
+            phone_number=f"+1234567890{i}",
+            country="US",
+            service_name="sms",
+            capability="sms",
+            status="completed",
+            cost=0.05,
+            created_at=datetime.now(timezone.utc) - timedelta(hours=i),
+        )
+        db.add(verification)
         db.commit()
 
         token = user_token(regular_user.id, regular_user.email)
@@ -538,15 +543,15 @@ class TestDashboardRecentActivity:
 
         """Test that activity displays service name."""
         verification = Verification(
-            id="activity_service",
-            user_id=regular_user.id,
-            phone_number="+1234567890",
-            country="US",
-            service_name="sms",
-            capability="sms",
-            status="completed",
-            cost=0.05,
-            created_at=datetime.now(timezone.utc),
+        id="activity_service",
+        user_id=regular_user.id,
+        phone_number="+1234567890",
+        country="US",
+        service_name="sms",
+        capability="sms",
+        status="completed",
+        cost=0.05,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(verification)
         db.commit()
@@ -561,15 +566,15 @@ class TestDashboardRecentActivity:
 
         """Test that activity displays phone number."""
         verification = Verification(
-            id="activity_phone",
-            user_id=regular_user.id,
-            phone_number="+1234567890",
-            country="US",
-            service_name="sms",
-            capability="sms",
-            status="completed",
-            cost=0.05,
-            created_at=datetime.now(timezone.utc),
+        id="activity_phone",
+        user_id=regular_user.id,
+        phone_number="+1234567890",
+        country="US",
+        service_name="sms",
+        capability="sms",
+        status="completed",
+        cost=0.05,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(verification)
         db.commit()
@@ -584,15 +589,15 @@ class TestDashboardRecentActivity:
 
         """Test that activity displays verification status."""
         verification = Verification(
-            id="activity_status",
-            user_id=regular_user.id,
-            phone_number="+1234567890",
-            country="US",
-            service_name="sms",
-            capability="sms",
-            status="completed",
-            cost=0.05,
-            created_at=datetime.now(timezone.utc),
+        id="activity_status",
+        user_id=regular_user.id,
+        phone_number="+1234567890",
+        country="US",
+        service_name="sms",
+        capability="sms",
+        status="completed",
+        cost=0.05,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(verification)
         db.commit()

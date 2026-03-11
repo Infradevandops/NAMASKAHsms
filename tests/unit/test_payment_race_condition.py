@@ -30,7 +30,12 @@ def db(db_url):
 
 @pytest.fixture
 def user(db):
-    u = User(email="race@test.com", password_hash="x", credits=0.0, subscription_tier="freemium")
+    u = User(
+        email="race@test.com",
+        password_hash="x",
+        credits=0.0,
+        subscription_tier="freemium",
+    )
     db.add(u)
     db.commit()
     db.refresh(u)
@@ -84,7 +89,11 @@ def test_concurrent_credits_only_applied_once(db, db_url, user, payment_log):
     db.refresh(user)
 
     assert not errors, f"Unexpected errors: {errors}"
-    assert user.credits == 10.0, f"Expected 10.0, got {user.credits} (double-credit detected)"
+    assert (
+        user.credits == 10.0
+    ), f"Expected 10.0, got {user.credits} (double-credit detected)"
 
-    tx_count = db.query(Transaction).filter(Transaction.reference == "ref_race_001").count()
+    tx_count = (
+        db.query(Transaction).filter(Transaction.reference == "ref_race_001").count()
+    )
     assert tx_count == 1, f"Expected 1 transaction record, got {tx_count}"

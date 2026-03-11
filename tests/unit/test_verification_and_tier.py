@@ -7,6 +7,7 @@ from datetime import datetime
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
 
+
 def _make_user(credits=10.0, tier="freemium"):
     u = MagicMock()
     u.id = "user-1"
@@ -33,6 +34,7 @@ def _make_verification(status="pending", activation_id="act-123", sms_code=None)
 
 # ── POST /verify/create ───────────────────────────────────────────────────────
 
+
 class TestCreateVerification:
 
     @pytest.mark.asyncio
@@ -42,11 +44,15 @@ class TestCreateVerification:
         from fastapi import HTTPException
 
         db = MagicMock()
-        db.query.return_value.filter.return_value.first.return_value = _make_user(credits=1.0)
+        db.query.return_value.filter.return_value.first.return_value = _make_user(
+            credits=1.0
+        )
 
         with pytest.raises(HTTPException) as exc:
             await create_verification(
-                verification_data=VerificationCreate(service="whatsapp", country="US", capability="sms"),
+                verification_data=VerificationCreate(
+                    service="whatsapp", country="US", capability="sms"
+                ),
                 user_id="user-1",
                 db=db,
             )
@@ -68,14 +74,19 @@ class TestCreateVerification:
             "verification_id": "act-123",
         }
 
-        with patch("app.api.verification.verification_routes.TextVerifiedService") as MockTV, \
-             patch("app.api.verification.verification_routes.NotificationDispatcher"):
+        with patch(
+            "app.api.verification.verification_routes.TextVerifiedService"
+        ) as MockTV, patch(
+            "app.api.verification.verification_routes.NotificationDispatcher"
+        ):
             tv = MockTV.return_value
             tv.enabled = True
             tv.purchase_number = AsyncMock(return_value=purchase_result)
 
             result = await create_verification(
-                verification_data=VerificationCreate(service="whatsapp", country="US", capability="voice"),
+                verification_data=VerificationCreate(
+                    service="whatsapp", country="US", capability="voice"
+                ),
                 user_id="user-1",
                 db=db,
             )
@@ -95,13 +106,21 @@ class TestCreateVerification:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = user
 
-        with patch("app.api.verification.verification_routes.TextVerifiedService") as MockTV, \
-             patch("app.api.verification.verification_routes.NotificationDispatcher"):
+        with patch(
+            "app.api.verification.verification_routes.TextVerifiedService"
+        ) as MockTV, patch(
+            "app.api.verification.verification_routes.NotificationDispatcher"
+        ):
             tv = MockTV.return_value
             tv.enabled = True
-            tv.purchase_number = AsyncMock(return_value={
-                "success": True, "phone_number": "+1234", "cost": 2.50, "verification_id": "act-1"
-            })
+            tv.purchase_number = AsyncMock(
+                return_value={
+                    "success": True,
+                    "phone_number": "+1234",
+                    "cost": 2.50,
+                    "verification_id": "act-1",
+                }
+            )
 
             await create_verification(
                 verification_data=VerificationCreate(service="whatsapp"),
@@ -113,6 +132,7 @@ class TestCreateVerification:
 
 
 # ── GET /verify/{id}/status ───────────────────────────────────────────────────
+
 
 class TestVerificationStatus:
 
@@ -144,6 +164,7 @@ class TestVerificationStatus:
 
 # ── GET /verify/{id}/sms ──────────────────────────────────────────────────────
 
+
 class TestVerificationSms:
 
     @pytest.mark.asyncio
@@ -154,11 +175,16 @@ class TestVerificationSms:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = v
 
-        with patch("app.api.verification.verification_routes.TextVerifiedService") as MockTV, \
-             patch("app.api.verification.verification_routes.NotificationDispatcher"):
+        with patch(
+            "app.api.verification.verification_routes.TextVerifiedService"
+        ) as MockTV, patch(
+            "app.api.verification.verification_routes.NotificationDispatcher"
+        ):
             tv = MockTV.return_value
             tv.enabled = True
-            tv.get_sms = AsyncMock(return_value={"success": False, "sms": None, "code": None})
+            tv.get_sms = AsyncMock(
+                return_value={"success": False, "sms": None, "code": None}
+            )
 
             await get_verification_sms("verif-1", user_id="user-1", db=db)
 
@@ -172,11 +198,20 @@ class TestVerificationSms:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = v
 
-        with patch("app.api.verification.verification_routes.TextVerifiedService") as MockTV, \
-             patch("app.api.verification.verification_routes.NotificationDispatcher"):
+        with patch(
+            "app.api.verification.verification_routes.TextVerifiedService"
+        ) as MockTV, patch(
+            "app.api.verification.verification_routes.NotificationDispatcher"
+        ):
             tv = MockTV.return_value
             tv.enabled = True
-            tv.get_sms = AsyncMock(return_value={"success": True, "sms": "Your code is 9876", "code": "9876"})
+            tv.get_sms = AsyncMock(
+                return_value={
+                    "success": True,
+                    "sms": "Your code is 9876",
+                    "code": "9876",
+                }
+            )
 
             await get_verification_sms("verif-1", user_id="user-1", db=db)
 
@@ -186,6 +221,7 @@ class TestVerificationSms:
 
 
 # ── POST /billing/tiers/upgrade ───────────────────────────────────────────────
+
 
 class TestTierUpgrade:
 
@@ -244,6 +280,7 @@ class TestTierUpgrade:
 
 
 # ── Webhook tier assignment ───────────────────────────────────────────────────
+
 
 class TestWebhookTierAssignment:
 

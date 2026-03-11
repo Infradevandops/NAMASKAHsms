@@ -2,6 +2,7 @@
 Redis Integration Tests
 Tests for Redis operations including caching, locks, and streams
 """
+
 import asyncio
 import pytest
 import time
@@ -9,11 +10,9 @@ import time
 
 @pytest.mark.requires_db
 class TestRedisIntegration:
-
     """Redis integration tests."""
 
     def test_redis_basic_set_get(self, redis_client):
-
         """Test basic Redis set and get operations."""
         key = "test:key"
         value = "test_value"
@@ -29,7 +28,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_expiry(self, redis_client):
-
         """Test Redis key expiry."""
         key = "test:expiry"
         value = "expires_soon"
@@ -48,7 +46,6 @@ class TestRedisIntegration:
         assert redis_client.get(key) is None
 
     def test_redis_increment(self, redis_client):
-
         """Test Redis increment operations."""
         key = "test:counter"
 
@@ -67,7 +64,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_hash_operations(self, redis_client):
-
         """Test Redis hash operations."""
         key = "test:hash"
 
@@ -86,7 +82,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_list_operations(self, redis_client):
-
         """Test Redis list operations."""
         key = "test:list"
 
@@ -107,7 +102,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_set_operations(self, redis_client):
-
         """Test Redis set operations."""
         key = "test:set"
 
@@ -128,7 +122,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_sorted_set(self, redis_client):
-
         """Test Redis sorted set operations."""
         key = "test:zset"
 
@@ -147,7 +140,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_pipeline(self, redis_client):
-
         """Test Redis pipeline for batch operations."""
         pipe = redis_client.pipeline()
 
@@ -167,7 +159,6 @@ class TestRedisIntegration:
         redis_client.delete("test:pipe1", "test:pipe2", "test:pipe3")
 
     def test_redis_transaction(self, redis_client):
-
         """Test Redis transaction with WATCH."""
         key = "test:transaction"
         redis_client.set(key, "0")
@@ -191,7 +182,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_key_pattern_matching(self, redis_client):
-
         """Test Redis key pattern matching."""
         # Create test keys
         redis_client.set("test:pattern:1", "value1")
@@ -208,7 +198,6 @@ class TestRedisIntegration:
         redis_client.delete("test:other:1")
 
     def test_redis_exists_check(self, redis_client):
-
         """Test Redis key existence check."""
         key = "test:exists"
 
@@ -225,7 +214,6 @@ class TestRedisIntegration:
         redis_client.delete(key)
 
     def test_redis_delete_multiple_keys(self, redis_client):
-
         """Test deleting multiple keys at once."""
         keys = ["test:del:1", "test:del:2", "test:del:3"]
 
@@ -242,7 +230,6 @@ class TestRedisIntegration:
             assert redis_client.exists(key) == 0
 
     def test_redis_ttl_check(self, redis_client):
-
         """Test checking TTL of keys."""
         key = "test:ttl"
 

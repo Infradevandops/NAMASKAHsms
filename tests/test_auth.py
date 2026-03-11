@@ -17,7 +17,6 @@ class TestAuthentication:
         assert data["user"]["email"] == "newuser@test.com"
 
     def test_register_duplicate_email(self, client, regular_user):
-
         """Test registration with existing email fails."""
         response = client.post(
             "/api/auth/register",
@@ -26,7 +25,6 @@ class TestAuthentication:
         assert response.status_code == 400
 
     def test_login_success(self, client, regular_user):
-
         """Test login with valid credentials."""
         response = client.post(
             "/api/auth/login",
@@ -38,7 +36,6 @@ class TestAuthentication:
         assert data["user"]["email"] == "user@test.com"
 
     def test_login_wrong_password(self, client, regular_user):
-
         """Test login with invalid password."""
         response = client.post(
             "/api/auth/login",

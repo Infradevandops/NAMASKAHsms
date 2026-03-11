@@ -1,6 +1,5 @@
-
-
 from app.services.currency_service import CurrencyService
+
 
 class TestCurrencyService:
 

@@ -1,32 +1,19 @@
-"""
-from datetime import datetime, timezone
-from unittest.mock import Mock, patch
-import pytest
-from app.services.webhook_queue import WebhookQueue
-from app.services.webhook_queue import WebhookQueue
-from app.services.webhook_queue import WebhookQueue
-from app.services.webhook_queue import WebhookQueue
-import hashlib
-import hmac
-import hashlib
-import hmac
-from app.models.user import Webhook
-from app.models.user import Webhook
-from app.models.user import Webhook
-from app.models.user import Webhook
-from app.services.webhook_queue import WebhookQueue
-from app.models.user import Webhook
-from app.services.webhook_queue import WebhookQueue
-from app.services.webhook_service import WebhookService
-from app.services.webhook_service import WebhookService
-
-Complete Webhook Service Tests
+"""Complete Webhook Service Tests
 Comprehensive webhook queue, delivery, and retry tests
 """
 
 
-class TestWebhookServiceComplete:
+from datetime import datetime, timezone
+from unittest.mock import Mock, patch
+import pytest
+import hashlib
+import hmac
+from app.services.webhook_queue import WebhookQueue
+from app.models.user import Webhook
+from app.services.webhook_service import WebhookService
 
+
+class TestWebhookServiceComplete:
     """Complete webhook service test suite."""
 
     # ==================== Webhook Queue Operations ====================
@@ -38,9 +25,9 @@ class TestWebhookServiceComplete:
         queue = WebhookQueue(redis_client)
 
         msg_id = await queue.enqueue(
-            webhook_id="wh_test_123",
-            event="payment.success",
-            data={"amount": 100.0, "user_id": "user123"},
+        webhook_id="wh_test_123",
+        event="payment.success",
+        data={"amount": 100.0, "user_id": "user123"},
         )
 
         assert msg_id is not None
@@ -53,7 +40,9 @@ class TestWebhookServiceComplete:
         queue = WebhookQueue(redis_client)
 
         # Enqueue first
-        await queue.enqueue(webhook_id="wh_dequeue", event="test.event", data={"test": "data"})
+        await queue.enqueue(
+        webhook_id="wh_dequeue", event="test.event", data={"test": "data"}
+        )
 
         # Dequeue
         messages = await queue.dequeue(count=1)
@@ -66,7 +55,9 @@ class TestWebhookServiceComplete:
         queue = WebhookQueue(redis_client)
 
         # Enqueue with retry
-        msg_id = await queue.enqueue(webhook_id="wh_retry", event="retry.test", data={"retry_count": 0})
+        msg_id = await queue.enqueue(
+        webhook_id="wh_retry", event="retry.test", data={"retry_count": 0}
+        )
 
         assert msg_id is not None
 
@@ -79,7 +70,9 @@ class TestWebhookServiceComplete:
 
         # Simulate failed deliveries
         for i in range(max_retries + 1):
-            msg_id = await queue.enqueue(webhook_id=f"wh_dlq_{i}", event="dlq.test", data={"attempt": i})
+            msg_id = await queue.enqueue(
+            webhook_id=f"wh_dlq_{i}", event="dlq.test", data={"attempt": i}
+        )
 
         # After max retries, should go to DLQ
         assert msg_id is not None
@@ -128,9 +121,8 @@ class TestWebhookServiceComplete:
         payload = '{"event":"test"}'
 
         signature = hmac.new(
-            secret.encode(),
-            payload.encode(),
-            hashlib.sha256).hexdigest()
+        secret.encode(), payload.encode(), hashlib.sha256
+        ).hexdigest()
 
         assert signature is not None
         assert len(signature) == 64  # SHA256 hex digest
@@ -143,9 +135,8 @@ class TestWebhookServiceComplete:
 
         # Generate signature
         expected = hmac.new(
-            secret.encode(),
-            payload.encode(),
-            hashlib.sha256).hexdigest()
+        secret.encode(), payload.encode(), hashlib.sha256
+        ).hexdigest()
 
         # Validate
         received = expected  # In real scenario, from header
@@ -157,16 +148,17 @@ class TestWebhookServiceComplete:
         """Test webhook registration."""
 
         webhook = Webhook(
-            user_id=regular_user.id,
-            url="https://example.com/webhook",
-            events="payment.success,verification.complete",
-            is_active=True,
+        user_id=regular_user.id,
+        url="https://example.com/webhook",
+        events="payment.success,verification.complete",
+        is_active=True,
         )
         db_session.add(webhook)
         db_session.commit()
 
-        saved = db_session.query(Webhook).filter(
-            Webhook.user_id == regular_user.id).first()
+        saved = (
+        db_session.query(Webhook).filter(Webhook.user_id == regular_user.id).first()
+        )
 
         assert saved is not None
         assert saved.url == "https://example.com/webhook"
@@ -175,10 +167,10 @@ class TestWebhookServiceComplete:
         """Test webhook update."""
 
         webhook = Webhook(
-            user_id=regular_user.id,
-            url="https://example.com/webhook",
-            events="payment.success",
-            is_active=True,
+        user_id=regular_user.id,
+        url="https://example.com/webhook",
+        events="payment.success",
+        is_active=True,
         )
         db_session.add(webhook)
         db_session.commit()
@@ -194,10 +186,10 @@ class TestWebhookServiceComplete:
         """Test webhook deactivation."""
 
         webhook = Webhook(
-            user_id=regular_user.id,
-            url="https://example.com/webhook",
-            events="payment.success",
-            is_active=True,
+        user_id=regular_user.id,
+        url="https://example.com/webhook",
+        events="payment.success",
+        is_active=True,
         )
         db_session.add(webhook)
         db_session.commit()
@@ -215,10 +207,10 @@ class TestWebhookServiceComplete:
         """Test webhook event filtering."""
 
         webhook = Webhook(
-            user_id=regular_user.id,
-            url="https://example.com/webhook",
-            events="payment.success,payment.failed",
-            is_active=True,
+        user_id=regular_user.id,
+        url="https://example.com/webhook",
+        events="payment.success,payment.failed",
+        is_active=True,
         )
         db_session.add(webhook)
         db_session.commit()
@@ -234,9 +226,8 @@ class TestWebhookServiceComplete:
 
         # Simple wildcard matching
         matches = any(
-            event.replace(
-                ".*",
-                "") in test_event for event in events if ".*" in event)
+        event.replace(".*", "") in test_event for event in events if ".*" in event
+        )
 
         assert matches is True
 
@@ -250,7 +241,9 @@ class TestWebhookServiceComplete:
 
         # Track delivery attempt
         webhook_id = "wh_track_123"
-        msg_id = await queue.enqueue(webhook_id=webhook_id, event="track.test", data={"tracked": True})
+        msg_id = await queue.enqueue(
+        webhook_id=webhook_id, event="track.test", data={"tracked": True}
+        )
 
         assert msg_id is not None
 
@@ -258,11 +251,11 @@ class TestWebhookServiceComplete:
         """Test webhook delivery history."""
 
         webhook = Webhook(
-            user_id=regular_user.id,
-            url="https://example.com/webhook",
-            events="payment.success",
-            is_active=True,
-            last_delivery_at=datetime.now(timezone.utc),
+        user_id=regular_user.id,
+        url="https://example.com/webhook",
+        events="payment.success",
+        is_active=True,
+        last_delivery_at=datetime.now(timezone.utc),
         )
         db_session.add(webhook)
         db_session.commit()
@@ -274,11 +267,7 @@ class TestWebhookServiceComplete:
     @pytest.mark.asyncio
     async def test_webhook_invalid_url(self):
         """Test handling of invalid webhook URL."""
-        invalid_urls = [
-            "not-a-url",
-            "ftp://example.com",
-            "javascript:alert(1)",
-            ""]
+        invalid_urls = ["not-a-url", "ftp://example.com", "javascript:alert(1)", ""]
 
         for url in invalid_urls:
             # URL validation would happen at API layer
@@ -322,7 +311,9 @@ class TestWebhookServiceComplete:
         # Enqueue multiple webhooks
         batch_size = 5
         for i in range(batch_size):
-            await queue.enqueue(webhook_id=f"wh_batch_{i}", event="batch.test", data={"index": i})
+            await queue.enqueue(
+            webhook_id=f"wh_batch_{i}", event="batch.test", data={"index": i}
+        )
 
         # Process batch
         messages = await queue.dequeue(count=batch_size)
@@ -350,8 +341,8 @@ class TestWebhookServiceComplete:
     def test_webhook_url_validation(self):
         """Test webhook URL security validation."""
         valid_urls = [
-            "https://example.com/webhook",
-            "https://api.example.com/webhooks/receive",
+        "https://example.com/webhook",
+        "https://api.example.com/webhooks/receive",
         ]
 
         for url in valid_urls:
@@ -375,7 +366,9 @@ class TestWebhookServiceComplete:
 
         service = WebhookService()
 
-        wh_id = await service.register("user123", "https://example.com/hook", ["test.event"])
+        wh_id = await service.register(
+        "user123", "https://example.com/hook", ["test.event"]
+        )
         assert wh_id.startswith("wh_user123_")
 
         hooks = await service.get_webhooks("user123")
@@ -390,14 +383,18 @@ class TestWebhookServiceComplete:
         service = WebhookService()
         mock_post.return_value = Mock(status_code=200)
 
-        wh_id = await service.register("user123", "https://example.com/hook", ["test.event"])
+        wh_id = await service.register(
+        "user123", "https://example.com/hook", ["test.event"]
+        )
         await service.deliver(wh_id, "test.event", {"foo": "bar"}, "secret")
 
         assert mock_post.called
         # Check header
         args, kwargs = mock_post.call_args
         assert "X-Webhook-Signature" in str(
-            kwargs["headers"]) or "X - Webhook-Signature" in str(kwargs["headers"])
+        kwargs["headers"]
+        ) or "X - Webhook-Signature" in str(kwargs["headers"])
+
 
 if __name__ == "__main__":
     print("Webhook Service tests: 30 comprehensive tests created")

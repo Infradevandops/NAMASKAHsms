@@ -1,6 +1,5 @@
 """Tests for email notification system."""
 
-
 from unittest.mock import AsyncMock, patch
 import pytest
 from sqlalchemy.orm import Session
@@ -46,14 +45,16 @@ def email_service(db: Session):
 
 
 class TestEmailNotificationService:
-
     """Test EmailNotificationService."""
 
     @pytest.mark.asyncio
     async def test_send_notification_email(
-        self, email_service, test_user, test_notification):
+        self, email_service, test_user, test_notification
+    ):
         """Test sending notification email."""
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_notification_email(
@@ -65,11 +66,10 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_notification_email_disabled(
-        self, db: Session, test_user):
+    async def test_send_notification_email_disabled(self, db: Session, test_user):
         """Test sending notification email when service is disabled."""
         service = EmailNotificationService(db)
         service.enabled = False
@@ -89,10 +89,11 @@ class TestEmailNotificationService:
         assert result is False
 
     @pytest.mark.asyncio
-    async def test_send_verification_initiated_email(
-        self, email_service, test_user):
+    async def test_send_verification_initiated_email(self, email_service, test_user):
         """Test sending verification initiated email."""
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_verification_initiated_email(
@@ -105,13 +106,14 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_verification_completed_email(
-        self, email_service, test_user):
+    async def test_send_verification_completed_email(self, email_service, test_user):
         """Test sending verification completed email."""
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_verification_completed_email(
@@ -125,13 +127,14 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_low_balance_alert_email(
-        self, email_service, test_user):
+    async def test_send_low_balance_alert_email(self, email_service, test_user):
         """Test sending low balance alert email."""
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_low_balance_alert_email(
@@ -144,11 +147,10 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_daily_digest_email(
-        self, email_service, test_user, db: Session):
+    async def test_send_daily_digest_email(self, email_service, test_user, db: Session):
         """Test sending daily digest email."""
         # Create multiple notifications
         notifications = []
@@ -163,7 +165,9 @@ class TestEmailNotificationService:
             notifications.append(notification)
         db.commit()
 
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_daily_digest_email(
@@ -175,11 +179,10 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_send_daily_digest_email_empty(
-        self, email_service, test_user):
+    async def test_send_daily_digest_email_empty(self, email_service, test_user):
         """Test sending daily digest with no notifications."""
         result = await email_service.send_daily_digest_email(
             user_email=test_user.email,
@@ -190,7 +193,8 @@ class TestEmailNotificationService:
 
     @pytest.mark.asyncio
     async def test_send_weekly_digest_email(
-        self, email_service, test_user, db: Session):
+        self, email_service, test_user, db: Session
+    ):
         """Test sending weekly digest email."""
         # Create notifications
         notifications = []
@@ -211,7 +215,9 @@ class TestEmailNotificationService:
             "total_credits_used": 50.0,
         }
 
-        with patch.object(email_service, "_send_email", new_callable=AsyncMock) as mock_send:
+        with patch.object(
+            email_service, "_send_email", new_callable=AsyncMock
+        ) as mock_send:
             mock_send.return_value = True
 
             result = await email_service.send_weekly_digest_email(
@@ -224,7 +230,7 @@ class TestEmailNotificationService:
             # configured)
             assert result in [True, False]
         if result:
-                mock_send.assert_called_once()
+            mock_send.assert_called_once()
 
     def test_create_notification_html(self, email_service, test_notification):
         """Test creating notification HTML."""
@@ -298,11 +304,9 @@ class TestEmailNotificationService:
 
 
 class TestEmailEndpoints:
-
     """Test email notification endpoints."""
 
     def test_send_test_email_endpoint(self, client, test_user, db: Session):
-
         """Test POST /api/notifications/email/test endpoint."""
         with patch(
             "app.services.email_notification_service.EmailNotificationService.send_notification_email",
@@ -322,7 +326,6 @@ class TestEmailEndpoints:
                     assert data["success"] is True
 
     def test_get_email_preferences_endpoint(self, client, test_user, db: Session):
-
         """Test GET /api/notifications/email/preferences endpoint."""
         # Create preference
         preference = NotificationPreference(
@@ -347,7 +350,6 @@ class TestEmailEndpoints:
             assert "notification_types" in data
 
     def test_update_email_preferences_endpoint(self, client, test_user, db: Session):
-
         """Test PUT /api/notifications/email/preferences endpoint."""
         # Create preference
         preference = NotificationPreference(
@@ -372,7 +374,6 @@ class TestEmailEndpoints:
             assert data["success"] is True
 
     def test_unsubscribe_from_emails_endpoint(self, client, test_user, db: Session):
-
         """Test POST /api/notifications/email/unsubscribe endpoint."""
         # Create preference
         preference = NotificationPreference(
@@ -397,7 +398,6 @@ class TestEmailEndpoints:
             assert data["success"] is True
 
     def test_unsubscribe_from_all_emails_endpoint(self, client, test_user, db: Session):
-
         """Test unsubscribing from all email notifications."""
         # Create preferences
         for notification_type in ["verification", "payment", "login"]:

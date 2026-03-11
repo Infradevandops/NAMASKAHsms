@@ -6,20 +6,17 @@ class TestProfilePage:
     """Test profile page."""
 
     def test_profile_page_loads(self, client, auth_headers):
-
         """Profile page should load for authenticated users."""
         response = client.get("/profile", headers=auth_headers)
         assert response.status_code == 200
 
     def test_profile_page_requires_auth(self, client):
-
         """Profile page should require authentication."""
         response = client.get("/profile")
         # Should redirect to login or return 401
         assert response.status_code in [302, 401, 403]
 
     def test_profile_page_has_avatar_section(self, client, auth_headers):
-
         """Profile page should have avatar section."""
         response = client.get("/profile", headers=auth_headers)
         assert response.status_code == 200
@@ -27,7 +24,6 @@ class TestProfilePage:
         assert "avatar" in content.lower()
 
     def test_profile_page_has_stats_section(self, client, auth_headers):
-
         """Profile page should have verification stats."""
         response = client.get("/profile", headers=auth_headers)
         assert response.status_code == 200
@@ -35,7 +31,6 @@ class TestProfilePage:
         assert "stat-total" in content or "Verification" in content
 
     def test_profile_page_has_tier_badge(self, client, auth_headers):
-
         """Profile page should display tier badge."""
         response = client.get("/profile", headers=auth_headers)
         assert response.status_code == 200
@@ -43,7 +38,6 @@ class TestProfilePage:
         assert "tier-badge" in content
 
     def test_profile_page_has_settings_link(self, client, auth_headers):
-
         """Profile page should link to settings."""
         response = client.get("/profile", headers=auth_headers)
         assert response.status_code == 200
@@ -53,7 +47,7 @@ class TestProfilePage:
 
 class TestProfileEndpoints:
 
-        """Test profile API endpoints."""
+    """Test profile API endpoints."""
 
     def test_get_user_profile(self, client, auth_headers):
 
@@ -67,9 +61,9 @@ class TestProfileEndpoints:
 
         """Should update user settings."""
         response = client.put(
-            "/api/user/settings",
-            headers=auth_headers,
-            json={"language": "en", "currency": "USD"},
+        "/api/user/settings",
+        headers=auth_headers,
+        json={"language": "en", "currency": "USD"},
         )
         # May succeed or fail based on schema
         assert response.status_code in [200, 422, 501]
@@ -77,16 +71,16 @@ class TestProfileEndpoints:
 
 class TestAvatarUpload:
 
-        """Test avatar upload functionality."""
+    """Test avatar upload functionality."""
 
     def test_avatar_upload_endpoint(self, client, auth_headers):
 
         """Avatar upload endpoint should exist."""
         # This tests if the endpoint exists
         response = client.post(
-            "/api/user/avatar",
-            headers=auth_headers,
-            files={},  # Empty file to test endpoint
+        "/api/user/avatar",
+        headers=auth_headers,
+        files={},  # Empty file to test endpoint
         )
         # May not exist yet
         assert response.status_code in [200, 400, 404, 422, 501]
@@ -105,7 +99,7 @@ class TestAvatarUpload:
 
 class TestProfileStats:
 
-        """Test profile statistics."""
+    """Test profile statistics."""
 
     def test_analytics_summary_endpoint(self, client, auth_headers):
 
@@ -123,21 +117,21 @@ class TestProfileStats:
 
 class TestProfileDataFormat:
 
-        """Test profile data format."""
+    """Test profile data format."""
 
     def test_user_profile_has_required_fields(self):
 
         """User profile should have required fields."""
         expected_fields = ["id", "email", "created_at"]
         sample_user = {
-            "id": "user-123",
-            "email": "test@example.com",
-            "display_name": "Test User",
-            "avatar_url": None,
-            "subscription_tier": "freemium",
-            "email_verified": True,
-            "created_at": "2026-01-01T00:00:00Z",
-            "last_login": "2026-01-13T10:00:00Z",
+        "id": "user-123",
+        "email": "test@example.com",
+        "display_name": "Test User",
+        "avatar_url": None,
+        "subscription_tier": "freemium",
+        "email_verified": True,
+        "created_at": "2026-01-01T00:00:00Z",
+        "last_login": "2026-01-13T10:00:00Z",
         }
         for field in expected_fields:
             assert field in sample_user
@@ -146,19 +140,19 @@ class TestProfileDataFormat:
 
         """Tier display names should be correct."""
         tier_display = {
-            "freemium": "Freemium",
-            "payg": "Pay-As-You-Go",
-            "pro": "Pro",
-            "custom": "Custom",
+        "freemium": "Freemium",
+        "payg": "Pay-As-You-Go",
+        "pro": "Pro",
+        "custom": "Custom",
         }
         for tier, display in tier_display.items():
             assert display is not None
-            assert len(display) > 0
+        assert len(display) > 0
 
 
 class TestProfileUI:
 
-        """Test profile UI elements."""
+    """Test profile UI elements."""
 
     def test_profile_has_display_name_input(self, client, auth_headers):
 

@@ -8,9 +8,9 @@ from app.services.api_key_service import APIKeyService
 from app.services.transaction_service import TransactionService
 from app.services.verification_pricing_service import VerificationPricingService
 
+
 @pytest.fixture
 def pro_user(db: Session):
-
     """Create pro tier user."""
     user = User(
         id=f"pro_{uuid.uuid4()}",
@@ -27,7 +27,6 @@ def pro_user(db: Session):
 
 @pytest.fixture
 def freemium_user_with_bonus(db: Session):
-
     """Create freemium user with bonus."""
     user = User(
         id=f"freemium_{uuid.uuid4()}",
@@ -48,23 +47,22 @@ class TestVerificationPricingService:
     """Test verification pricing service."""
 
     def test_validate_and_calculate_cost(self, db: Session, pro_user: User):
-
         """Test cost calculation."""
-        cost_info = VerificationPricingService.validate_and_calculate_cost(db, pro_user.id)
+        cost_info = VerificationPricingService.validate_and_calculate_cost(
+        db, pro_user.id)
         assert cost_info["total_cost"] > 0
         assert cost_info["tier"] == "pro"
 
     def test_validate_insufficient_balance(self, db: Session, pro_user: User):
-
         """Test insufficient balance check."""
         pro_user.credits = 0.0
         db.commit()
 
         with pytest.raises(ValueError, match="Insufficient balance"):
-            VerificationPricingService.validate_and_calculate_cost(db, pro_user.id)
+            VerificationPricingService.validate_and_calculate_cost(
+            db, pro_user.id)
 
     def test_deduct_cost_pro(self, db: Session, pro_user: User):
-
         """Test cost deduction for pro user."""
         initial_balance = pro_user.credits
         VerificationPricingService.deduct_cost(db, pro_user.id, 2.50)
@@ -72,19 +70,23 @@ class TestVerificationPricingService:
         pro_user = db.query(User).filter(User.id == pro_user.id).first()
         assert pro_user.credits == initial_balance - 2.50
 
-    def test_deduct_cost_freemium(self, db: Session, freemium_user_with_bonus: User):
-
+    def test_deduct_cost_freemium(
+    self,
+    db: Session,
+     freemium_user_with_bonus: User):
         """Test cost deduction for freemium user."""
         initial_bonus = freemium_user_with_bonus.bonus_sms_balance
-        VerificationPricingService.deduct_cost(db, freemium_user_with_bonus.id, 2.50)
+        VerificationPricingService.deduct_cost(
+        db, freemium_user_with_bonus.id, 2.50)
 
-        freemium_user = db.query(User).filter(User.id == freemium_user_with_bonus.id).first()
+        freemium_user = db.query(User).filter(
+    User.id == freemium_user_with_bonus.id).first()
         assert freemium_user.bonus_sms_balance == initial_bonus - 1
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
-
         """Test pricing breakdown."""
-        breakdown = VerificationPricingService.get_pricing_breakdown(db, pro_user.id)
+        breakdown = VerificationPricingService.get_pricing_breakdown(
+        db, pro_user.id)
         assert breakdown["tier"] == "pro"
         assert breakdown["quota_limit"] == 15.0
         assert breakdown["user_balance"] == 100.0
@@ -92,7 +94,7 @@ class TestVerificationPricingService:
 
 class TestAPIKeyService:
 
-        """Test API key service."""
+    """Test API key service."""
 
     def test_can_create_key_freemium(self, db: Session, freemium_user_with_bonus: User):
 
@@ -148,7 +150,7 @@ class TestAPIKeyService:
 
 class TestTransactionService:
 
-        """Test transaction logging."""
+    """Test transaction logging."""
 
     def test_log_sms_purchase(self, db: Session, pro_user: User):
 
