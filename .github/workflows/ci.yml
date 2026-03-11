@@ -35,9 +35,7 @@ jobs:
           cache: 'pip'
 
       - name: Install linting tools
-        run: |
-          pip install flake8 black isort
-          pip install -r requirements.txt
+        run: pip install flake8 black isort
 
       - name: Critical syntax check
         run: flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
@@ -61,13 +59,13 @@ jobs:
         run: pip install bandit safety semgrep
 
       - name: Bandit SAST (blocking on high/medium)
-        run: bandit -r app/ -ll
+        run: bandit -r app/ -ll -f json -o bandit-report.json
 
       - name: Safety dependency CVE check (blocking)
-        run: safety check
+        run: safety check --json > safety-report.json
 
       - name: Semgrep SAST (blocking on ERROR severity)
-        run: semgrep --config=auto app/ --severity=ERROR --error
+        run: semgrep --config=auto app/ --severity=ERROR --error --json > semgrep-report.json
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
@@ -167,7 +165,11 @@ jobs:
           echo "✅ Deployment files validated"
 
       - name: Check secrets configuration
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+          PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+          RENDER_ROLLBACK_HOOK: ${{ secrets.RENDER_ROLLBACK_HOOK }}
         run: |
-          [ -n "${{ secrets.RENDER_DEPLOY_HOOK }}" ] && echo "✅ RENDER_DEPLOY_HOOK set" || echo "⚠️ RENDER_DEPLOY_HOOK missing"
-          [ -n "${{ secrets.PRODUCTION_URL }}" ] && echo "✅ PRODUCTION_URL set" || echo "⚠️ PRODUCTION_URL missing"
-          [ -n "${{ secrets.RENDER_ROLLBACK_HOOK }}" ] && echo "✅ RENDER_ROLLBACK_HOOK set" || echo "⚠️ RENDER_ROLLBACK_HOOK missing"
+          [ -n "$RENDER_DEPLOY_HOOK" ] && echo "✅ RENDER_DEPLOY_HOOK set" || echo "⚠️ RENDER_DEPLOY_HOOK missing"
+          [ -n "$PRODUCTION_URL" ] && echo "✅ PRODUCTION_URL set" || echo "⚠️ PRODUCTION_URL missing"
+          [ -n "$RENDER_ROLLBACK_HOOK" ] && echo "✅ RENDER_ROLLBACK_HOOK set" || echo "⚠️ RENDER_ROLLBACK_HOOK missing"
