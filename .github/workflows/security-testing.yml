@@ -9,112 +9,10 @@ on:
   schedule:
     - cron: '0 9 * * 1'  # Every Monday 9am UTC
 
+# NOTE: security-scan and test-suite jobs removed — duplicated by ci.yml (blocking).
+# This workflow owns: e2e-tests, accessibility-audit, deployment-check only.
+
 jobs:
-  security-scan:
-    runs-on: ubuntu-latest
-    name: Security Scanning
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        pip install bandit safety semgrep
-        pip install -r requirements.txt
-
-    - name: Run Bandit Security Scan
-      run: |
-        bandit -r app/ -f json -o bandit-report.json || true
-        bandit -r app/ -f txt
-
-    - name: Run Safety Dependency Scan
-      run: |
-        safety check --json --output safety-report.json || true
-        safety check
-
-    - name: Run Semgrep Security Scan
-      run: |
-        semgrep --config=auto app/ --json --output=semgrep-report.json || true
-        semgrep --config=auto app/
-
-    - name: Upload Security Reports
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: security-reports-${{ github.run_id }}
-        path: |
-          bandit-report.json
-          safety-report.json
-          semgrep-report.json
-
-  test-suite:
-    runs-on: ubuntu-latest
-    name: Test Suite
-
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-      redis:
-        image: redis:7
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-        pip install pytest pytest-cov pytest-asyncio
-
-    - name: Run Unit Tests
-      env:
-        DATABASE_URL: postgresql://postgres:test@localhost:5432/test
-        REDIS_URL: redis://localhost:6379
-        SECRET_KEY: test-secret-key-for-ci-testing-only
-        JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
-      run: |
-        pytest tests/unit/ -v --cov=app --cov-report=xml --cov-report=html
-
-    - name: Run Integration Tests
-      env:
-        DATABASE_URL: postgresql://postgres:test@localhost:5432/test
-        REDIS_URL: redis://localhost:6379
-        SECRET_KEY: test-secret-key-for-ci-testing-only
-        JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
-      run: |
-        pytest tests/integration/ -v
-
-    - name: Upload Coverage Reports
-      uses: codecov/codecov-action@v4
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: true
-
   e2e-tests:
     runs-on: ubuntu-latest
     name: E2E Tests
@@ -219,7 +117,7 @@ jobs:
   deployment-check:
     runs-on: ubuntu-latest
     name: Deployment Readiness
-    needs: [security-scan, test-suite, e2e-tests]
+    needs: [e2e-tests]
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -229,8 +127,6 @@ jobs:
       run: |
         echo "🚀 Deployment Readiness Check"
         echo "============================="
-        echo "✅ Security scans completed"
-        echo "✅ Test suite passed"
         echo "✅ E2E tests passed"
         echo ""
         echo "📋 Manual verification required:"

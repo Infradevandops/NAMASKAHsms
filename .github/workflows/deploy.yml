@@ -52,29 +52,23 @@ jobs:
             exit 1
           fi
 
-      - name: Wait for deployment to start
-        run: |
-          echo "⏳ Waiting 90 seconds for deployment to initialise..."
-          sleep 90
-
-      # Task 2.2 — Blocking health check with retries
-      - name: Health check (blocking, 5 retries)
+      - name: Wait and health check (blocking, 12 retries × 15s = 3 min)
         run: |
           PROD_URL="${{ secrets.PRODUCTION_URL }}"
           if [ -z "$PROD_URL" ]; then
             echo "⚠️ PRODUCTION_URL not set — skipping health check"
             exit 0
           fi
-          echo "🏥 Checking production health..."
-          for i in {1..5}; do
+          echo "🏥 Polling production health..."
+          for i in {1..12}; do
             if curl -f -s "${PROD_URL}/health" > /dev/null; then
               echo "✅ Production is healthy (attempt $i)"
               exit 0
             fi
-            echo "Attempt $i failed, retrying in 15s..."
+            echo "Attempt $i/12 failed, retrying in 15s..."
             sleep 15
           done
-          echo "❌ Health check failed after 5 attempts"
+          echo "❌ Health check failed after 12 attempts (3 minutes)"
           exit 1
 
       # Task 2.1 — Automatic rollback on any failure
