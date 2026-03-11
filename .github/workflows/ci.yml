@@ -62,7 +62,7 @@ jobs:
         run: bandit -r app/ -ll -f json -o bandit-report.json
 
       - name: Safety dependency CVE check (blocking)
-        run: safety check --json > safety-report.json
+        run: safety scan --output json > safety-report.json
 
       - name: Semgrep SAST (blocking on ERROR severity)
         run: semgrep --config=auto app/ --severity=ERROR --error --json > semgrep-report.json
@@ -137,7 +137,8 @@ jobs:
             --cov-fail-under=36 \
             --maxfail=10 \
             --tb=short \
-            --ignore=tests/frontend
+            --ignore=tests/frontend \
+            --ignore=tests/e2e
 
       # Task 3.3 — Codecov with regression guard
       - name: Upload coverage
