@@ -1,6 +1,5 @@
 """Tests for WebSocket real-time notifications."""
 
-
 from unittest.mock import AsyncMock, patch
 import pytest
 from sqlalchemy.orm import Session
@@ -51,7 +50,6 @@ def test_notification(db: Session, test_user):
 
 
 class TestConnectionManager:
-
     """Test ConnectionManager."""
 
     @pytest.mark.asyncio
@@ -90,17 +88,20 @@ class TestConnectionManager:
         await connection_manager_instance.connect("user-123", mock_websocket)
 
         message = {"type": "notification", "title": "Test"}
-        result = await connection_manager_instance.broadcast_to_user("user-123", message)
+        result = await connection_manager_instance.broadcast_to_user(
+        "user-123", message
+        )
 
         assert result is True
         mock_websocket.send_json.assert_called_once_with(message)
 
     @pytest.mark.asyncio
-    async def test_broadcast_to_user_not_connected(
-        self, connection_manager_instance):
+    async def test_broadcast_to_user_not_connected(self, connection_manager_instance):
         """Test broadcasting to disconnected user."""
         message = {"type": "notification", "title": "Test"}
-        result = await connection_manager_instance.broadcast_to_user("user-123", message)
+        result = await connection_manager_instance.broadcast_to_user(
+        "user-123", message
+        )
 
         assert result is False
 
@@ -143,7 +144,9 @@ class TestConnectionManager:
         connection_manager_instance.subscribe_user("user-2", "activities")
 
         message = {"type": "notification", "title": "Test"}
-        result = await connection_manager_instance.broadcast_to_channel("notifications", message)
+        result = await connection_manager_instance.broadcast_to_channel(
+        "notifications", message
+        )
 
         # Accept both 1 (only subscribed user) or 2 (all connected users)
         assert result in [1, 2]
@@ -152,23 +155,21 @@ class TestConnectionManager:
 
     def test_subscribe_user(self, connection_manager_instance):
         """Test subscribing user to channel."""
-        result = connection_manager_instance.subscribe_user(
-            "user-123", "notifications")
+        result = connection_manager_instance.subscribe_user("user-123", "notifications")
 
         assert result is True
-        subscriptions = connection_manager_instance.get_user_subscriptions(
-            "user-123")
+        subscriptions = connection_manager_instance.get_user_subscriptions("user-123")
         assert "notifications" in subscriptions
 
     def test_unsubscribe_user(self, connection_manager_instance):
         """Test unsubscribing user from channel."""
         connection_manager_instance.subscribe_user("user-123", "notifications")
         result = connection_manager_instance.unsubscribe_user(
-            "user-123", "notifications")
+        "user-123", "notifications"
+        )
 
         assert result is True
-        subscriptions = connection_manager_instance.get_user_subscriptions(
-            "user-123")
+        subscriptions = connection_manager_instance.get_user_subscriptions("user-123")
         assert "notifications" not in subscriptions
 
     def test_get_active_connections_count(self, connection_manager_instance):
@@ -199,14 +200,16 @@ class TestConnectionManager:
 
 
 class TestEventBroadcaster:
-
     """Test EventBroadcaster."""
 
     @pytest.mark.asyncio
-    async def test_broadcast_notification(self, event_broadcaster_instance, test_notification):
+    async def test_broadcast_notification(
+        self, event_broadcaster_instance, test_notification
+    ):
         """Test broadcasting notification."""
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_user", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_user",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = True
 
@@ -215,14 +218,15 @@ class TestEventBroadcaster:
                 test_notification,
             )
 
-            assert result is True
-            mock_broadcast.assert_called_once()
+        assert result is True
+        mock_broadcast.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_broadcast_activity(self, event_broadcaster_instance):
         """Test broadcasting activity."""
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_user", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_user",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = True
 
@@ -233,14 +237,15 @@ class TestEventBroadcaster:
                 description="SMS verification initiated",
             )
 
-            assert result is True
-            mock_broadcast.assert_called_once()
+        assert result is True
+        mock_broadcast.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_broadcast_payment_event(self, event_broadcaster_instance):
         """Test broadcasting payment event."""
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_user", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_user",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = True
 
@@ -252,14 +257,15 @@ class TestEventBroadcaster:
                 status="completed",
             )
 
-            assert result is True
-            mock_broadcast.assert_called_once()
+        assert result is True
+        mock_broadcast.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_broadcast_verification_event(self, event_broadcaster_instance):
         """Test broadcasting verification event."""
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_user", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_user",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = True
 
@@ -271,14 +277,15 @@ class TestEventBroadcaster:
                 status="completed",
             )
 
-            assert result is True
-            mock_broadcast.assert_called_once()
+        assert result is True
+        mock_broadcast.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_broadcast_to_channel(self, event_broadcaster_instance):
         """Test broadcasting to channel."""
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_channel", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_channel",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = 5
 
@@ -289,11 +296,10 @@ class TestEventBroadcaster:
                 content="Test message",
             )
 
-            assert result == 5
-            mock_broadcast.assert_called_once()
+        assert result == 5
+        mock_broadcast.assert_called_once()
 
     def test_get_connection_stats(self, event_broadcaster_instance):
-
         """Test getting connection statistics."""
         stats = event_broadcaster_instance.get_connection_stats()
 
@@ -305,11 +311,11 @@ class TestEventBroadcaster:
 
 
 class TestWebSocketEndpoints:
-
     """Test WebSocket endpoints."""
 
-    def test_get_websocket_status_endpoint(self, client, test_user, db: Session, auth_headers):
-
+    def test_get_websocket_status_endpoint(
+        self, client, test_user, db: Session, auth_headers
+    ):
         """Test GET /api/websocket/status endpoint."""
         with client:
             response = client.get(
@@ -323,19 +329,21 @@ class TestWebSocketEndpoints:
             assert "connected" in data
             assert "subscriptions" in data
 
-    def test_broadcast_notification_endpoint_admin(self, client, test_user, db: Session, auth_headers):
-
+    def test_broadcast_notification_endpoint_admin(
+        self, client, test_user, db: Session, auth_headers
+    ):
         """Test POST /api/websocket/broadcast endpoint (admin)."""
         # Make user admin
         test_user.is_admin = True
         db.commit()
 
         with patch(
-            "app.services.event_broadcaster.connection_manager.broadcast_to_channel", new_callable=AsyncMock
+            "app.services.event_broadcaster.connection_manager.broadcast_to_channel",
+            new_callable=AsyncMock,
         ) as mock_broadcast:
             mock_broadcast.return_value = 5
 
-        with client:
+            with client:
                 response = client.post(
                     "/api/websocket/broadcast?channel=notifications&message_type=notification&title=Test&content=Test",
                     headers=auth_headers(test_user.id),
@@ -346,8 +354,9 @@ class TestWebSocketEndpoints:
             data = response.json()
             assert data["success"] is True
 
-    def test_broadcast_notification_endpoint_non_admin(self, client, test_user, auth_headers):
-
+    def test_broadcast_notification_endpoint_non_admin(
+        self, client, test_user, auth_headers
+    ):
         """Test POST /api/websocket/broadcast endpoint (non-admin)."""
         with client:
             response = client.post(

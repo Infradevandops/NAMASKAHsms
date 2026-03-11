@@ -1,16 +1,13 @@
-
-
 from app.models.api_key import APIKey
 from app.models.notification import Notification
 from app.models.transaction import Transaction
 from app.models.user import User, Webhook
 
-class TestModelsComplete:
 
+class TestModelsComplete:
     """Tests for database models."""
 
     def test_user_model(self, db_session):
-
         """Test User model CRUD and methods."""
         user = User(
             email="model_test@example.com",
@@ -31,7 +28,6 @@ class TestModelsComplete:
         assert user.is_admin is True
 
     def test_webhook_model(self, db_session, regular_user):
-
         """Test Webhook model."""
         webhook = Webhook(
             user_id=regular_user.id,
@@ -46,7 +42,6 @@ class TestModelsComplete:
         assert webhook.user_id == regular_user.id
 
     def test_api_key_model(self, db_session, regular_user):
-
         """Test APIKey model."""
         api_key = APIKey(
             user_id=regular_user.id,
@@ -62,9 +57,10 @@ class TestModelsComplete:
         assert api_key.last_used is None
 
     def test_transaction_model(self, db_session, regular_user):
-
         """Test Transaction model."""
-        transaction = Transaction(user_id=regular_user.id, amount=10.5, type="credit", description="Test")
+        transaction = Transaction(
+            user_id=regular_user.id, amount=10.5, type="credit", description="Test"
+        )
         db_session.add(transaction)
         db_session.commit()
 
@@ -72,9 +68,10 @@ class TestModelsComplete:
         assert transaction.amount == 10.5
 
     def test_notification_model(self, db_session, regular_user):
-
         """Test Notification model."""
-        notification = Notification(user_id=regular_user.id, type="info", title="Test", message="Test Message")
+        notification = Notification(
+            user_id=regular_user.id, type="info", title="Test", message="Test Message"
+        )
         db_session.add(notification)
         db_session.commit()
 

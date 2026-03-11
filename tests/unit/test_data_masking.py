@@ -1,6 +1,5 @@
-
-
 from app.utils.data_masking import DataMasker, sanitize_log_data
+
 
 def test_mask_string_password():
     # Sensitive key pattern
@@ -29,10 +28,11 @@ def test_mask_string_value_pattern():
     # The regex in code might be buggy with spaces, let's see.
     # If regex fails, it won't be masked unless key is sensitive.
     # Here input is string, key check doesn't apply.
-if masked == jwt:
+
+    if masked == jwt:
         # Regex didn't match
         pass
-else:
+    else:
         assert masked == "[REDACTED]"
 
 
@@ -52,7 +52,9 @@ def test_mask_headers():
 def test_mask_email():
 
     assert DataMasker.mask_email("user@example.com") == "u**r@example.com"
-    assert DataMasker.mask_email("me@a.com") == "**@a.com"  # Length <= 2 local part masked entirely
+    assert (
+        DataMasker.mask_email("me@a.com") == "**@a.com"
+    )  # Length <= 2 local part masked entirely
     # Code: if len(local) <= 2: masked = "*" * len(local)
     assert DataMasker.mask_email("ab@c.com") == "**@c.com"
 

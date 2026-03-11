@@ -1,5 +1,6 @@
 """Minimal test to ensure CI passes."""
 
+
 def test_simple():
     """Test that always passes."""
     assert True

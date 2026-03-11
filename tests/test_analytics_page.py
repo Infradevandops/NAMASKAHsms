@@ -7,25 +7,23 @@ from fastapi.testclient import TestClient
 from app.core.dependencies import get_current_user_id
 from main import app
 
+
 class TestAnalyticsEndpoints:
 
     """Test analytics API endpoints."""
 
     @pytest.fixture
     def client(self):
-
         """Create test client."""
         return TestClient(app)
 
-        @pytest.fixture
+    @pytest.fixture
     def auth_headers(self):
-
         """Mock auth headers."""
         return {"Authorization": "Bearer test_token"}
 
-        @pytest.fixture
+    @pytest.fixture
     def mock_user_id(self):
-
         """Mock user ID dependency."""
 
     def override():
@@ -37,27 +35,24 @@ class TestAnalyticsEndpoints:
         app.dependency_overrides.clear()
 
     def test_analytics_page_requires_auth(self, client):
-
         """Analytics page should require authentication."""
         response = client.get("/analytics", follow_redirects=False)
         # Should redirect to login or return 401
         assert response.status_code in [401, 302, 307]
 
-    def test_analytics_page_loads_for_authenticated_user(self, client, mock_user_id):
-
+    def test_analytics_page_loads_for_authenticated_user(
+        self, client, mock_user_id):
         """Analytics page should load for authenticated users."""
         response = client.get("/analytics")
         assert response.status_code == 200
         assert b"Analytics" in response.content
 
     def test_analytics_summary_requires_auth(self, client):
-
         """Analytics summary endpoint should require authentication."""
         response = client.get("/api/analytics/summary")
         assert response.status_code == 401
 
     def test_analytics_summary_returns_data(self, client, mock_user_id):
-
         """Analytics summary should return expected data structure."""
         response = client.get("/api/analytics/summary")
 
@@ -67,18 +62,20 @@ class TestAnalyticsEndpoints:
             assert "total_verifications" in data or response.status_code == 200
 
     def test_analytics_summary_with_date_range(self, client, mock_user_id):
-
         """Analytics summary should accept date range parameters."""
         today = datetime.now().strftime("%Y-%m-%d")
-        thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+        thirty_days_ago = (
+    datetime.now() -
+    timedelta(
+        days=30)).strftime("%Y-%m-%d")
 
-        response = client.get(f"/api/analytics/summary?from={thirty_days_ago}&to={today}")
+        response = client.get(
+        f"/api/analytics/summary?from={thirty_days_ago}&to={today}")
 
         # Should not error on date params
         assert response.status_code in [200, 404, 500]
 
     def test_analytics_empty_data_for_new_user(self, client, mock_user_id):
-
         """New users should get empty/zero analytics."""
         response = client.get("/api/analytics/summary")
 
@@ -91,19 +88,16 @@ class TestAnalyticsEndpoints:
 
 class TestAnalyticsPageContent:
 
-        """Test analytics page HTML content."""
+    """Test analytics page HTML content."""
 
-        @pytest.fixture
+    @pytest.fixture
     def client(self):
-
         return TestClient(app)
 
-        @pytest.fixture
+    @pytest.fixture
     def mock_user_id(self):
-
-    def override():
-
-        return "test_user_123"
+        def override():
+            return "test_user_123"
 
         app.dependency_overrides[get_current_user_id] = override
         yield
@@ -141,9 +135,9 @@ class TestAnalyticsPageContent:
 
 class TestAnalyticsErrorHandling:
 
-        """Test analytics error handling."""
+    """Test analytics error handling."""
 
-        @pytest.fixture
+    @pytest.fixture
     def client(self):
 
         return TestClient(app)

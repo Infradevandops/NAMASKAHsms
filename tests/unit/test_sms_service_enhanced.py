@@ -12,25 +12,27 @@ from app.models.user import User
 
 class MockSMSService:
     """Mock SMS service for testing"""
-    
+
     def __init__(self, db: Session):
         self.db = db
-    
-    async def create_verification(self, user_id: str, service: str, country: str) -> dict:
+
+    async def create_verification(
+        self, user_id: str, service: str, country: str
+    ) -> dict:
         """Create SMS verification"""
         # Check user balance
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise ValueError("User not found")
-        
+
         cost = 2.50  # Mock cost
         if (user.credits or 0.0) < cost:
             raise ValueError("Insufficient balance")
-        
+
         # Mock TextVerified API call
         phone_number = f"+1555{user_id[:7]}"
         verification_id = f"ver_{user_id}_{int(datetime.now().timestamp())}"
-        
+
         return {
             "verification_id": verification_id,
             "phone_number": phone_number,
@@ -38,9 +40,9 @@ class MockSMSService:
             "country": country,
             "cost": cost,
             "status": "pending",
-            "created_at": datetime.now(timezone.utc).isoformat()
+            "created_at": datetime.now(timezone.utc).isoformat(),
         }
-    
+
     async def get_verification_status(self, verification_id: str) -> dict:
         """Get verification status"""
         # Mock status check
@@ -49,9 +51,9 @@ class MockSMSService:
             "status": "pending",
             "phone_number": "+15551234567",
             "sms_code": None,
-            "sms_text": None
+            "sms_text": None,
         }
-    
+
     async def poll_messages(self, verification_id: str) -> dict:
         """Poll for SMS messages"""
         # Mock message polling
@@ -60,15 +62,15 @@ class MockSMSService:
             "status": "completed",
             "sms_code": "123456",
             "sms_text": "Your verification code is 123456",
-            "received_at": datetime.now(timezone.utc).isoformat()
+            "received_at": datetime.now(timezone.utc).isoformat(),
         }
-    
+
     async def handle_timeout(self, verification_id: str) -> dict:
         """Handle verification timeout"""
         return {
             "verification_id": verification_id,
             "status": "timeout",
-            "message": "No SMS received within timeout period"
+            "message": "No SMS received within timeout period",
         }
 
 
@@ -81,11 +83,7 @@ class TestSMSService:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(
-            id="sms_user",
-            email="sms@example.com",
-            credits=50.0
-        )
+        user = User(id="sms_user", email="sms@example.com", credits=50.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -94,11 +92,9 @@ class TestSMSService:
     async def test_create_verification_success(self, sms_service, test_user):
         """Test successful verification creation"""
         result = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="whatsapp",
-            country="US"
+            user_id=test_user.id, service="whatsapp", country="US"
         )
-        
+
         assert result["status"] == "pending"
         assert result["phone_number"].startswith("+1")
         assert result["service"] == "whatsapp"
@@ -106,21 +102,19 @@ class TestSMSService:
         assert result["cost"] == 2.50
 
     @pytest.mark.asyncio
-    async def test_create_verification_insufficient_balance(self, sms_service, db_session):
+    async def test_create_verification_insufficient_balance(
+        self, sms_service, db_session
+    ):
         """Test verification fails with insufficient balance"""
         poor_user = User(
-            id="poor_user",
-            email="poor@example.com",
-            credits=1.0  # Less than cost
+            id="poor_user", email="poor@example.com", credits=1.0  # Less than cost
         )
         db_session.add(poor_user)
         db_session.commit()
-        
+
         with pytest.raises(ValueError, match="Insufficient balance"):
             await sms_service.create_verification(
-                user_id=poor_user.id,
-                service="whatsapp",
-                country="US"
+                user_id=poor_user.id, service="whatsapp", country="US"
             )
 
     @pytest.mark.asyncio
@@ -128,9 +122,7 @@ class TestSMSService:
         """Test verification fails for non-existent user"""
         with pytest.raises(ValueError, match="User not found"):
             await sms_service.create_verification(
-                user_id="nonexistent",
-                service="whatsapp",
-                country="US"
+                user_id="nonexistent", service="whatsapp", country="US"
             )
 
     @pytest.mark.asyncio
@@ -138,13 +130,13 @@ class TestSMSService:
         """Test getting verification status"""
         # Create verification first
         verification = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="whatsapp",
-            country="US"
+            user_id=test_user.id, service="whatsapp", country="US"
         )
-        
-        status = await sms_service.get_verification_status(verification["verification_id"])
-        
+
+        status = await sms_service.get_verification_status(
+            verification["verification_id"]
+        )
+
         assert status["verification_id"] == verification["verification_id"]
         assert status["status"] in ["pending", "completed", "timeout"]
 
@@ -152,13 +144,11 @@ class TestSMSService:
     async def test_poll_messages_success(self, sms_service, test_user):
         """Test successful message polling"""
         verification = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="whatsapp",
-            country="US"
+            user_id=test_user.id, service="whatsapp", country="US"
         )
-        
+
         result = await sms_service.poll_messages(verification["verification_id"])
-        
+
         assert result["status"] == "completed"
         assert result["sms_code"] == "123456"
         assert "sms_text" in result
@@ -167,29 +157,25 @@ class TestSMSService:
     async def test_verification_timeout(self, sms_service, test_user):
         """Test verification timeout handling"""
         verification = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="whatsapp",
-            country="US"
+            user_id=test_user.id, service="whatsapp", country="US"
         )
-        
+
         result = await sms_service.handle_timeout(verification["verification_id"])
-        
+
         assert result["status"] == "timeout"
         assert "message" in result
 
     @pytest.mark.asyncio
-    @patch('requests.post')
+    @patch("requests.post")
     async def test_textverified_api_failure(self, mock_post, sms_service, test_user):
         """Test handling TextVerified API failures"""
         mock_post.return_value.status_code = 500
         mock_post.return_value.text = "Internal Server Error"
-        
+
         # This would raise an exception in real implementation
         # For mock, we just verify the test structure
         result = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="whatsapp",
-            country="US"
+            user_id=test_user.id, service="whatsapp", country="US"
         )
         assert result is not None
 
@@ -200,12 +186,10 @@ class TestSMSService:
         verifications = []
         for i in range(3):
             result = await sms_service.create_verification(
-                user_id=test_user.id,
-                service="whatsapp",
-                country="US"
+                user_id=test_user.id, service="whatsapp", country="US"
             )
             verifications.append(result)
-        
+
         assert len(verifications) == 3
         # Verify all have unique IDs
         ids = [v["verification_id"] for v in verifications]
@@ -221,11 +205,7 @@ class TestSMSServiceEdgeCases:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(
-            id="edge_sms_user",
-            email="edge_sms@example.com",
-            credits=100.0
-        )
+        user = User(id="edge_sms_user", email="edge_sms@example.com", credits=100.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -235,9 +215,7 @@ class TestSMSServiceEdgeCases:
         """Test verification with invalid service"""
         # In real implementation, this would validate service
         result = await sms_service.create_verification(
-            user_id=test_user.id,
-            service="invalid_service",
-            country="US"
+            user_id=test_user.id, service="invalid_service", country="US"
         )
         # Mock allows it, but real implementation should validate
         assert result is not None
@@ -248,7 +226,7 @@ class TestSMSServiceEdgeCases:
         result = await sms_service.create_verification(
             user_id=test_user.id,
             service="whatsapp",
-            country="XX"  # Invalid country code
+            country="XX",  # Invalid country code
         )
         # Mock allows it, but real implementation should validate
         assert result is not None

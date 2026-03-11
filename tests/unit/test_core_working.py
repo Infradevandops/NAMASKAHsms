@@ -17,6 +17,7 @@ def test_basic_imports():
     import os
     import json
     import datetime
+
     assert os is not None
     assert json is not None
     assert datetime is not None
@@ -25,13 +26,11 @@ def test_basic_imports():
 def test_environment_setup():
     """Test CI environment is properly configured."""
     # Check basic environment
-    assert 'PATH' in os.environ
+    assert "PATH" in os.environ
 
     # Check if we're in CI
-    is_ci = os.getenv('CI', '').lower() in ['true', '1']
-    is_github_actions = os.getenv(
-    'GITHUB_ACTIONS', '').lower() in [
-        'true', '1']
+    is_ci = os.getenv("CI", "").lower() in ["true", "1"]
+    is_github_actions = os.getenv("GITHUB_ACTIONS", "").lower() in ["true", "1"]
 
     print(f"CI Environment: {is_ci}")
     print(f"GitHub Actions: {is_github_actions}")
@@ -58,13 +57,13 @@ def test_coverage_basic():
 
 
 def sample_function(x):
-        if x > 0:
-            return "positive"
-        else:
-            return "non-positive"
+    if x > 0:
+        return "positive"
+    else:
+        return "non-positive"
 
-        assert sample_function(1) == "positive"
-        assert sample_function(0) == "non-positive"
+    assert sample_function(1) == "positive"
+    assert sample_function(0) == "non-positive"
 
 
 def test_string_operations():
@@ -115,7 +114,7 @@ def test_exception_handling():
         assert result == 5
     except ZeroDivisionError:
         assert False, "Should not raise ZeroDivisionError"
-    
+
     with pytest.raises(ZeroDivisionError):
         10 / 0
 
@@ -124,13 +123,13 @@ def test_file_operations():
     """Test basic file operations."""
     import tempfile
     import os
-    
-    with tempfile.NamedTemporaryFile(mode='w', delete=False) as f:
+
+    with tempfile.NamedTemporaryFile(mode="w", delete=False) as f:
         f.write("test content")
         temp_file = f.name
-    
+
     try:
-        with open(temp_file, 'r') as f:
+        with open(temp_file, "r") as f:
             content = f.read()
         assert content == "test content"
     finally:
@@ -140,11 +139,11 @@ def test_file_operations():
 def test_json_operations():
     """Test JSON operations."""
     import json
-    
+
     test_data = {"name": "test", "value": 123}
     json_str = json.dumps(test_data)
     parsed_data = json.loads(json_str)
-    
+
     assert parsed_data["name"] == "test"
     assert parsed_data["value"] == 123
 
@@ -152,16 +151,17 @@ def test_json_operations():
 def test_datetime_operations():
     """Test datetime operations."""
     import datetime
-    
+
     now = datetime.datetime.now()
     assert isinstance(now, datetime.datetime)
-    
+
     date_str = now.strftime("%Y-%m-%d")
     assert len(date_str) == 10  # YYYY-MM-DD format
 
 
 def test_class_creation():
     """Test basic class creation and usage."""
+
     class TestClass:
         def __init__(self, value):
             self.value = value
@@ -178,22 +178,20 @@ def test_class_creation():
     obj.set_value("updated")
     assert obj.get_value() == "updated"
 
-
     def test_lambda_functions():
         """Test lambda functions."""
-        square = lambda x: x ** 2
+        square = lambda x: x**2
         assert square(4) == 16
-    
-        numbers = [1, 2, 3, 4, 5]
-        squared = list(map(lambda x: x ** 2, numbers))
-        assert squared == [1, 4, 9, 16, 25]
 
+        numbers = [1, 2, 3, 4, 5]
+        squared = list(map(lambda x: x**2, numbers))
+        assert squared == [1, 4, 9, 16, 25]
 
     def test_list_comprehensions():
         """Test list comprehensions."""
         numbers = [1, 2, 3, 4, 5]
-        squares = [x ** 2 for x in numbers]
+        squares = [x**2 for x in numbers]
         assert squares == [1, 4, 9, 16, 25]
-    
+
         evens = [x for x in numbers if x % 2 == 0]
         assert evens == [2, 4]

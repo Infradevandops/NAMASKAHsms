@@ -1,6 +1,8 @@
 """Pytest configuration for E2E tests"""
+
 import pytest
 from playwright.sync_api import sync_playwright
+
 
 @pytest.fixture(scope="session")
 def browser():
@@ -9,6 +11,7 @@ def browser():
         browser = p.chromium.launch(headless=True)
         yield browser
         browser.close()
+
 
 @pytest.fixture
 def page(browser):

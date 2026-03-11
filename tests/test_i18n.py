@@ -4,12 +4,12 @@
 from app.services.currency_service import CurrencyService
 from app.services.translation_service import TranslationService
 
+
 class TestTranslationService:
 
     """Test translation service."""
 
     def test_get_available_languages(self):
-
         """Test getting available languages."""
         service = TranslationService()
         languages = service.get_available_languages()
@@ -18,7 +18,6 @@ class TestTranslationService:
         assert "es" in languages
 
     def test_translate_key(self):
-
         """Test translation key lookup."""
         service = TranslationService("en")
         # Should return key if translation not found
@@ -26,7 +25,6 @@ class TestTranslationService:
         assert result is not None
 
     def test_translate_with_params(self):
-
         """Test translation with parameters."""
         service = TranslationService("en")
         result = service.translate("common.welcome", name="User")
@@ -35,7 +33,7 @@ class TestTranslationService:
 
 class TestCurrencyService:
 
-        """Test currency service."""
+    """Test currency service."""
 
     def test_convert_same_currency(self):
 

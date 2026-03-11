@@ -22,7 +22,7 @@ from app.schemas.payment import (PaymentInitialize, PaymentInitializeResponse,
                                  PaymentVerify, PaymentVerifyResponse,
                                  TransactionHistoryResponse,
                                  TransactionResponse, WalletBalanceResponse)
-from app.services import get_payment_service
+from app.services.payment_service import get_payment_service
 from app.services.webhook_service import WebhookService
 
 logger = get_logger(__name__)

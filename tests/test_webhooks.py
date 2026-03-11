@@ -1,10 +1,8 @@
-
-
 from sqlalchemy.orm import Session
 from app.models.user import Webhook
 
-def test_list_webhooks(client, auth_headers, db: Session, regular_user):
 
+def test_list_webhooks(client, auth_headers, db: Session, regular_user):
     """Test listing webhooks."""
     # Upgrade user to payg
     regular_user.subscription_tier = "payg"
@@ -32,7 +30,6 @@ def test_list_webhooks(client, auth_headers, db: Session, regular_user):
 
 
 def test_create_webhook(client, auth_headers):
-
     """Test creating a webhook."""
     # regular_user in conftest has 'freemium' tier.
     # Webhooks require 'payg'.
@@ -56,7 +53,6 @@ def test_create_webhook(client, auth_headers):
 
 
 def test_delete_webhook(client, auth_headers, db: Session, regular_user):
-
     """Test deleting a webhook."""
     # Upgrade user to payg
     regular_user.subscription_tier = "payg"

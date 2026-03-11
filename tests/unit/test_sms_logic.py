@@ -1,5 +1,3 @@
-
-
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
 import pytest
@@ -19,15 +17,13 @@ class TestSMSLogic:
 
         return SMSGateway()
 
-    async def test_smart_router_select_provider_default(
-            self, smart_router, db_session):
+    async def test_smart_router_select_provider_default(self, smart_router, db_session):
         # With no data, it should still return a provider (highest score based
         # on defaults)
         provider = await smart_router.select_provider("telegram", "US")
         assert provider in ["5sim", "sms_activate", "getsms", "textverified"]
 
-    async def test_smart_router_logic_with_stats(
-            self, smart_router, db_session):
+    async def test_smart_router_logic_with_stats(self, smart_router, db_session):
         # 1. Seed data to make one provider look better
         # Provider A: High success, Low cost
         # Provider B: Low success, High cost

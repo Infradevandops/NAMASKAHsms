@@ -1,6 +1,5 @@
 """Comprehensive verification flow test."""
 
-
 # Add parent directory to path
 
 import os
@@ -8,10 +7,10 @@ import sys
 from sqlalchemy import inspect
 from app.core.database import SessionLocal
 from app.models.verification import Verification
-from app.api.verification.consolidated_verification import router
+from app.api.verification.router import router
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
-from app.api.verification.consolidated_verification import create_safe_error_detail
+from app.utils.data_masking import create_safe_error_detail
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

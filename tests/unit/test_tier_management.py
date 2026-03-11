@@ -1,9 +1,8 @@
-
-
 from datetime import datetime, timedelta, timezone
 import pytest
 from app.models.api_key import APIKey
 from app.services.tier_manager import TierManager
+
 
 class TestTierManagement:
     @pytest.fixture
@@ -39,7 +38,9 @@ class TestTierManagement:
         result = tier_manager.check_feature_access(regular_user.id, "api_access")
         assert result in [True, False]
 
-        priority_result = tier_manager.check_feature_access(regular_user.id, "priority_routing")
+        priority_result = tier_manager.check_feature_access(
+            regular_user.id, "priority_routing"
+        )
         assert priority_result in [True, False]
 
     def test_can_create_api_key_limits(self, regular_user, db_session):

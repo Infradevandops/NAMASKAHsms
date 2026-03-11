@@ -1,10 +1,9 @@
-
-
 from unittest.mock import MagicMock
 import pytest
 from app.models.notification import Notification
 from app.models.user import User
 from app.services.notification_service import NotificationService
+
 
 @pytest.fixture
 def mock_db():
@@ -36,7 +35,7 @@ def test_create_notification_user_not_found(service, mock_db):
 
     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-with pytest.raises(ValueError, match="User unknown not found"):
+    with pytest.raises(ValueError, match="User unknown not found"):
         service.create_notification("unknown", "type", "title", "msg")
 
 

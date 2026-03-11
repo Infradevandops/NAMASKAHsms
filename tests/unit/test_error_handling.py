@@ -1,8 +1,5 @@
-
-
 import pytest
 from app.core.unified_error_handling import (
-
     NamaskahException,
     UnifiedErrorHandlingMiddleware,
     setup_unified_error_handling,
@@ -22,16 +19,15 @@ async def test_setup_error_handling():
 
     app = FastAPI()
     setup_unified_error_handling(app)
-    assert any("unified" in str(handler) or "exception" in str(handler)
-               for handler in app.exception_handlers.values())
+    assert any(
+        "unified" in str(handler) or "exception" in str(handler)
+        for handler in app.exception_handlers.values()
+    )
 
 
 @pytest.mark.asyncio
 async def test_namaskah_exception_logic():
-    exc = NamaskahException(
-        "Test Error",
-        error_code="TEST_CODE",
-        status_code=400)
+    exc = NamaskahException("Test Error", error_code="TEST_CODE", status_code=400)
     assert exc.message == "Test Error"
     assert exc.error_code == "TEST_CODE"
     assert exc.status_code == 400

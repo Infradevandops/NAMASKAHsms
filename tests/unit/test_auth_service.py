@@ -1,9 +1,8 @@
-
-
 import pytest
 from app.core.exceptions import ValidationError
 from app.models.user import User
 from app.services.auth_service import AuthService
+
 
 class TestAuthService:
     @pytest.fixture
@@ -42,7 +41,9 @@ class TestAuthService:
             db_session.commit()
 
         new_email = "referred@example.com"
-        user = auth_service.register_user(new_email, "pass123", referral_code=regular_user.referral_code)
+        user = auth_service.register_user(
+            new_email, "pass123", referral_code=regular_user.referral_code
+        )
 
         assert user.referred_by == regular_user.id
         assert user.free_verifications == 2.0
@@ -130,7 +131,9 @@ class TestAuthService:
         db_session.commit()
 
         # Should return None instead of raising error
-        auth_result = auth_service.authenticate_user("oauth@example.com", "any_password")
+        auth_result = auth_service.authenticate_user(
+            "oauth@example.com", "any_password"
+        )
         assert auth_result is None
 
     def test_update_password_success(self, auth_service, regular_user, db_session):
@@ -140,7 +143,10 @@ class TestAuthService:
 
         # Verify it can authenticate with new password
         db_session.refresh(regular_user)
-        assert auth_service.authenticate_user(regular_user.email, "brand_new_password") is not None
+        assert (
+            auth_service.authenticate_user(regular_user.email, "brand_new_password")
+            is not None
+        )
 
     def test_verify_admin_access(self, auth_service, regular_user, admin_user):
 
@@ -159,7 +165,9 @@ class TestAuthService:
         assert user.email_verified is True
 
         # Test creating new
-        new_user = auth_service.create_or_get_google_user(google_id="google_brand_new", email="brand_new@gmail.com")
+        new_user = auth_service.create_or_get_google_user(
+            google_id="google_brand_new", email="brand_new@gmail.com"
+        )
         assert new_user.email == "brand_new@gmail.com"
         assert new_user.provider == "google"
 

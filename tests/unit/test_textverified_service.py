@@ -1,5 +1,3 @@
-
-
 # Create a mock textverified module
 
 import os
@@ -30,7 +28,9 @@ def service(mock_client_instance):
 
     # Patch the module-level variable 'textverified'
     with patch("app.services.textverified_service.textverified", mock_textverified):
-        with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}):
+        with patch.dict(
+            os.environ, {"TEXTVERIFIED_API_KEY": "key", "TEXTVERIFIED_EMAIL": "email"}
+        ):
             # Reset init
             svc = TextVerifiedService()
             return svc
@@ -44,7 +44,6 @@ def test_init_success(service, mock_client_instance):
 
 
 def test_init_missing_creds():
-
 
     with patch.dict(os.environ, {"TEXTVERIFIED_API_KEY": ""}):
         with patch("app.services.textverified_service.settings") as mock_settings:
@@ -126,7 +125,9 @@ async def test_get_services_list(service, mock_client_instance):
     mock_client_instance._perform_action.return_value = mock_response
 
     # Need to mock textverified.Service.from_api
-    with patch("app.services.textverified_service.textverified.Service.from_api") as mock_from_api:
+    with patch(
+        "app.services.textverified_service.textverified.Service.from_api"
+    ) as mock_from_api:
         s1 = MagicMock()
         s1.service_name = "tg"
         s1.cost = 0.5
@@ -159,11 +160,7 @@ async def test_get_area_codes(service, mock_client_instance):
 @pytest.mark.asyncio
 async def test_retry_backoff_connection_error(service):
     # Test internal helper directly
-    fail_mock = MagicMock(
-    side_effect=[
-        Exception("Connection error"),
-         "Success"])
-
+    fail_mock = MagicMock(side_effect=[Exception("Connection error"), "Success"])
 
     async def task():
         val = fail_mock()

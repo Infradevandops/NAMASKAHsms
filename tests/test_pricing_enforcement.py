@@ -8,9 +8,9 @@ from app.models.user import User
 from app.services.pricing_calculator import PricingCalculator
 from app.services.quota_service import QuotaService
 
+
 @pytest.fixture
 def freemium_user(db: Session):
-
     """Create freemium test user."""
     user = User(
         id=str(uuid.uuid4()),
@@ -27,7 +27,6 @@ def freemium_user(db: Session):
 
 @pytest.fixture
 def payg_user(db: Session):
-
     """Create pay-as-you-go test user."""
     user = User(
         id=str(uuid.uuid4()),
@@ -43,7 +42,6 @@ def payg_user(db: Session):
 
 @pytest.fixture
 def pro_user(db: Session):
-
     """Create pro tier test user."""
     user = User(
         id=str(uuid.uuid4()),
@@ -62,7 +60,6 @@ class TestQuotaService:
     """Test quota tracking."""
 
     def test_get_monthly_usage_new_month(self, db: Session, pro_user: User):
-
         """Test getting usage for new month."""
         usage = QuotaService.get_monthly_usage(db, pro_user.id)
         assert usage["quota_used"] == 0.0
@@ -71,7 +68,6 @@ class TestQuotaService:
         assert usage["remaining"] == 15.0
 
     def test_add_quota_usage(self, db: Session, pro_user: User):
-
         """Test adding quota usage."""
         QuotaService.add_quota_usage(db, pro_user.id, 5.0)
         usage = QuotaService.get_monthly_usage(db, pro_user.id)
@@ -79,13 +75,12 @@ class TestQuotaService:
         assert usage["remaining"] == 10.0
 
     def test_calculate_overage_within_quota(self, db: Session, pro_user: User):
-
         """Test overage calculation within quota."""
         overage = QuotaService.calculate_overage(db, pro_user.id, 10.0)
         assert overage == 0.0
 
-    def test_calculate_overage_exceeds_quota(self, db: Session, pro_user: User):
-
+    def test_calculate_overage_exceeds_quota(
+        self, db: Session, pro_user: User):
         """Test overage calculation exceeding quota."""
         QuotaService.add_quota_usage(db, pro_user.id, 25.0)
         # Quota for pro is 15. Already at 25.
@@ -96,7 +91,6 @@ class TestQuotaService:
         assert abs(overage - 6.0) < 0.01
 
     def test_get_overage_rate(self, db: Session, pro_user: User):
-
         """Test getting overage rate."""
         rate = QuotaService.get_overage_rate(db, pro_user.id)
         assert rate == 0.30  # Pro tier
@@ -104,7 +98,7 @@ class TestQuotaService:
 
 class TestPricingCalculator:
 
-        """Test pricing calculations."""
+    """Test pricing calculations."""
 
     def test_freemium_no_filters(self, db: Session, freemium_user: User):
 

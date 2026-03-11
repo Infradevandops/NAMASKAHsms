@@ -2,6 +2,7 @@
 Startup smoke test — catches every import-level blocker before deploy.
 If this test passes, the app will start. If it fails, a startup blocker exists.
 """
+
 import importlib
 import pytest
 
@@ -46,6 +47,7 @@ def test_router_imports(module, attr):
 def test_settings_aliases():
     """Config backward-compat aliases must resolve without AttributeError."""
     from app.core.config import get_settings
+
     s = get_settings()
     assert s.smtp_host == s.smtp_server
     assert s.smtp_user == s.smtp_username
@@ -56,5 +58,6 @@ def test_settings_aliases():
 def test_hash_password_alias():
     """hash_password and get_password_hash must both work and produce verifiable hashes."""
     from app.utils.security import hash_password, get_password_hash, verify_password
+
     assert verify_password("test", hash_password("test"))
     assert verify_password("test", get_password_hash("test"))

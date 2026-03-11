@@ -1,5 +1,3 @@
-
-
 from unittest.mock import AsyncMock, patch
 import pytest
 from app.services.webhook_notification_service import WebhookNotificationService
@@ -37,8 +35,9 @@ class TestWebhookNotificationService:
         assert result is False
 
         @pytest.mark.asyncio
-        @patch.object(WebhookNotificationService,
-                      "send_webhook", new_callable=AsyncMock)
+        @patch.object(
+            WebhookNotificationService, "send_webhook", new_callable=AsyncMock
+        )
         async def test_notify_methods(self, mock_send, service):
 
             url = "http://webhook.com"
@@ -58,4 +57,7 @@ class TestWebhookNotificationService:
     @pytest.mark.asyncio
     async def test_notify_methods_no_url(self, service):
         # Should return True and not call webhook
-        assert await service.notify_verification_created("id1", "123", "serv", 1.0, None) is True
+        assert (
+            await service.notify_verification_created("id1", "123", "serv", 1.0, None)
+            is True
+        )

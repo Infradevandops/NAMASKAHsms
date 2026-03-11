@@ -14,49 +14,52 @@ class TestSettingsPageLoading:
 
     """Tests for settings page loading."""
 
-    def test_settings_page_loads_without_errors_for_authenticated_user(self, client, regular_user, user_token):
-
+    def test_settings_page_loads_without_errors_for_authenticated_user(
+        self, client, regular_user, user_token):
         """Test that settings page loads successfully for authenticated users."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/settings", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/settings",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         assert "settings" in response.text.lower() or "account" in response.text.lower()
 
     def test_settings_page_requires_authentication(self, client):
-
         """Test that settings page requires authentication."""
         response = client.get("/settings")
         assert response.status_code == 401
 
-    def test_settings_page_loads_for_all_tier_levels(self, client, db, user_token):
-
+    def test_settings_page_loads_for_all_tier_levels(
+        self, client, db, user_token):
         """Test that settings page loads for users of all tier levels."""
         tiers_to_test = ["freemium", "payg", "pro", "custom"]
 
         for tier in tiers_to_test:
             user = User(
-                id=f"settings_{tier}",
-                email=f"settings_{tier}@test.com",
-                password_hash=hash_password("password123"),
-                email_verified=True,
-                is_admin=False,
-                credits=10.0,
-                subscription_tier=tier,
-                is_active=True,
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(user)
+            id=f"settings_{tier}",
+            email=f"settings_{tier}@test.com",
+            password_hash=hash_password("password123"),
+            email_verified=True,
+            is_admin=False,
+            credits=10.0,
+            subscription_tier=tier,
+            is_active=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
         db.commit()
 
         for tier in tiers_to_test:
             token = user_token(f"settings_{tier}", f"settings_{tier}@test.com")
-            response = client.get("/settings", headers={"Authorization": f"Bearer {token}"})
-            assert response.status_code == 200, f"Settings page should load for {tier} tier"
+        response = client.get("/settings",
+     headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 200, f"Settings page should load for {tier} tier"
 
 
 class TestSettingsTabVisibility:
 
-        """Tests for settings tab visibility based on tier."""
+    """Tests for settings tab visibility based on tier."""
 
     def test_account_tab_visible_for_all_users(self, client, regular_user, user_token):
 
@@ -103,24 +106,24 @@ class TestSettingsTabVisibility:
         # API Keys tab should be hidden for freemium
         # Check that it's either not present or marked as hidden
         assert (
-            "api keys" not in response.text.lower()
-            or "display: none" in response.text
-            or 'style="display: none"' in response.text
+        "api keys" not in response.text.lower()
+        or "display: none" in response.text
+        or 'style="display: none"' in response.text
         )
 
     def test_api_keys_tab_visible_for_payg_users(self, client, db, user_token):
 
         """Test that API Keys tab is visible for payg users."""
         user = User(
-            id="payg_api_tab",
-            email="payg_api_tab@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_api_tab",
+        email="payg_api_tab@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -135,15 +138,15 @@ class TestSettingsTabVisibility:
 
         """Test that API Keys tab is visible for pro users."""
         user = User(
-            id="pro_api_tab",
-            email="pro_api_tab@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="pro_api_tab",
+        email="pro_api_tab@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="pro",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -158,15 +161,15 @@ class TestSettingsTabVisibility:
 
         """Test that API Keys tab is visible for custom users."""
         user = User(
-            id="custom_api_tab",
-            email="custom_api_tab@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="custom",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="custom_api_tab",
+        email="custom_api_tab@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="custom",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -180,7 +183,7 @@ class TestSettingsTabVisibility:
 
 class TestSettingsBillingTab:
 
-        """Tests for billing tab content."""
+    """Tests for billing tab content."""
 
     def test_billing_tab_displays_current_tier(self, client, regular_user, user_token):
 
@@ -195,15 +198,15 @@ class TestSettingsBillingTab:
 
         """Test that billing tab displays correct tier for payg users."""
         user = User(
-            id="payg_billing",
-            email="payg_billing@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_billing",
+        email="payg_billing@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -218,15 +221,15 @@ class TestSettingsBillingTab:
 
         """Test that billing tab displays correct tier for pro users."""
         user = User(
-            id="pro_billing",
-            email="pro_billing@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="pro",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="pro_billing",
+        email="pro_billing@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="pro",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -245,7 +248,7 @@ class TestSettingsBillingTab:
         assert response.status_code == 200
         # Should contain upgrade or plan options
         assert (
-            "upgrade" in response.text.lower() or "plan" in response.text.lower() or "pricing" in response.text.lower()
+        "upgrade" in response.text.lower() or "plan" in response.text.lower() or "pricing" in response.text.lower()
         )
 
     def test_billing_tab_displays_all_tier_options(self, client, regular_user, user_token):
@@ -270,15 +273,15 @@ class TestSettingsBillingTab:
 
         """Test that billing tab hides upgrade button for custom tier users."""
         user = User(
-            id="custom_billing",
-            email="custom_billing@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="custom",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="custom_billing",
+        email="custom_billing@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="custom",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -292,7 +295,7 @@ class TestSettingsBillingTab:
 
 class TestSettingsAccountTab:
 
-        """Tests for account tab content."""
+    """Tests for account tab content."""
 
     def test_account_tab_displays_email(self, client, regular_user, user_token):
 
@@ -324,7 +327,7 @@ class TestSettingsAccountTab:
 
 class TestSettingsNotificationsTab:
 
-        """Tests for notifications tab content."""
+    """Tests for notifications tab content."""
 
     def test_notifications_tab_displays_email_notifications_toggle(self, client, regular_user, user_token):
 
@@ -352,15 +355,15 @@ class TestSettingsNotificationsTab:
         assert response.status_code == 200
         # Should contain toggle/switch elements
         assert (
-            "switch" in response.text.lower()
-            or "toggle" in response.text.lower()
-            or "checkbox" in response.text.lower()
+        "switch" in response.text.lower()
+        or "toggle" in response.text.lower()
+        or "checkbox" in response.text.lower()
         )
 
 
 class TestSettingsSecurityTab:
 
-        """Tests for security tab content."""
+    """Tests for security tab content."""
 
     def test_security_tab_displays_password_reset_option(self, client, regular_user, user_token):
 
@@ -383,21 +386,21 @@ class TestSettingsSecurityTab:
 
 class TestSettingsAPIKeysTab:
 
-        """Tests for API Keys tab content."""
+    """Tests for API Keys tab content."""
 
     def test_api_keys_tab_has_generate_button_for_payg_users(self, client, db, user_token):
 
         """Test that API Keys tab has generate button for payg users."""
         user = User(
-            id="payg_gen_key",
-            email="payg_gen_key@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_gen_key",
+        email="payg_gen_key@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -412,15 +415,15 @@ class TestSettingsAPIKeysTab:
 
         """Test that API Keys tab displays list of API keys."""
         user = User(
-            id="payg_keys_list",
-            email="payg_keys_list@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_keys_list",
+        email="payg_keys_list@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -435,15 +438,15 @@ class TestSettingsAPIKeysTab:
 
         """Test that API Keys tab shows empty state when user has no keys."""
         user = User(
-            id="payg_no_keys",
-            email="payg_no_keys@test.com",
-            password_hash=hash_password("password123"),
-            email_verified=True,
-            is_admin=False,
-            credits=10.0,
-            subscription_tier="payg",
-            is_active=True,
-            created_at=datetime.now(timezone.utc),
+        id="payg_no_keys",
+        email="payg_no_keys@test.com",
+        password_hash=hash_password("password123"),
+        email_verified=True,
+        is_admin=False,
+        credits=10.0,
+        subscription_tier="payg",
+        is_active=True,
+        created_at=datetime.now(timezone.utc),
         )
         db.add(user)
         db.commit()
@@ -457,7 +460,7 @@ class TestSettingsAPIKeysTab:
 
 class TestSettingsTabSwitching:
 
-        """Tests for tab switching functionality."""
+    """Tests for tab switching functionality."""
 
     def test_settings_page_has_tab_navigation(self, client, regular_user, user_token):
 

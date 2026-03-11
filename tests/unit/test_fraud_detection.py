@@ -1,8 +1,7 @@
-
-
 from unittest.mock import MagicMock
 import pytest
 from app.services.fraud_detection_service import FraudDetectionService
+
 
 @pytest.mark.asyncio
 async def test_score_verification_fraud():
@@ -28,7 +27,9 @@ async def test_score_verification_safe():
     # Mock calculate_score to return low score
     service._calculate_score = MagicMock(return_value=0.2)
 
-    score, is_fraud = await service.score_verification(user_id="user1", country="safe", service="any", ip="127.0.0.1")
+    score, is_fraud = await service.score_verification(
+        user_id="user1", country="safe", service="any", ip="127.0.0.1"
+    )
 
     assert score == 0.2
     assert is_fraud is False

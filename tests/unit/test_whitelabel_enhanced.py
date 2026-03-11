@@ -1,10 +1,7 @@
-
-
 from unittest.mock import MagicMock
 import pytest
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
-
     WhiteLabelAsset,
     WhiteLabelDomain,
     WhiteLabelTheme,
@@ -51,10 +48,11 @@ async def test_update_branding(service, mock_db):
     config = WhiteLabelConfig(id=1, company_name="Old", primary_color="#fff")
     theme = WhiteLabelTheme(config_id=1, is_active=True, css_variables={})
 
-    mock_db.query.return_value.filter.return_value.first.side_effect = [
-        config, theme]
+    mock_db.query.return_value.filter.return_value.first.side_effect = [config, theme]
 
-    result = await service.update_branding(config_id=1, branding_data={"company_name": "New", "primary_color": "#000"})
+    result = await service.update_branding(
+        config_id=1, branding_data={"company_name": "New", "primary_color": "#000"}
+    )
 
     assert result["success"] is True
     assert config.company_name == "New"
@@ -65,8 +63,7 @@ async def test_update_branding(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_verify_domain_success(service, mock_db):
-    domain_entry = WhiteLabelDomain(
-    id=5, domain="test.com", dns_verified=False)
+    domain_entry = WhiteLabelDomain(id=5, domain="test.com", dns_verified=False)
     mock_db.query.return_value.filter.return_value.first.return_value = domain_entry
 
     result = await service.verify_domain("test.com")
@@ -134,7 +131,9 @@ async def test_get_partner_config(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_generate_custom_css(service, mock_db):
-    theme = WhiteLabelTheme(css_variables={"--a": "10px"}, custom_css=".cls { color: red; }")
+    theme = WhiteLabelTheme(
+        css_variables={"--a": "10px"}, custom_css=".cls { color: red; }"
+    )
     mock_db.query.return_value.filter.return_value.first.return_value = theme
 
     css = await service.generate_custom_css(1)
@@ -146,7 +145,9 @@ async def test_generate_custom_css(service, mock_db):
 
 @pytest.mark.asyncio
 async def test_create_pwa_manifest(service, mock_db):
-    config = WhiteLabelConfig(company_name="Corp", primary_color="#f00", logo_url="/logo.png")
+    config = WhiteLabelConfig(
+        company_name="Corp", primary_color="#f00", logo_url="/logo.png"
+    )
     mock_db.query.return_value.filter.return_value.first.return_value = config
 
     manifest = await service.create_pwa_manifest(1)

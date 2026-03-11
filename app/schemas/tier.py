@@ -89,3 +89,33 @@ class TierUpgradeResponse(BaseModel):
         None, description="Payment URL if payment required"
     )
     message: str = Field(..., description="Success or error message")
+
+
+class AnalyticsSummaryResponse(BaseModel):
+    total_verifications: int = 0
+    successful_verifications: int = 0
+    total_spent: float = 0.0
+    period_days: int = 30
+
+
+class DashboardActivity(BaseModel):
+    id: str
+    type: str
+    description: str
+    timestamp: str
+    amount: Optional[float] = None
+
+
+class DashboardActivityResponse(BaseModel):
+    activities: list = []
+    total: int = 0
+
+
+class CurrentTierResponse(BaseModel):
+    current_tier: str
+    tier_display_name: str
+    features: dict = {}
+
+
+class TiersListResponse(BaseModel):
+    tiers: list = []

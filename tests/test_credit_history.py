@@ -6,40 +6,43 @@ class TestCreditHistoryEndpoints:
     """Test credit history API endpoints."""
 
     def test_get_credit_history_authenticated(self, client, auth_headers):
-
         """Should return credit history for authenticated user."""
-        response = client.get("/api/user/credits/history", headers=auth_headers)
+        response = client.get(
+    "/api/user/credits/history",
+     headers=auth_headers)
         # Endpoint may not exist yet, but test structure is ready
         assert response.status_code in [200, 404, 501]
 
     def test_get_credit_history_unauthenticated(self, client):
-
         """Should return 401 for unauthenticated request."""
         response = client.get("/api/user/credits/history")
         assert response.status_code in [401, 403, 404]
 
     def test_get_credit_history_with_pagination(self, client, auth_headers):
-
         """Should support pagination parameters."""
-        response = client.get("/api/user/credits/history?page=1&limit=20", headers=auth_headers)
+        response = client.get(
+    "/api/user/credits/history?page=1&limit=20",
+     headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
     def test_get_credit_history_with_type_filter(self, client, auth_headers):
-
         """Should support filtering by transaction type."""
-        response = client.get("/api/user/credits/history?type=purchase", headers=auth_headers)
+        response = client.get(
+    "/api/user/credits/history?type=purchase",
+     headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
     def test_get_credit_summary_authenticated(self, client, auth_headers):
-
         """Should return credit summary for authenticated user."""
-        response = client.get("/api/user/credits/summary", headers=auth_headers)
+        response = client.get(
+    "/api/user/credits/summary",
+     headers=auth_headers)
         assert response.status_code in [200, 404, 501]
 
 
 class TestCreditHistoryUI:
 
-        """Test credit history UI integration."""
+    """Test credit history UI integration."""
 
     def test_wallet_page_loads(self, client, auth_headers):
 
@@ -68,7 +71,7 @@ class TestCreditHistoryUI:
 
 class TestCreditHistoryDataFormat:
 
-        """Test credit history data format expectations."""
+    """Test credit history data format expectations."""
 
     def test_credit_transaction_has_required_fields(self):
 
@@ -76,11 +79,11 @@ class TestCreditHistoryDataFormat:
         expected_fields = ["type", "amount", "balance_after", "created_at"]
         # This is a schema validation test
         sample_transaction = {
-            "type": "purchase",
-            "description": "Credit purchase",
-            "amount": 10.00,
-            "balance_after": 25.00,
-            "created_at": "2026-01-13T10:00:00Z",
+        "type": "purchase",
+        "description": "Credit purchase",
+        "amount": 10.00,
+        "balance_after": 25.00,
+        "created_at": "2026-01-13T10:00:00Z",
         }
         for field in expected_fields:
             assert field in sample_transaction

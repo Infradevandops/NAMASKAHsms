@@ -10,65 +10,88 @@ class TestTierLockedModalPresence:
 
     """Tests for tier-locked modal HTML presence."""
 
-    def test_tier_locked_modal_html_exists_on_dashboard(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_html_exists_on_dashboard(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal HTML exists on dashboard page."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain modal HTML
         assert "tier-locked" in response.text.lower() or "modal" in response.text.lower()
 
-    def test_tier_locked_modal_html_exists_on_settings(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_html_exists_on_settings(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal HTML exists on settings page."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/settings", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/settings",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain modal HTML
         assert "tier-locked" in response.text.lower() or "modal" in response.text.lower()
 
-    def test_tier_locked_modal_has_required_elements(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_has_required_elements(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal has all required elements."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain modal elements
-        assert "feature locked" in response.text.lower() or "tier-locked" in response.text.lower()
+        assert "feature locked" in response.text.lower(
+        ) or "tier-locked" in response.text.lower()
 
-    def test_tier_locked_modal_has_close_button(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_has_close_button(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal has close button."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain close button
-        assert "close" in response.text.lower() or "×" in response.text or "&times;" in response.text
+        assert "close" in response.text.lower(
+        ) or "×" in response.text or "&times;" in response.text
 
-    def test_tier_locked_modal_has_upgrade_button(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_has_upgrade_button(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal has upgrade button."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain upgrade button
         assert "upgrade" in response.text.lower()
 
-    def test_tier_locked_modal_has_message_element(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_has_message_element(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal has message element."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain message element
         assert "message" in response.text.lower() or "feature" in response.text.lower()
 
-    def test_tier_locked_modal_has_required_tier_display(self, client, regular_user, user_token):
-
+    def test_tier_locked_modal_has_required_tier_display(
+        self, client, regular_user, user_token):
         """Test that tier-locked modal has required tier display."""
         token = user_token(regular_user.id, regular_user.email)
-        response = client.get("/dashboard", headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+    "/dashboard",
+    headers={
+        "Authorization": f"Bearer {token}"})
         assert response.status_code == 200
         # Should contain required tier display
         assert "require" in response.text.lower() or "tier" in response.text.lower()
@@ -76,7 +99,7 @@ class TestTierLockedModalPresence:
 
 class TestTierLockedModalStyling:
 
-        """Tests for tier-locked modal styling."""
+    """Tests for tier-locked modal styling."""
 
     def test_tier_locked_modal_has_overlay_styling(self, client, regular_user, user_token):
 
@@ -117,7 +140,7 @@ class TestTierLockedModalStyling:
 
 class TestTierLockedModalContent:
 
-        """Tests for tier-locked modal content."""
+    """Tests for tier-locked modal content."""
 
     def test_tier_locked_modal_displays_title(self, client, regular_user, user_token):
 
@@ -136,7 +159,7 @@ class TestTierLockedModalContent:
         assert response.status_code == 200
         # Should contain message
         assert (
-            "feature" in response.text.lower() or "tier" in response.text.lower() or "require" in response.text.lower()
+        "feature" in response.text.lower() or "tier" in response.text.lower() or "require" in response.text.lower()
         )
 
     def test_tier_locked_modal_displays_required_tier_name(self, client, regular_user, user_token):
@@ -169,7 +192,7 @@ class TestTierLockedModalContent:
 
 class TestTierLockedModalFunctionality:
 
-        """Tests for tier-locked modal JavaScript functionality."""
+    """Tests for tier-locked modal JavaScript functionality."""
 
     def test_tier_locked_modal_has_show_function(self, client, regular_user, user_token):
 
@@ -210,7 +233,7 @@ class TestTierLockedModalFunctionality:
 
 class TestTierLockedModalUpgradeButton:
 
-        """Tests for upgrade button in tier-locked modal."""
+    """Tests for upgrade button in tier-locked modal."""
 
     def test_upgrade_button_navigates_to_pricing(self, client, regular_user, user_token):
 
@@ -242,7 +265,7 @@ class TestTierLockedModalUpgradeButton:
 
 class TestTierLockedModalCloseButton:
 
-        """Tests for close button in tier-locked modal."""
+    """Tests for close button in tier-locked modal."""
 
     def test_close_button_has_onclick_handler(self, client, regular_user, user_token):
 
@@ -274,7 +297,7 @@ class TestTierLockedModalCloseButton:
 
 class TestTierLockedModalTierBadges:
 
-        """Tests for tier badge colors in modal."""
+    """Tests for tier badge colors in modal."""
 
     def test_tier_locked_modal_has_tier_badge_styling(self, client, regular_user, user_token):
 
@@ -315,7 +338,7 @@ class TestTierLockedModalTierBadges:
 
 class TestTierLockedModalErrorHandler:
 
-        """Tests for 402 error handler integration."""
+    """Tests for 402 error handler integration."""
 
     def test_tier_error_handler_script_exists(self, client, regular_user, user_token):
 
@@ -347,7 +370,7 @@ class TestTierLockedModalErrorHandler:
 
 class TestTierLockedModalAccessibility:
 
-        """Tests for accessibility features in modal."""
+    """Tests for accessibility features in modal."""
 
     def test_tier_locked_modal_has_aria_labels(self, client, regular_user, user_token):
 
@@ -366,9 +389,9 @@ class TestTierLockedModalAccessibility:
         assert response.status_code == 200
         # Should contain keyboard handler
         assert (
-            "escape" in response.text.lower()
-            or "keydown" in response.text.lower()
-            or "keyboard" in response.text.lower()
+        "escape" in response.text.lower()
+        or "keydown" in response.text.lower()
+        or "keyboard" in response.text.lower()
         )
 
     def test_tier_locked_modal_has_focus_management(self, client, regular_user, user_token):
@@ -383,7 +406,7 @@ class TestTierLockedModalAccessibility:
 
 class TestTierLockedModalResponsiveness:
 
-        """Tests for responsive design of modal."""
+    """Tests for responsive design of modal."""
 
     def test_tier_locked_modal_has_responsive_styling(self, client, regular_user, user_token):
 
@@ -393,7 +416,7 @@ class TestTierLockedModalResponsiveness:
         assert response.status_code == 200
         # Should contain responsive styling
         assert (
-            "max-width" in response.text.lower() or "width" in response.text.lower() or "media" in response.text.lower()
+        "max-width" in response.text.lower() or "width" in response.text.lower() or "media" in response.text.lower()
         )
 
     def test_tier_locked_modal_has_mobile_friendly_buttons(self, client, regular_user, user_token):

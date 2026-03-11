@@ -10,20 +10,20 @@ from app.core.config import settings
 from app.models.user import User
 from app.models.verification import Verification
 
-def create_token(user_id: str, email: str = "test@test.com") -> str:
 
+def create_token(user_id: str, email: str = "test@test.com") -> str:
     """Create a JWT token for testing."""
     payload = {
         "user_id": user_id,
         "email": email,
         "exp": datetime.now(timezone.utc) + timedelta(hours=1),
     }
-    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+    return jwt.encode(payload, settings.jwt_secret_key,
+                      algorithm=settings.jwt_algorithm)
 
 
 @pytest.fixture
 def test_admin_user(db: Session):
-
     """Create admin user for testing."""
     admin = User(
         id="admin_test",
@@ -39,7 +39,6 @@ def test_admin_user(db: Session):
 
 @pytest.fixture
 def test_regular_user(db: Session):
-
     """Create regular user for testing."""
     user = User(
         id="user_test",
@@ -56,10 +55,9 @@ def test_regular_user(db: Session):
 
 @pytest.fixture
 def verification_data(db: Session, test_regular_user):
-
     """Create verification records for testing."""
     verifications = []
-for i in range(5):
+    for i in range(5):
         v = Verification(
             id=f"verify_{i}",
             user_id=test_regular_user.id,
@@ -98,8 +96,8 @@ class TestVerificationHistory:
         """Test filtering verifications by status."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            "/api/admin/verifications?status=completed",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/verifications?status=completed",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -113,8 +111,8 @@ class TestVerificationHistory:
         """Test filtering verifications by country."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            "/api/admin/verifications?country=US",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/verifications?country=US",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -126,8 +124,8 @@ class TestVerificationHistory:
         token = create_token(test_admin_user.id, test_admin_user.email)
         verify_id = verification_data[0].id
         response = client.get(
-            f"/api/admin/verifications/{verify_id}",
-            headers={"Authorization": f"Bearer {token}"},
+        f"/api/admin/verifications/{verify_id}",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -139,12 +137,12 @@ class TestVerificationHistory:
         """Test getting non-existent verification."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            "/api/admin/verifications/nonexistent",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/verifications/nonexistent",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code in [
-            404,
-            200,
+        404,
+        200,
         ]  # Some implementations might return empty list or 404
 
     def test_verification_analytics(self, client: TestClient, test_admin_user, verification_data, db: Session):
@@ -152,8 +150,8 @@ class TestVerificationHistory:
         """Test verification analytics endpoint."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            "/api/admin/verifications/analytics/summary?days=30",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/verifications/analytics/summary?days=30",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
         data = response.json()
@@ -164,8 +162,8 @@ class TestVerificationHistory:
         """Test exporting verifications as CSV."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.post(
-            "/api/admin/verifications/export",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/verifications/export",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code in [200, 201]
 
@@ -179,15 +177,15 @@ class TestVerificationHistory:
 
 class TestUserManagement:
 
-        """Test user management endpoints."""
+    """Test user management endpoints."""
 
     def test_search_users_by_email(self, client: TestClient, test_admin_user, test_regular_user, db: Session):
 
         """Test searching users by email."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            f"/api/admin/users/search?query={test_regular_user.email}",
-            headers={"Authorization": f"Bearer {token}"},
+        f"/api/admin/users/search?query={test_regular_user.email}",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
 
@@ -196,8 +194,8 @@ class TestUserManagement:
         """Test getting user activity."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            f"/api/admin/users/{test_regular_user.id}/activity",
-            headers={"Authorization": f"Bearer {token}"},
+        f"/api/admin/users/{test_regular_user.id}/activity",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
 
@@ -206,8 +204,8 @@ class TestUserManagement:
         """Test suspending a user."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.post(
-            f"/api/admin/users/{test_regular_user.id}/suspend?reason=Abuse",
-            headers={"Authorization": f"Bearer {token}"},
+        f"/api/admin/users/{test_regular_user.id}/suspend?reason=Abuse",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
 
@@ -220,8 +218,8 @@ class TestUserManagement:
 
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.post(
-            f"/api/admin/users/{test_regular_user.id}/unsuspend",
-            headers={"Authorization": f"Bearer {token}"},
+        f"/api/admin/users/{test_regular_user.id}/unsuspend",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
 
@@ -233,23 +231,23 @@ class TestUserManagement:
         """Test user management requires admin."""
         token = create_token(test_regular_user.id, test_regular_user.email)
         response = client.get(
-            "/api/admin/users/search?query=test",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/users/search?query=test",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 403
 
 
 class TestAuditCompliance:
 
-        """Test audit and compliance endpoints."""
+    """Test audit and compliance endpoints."""
 
     def test_get_audit_logs(self, client: TestClient, test_admin_user, db: Session):
 
         """Test getting audit logs."""
         token = create_token(test_admin_user.id, test_admin_user.email)
         response = client.get(
-            "/api/admin/compliance/audit-logs",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/compliance/audit-logs",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 200
 
@@ -258,7 +256,7 @@ class TestAuditCompliance:
         """Test compliance endpoints require admin."""
         token = create_token(test_regular_user.id, test_regular_user.email)
         response = client.get(
-            "/api/admin/compliance/audit-logs",
-            headers={"Authorization": f"Bearer {token}"},
+        "/api/admin/compliance/audit-logs",
+        headers={"Authorization": f"Bearer {token}"},
         )
         assert response.status_code == 403

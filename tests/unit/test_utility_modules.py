@@ -16,7 +16,6 @@ Tests for utility functions and helpers
 
 
 class TestUtilityModules:
-
     """Comprehensive utility module tests."""
 
     # ==================== Security Utils ====================
@@ -186,8 +185,7 @@ class TestUtilityModules:
         invalid_file = "script.exe"
 
         assert any(valid_file.endswith(ext) for ext in allowed_extensions)
-        assert not any(invalid_file.endswith(ext)
-                       for ext in allowed_extensions)
+        assert not any(invalid_file.endswith(ext) for ext in allowed_extensions)
 
     # ==================== Performance Utils ====================
 
@@ -321,6 +319,7 @@ class TestUtilityModules:
         evens = [n for n in numbers if n % 2 == 0]
 
         assert evens == [2, 4, 6]
+
 
 if __name__ == "__main__":
     print("Utility module tests: 40 comprehensive tests created")

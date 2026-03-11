@@ -1,13 +1,11 @@
 """Tests for startup initialization."""
 
-
 import os
 from unittest.mock import MagicMock, patch
 from app.core.startup import ensure_admin_user
 
 
 class TestEnsureAdminUser:
-
     """Test admin user creation and updates."""
 
     @patch("app.core.startup.SessionLocal")
@@ -20,7 +18,9 @@ class TestEnsureAdminUser:
         mock_db.query.return_value.filter.return_value.first.return_value = None
         mock_hash.return_value = "hashed_password"
 
-        with patch.dict(os.environ, {"ADMIN_EMAIL": "test@admin.com", "ADMIN_PASSWORD": "testpass"}):
+        with patch.dict(
+            os.environ, {"ADMIN_EMAIL": "test@admin.com", "ADMIN_PASSWORD": "testpass"}
+        ):
             # Execute
             ensure_admin_user()
 
@@ -31,8 +31,7 @@ class TestEnsureAdminUser:
     @patch("app.core.startup.SessionLocal")
     @patch("app.core.startup.hash_password")
     @patch("app.utils.security.verify_password")
-    def test_admin_user_updated_when_exists(
-            self, mock_verify, mock_hash, mock_session):
+    def test_admin_user_updated_when_exists(self, mock_verify, mock_hash, mock_session):
         """Test admin user password is updated when user exists."""
         # Setup
         mock_db = MagicMock()
@@ -43,7 +42,9 @@ class TestEnsureAdminUser:
         existing_admin.password_hash = "old_hash"
         existing_admin.credits = 5000.0
         existing_admin.subscription_tier = "pro"
-        mock_db.query.return_value.filter.return_value.first.return_value = existing_admin
+        mock_db.query.return_value.filter.return_value.first.return_value = (
+            existing_admin
+        )
         mock_hash.return_value = "new_hashed_password"
         mock_verify.return_value = True
 
@@ -84,7 +85,8 @@ class TestEnsureAdminUser:
     @patch("app.core.startup.hash_password")
     @patch("app.utils.security.verify_password")
     def test_admin_password_verification_after_update(
-            self, mock_verify, mock_hash, mock_session):
+        self, mock_verify, mock_hash, mock_session
+    ):
         """Test password verification is performed after update."""
         # Setup
         mock_db = MagicMock()
@@ -92,11 +94,15 @@ class TestEnsureAdminUser:
         existing_admin = MagicMock()
         existing_admin.password_hash = "old_hash"
         existing_admin.credits = 5000.0
-        mock_db.query.return_value.filter.return_value.first.return_value = existing_admin
+        mock_db.query.return_value.filter.return_value.first.return_value = (
+            existing_admin
+        )
         mock_hash.return_value = "new_hash"
         mock_verify.return_value = True
 
-        with patch.dict(os.environ, {"ADMIN_PASSWORD": "testpass", "ADMIN_EMAIL": "admin@test.com"}):
+        with patch.dict(
+            os.environ, {"ADMIN_PASSWORD": "testpass", "ADMIN_EMAIL": "admin@test.com"}
+        ):
             # Execute
             ensure_admin_user()
 

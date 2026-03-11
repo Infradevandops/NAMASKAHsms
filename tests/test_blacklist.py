@@ -4,61 +4,58 @@
 import re
 import re
 
+
 class TestBlacklistEndpoints:
 
     """Test blacklist API endpoints."""
 
     def test_get_blacklist_authenticated(self, client, auth_headers):
-
         """Should return blacklist for authenticated user."""
         response = client.get("/blacklist", headers=auth_headers)
         # Endpoint may require PAYG+ tier
         assert response.status_code in [200, 403, 404, 501]
 
     def test_get_blacklist_unauthenticated(self, client):
-
         """Should return 401 for unauthenticated request."""
         response = client.get("/blacklist")
         assert response.status_code in [401, 403, 404]
 
     def test_add_to_blacklist(self, client, auth_headers):
-
         """Should add number to blacklist."""
         response = client.post(
-            "/blacklist",
-            headers=auth_headers,
-            json={"phone_number": "+1234567890", "reason": "Test blacklist"},
+        "/blacklist",
+        headers=auth_headers,
+        json={"phone_number": "+1234567890", "reason": "Test blacklist"},
         )
         # May require PAYG+ tier
         assert response.status_code in [200, 201, 403, 404, 422, 501]
 
     def test_add_to_blacklist_invalid_phone(self, client, auth_headers):
-
         """Should reject invalid phone number."""
         response = client.post(
-            "/blacklist",
-            headers=auth_headers,
-            json={"phone_number": "invalid", "reason": "Test"},
+        "/blacklist",
+        headers=auth_headers,
+        json={"phone_number": "invalid", "reason": "Test"},
         )
         # Should fail validation
         assert response.status_code in [400, 422, 403, 404, 501]
 
     def test_remove_from_blacklist(self, client, auth_headers):
-
         """Should remove number from blacklist."""
         response = client.delete("/blacklist/test-id", headers=auth_headers)
         assert response.status_code in [200, 204, 403, 404, 501]
 
     def test_blacklist_pagination(self, client, auth_headers):
-
         """Should support pagination."""
-        response = client.get("/blacklist?page=1&limit=20", headers=auth_headers)
+        response = client.get(
+    "/blacklist?page=1&limit=20",
+     headers=auth_headers)
         assert response.status_code in [200, 403, 404, 501]
 
 
 class TestBlacklistTierGating:
 
-        """Test blacklist tier gating."""
+    """Test blacklist tier gating."""
 
     def test_blacklist_requires_payg_tier(self, client, auth_headers):
 
@@ -72,7 +69,7 @@ class TestBlacklistTierGating:
 
 class TestBlacklistUI:
 
-        """Test blacklist UI in settings."""
+    """Test blacklist UI in settings."""
 
     def test_settings_page_has_blacklist_tab(self, client, auth_headers):
 
@@ -102,17 +99,17 @@ class TestBlacklistUI:
 
 class TestBlacklistDataFormat:
 
-        """Test blacklist data format."""
+    """Test blacklist data format."""
 
     def test_blacklist_entry_has_required_fields(self):
 
         """Blacklist entry should have required fields."""
         expected_fields = ["id", "phone_number", "created_at"]
         sample_entry = {
-            "id": "bl-123",
-            "phone_number": "+1234567890",
-            "reason": "Spam",
-            "created_at": "2026-01-13T10:00:00Z",
+        "id": "bl-123",
+        "phone_number": "+1234567890",
+        "reason": "Spam",
+        "created_at": "2026-01-13T10:00:00Z",
         }
         for field in expected_fields:
             assert field in sample_entry
@@ -127,12 +124,12 @@ class TestBlacklistDataFormat:
 
         for num in valid_numbers:
             clean = num.replace("-", "").replace(" ", "")
-            assert re.match(valid_pattern, clean)
+        assert re.match(valid_pattern, clean)
 
 
 class TestBlacklistBulkImport:
 
-        """Test blacklist bulk import functionality."""
+    """Test blacklist bulk import functionality."""
 
     def test_csv_parsing(self):
 

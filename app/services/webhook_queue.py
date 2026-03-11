@@ -6,7 +6,6 @@ from typing import Any, Dict
 from redis import Redis
 
 from app.core.logging import get_logger
-from app.services.webhook_service import webhook_service
 
 logger = get_logger(__name__)
 
