@@ -30,15 +30,15 @@ FALLBACK_SERVICES = [
 async def get_services(country: str):
     """Get services with fallback on error."""
     settings = get_settings()
-    
+
     try:
         # Try to get from API
         raw = await _tv.get_services_list()
-        
+
         if not raw:
             logger.warning(f"Empty services list for {country}, using fallback")
             raw = FALLBACK_SERVICES
-        
+
         return {
             "services": [
                 {
@@ -52,10 +52,10 @@ async def get_services(country: str):
             "total": len(raw),
             "source": "api"
         }
-    
+
     except Exception as e:
         logger.error(f"Failed to get services for {country}: {str(e)}", exc_info=True)
-        
+
         # Return fallback services
         return {
             "services": [
@@ -77,7 +77,7 @@ async def get_services(country: str):
 async def get_services_batch_pricing(country: str):
     """Return services with accurate pricing from 24h cache. Warms cache if cold."""
     settings = get_settings()
-    
+
     try:
         # Try cache first
         cached = await cache.get("tv:services_list")
@@ -95,14 +95,14 @@ async def get_services_batch_pricing(country: str):
                 "total": len(cached),
                 "source": "cache",
             }
-        
+
         # Cache cold — try API
         raw = await _tv.get_services_list()
-        
+
         if not raw:
             logger.warning(f"Empty services list for {country}, using fallback")
             raw = FALLBACK_SERVICES
-        
+
         return {
             "services": [
                 {
@@ -116,10 +116,10 @@ async def get_services_batch_pricing(country: str):
             "total": len(raw),
             "source": "warming",
         }
-    
+
     except Exception as e:
         logger.error(f"Failed to get batch pricing for {country}: {str(e)}", exc_info=True)
-        
+
         # Return fallback
         return {
             "services": [
