@@ -108,15 +108,22 @@ jobs:
 
       - name: Install test dependencies
         run: |
-          pip install -r requirements.txt
-          pip install pytest pytest-playwright
+          pip install pytest pytest-playwright pytest-html
           playwright install chromium
+
+      - name: Wait for Render to stabilise after cold start
+        # Render free tier: health endpoint can return 200 while background tasks
+        # (DB pool, TextVerified pre-warm) are still initialising. 15s prevents
+        # false rollbacks from smoke tests hitting business endpoints too early.
+        run: |
+          echo "⏳ Waiting 15s for Render to stabilise after health check..."
+          sleep 15
 
       - name: Run smoke tests against production
         env:
           BASE_URL: ${{ secrets.PRODUCTION_URL }}
           ENVIRONMENT: production
-        run: pytest tests/e2e/ -m smoke -v --tb=short
+        run: pytest tests/e2e/ -m smoke -v --tb=short --html=smoke-report.html
 
       - name: Upload smoke test report
         uses: actions/upload-artifact@v4

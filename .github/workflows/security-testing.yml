@@ -40,11 +40,12 @@ jobs:
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
       run: |
         uvicorn main:app --host 0.0.0.0 --port 8000 &
-        sleep 10
-        curl -f http://localhost:8000/health || exit 1
-
-    - name: Run Smoke Tests
-      run: pytest tests/e2e/ -m smoke -v --html=smoke-report.html
+        for i in {1..12}; do
+          curl -sf http://localhost:8000/health && break
+          echo "Waiting for app... ($i/12)"
+          sleep 5
+        done
+        curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
 
     - name: Run Full E2E Suite (main branch only)
       if: github.ref == 'refs/heads/main'
@@ -55,9 +56,7 @@ jobs:
       if: always()
       with:
         name: e2e-reports-${{ github.run_id }}
-        path: |
-          smoke-report.html
-          e2e-report.html
+        path: e2e-report.html
 
   # Task 5.2 — Accessibility audit (push + weekly schedule)
   accessibility-audit:
@@ -73,7 +72,9 @@ jobs:
         node-version: '18'
 
     - name: Install accessibility tools
-      run: npm install -g @axe-core/cli pa11y lighthouse
+      run: |
+        npm install -g @axe-core/cli pa11y lighthouse
+        npx playwright install chromium
 
     - name: Set up Python and start app
       uses: actions/setup-python@v5
@@ -81,10 +82,19 @@ jobs:
         python-version: '3.11'
 
     - name: Start application for testing
+      env:
+        DATABASE_URL: sqlite:///./test.db
+        SECRET_KEY: test-secret-key-for-ci-testing-only
+        JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing
       run: |
         pip install -r requirements.txt
         uvicorn main:app --host 0.0.0.0 --port 8000 &
-        sleep 10
+        for i in {1..12}; do
+          curl -sf http://localhost:8000/health && break
+          echo "Waiting for app... ($i/12)"
+          sleep 5
+        done
+        curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
 
     # Task 5.2 — Use PRODUCTION_URL for scheduled runs, localhost for push/PR
     - name: Set audit target URL
@@ -114,25 +124,3 @@ jobs:
           pa11y-report.json
           lighthouse-a11y.json
 
-  deployment-check:
-    runs-on: ubuntu-latest
-    name: Deployment Readiness
-    needs: [e2e-tests]
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Deployment Readiness Check
-      run: |
-        echo "🚀 Deployment Readiness Check"
-        echo "============================="
-        echo "✅ E2E tests passed"
-        echo ""
-        echo "📋 Manual verification required:"
-        echo "- Environment variables updated"
-        echo "- API keys rotated"
-        echo "- Monitoring configured"
-        echo "- Backup verified"
-        echo ""
-        echo "🎯 Ready for production deployment"
