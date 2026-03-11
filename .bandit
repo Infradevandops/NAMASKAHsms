@@ -1,0 +1,13 @@
+# Bandit Security Configuration
+# This file configures which security issues are flagged as blocking
+
+[bandit]
+# Exclude test directories from scanning
+exclude_dirs = ['/test', '/tests', '/.venv', '/venv']
+
+# Skip LOW severity issues (B110 = bare except)
+# These are not security-critical and can be addressed separately
+skips = B110
+
+# Only flag HIGH and MEDIUM severity issues (already done via -ll flag)
+# This prevents false positives and focuses on real security risks

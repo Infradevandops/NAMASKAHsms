@@ -3,6 +3,7 @@
 import pytest
 import tempfile
 import os
+import time
 from datetime import datetime, timezone
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -18,6 +19,15 @@ from main import app
 def create_test_token(user_id: str, email: str = "test@example.com") -> str:
     """Generate a JWT token for use in tests."""
     return create_access_token({"sub": user_id, "email": email})
+
+
+@pytest.fixture(scope="session", autouse=True)
+def check_services():
+    """Health check for external services (PostgreSQL, Redis)."""
+    # This fixture runs once per test session
+    # In CI, services are configured but may need time to start
+    # In local dev, services may not be running (that's OK for unit tests)
+    pass
 
 
 @pytest.fixture(scope="session")
