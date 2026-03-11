@@ -1,6 +1,8 @@
 pytest==7.4.3
 pytest-asyncio==0.21.1
 pytest-cov==4.1.0
+pytest-playwright==0.4.4
+pytest-html==4.1.1
 httpx==0.25.2
 hypothesis==6.92.1
 black==24.3.0
