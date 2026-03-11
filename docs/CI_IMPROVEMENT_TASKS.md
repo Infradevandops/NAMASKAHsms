@@ -1,7 +1,7 @@
 # CI/CD Improvement Tasks
 
 **Goal**: Consolidate pipelines, enforce quality gates, automate rollback, and reach coverage targets  
-**Status**: ✅ Phase 0 Complete | 🔄 Phase 1 In Progress  
+**Status**: ✅ Phase 0 Complete | ✅ Phase 1 Complete | ✅ Phase 2 Complete | 🔄 Phase 3 In Progress | ✅ Phase 4 Complete | ⚠️ Phase 5 Partial  
 **Secrets confirmed**: `GITLAB_TOKEN`, `PRODUCTION_URL`, `RENDER_DEPLOY_HOOK`, `RENDER_ROLLBACK_HOOK` ✅
 
 ---
@@ -238,7 +238,7 @@ Add condition: `if: github.event.workflow_run.conclusion == 'success'`
 - [ ] CI pipeline passes with new threshold
 - [ ] Coverage report shows ≥ 50% before merging this change
 
-> ⚠️ **Blocked**: Current coverage must be measured first. Gate is at 36% — raise incrementally.
+> ⚠️ **In Progress**: Gate currently at 36%. Raise incrementally: 36% → 40% → 45% → 50%.
 
 **Acceptance Criteria**:
 - `ci.yml` fails any PR that drops coverage below 50%
@@ -255,6 +255,8 @@ Add condition: `if: github.event.workflow_run.conclusion == 'success'`
 - Check `pytest.ini` for any markers that skip integration tests by default
 - Ensure `tests/integration/` runs in `ci.yml` (not just `security-testing.yml`)
 - Add `DATABASE_URL` and `REDIS_URL` env vars are correctly set for integration suite
+
+> ⚠️ **Note**: `security-testing.yml` integration tests use `postgres:test@localhost/test` credentials which differ from `ci.yml`. Consolidate to avoid drift.
 
 **Checks**:
 - [ ] `pytest tests/integration/` passes locally against test DB
@@ -282,9 +284,10 @@ Add condition: `if: github.event.workflow_run.conclusion == 'success'`
 ```
 
 **Checks**:
-- [ ] A PR that drops coverage by >1% fails the CI
+- [x] `fail_ci_if_error: true` is set
+- [x] `threshold: 1` regression guard is set
+- [ ] A PR that drops coverage by >1% fails the CI (needs live Codecov token to verify)
 - [ ] Codecov PR comment shows diff coverage
-- [ ] `fail_ci_if_error: true` is set
 
 **Acceptance Criteria**:
 - Coverage cannot regress without a deliberate override
@@ -318,7 +321,7 @@ secrets-scan:
 
 **Checks**:
 - [x] Gitleaks runs on every push/PR
-- [x] `tools/gitleaks.toml` config is picked up (add `--config tools/gitleaks.toml`)
+- [x] `tools/gitleaks.toml` config is picked up via `GITLEAKS_CONFIG` env var
 - [ ] A test branch with a fake secret pattern triggers a failure
 - [ ] `.env` and `.env.local` are in `.gitignore` (confirm not committed)
 
@@ -342,7 +345,8 @@ semgrep --config=auto app/ --severity=ERROR --error
 **Checks**:
 - [x] `semgrep` runs in `ci.yml` security job
 - [x] Only `ERROR` severity findings block (warnings are informational)
-- [ ] Existing codebase has zero `ERROR`-level semgrep findings before enabling
+- [x] Security report artifact uploaded on every run
+- [ ] Existing codebase has zero `ERROR`-level semgrep findings (needs verification)
 
 **Acceptance Criteria**:
 - `semgrep` ERROR findings block PRs
@@ -378,10 +382,12 @@ smoke-test:
 ```
 
 **Checks**:
-- [x] Smoke tests run against `PRODUCTION_URL` (not localhost)
-- [x] Smoke tests are tagged with `@pytest.mark.smoke`
+- [x] Smoke test job exists in `deploy.yml` and runs after `deploy`
 - [x] Failure triggers rollback (via Task 2.1)
+- [ ] `tests/e2e/` files exist with `@pytest.mark.smoke` tags ⚠️ **BLOCKER** — will cause false rollbacks if missing
 - [ ] Smoke suite completes in < 5 minutes
+
+> ⚠️ **Action required**: Confirm `tests/e2e/` smoke-tagged tests exist before next deploy, or disable the smoke-test job temporarily to prevent false rollbacks.
 
 **Acceptance Criteria**:
 - Every production deploy is followed by an automated smoke test run
@@ -406,7 +412,8 @@ on:
 **Checks**:
 - [x] Workflow runs automatically on Monday mornings
 - [x] Audit runs against `PRODUCTION_URL` when triggered by schedule
-- [x] Reports are uploaded as artifacts with date-stamped names
+- [x] Reports are uploaded as artifacts
+- [ ] Reports use date-stamped artifact names
 
 **Acceptance Criteria**:
 - Accessibility audit runs weekly without manual trigger
@@ -417,69 +424,134 @@ on:
 
 ## Summary
 
-| Phase | Tasks | Focus | Target |
+| Phase | Tasks | Focus | Status |
 |-------|-------|-------|--------|
-| 1 | 1.1, 1.2 | Pipeline consolidation | Single CI, all checks blocking |
-| 2 | 2.1, 2.2, 2.3 | Deploy hardening | Rollback, health gate, CI dependency |
-| 3 | 3.1, 3.2, 3.3 | Coverage | 50% gate, integration tests, regression guard |
-| 4 | 4.1, 4.2 | Security | Gitleaks, semgrep blocking |
-| 5 | 5.1, 5.2 | E2E & Accessibility | Post-deploy smoke, weekly a11y audit |
+| 1 | 1.1, 1.2 | Pipeline consolidation | ✅ Complete |
+| 2 | 2.1, 2.2, 2.3 | Deploy hardening | ✅ Complete |
+| 3 | 3.1, 3.2, 3.3 | Coverage | 🔄 In Progress (36% gate, target 50%) |
+| 4 | 4.1, 4.2 | Security | ✅ Complete |
+| 5 | 5.1, 5.2 | E2E & Accessibility | ⚠️ Partial (smoke tests unverified) |
 
 **Recommended order**: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 
 
 ---
 
-## Post-Push Status (Commit 0e5a32f8)
+---
 
-**Pushed**: 2026-03-11  
-**Branch**: `main`  
-**CI Status**: 🔄 Pending — 0 collection errors, 1692 tests collected
+## Phase 6 — Runtime & Workflow Hygiene
+> Issues identified from live log analysis and workflow audit (2026-03-11).
 
-### What Was Deployed
+---
 
-✅ **Completed**:
-- Disabled `ci-simple.yml` and `ci-strict.yml` (single pipeline active)
-- Auto-fixed 275 files with `black` formatting
-- Auto-fixed 204 files with `isort` import ordering
-- Made `black`, `isort`, `bandit`, `safety` blocking in `ci.yml`
-- Added Gitleaks secrets scanning job
-- Added semgrep ERROR-level blocking
-- Wired `RENDER_ROLLBACK_HOOK` into `deploy.yml` (2 locations: deploy job + smoke-test job)
-- Changed deploy trigger to `workflow_run` (gates on CI passing)
-- Added blocking health check with 5 retries × 15s
-- Added post-deploy smoke test job with rollback on failure
-- Scheduled weekly accessibility audit (Monday 9am UTC)
-- Set coverage gate to 36% (current baseline)
-- Created `docs/CI_WORKFLOWS.md` reference doc
-- Created `docs/CI_IMPROVEMENT_TASKS.md` (this file)
-- **Fixed all 31 remaining test collection errors** (commit `0e5a32f8`) ✅
+### Task 6.1 — Consolidate `security-testing.yml` into `ci.yml` ⚠️ Active Issue
 
-✅ **F821 errors resolved** (commits `b78c835d`, `c0564d6f`):  
-All 28 F821 undefined-name errors fixed. `flake8 app/ --select=E9,F63,F7,F82` → 0 errors.
+**What**: `security-testing.yml` runs bandit, safety, and semgrep on every push — duplicating `ci.yml` exactly, but non-blocking (`|| true`). Wastes CI minutes and creates a false safety net.
 
-✅ **Test collection fully resolved** (commit `0e5a32f8`):  
-`pytest tests/ --collect-only -q` → **1692 tests collected, 0 errors**
+**How**: Remove the `security-scan` and `test-suite` jobs from `security-testing.yml`. Keep only `e2e-tests`, `accessibility-audit`, and `deployment-check` (which have no equivalent in `ci.yml`).
 
-### Next Steps
+**Checks**:
+- [ ] `security-testing.yml` no longer runs bandit/safety/semgrep
+- [ ] `ci.yml` remains the single source of truth for security scanning
+- [ ] No duplicate job names across workflows on the same push
 
-**Short-term** (after CI passes):
-1. Verify Gitleaks doesn't flag false positives (check `.env` in `.gitignore`)
-2. Confirm semgrep has zero ERROR findings (or fix them)
-3. Monitor first deploy to confirm rollback hook works
-4. Verify smoke tests run against production URL
+---
 
-**Medium-term** (coverage ramp-up):
-1. Raise coverage gate from 36% → 40% → 45% → 50% incrementally
-2. Add tests to reach each milestone before raising gate
-3. Document any `@pytest.mark.skip` with justification
+### Task 6.2 — Replace hardcoded `sleep 90` in `deploy.yml` ⚠️ Active Issue
+
+**What**: `deploy.yml` blindly waits 90 seconds after triggering Render deploy before health checking. Too short for cold starts on free tier, wastes time on fast deploys.
+
+**How**: Replace `sleep 90` with a polling loop that checks `/health` immediately and retries, extending the existing health check window:
+```bash
+for i in {1..12}; do
+  curl -f -s "${PROD_URL}/health" && echo "✅ Healthy" && exit 0
+  echo "Attempt $i/12 — waiting 15s..."
+  sleep 15
+done
+```
+This gives up to 3 minutes total (same as current 90s + 5×15s = 165s) but starts checking immediately.
+
+**Checks**:
+- [ ] `sleep 90` removed from `deploy.yml`
+- [ ] Health check starts immediately after deploy trigger
+- [ ] Total retry window is ≥ 3 minutes
+
+---
+
+### Task 6.3 — Verify or disable smoke tests before next deploy ⚠️ BLOCKER
+
+**What**: `deploy.yml` smoke-test job runs `pytest tests/e2e/ -m smoke`. If no tests are tagged `@pytest.mark.smoke`, pytest exits non-zero and triggers an automatic rollback on every deploy.
+
+**How**: Either:
+- Confirm `tests/e2e/` has files with `@pytest.mark.smoke` markers, or
+- Add `--ignore=tests/e2e` temporarily until smoke tests are written
+
+**Checks**:
+- [ ] Run `grep -r "pytest.mark.smoke" tests/e2e/` — confirm results exist
+- [ ] If none found: add `continue-on-error: true` to smoke-test job until tests are written
+- [ ] Remove `continue-on-error` once real smoke tests are in place
+
+---
+
+### Task 6.4 — Fix `TextVerifiedService` per-request instantiation ✅ Fixed
+
+**What**: `GET /api/billing/balance` was creating a new `TextVerifiedService()` instance on every request (every 30s from frontend polling), rebuilding the HTTP connection pool each time and risking 429s.
+
+**Fix**: Module-level singleton + 60s balance cache in `app/api/billing/credit_endpoints.py`  
+**Commit**: `34b618d8`
+
+---
+
+### Task 6.5 — Fix TextVerified 429s on rapid restart ✅ Fixed
+
+**What**: Pre-warming hit TextVerified API synchronously on startup. Rapid restarts (two processes within 6s) caused 429 rate limit errors.
+
+**Fix**: Pre-warm moved to background task with 5s startup delay + skip-if-cache-populated guard in `app/core/lifespan.py`  
+**Commit**: `b36214e5`
+
+---
+
+### Task 6.6 — Fix urllib3/charset-normalizer version warning ✅ Fixed
+
+**What**: `RequestsDependencyWarning` on every startup due to loose version pins.
+
+**Fix**: Pinned `urllib3>=2.2.0` and `charset-normalizer>=3.4.0` in `requirements.txt`  
+**Commit**: `b36214e5`
+
+---
+
+## Post-Push Status
+
+### Commit `0e5a32f8` — 2026-03-11
+✅ Disabled `ci-simple.yml` and `ci-strict.yml`  
+✅ Auto-fixed 275 files with `black`, 204 files with `isort`  
+✅ Made `black`, `isort`, `bandit`, `safety` blocking in `ci.yml`  
+✅ Added Gitleaks secrets scanning  
+✅ Added semgrep ERROR-level blocking  
+✅ Wired `RENDER_ROLLBACK_HOOK` into `deploy.yml` (deploy + smoke-test jobs)  
+✅ Changed deploy trigger to `workflow_run` (gated on CI passing)  
+✅ Added blocking health check with 5 retries × 15s  
+✅ Added post-deploy smoke test job with rollback on failure  
+✅ Scheduled weekly accessibility audit (Monday 9am UTC)  
+✅ Set coverage gate to 36% (current baseline)  
+✅ Fixed all 31 remaining test collection errors — 1692 tests collected, 0 errors  
+✅ All 28 F821 undefined-name errors resolved  
+
+### Commit `b36214e5` — 2026-03-11
+✅ Pre-warm moved to background task with 5s delay + cache-skip guard (Task 6.5)  
+✅ Pinned urllib3/charset-normalizer to silence RequestsDependencyWarning (Task 6.6)  
+
+### Commit `34b618d8` — 2026-03-11
+✅ Singleton TextVerifiedService + 60s admin balance cache (Task 6.4)  
+
+### Open Items
+1. ⚠️ Verify or disable smoke tests before next deploy (Task 6.3 — **BLOCKER**)
+2. ⚠️ Consolidate `security-testing.yml` duplicate scans (Task 6.1)
+3. ⚠️ Replace `sleep 90` with immediate polling in `deploy.yml` (Task 6.2)
+4. 🔄 Raise coverage gate 36% → 40% → 45% → 50% (Task 3.1)
+5. 🔄 Verify semgrep has zero ERROR findings in codebase (Task 4.2)
+6. 🔄 Provision Redis (Upstash free tier) and set `REDIS_URL` on Render
+7. 🔄 Configure email service env vars on Render
 
 ### CI Run URL
-Check status: https://github.com/Infradevandops/NAMASKAHsms/actions
-
-### Files Changed (commit `0e5a32f8`)
-- `app/api/core/wallet.py` — fixed `get_payment_service` import path
-- `app/schemas/tier.py` — added 5 missing response schemas
-- `app/services/event_broadcaster.py` — fixed `connection_manager` alias
-- `app/services/webhook_queue.py` — removed stale `webhook_service` import
-- 157 test files — syntax, indentation, import, and module-level statement fixes
+https://github.com/Infradevandops/NAMASKAHsms/actions
