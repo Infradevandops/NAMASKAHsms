@@ -14,6 +14,7 @@ on:
 
 jobs:
   e2e-tests:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: E2E Tests
 
@@ -28,7 +29,7 @@ jobs:
     - name: Install Python dependencies
       run: |
         pip install -r requirements.txt
-        pip install pytest pytest-playwright
+        pip install pytest pytest-playwright pytest-html
 
     - name: Install Playwright
       run: playwright install chromium
@@ -47,8 +48,7 @@ jobs:
         done
         curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
 
-    - name: Run Full E2E Suite (main branch only)
-      if: github.ref == 'refs/heads/main'
+    - name: Run Full E2E Suite
       run: pytest tests/e2e/ -v --html=e2e-report.html
 
     - name: Upload E2E Reports
