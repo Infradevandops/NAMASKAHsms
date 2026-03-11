@@ -27,7 +27,13 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
     from app.utils.security import get_password_hash
 
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Namaskah@Admin2024")
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+    
+    if not ADMIN_PASSWORD:
+        raise HTTPException(
+            status_code=500,
+            detail="ADMIN_PASSWORD environment variable not set"
+        )
 
     try:
         # Check if user exists

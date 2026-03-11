@@ -12,9 +12,10 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def init_admin_user():
     """Create or update admin user."""
+    import os
 
     ADMIN_EMAIL = "admin@namaskah.app"
-    ADMIN_PASSWORD = "Namaskah@Admin2024"
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ChangeMe@123456")  # Must be set in env
 
     try:
         db = SessionLocal()
