@@ -146,7 +146,6 @@ jobs:
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
-          threshold: 1
 
   # Deployment readiness (main branch only, needs all jobs)
   deployment-readiness:
