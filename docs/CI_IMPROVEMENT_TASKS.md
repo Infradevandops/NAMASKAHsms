@@ -72,15 +72,31 @@
 
 ---
 
-### Task 0.6 — Fix Broken Test Files (48 IndentationErrors)
+### Task 0.6 — Fix Broken Test Files (48 → 11 remaining)
 
-**What**: 48 test files have `IndentationError` / `SyntaxError` — pytest cannot collect them at all.  
-**Root cause**: Same black auto-format run that fixed `app/` also exposed pre-existing indentation issues in `tests/`.  
-**Strategy**: Batch-fix by pattern (same as Phase 0 batches)
+**What**: 48 test files had `IndentationError` / `SyntaxError` — pytest could not collect them.  
+**Root cause**: black auto-format run exposed pre-existing indentation issues in `tests/`.  
+**Progress**: 37 files fixed across commits `c0564d6f` and `82bb9d33`. 11 collection errors remain.
+
+**Remaining errors** (as of latest push):
+```
+tests/test_forwarding_webhook.py          — SyntaxError: nonlocal without binding
+tests/test_response_validators.py
+tests/test_verification_flow.py
+tests/unit/test_core_modules_comprehensive.py
+tests/unit/test_dependencies.py
+tests/unit/test_middleware_complete.py
+tests/unit/test_pricing_endpoint.py
+tests/unit/test_pricing_template_service.py — AttributeError on collect
+tests/unit/test_routers_complete.py
+tests/unit/test_security_utils.py
+tests/unit/test_verification_routes.py
+```
 
 **Checklist**:
+- [x] Reduced from 48 → 11 collection errors
+- [ ] Fix remaining 11 broken test files
 - [ ] Run `python3 -m pytest tests/ --collect-only -q 2>&1 | grep "^ERROR"` → 0 errors
-- [ ] Fix all 48 broken test files
 - [ ] Run `pytest tests/ -x --tb=short` → no collection errors
 - [ ] Commit and push
 
@@ -425,7 +441,7 @@ on:
 
 **Pushed**: 2026-03-10  
 **Branch**: `main`  
-**CI Status**: ⏳ Running / ❌ Expected to fail on flake8
+**CI Status**: ❌ Failing — 11 test collection errors block pytest
 
 ### What Was Deployed
 
@@ -445,23 +461,23 @@ on:
 - Created `docs/CI_WORKFLOWS.md` reference doc
 - Created `docs/CI_IMPROVEMENT_TASKS.md` (this file)
 
+✅ **F821 errors resolved** (commits `b78c835d`, `c0564d6f`):  
+All 28 F821 undefined-name errors fixed. `flake8 app/ --select=E9,F63,F7,F82` → 0 errors.
+
 ❌ **Known Issues** (will cause CI failure):
-- **28 F821 errors** (undefined names) — flake8 will fail
-  - `app/api/core/webhooks.py`: indentation broken, functions nested inside class
-  - `app/models/blacklist.py`: missing function parameters in classmethod
-  - `app/core/async_processing.py`: missing `PaymentService` import
-  - `app/core/config_secrets.py`: missing `get_secrets_manager`, `get_audit` imports
-  - `app/core/email_verification.py`: missing `get_current_user_id`, `User` imports
-  - `app/core/encryption.py`: missing decorator and variable
-  - `app/core/migration.py`: missing `get_settings`, `engine` imports
-  - `app/middleware/monitoring.py`: missing exception imports
-  - `app/services/whitelabel_enhanced.py`: return type annotation error
+- **11 test collection errors** — pytest cannot collect these files:
+  - `tests/test_forwarding_webhook.py` — `SyntaxError: nonlocal` without binding
+  - `tests/test_response_validators.py`, `tests/test_verification_flow.py`
+  - `tests/unit/test_core_modules_comprehensive.py`, `test_dependencies.py`
+  - `tests/unit/test_middleware_complete.py`, `test_pricing_endpoint.py`
+  - `tests/unit/test_pricing_template_service.py` — `AttributeError` on collect
+  - `tests/unit/test_routers_complete.py`, `test_security_utils.py`, `test_verification_routes.py`
 
 ### Next Steps
 
 **Immediate** (fix CI failure):
-1. Fix 28 F821 errors manually — most are missing imports or indentation issues
-2. Re-run `flake8 app/ --count --select=E9,F63,F7,F82` until zero errors
+1. Fix remaining 11 test collection errors (see Task 0.6)
+2. Re-run `pytest tests/ --collect-only -q` until 0 errors
 3. Commit fixes and push
 
 **Short-term** (after CI passes):
