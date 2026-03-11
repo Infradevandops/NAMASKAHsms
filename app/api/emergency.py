@@ -31,8 +31,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
 
     if not ADMIN_PASSWORD:
         raise HTTPException(
-            status_code=500,
-            detail="ADMIN_PASSWORD environment variable not set"
+            status_code=500, detail="ADMIN_PASSWORD environment variable not set"
         )
 
     try:

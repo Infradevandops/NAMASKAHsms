@@ -12,8 +12,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.models.user import User
-from app.schemas.auth import (LoginRequest, TokenResponse, UserCreate,
-                              UserResponse)
+from app.schemas.auth import LoginRequest, TokenResponse, UserCreate, UserResponse
 from app.services.auth_service import AuthService
 from app.utils.security import create_access_token
 

@@ -18,10 +18,12 @@ router = APIRouter()
 # Module-level singleton — avoids rebuilding the HTTP client on every request
 _tv_service = None
 
+
 def _get_tv_service():
     global _tv_service
     if _tv_service is None:
         from app.services.textverified_service import TextVerifiedService
+
         _tv_service = TextVerifiedService()
     return _tv_service
 
@@ -47,7 +49,9 @@ async def get_credit_balance(
                 bal_data = await _get_tv_service().get_balance()
                 balance = bal_data.get("balance", 0.0)
                 await cache.set(_BALANCE_CACHE_KEY, balance, ttl=60)
-                logger.info(f"Retrieved TextVerified balance for admin {user_id}: {balance}")
+                logger.info(
+                    f"Retrieved TextVerified balance for admin {user_id}: {balance}"
+                )
             return {
                 "credits": balance,
                 "free_verifications": getattr(user, "free_verifications", 0),

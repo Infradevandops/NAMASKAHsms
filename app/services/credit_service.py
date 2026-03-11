@@ -210,8 +210,9 @@ class CreditService:
             try:
                 import asyncio
 
-                from app.services.email_notification_service import \
-                    EmailNotificationService
+                from app.services.email_notification_service import (
+                    EmailNotificationService,
+                )
 
                 alert_email = pref.billing_email or user.email
                 svc = EmailNotificationService()

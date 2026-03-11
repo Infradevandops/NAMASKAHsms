@@ -5,8 +5,11 @@ from typing import Dict, Optional
 from sqlalchemy.orm import Session
 
 from app.models.whitelabel import WhiteLabelConfig
-from app.models.whitelabel_enhanced import (WhiteLabelAsset, WhiteLabelDomain,
-                                            WhiteLabelTheme)
+from app.models.whitelabel_enhanced import (
+    WhiteLabelAsset,
+    WhiteLabelDomain,
+    WhiteLabelTheme,
+)
 
 
 class WhiteLabelEnhancedService:

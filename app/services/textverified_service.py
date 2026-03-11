@@ -12,8 +12,7 @@ from app.core.logging import get_logger
 
 try:
     import textverified
-    from textverified.data import (NumberType, ReservationCapability,
-                                   ReservationType)
+    from textverified.data import NumberType, ReservationCapability, ReservationType
 except ImportError:
     textverified = None
 

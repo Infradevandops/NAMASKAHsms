@@ -5,9 +5,13 @@ from typing import Dict, List
 
 from sqlalchemy.orm import Session
 
-from app.models.reseller import (BulkOperation, CreditAllocation,
-                                 ResellerAccount, SubAccount,
-                                 SubAccountTransaction)
+from app.models.reseller import (
+    BulkOperation,
+    CreditAllocation,
+    ResellerAccount,
+    SubAccount,
+    SubAccountTransaction,
+)
 
 
 class ResellerService:

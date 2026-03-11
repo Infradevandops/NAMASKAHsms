@@ -10,8 +10,9 @@ from app.models.notification import Notification
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 try:
-    from app.api.notifications.notification_center import \
-        router as notification_center_router
+    from app.api.notifications.notification_center import (
+        router as notification_center_router,
+    )
 
     router.include_router(notification_center_router)
 except SyntaxError:
@@ -32,8 +33,7 @@ except SyntaxError:
     pass
 
 try:
-    from app.api.notifications.analytics_endpoints import \
-        router as analytics_router
+    from app.api.notifications.analytics_endpoints import router as analytics_router
 
     router.include_router(analytics_router)
 except SyntaxError:
