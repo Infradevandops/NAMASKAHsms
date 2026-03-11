@@ -28,7 +28,7 @@ async def emergency_create_admin(secret: str, db: Session = Depends(get_db)):
 
     ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@namaskah.app")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
-    
+
     if not ADMIN_PASSWORD:
         raise HTTPException(
             status_code=500,

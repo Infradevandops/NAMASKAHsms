@@ -15,7 +15,7 @@ def init_admin_user():
     import os
 
     ADMIN_EMAIL = "admin@namaskah.app"
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ChangeMe@123456")  # Must be set in env
+    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ChangeMe@123456")
 
     try:
         db = SessionLocal()
@@ -46,14 +46,14 @@ def init_admin_user():
                     """
                     INSERT INTO users (
                         id, email, password_hash, is_admin, is_moderator, is_active, is_affiliate, is_suspended, is_banned, is_deleted,
-                        credits, free_verifications, email_verified, subscription_tier, 
-                        bonus_sms_balance, monthly_quota_used, referral_earnings, 
+                        credits, free_verifications, email_verified, subscription_tier,
+                        bonus_sms_balance, monthly_quota_used, referral_earnings,
                         provider, failed_login_attempts, language, currency, created_at
                     )
                     VALUES (
                         gen_random_uuid(), :email, :hash, true, false, true, false, false, false, false,
-                        1000, 1.0, true, 'custom', 
-                        0.0, 0.0, 0.0, 
+                        1000, 1.0, true, 'custom',
+                        0.0, 0.0, 0.0,
                         'email', 0, 'en', 'USD', CURRENT_TIMESTAMP
                     )
                 """

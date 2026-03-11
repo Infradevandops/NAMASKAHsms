@@ -1,4 +1,8 @@
-"""Services endpoint for verification system."""
+"""Services endpoint for verification system.
+
+PUBLIC endpoint — no auth required. Service list is not user-specific.
+Auth header is accepted but ignored. CSRF middleware whitelists /api/countries.
+"""
 
 from fastapi import APIRouter
 import logging
