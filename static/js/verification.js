@@ -142,31 +142,73 @@ async function loadAreaCodes(serviceId = null) {
 
 async function loadServices() {
     console.log('Loading services for US...');
+    const select = document.getElementById('service-select');
+    
     try {
+        // Show loading state
+        select.innerHTML = '<option value="">Loading services...</option>';
+        select.disabled = true;
+        
         const token = localStorage.getItem('access_token');
         const res = await axios.get(`/api/countries/US/services`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { 'Authorization': `Bearer ${token}` },
+            timeout: 5000  // 5 second timeout
         });
 
-        if (res.data && res.data.services) {
+        if (res.data && res.data.services && res.data.services.length > 0) {
             allServices = res.data.services;
             servicesLoaded = true;
-            console.log(`✅ Loaded ${allServices.length} services for US from API`);
+            
+            // Populate select
+            select.innerHTML = '<option value="">Select a service...</option>';
+            allServices.forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.id;
+                option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
+                select.appendChild(option);
+            });
+            
+            select.disabled = false;
+            
+            // Show source indicator
+            const source = res.data.source || 'unknown';
+            console.log(`✅ Loaded ${allServices.length} services from ${source}`);
+            
+            // If using fallback, show warning
+            if (source === 'fallback') {
+                console.warn('⚠️ Using fallback services - API unavailable');
+            }
+        } else {
+            throw new Error('No services returned from API');
         }
     } catch (error) {
         console.error(`❌ Failed to load services for US from API:`, error);
+        
+        // Use hardcoded fallback
         allServices = [
-            { id: 'telegram', name: 'Telegram', cost: 0.50 },
-            { id: 'whatsapp', name: 'WhatsApp', cost: 0.75 },
-            { id: 'google', name: 'Google', cost: 0.50 },
-            { id: 'facebook', name: 'Facebook', cost: 0.60 },
-            { id: 'instagram', name: 'Instagram', cost: 0.65 },
-            { id: 'twitter', name: 'Twitter', cost: 0.55 },
-            { id: 'discord', name: 'Discord', cost: 0.45 },
-            { id: 'tiktok', name: 'TikTok', cost: 0.70 }
+            { id: 'whatsapp', name: 'WhatsApp', cost: 2.50 },
+            { id: 'telegram', name: 'Telegram', cost: 2.00 },
+            { id: 'discord', name: 'Discord', cost: 2.25 },
+            { id: 'instagram', name: 'Instagram', cost: 2.75 },
+            { id: 'facebook', name: 'Facebook', cost: 2.50 },
+            { id: 'google', name: 'Google', cost: 2.00 },
+            { id: 'twitter', name: 'Twitter', cost: 2.50 },
+            { id: 'microsoft', name: 'Microsoft', cost: 2.25 }
         ];
         servicesLoaded = true;
-        console.log(`⚠️ Using ${allServices.length} fallback US services`);
+        
+        // Populate select with fallback
+        select.innerHTML = '<option value="">Select a service...</option>';
+        allServices.forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.id;
+            option.textContent = `${service.name} - $${service.cost.toFixed(2)}`;
+            select.appendChild(option);
+        });
+        
+        select.disabled = false;
+        
+        console.log(`⚠️ Using ${allServices.length} fallback services`);
     }
 }
 
