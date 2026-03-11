@@ -48,30 +48,40 @@ async def lifespan(app):
         await cache.connect()
         startup_logger.info("Unified cache initialized")
 
-        # Pre-warm services and area codes cache
-        try:
-            from app.services.textverified_service import TextVerifiedService
+        # Pre-warm services and area codes cache (non-blocking background task)
+        async def _prewarm():
+            try:
+                from app.services.textverified_service import TextVerifiedService
+                from app.core.unified_cache import cache as _cache
 
-            tv = TextVerifiedService()
-            if tv.enabled:
+                tv = TextVerifiedService()
+                if not tv.enabled:
+                    return
+
+                # Skip if cache already populated (rapid restart protection)
+                if await _cache.get("tv:services_list") and await _cache.get("tv:area_codes_list"):
+                    startup_logger.info("Cache pre-warming skipped (already populated)")
+                    return
+
+                # Brief delay to avoid hammering TextVerified on rapid restarts
+                await asyncio.sleep(5)
+
                 startup_logger.info("Pre-warming TextVerified cache...")
-                services_task = asyncio.create_task(tv.get_services_list())
-                area_codes_task = asyncio.create_task(tv.get_area_codes_list())
-                # Wait for completion with timeout
-                try:
-                    await asyncio.wait_for(
-                        asyncio.gather(
-                            services_task, area_codes_task, return_exceptions=True
-                        ),
-                        timeout=30.0,
-                    )
-                    startup_logger.info("Cache pre-warming completed")
-                except asyncio.TimeoutError:
-                    startup_logger.warning(
-                        "Cache pre-warming timed out (will retry in background)"
-                    )
-        except Exception as e:
-            startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
+                await asyncio.wait_for(
+                    asyncio.gather(
+                        tv.get_services_list(),
+                        tv.get_area_codes_list(),
+                        return_exceptions=True,
+                    ),
+                    timeout=30.0,
+                )
+                startup_logger.info("Cache pre-warming completed")
+            except asyncio.TimeoutError:
+                startup_logger.warning("Cache pre-warming timed out (will retry on next request)")
+            except Exception as e:
+                startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
+
+        asyncio.create_task(_prewarm())
 
         # Start SMS polling background service
         from app.services.sms_polling_service import sms_polling_service
