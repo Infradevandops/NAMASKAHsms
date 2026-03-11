@@ -46,8 +46,17 @@ Thumbs.db
 # Test
 .pytest_cache/
 .coverage
+coverage.xml
 htmlcov/
 .tox/
+
+# Generated / runtime
+server.log
+
+# Certificates (never commit private keys or certs)
+certs/*.key
+certs/*.crt
+certs/*.pem
 
 # Documentation (keep only essential)
 *_PROGRESS*.md
