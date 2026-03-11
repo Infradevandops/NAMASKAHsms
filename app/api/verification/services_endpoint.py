@@ -1,6 +1,6 @@
 """Services endpoint for verification system."""
 
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 import logging
 
 from app.core.config import get_settings
