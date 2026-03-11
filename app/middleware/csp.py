@@ -11,14 +11,14 @@ class CSPMiddleware(BaseHTTPMiddleware):
 
         # CSP policy to prevent XSS
         csp_policy = (
-            "default - src 'sel'; "
-            "script - src 'sel' 'unsafe - inline' https://cdn.jsdelivr.net; "
-            "style - src 'sel' 'unsafe - inline' https://fonts.googleapis.com; "
-            "font - src 'self' https://fonts.gstatic.com; "
-            "img - src 'self' data: https:; "
-            "connect - src 'self' https://api.paystack.co; "
-            "frame - ancestors 'none';"
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.tailwindcss.com https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' https://api.paystack.co; "
+            "frame-ancestors 'none';"
         )
 
-        response.headers["Content - Security-Policy"] = csp_policy
+        response.headers["Content-Security-Policy"] = csp_policy
         return response
