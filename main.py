@@ -151,7 +151,7 @@ def create_app() -> FastAPI:
     # ============== ROUTERS ==============
     # Health checks (must be first for monitoring)
     fastapi_app.include_router(health_router)
-    
+
     # Emergency admin reset (TEMPORARY)
     fastapi_app.include_router(emergency_router, prefix="/api")
 
@@ -167,13 +167,13 @@ def create_app() -> FastAPI:
     fastapi_app.include_router(forwarding_router)
     fastapi_app.include_router(blacklist_router)
     fastapi_app.include_router(referrals_router, prefix="/api")
-    
+
     # Compatibility routes (API aliases for frontend)
     fastapi_app.include_router(compatibility_router, prefix="/api")
-    
+
     # Notification endpoints
     fastapi_app.include_router(notification_router)
-    
+
     # Dashboard APIs
     fastapi_app.include_router(dashboard_router)
 
