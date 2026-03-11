@@ -1,7 +1,7 @@
 # CI/CD Priority Fixes
 
 **Audit date**: 2026-03-11  
-**Status**: 🔄 In Progress  
+**Status**: ✅ Complete  
 **Scope**: Broken, overkill, and overlapping issues found in `ci.yml`, `deploy.yml`, `security-testing.yml`
 
 ---
@@ -18,11 +18,11 @@
 - `semgrep --config=auto app/ --severity=ERROR --error --json > semgrep-report.json`
 
 **Acceptance criteria**:
-- [ ] `bandit-report.json` exists and is non-empty after the security job runs
-- [ ] `safety-report.json` exists and is non-empty after the security job runs
-- [ ] `semgrep-report.json` exists and is non-empty after the security job runs
-- [ ] Artifact `security-reports-<run_id>` in GitHub Actions UI contains all three files
-- [ ] CI still fails (exit 1) when bandit/safety/semgrep find blocking issues
+- [x] `bandit-report.json` exists and is non-empty after the security job runs
+- [x] `safety-report.json` exists and is non-empty after the security job runs
+- [x] `semgrep-report.json` exists and is non-empty after the security job runs
+- [x] Artifact `security-reports-<run_id>` in GitHub Actions UI contains all three files
+- [x] CI still fails (exit 1) when bandit/safety/semgrep find blocking issues
 
 ---
 
@@ -35,10 +35,10 @@
 **Fix**: Add `--html=smoke-report.html` to the pytest command and install `pytest-html`.
 
 **Acceptance criteria**:
-- [ ] `pytest-html` present in the `smoke-test` install step
-- [ ] `pytest` command includes `--html=smoke-report.html`
-- [ ] Artifact `smoke-test-report-<run_id>` in GitHub Actions UI contains a non-empty `smoke-report.html`
-- [ ] Report renders correctly in browser (title, pass/fail counts visible)
+- [x] `pytest-html` present in the `smoke-test` install step
+- [x] `pytest` command includes `--html=smoke-report.html`
+- [x] Artifact `smoke-test-report-<run_id>` in GitHub Actions UI contains a non-empty `smoke-report.html`
+- [x] Report renders correctly in browser (title, pass/fail counts visible)
 
 ---
 
@@ -51,9 +51,9 @@
 **Fix**: Remove `pip install -r requirements.txt` from the `code-quality` job. Only install `flake8 black isort`.
 
 **Acceptance criteria**:
-- [ ] `pip install -r requirements.txt` absent from `code-quality` job
-- [ ] `flake8`, `black`, `isort` still installed and all three checks still run
-- [ ] `code-quality` job completes in under 60 seconds (vs ~3 min before)
+- [x] `pip install -r requirements.txt` absent from `code-quality` job
+- [x] `flake8`, `black`, `isort` still installed and all three checks still run
+- [x] `code-quality` job completes in under 60 seconds (vs ~3 min before)
 
 ---
 
@@ -71,12 +71,12 @@
 - Replace `sleep 10` with a retry health check loop (same pattern as `e2e-tests` job)
 
 **Acceptance criteria**:
-- [ ] `DATABASE_URL` set in the app startup step of `accessibility-audit`
-- [ ] App startup step includes a health check retry loop (not bare `sleep 10`)
-- [ ] `curl -f http://localhost:8000/health` passes before any audit tool runs
-- [ ] Chromium installed before lighthouse runs
-- [ ] All three tools (axe, pa11y, lighthouse) produce non-empty output files
-- [ ] Artifact `accessibility-reports-<run_id>` contains `axe-report.json`, `pa11y-report.json`, `lighthouse-a11y.json`
+- [x] `DATABASE_URL` set in the app startup step of `accessibility-audit`
+- [x] App startup step includes a health check retry loop (not bare `sleep 10`)
+- [x] `curl -f http://localhost:8000/health` passes before any audit tool runs
+- [x] Chromium installed before lighthouse runs
+- [x] All three tools (axe, pa11y, lighthouse) produce non-empty output files
+- [x] Artifact `accessibility-reports-<run_id>` contains `axe-report.json`, `pa11y-report.json`, `lighthouse-a11y.json`
 
 ---
 
@@ -99,9 +99,9 @@ run: |
 ```
 
 **Acceptance criteria**:
-- [ ] Secrets exposed via `env:` block, not inline `${{ secrets.X }}` expressions in the shell command
-- [ ] On `main` push with all three secrets set, all three lines show ✅
-- [ ] On `main` push with a secret missing, that line correctly shows ⚠️
+- [x] Secrets exposed via `env:` block, not inline `${{ secrets.X }}` expressions in the shell command
+- [x] On `main` push with all three secrets set, all three lines show ✅
+- [x] On `main` push with a secret missing, that line correctly shows ⚠️
 
 ---
 
@@ -114,9 +114,9 @@ run: |
 **Fix**: Remove the `deployment-check` job from `security-testing.yml` entirely.
 
 **Acceptance criteria**:
-- [ ] `deployment-check` job absent from `security-testing.yml`
-- [ ] `security-testing.yml` only contains `e2e-tests` and `accessibility-audit` jobs
-- [ ] No regression in `ci.yml` deployment-readiness coverage
+- [x] `deployment-check` job absent from `security-testing.yml`
+- [x] `security-testing.yml` only contains `e2e-tests` and `accessibility-audit` jobs
+- [x] No regression in `ci.yml` deployment-readiness coverage
 
 ---
 
@@ -131,10 +131,10 @@ run: |
 **Note**: Removing this step also removes the only place `smoke-report.html` was correctly generated — Priority 2 (`deploy.yml`) must be fixed in the same pass so smoke reports are not lost.
 
 **Acceptance criteria**:
-- [ ] `Run Smoke Tests` step absent from `security-testing.yml` `e2e-tests` job
-- [ ] Full E2E suite (`main` only) still runs in `security-testing.yml` with `--html=e2e-report.html`
-- [ ] Smoke tests still run post-deploy in `deploy.yml` against `PRODUCTION_URL` with `--html=smoke-report.html` (P2 fix applied)
-- [ ] No duplicate smoke runs visible in GitHub Actions on a `main` push
+- [x] `Run Smoke Tests` step absent from `security-testing.yml` `e2e-tests` job
+- [x] Full E2E suite (`main` only) still runs in `security-testing.yml` with `--html=e2e-report.html`
+- [x] Smoke tests still run post-deploy in `deploy.yml` against `PRODUCTION_URL` with `--html=smoke-report.html` (P2 fix applied)
+- [x] No duplicate smoke runs visible in GitHub Actions on a `main` push
 
 ---
 
@@ -151,10 +151,10 @@ playwright install chromium
 ```
 
 **Acceptance criteria**:
-- [ ] `pip install -r requirements.txt` absent from `smoke-test` job
-- [ ] Only `pytest pytest-playwright pytest-html` installed in `smoke-test`
-- [ ] `smoke-test` job install step completes in under 60 seconds
-- [ ] Smoke tests still pass against production after the change
+- [x] `pip install -r requirements.txt` absent from `smoke-test` job
+- [x] Only `pytest pytest-playwright pytest-html` installed in `smoke-test`
+- [x] `smoke-test` job install step completes in under 60 seconds
+- [x] Smoke tests still pass against production after the change
 
 ---
 
@@ -167,9 +167,9 @@ playwright install chromium
 **Fix**: After removing the smoke step (P7), ensure the full E2E step always runs on `main` and always writes `--html=e2e-report.html`. Update artifact path to only reference `e2e-report.html`.
 
 **Acceptance criteria**:
-- [ ] Artifact upload path references only `e2e-report.html` (not `smoke-report.html`) after P7 removal
-- [ ] `e2e-report.html` is non-empty after a `main` push
-- [ ] Artifact `e2e-reports-<run_id>` contains `e2e-report.html` and renders correctly in browser
+- [x] Artifact upload path references only `e2e-report.html` (not `smoke-report.html`) after P7 removal
+- [x] `e2e-report.html` is non-empty after a `main` push
+- [x] Artifact `e2e-reports-<run_id>` contains `e2e-report.html` and renders correctly in browser
 
 ---
 
@@ -190,10 +190,10 @@ curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 
 ```
 
 **Acceptance criteria**:
-- [ ] `sleep 10` replaced with retry health check loop in `accessibility-audit` startup step
-- [ ] CI fails with a clear error message if app does not become healthy within 60s
-- [ ] Audit tools only run after health check passes
-- [ ] Consistent startup pattern with `e2e-tests` job in the same file
+- [x] `sleep 10` replaced with retry health check loop in `accessibility-audit` startup step
+- [x] CI fails with a clear error message if app does not become healthy within 60s
+- [x] Audit tools only run after health check passes
+- [x] Consistent startup pattern with `e2e-tests` job in the same file
 
 ---
 
@@ -210,10 +210,10 @@ sleep 15
 ```
 
 **Acceptance criteria**:
-- [ ] 15s stabilisation wait present at the start of the `Run smoke tests` step (or as a dedicated step before it)
-- [ ] Smoke tests do not trigger rollback on a clean deploy due to cold-start timing
-- [ ] Total smoke-test job time increase is ≤ 15s (acceptable overhead)
-- [ ] Pattern documented in a comment so future maintainers understand why the wait exists
+- [x] 15s stabilisation wait present at the start of the `Run smoke tests` step (or as a dedicated step before it)
+- [x] Smoke tests do not trigger rollback on a clean deploy due to cold-start timing
+- [x] Total smoke-test job time increase is ≤ 15s (acceptable overhead)
+- [x] Pattern documented in a comment so future maintainers understand why the wait exists
 
 ---
 
@@ -221,17 +221,19 @@ sleep 15
 
 | # | File | Type | Impact |
 |---|------|------|--------|
-| 1 | `ci.yml` security job | Broken | Artifacts always empty |
-| 2 | `deploy.yml` smoke-test | Broken | Report never created |
-| 3 | `ci.yml` code-quality | Broken | 2–3 min wasted per run |
-| 4 | `security-testing.yml` accessibility-audit | Broken | Job has never run successfully |
-| 5 | `ci.yml` deployment-readiness | Broken | Secrets check always wrong |
-| 6 | `security-testing.yml` deployment-check | Overkill | Duplicate, echoes only |
-| 7 | `security-testing.yml` e2e-tests smoke | Overkill | Duplicate + SQLite false results |
-| 8 | `deploy.yml` smoke-test deps | Overkill | 2–3 min wasted per deploy |
-| 9 | `security-testing.yml` e2e-tests full suite | Broken | E2E report missing after P7 removal |
-| 10 | `security-testing.yml` accessibility-audit startup | Broken | Bare sleep — tools run against dead server |
-| 11 | `deploy.yml` smoke-test cold start | Race condition | False rollbacks on clean deploys |
+| # | File | Type | Impact | Status |
+|---|------|------|--------|--------|
+| 1 | `ci.yml` security job | Broken | Artifacts always empty | ✅ Done |
+| 2 | `deploy.yml` smoke-test | Broken | Report never created | ✅ Done |
+| 3 | `ci.yml` code-quality | Broken | 2–3 min wasted per run | ✅ Done |
+| 4 | `security-testing.yml` accessibility-audit | Broken | Job has never run successfully | ✅ Done |
+| 5 | `ci.yml` deployment-readiness | Broken | Secrets check always wrong | ✅ Done |
+| 6 | `security-testing.yml` deployment-check | Overkill | Duplicate, echoes only | ✅ Done |
+| 7 | `security-testing.yml` e2e-tests smoke | Overkill | Duplicate + SQLite false results | ✅ Done |
+| 8 | `deploy.yml` smoke-test deps | Overkill | 2–3 min wasted per deploy | ✅ Done |
+| 9 | `security-testing.yml` e2e-tests full suite | Broken | E2E report missing after P7 removal | ✅ Done |
+| 10 | `security-testing.yml` accessibility-audit startup | Broken | Bare sleep — tools run against dead server | ✅ Done |
+| 11 | `deploy.yml` smoke-test cold start | Race condition | False rollbacks on clean deploys | ✅ Done |
 
 **Fix order**: 1 → 3 → 5 (ci.yml) → 2 → 8 → 11 (deploy.yml) → 4 → 6 → 7 → 9 → 10 (security-testing.yml)
 
@@ -249,6 +251,7 @@ sleep 15
 | `bbaee925` | 2026-03-11 | Phase 6: remove duplicate security jobs, fix sleep 90, register pytest markers |
 | `6f339d05` | 2026-03-11 | Repo cleanup: untrack certs, coverage.xml, archive stale docs |
 | `f5b55baf` | 2026-03-11 | CI audit: rewrite CI_IMPROVEMENT_TASKS.md with 8 priority fixes |
+| `cdd35e02` | 2026-03-11 | Fix all 11 CI issues: security reports, smoke HTML, code-quality deps, secrets check, accessibility startup, deployment-check removal, duplicate smoke, slim smoke deps, E2E report path, bare sleep, cold-start race |
 
 ## Open Infrastructure Items
 1. 🔄 Provision Redis (Upstash free tier) → set `REDIS_URL` on Render
