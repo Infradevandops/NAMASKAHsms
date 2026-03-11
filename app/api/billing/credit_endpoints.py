@@ -15,6 +15,16 @@ from app.models.user import User
 logger = get_logger(__name__)
 router = APIRouter()
 
+# Module-level singleton — avoids rebuilding the HTTP client on every request
+_tv_service = None
+
+def _get_tv_service():
+    global _tv_service
+    if _tv_service is None:
+        from app.services.textverified_service import TextVerifiedService
+        _tv_service = TextVerifiedService()
+    return _tv_service
+
 
 @router.get("/balance")
 async def get_credit_balance(
@@ -27,14 +37,17 @@ async def get_credit_balance(
             raise HTTPException(status_code=404, detail="User not found")
 
         if user.is_admin:
-            from app.services.textverified_service import TextVerifiedService
+            from app.core.unified_cache import cache
 
-            tv = TextVerifiedService()
-            bal_data = await tv.get_balance()
-            balance = bal_data.get("balance", 0.0)
-            logger.info(
-                f"Retrieved TextVerified balance for admin {user_id}: {balance}"
-            )
+            _BALANCE_CACHE_KEY = "tv:admin_balance"
+            cached = await cache.get(_BALANCE_CACHE_KEY)
+            if cached is not None:
+                balance = cached
+            else:
+                bal_data = await _get_tv_service().get_balance()
+                balance = bal_data.get("balance", 0.0)
+                await cache.set(_BALANCE_CACHE_KEY, balance, ttl=60)
+                logger.info(f"Retrieved TextVerified balance for admin {user_id}: {balance}")
             return {
                 "credits": balance,
                 "free_verifications": getattr(user, "free_verifications", 0),
