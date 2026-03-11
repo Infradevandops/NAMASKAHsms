@@ -51,15 +51,17 @@ async def lifespan(app):
         # Pre-warm services and area codes cache (non-blocking background task)
         async def _prewarm():
             try:
-                from app.services.textverified_service import TextVerifiedService
                 from app.core.unified_cache import cache as _cache
+                from app.services.textverified_service import TextVerifiedService
 
                 tv = TextVerifiedService()
                 if not tv.enabled:
                     return
 
                 # Skip if cache already populated (rapid restart protection)
-                if await _cache.get("tv:services_list") and await _cache.get("tv:area_codes_list"):
+                if await _cache.get("tv:services_list") and await _cache.get(
+                    "tv:area_codes_list"
+                ):
                     startup_logger.info("Cache pre-warming skipped (already populated)")
                     return
 
@@ -77,7 +79,9 @@ async def lifespan(app):
                 )
                 startup_logger.info("Cache pre-warming completed")
             except asyncio.TimeoutError:
-                startup_logger.warning("Cache pre-warming timed out (will retry on next request)")
+                startup_logger.warning(
+                    "Cache pre-warming timed out (will retry on next request)"
+                )
             except Exception as e:
                 startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
 

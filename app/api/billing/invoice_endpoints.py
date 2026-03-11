@@ -36,8 +36,13 @@ async def download_invoice(
     from reportlab.lib import colors
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.styles import getSampleStyleSheet
-    from reportlab.platypus import (Paragraph, SimpleDocTemplate, Spacer,
-                                    Table, TableStyle)
+    from reportlab.platypus import (
+        Paragraph,
+        SimpleDocTemplate,
+        Spacer,
+        Table,
+        TableStyle,
+    )
 
     buf = io.BytesIO()
     doc = SimpleDocTemplate(buf, pagesize=A4, topMargin=40, bottomMargin=40)

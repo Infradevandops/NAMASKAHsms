@@ -21,8 +21,12 @@ try:
 except ImportError:
     HAS_CRYPTOGRAPHY = False
 
-from app.core.exceptions import (AuthorizationError, ExternalServiceError,
-                                 NamaskahException, ValidationError)
+from app.core.exceptions import (
+    AuthorizationError,
+    ExternalServiceError,
+    NamaskahException,
+    ValidationError,
+)
 
 logger = logging.getLogger(__name__)
 

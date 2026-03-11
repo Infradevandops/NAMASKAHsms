@@ -1,7 +1,16 @@
 """Pricing Template Models"""
 
-from sqlalchemy import (DECIMAL, JSON, TIMESTAMP, Boolean, Column, ForeignKey,
-                        Integer, String, Text)
+from sqlalchemy import (
+    DECIMAL,
+    JSON,
+    TIMESTAMP,
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import JSONB as PostgresJSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func

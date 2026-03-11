@@ -4,8 +4,9 @@ PUBLIC endpoint — no auth required. Service list is not user-specific.
 Auth header is accepted but ignored. CSRF middleware whitelists /api/countries.
 """
 
-from fastapi import APIRouter
 import logging
+
+from fastapi import APIRouter
 
 from app.core.config import get_settings
 from app.core.unified_cache import cache
@@ -54,7 +55,7 @@ async def get_services(country: str):
                 for s in raw
             ],
             "total": len(raw),
-            "source": "api"
+            "source": "api",
         }
 
     except Exception as e:
@@ -73,7 +74,7 @@ async def get_services(country: str):
             ],
             "total": len(FALLBACK_SERVICES),
             "source": "fallback",
-            "error": "API unavailable, using cached services"
+            "error": "API unavailable, using cached services",
         }
 
 
@@ -122,7 +123,9 @@ async def get_services_batch_pricing(country: str):
         }
 
     except Exception as e:
-        logger.error(f"Failed to get batch pricing for {country}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Failed to get batch pricing for {country}: {str(e)}", exc_info=True
+        )
 
         # Return fallback
         return {
@@ -137,5 +140,5 @@ async def get_services_batch_pricing(country: str):
             ],
             "total": len(FALLBACK_SERVICES),
             "source": "fallback",
-            "error": "API unavailable, using cached services"
+            "error": "API unavailable, using cached services",
         }

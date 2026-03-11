@@ -1,7 +1,6 @@
 """Enterprise SLA and account management models."""
 
-from sqlalchemy import (JSON, Boolean, Column, Float, ForeignKey, Integer,
-                        String)
+from sqlalchemy import JSON, Boolean, Column, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel

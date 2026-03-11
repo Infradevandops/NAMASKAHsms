@@ -9,9 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import AuthorizationError, ValidationError
 from app.core.logging import get_logger
-from app.schemas.responses import (create_error_response,
-                                   create_paginated_response,
-                                   create_success_response)
+from app.schemas.responses import (
+    create_error_response,
+    create_paginated_response,
+    create_success_response,
+)
 
 logger = get_logger(__name__)
 

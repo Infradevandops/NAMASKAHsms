@@ -63,6 +63,8 @@ class WebhookQueue:
 
     async def _process_message(self, message_id: str, payload: Dict):
         """Process single webhook message."""
+        from app.services.webhook_service import webhook_service
+
         webhook_id = payload[b"webhook_id"].decode()
         event = payload[b"event"].decode()
         data = json.loads(payload[b"data"].decode())

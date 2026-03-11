@@ -7,8 +7,12 @@ from sqlalchemy import and_
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
-from app.models.pricing_template import (PricingHistory, PricingTemplate,
-                                         TierPricing, UserPricingAssignment)
+from app.models.pricing_template import (
+    PricingHistory,
+    PricingTemplate,
+    TierPricing,
+    UserPricingAssignment,
+)
 
 logger = get_logger(__name__)
 

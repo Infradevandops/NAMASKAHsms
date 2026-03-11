@@ -10,8 +10,10 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.models.notification_preference import (NotificationPreference,
-                                                NotificationPreferenceDefaults)
+from app.models.notification_preference import (
+    NotificationPreference,
+    NotificationPreferenceDefaults,
+)
 from app.models.user import User
 
 logger = get_logger(__name__)

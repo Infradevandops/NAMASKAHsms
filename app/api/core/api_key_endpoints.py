@@ -7,8 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.dependencies import (get_current_user_id, require_payment_method,
-                                   require_tier)
+from app.core.dependencies import (
+    get_current_user_id,
+    require_payment_method,
+    require_tier,
+)
 from app.models.api_key import APIKey
 from app.schemas.auth import APIKeyCreate, APIKeyListResponse, APIKeyResponse
 from app.services.api_key_service import APIKeyService
