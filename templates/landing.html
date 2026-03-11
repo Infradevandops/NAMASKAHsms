@@ -10,35 +10,33 @@
   <link rel="preconnect" href="https://unpkg.com">
   <link rel="preconnect" href="https://cdn.jsdelivr.net">
   
-  <!-- Tailwind Config MUST be before script loads -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Tailwind Config - must be AFTER script loads -->
   <script>
-    tailwind = {
-      config: {
-        theme: {
-          extend: {
-            colors: {
-              brand: {
-                400: '#FF6B9D',
-                500: '#FE3C72',
-                600: '#E0245E',
-              },
-              success: {
-                500: '#01DF8A',
-              },
-              tier: {
-                freemium: '#01DF8A',
-                payg: '#FF7854',
-                pro: '#FE3C72',
-                custom: '#8B5CF6',
-              }
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              400: '#FF6B9D',
+              500: '#FE3C72',
+              600: '#E0245E',
+            },
+            success: {
+              500: '#01DF8A',
+            },
+            tier: {
+              freemium: '#01DF8A',
+              payg: '#FF7854',
+              pro: '#FE3C72',
+              custom: '#8B5CF6',
             }
           }
         }
       }
     }
   </script>
-  
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   
