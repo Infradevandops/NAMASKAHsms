@@ -427,8 +427,18 @@ async function loadServices() {
             signal: ctrl.signal
         });
         clearTimeout(tid);
-        if (!res.ok) throw new Error('fetch failed');
-        const data = await res.json();
+
+        // Task 4: 401 retry — endpoint is public, retry without auth header
+        let finalRes = res;
+        if (res.status === 401) {
+            const retryRes = await fetch('/api/countries/US/services');
+            if (!retryRes.ok) throw new Error('fetch failed after 401 retry');
+            finalRes = retryRes;
+        } else if (!res.ok) {
+            throw new Error('fetch failed');
+        }
+
+        const data = await finalRes.json();
         const services = data.services || [];
         _modalItems['service'] = _buildServiceItems(services);
         if (services.length) {
@@ -438,9 +448,21 @@ async function loadServices() {
         }
     } catch (e) {
         console.error('Failed to load services:', e);
-        _modalItems['service'] = [];
-        const input = document.getElementById('service-search-input');
-        if (input) { input.placeholder = 'Failed to load — tap to retry'; input.onclick = () => { input.placeholder = 'Search services...'; input.onclick = null; loadServices(); }; }
+        // Task 1: hardcoded fallback — dropdown always populates
+        const FALLBACK = [
+            { id: 'whatsapp',  name: 'WhatsApp',  price: 2.50 },
+            { id: 'telegram',  name: 'Telegram',  price: 2.00 },
+            { id: 'google',    name: 'Google',    price: 2.00 },
+            { id: 'facebook',  name: 'Facebook',  price: 2.50 },
+            { id: 'instagram', name: 'Instagram', price: 2.75 },
+            { id: 'discord',   name: 'Discord',   price: 2.25 },
+            { id: 'twitter',   name: 'Twitter',   price: 2.50 },
+            { id: 'microsoft', name: 'Microsoft', price: 2.25 },
+            { id: 'amazon',    name: 'Amazon',    price: 2.50 },
+            { id: 'uber',      name: 'Uber',      price: 2.75 },
+        ];
+        _modalItems['service'] = _buildServiceItems(FALLBACK);
+        console.warn(`⚠️ Using ${FALLBACK.length} hardcoded fallback services`);
     }
     document.getElementById('service-loading-spinner').style.display = 'none';
 }
