@@ -62,7 +62,7 @@ jobs:
         run: bandit -r app/ -ll -f json -o bandit-report.json
 
       - name: Safety dependency CVE check (blocking)
-        run: safety scan --output json > safety-report.json
+        run: safety scan --save-as json safety-report.json
 
       - name: Semgrep SAST (blocking on ERROR severity)
         run: semgrep --config=auto app/ --severity=ERROR --error --json > semgrep-report.json
