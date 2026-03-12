@@ -1,0 +1,22 @@
+# Render Deployment Trigger
+# Last deployment: 5c815986 (CI/workflow fixes)
+# Current HEAD: ce60723b (v4.1.1 critical fixes)
+# 
+# This file triggers Render auto-deploy
+# Timestamp: 2026-01-18T03:00:00Z
+#
+# CRITICAL CHANGES PENDING DEPLOYMENT:
+# - ea9925ba: Fix verification flow API endpoint mismatches (CRITICAL)
+# - 814071ad: ServiceStore component with stale-while-revalidate
+# - 0a711a70: Expand fallback services from 10 to 84
+# - cfedbaf5: Integrate ServiceStore with official brand logos
+# - 2fda4e0a: Add pin/favorite functionality
+# - 3906f885: Update changelog (v4.1.0)
+# - ce60723b: Update changelog (v4.1.1)
+#
+# DEPLOYMENT REQUIRED: YES - CRITICAL FIXES
+# VERIFICATION FLOW: Currently broken in production (404 errors)
+# IMPACT: 100% of verification attempts failing
+#
+# Deploy command: git push origin main
+# Render should auto-deploy on push to main branch
