@@ -1,75 +1,62 @@
 #!/bin/bash
-echo "Starting Namaskah SMS with robust database fallback..."
+# Production start script for Render
+# Handles fresh database initialization gracefully
 
-# Check if .env exists
-if [ ! -f .env ]; then
-    echo "No .env file found. Creating from example..."
-    cp .env.example .env
-    echo "Please edit .env with your credentials"
-    exit 1
-fi
+set -e
 
-# Check if virtual environment exists
-if [ ! -d ".venv" ]; then
-    echo "Creating virtual environment..."
-    python3 -m venv .venv
-fi
+echo "🚀 Starting Namaskah API..."
 
-# Activate virtual environment
-# shellcheck source=/dev/null
-source .venv/bin/activate
+# Wait for database to be ready
+echo "⏳ Waiting for database..."
+python -c "
+import time
+import sys
+from sqlalchemy import create_engine, text
+import os
 
-# Smart dependency installation - only install if requirements changed
-REQUIREMENTS_HASH=$(md5 -q requirements.txt 2>/dev/null || md5sum requirements.txt | cut -d' ' -f1)
-INSTALLED_HASH_FILE=".venv/.requirements_hash"
+db_url = os.getenv('DATABASE_URL')
+if not db_url:
+    print('❌ DATABASE_URL not set')
+    sys.exit(1)
 
-if [ ! -f "$INSTALLED_HASH_FILE" ] || [ "$(cat $INSTALLED_HASH_FILE)" != "$REQUIREMENTS_HASH" ]; then
-    echo "Installing dependencies..."
-    if pip install -q -r requirements.txt; then
-        echo "$REQUIREMENTS_HASH" > "$INSTALLED_HASH_FILE"
-        echo "✅ Dependencies installed successfully"
-    else
-        echo "⚠️  Dependency installation failed"
-        echo "💡 Continuing anyway..."
-    fi
-else
-    echo "✅ Dependencies already installed (skipping)"
-fi
+engine = create_engine(db_url)
+max_retries = 30
+retry_delay = 2
 
-# Run database migrations (skip if fails - may already be applied)
-echo "Running database migrations..."
-alembic upgrade head 2>/dev/null || echo "Note: Migrations skipped (may already be applied)"
+for i in range(max_retries):
+    try:
+        with engine.connect() as conn:
+            conn.execute(text('SELECT 1'))
+        print('✅ Database is ready')
+        break
+    except Exception as e:
+        if i == max_retries - 1:
+            print(f'❌ Database connection failed after {max_retries} attempts')
+            sys.exit(1)
+        print(f'⏳ Waiting for database... ({i+1}/{max_retries})')
+        time.sleep(retry_delay)
+"
 
-# Clean up existing processes
-echo "Cleaning up existing processes..."
-pkill -f "uvicorn main:app" 2>/dev/null || true
-pkill -f "python.*start_with_fallback.py" 2>/dev/null || true
+# Run Alembic migrations
+echo "📦 Running database migrations..."
+alembic upgrade head || {
+    echo "⚠️  Migration failed, attempting to initialize database..."
+    python -c "
+from app.core.database import Base, engine
+Base.metadata.create_all(bind=engine)
+print('✅ Database tables created')
+"
+    alembic stamp head
+    echo "✅ Database initialized"
+}
 
-# Set environment variables for robust startup
-export ALLOW_SQLITE_FALLBACK=true
-
-# Find available port
-HOST=${HOST:-127.0.0.1}
-PORT=${PORT:-8000}
-
-# Check if port is in use and find alternative
-while lsof -i:$PORT >/dev/null 2>&1; do
-    PORT=$((PORT + 1))
-    if [ $PORT -gt 8010 ]; then
-        echo "No available ports found between 8000-8010"
-        exit 1
-    fi
-done
-
-export HOST=$HOST
-export PORT=$PORT
-
-echo "Starting server with robust database fallback on http://${HOST}:${PORT}"
-echo "📱 Landing: http://${HOST}:${PORT}"
-echo "📋 Dashboard: http://${HOST}:${PORT}/dashboard"
-echo "✉️ Verify: http://${HOST}:${PORT}/verify"
-echo "🔧 Diagnostics: http://${HOST}:${PORT}/api/diagnostics"
-echo ""
-
-# Use the robust startup script
-python3 start_with_fallback.py
+# Start the application
+echo "🎯 Starting Gunicorn..."
+exec gunicorn main:app \
+    -k uvicorn.workers.UvicornWorker \
+    --bind 0.0.0.0:${PORT:-8000} \
+    --workers ${WEB_CONCURRENCY:-1} \
+    --timeout 120 \
+    --access-logfile - \
+    --error-logfile - \
+    --log-level info
