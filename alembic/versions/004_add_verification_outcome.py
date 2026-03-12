@@ -14,9 +14,18 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column("verifications", sa.Column("outcome", sa.String(), nullable=True))
-    op.add_column("verifications", sa.Column("cancel_reason", sa.String(), nullable=True))
-    op.add_column("verifications", sa.Column("error_message", sa.String(), nullable=True))
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    
+    if "verifications" in inspector.get_table_names():
+        existing_columns = [col["name"] for col in inspector.get_columns("verifications")]
+        
+        if "outcome" not in existing_columns:
+            op.add_column("verifications", sa.Column("outcome", sa.String(), nullable=True))
+        if "cancel_reason" not in existing_columns:
+            op.add_column("verifications", sa.Column("cancel_reason", sa.String(), nullable=True))
+        if "error_message" not in existing_columns:
+            op.add_column("verifications", sa.Column("error_message", sa.String(), nullable=True))
 
 
 def downgrade():
