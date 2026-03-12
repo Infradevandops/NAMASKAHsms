@@ -425,15 +425,66 @@ function _buildServiceItems(services) {
     ];
 }
 
+// Hardcoded fallback services (always available)
+const FALLBACK_SERVICES = [
+    {id: 'whatsapp', name: 'WhatsApp', price: 2.50},
+    {id: 'telegram', name: 'Telegram', price: 2.00},
+    {id: 'google', name: 'Google', price: 2.00},
+    {id: 'discord', name: 'Discord', price: 2.25},
+    {id: 'instagram', name: 'Instagram', price: 2.75},
+    {id: 'facebook', name: 'Facebook', price: 2.50},
+    {id: 'twitter', name: 'Twitter', price: 2.50},
+    {id: 'apple', name: 'Apple', price: 2.50},
+    {id: 'microsoft', name: 'Microsoft', price: 2.25},
+    {id: 'amazon', name: 'Amazon', price: 2.50},
+    {id: 'uber', name: 'Uber', price: 2.75},
+    {id: 'netflix', name: 'Netflix', price: 2.50}
+];
+
 async function loadServices() {
-    await window.ServiceStore.init();
-    const services = window.ServiceStore.getAll();
-    _modalItems['service'] = _buildServiceItems(services);
-    
-    // Subscribe to updates
-    window.ServiceStore.subscribe((updatedServices) => {
-        _modalItems['service'] = _buildServiceItems(updatedServices);
-    });
+    try {
+        // 5 second timeout
+        await Promise.race([
+            window.ServiceStore.init(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000))
+        ]);
+        
+        const services = window.ServiceStore.getAll();
+        if (services && services.length >= 20) {
+            _modalItems['service'] = _buildServiceItems(services);
+            console.log(`✅ Loaded ${services.length} services from ServiceStore`);
+        } else {
+            throw new Error('Insufficient services loaded');
+        }
+        
+        // Subscribe to updates
+        window.ServiceStore.subscribe((updatedServices) => {
+            if (updatedServices && updatedServices.length >= 20) {
+                _modalItems['service'] = _buildServiceItems(updatedServices);
+                console.log(`🔄 Updated to ${updatedServices.length} services`);
+            }
+        });
+    } catch (error) {
+        console.error('❌ Failed to load services:', error);
+        
+        // Use hardcoded fallback
+        _modalItems['service'] = _buildServiceItems(FALLBACK_SERVICES);
+        console.log(`⚠️ Using ${FALLBACK_SERVICES.length} fallback services`);
+        
+        // Retry in background
+        setTimeout(async () => {
+            try {
+                await window.ServiceStore.init();
+                const services = window.ServiceStore.getAll();
+                if (services && services.length >= 20) {
+                    _modalItems['service'] = _buildServiceItems(services);
+                    console.log(`✅ Retry successful: ${services.length} services loaded`);
+                }
+            } catch (e) {
+                console.error('❌ Retry failed:', e);
+            }
+        }, 3000);
+    }
 }
 
 async function loadAreaCodes() {
@@ -864,9 +915,23 @@ function _getServiceIcon(serviceId) {
 function _renderServiceDropdown(q) {
     const dd = document.getElementById('service-inline-dropdown');
     const items = (_modalItems['service'] || []).filter(i => i.value !== '__other__');
+    
+    // Show loading if services not ready
     if (!items.length) {
-        dd.innerHTML = '<div style="padding:12px;color:#9ca3af;text-align:center;">Loading services...</div>';
+        dd.innerHTML = '<div style="padding:20px;text-align:center;"><div style="width:24px;height:24px;border:3px solid #e5e7eb;border-top-color:#6366f1;border-radius:50%;margin:0 auto 8px;animation:spin 0.6s linear infinite;"></div><div style="color:#9ca3af;font-size:13px;">Loading services...</div></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
         dd.style.display = 'block';
+        
+        // Retry after 500ms
+        setTimeout(() => {
+            const retryItems = (_modalItems['service'] || []).filter(i => i.value !== '__other__');
+            if (retryItems.length) {
+                _renderServiceDropdown(q);
+            } else {
+                // Use fallback after retry
+                _modalItems['service'] = _buildServiceItems(FALLBACK_SERVICES);
+                _renderServiceDropdown(q);
+            }
+        }, 500);
         return;
     }
     
@@ -1024,26 +1089,53 @@ async function loadTier() {
     if (!hasCached) { loadAreaCodes(); loadCarriers(); }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadServices();   // immediate — no blocking
-    loadTier();       // async: unlocks area code + carrier after resolving
-    loadBalance();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Show loading indicator
+    const serviceInput = document.getElementById('service-search-input');
+    const spinner = document.getElementById('service-loading-spinner');
+    if (serviceInput && spinner) {
+        serviceInput.disabled = true;
+        serviceInput.placeholder = 'Loading services...';
+        spinner.style.display = 'block';
+    }
+    
+    // Load services first (critical path)
+    await loadServices();
+    
+    // Enable input
+    if (serviceInput && spinner) {
+        serviceInput.disabled = false;
+        serviceInput.placeholder = 'Search services e.g. Telegram, WhatsApp...';
+        spinner.style.display = 'none';
+    }
+    
+    // Load other data in parallel (non-blocking)
+    Promise.all([loadTier(), loadBalance()]);
+    
     updateProgress(1);
 
     // Pre-select service from query param
     const params = new URLSearchParams(window.location.search);
     const preService = params.get('service');
     if (preService) {
-        const item = (_modalItems['service'] || []).find(i => i.value.toLowerCase() === preService.toLowerCase());
-        if (item) {
-            selectServiceInline(item.value);
-        } else {
-            selectedService = preService;
-            document.getElementById('service-search-input').value = preService;
-            document.getElementById('service-display').textContent = preService;
-            document.getElementById('service-selected-display').style.display = 'flex';
-            document.getElementById('continue-btn').disabled = false;
-        }
+        // Wait for services to be ready
+        let retries = 0;
+        const checkServices = setInterval(() => {
+            const items = _modalItems['service'] || [];
+            if (items.length > 0 || retries++ > 10) {
+                clearInterval(checkServices);
+                const item = items.find(i => i.value.toLowerCase() === preService.toLowerCase());
+                if (item) {
+                    selectServiceInline(item.value);
+                } else {
+                    selectedService = preService;
+                    document.getElementById('service-search-input').value = preService;
+                    document.getElementById('service-display').textContent = preService;
+                    document.getElementById('service-selected-display').style.display = 'flex';
+                    document.getElementById('continue-btn').disabled = false;
+                }
+            }
+        }, 100);
     }
 });
 
