@@ -4,7 +4,7 @@ services:
     name: namaskah-api-staging
     env: python
     plan: free
-    buildCommand: pip install --cache-dir /opt/render/.cache/pip -r requirements.txt
+    buildCommand: pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
     startCommand: ./start.sh
     envVars:
       - key: DATABASE_URL
