@@ -513,7 +513,7 @@ async function createVerification() {
         const carrier = selectedCarrier || null;
         const serviceId = selectedService;
 
-        const response = await fetch('/api/verify/create', {
+        const response = await fetch('/api/verification/request', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -522,8 +522,9 @@ async function createVerification() {
             body: JSON.stringify({
                 service: serviceId,
                 country: 'US',
-                area_code: areaCode,
-                carrier: carrier
+                capability: 'sms',
+                area_codes: areaCode ? [areaCode] : [],
+                carriers: carrier ? [carrier] : []
             })
         });
 
@@ -533,7 +534,7 @@ async function createVerification() {
         }
 
         const data = await response.json();
-        verificationId = data.id;
+        verificationId = data.verification_id;
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
@@ -610,7 +611,7 @@ function startScanning() {
         if (verificationId) {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch(`/api/verify/${verificationId}/status`, {
+                const res = await fetch(`/api/verification/status/${verificationId}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -629,7 +630,7 @@ function startScanning() {
         if (elapsedSeconds >= 120) {
             clearTimeout(scanInterval);
             if (verificationId) {
-                fetch(`/api/verify/${verificationId}/outcome`, {
+                fetch(`/api/verification/outcome/${verificationId}`, {
                     method: 'PATCH',
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ outcome: 'timeout', error_message: 'No SMS received within 2 minutes' })
@@ -686,9 +687,9 @@ async function confirmCancel() {
     if (verificationId) {
         try {
             const token = localStorage.getItem('access_token');
-            const res = await fetch(`/api/verify/${verificationId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
+            const res = await fetch(`/api/verification/cancel/${verificationId}`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
             });
             if (res.ok) {
                 const data = await res.json();

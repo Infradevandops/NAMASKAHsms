@@ -71,3 +71,4 @@ certs/*.pem
 
 # Added by ggshield
 .cache_ggshield
+.kiro/

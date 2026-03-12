@@ -14,7 +14,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
 
 
-@router.post("/{verification_id}/cancel")
+@router.post("/verification/cancel/{verification_id}")
 async def cancel_verification(
     verification_id: str,
     db: Session = Depends(get_db),
