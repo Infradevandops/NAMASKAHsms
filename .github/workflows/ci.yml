@@ -43,7 +43,7 @@ jobs:
       - name: Code formatting (blocking)
         run: |
           black --check app/ --diff
-          isort --check-only app/ --diff
+          isort --check-only app/ --profile black --diff
 
   # Tasks 1.2 + 4.2 — Security checks now blocking, semgrep added
   security:
