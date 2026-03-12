@@ -2,6 +2,113 @@
 
 All notable changes to the Namaskah project are documented here.
 
+## [4.1.1] - January 2026 - CRITICAL Verification Flow Fixes 🚨
+
+### 🚨 CRITICAL BUG FIXES
+**Status**: ✅ Fixed - Production Deployed  
+**Severity**: CRITICAL - Verification flow was 100% broken  
+**Impact**: All verification attempts failed since v4.1.0
+
+### Issues Fixed
+
+#### Issue #1: Purchase Endpoint Mismatch 🔴
+**Problem**: Frontend called `/api/verify/create`, backend expected `/api/verification/request`  
+**Result**: 404 Not Found - Verification never started  
+**Fix**: Updated frontend to call correct endpoint  
+**Impact**: 100% of verification attempts
+
+#### Issue #2: Request Schema Mismatch 🔴
+**Problem**: Frontend sent `area_code` (string), backend expected `area_codes` (array)  
+**Result**: Area code and carrier filters never applied  
+**Fix**: Updated frontend to send arrays: `area_codes: [areaCode]`, `carriers: [carrier]`  
+**Impact**: All PAYG+ users with filters
+
+#### Issue #3: Status Polling Mismatch 🔴
+**Problem**: Frontend polled `/api/verify/{id}/status`, backend provided `/api/verification/status/{id}`  
+**Result**: 404 Not Found - SMS codes never displayed  
+**Fix**: Updated frontend polling endpoint  
+**Impact**: 100% of verifications (no SMS codes received)
+
+#### Issue #4: Cancel Endpoint Mismatch 🔴
+**Problem**: Frontend called `DELETE /api/verify/{id}`, backend expected `POST /api/verification/cancel/{id}`  
+**Result**: 404 Not Found - Cancellation failed, no refunds  
+**Fix**: Updated frontend to POST to correct endpoint  
+**Impact**: All cancellation attempts
+
+#### Issue #5: Outcome Endpoint Mismatch 🟡
+**Problem**: Frontend called `/api/verify/{id}/outcome`, backend used `/api/verification/{id}/outcome`  
+**Result**: Timeout tracking failed  
+**Fix**: Updated backend endpoint path  
+**Impact**: Timeout cases
+
+### Files Changed
+
+| File | Changes | Lines |
+|------|---------|-------|
+| `templates/verify_modern.html` | Fixed 5 API endpoint calls | ~20 |
+| `app/api/verification/router.py` | Added missing routers (status, cancel, outcome) | +12 |
+| `app/api/verification/cancel_endpoint.py` | Fixed path prefix | 1 |
+| `app/api/verification/outcome_endpoint.py` | Fixed path prefix | 1 |
+
+### Root Cause Analysis
+
+**Why This Happened**:
+1. Frontend and backend developed independently
+2. No integration testing between frontend/backend
+3. API contract not documented
+4. No E2E tests to catch endpoint mismatches
+
+**Prevention**:
+- [ ] Add E2E tests for complete verification flow
+- [ ] Document API contracts (OpenAPI/Swagger)
+- [ ] Add integration tests for all critical paths
+- [ ] Implement API versioning
+
+### Testing Completed
+
+✅ **Manual Testing**:
+- Service selection → Continue
+- Area code selection (PAYG+)
+- Carrier selection (PAYG+)
+- Purchase number
+- Status polling
+- SMS code display
+- Cancellation with refund
+- Timeout handling
+
+### Deployment
+
+**Commit**: `ea9925ba`  
+**Deployed**: January 2026  
+**Rollback**: Not needed (fixes critical bugs)
+
+### User Impact
+
+**Before Fix**:
+- ❌ Verification never started (404 error)
+- ❌ SMS codes never displayed
+- ❌ Cancellation failed
+- ❌ No refunds issued
+- ❌ Filters never applied
+
+**After Fix**:
+- ✅ Verification starts successfully
+- ✅ SMS codes display correctly
+- ✅ Cancellation works with refunds
+- ✅ Timeout tracking functional
+- ✅ Area code/carrier filters applied
+
+### Monitoring
+
+**Metrics to Watch**:
+- Verification success rate (target: >90%)
+- 404 error rate (target: <1%)
+- SMS code delivery time (target: <60s)
+- Cancellation success rate (target: 100%)
+- Refund processing time (target: <5s)
+
+---
+
 ## [4.1.0] - January 2026 - Verification Flow Redesign 🚀
 
 ### 🎯 Complete Verification Flow Overhaul
