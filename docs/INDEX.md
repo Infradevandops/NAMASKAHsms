@@ -44,19 +44,21 @@ Last Updated: March 12, 2026
 - [roadmaps/Q1_2026_ROADMAP_INDEX.md](roadmaps/Q1_2026_ROADMAP_INDEX.md) - Q1 2026 roadmap
 - [BILLING_HISTORY.md](BILLING_HISTORY.md) - Billing system history
 
-## Internal (.kiro folder)
+## Tasks
 
-- [CURRENT-STATUS.md](../.kiro/CURRENT-STATUS.md) - Current work status
-- [FINAL-CI-STATUS.md](../.kiro/FINAL-CI-STATUS.md) - CI/CD status
-- [VERIFICATION_FIXES_SUMMARY.md](../.kiro/VERIFICATION_FIXES_SUMMARY.md) - Recent fixes
-- [VERIFICATION_FLOW_REDESIGN.md](../.kiro/VERIFICATION_FLOW_REDESIGN.md) - Architecture redesign
-- [VERIFICATION_REDESIGN_STATUS.md](../.kiro/VERIFICATION_REDESIGN_STATUS.md) - Implementation status
-- [SERVICE_MODAL_REDESIGN.md](../.kiro/SERVICE_MODAL_REDESIGN.md) - Modal redesign
-- [SERVICE_MODAL_IMPLEMENTATION.md](../.kiro/SERVICE_MODAL_IMPLEMENTATION.md) - Modal implementation
-- [service-loading-errors-root-cause-fix.md](../.kiro/service-loading-errors-root-cause-fix.md) - Service loading fixes
-- [landing-page-fix-report.md](../.kiro/landing-page-fix-report.md) - Landing page fixes
+- [tasks/textverified-modal/](tasks/textverified-modal/) - TextVerified-style modal implementation (NOT IMPLEMENTED)
+- [tasks/coverage-initiative/](tasks/coverage-initiative/) - Test coverage improvement tasks
+
+## Status & Tracking
+
+- [status/CURRENT-STATUS.md](status/CURRENT-STATUS.md) - Current work status
+- [status/VERIFICATION_FIXES_SUMMARY.md](status/VERIFICATION_FIXES_SUMMARY.md) - Recent verification fixes
 
 ## Archive
+
+- [archive/FINAL-CI-STATUS.md](archive/FINAL-CI-STATUS.md) - CI/CD audit completion
+- [archive/landing-page-fix-report.md](archive/landing-page-fix-report.md) - Landing page CSP fix
+- [archive/service-loading-errors-root-cause-fix.md](archive/service-loading-errors-root-cause-fix.md) - Service loading fixes
 
 Removed redundant documentation:
 - CI improvement tasks (covered in CI_MONITORING_GUIDE.md)
