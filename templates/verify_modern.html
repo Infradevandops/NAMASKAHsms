@@ -6,9 +6,36 @@
 {% block head_extra %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/verification-design-system.css">
+<script src="/static/js/service-store.js"></script>
 <style>
     .verification-container {
         animation: slideUp 0.3s ease-out;
+    }
+    .service-icon {
+        width: 24px;
+        height: 24px;
+        object-fit: contain;
+        margin-right: 8px;
+    }
+    .service-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid #f3f4f6;
+    }
+    .service-item:hover {
+        background: #f9fafb;
+    }
+    .service-item-content {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+    .service-item-price {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 600;
     }
 </style>
 {% endblock %}
@@ -399,88 +426,14 @@ function _buildServiceItems(services) {
 }
 
 async function loadServices() {
-    document.getElementById('service-loading-spinner').style.display = 'block';
-
-    // 1. Try 24h priced cache first
-    const pricedCached = _lsGet(_LS_SERVICES_PRICED_KEY, _LS_PRICED_TTL);
-    if (pricedCached && pricedCached.length > 1) {
-        _modalItems['service'] = pricedCached;
-        document.getElementById('service-loading-spinner').style.display = 'none';
-        return;
-    }
-
-    // 2. Try 30min names cache
-    const namesCached = _lsGet(_LS_SERVICES_KEY);
-    if (namesCached && namesCached.length > 1) {
-        _modalItems['service'] = namesCached;
-        document.getElementById('service-loading-spinner').style.display = 'none';
-        _refreshPricedCache();
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem('access_token');
-        const ctrl = new AbortController();
-        const tid = setTimeout(() => ctrl.abort(), 15000);
-        const res = await fetch('/api/countries/US/services', {
-            headers: { 'Authorization': `Bearer ${token}` },
-            signal: ctrl.signal
-        });
-        clearTimeout(tid);
-
-        // Task 4: 401 retry — endpoint is public, retry without auth header
-        let finalRes = res;
-        if (res.status === 401) {
-            const retryRes = await fetch('/api/countries/US/services');
-            if (!retryRes.ok) throw new Error('fetch failed after 401 retry');
-            finalRes = retryRes;
-        } else if (!res.ok) {
-            throw new Error('fetch failed');
-        }
-
-        const data = await finalRes.json();
-        const services = data.services || [];
-        _modalItems['service'] = _buildServiceItems(services);
-        if (services.length) {
-            _lsSet(_LS_SERVICES_KEY, _modalItems['service']);
-            if (data.source === 'cache') _lsSet(_LS_SERVICES_PRICED_KEY, _modalItems['service']);
-            else _refreshPricedCache();
-        }
-    } catch (e) {
-        console.error('Failed to load services:', e);
-        // Task 1: hardcoded fallback — dropdown always populates
-        const FALLBACK = [
-            { id: 'whatsapp',  name: 'WhatsApp',  price: 2.50 },
-            { id: 'telegram',  name: 'Telegram',  price: 2.00 },
-            { id: 'google',    name: 'Google',    price: 2.00 },
-            { id: 'facebook',  name: 'Facebook',  price: 2.50 },
-            { id: 'instagram', name: 'Instagram', price: 2.75 },
-            { id: 'discord',   name: 'Discord',   price: 2.25 },
-            { id: 'twitter',   name: 'Twitter',   price: 2.50 },
-            { id: 'microsoft', name: 'Microsoft', price: 2.25 },
-            { id: 'amazon',    name: 'Amazon',    price: 2.50 },
-            { id: 'uber',      name: 'Uber',      price: 2.75 },
-        ];
-        _modalItems['service'] = _buildServiceItems(FALLBACK);
-        console.warn(`⚠️ Using ${FALLBACK.length} hardcoded fallback services`);
-    }
-    document.getElementById('service-loading-spinner').style.display = 'none';
-}
-
-async function _refreshPricedCache() {
-    try {
-        const token = localStorage.getItem('access_token');
-        const res = await fetch('/api/countries/US/services/batch-pricing', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.source === 'cache' && data.services?.length) {
-            const items = _buildServiceItems(data.services);
-            _lsSet(_LS_SERVICES_PRICED_KEY, items);
-            _modalItems['service'] = items;
-        }
-    } catch {}
+    await window.ServiceStore.init();
+    const services = window.ServiceStore.getAll();
+    _modalItems['service'] = _buildServiceItems(services);
+    
+    // Subscribe to updates
+    window.ServiceStore.subscribe((updatedServices) => {
+        _modalItems['service'] = _buildServiceItems(updatedServices);
+    });
 }
 
 async function loadAreaCodes() {
@@ -862,6 +815,23 @@ function showServiceDropdown() {
     _renderServiceDropdown(document.getElementById('service-search-input').value);
 }
 
+function _getServiceIcon(serviceId) {
+    const iconMap = {
+        whatsapp: 'whatsapp', telegram: 'telegram', google: 'google', facebook: 'facebook',
+        instagram: 'instagram', discord: 'discord', twitter: 'x', microsoft: 'microsoft',
+        amazon: 'amazon', uber: 'uber', netflix: 'netflix', spotify: 'spotify',
+        paypal: 'paypal', venmo: 'venmo', cashapp: 'cashapp', apple: 'apple',
+        snapchat: 'snapchat', tiktok: 'tiktok', linkedin: 'linkedin', github: 'github',
+        gitlab: 'gitlab', slack: 'slack', zoom: 'zoom', dropbox: 'dropbox',
+        airbnb: 'airbnb', doordash: 'doordash', grubhub: 'grubhub', postmates: 'postmates',
+        tinder: 'tinder', bumble: 'bumble', hinge: 'hinge', match: 'match',
+        steam: 'steam', twitch: 'twitch', discord: 'discord', epicgames: 'epicgames',
+        skype: 'skype', viber: 'viber', line: 'line', wechat: 'wechat'
+    };
+    const icon = iconMap[serviceId.toLowerCase()] || 'circle';
+    return `https://cdn.simpleicons.org/${icon}/6366f1`;
+}
+
 function _renderServiceDropdown(q) {
     const dd = document.getElementById('service-inline-dropdown');
     const items = (_modalItems['service'] || []).filter(i => i.value !== '__other__');
@@ -870,7 +840,7 @@ function _renderServiceDropdown(q) {
         dd.style.display = 'block';
         return;
     }
-    // Issue #8: show favorites at top when no query
+    
     const favIds = (typeof favoriteServices !== 'undefined') ? favoriteServices.getAll().map(f => f.id) : [];
     let filtered;
     if (!q) {
@@ -880,19 +850,24 @@ function _renderServiceDropdown(q) {
     } else {
         filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase())).slice(0, 10);
     }
+    
     if (!filtered.length) {
         dd.innerHTML = '<div style="padding:12px;color:#9ca3af;text-align:center;">No services found</div>';
         dd.style.display = 'block';
         return;
     }
+    
     const favSection = (!q && favIds.length) ? '<div style="padding:4px 14px;font-size:11px;color:#9ca3af;font-weight:600;">FAVORITES</div>' : '';
     dd.innerHTML = favSection + filtered.map(i => {
         const isFav = favIds.includes(i.value);
-        return `<div onclick="selectServiceInline('${i.value.replace(/'/g,"\\'")}')"
-            style="padding:12px 14px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f3f4f6;"
+        const iconUrl = _getServiceIcon(i.value);
+        return `<div class="service-item" onclick="selectServiceInline('${i.value.replace(/'/g,"\\'")}')"
             onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
-            <span style="font-weight:500;">${isFav ? '\u2605 ' : ''}${i.label}</span>
-            <span style="color:#6b7280;font-size:13px;">${i.sub || ''}</span>
+            <div class="service-item-content">
+                <img src="${iconUrl}" class="service-icon" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E'" alt="">
+                <span style="font-weight:500;">${isFav ? '⭐ ' : ''}${i.label}</span>
+            </div>
+            <span class="service-item-price">${i.sub || ''}</span>
         </div>`;
     }).join('');
     dd.style.display = 'block';
