@@ -20,12 +20,8 @@
     .service-item {
         display: flex;
         align-items: center;
-        padding: 12px 14px;
-        cursor: pointer;
         border-bottom: 1px solid #f3f4f6;
-    }
-    .service-item:hover {
-        background: #f9fafb;
+        transition: background 0.15s;
     }
     .service-item-content {
         flex: 1;
@@ -36,6 +32,10 @@
         color: #6b7280;
         font-size: 13px;
         font-weight: 600;
+        margin-right: 32px;
+    }
+    #service-inline-dropdown {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
     }
 </style>
 {% endblock %}
@@ -815,6 +815,28 @@ function showServiceDropdown() {
     _renderServiceDropdown(document.getElementById('service-search-input').value);
 }
 
+// Favorite services management
+const _FAVORITES_KEY = 'nsk_favorite_services';
+
+function getFavorites() {
+    try {
+        return JSON.parse(localStorage.getItem(_FAVORITES_KEY) || '[]');
+    } catch { return []; }
+}
+
+function toggleFavorite(serviceId) {
+    const favs = getFavorites();
+    const idx = favs.indexOf(serviceId);
+    if (idx > -1) favs.splice(idx, 1);
+    else favs.push(serviceId);
+    localStorage.setItem(_FAVORITES_KEY, JSON.stringify(favs));
+    return favs.includes(serviceId);
+}
+
+function isFavorite(serviceId) {
+    return getFavorites().includes(serviceId);
+}
+
 function _getServiceIcon(serviceId) {
     const iconMap = {
         whatsapp: 'whatsapp', telegram: 'telegram', google: 'google', facebook: 'facebook',
@@ -825,8 +847,14 @@ function _getServiceIcon(serviceId) {
         gitlab: 'gitlab', slack: 'slack', zoom: 'zoom', dropbox: 'dropbox',
         airbnb: 'airbnb', doordash: 'doordash', grubhub: 'grubhub', postmates: 'postmates',
         tinder: 'tinder', bumble: 'bumble', hinge: 'hinge', match: 'match',
-        steam: 'steam', twitch: 'twitch', discord: 'discord', epicgames: 'epicgames',
-        skype: 'skype', viber: 'viber', line: 'line', wechat: 'wechat'
+        steam: 'steam', twitch: 'twitch', epicgames: 'epicgames',
+        skype: 'skype', viber: 'viber', line: 'line', wechat: 'wechat',
+        coinbase: 'coinbase', binance: 'binance', robinhood: 'robinhood',
+        walmart: 'walmart', target: 'target', ebay: 'ebay', etsy: 'etsy', shopify: 'shopify',
+        ubereats: 'ubereats', booking: 'bookingdotcom', expedia: 'expedia', lyft: 'lyft',
+        reddit: 'reddit', pinterest: 'pinterest', tumblr: 'tumblr',
+        playstation: 'playstation', xbox: 'xbox', nintendo: 'nintendo',
+        teams: 'microsoftteams', signal: 'signal', messenger: 'messenger'
     };
     const icon = iconMap[serviceId.toLowerCase()] || 'circle';
     return `https://cdn.simpleicons.org/${icon}/6366f1`;
@@ -841,14 +869,14 @@ function _renderServiceDropdown(q) {
         return;
     }
     
-    const favIds = (typeof favoriteServices !== 'undefined') ? favoriteServices.getAll().map(f => f.id) : [];
+    const favIds = getFavorites();
     let filtered;
     if (!q) {
-        const favItems = items.filter(i => favIds.includes(i.value)).slice(0, 3);
-        const rest = items.filter(i => !favIds.includes(i.value)).slice(0, 10 - favItems.length);
+        const favItems = items.filter(i => favIds.includes(i.value)).slice(0, 5);
+        const rest = items.filter(i => !favIds.includes(i.value)).slice(0, 12 - favItems.length);
         filtered = [...favItems, ...rest];
     } else {
-        filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase())).slice(0, 10);
+        filtered = items.filter(i => i.label.toLowerCase().includes(q.toLowerCase())).slice(0, 12);
     }
     
     if (!filtered.length) {
@@ -857,17 +885,24 @@ function _renderServiceDropdown(q) {
         return;
     }
     
-    const favSection = (!q && favIds.length) ? '<div style="padding:4px 14px;font-size:11px;color:#9ca3af;font-weight:600;">FAVORITES</div>' : '';
+    const favSection = (!q && favIds.length) ? '<div style="padding:4px 14px;font-size:11px;color:#9ca3af;font-weight:600;">PINNED</div>' : '';
     dd.innerHTML = favSection + filtered.map(i => {
         const isFav = favIds.includes(i.value);
         const iconUrl = _getServiceIcon(i.value);
-        return `<div class="service-item" onclick="selectServiceInline('${i.value.replace(/'/g,"\\'")}')"
-            onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
-            <div class="service-item-content">
-                <img src="${iconUrl}" class="service-icon" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E'" alt="">
-                <span style="font-weight:500;">${isFav ? '⭐ ' : ''}${i.label}</span>
+        return `<div class="service-item" style="position:relative;">
+            <div onclick="selectServiceInline('${i.value.replace(/'/g,"\\'")}')"
+                style="flex:1;display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;"
+                onmouseover="this.style.background='#f9fafb'" onmouseout="this.style.background=''">
+                <div class="service-item-content">
+                    <img src="${iconUrl}" class="service-icon" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%236366f1%22 stroke-width=%222%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3C/svg%3E'" alt="">
+                    <span style="font-weight:500;">${i.label}</span>
+                </div>
+                <span class="service-item-price">${i.sub || ''}</span>
             </div>
-            <span class="service-item-price">${i.sub || ''}</span>
+            <button onclick="event.stopPropagation(); toggleFavorite('${i.value}'); _renderServiceDropdown('${q}');" 
+                style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:4px 8px;color:${isFav ? '#fbbf24' : '#d1d5db'};transition:color 0.15s;"
+                onmouseover="this.style.color='#fbbf24'" onmouseout="this.style.color='${isFav ? '#fbbf24' : '#d1d5db'}'" 
+                title="${isFav ? 'Unpin' : 'Pin'} service">📌</button>
         </div>`;
     }).join('');
     dd.style.display = 'block';
