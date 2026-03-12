@@ -1,0 +1,20 @@
+# Render.com deployment configuration for production
+# This file is for reference - actual production config is in Render dashboard
+
+services:
+  - type: web
+    name: namaskah-api
+    env: python
+    plan: free
+    region: oregon
+    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
+    startCommand: ./start.sh
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      # DATABASE_URL should be set in Render dashboard
+      # REDIS_URL should be set in Render dashboard
+      # All secrets should be set in Render dashboard, not here
