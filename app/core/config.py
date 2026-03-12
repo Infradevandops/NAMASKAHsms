@@ -23,9 +23,9 @@ class Settings(BaseSettings):
     port: int = 8000
     base_url: str = "http://localhost:8000"
 
-    # Security settings
-    secret_key: str = "your-secret-key-here-must-be-at-least-32-characters-long"
-    jwt_secret_key: str = "your-jwt-secret-key-here-must-be-at-least-32-characters-long"
+    # Security settings (must be set via environment variables in production)
+    secret_key: str = ""
+    jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expiration_hours: int = 24
 
@@ -161,10 +161,21 @@ class Settings(BaseSettings):
 
     @field_validator("secret_key", "jwt_secret_key")
     @classmethod
-    def validate_key_length(cls, value):
-        """Validate secret keys are at least 32 characters."""
+    def validate_key_length(cls, value, info):
+        """Validate secret keys are at least 32 characters in production."""
+        import os
+        
+        # In production, keys must be set and at least 32 chars
+        if os.getenv("ENVIRONMENT") == "production":
+            if not value or len(value) < 32:
+                raise ValueError("Secret keys must be at least 32 characters long and set in production")
+        
+        # In development/testing, allow empty or short keys
         if value and len(value) < 32:
-            raise ValueError("Secret keys must be at least 32 characters long")
+            # Only warn if explicitly set but too short
+            if len(value) > 0:
+                raise ValueError("Secret keys must be at least 32 characters long")
+        
         return value
 
     @field_validator("database_url")
