@@ -54,20 +54,7 @@ htmlcov/
 server.log
 
 # Certificates (never commit private keys or certs)
-certs/*.key
-certs/*.crt
-certs/*.pem
-
-# Documentation (keep only essential)
-*_PROGRESS*.md
-*_COMPLETE*.md
-*_SUMMARY*.md
-*_REPORT*.md
-*_STATUS*.md
-*_ASSESSMENT*.md
-!DASHBOARD_DEEP_ASSESSMENT.md
-!COMPLETE_FEATURE_INVENTORY.md
-!CLEANUP_COMPLETION_REPORT.md
+certs/
 
 # Added by ggshield
 .cache_ggshield
@@ -76,6 +63,9 @@ certs/*.pem
 # Docs — empty/stale folders
 docs/design/
 docs/roadmaps/
-docs/troubleshooting/
 docs/status/
 docs/tasks/coverage-initiative/
+
+# Generated artifacts
+uvicorn_startup*.log
+server.log
