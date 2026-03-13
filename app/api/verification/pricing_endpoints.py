@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
-from app.services.pricing_service import PricingService
+from app.services.pricing_calculator import PricingCalculator
 
 router = APIRouter(prefix="/pricing", tags=["Pricing"])
 
@@ -35,7 +35,8 @@ async def get_pricing(
         user = User(tier="freemium")
 
     # Calculate pricing
-    pricing_service = PricingService()
-    pricing = pricing_service.calculate_price(service, user, area_code, carrier)
+    # Calculate pricing using the new calculator
+    filters = {"area_code": area_code, "carrier": carrier}
+    pricing = PricingCalculator.calculate_sms_cost(db, user_id=user.id, filters=filters)
 
     return {"success": True, "pricing": pricing}

@@ -31,7 +31,7 @@ from app.utils.security import hash_password
 from app.utils.security import hash_password, verify_password
 from app.utils.security import hash_password, verify_password
 from app.utils.security import generate_api_key as generate_random_string
-from app.core.tier_config_simple import TIER_CONFIG
+from app.core.tier_config import TIER_CONFIG
 
 
 class TestDatabase:

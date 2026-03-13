@@ -4,10 +4,13 @@
  */
 
 :root {
-    /* Primary Colors */
-    --primary: #667eea;
-    --primary-light: #8b9ef5;
-    --primary-dark: #5568d3;
+    /* Primary Colors (Namaskah Brand) */
+    --primary: #E8003D;
+    --primary-light: #ff3366;
+    --primary-dark: #b3002f;
+    --accent: #F5A623;
+    --accent-light: #ffba4d;
+    --accent-dark: #cc8400;
     
     /* Status Colors */
     --success: #10b981;
@@ -763,6 +766,304 @@
     }
 }
 
+/* ============================================
+   IMMERSIVE MODAL (Task 3)
+   ============================================ */
+
+.immersive-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-md);
+    animation: fadeIn 0.3s ease-out;
+}
+
+.immersive-modal {
+    background: #111827; /* Dark theme */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    width: min(600px, 100%);
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    color: white;
+    overflow: hidden;
+    position: relative;
+}
+
+.modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header-title {
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header-title h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.modal-header-title p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.modal-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.modal-close-btn:hover {
+    background: rgba(232, 0, 61, 0.2);
+    color: var(--primary);
+}
+
+/* Toggle Switch (SMS/Voice) */
+.modal-type-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 4px;
+    border-radius: 10px;
+    margin: 0 var(--spacing-lg) var(--spacing-md);
+}
+
+.type-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 8px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.type-btn.active {
+    background: #0070f3; /* Default active blue from screenshot */
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 112, 243, 0.3);
+}
+
+/* Search Bar */
+.modal-search-wrapper {
+    padding: 0 var(--spacing-lg) var(--spacing-md);
+    position: relative;
+    display: flex;
+    gap: 12px;
+}
+
+.modal-search-field {
+    flex: 1;
+    position: relative;
+}
+
+.modal-search-field i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+.modal-search-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 12px 12px 12px 38px;
+    color: white;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.modal-search-input:focus {
+    border-color: var(--primary);
+}
+
+/* Settings Button */
+.modal-settings-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+/* Filter Card */
+.modal-filter-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    margin: 0 var(--spacing-lg) var(--spacing-lg);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.filter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.filter-label-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.filter-label {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Switches */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 20px;
+}
+
+.switch input { opacity: 0; width: 0; height: 0; }
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: rgba(255,255,255,0.1);
+    transition: .4s;
+    border-radius: 20px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 14px; width: 14px;
+    left: 3px; bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider { background-color: var(--primary); }
+input:checked + .slider:before { transform: translateX(18px); }
+
+/* List Content */
+.modal-content-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 var(--spacing-lg) var(--spacing-lg);
+}
+
+.modal-list-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.list-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.list-item:hover {
+    transform: translateX(4px);
+}
+
+.list-item-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    overflow: hidden;
+}
+
+.list-item-icon img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.list-item-info {
+    flex: 1;
+}
+
+.list-item-name {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.list-item-cost {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+    margin-right: 20px;
+}
+
+.list-item-pin {
+    color: var(--text-muted);
+    font-size: 18px;
+    opacity: 0.5;
+}
+
+.list-item-pin.active {
+    color: var(--accent);
+    opacity: 1;
+}
+
+/* Custom Scrollbar */
+.modal-content-list::-webkit-scrollbar { width: 6px; }
+.modal-content-list::-webkit-scrollbar-track { background: transparent; }
+.modal-content-list::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
 @media (max-width: 480px) {
     .verification-container {
         padding: var(--spacing-md);

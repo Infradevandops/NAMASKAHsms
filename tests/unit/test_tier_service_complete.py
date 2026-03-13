@@ -1,6 +1,6 @@
 """
 from datetime import datetime, timezone
-from app.core.tier_config_simple import TIER_CONFIG
+from app.core.tier_config import TIER_CONFIG
 from app.models.user import User
 
 Complete Tier Service Tests

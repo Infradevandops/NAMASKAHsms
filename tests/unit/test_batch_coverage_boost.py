@@ -6,7 +6,7 @@ Implements multiple high-value tests across services to reach 90% coverage
 import pytest
 from app.models.user import User
 from app.utils.security import create_access_token, hash_password, verify_password
-from app.core.tier_config_simple import TIER_CONFIG
+from app.core.tier_config import TIER_CONFIG
 from app.models.transaction import Transaction
 from app.services.webhook_queue import WebhookQueue
 

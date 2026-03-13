@@ -13,7 +13,7 @@ TIER_HIERARCHY = {
 
 TIER_FEATURES = {
     "area_code_selection": ["payg", "pro", "custom"],
-    "carrier_selection": ["pro", "custom"],
+    "carrier_selection": ["payg", "pro", "custom"],
     "api_access": ["pro", "custom"],
     "location_filters": ["payg", "pro", "custom"],
     "isp_filters": ["payg", "pro", "custom"],
@@ -24,14 +24,14 @@ def require_tier(user: User, feature: str):
     """Validate user has required tier for feature."""
     required_tiers = TIER_FEATURES.get(feature, [])
 
-    if user.tier not in required_tiers:
+    if user.subscription_tier not in required_tiers:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={
                 "error": "upgrade_required",
                 "message": f"This feature requires {required_tiers[0].upper()} tier or higher",
                 "feature": feature,
-                "current_tier": user.tier,
+                "current_tier": user.subscription_tier,
                 "required_tiers": required_tiers,
             },
         )

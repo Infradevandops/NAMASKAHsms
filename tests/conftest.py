@@ -30,11 +30,17 @@ def check_services():
     pass
 
 
+from sqlalchemy.pool import StaticPool
+
 @pytest.fixture(scope="session")
 def engine():
     """Create test database engine."""
-    # Use in-memory SQLite for tests
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=False
+    )
     Base.metadata.create_all(bind=engine)
     return engine
 
@@ -52,11 +58,15 @@ def db(engine):
 
 
 @pytest.fixture
-def client(db):
+def client(engine):
     """Create FastAPI test client with test database."""
-
     def override_get_db():
-        yield db
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
 
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
@@ -72,54 +82,60 @@ def test_user_id():
 @pytest.fixture
 def test_user(db, test_user_id):
     """Create test user."""
-    user = User(
-        id=test_user_id,
-        email="test@example.com",
-        password_hash="$2b$12$test_hash",
-        credits=100.0,
-        tier="pro",
-        is_admin=False,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = db.query(User).filter(User.id == test_user_id).first()
+    if not user:
+        user = User(
+            id=test_user_id,
+            email="test@example.com",
+            password_hash="$2b$12$test_hash",
+            credits=100.0,
+            subscription_tier="pro",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user
 
 
 @pytest.fixture
 def admin_user(db):
     """Create admin user."""
-    user = User(
-        id="admin-user-123",
-        email="admin@example.com",
-        password_hash="$2b$12$admin_hash",
-        credits=1000.0,
-        tier="custom",
-        is_admin=True,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = db.query(User).filter(User.id == "admin-user-123").first()
+    if not user:
+        user = User(
+            id="admin-user-123",
+            email="admin@example.com",
+            password_hash="$2b$12$admin_hash",
+            credits=1000.0,
+            subscription_tier="custom",
+            is_admin=True,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user
 
 
 @pytest.fixture
 def regular_user(db):
     """Create regular user."""
-    user = User(
-        id="regular-user-123",
-        email="regular@example.com",
-        password_hash="$2b$12$regular_hash",
-        credits=50.0,
-        tier="freemium",
-        is_admin=False,
-        created_at=datetime.now(timezone.utc),
-    )
-    db.add(user)
-    db.commit()
-    db.refresh(user)
+    user = db.query(User).filter(User.id == "regular-user-123").first()
+    if not user:
+        user = User(
+            id="regular-user-123",
+            email="regular@example.com",
+            password_hash="$2b$12$regular_hash",
+            credits=50.0,
+            subscription_tier="freemium",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(user)
+        db.commit()
+        db.refresh(user)
     return user
 
 
@@ -166,11 +182,16 @@ def test_transaction(db, test_user):
 
 
 @pytest.fixture
-def authenticated_client(client, test_user, db):
+def authenticated_client(client, test_user, engine):
     """Create an authenticated test client."""
 
     def override_get_db():
-        yield db
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
 
     def override_get_current_user_id():
         return str(test_user.id)
@@ -184,11 +205,16 @@ def authenticated_client(client, test_user, db):
 
 
 @pytest.fixture
-def admin_client(client, admin_user, db):
+def admin_client(client, admin_user, engine):
     """Create an admin test client."""
 
     def override_get_db():
-        yield db
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
 
     def override_get_current_user_id():
         return str(admin_user.id)
@@ -202,11 +228,16 @@ def admin_client(client, admin_user, db):
 
 
 @pytest.fixture
-def regular_client(client, regular_user, db):
+def regular_client(client, regular_user, engine):
     """Create a regular user test client."""
 
     def override_get_db():
-        yield db
+        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        session = TestingSessionLocal()
+        try:
+            yield session
+        finally:
+            session.close()
 
     def override_get_current_user_id():
         return str(regular_user.id)
