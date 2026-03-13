@@ -85,6 +85,10 @@
                 <input type="text" id="service-search-input" placeholder="Search services e.g. Telegram, WhatsApp..."
                     onclick="openImmersiveModal('service')" readonly
                     style="width:100%; padding:10px 36px 10px 12px; border:1px solid var(--border-color,#e5e7eb); border-radius:8px; font-size:14px; box-sizing:border-box; cursor:pointer; background:#fff;" />
+                <button id="service-retry-btn" onclick="retryLoadServices()"
+                    style="display:none; position:absolute; right:8px; top:50%; transform:translateY(-50%); background:var(--primary-light,#fff0f0); border:1px solid var(--primary,#E8003D); color:var(--primary,#E8003D); border-radius:6px; padding:4px 10px; font-size:12px; font-weight:600; cursor:pointer; z-index:10;">
+                    Retry
+                </button>
             </div>
             <div id="service-inline-dropdown" style="display:none; position:absolute; left:0; right:0; background:#fff; border:1px solid #e5e7eb; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.1); z-index:100; max-height:280px; overflow-y:auto; margin-top:2px;"></div>
             <div id="service-selected-display" style="display:none; margin-top:8px; padding:10px 12px; background:#fff0f0; border:1px solid #ffd1d1; border-radius:8px; font-size:14px; display:flex; justify-content:space-between; align-items:center;">
@@ -215,6 +219,25 @@
                 <div style="font-size: var(--font-size-3xl); font-weight: 700; color: var(--success); font-family: 'Courier New', monospace; letter-spacing: 4px; margin-bottom: var(--spacing-lg);" id="sms-code">123456</div>
                 <button class="btn btn-success btn-block" onclick="copySMSCode()">Copy Code</button>
             </div>
+            
+            <div id="verification-receipt-details" style="margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; text-align: left; font-size: 13px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #374151;">Verification Details</h4>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #6b7280;">Assigned Carrier</span>
+                    <span id="receipt-carrier" style="font-weight: 600; color: #111827;">-</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="color: #6b7280;">Assigned Area Code</span>
+                    <span id="receipt-area-code" style="font-weight: 600; color: #111827;">-</span>
+                </div>
+                <div id="receipt-fallback-row" style="display: none; align-items: flex-start; gap: 8px; color: #b45309; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3f4f6;">
+                    <i class="fas fa-info-circle" style="margin-top: 2px;"></i>
+                    <span>
+                        <strong>Fallback applied:</strong> 
+                        Requested <span id="receipt-requested-ac" style="font-weight: 600;">-</span> was unavailable.
+                    </span>
+                </div>
+            </div>
         </div>
 
         <!-- Actions -->
@@ -266,6 +289,12 @@ let _modalItems = {};
 let _pinnedServices = JSON.parse(localStorage.getItem('nsk_pinned_services') || '["telegram", "whatsapp", "google", "facebook", "instagram"]');
 
 function openImmersiveModal(type) {
+    // Check if services are available
+    if (type === 'service' && (!_modalItems['service'] || _modalItems['service'].length === 0)) {
+        window.toast && window.toast.error('Services unavailable. Please refresh the page.');
+        return;  // Don't open modal
+    }
+
     _modalType = type;
     const container = document.getElementById('immersive-modal-container');
     const titles = { service: 'Select Service', 'area-code': 'Select Area Code', carrier: 'Select Carrier' };
@@ -353,8 +382,39 @@ function renderImmersiveList(type, query = '') {
         (item.value || '').toLowerCase().includes(normalizedQuery)
     );
 
+    // Hide/show filter button based on availability
+    const filterBtn = document.querySelector('.modal-settings-btn');
+    if (filterBtn) {
+        filterBtn.style.display = filtered.length === 0 ? 'none' : 'block';
+    }
+
     if (filtered.length === 0) {
-        listContainer.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted);">No results found</div>';
+        if (type === 'service' && items.length === 0) {
+            // Show error with retry for services only if API actually failed (empty items)
+            listContainer.innerHTML = `
+                <div style="padding:40px; text-align:center;">
+                    <div style="color:#EF4444; font-size:16px; margin-bottom:16px;">
+                        ⚠️ Unable to load services from provider
+                    </div>
+                    <div style="color:#6B7280; font-size:14px; margin-bottom:24px;">
+                        Please check your connection and try again
+                    </div>
+                    <button onclick="retryLoadServices(); closeImmersiveModal();" 
+                            style="padding:10px 24px; background:#E8003D; color:white; border:none; border-radius:8px; cursor:pointer; font-size:14px; font-weight:600;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        } else {
+            // Standard "No results" for search mismatches or other empty types
+            listContainer.innerHTML = `
+                <div style="padding:40px; text-align:center; color:#6B7280;">
+                    <div style="font-size:24px; margin-bottom:12px;">🔍</div>
+                    <div style="font-size:15px; font-weight:500;">No results found for "${query}"</div>
+                    <div style="font-size:13px; margin-top:4px;">Try a different search or check your spelling</div>
+                </div>
+            `;
+        }
         return;
     }
 
@@ -643,6 +703,10 @@ async function loadServices() {
         
         _modalItems['service'] = _buildServiceItems(services);
         console.log(`✅ Loaded ${services.length} services from TextVerified API`);
+
+        // Hide retry button on success
+        const retryBtn = document.getElementById('service-retry-btn');
+        if (retryBtn) retryBtn.style.display = 'none';
         
         // Subscribe to updates
         window.ServiceStore.subscribe((updatedServices) => {
@@ -664,9 +728,41 @@ async function loadServices() {
         if (input) {
             input.disabled = true;
             input.placeholder = 'Services unavailable - please refresh page';
+            input.onclick = null;  // Remove click handler
+            input.style.cursor = 'not-allowed';  // Visual feedback
         }
+
+        // Show retry button
+        const retryBtn = document.getElementById('service-retry-btn');
+        if (retryBtn) retryBtn.style.display = 'block';
         
         _modalItems['service'] = [];
+    }
+}
+
+async function retryLoadServices() {
+    window.toast && window.toast.info('Retrying...');
+    
+    // Hide retry button while retrying
+    const retryBtn = document.getElementById('service-retry-btn');
+    if (retryBtn) retryBtn.style.display = 'none';
+    
+    // Re-enable input
+    const input = document.getElementById('service-search-input');
+    if (input) {
+        input.disabled = false;
+        input.placeholder = 'Search services e.g. Telegram, WhatsApp...';
+        input.onclick = () => openImmersiveModal('service');
+        input.style.cursor = 'pointer';
+    }
+    
+    // Retry loading
+    await loadServices();
+    
+    // Refresh modal if open
+    const modalContainer = document.getElementById('immersive-modal-container');
+    if (modalContainer && modalContainer.innerHTML) {
+        renderImmersiveList('service');
     }
 }
 
@@ -902,6 +998,19 @@ function startPolling() {
                         document.getElementById('sms-code').textContent = data.sms_code;
                         document.getElementById('code-received').style.display = 'block';
                         document.querySelector('.scanning-container').style.display = 'none';
+                        
+                        // Update receipt details
+                        const carrier = data.assigned_carrier || data.operator || 'Auto';
+                        document.getElementById('receipt-carrier').textContent = carrier;
+                        document.getElementById('receipt-area-code').textContent = data.assigned_area_code || 'Any';
+                        
+                        if (data.fallback_applied) {
+                            document.getElementById('receipt-fallback-row').style.display = 'flex';
+                            document.getElementById('receipt-requested-ac').textContent = data.requested_area_code || '-';
+                        } else {
+                            document.getElementById('receipt-fallback-row').style.display = 'none';
+                        }
+                        
                         window.toast.success('SMS code received');
                         return;
                     }

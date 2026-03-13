@@ -12,10 +12,11 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def init_admin_user():
     """Create or update admin user."""
-    import os
+    from app.core.config import get_settings
+    settings = get_settings()
 
-    ADMIN_EMAIL = "admin@namaskah.app"
-    ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "ChangeMe@123456")
+    ADMIN_EMAIL = settings.admin_email or "admin@namaskah.app"
+    ADMIN_PASSWORD = settings.admin_password or "ChangeMe@123456"
 
     try:
         db = SessionLocal()

@@ -23,6 +23,10 @@ class Verification(BaseModel):
     audio_url = Column(String)
     requested_carrier = Column(String)
     requested_area_code = Column(String)
+    assigned_area_code = Column(String)
+    assigned_carrier = Column(String)
+    fallback_applied = Column(Boolean, default=False)
+    same_state_fallback = Column(Boolean, default=True)
     completed_at = Column(DateTime)
 
     # TextVerified integration fields (primary provider)

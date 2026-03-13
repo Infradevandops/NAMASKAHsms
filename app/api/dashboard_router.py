@@ -220,7 +220,13 @@ async def get_verification_history(
                     "cost": float(v.cost) if v.cost else 0.0,
                     "sms_code": getattr(v, "sms_code", None),
                     "sms_text": getattr(v, "sms_text", None),
-                    "carrier": getattr(v, "carrier", None),
+                    "carrier": v.assigned_carrier or v.operator or getattr(v, "carrier", None),
+                    "assigned_carrier": v.assigned_carrier,
+                    "assigned_area_code": v.assigned_area_code,
+                    "requested_carrier": v.requested_carrier,
+                    "requested_area_code": v.requested_area_code,
+                    "fallback_applied": v.fallback_applied,
+                    "same_state_fallback": v.same_state_fallback,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
                 }
                 for v in verifications

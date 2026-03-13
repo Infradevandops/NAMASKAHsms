@@ -139,13 +139,14 @@ function formatPhone(raw) {
             }
 
             const smsCode = item.sms_code ? `<span style="font-family: monospace; font-weight: bold; background: #eee; padding: 2px 6px; border-radius: 4px;">${item.sms_code}</span>` : '<span style="color: #9ca3af;">-</span>';
-            const carrier = item.carrier ? item.carrier : '<span style="color: #9ca3af;">Auto</span>';
+            const carrier = item.assigned_carrier || item.carrier || '<span style="color: #9ca3af;">Auto</span>';
+            const fallbackIndicator = item.fallback_applied ? ` <i class="fas fa-info-circle" style="color: #b45309; font-size: 11px;" title="Fallback applied (Requested ${item.requested_area_code || 'any'})"></i>` : '';
 
             return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);" data-id="${item.id}">
                 <td style="padding: 12px; text-transform: capitalize;">${item.service_name || item.service || '-'}</td>
                 <td style="padding: 12px;">${item.country || 'US'}</td>
-                <td style="padding: 12px;">${carrier}</td>
+                <td style="padding: 12px;">${carrier}${fallbackIndicator}</td>
                 <td style="padding: 12px;">${formatPhone(item.phone_number)}</td>
 
                 <td style="padding: 12px;">${smsCode}</td>

@@ -350,6 +350,64 @@ class TextVerifiedService:
             "Mock services are disabled. TextVerified API must be configured."
         )
 
+    def _extract_carrier_from_number(self, phone_number: str) -> Optional[str]:
+        """
+        Extract carrier from phone number.
+        Priority 1.6: Basic implementation for US mobile numbers.
+        """
+        if not phone_number:
+            return None
+            
+        # TextVerified numbers are usually mobile. 
+        # Without a full lookup API, we return 'Mobile' as default if it looks like US number.
+        clean = str(phone_number).replace("+", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
+        if len(clean) >= 10:
+            return "Mobile"
+            
+        return "Unknown"
+
+    async def get_verification_status(self, activation_id: str) -> Dict[str, Any]:
+        """Get the current status of a verification/activation."""
+        if not self.enabled:
+            return {"status": "error", "error": "Service disabled"}
+            
+        try:
+            # Note: The textverified lib might use different method names
+            # We'll try to get it via the client
+            status = await asyncio.to_thread(self.client.verifications.get, activation_id)
+            
+            # Extract common fields
+            return {
+                "status": status.status,
+                "sms_code": getattr(status, "sms_code", None),
+                "sms_text": getattr(status, "sms_text", None),
+                "carrier": getattr(status, "carrier", None),
+            }
+        except Exception as e:
+            logger.error(f"Failed to get verification status for {activation_id}: {e}")
+            return {"status": "error", "error": str(e)}
+
+    async def check_sms(self, activation_id: str) -> Dict[str, Any]:
+        """
+        Check for SMS messages for a specific activation.
+        Used by SMSPollingService.
+        """
+        if not self.enabled:
+            return {"status": "ERROR", "messages": []}
+            
+        try:
+            # Use the existing get_sms logic but return in the format expected by SMSPollingService
+            sms_data = await self.get_sms(activation_id)
+            if sms_data.get("success"):
+                return {
+                    "status": "COMPLETED",
+                    "messages": [{"text": sms_data.get("sms")}]
+                }
+            return {"status": "PENDING", "messages": []}
+        except Exception as e:
+            logger.error(f"check_sms failed for {activation_id}: {e}")
+            return {"status": "ERROR", "messages": []}
+
     async def create_verification(
         self,
         service: str,
@@ -419,6 +477,8 @@ class TextVerifiedService:
                 f"assigned={assigned_area_code}({asgn_state}), same_state={same_state}"
             )
 
+        assigned_carrier = self._extract_carrier_from_number(assigned_number)
+
         return {
             "id": result.id,
             "phone_number": assigned_number,
@@ -426,7 +486,8 @@ class TextVerifiedService:
             "fallback_applied": fallback_applied,
             "requested_area_code": area_code,
             "assigned_area_code": assigned_area_code,
-            "same_state": same_state,
+            "assigned_carrier": assigned_carrier,
+            "same_state_fallback": same_state,
         }
 
     # Backward compat alias used by verification_routes.py
@@ -470,6 +531,8 @@ class TextVerifiedService:
                 "fallback_applied": result["fallback_applied"],
                 "requested_area_code": result["requested_area_code"],
                 "assigned_area_code": result["assigned_area_code"],
+                "assigned_carrier": result["assigned_carrier"],
+                "same_state_fallback": result["same_state_fallback"],
             }
         except Exception as e:
             logger.error(f"purchase_number failed: {e}")

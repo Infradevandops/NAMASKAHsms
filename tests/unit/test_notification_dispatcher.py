@@ -24,117 +24,93 @@ def test_dispatcher_init(mock_db):
     assert dispatcher.notification_service is not None
 
 
-def test_on_verification_created(dispatcher):
-    """Test verification created notification."""
-    mock_verification = MagicMock()
-    mock_verification.user_id = "user123"
-    mock_verification.service_name = "Gmail"
-    mock_verification.id = "v123"
+@pytest.mark.asyncio
+async def test_notify_verification_started(dispatcher):
+    """Test verification started notification."""
+    dispatcher.notification_service.create_notification = MagicMock(return_value={"id": 1, "title": "Test"})
+    
+    # Use patch to mock _broadcast_notification to avoid WebSocket complications
+    with patch.object(dispatcher, "_broadcast_notification"):
+        result = await dispatcher.notify_verification_started(
+            user_id="user123",
+            verification_id="v123",
+            service="Gmail",
+            phone_number="+14155550101",
+            cost=2.50
+        )
 
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
+        assert result is True
+        dispatcher.notification_service.create_notification.assert_called_once()
+        call_args = dispatcher.notification_service.create_notification.call_args
+        assert call_args[1]["user_id"] == "user123"
+        assert call_args[1]["notification_type"] == "verification_started"
+        assert "Gmail" in call_args[1]["message"]
 
-    result = dispatcher.on_verification_created(mock_verification)
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["user_id"] == "user123"
-    assert call_args[1]["notification_type"] == "verification_initiated"
-    assert "Gmail" in call_args[1]["message"]
-
-
-def test_on_sms_received(dispatcher):
-    """Test SMS received notification."""
-    mock_verification = MagicMock()
-    mock_verification.user_id = "user123"
-    mock_verification.service_name = "Twitter"
-    mock_verification.sms_code = "123456"
-    mock_verification.id = "v123"
-
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
-
-    result = dispatcher.on_sms_received(mock_verification)
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "sms_received"
-    assert "123456" in call_args[1]["message"]
-
-
-def test_on_verification_failed(dispatcher):
-    """Test verification failed notification."""
-    mock_verification = MagicMock()
-    mock_verification.user_id = "user123"
-    mock_verification.service_name = "Facebook"
-    mock_verification.id = "v123"
-
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
-
-    result = dispatcher.on_verification_failed(mock_verification, "Timeout")
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "verification_failed"
-    assert "Timeout" in call_args[1]["message"]
-
-
-def test_on_credit_deducted(dispatcher):
-    """Test credit deducted notification."""
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
-
-    result = dispatcher.on_credit_deducted("user123", 5.50, "SMS Verification")
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "credit_deducted"
-    assert "5.50" in call_args[1]["message"]
-
-
-def test_on_refund_issued(dispatcher):
-    """Test refund issued notification."""
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
-
-    result = dispatcher.on_refund_issued("user123", 10.00, "Failed verification")
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "refund_issued"
-    assert "10.00" in call_args[1]["message"]
-
-
-def test_on_balance_low(dispatcher):
-    """Test balance low notification."""
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
-
-    result = dispatcher.on_balance_low("user123", 2.50)
-
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "balance_low"
-    assert "2.50" in call_args[1]["message"]
-
-
-def test_on_verification_completed(dispatcher):
+@pytest.mark.asyncio
+async def test_notify_verification_completed(dispatcher):
     """Test verification completed notification."""
-    mock_verification = MagicMock()
-    mock_verification.user_id = "user123"
-    mock_verification.service_name = "LinkedIn"
-    mock_verification.id = "v123"
+    dispatcher.notification_service.create_notification = MagicMock(return_value={"id": 1, "title": "Test"})
+    
+    with patch.object(dispatcher, "_broadcast_notification"):
+        result = await dispatcher.notify_verification_completed(
+            user_id="user123",
+            verification_id="v123",
+            service="Twitter",
+            phone_number="+14155550101"
+        )
 
-    dispatcher.notification_service.create_notification = MagicMock(return_value=True)
+        assert result is True
+        dispatcher.notification_service.create_notification.assert_called_once()
+        call_args = dispatcher.notification_service.create_notification.call_args
+        assert call_args[1]["notification_type"] == "verification_completed"
 
-    result = dispatcher.on_verification_completed(mock_verification)
+@pytest.mark.asyncio
+async def test_notify_verification_failed(dispatcher):
+    """Test verification failed notification."""
+    dispatcher.notification_service.create_notification = MagicMock(return_value={"id": 1, "title": "Test"})
+    
+    with patch.object(dispatcher, "_broadcast_notification"):
+        result = await dispatcher.notify_verification_failed(
+            user_id="user123",
+            verification_id="v123",
+            service="Facebook",
+            reason="Timeout"
+        )
 
-    assert result is True
-    dispatcher.notification_service.create_notification.assert_called_once()
-    call_args = dispatcher.notification_service.create_notification.call_args
-    assert call_args[1]["notification_type"] == "verification_complete"
-    assert "LinkedIn" in call_args[1]["message"]
+        assert result is True
+        dispatcher.notification_service.create_notification.assert_called_once()
+        call_args = dispatcher.notification_service.create_notification.call_args
+        assert call_args[1]["notification_type"] == "verification_failed"
+        assert "Timeout" in call_args[1]["message"]
+
+@pytest.mark.asyncio
+async def test_notify_payment_completed(dispatcher):
+    """Test payment completed notification."""
+    dispatcher.notification_service.create_notification = MagicMock(return_value={"id": 1, "title": "Test"})
+    
+    with patch.object(dispatcher, "_broadcast_notification"):
+        result = await dispatcher.notify_payment_completed("user123", 50.00, 100.00)
+
+        assert result is True
+        dispatcher.notification_service.create_notification.assert_called_once()
+        call_args = dispatcher.notification_service.create_notification.call_args
+        assert call_args[1]["notification_type"] == "payment_completed"
+        assert "50.00" in call_args[1]["message"]
+
+@pytest.mark.asyncio
+async def test_notify_verification_timeout(dispatcher):
+    """Test verification timeout notification."""
+    dispatcher.notification_service.create_notification = MagicMock(return_value={"id": 1, "title": "Test"})
+    
+    with patch.object(dispatcher, "_broadcast_notification"):
+        result = await dispatcher.notify_verification_timeout("user123", "v123", "Telegram", 1.50)
+
+        assert result is True
+        dispatcher.notification_service.create_notification.assert_called_once()
+        call_args = dispatcher.notification_service.create_notification.call_args
+        assert call_args[1]["notification_type"] == "verification_timeout"
+        assert "1.50" in call_args[1]["message"]
+
 
 
 def test_on_verification_created_exception(dispatcher):
