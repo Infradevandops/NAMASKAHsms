@@ -20,7 +20,6 @@ const ServiceStore = {
     CACHE_KEY: 'nsk_services_v4',
     CACHE_TTL: 6 * 60 * 60 * 1000,  // 6 hours
     STALE_THRESHOLD: 3 * 60 * 60 * 1000,  // 3 hours
-    MIN_SERVICES: 20,
     
     /**
      * Initialize store - load from cache or API
@@ -56,7 +55,7 @@ const ServiceStore = {
     },
     
     /**
-     * Fetch services from API
+     * Fetch services from API with retry logic
      */
     async fetch() {
         if (this.loading) return;
@@ -64,62 +63,85 @@ const ServiceStore = {
         this.loading = true;
         this.error = null;
         
-        try {
-            const token = localStorage.getItem('access_token');
-            const ctrl = new AbortController();
-            const tid = setTimeout(() => ctrl.abort(), 15000);
-            
-            const res = await fetch('/api/countries/US/services', {
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
-                signal: ctrl.signal
-            });
-            clearTimeout(tid);
-            
-            // Handle 401 - retry without auth (endpoint is public)
-            let finalRes = res;
-            if (res.status === 401) {
-                const retryRes = await fetch('/api/countries/US/services');
-                if (!retryRes.ok) throw new Error('fetch failed after 401 retry');
-                finalRes = retryRes;
-            } else if (!res.ok) {
-                throw new Error(`fetch failed: ${res.status}`);
+        const maxRetries = 3;
+        let lastError = null;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const token = localStorage.getItem('access_token');
+                const ctrl = new AbortController();
+                const tid = setTimeout(() => ctrl.abort(), 15000);
+                
+                const res = await fetch('/api/countries/US/services', {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                    signal: ctrl.signal
+                });
+                clearTimeout(tid);
+                
+                // Handle 401 - retry without auth (endpoint is public)
+                let finalRes = res;
+                if (res.status === 401) {
+                    const retryRes = await fetch('/api/countries/US/services');
+                    if (!retryRes.ok) throw new Error('fetch failed after 401 retry');
+                    finalRes = retryRes;
+                } else if (!res.ok) {
+                    throw new Error(`fetch failed: ${res.status}`);
+                }
+                
+                const data = await finalRes.json();
+                
+                // Check if API returned error
+                if (data.source === 'error' || data.error) {
+                    throw new Error(data.error || 'API returned error');
+                }
+                
+                const services = data.services || [];
+                
+                if (services.length === 0) {
+                    throw new Error('API returned zero services');
+                }
+                
+                // Success - update state and cache
+                this.services = services;
+                this.lastFetch = Date.now();
+                this.source = data.source || 'api';
+                this._saveToCache(services, this.source);
+                
+                console.log(`✅ ServiceStore: Loaded ${services.length} services from ${this.source}`);
+                this.loading = false;
+                return;
+                
+            } catch (e) {
+                lastError = e;
+                console.warn(`⚠️ ServiceStore: Attempt ${attempt}/${maxRetries} failed:`, e.message);
+                
+                if (attempt < maxRetries) {
+                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                    continue;
+                }
             }
-            
-            const data = await finalRes.json();
-            const services = data.services || [];
-            
-            if (services.length < this.MIN_SERVICES) {
-                throw new Error(`API returned only ${services.length} services`);
-            }
-            
-            // Success - update state and cache
-            this.services = services;
-            this.lastFetch = Date.now();
-            this.source = data.source || 'api';
-            this._saveToCache(services, this.source);
-            
-            console.log(`✅ ServiceStore: Loaded ${services.length} services from API`);
-            
-        } catch (e) {
-            console.error('❌ ServiceStore: API fetch failed:', e);
-            this.error = e.message;
-            
-            // Try stale cache as last resort
-            const staleCache = this._loadFromCache();
-            if (staleCache) {
-                this.services = staleCache.services;
-                this.lastFetch = staleCache.timestamp;
-                this.source = 'stale-cache';
-                const age = Math.round((Date.now() - staleCache.timestamp) / 60000);
-                console.warn(`⚠️ ServiceStore: Using stale cache (${staleCache.count} services, age: ${age}m)`);
-            } else {
-                // Ultimate fallback - should never happen (backend has 84-service fallback)
-                console.error('💥 ServiceStore: No cache available, services unavailable');
-                this.services = [];
-            }
-        } finally {
-            this.loading = false;
         }
+        
+        // All retries failed
+        console.error('❌ ServiceStore: All API attempts failed:', lastError);
+        this.error = lastError.message;
+        
+        // Try stale cache as last resort
+        const staleCache = this._loadFromCache();
+        if (staleCache && staleCache.services.length > 0) {
+            this.services = staleCache.services;
+            this.lastFetch = staleCache.timestamp;
+            this.source = 'stale-cache';
+            const age = Math.round((Date.now() - staleCache.timestamp) / 60000);
+            console.warn(`⚠️ ServiceStore: Using stale cache (${staleCache.count} services, age: ${age}m)`);
+        } else {
+            // NO FALLBACK - throw error
+            console.error('💥 ServiceStore: No cache available, TextVerified API is required');
+            this.services = [];
+            throw new Error('TextVerified API is unavailable and no cached data exists. Please contact support.');
+        }
+        
+        this.loading = false;
     },
     
     /**
@@ -218,9 +240,9 @@ const ServiceStore = {
                 return null;
             }
             
-            // Reject if too few services (corrupted cache)
-            if (cached.services.length < this.MIN_SERVICES) {
-                console.warn(`⚠️ ServiceStore: Cache rejected (only ${cached.services.length} services)`);
+            // Reject if zero services (corrupted cache)
+            if (cached.services.length === 0) {
+                console.warn(`⚠️ ServiceStore: Cache rejected (empty)`);
                 return null;
             }
             
@@ -255,7 +277,7 @@ const ServiceStore = {
      */
     _isCacheValid(cached) {
         const age = Date.now() - cached.timestamp;
-        return age < this.CACHE_TTL && cached.services.length >= this.MIN_SERVICES;
+        return age < this.CACHE_TTL && cached.services.length > 0;
     },
     
     /**

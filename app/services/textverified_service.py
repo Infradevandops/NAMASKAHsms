@@ -75,48 +75,68 @@ class TextVerifiedService:
     # ------------------------------------------------------------------
 
     async def get_area_codes_list(self) -> List[Dict[str, Any]]:
-        """Fetch live area codes from TextVerified API."""
+        """Fetch live area codes from TextVerified API with aggressive caching."""
         if not self.enabled:
             return []
 
-        # Use unified_cache
         from app.core.unified_cache import cache
 
+        # Try cache first (accept stale cache during outages)
         try:
             cached = await cache.get(_AREA_CODES_CACHE_KEY)
             if cached:
+                logger.debug(f"Area codes from cache: {len(cached)} codes")
                 return cached
-        except Exception:
-            pass
-
-        try:
-            codes = await asyncio.wait_for(
-                asyncio.to_thread(self.client.services.area_codes), timeout=10.0
-            )
-            result = [{"area_code": c.area_code, "state": c.state} for c in codes]
-            try:
-                await cache.set(_AREA_CODES_CACHE_KEY, result, _AREA_CODES_TTL)
-            except Exception:
-                pass
-            return result
         except Exception as e:
-            logger.error(f"Failed to get area codes: {e}")
-            return []
+            logger.warning(f"Cache read failed: {e}")
+
+        # Fetch from API with retry
+        for attempt in range(3):
+            try:
+                codes = await asyncio.wait_for(
+                    asyncio.to_thread(self.client.services.area_codes), timeout=15.0
+                )
+                result = [{"area_code": c.area_code, "state": c.state} for c in codes]
+                
+                # Cache aggressively (24 hours instead of 2)
+                try:
+                    await cache.set(_AREA_CODES_CACHE_KEY, result, 86400)
+                    logger.info(f"Cached {len(result)} area codes for 24h")
+                except Exception as e:
+                    logger.warning(f"Cache write failed: {e}")
+                
+                return result
+                
+            except asyncio.TimeoutError:
+                logger.warning(f"Area codes API timeout (attempt {attempt + 1}/3)")
+                if attempt < 2:
+                    await asyncio.sleep(1)  # Brief delay before retry
+                continue
+            except Exception as e:
+                logger.error(f"Failed to get area codes (attempt {attempt + 1}/3): {e}")
+                if attempt < 2:
+                    await asyncio.sleep(1)
+                continue
+        
+        # All retries failed
+        logger.error("Area codes API failed after 3 attempts")
+        return []
 
     async def _get_area_codes_by_state(self) -> Dict[str, List[str]]:
         """
         Return {state: [area_code, ...]} built entirely from the live
-        TextVerified area-codes endpoint. Result is cached for 2 hours.
+        TextVerified area-codes endpoint. Result is cached for 24 hours.
         """
-        # Use unified_cache
         from app.core.unified_cache import cache
 
+        # Try cache first
         try:
             cached = await cache.get(_AC_STATE_CACHE_KEY)
             if cached:
+                logger.debug(f"Area codes by state from cache: {len(cached)} states")
                 return cached
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Cache read failed: {e}")
 
         # Fetch live from TextVerified
         codes = await self.get_area_codes_list()
@@ -134,16 +154,16 @@ class TextVerifiedService:
             if state and ac:
                 by_state.setdefault(state, []).append(ac)
 
-        # Cache
+        # Cache for 24 hours (same as area codes list)
         try:
-            await cache.set(_AC_STATE_CACHE_KEY, by_state, _AC_STATE_TTL)
-        except Exception:
-            pass
+            await cache.set(_AC_STATE_CACHE_KEY, by_state, 86400)
+            logger.info(
+                f"Cached area-code-by-state index: {len(by_state)} states, "
+                f"{sum(len(v) for v in by_state.values())} codes (24h TTL)"
+            )
+        except Exception as e:
+            logger.warning(f"Cache write failed: {e}")
 
-        logger.info(
-            f"Built live area-code-by-state index: {len(by_state)} states, "
-            f"{sum(len(v) for v in by_state.values())} codes"
-        )
         return by_state
 
     async def _build_area_code_preference(self, requested: str) -> List[str]:
@@ -191,12 +211,17 @@ class TextVerifiedService:
 
     async def get_services_list(self) -> List[Dict[str, Any]]:
         """Fetch live services from TextVerified API.
-
-        Phase 1: Return service names immediately (fast, <2s).
-        Pricing is fetched separately via get_services_with_pricing() and cached 24h.
+        
+        CRITICAL: This MUST return live data from TextVerified.
+        If API fails, return empty list - DO NOT use fallbacks.
+        Frontend will show error and prevent purchases.
         """
         if not self.enabled:
-            return self._mock_services()
+            logger.error("TextVerified service is DISABLED - check API credentials")
+            raise RuntimeError(
+                "TextVerified API is not configured. "
+                "Set TEXTVERIFIED_API_KEY and TEXTVERIFIED_USERNAME environment variables."
+            )
 
         from app.core.unified_cache import cache
 
@@ -204,47 +229,77 @@ class TextVerifiedService:
         try:
             cached = await cache.get(_SERVICES_CACHE_KEY)
             if cached:
+                logger.info(f"Returning {len(cached)} services from cache")
                 return cached
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"Cache read failed: {e}")
 
         # Fast path: fetch only service names (no per-service pricing calls)
         try:
             cached_names = await cache.get(_SERVICES_NAMES_CACHE_KEY)
             if cached_names:
+                logger.info(f"Returning {len(cached_names)} services from names cache")
                 return cached_names
-        except Exception:
-            pass
-
-        try:
-            services = await asyncio.wait_for(
-                asyncio.to_thread(
-                    self.client.services.list,
-                    NumberType.MOBILE,
-                    ReservationType.VERIFICATION,
-                ),
-                timeout=15.0,
-            )
-            # Return with default price immediately — pricing populated async via batch
-            result = [
-                {
-                    "id": s.service_name,
-                    "name": s.service_name.title(),
-                    "price": 2.50,
-                    "cost": 2.50,
-                }
-                for s in services
-            ]
-            try:
-                await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
-            except Exception:
-                pass
-            # Kick off background pricing fetch without blocking
-            asyncio.create_task(self._fetch_and_cache_pricing(services))
-            return result
         except Exception as e:
-            logger.error(f"Failed to get services: {e}")
-            return self._mock_services()
+            logger.warning(f"Names cache read failed: {e}")
+
+        # Fetch from TextVerified API with retry
+        last_error = None
+        for attempt in range(3):
+            try:
+                logger.info(f"Fetching services from TextVerified API (attempt {attempt + 1}/3)...")
+                services = await asyncio.wait_for(
+                    asyncio.to_thread(
+                        self.client.services.list,
+                        NumberType.MOBILE,
+                        ReservationType.VERIFICATION,
+                    ),
+                    timeout=15.0,
+                )
+                
+                if not services:
+                    logger.error("TextVerified API returned empty services list")
+                    raise RuntimeError("TextVerified API returned no services")
+                
+                result = [
+                    {
+                        "id": s.service_name,
+                        "name": s.service_name.title(),
+                        "price": 2.50,
+                        "cost": 2.50,
+                    }
+                    for s in services
+                ]
+                
+                logger.info(f"Successfully fetched {len(result)} services from TextVerified API")
+                
+                try:
+                    await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
+                except Exception as e:
+                    logger.warning(f"Failed to cache services: {e}")
+                
+                asyncio.create_task(self._fetch_and_cache_pricing(services))
+                return result
+                
+            except asyncio.TimeoutError:
+                last_error = "TextVerified API is not responding"
+                logger.warning(f"TextVerified API timeout (attempt {attempt + 1}/3)")
+                if attempt < 2:
+                    await asyncio.sleep(1)
+                continue
+            except RuntimeError:
+                raise  # Don't retry on empty response
+            except Exception as e:
+                last_error = str(e)
+                logger.warning(f"TextVerified API error (attempt {attempt + 1}/3): {e}")
+                if attempt < 2:
+                    await asyncio.sleep(1)
+                continue
+        
+        logger.error(f"TextVerified API failed after 3 attempts: {last_error}")
+        raise RuntimeError(
+            f"TextVerified API failed after 3 attempts. Please try again in a few moments."
+        )
 
     async def _fetch_and_cache_pricing(self, services) -> None:
         """Background task: fetch all service prices and update 24h cache."""
@@ -287,18 +342,13 @@ class TextVerifiedService:
             logger.error(f"Background pricing fetch failed: {e}")
 
     def _mock_services(self) -> List[Dict[str, Any]]:
-        return [
-            {"id": "whatsapp", "name": "WhatsApp", "price": 2.50},
-            {"id": "telegram", "name": "Telegram", "price": 2.00},
-            {"id": "discord", "name": "Discord", "price": 2.25},
-            {"id": "instagram", "name": "Instagram", "price": 2.75},
-            {"id": "facebook", "name": "Facebook", "price": 2.50},
-            {"id": "google", "name": "Google", "price": 2.00},
-            {"id": "twitter", "name": "Twitter", "price": 2.50},
-            {"id": "microsoft", "name": "Microsoft", "price": 2.25},
-            {"id": "amazon", "name": "Amazon", "price": 2.50},
-            {"id": "uber", "name": "Uber", "price": 2.75},
-        ]
+        """DEPRECATED: Do not use. This method should never be called.
+        All services must come from TextVerified API.
+        """
+        logger.error("_mock_services() called - this should never happen in production")
+        raise RuntimeError(
+            "Mock services are disabled. TextVerified API must be configured."
+        )
 
     async def create_verification(
         self,
@@ -381,12 +431,10 @@ class TextVerifiedService:
 
     # Backward compat alias used by verification_routes.py
     def _build_carrier_preference(self, carrier: str) -> List[str]:
-        """Return ordered carrier preference list with fallbacks."""
-        all_carriers = ["verizon", "att", "tmobile", "sprint", "us_cellular"]
+        """Return carrier preference list. Requested carrier is first and only option
+        to ensure the assigned number matches the user's selection."""
         normalized = carrier.lower().replace(" ", "_").replace("&", "")
-        # Put requested first, then remaining in default order
-        others = [c for c in all_carriers if c != normalized]
-        return [normalized] + others
+        return [normalized]
 
     async def purchase_number(
         self,
