@@ -471,12 +471,14 @@ function selectImmersiveItem(value, label, price) {
         const costEl = document.getElementById('selected-service-cost');
         if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
         
-        // Show advanced options after service selection
+        // Show advanced options for PAYG+ users after service selection
+        const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
         const advSection = document.getElementById('advanced-options-section');
-        if (advSection) advSection.style.display = 'block';
+        if (advSection && rank >= 1) {
+            advSection.style.display = 'block';
+        }
         
         // Show upsell for freemium users
-        const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
         const upsell = document.getElementById('freemium-upsell');
         if (upsell && rank < 1) upsell.style.display = 'block';
         
@@ -514,8 +516,12 @@ function clearServiceSelection() {
     document.getElementById('service-selected-display').style.display = 'none';
     document.getElementById('service-search-input').value = '';
     document.getElementById('continue-btn').disabled = true;
+    
+    // Hide advanced options when service is cleared
     const advSection = document.getElementById('advanced-options-section');
     if (advSection) advSection.style.display = 'none';
+    
+    // Hide upsell
     const upsell = document.getElementById('freemium-upsell');
     if (upsell) upsell.style.display = 'none';
 }
@@ -637,10 +643,6 @@ async function loadServices() {
         
         _modalItems['service'] = _buildServiceItems(services);
         console.log(`✅ Loaded ${services.length} services from TextVerified API`);
-        
-        // Show advanced options after services load
-        const advSection = document.getElementById('advanced-options-section');
-        if (advSection) advSection.style.display = 'block';
         
         // Subscribe to updates
         window.ServiceStore.subscribe((updatedServices) => {
