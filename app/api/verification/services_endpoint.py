@@ -57,6 +57,44 @@ async def get_services(country: str):
     except RuntimeError as e:
         # TextVerified API is not configured or failed
         logger.error(f"TextVerified API error for {country}: {str(e)}")
+
+        # In development mode, return well-known fallback services
+        # so the UI is usable without live API credentials
+        if settings.environment == "development":
+            logger.warning("DEV MODE: Returning fallback service list")
+            dev_services = [
+                {"id": "telegram", "name": "Telegram"},
+                {"id": "whatsapp", "name": "WhatsApp"},
+                {"id": "instagram", "name": "Instagram"},
+                {"id": "facebook", "name": "Facebook"},
+                {"id": "twitter", "name": "Twitter / X"},
+                {"id": "google", "name": "Google / Gmail"},
+                {"id": "tiktok", "name": "TikTok"},
+                {"id": "discord", "name": "Discord"},
+                {"id": "snapchat", "name": "Snapchat"},
+                {"id": "uber", "name": "Uber"},
+                {"id": "amazon", "name": "Amazon"},
+                {"id": "paypal", "name": "PayPal"},
+                {"id": "linkedin", "name": "LinkedIn"},
+                {"id": "microsoft", "name": "Microsoft"},
+                {"id": "apple", "name": "Apple"},
+            ]
+            base_price = 2.50
+            return {
+                "services": [
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "price": round(base_price * settings.price_markup, 2),
+                        "cost": round(base_price * settings.price_markup, 2),
+                    }
+                    for s in dev_services
+                ],
+                "total": len(dev_services),
+                "source": "dev-fallback",
+                "dev_mode": True,
+            }
+
         return {
             "services": [],
             "total": 0,
@@ -127,6 +165,43 @@ async def get_services_batch_pricing(country: str):
 
     except RuntimeError as e:
         logger.error(f"TextVerified API error for {country}: {str(e)}")
+
+        # Dev-mode fallback (mirrors main endpoint)
+        if settings.environment == "development":
+            logger.warning("DEV MODE: Returning fallback batch pricing")
+            dev_services = [
+                {"id": "telegram", "name": "Telegram"},
+                {"id": "whatsapp", "name": "WhatsApp"},
+                {"id": "instagram", "name": "Instagram"},
+                {"id": "facebook", "name": "Facebook"},
+                {"id": "twitter", "name": "Twitter / X"},
+                {"id": "google", "name": "Google / Gmail"},
+                {"id": "tiktok", "name": "TikTok"},
+                {"id": "discord", "name": "Discord"},
+                {"id": "snapchat", "name": "Snapchat"},
+                {"id": "uber", "name": "Uber"},
+                {"id": "amazon", "name": "Amazon"},
+                {"id": "paypal", "name": "PayPal"},
+                {"id": "linkedin", "name": "LinkedIn"},
+                {"id": "microsoft", "name": "Microsoft"},
+                {"id": "apple", "name": "Apple"},
+            ]
+            base_price = 2.50
+            return {
+                "services": [
+                    {
+                        "id": s["id"],
+                        "name": s["name"],
+                        "price": round(base_price * settings.price_markup, 2),
+                        "cost": round(base_price * settings.price_markup, 2),
+                    }
+                    for s in dev_services
+                ],
+                "total": len(dev_services),
+                "source": "dev-fallback",
+                "dev_mode": True,
+            }
+
         return {
             "services": [],
             "total": 0,
