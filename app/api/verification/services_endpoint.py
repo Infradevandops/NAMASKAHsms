@@ -13,7 +13,7 @@ from app.core.unified_cache import cache
 from app.services.textverified_service import TextVerifiedService
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/api/countries", tags=["Services"])
+router = APIRouter(prefix="/countries", tags=["Services"])
 _tv = TextVerifiedService()
 
 # Fallback services (always available) — 84 services

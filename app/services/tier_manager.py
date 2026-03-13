@@ -25,19 +25,17 @@ class TierManager:
             return "freemium"  # Default to freemium for non-existent users
 
         # Check if paid tier has expired
-        if user.tier in ["pro", "custom"]:
-            expires = getattr(user, "tier_expires_at", None)
-        if expires:
+        expires = getattr(user, "tier_expires_at", None)
+        if expires and user.subscription_tier in ["pro", "custom"]:
             if expires.tzinfo is None:
                 expires = expires.replace(tzinfo=timezone.utc)
 
-        if expires < datetime.now(timezone.utc):
-            logger.warning(f"User {user_id} tier expired, downgrading to freemium")
-            user.tier = "freemium"
-            self.db.commit()
-        return "freemium"
+            if expires < datetime.now(timezone.utc):
+                logger.warning(f"User {user_id} tier expired, downgrading to freemium")
+                user.subscription_tier = "freemium"
+                self.db.commit()
 
-        return user.tier or "freemium"
+        return user.subscription_tier or "freemium"
 
     def check_feature_access(self, user_id: str, feature: str) -> bool:
         """Check if user has access to a specific feature."""
@@ -86,7 +84,7 @@ class TierManager:
         if new_tier not in valid_tiers:
             return False
 
-        user.tier = new_tier
+        user.subscription_tier = new_tier
         if expires_at:
             user.tier_expires_at = expires_at
 
@@ -100,7 +98,7 @@ class TierManager:
         if not user:
             return False
 
-        user.tier = "freemium"
+        user.subscription_tier = "freemium"
         user.tier_expires_at = None
 
         self.db.commit()

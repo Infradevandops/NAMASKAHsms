@@ -5,7 +5,7 @@ from datetime import date, datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.tier_config_simple import TIER_CONFIG
+from app.core.tier_config import TierConfig
 from app.models.user import User
 from app.models.user_quota import MonthlyQuotaUsage
 
@@ -28,7 +28,7 @@ class QuotaService:
         )
 
         user = db.query(User).filter(User.id == user_id).first()
-        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        tier = TierConfig.get_tier_config(user.subscription_tier, db)
         quota_limit = tier.get("quota_usd", 0)
 
         if not usage:
@@ -89,7 +89,7 @@ class QuotaService:
 
         if quota_used + cost > quota_limit:
             user = db.query(User).filter(User.id == user_id).first()
-            tier = TIER_CONFIG.get(user.subscription_tier, {})
+            tier = TierConfig.get_tier_config(user.subscription_tier, db)
             overage_rate = tier.get("overage_rate", 0)
             overage_amount = (quota_used + cost) - quota_limit
             return overage_amount * overage_rate
@@ -109,5 +109,5 @@ class QuotaService:
     def get_overage_rate(db: Session, user_id: str) -> float:
         """Get overage rate for user's tier."""
         user = db.query(User).filter(User.id == user_id).first()
-        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        tier = TierConfig.get_tier_config(user.subscription_tier, db)
         return tier.get("overage_rate", 0)

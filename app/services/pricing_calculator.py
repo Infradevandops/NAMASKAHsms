@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 
-from app.core.tier_config_simple import TIER_CONFIG
+from app.core.tier_config import TierConfig
 from app.models.user import User
 from app.services.quota_service import QuotaService
 
@@ -17,16 +17,30 @@ class PricingCalculator:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()
-        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        tier = TierConfig.get_tier_config(user.subscription_tier, db)
 
         base_cost = tier.get("base_sms_cost", 2.50)
 
         filter_charges = 0.0
         if user.subscription_tier == "payg":
-            if filters.get("state") or filters.get("city"):
-                filter_charges += 0.25
-            if filters.get("isp"):
-                filter_charges += 0.50
+            # Area code premiums
+            ac = filters.get("area_code")
+            if ac:
+                # Use variable premiums for major cities, default to 0.25
+                ac_premiums = {
+                    "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
+                    "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
+                }
+                filter_charges += ac_premiums.get(str(ac), 0.25)
+            
+            # Carrier premiums
+            carrier = filters.get("carrier")
+            if carrier:
+                c_premiums = {
+                    "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
+                    "att": 0.20, "at&t": 0.20, "sprint": 0.20
+                }
+                filter_charges += c_premiums.get(str(carrier).lower(), 0.50)
 
         if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
@@ -56,10 +70,21 @@ class PricingCalculator:
 
         if user.subscription_tier == "payg":
             charges = 0.0
-            if filters.get("state") or filters.get("city"):
-                charges += 0.25
-            if filters.get("isp"):
-                charges += 0.50
+            ac = filters.get("area_code")
+            if ac:
+                ac_premiums = {
+                    "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
+                    "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
+                }
+                charges += ac_premiums.get(str(ac), 0.25)
+            
+            carrier = filters.get("carrier")
+            if carrier:
+                c_premiums = {
+                    "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
+                    "att": 0.20, "at&t": 0.20, "sprint": 0.20
+                }
+                charges += c_premiums.get(str(carrier).lower(), 0.50)
             return charges
 
         return 0.0
@@ -81,7 +106,7 @@ class PricingCalculator:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()
-        tier = TIER_CONFIG.get(user.subscription_tier, {})
+        tier = TierConfig.get_tier_config(user.subscription_tier, db)
 
         cost_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
         quota_info = QuotaService.get_monthly_usage(db, user_id)

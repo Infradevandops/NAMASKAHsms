@@ -101,9 +101,8 @@ class TestServiceStore:
         # Search for "app"
         query = "app"
         results = [s for s in services if query.lower() in s["name"].lower()]
-        assert len(results) == 2  # WhatsApp, Instagram
+        assert len(results) == 1  # WhatsApp
         assert any(s["id"] == "whatsapp" for s in results)
-        assert any(s["id"] == "instagram" for s in results)
         
         # Search for "telegram"
         query = "telegram"

@@ -230,3 +230,12 @@ class TierConfig:
             cls._get_fallback_config(tier)
             for tier in ["freemium", "payg", "pro", "custom"]
         ]
+
+
+# Backward compatibility with tier_config_simple
+TIER_CONFIG = {
+    "freemium": TierConfig._get_fallback_config("freemium"),
+    "payg": TierConfig._get_fallback_config("payg"),
+    "pro": TierConfig._get_fallback_config("pro"),
+    "custom": TierConfig._get_fallback_config("custom"),
+}

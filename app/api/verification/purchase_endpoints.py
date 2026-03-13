@@ -146,16 +146,15 @@ async def request_verification(
                 )
 
         # Calculate SMS cost using new pricing system
-
-        calculator = PricingCalculator(db)
         user_tier = user.subscription_tier or "freemium"
 
         # Get pricing for this SMS
-        pricing_info = calculator.calculate_sms_cost(user_id, user_tier)
-        sms_cost = pricing_info["cost_per_sms"]
+        filters = {"area_code": area_code, "carrier": carrier} if area_code or carrier else None
+        pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
+        sms_cost = pricing_info["total_cost"]
 
         logger.info(
-            f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}, within quota: {pricing_info['within_quota']}"
+            f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}"
         )
 
         # Check user has sufficient credits BEFORE calling API
@@ -287,7 +286,8 @@ async def request_verification(
             )
 
         # Record usage for quota tracking
-        calculator.record_sms_usage(user_id, actual_cost)
+        from app.services.quota_service import QuotaService
+        QuotaService.add_quota_usage(db, user_id, actual_cost)
 
         # Low balance warning
         if new_balance < 5.0 and old_balance >= 5.0:
