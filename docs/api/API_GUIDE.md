@@ -75,10 +75,18 @@ Authorization: Bearer <token>
 ### Verification
 
 #### Create Verification
-- **POST** `/api/v1/verify/create`
-- **Auth**: Required
-- **Body**: `{"service_name": "telegram", "country": "US"}`
-- **Response**: Verification object
+- **Body**: 
+  ```json
+  {
+    "service": "telegram",
+    "country": "US",
+    "area_codes": ["212"],
+    "carriers": ["Verizon"],
+    "idempotency_key": "550e8400-e29b-41d4-a716-446655440000"
+  }
+  ```
+- **Response**: Verification object including `assigned_area_code`, `assigned_carrier`, `fallback_applied`, and `same_state_fallback`.
+- **Note**: Area code matching is best-effort (fallback occurs if unavailable). Carrier matching is **STRICT** (fails with 409 if unavailable).
 
 #### Get Verification Status
 - **GET** `/api/v1/verify/{verification_id}`
@@ -128,8 +136,10 @@ Authorization: Bearer <token>
 | 402 | Payment Required | Insufficient credits |
 | 403 | Forbidden | CSRF token invalid |
 | 404 | Not Found | Resource not found |
+| 409 | Conflict | Requested carrier unavailable (Strict enforcement) |
 | 422 | Validation Error | Invalid input data |
 | 500 | Internal Server Error | Server error |
+| 503 | Service Unavailable | SMS provider temporarily down |
 
 ---
 

@@ -45,6 +45,12 @@ class VerificationStatusService:
                     "phone_number": verification.phone_number,
                     "sms_code": verification.sms_code,
                     "sms_text": verification.sms_text,
+                    "assigned_carrier": verification.assigned_carrier,
+                    "assigned_area_code": verification.assigned_area_code,
+                    "requested_carrier": verification.requested_carrier,
+                    "requested_area_code": verification.requested_area_code,
+                    "fallback_applied": verification.fallback_applied,
+                    "same_state_fallback": verification.same_state_fallback,
                     "updated_at": (
                         verification.updated_at.isoformat()
                         if verification.updated_at
@@ -87,6 +93,12 @@ class VerificationStatusService:
                 "sms_code": verification.sms_code,
                 "sms_text": verification.sms_text,
                 "service_name": verification.service_name,
+                "assigned_carrier": verification.assigned_carrier,
+                "assigned_area_code": verification.assigned_area_code,
+                "requested_carrier": verification.requested_carrier,
+                "requested_area_code": verification.requested_area_code,
+                "fallback_applied": verification.fallback_applied,
+                "same_state_fallback": verification.same_state_fallback,
                 "created_at": verification.created_at.isoformat(),
                 "updated_at": (
                     verification.updated_at.isoformat()

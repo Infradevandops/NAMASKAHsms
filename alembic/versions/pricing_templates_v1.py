@@ -37,7 +37,7 @@ def upgrade():
         sa.Column(
             "created_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
         ),
-        sa.Column("created_by", sa.String(), nullable=True),
+        sa.Column("created_by", sa.dialects.postgresql.UUID(as_uuid=True) if bind.dialect.name == 'postgresql' else sa.UUID(), nullable=True),
         sa.Column("effective_date", sa.TIMESTAMP(), nullable=True),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=True),
         sa.Column("metadata", postgresql.JSONB(), nullable=True),
@@ -76,7 +76,7 @@ def upgrade():
         sa.Column("template_id", sa.Integer(), nullable=True),
         sa.Column("action", sa.String(50), nullable=False),
         sa.Column("previous_template_id", sa.Integer(), nullable=True),
-        sa.Column("changed_by", sa.String(), nullable=True),
+        sa.Column("changed_by", sa.dialects.postgresql.UUID(as_uuid=True) if bind.dialect.name == 'postgresql' else sa.UUID(), nullable=True),
         sa.Column(
             "changed_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
         ),
@@ -95,7 +95,7 @@ def upgrade():
     # 4. Create user_pricing_assignments table (for A/B testing)
     op.create_table(
         "user_pricing_assignments",
-        sa.Column("user_id", sa.String(), nullable=False),
+        sa.Column("user_id", sa.dialects.postgresql.UUID(as_uuid=True) if bind.dialect.name == 'postgresql' else sa.UUID(), nullable=False),
         sa.Column("template_id", sa.Integer(), nullable=False),
         sa.Column(
             "assigned_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
