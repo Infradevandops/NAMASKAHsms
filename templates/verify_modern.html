@@ -130,6 +130,9 @@
         <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
             <button class="btn btn-secondary" onclick="history.back()">Back</button>
             <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>Continue →</button>
+        </div>
+    </div>
+
     <!-- Immersive Modal Container (Task 3) -->
     <div id="immersive-modal-container"></div>
 
@@ -328,6 +331,11 @@ function openImmersiveModal(type) {
     });
 
     renderImmersiveList(type);
+    if (type === 'area-code' && (!_modalItems['area-code'] || _modalItems['area-code'].length === 0)) {
+        loadAreaCodes().then(() => renderImmersiveList('area-code'));
+    } else if (type === 'carrier' && (!_modalItems['carrier'] || _modalItems['carrier'].length === 0)) {
+        loadCarriers().then(() => renderImmersiveList('carrier'));
+    }
     setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
 }
 
@@ -383,27 +391,41 @@ function renderImmersiveList(type, query = '') {
 }
 
 function renderImmersiveItem(item, isPinned) {
-    const iconUrl = _getServiceIcon(item.value);
-    const costDisplay = item.price ? `$${item.price.toFixed(2)}` : 'Market';
-    
-    return `
-        <div class="list-item" onclick="selectImmersiveItem('${item.value}', '${item.label}', ${item.price || 0})">
-            <div class="list-item-icon">
-                <img src="${iconUrl}" onerror="this.src='/static/img/services/default.png'">
+    if (_modalType === 'service') {
+        const iconUrl = _getServiceIcon(item.value);
+        const costDisplay = item.price ? `$${item.price.toFixed(2)}` : 'Market';
+        return `
+            <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'")  }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})">
+                <div class="list-item-icon">
+                    <img src="${iconUrl}" onerror="this.style.display='none'">
+                </div>
+                <div class="list-item-info">
+                    <div class="list-item-name">${item.label}</div>
+                </div>
+                <div class="list-item-cost">${costDisplay}</div>
+                <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')">
+                    <i class="fas fa-thumbtack"></i>
+                </div>
             </div>
-            <div class="list-item-info">
-                <div class="list-item-name">${item.label}</div>
+        `;
+    } else {
+        // Area code or carrier — simple row, no icon/pin
+        const sub = item.sub ? `<div style="font-size:11px;color:#9ca3af;">${item.sub}</div>` : '';
+        const right = item.price ? `<div style="font-size:13px;font-weight:600;color:#374151;">+$${item.price.toFixed(2)}</div>` : '';
+        return `
+            <div class="list-item" onclick="selectImmersiveItem('${item.value.replace(/'/g,"\\'") }', '${item.label.replace(/'/g,"\\'") }', ${item.price || 0})" style="padding:12px 16px;">
+                <div class="list-item-info" style="flex:1;">
+                    <div class="list-item-name">${item.label}</div>
+                    ${sub}
+                </div>
+                ${right}
             </div>
-            <div class="list-item-cost">${costDisplay}</div>
-            <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value}')">
-                <i class="fas fa-thumbtack"></i>
-            </div>
-        </div>
-    `;
+        `;
+    }
 }
 
 function filterImmersiveModal(val) {
-    renderImmersiveList('service', val);
+    renderImmersiveList(_modalType, val);
 }
 
 function toggleModalFilters() {
@@ -445,16 +467,27 @@ function selectImmersiveItem(value, label, price) {
         
         input.value = label;
         display.style.display = 'flex';
-        document.getElementById('selected-service-name').textContent = label;
-        document.getElementById('selected-service-cost').textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
+        document.getElementById('service-display').textContent = label;
+        const costEl = document.getElementById('selected-service-cost');
+        if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
+        
+        // Show advanced options after service selection
+        const advSection = document.getElementById('advanced-options-section');
+        if (advSection) advSection.style.display = 'block';
+        
+        // Show upsell for freemium users
+        const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
+        const upsell = document.getElementById('freemium-upsell');
+        if (upsell && rank < 1) upsell.style.display = 'block';
+        
     } else if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
         const acInput = document.getElementById('area-code-search-input');
         const clearBtn = document.getElementById('clear-ac-btn');
-        if (acInput) acInput.value = value || '';
+        if (acInput) acInput.value = label || '';
         if (clearBtn) clearBtn.style.display = value ? 'block' : 'none';
         
-        // Persist to server (Task 3.4)
+        // Persist to server
         if (value) {
             const token = localStorage.getItem('access_token');
             fetch('/api/user/verification/area-codes', {
@@ -590,47 +623,48 @@ function _buildServiceItems(services) {
     ];
 }
 
-// Hardcoded fallback services (always available)
-const FALLBACK_SERVICES = [
-    {id: 'whatsapp', name: 'WhatsApp', price: 2.50},
-    {id: 'telegram', name: 'Telegram', price: 2.00},
-    {id: 'google', name: 'Google', price: 2.00},
-    {id: 'discord', name: 'Discord', price: 2.25},
-    {id: 'instagram', name: 'Instagram', price: 2.75},
-    {id: 'facebook', name: 'Facebook', price: 2.50},
-    {id: 'twitter', name: 'Twitter', price: 2.50},
-    {id: 'apple', name: 'Apple', price: 2.50},
-    {id: 'microsoft', name: 'Microsoft', price: 2.25},
-    {id: 'amazon', name: 'Amazon', price: 2.50},
-    {id: 'uber', name: 'Uber', price: 2.75},
-    {id: 'netflix', name: 'Netflix', price: 2.50}
-];
+// NO FALLBACK SERVICES - All services MUST come from TextVerified API
+// If API is down, the platform should show an error, not fake data
 
 async function loadServices() {
     try {
         await window.ServiceStore.init();
         
         const services = window.ServiceStore.getAll();
-        if (services && services.length >= 20) {
-            _modalItems['service'] = _buildServiceItems(services);
-            console.log(`✅ Loaded ${services.length} services from ServiceStore`);
-        } else {
-            throw new Error('Insufficient services loaded');
+        if (!services || services.length === 0) {
+            throw new Error('No services available from API');
         }
+        
+        _modalItems['service'] = _buildServiceItems(services);
+        console.log(`✅ Loaded ${services.length} services from TextVerified API`);
+        
+        // Show advanced options after services load
+        const advSection = document.getElementById('advanced-options-section');
+        if (advSection) advSection.style.display = 'block';
         
         // Subscribe to updates
         window.ServiceStore.subscribe((updatedServices) => {
-            if (updatedServices && updatedServices.length >= 20) {
+            if (updatedServices && updatedServices.length > 0) {
                 _modalItems['service'] = _buildServiceItems(updatedServices);
                 console.log(`🔄 Updated to ${updatedServices.length} services`);
             }
         });
     } catch (error) {
-        console.error('❌ Failed to load services:', error);
+        console.error('❌ Failed to load services from TextVerified API:', error);
         
-        // Use hardcoded fallback
-        _modalItems['service'] = _buildServiceItems(FALLBACK_SERVICES);
-        console.log(`⚠️ Using ${FALLBACK_SERVICES.length} fallback services`);
+        // Show error to user - DO NOT use fallback
+        window.toast && window.toast.error(
+            'Unable to load services from provider. Please refresh the page or contact support if the issue persists.'
+        );
+        
+        // Disable service selection
+        const input = document.getElementById('service-search-input');
+        if (input) {
+            input.disabled = true;
+            input.placeholder = 'Services unavailable - please refresh page';
+        }
+        
+        _modalItems['service'] = [];
     }
 }
 
@@ -638,8 +672,15 @@ async function loadAreaCodes() {
     const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
     const input = document.getElementById('area-code-search-input');
     const lockMsg = document.getElementById('area-code-lock-msg');
-    if (rank < 1) { input.disabled = true; lockMsg.style.display = 'block'; return; }
-    input.disabled = false; lockMsg.style.display = 'none';
+    
+    // Always load area codes for modal display, but lock input for freemium
+    if (rank < 1) { 
+        if (input) input.disabled = true; 
+        if (lockMsg) lockMsg.style.display = 'block'; 
+    } else {
+        if (input) input.disabled = false; 
+        if (lockMsg) lockMsg.style.display = 'none';
+    }
 
     const cached = _lsGet(_LS_AREA_CODES_KEY);
     if (cached && cached.length > 1) { _modalItems['area-code'] = cached; return; }
@@ -654,7 +695,9 @@ async function loadAreaCodes() {
         const codes = data.area_codes || [];
         _modalItems['area-code'] = codes.map(c => ({ value: c.area_code, label: c.area_code, sub: `${c.city || ''}, ${c.state || ''}`.trim().replace(/^,\s*/, '') }));
         if (codes.length) _lsSet(_LS_AREA_CODES_KEY, _modalItems['area-code']);
+        console.log(`✅ Loaded ${codes.length} area codes from API`);
     } catch (e) {
+        console.error('❌ Failed to load area codes:', e);
         _modalItems['area-code'] = [];
     }
 }
@@ -662,23 +705,37 @@ async function loadAreaCodes() {
 async function loadCarriers() {
     const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
     const sel = document.getElementById('carrier-select-inline');
-    if (!sel) return;
-    if (rank < 1) { // Changed from 1 to allow PAYG (rank 1)
-        sel.disabled = true;
-        const lockMsg = document.getElementById('carrier-lock-msg');
-        if (lockMsg) lockMsg.style.display = 'block';
-        return;
+    
+    // Always load carriers for modal display, but lock select for freemium
+    if (sel) {
+        if (rank < 1) {
+            sel.disabled = true;
+            const lockMsg = document.getElementById('carrier-lock-msg');
+            if (lockMsg) lockMsg.style.display = 'block';
+        } else {
+            sel.disabled = false;
+            const lockMsg = document.getElementById('carrier-lock-msg');
+            if (lockMsg) lockMsg.style.display = 'none';
+        }
     }
-    sel.disabled = false;
-    const lockMsg = document.getElementById('carrier-lock-msg');
-    if (lockMsg) lockMsg.style.display = 'none';
 
     // Issue #7: carrier caching (24h localStorage)
     const _LS_CARRIERS_KEY = 'nsk_carriers_cache';
     const cached = _lsGet(_LS_CARRIERS_KEY, 24 * 60 * 60 * 1000);
-    if (cached) {
-        sel.innerHTML = cached;
-        sel.onchange = () => { VerificationFlow.selectedCarrier = sel.value || null; updatePricing(); };
+    if (cached && cached.length > 0) {
+        // Parse cached HTML to rebuild _modalItems
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cached;
+        const options = tempDiv.querySelectorAll('option');
+        _modalItems['carrier'] = Array.from(options)
+            .filter(opt => opt.value)
+            .map(opt => ({ value: opt.value, label: opt.textContent, price: 0.50 }));
+        
+        if (sel) {
+            sel.innerHTML = cached;
+            sel.onchange = () => { VerificationFlow.selectedCarrier = sel.value || null; updatePricing(); };
+        }
+        console.log(`✅ Loaded ${_modalItems['carrier'].length} carriers from cache`);
         return;
     }
 
@@ -692,17 +749,26 @@ async function loadCarriers() {
         const carriers = data.carriers || [];
         _modalItems['carrier'] = carriers.map(c => ({ value: c.id || c.name, label: c.name, price: c.price || 0.50 }));
         
-        sel.innerHTML = '<option value="">Any Carrier</option>' + 
+        const html = '<option value="">Any Carrier</option>' + 
             _modalItems['carrier'].map(c => `<option value="${c.value}">${c.label}</option>`).join('');
         
-        _lsSet(_LS_CARRIERS_KEY, sel.innerHTML);
-    } catch (e) {}
+        if (sel) {
+            sel.innerHTML = html;
+            sel.onchange = () => { VerificationFlow.selectedCarrier = sel.value || null; updatePricing(); };
+        }
+        
+        _lsSet(_LS_CARRIERS_KEY, html);
+        console.log(`✅ Loaded ${carriers.length} carriers from API`);
+    } catch (e) {
+        console.error('❌ Failed to load carriers:', e);
+        _modalItems['carrier'] = [];
+    }
 }
 
 // Create verification
 async function createVerification() {
     if (!VerificationFlow.selectedService) {
-        window.toast.error('Please select a service');
+        window.toast && window.toast.error('Please select a service');
         return;
     }
 
@@ -738,6 +804,8 @@ async function createVerification() {
         VerificationFlow.verificationId = data.verification_id;
 
         document.getElementById('phone-number').textContent = formatPhone(data.phone_number);
+        document.getElementById('display-verification-id').textContent = data.verification_id || '-';
+        
         if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
         updateProgress(3);
         startPolling();
@@ -749,24 +817,21 @@ async function createVerification() {
             const sameState = data.same_state !== false;
             showFallbackWarning(requestedCode, assignedCode, sameState);
         } else {
-            window.toast.success('Number received — waiting for SMS...');
+            window.toast && window.toast.success('Number received — waiting for SMS...');
         }
 
     } catch (error) {
         console.error('Error:', error);
         const msg = error.message || 'Failed to create verification';
+        
+        if (btn) { btn.disabled = false; btn.textContent = 'Get Number →'; }
+        
         if (msg.includes('Out of stock') || msg.includes('unavailable')) {
-            window.toast.error(`${VerificationFlow.selectedService} is temporarily unavailable. Please try a different service.`);
+            window.toast && window.toast.error(`${VerificationFlow.selectedService} is temporarily unavailable. Please try a different service.`);
         } else if (msg.includes('Insufficient')) {
-            window.toast.error('Insufficient balance. Please add credits to your wallet.');
+            window.toast && window.toast.error('Insufficient balance. Please add credits to your wallet.');
         } else {
-            window.toast.error(msg);
-        }
-    } finally {
-        if (data.success) {
-            VerificationFlow.verificationId = data.verification_id;
-            setStep(3);
-            startPolling();
+            window.toast && window.toast.error(msg);
         }
     }
 }
@@ -1072,15 +1137,7 @@ function _getServiceIcon(serviceId) {
 }
 
 // --- Area Codes & Tier Loading ---
-async function loadAreaCodes() {
-    try {
-        const res = await fetch('/api/verification/area-codes');
-        if (res.ok) {
-            const codes = await res.json();
-            _modalItems['area-code'] = codes.map(c => ({ value: c, label: c }));
-        }
-    } catch {}
-}
+// NOTE: full loadAreaCodes() is defined above (around line 530) — this stub is intentionally removed
 
 async function loadTier() {
     // Issue #3 fix: apply cached tier immediately, then validate in background
