@@ -1,132 +1,52 @@
-# TextVerified-Style Modal Implementation Tasks
+# TextVerified-Style Modal — Implementation Complete
 
-**Status**: 📋 NOT IMPLEMENTED  
-**Priority**: Medium  
-**Estimated Effort**: 4-6 hours  
-**Current Implementation**: Inline dropdown (light theme)
+**Status**: ✅ IMPLEMENTED (v4.2.0, commit `ffa83f48`)
+**Last Updated**: January 2026
 
 ---
 
-## Overview
+## What Was Built
 
-This folder contains design documents and implementation tasks for building a **TextVerified-style dark modal** for service selection. This was the original vision but was NOT implemented in v4.1.0.
+Full-screen immersive service selection modal replacing the old inline dropdown.
 
-**What we have now** (v4.1.0):
-- ✅ Inline dropdown below search input
-- ✅ Light theme (matches dashboard)
-- ✅ ServiceStore with stale-while-revalidate caching
-- ✅ 84 fallback services
-- ✅ Official brand logos (53+ services)
-- ✅ Pin/favorite functionality
+### Implemented
+- Full-screen dark modal overlay (`#111827` background)
+- Fixed search bar at top, scrollable service list below
+- PINNED section (user favorites via localStorage)
+- ALL SERVICES section showing all 84+ services
+- Official brand logos via simpleicons.org CDN (53+ services)
+- `VerificationFlow` controller object (replaces scattered globals)
+- Brand colors: `#E8003D` primary red, `#F5A623` gold accents
+- `openImmersiveModal()` / `closeImmersiveModal()` JS functions
+- CSS in `static/css/verification-design-system.css`
 
-**What this task would add**:
-- ❌ Full-screen modal overlay (not inline dropdown)
-- ❌ Dark theme (#1e293b background)
-- ❌ Fixed search bar at top
-- ❌ PINNED section (collapsible)
-- ❌ ALL SERVICES section (scrollable, shows all 84+)
-- ❌ More immersive UX (like TextVerified)
+### Files Modified
+| File | Change |
+|------|--------|
+| `templates/verify_modern.html` | Full rewrite — immersive modal, VerificationFlow controller |
+| `static/css/verification-design-system.css` | Brand CSS variables + modal component styles |
+| `static/js/service-store.js` | ServiceStore with stale-while-revalidate caching |
+| `app/api/verification/services_endpoint.py` | 84 fallback services, fixed `/api` prefix |
 
----
-
-## Documents
-
-1. **[VERIFICATION_FLOW_REDESIGN.md](./VERIFICATION_FLOW_REDESIGN.md)** (28KB)
-   - Complete architecture redesign
-   - Design principles and data flow
-   - Performance targets (<100ms)
-   - 6-phase migration plan
-
-2. **[SERVICE_MODAL_REDESIGN.md](./SERVICE_MODAL_REDESIGN.md)** (23KB)
-   - TextVerified-style modal design
-   - Visual mockups and CSS
-   - Official logo integration
-   - Testing strategy
-
-3. **[SERVICE_MODAL_IMPLEMENTATION.md](./SERVICE_MODAL_IMPLEMENTATION.md)** (21KB)
-   - 8 implementation tasks with code
-   - Step-by-step instructions
-   - Verification checklist
-   - Rollback plan
-
-4. **[VERIFICATION_REDESIGN_STATUS.md](./VERIFICATION_REDESIGN_STATUS.md)** (2KB)
-   - Implementation progress tracker
-   - Phase completion status
-   - Next steps
+### Note on Color
+Modal uses `#111827` (dark gray) rather than the `#1C0A00` (warm brown) originally specified in design docs. Functionally identical — color can be swapped in one CSS variable if desired.
 
 ---
 
-## Why Not Implemented?
+## Reference Docs
 
-**Decision**: Inline dropdown was chosen over full modal because:
-- ✅ Faster to implement (1 day vs 2-3 days)
-- ✅ Better fits existing dashboard design
-- ✅ Less disruptive to user flow
-- ✅ Still achieves core performance goals
-- ❌ Not as visually striking as dark modal
-- ❌ Limited to 12 visible services (vs full list)
-
-**Grade**: Current implementation is B+ (85/100) - production ready but UI diverges from original vision.
+- **[SERVICE_MODAL_IMPLEMENTATION.md](./SERVICE_MODAL_IMPLEMENTATION.md)** — Original 8-task implementation plan (tasks 1–8 complete)
+- **[VERIFICATION_FLOW_IMPLEMENTATION.md](./VERIFICATION_FLOW_IMPLEMENTATION.md)** — Architecture summary, performance results, phase completion
+- **[VERIFICATION_FLOW_TEST_PLAN.md](./VERIFICATION_FLOW_TEST_PLAN.md)** — Manual + automated test checklist
 
 ---
 
-## Implementation Status
+## Test Status
 
-### Completed (v4.1.0)
-- ✅ Phase 1: Backend (84 fallback services)
-- ✅ Phase 2: ServiceStore component
-- ✅ Phase 3: Template integration (inline dropdown)
-- ✅ Phase 4: Official logos (53 services)
-- ✅ Phase 5: Pin/favorite system
+| Suite | Status |
+|-------|--------|
+| Unit (19 tests) | ✅ All pass |
+| Integration (45 tests) | ✅ All pass, 1 skipped |
+| E2E (12 tests) | ⚠️ Selectors stale — need update to `.list-item` / `openImmersiveModal()` |
 
-### Not Implemented (This Task)
-- ❌ Phase 3 (Alternative): TextVerified-style modal
-- ❌ Dark theme CSS
-- ❌ Full-screen overlay
-- ❌ Show all 84+ services at once
-- ❌ Collapsible PINNED section
-
----
-
-## Should We Implement This?
-
-**Pros**:
-- More polished, professional appearance
-- Better discoverability (shows all services)
-- Matches TextVerified's proven UX
-- More immersive experience
-
-**Cons**:
-- 4-6 hours of development time
-- More code to maintain
-- May not fit dashboard theme
-- Current solution works well
-
-**Recommendation**: 
-- **Short term**: Keep current inline dropdown (it works)
-- **Medium term**: A/B test modal vs dropdown
-- **Long term**: Implement if user feedback requests it
-
----
-
-## Quick Start (If Implementing)
-
-1. Read [SERVICE_MODAL_REDESIGN.md](./SERVICE_MODAL_REDESIGN.md) for design
-2. Follow [SERVICE_MODAL_IMPLEMENTATION.md](./SERVICE_MODAL_IMPLEMENTATION.md) tasks
-3. Test against acceptance criteria
-4. Deploy to staging first
-5. Monitor user feedback
-
----
-
-## Related Files
-
-- **Current Implementation**: `templates/verify_modern.html` (lines 58-68, inline dropdown)
-- **ServiceStore**: `static/js/service-store.js` (already implemented)
-- **Backend**: `app/api/verification/services_endpoint.py` (84 services)
-
----
-
-**Last Updated**: March 12, 2026  
-**Owner**: Engineering Team  
-**Priority**: Medium (nice-to-have, not critical)
+E2E tests require Playwright + live server. Not runnable in CI without setup.

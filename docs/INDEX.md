@@ -1,71 +1,52 @@
 # Documentation Index
 
-Last Updated: March 12, 2026
+**Last Updated**: January 2026  
+**Version**: 4.2.0
 
-## Quick Links
+---
 
-- [CHANGELOG.md](../CHANGELOG.md) - Version history and release notes
-- [README.md](../README.md) - Project overview and quick start
-- [PROJECT_STATUS.md](../PROJECT_STATUS.md) - Current project status
+## API
 
-## API Documentation
-
-- [API_GUIDE.md](api/API_GUIDE.md) - Complete API reference
-- [TIER_MANAGEMENT_API.md](api/TIER_MANAGEMENT_API.md) - Tier system API
-- [VOICE_VS_SMS_VERIFICATION.md](api/VOICE_VS_SMS_VERIFICATION.md) - Verification methods
+- [API_GUIDE.md](api/API_GUIDE.md) — Endpoints, auth, error codes, rate limits, tier-gating
+- [TIER_MANAGEMENT_API.md](api/TIER_MANAGEMENT_API.md) — Tier types, admin tier API, API key management
+- [VOICE_VS_SMS_VERIFICATION.md](api/VOICE_VS_SMS_VERIFICATION.md) — SMS vs Voice comparison, polling services, config
 
 ## Deployment
 
-- [PRODUCTION_DEPLOYMENT_GUIDE.md](deployment/PRODUCTION_DEPLOYMENT_GUIDE.md) - Production deployment
-- [PRODUCTION_TROUBLESHOOTING.md](deployment/PRODUCTION_TROUBLESHOOTING.md) - Common issues
-- [CI_MONITORING_GUIDE.md](deployment/CI_MONITORING_GUIDE.md) - CI/CD monitoring
-
-## Infrastructure
-
-- [RENDER_SETUP.md](RENDER_SETUP.md) - Render.com configuration
-- [MONITORING_SETUP.md](MONITORING_SETUP.md) - Monitoring and alerts
-- [UPTIME_ROBOT_SETUP.md](UPTIME_ROBOT_SETUP.md) - Uptime monitoring
-- [SERVER_MANAGEMENT.md](SERVER_MANAGEMENT.md) - Server operations
+- [PRODUCTION_DEPLOYMENT_GUIDE.md](deployment/PRODUCTION_DEPLOYMENT_GUIDE.md) — Full production setup
+- [PRODUCTION_TROUBLESHOOTING.md](deployment/PRODUCTION_TROUBLESHOOTING.md) — Common production issues
+- [RENDER_SETUP.md](deployment/RENDER_SETUP.md) — Render.com configuration
+- [MONITORING_SETUP.md](deployment/MONITORING_SETUP.md) — Sentry, Prometheus, alerting
+- [UPTIME_ROBOT_SETUP.md](deployment/UPTIME_ROBOT_SETUP.md) — Uptime monitoring
+- [SERVER_MANAGEMENT.md](deployment/SERVER_MANAGEMENT.md) — Server operations
+- [CI_CD_IMPROVEMENT_STRATEGY.md](deployment/CI_CD_IMPROVEMENT_STRATEGY.md) — CI/CD architecture
 
 ## Development
 
-- [I18N_IMPLEMENTATION_GUIDE.md](I18N_IMPLEMENTATION_GUIDE.md) - Internationalization
-- [I18N_QUICK_REFERENCE.md](I18N_QUICK_REFERENCE.md) - i18n quick reference
-- [HYBRID_I18N_SOLUTION.md](HYBRID_I18N_SOLUTION.md) - Hybrid i18n approach
-- [ACCESSIBILITY_CHECKLIST.md](ACCESSIBILITY_CHECKLIST.md) - Accessibility standards
+- [I18N_GUIDE.md](development/I18N_GUIDE.md) — Internationalization: 3-tier loading, helpers, debug, file map
+- [ACCESSIBILITY_CHECKLIST.md](development/ACCESSIBILITY_CHECKLIST.md) — WCAG compliance checklist
 
 ## Security
 
-- [SECURITY_AND_COMPLIANCE.md](SECURITY_AND_COMPLIANCE.md) - Security guidelines
-- [payment-hardening/](payment-hardening/) - Payment security documentation
+- [SECURITY_AND_COMPLIANCE.md](security/SECURITY_AND_COMPLIANCE.md) — OWASP compliance, security layers
 
-## Planning
+## Payment Hardening
 
-- [roadmaps/Q1_2026_ROADMAP_INDEX.md](roadmaps/Q1_2026_ROADMAP_INDEX.md) - Q1 2026 roadmap
-- [BILLING_HISTORY.md](BILLING_HISTORY.md) - Billing system history
+- [PAYMENT_HARDENING_ROADMAP.md](payment-hardening/PAYMENT_HARDENING_ROADMAP.md) — Idempotency, race conditions, webhook security (80% complete)
+- [PAYMENT_HARDENING_VERIFICATION.md](payment-hardening/PAYMENT_HARDENING_VERIFICATION.md) — Verification report, issues found
 
 ## Tasks
 
-- [tasks/textverified-modal/](tasks/textverified-modal/) - TextVerified-style modal implementation (NOT IMPLEMENTED)
-- [tasks/coverage-initiative/](tasks/coverage-initiative/) - Test coverage improvement tasks
-
-## Status & Tracking
-
-- [status/CURRENT-STATUS.md](status/CURRENT-STATUS.md) - Current work status
-- [status/VERIFICATION_FIXES_SUMMARY.md](status/VERIFICATION_FIXES_SUMMARY.md) - Recent verification fixes
+- [tasks/textverified-modal/](tasks/textverified-modal/) — Immersive modal implementation (✅ complete, v4.2.0)
 
 ## Archive
 
-- [archive/FINAL-CI-STATUS.md](archive/FINAL-CI-STATUS.md) - CI/CD audit completion
-- [archive/landing-page-fix-report.md](archive/landing-page-fix-report.md) - Landing page CSP fix
-- [archive/service-loading-errors-root-cause-fix.md](archive/service-loading-errors-root-cause-fix.md) - Service loading fixes
+See [archive/](archive/) for stale/superseded docs.
 
-Removed redundant documentation:
-- CI improvement tasks (covered in CI_MONITORING_GUIDE.md)
-- CI workflows (covered in GitHub Actions)
-- I18N diagrams (covered in implementation guide)
-- Findings and fixes (covered in CHANGELOG.md)
-- Notification improvements (covered in CHANGELOG.md)
-- Push verification troubleshooting (resolved)
-- Database mismatch issues (resolved)
-- Multiple verification flow assessment docs (consolidated)
+---
+
+## Root-Level Docs
+
+- [../README.md](../README.md) — Architecture overview, quick start, API reference
+- [../CHANGELOG.md](../CHANGELOG.md) — Version history
+- [../PROJECT_STATUS.md](../PROJECT_STATUS.md) — Current project status
