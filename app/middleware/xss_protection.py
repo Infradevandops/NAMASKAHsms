@@ -2,39 +2,80 @@
 
 import json
 
-from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.utils.sanitization import validate_and_sanitize_response
 
 
-class XSSProtectionMiddleware(BaseHTTPMiddleware):
-    """Middleware to prevent XSS attacks by sanitizing responses."""
+class XSSProtectionMiddleware:
+    """Pure ASGI middleware to prevent XSS attacks by sanitizing JSON responses.
 
-    async def dispatch(self, request: Request, call_next):
-        response = await call_next(request)
+    Uses ASGI directly instead of BaseHTTPMiddleware to avoid the
+    Content-Length mismatch bug when stacked with other middleware.
+    """
 
-        # Only process JSON responses
-        if response.headers.get("content-type", "").startswith("application/json"):
-            try:
-                body = b""
-                async for chunk in response.body_iterator:
-                    body += chunk
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
 
-                if body:
-                    data = json.loads(body.decode())
-                    sanitized_data = validate_and_sanitize_response(data)
-                    sanitized_body = json.dumps(sanitized_data).encode()
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
 
-                    new_headers = dict(response.headers)
-                    new_headers.pop("content-length", None)
-                    return Response(
-                        content=sanitized_body,
-                        status_code=response.status_code,
-                        headers=new_headers,
-                        media_type="application/json",
+        initial_message: dict = {}
+        body_chunks: list[bytes] = []
+        is_json = False
+
+        async def send_wrapper(message: dict) -> None:
+            nonlocal initial_message, body_chunks, is_json
+
+            if message["type"] == "http.response.start":
+                headers = dict(
+                    (k.lower(), v)
+                    for k, v in (
+                        (k.decode(), v.decode())
+                        for k, v in message.get("headers", [])
                     )
-            except (json.JSONDecodeError, UnicodeDecodeError):
-                pass
+                )
+                is_json = headers.get("content-type", "").startswith("application/json")
+                if is_json:
+                    initial_message = message
+                    return
+                await send(message)
+                return
 
-        return response
+            if message["type"] == "http.response.body":
+                if not is_json:
+                    await send(message)
+                    return
+
+                body_chunks.append(message.get("body", b""))
+                more = message.get("more_body", False)
+                if more:
+                    return
+
+                full_body = b"".join(body_chunks)
+                if full_body:
+                    try:
+                        data = json.loads(full_body)
+                        sanitized = validate_and_sanitize_response(data)
+                        full_body = json.dumps(sanitized).encode()
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        pass
+
+                # Rebuild headers with correct content-length
+                raw_headers = [
+                    (k, v)
+                    for k, v in initial_message.get("headers", [])
+                    if k.lower() != b"content-length"
+                ]
+                raw_headers.append(
+                    (b"content-length", str(len(full_body)).encode())
+                )
+                initial_message["headers"] = raw_headers
+
+                await send(initial_message)
+                await send({"type": "http.response.body", "body": full_body})
+                return
+
+        await self.app(scope, receive, send_wrapper)
