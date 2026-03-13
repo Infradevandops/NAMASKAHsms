@@ -72,3 +72,10 @@ certs/*.pem
 # Added by ggshield
 .cache_ggshield
 .kiro/
+
+# Docs — empty/stale folders
+docs/design/
+docs/roadmaps/
+docs/troubleshooting/
+docs/status/
+docs/tasks/coverage-initiative/
