@@ -11,7 +11,6 @@ from app.core.cache import get_redis
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
-from app.middleware.tier_validation import validate_tier_access
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
@@ -111,11 +110,6 @@ async def request_verification(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
-        # TIER VALIDATION: Check tier access for carrier and area code selection
-        area_code = request.area_codes[0] if request.area_codes else None
-        carrier = request.carriers[0] if request.carriers else None
-        validate_tier_access(user, carrier=carrier, area_code=area_code)
-
         # Get TextVerified service
         logger.info(f"Initializing TextVerified service for user {user_id}")
         tv_service = TextVerifiedService()
@@ -127,9 +121,14 @@ async def request_verification(
             )
         logger.info("TextVerified service initialized successfully")
 
-        # Check tier access for filtering features
-
+        # TIER VALIDATION: Check tier access for filtering features
+        # Uses TierManager which refreshes from DB to avoid stale tier data
         tier_manager = TierManager(db)
+        user_tier = tier_manager.get_user_tier(user_id)
+        logger.info(f"Tier check for user {user_id}: resolved tier = {user_tier}")
+
+        area_code = request.area_codes[0] if request.area_codes else None
+        carrier = request.carriers[0] if request.carriers else None
 
         if request.area_codes:
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
@@ -146,8 +145,6 @@ async def request_verification(
                 )
 
         # Calculate SMS cost using new pricing system
-        user_tier = user.subscription_tier or "freemium"
-
         # Get pricing for this SMS
         filters = {"area_code": area_code, "carrier": carrier} if area_code or carrier else None
         pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
