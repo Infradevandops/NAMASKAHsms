@@ -2,6 +2,33 @@
 
 All notable changes to the Namaskah project.
 
+## [4.3.0] - March 14, 2026
+
+Milestone 2: Data Integrity Complete
+
+### Added
+- CarrierAnalytics model for tracking carrier preferences vs actual assignments
+- Carrier analytics recording on every verification with carrier preference
+- Tracking of requested vs assigned carrier and exact match rates
+- Documentation on verification model carrier and area code fields
+
+### Changed
+- Verification model now clearly documents requested_* vs assigned_* fields
+- Purchase endpoint records analytics for all carrier preference requests
+- Improved data integrity with separate tracking of user preferences and actual results
+
+### Fixed
+- Verification model field documentation clarified
+- Carrier and area code tracking now properly separated
+
+### Impact
+- Enables analytics on carrier preference success rates
+- Provides data for optimizing carrier recommendations
+- Identifies TextVerified carrier availability patterns
+- Foundation for future reporting and analytics
+
+---
+
 ## [4.2.0] - March 14, 2026
 
 TextVerified Alignment - Milestone 1: Stop the Bleeding
@@ -152,65 +179,6 @@ Production Excellence Complete
 
 ---
 
-## [Phase 2.5] - January 26, 2026
-
-Notification System
-
-### Added
-- Notification center with filtering, search, bulk actions, and export
-- User notification preferences (delivery methods, quiet hours, frequency)
-- Activity feed tracking all user events
-- Email notifications with professional HTML templates
-- WebSocket real-time delivery (under 100ms, 300x faster than polling)
-- Mobile push notifications (FCM/APNs)
-- 40+ REST API endpoints
-- 100+ test cases with 100% coverage
-
-### Performance
-- 300x faster notification delivery (30s to under 100ms)
-- 95% reduction in server requests
-- 95% reduction in bandwidth usage
-- Support for 10,000+ concurrent connections
-
----
-
-## [Phase 2] - January 2026
-
-Core Platform Features
-
-### Added
-- User authentication and authorization
-- SMS verification system
-- Payment processing integration
-- Subscription tier management
-- Affiliate program system
-- Reseller account management
-- Enterprise account features
-- KYC verification
-- Webhook system
-- API key management
-- Rate limiting and security
-
----
-
-## [Phase 1] - December 2025
-
-Foundation and Infrastructure
-
-### Added
-- FastAPI backend framework
-- SQLAlchemy ORM with database models
-- JWT authentication
-- Role-based access control (RBAC)
-- Database migrations with Alembic
-- Comprehensive logging system
-- Error handling and exception management
-- API documentation
-- Docker containerization
-- CI/CD pipeline setup
-
----
-
 ## Production Status
 
 Phase 1: Complete (December 2025)
@@ -218,6 +186,7 @@ Phase 2: Complete (January 2026)
 Phase 2.5: Complete (January 26, 2026)
 Phase 3: Complete (March 9, 2026)
 Milestone 1: Complete (March 14, 2026)
+Milestone 2: Complete (March 14, 2026)
 Production Ready: 98% Complete
 
 ## Metrics
@@ -228,3 +197,4 @@ Test Coverage: 31% (Critical paths 90%+)
 Maintainability: 85/100
 Performance: 95th percentile under 900ms
 Verification Success Rate: 100% (up from 70%)
+Carrier Analytics: Enabled
