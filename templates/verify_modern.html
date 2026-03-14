@@ -133,7 +133,7 @@
         </div>
 
         <!-- Selection summary chips -->
-        <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); display:flex; flex-wrap:wrap; gap:8px;"></div>
+        <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); flex-wrap:wrap; gap:8px;"></div>
 
         <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
             <button class="btn btn-secondary" onclick="history.back()">Back</button>
@@ -235,7 +235,7 @@
                     <span id="receipt-area-code" style="font-weight: 600; color: #111827;">-</span>
                 </div>
                 <div id="receipt-fallback-row" style="display: none; align-items: flex-start; gap: 8px; color: #b45309; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3f4f6;">
-                    <i class="fas fa-info-circle" style="margin-top: 2px;"></i>
+                    <i class="ph ph-info" style="margin-top: 2px;"></i>
                     <span>
                         <strong>Fallback applied:</strong> 
                         Requested <span id="receipt-requested-ac" style="font-weight: 600;">-</span> was unavailable.
@@ -322,7 +322,7 @@ function openImmersiveModal(type) {
 
                 <div class="modal-search-wrapper">
                     <div class="modal-search-field">
-                        <i class="fas fa-search"></i>
+                        <i class="ph ph-magnifying-glass"></i>
                         <input type="text" id="modal-search-input" class="modal-search-input" 
                                placeholder="Search ${type}..." oninput="filterImmersiveModal(this.value)" autofocus>
                     </div>
@@ -1225,26 +1225,6 @@ function goBack() {
 
     const card = document.getElementById(`step-${VerificationFlow.currentStep}-card`);
     if (card) card.scrollIntoView({ behavior: 'smooth' });
-}
-
-function setStep(step) {
-    VerificationFlow.currentStep = step;
-    
-    // UI step card switching
-    document.querySelectorAll('.step-card').forEach(card => card.classList.remove('active'));
-    const targetCard = document.getElementById(`step-${step}-card`);
-    if (targetCard) targetCard.classList.add('active');
-    
-    // Step header styles
-    document.querySelectorAll('.step-header-item').forEach((item, idx) => {
-        if (idx + 1 < step) item.classList.add('completed');
-        else if (idx + 1 === step) item.classList.add('active');
-        else { item.classList.remove('completed'); item.classList.remove('active'); }
-    });
-
-    if (step === 2) {
-        renderPricingCard();
-    }
 }
 
 function showOtherServiceInput() {
