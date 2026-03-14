@@ -1,7 +1,3 @@
-"""Security middleware - minimal version."""
-
-from starlette.middleware.base import BaseHTTPMiddleware
-
 """Security middleware - comprehensive security headers."""
 
 from starlette.middleware.base import BaseHTTPMiddleware
