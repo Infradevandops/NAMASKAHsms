@@ -4,6 +4,7 @@ from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgr
 from .api_key import APIKey  # Import from separate api_key module
 from .balance_transaction import BalanceTransaction
 from .base import Base, BaseModel
+from .carrier_analytics import CarrierAnalytics
 from .commission import CommissionTier, PayoutRequest, RevenueShare
 from .device_token import DeviceToken
 from .enterprise import EnterpriseAccount, EnterpriseTier
@@ -63,6 +64,7 @@ __all__ = [
     "Verification",
     "NumberRental",
     "VerificationReceipt",
+    "CarrierAnalytics",
     # Transaction models
     "Transaction",
     "PaymentLog",
@@ -72,7 +74,7 @@ __all__ = [
     "ActivityLog",
     "BannedNumber",
     "InAppNotification",
-    # White - label models
+    # White-label models
     "WhiteLabelConfig",
     "PartnerFeature",
     "WhiteLabelAsset",

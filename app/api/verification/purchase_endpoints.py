@@ -11,6 +11,7 @@ from app.core.cache import get_redis
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
+from app.models.carrier_analytics import CarrierAnalytics
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
@@ -240,6 +241,26 @@ async def request_verification(
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
+
+            # Record carrier analytics for tracking preferences vs assignments
+            if carrier:
+                analytics = CarrierAnalytics(
+                    verification_id=str(verification.id),
+                    user_id=user_id,
+                    requested_carrier=carrier,
+                    sent_to_textverified=carrier.lower().replace(" ", "_").replace("&", ""),
+                    textverified_response=textverified_result.get("assigned_carrier"),
+                    assigned_phone=textverified_result["phone_number"],
+                    assigned_area_code=textverified_result.get("assigned_area_code"),
+                    outcome="accepted",
+                    exact_match=(textverified_result.get("assigned_carrier", "").lower() == carrier.lower()),
+                )
+                db.add(analytics)
+                logger.info(
+                    f"Carrier analytics recorded: user={user_id}, "
+                    f"requested={carrier}, assigned={textverified_result.get('assigned_carrier')}, "
+                    f"exact_match={analytics.exact_match}"
+                )
             logger.info(f"Verification record created with ID: {verification.id}")
 
             # Step 3: Deduct credits ONLY after API success
