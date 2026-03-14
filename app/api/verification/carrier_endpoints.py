@@ -8,6 +8,7 @@ from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.core.unified_cache import cache
+from app.models.carrier_analytics import CarrierAnalytics
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
@@ -23,9 +24,9 @@ async def get_available_carriers(
     user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
-    """Get list of available carriers/ISPs from actual verifications.
+    """Get list of available carriers/ISPs with real success rates from analytics.
 
-    Extracts carriers from past verifications since TextVerified doesn't have a carriers endpoint.
+    Extracts carriers from past verifications and CarrierAnalytics data.
     
     IMPORTANT: Carrier selection is a PREFERENCE, not a guarantee.
     TextVerified will try to fulfill the preference but may return a different carrier.
@@ -33,40 +34,33 @@ async def get_available_carriers(
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
     try:
-        # Get unique carriers from past verifications
+        # Query real success rates from CarrierAnalytics
+        analytics_query = db.query(
+            CarrierAnalytics.requested_carrier,
+            func.count(CarrierAnalytics.id).label("total"),
+            func.sum(case((CarrierAnalytics.exact_match == True, 1), else_=0)).label("matches"),
+        ).filter(
+            CarrierAnalytics.outcome == "accepted"
+        ).group_by(
+            CarrierAnalytics.requested_carrier
+        ).all()
 
-        carriers_query = (
-            db.query(
-                Verification.operator,
-                func.count(Verification.id).label("total"),
-                func.sum(case((Verification.status == "completed", 1), else_=0)).label(
-                    "completed"
-                ),
-            )
-            .filter(
-                Verification.country == country,
-                Verification.operator.isnot(None),
-                Verification.operator != "",
-            )
-            .group_by(Verification.operator)
-            .all()
-        )
-
+        # Build carrier list with real success rates
         carriers = []
-        for operator, total, completed in carriers_query:
-            success_rate = (completed / total * 100) if total > 0 else 90
+        for carrier_name, total, matches in analytics_query:
+            success_rate = (matches / total * 100) if total > 0 else 90
             carriers.append(
                 {
-                    "id": operator.lower().replace(" ", "_"),
-                    "name": operator,
+                    "id": carrier_name.lower().replace(" ", "_"),
+                    "name": carrier_name.title(),
                     "success_rate": round(success_rate, 1),
                     "total_verifications": total,
-                    "guarantee": False,  # Carrier selection is best-effort, not guaranteed
+                    "guarantee": False,
                     "type": "preference",
                 }
             )
 
-        # If no carriers found, use TextVerified's actual carrier options
+        # If no analytics data, use TextVerified's actual carrier options
         # (from TextVerified UI: AT&T, T-Mobile, Verizon only)
         if not carriers:
             carriers = [
@@ -108,12 +102,12 @@ async def get_available_carriers(
             "carriers": carriers,
             "tier": user_tier,
             "can_select": user_tier in ["payg", "pro", "custom"],
-            "source": "database" if len(carriers_query) > 0 else "fallback",
+            "source": "analytics" if len(analytics_query) > 0 else "fallback",
             "note": "Carrier selection is a preference, not a guarantee. TextVerified will try to fulfill your preference but may return a different carrier.",
         }
 
         logger.info(
-            f"Retrieved {len(carriers)} carriers from {'database' if len(carriers_query) > 0 else 'fallback'} for {country}"
+            f"Retrieved {len(carriers)} carriers from {'analytics' if len(analytics_query) > 0 else 'fallback'} for {country}"
         )
         return result
 
