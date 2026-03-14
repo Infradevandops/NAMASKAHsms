@@ -19,25 +19,43 @@ class TierManager:
         self.db = db
 
     def get_user_tier(self, user_id: str) -> str:
-        """Get user's current subscription tier."""
-        # Refresh from DB to avoid stale session data
-        self.db.expire_all()
+        """Get user's current subscription tier.
+
+        Forces a fresh DB read to prevent stale SQLAlchemy identity-map data
+        from returning a default/outdated tier value.
+        """
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             return "freemium"
 
-        # Only check expiration if tier_expires_at is explicitly set
+        # Force reload from DB to avoid stale session cache
+        try:
+            self.db.refresh(user)
+        except Exception:
+            # Detached or transient instance — re-query
+            self.db.expire_all()
+            user = self.db.query(User).filter(User.id == user_id).first()
+            if not user:
+                return "freemium"
+
+        tier = user.subscription_tier or "freemium"
+
+        # Only auto-downgrade if tier_expires_at is explicitly set (not None)
         expires = getattr(user, "tier_expires_at", None)
-        if expires is not None and user.subscription_tier in ["pro", "custom"]:
+        if expires is not None and tier in ("pro", "custom"):
             if expires.tzinfo is None:
                 expires = expires.replace(tzinfo=timezone.utc)
 
             if expires < datetime.now(timezone.utc):
-                logger.warning(f"User {user_id} tier expired, downgrading to freemium")
+                logger.warning(
+                    f"User {user_id} tier '{tier}' expired at {expires.isoformat()}, "
+                    "downgrading to freemium"
+                )
                 user.subscription_tier = "freemium"
                 self.db.commit()
+                tier = "freemium"
 
-        return user.subscription_tier or "freemium"
+        return tier
 
     def check_feature_access(self, user_id: str, feature: str) -> bool:
         """Check if user has access to a specific feature."""
