@@ -24,8 +24,8 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         csp_policy = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-            "font-src 'self' https://fonts.gstatic.com; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
+            "font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
             "img-src 'self' data: https:; "
             "connect-src 'self' https://api.paystack.co https://checkout.paystack.com; "
             "frame-src https://checkout.paystack.com; "
