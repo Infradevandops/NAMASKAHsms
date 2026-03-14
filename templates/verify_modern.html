@@ -286,7 +286,7 @@ const VerificationFlow = {
 // --- Immersive Modal System (Task 3) ---
 let _modalType = null;
 let _modalItems = {};
-let _pinnedServices = JSON.parse(localStorage.getItem('nsk_pinned_services') || '["telegram", "whatsapp", "google", "facebook", "instagram"]');
+let _pinnedServices = JSON.parse(localStorage.getItem('nsk_pinned_services') || '[]');
 
 function openImmersiveModal(type) {
     // Check if services are available
@@ -494,15 +494,25 @@ function toggleModalFilters() {
 }
 
 function handleModalFilterToggle(type, checked) {
-    if (type === 'ac' && !checked) { 
-        VerificationFlow.selectedAreaCode = null; 
-        const acInput = document.getElementById('area-code-search-input');
-        if (acInput) acInput.value = '';
+    if (type === 'ac') {
+        if (checked) {
+            closeImmersiveModal();
+            setTimeout(() => openImmersiveModal('area-code'), 200);
+        } else {
+            VerificationFlow.selectedAreaCode = null; 
+            const acInput = document.getElementById('area-code-search-input');
+            if (acInput) acInput.value = '';
+        }
     }
-    if (type === 'carrier' && !checked) { 
-        VerificationFlow.selectedCarrier = null; 
-        const cSel = document.getElementById('carrier-select-inline');
-        if (cSel) cSel.value = '';
+    if (type === 'carrier') {
+        if (checked) {
+            closeImmersiveModal();
+            setTimeout(() => openImmersiveModal('carrier'), 200);
+        } else {
+            VerificationFlow.selectedCarrier = null; 
+            const cSel = document.getElementById('carrier-select-inline');
+            if (cSel) cSel.value = '';
+        }
     }
     updatePricing();
 }
