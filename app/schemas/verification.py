@@ -151,7 +151,7 @@ class VerificationRequest(BaseModel):
             raise ValueError("Carriers must be a list")
 
         validated_carriers = []
-        allowed_carriers = {"verizon", "att", "tmobile", "sprint", "us_cellular"}
+        allowed_carriers = {"verizon", "att", "tmobile"}
 
         for carrier in v:
             if not isinstance(carrier, str):

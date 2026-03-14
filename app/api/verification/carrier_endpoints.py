@@ -61,37 +61,26 @@ async def get_available_carriers(
                 }
             )
 
-        # If no carriers found, use fallback
+        # If no carriers found, use TextVerified's actual carrier options
+        # (from TextVerified UI: AT&T, T-Mobile, Verizon only)
         if not carriers:
             carriers = [
                 {
-                    "id": "verizon",
-                    "name": "Verizon",
-                    "success_rate": 95,
-                    "total_verifications": 0,
-                },
-                {
                     "id": "att",
                     "name": "AT&T",
-                    "success_rate": 93,
+                    "success_rate": 90,
                     "total_verifications": 0,
                 },
                 {
                     "id": "tmobile",
                     "name": "T-Mobile",
-                    "success_rate": 92,
+                    "success_rate": 90,
                     "total_verifications": 0,
                 },
                 {
-                    "id": "sprint",
-                    "name": "Sprint",
-                    "success_rate": 88,
-                    "total_verifications": 0,
-                },
-                {
-                    "id": "us_cellular",
-                    "name": "US Cellular",
-                    "success_rate": 87,
+                    "id": "verizon",
+                    "name": "Verizon",
+                    "success_rate": 90,
                     "total_verifications": 0,
                 },
             ]
@@ -127,21 +116,21 @@ async def get_available_carriers(
             "country": country,
             "carriers": [
                 {
-                    "id": "verizon",
-                    "name": "Verizon",
-                    "success_rate": 95,
-                    "total_verifications": 0,
-                },
-                {
                     "id": "att",
                     "name": "AT&T",
-                    "success_rate": 93,
+                    "success_rate": 90,
                     "total_verifications": 0,
                 },
                 {
                     "id": "tmobile",
                     "name": "T-Mobile",
-                    "success_rate": 92,
+                    "success_rate": 90,
+                    "total_verifications": 0,
+                },
+                {
+                    "id": "verizon",
+                    "name": "Verizon",
+                    "success_rate": 90,
                     "total_verifications": 0,
                 },
             ],
