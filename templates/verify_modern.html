@@ -6,6 +6,7 @@
 {% block head_extra %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/verification-design-system.css">
+<script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <script src="/static/js/service-store.js"></script>
 <style>
     .verification-container {
@@ -326,7 +327,7 @@ function openImmersiveModal(type) {
                                placeholder="Search ${type}..." oninput="filterImmersiveModal(this.value)" autofocus>
                     </div>
                     <button class="modal-settings-btn" onclick="toggleModalFilters()">
-                        <i class="fas fa-sliders-h"></i>
+                        <i class="ph ph-sliders-horizontal"></i>
                     </button>
                 </div>
 
@@ -472,8 +473,8 @@ function renderImmersiveItem(item, isPinned) {
                     <div class="list-item-name">${item.label}</div>
                 </div>
                 <div class="list-item-cost">${costDisplay}</div>
-                <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')">
-                    <i class="fas fa-thumbtack"></i>
+                <div class="list-item-pin ${isPinned ? 'active' : ''}" onclick="event.stopPropagation(); togglePin('${item.value.replace(/'/g,"\\'") }')" title="${isPinned ? 'Unpin' : 'Pin to top'}">
+                    <i class="ph${isPinned ? '-fill' : ''} ph-push-pin"></i>
                 </div>
             </div>
         `;
