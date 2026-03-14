@@ -10,9 +10,28 @@ from app.services.quota_service import QuotaService
 class PricingCalculator:
     """Calculate SMS verification costs."""
 
+    # Carrier filter pricing (PAYG tier only)
+    CARRIER_PREMIUMS = {
+        "verizon": 0.30,
+        "tmobile": 0.25,
+        "t-mobile": 0.25,
+        "att": 0.20,
+        "at&t": 0.20,
+        "sprint": 0.20,  # DEPRECATED: Sprint merged with T-Mobile
+    }
+
+    # Area code premiums (PAYG tier only)
+    AREA_CODE_PREMIUMS = {
+        "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
+        "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30,
+    }
+
     @staticmethod
     def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
-        """Calculate total cost for SMS verification."""
+        """Calculate total cost for SMS verification.
+        
+        Raises ValueError if price is None (validation for Task 4.2).
+        """
         if not filters:
             filters = {}
 
@@ -20,27 +39,25 @@ class PricingCalculator:
         tier = TierConfig.get_tier_config(user.subscription_tier, db)
 
         base_cost = tier.get("base_sms_cost", 2.50)
+        
+        # VALIDATION: Block purchase without price (Task 4.2)
+        if base_cost is None:
+            raise ValueError(
+                f"Cannot purchase SMS: base cost is not configured for tier '{user.subscription_tier}'. "
+                "Please contact support."
+            )
 
         filter_charges = 0.0
         if user.subscription_tier == "payg":
             # Area code premiums
             ac = filters.get("area_code")
             if ac:
-                # Use variable premiums for major cities, default to 0.25
-                ac_premiums = {
-                    "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
-                    "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
-                }
-                filter_charges += ac_premiums.get(str(ac), 0.25)
+                filter_charges += PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
             
             # Carrier premiums
             carrier = filters.get("carrier")
             if carrier:
-                c_premiums = {
-                    "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
-                    "att": 0.20, "at&t": 0.20, "sprint": 0.20
-                }
-                filter_charges += c_premiums.get(str(carrier).lower(), 0.50)
+                filter_charges += PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
 
         if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
@@ -49,6 +66,13 @@ class PricingCalculator:
             db, user_id, base_cost + filter_charges
         )
         total_cost = base_cost + filter_charges + overage_charge
+        
+        # VALIDATION: Block purchase without total price (Task 4.2)
+        if total_cost is None or total_cost <= 0:
+            raise ValueError(
+                f"Invalid pricing calculation: total_cost={total_cost}. "
+                "Please contact support."
+            )
 
         return {
             "base_cost": base_cost,
@@ -72,19 +96,11 @@ class PricingCalculator:
             charges = 0.0
             ac = filters.get("area_code")
             if ac:
-                ac_premiums = {
-                    "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
-                    "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30
-                }
-                charges += ac_premiums.get(str(ac), 0.25)
+                charges += PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
             
             carrier = filters.get("carrier")
             if carrier:
-                c_premiums = {
-                    "verizon": 0.30, "tmobile": 0.25, "t-mobile": 0.25,
-                    "att": 0.20, "at&t": 0.20, "sprint": 0.20
-                }
-                charges += c_premiums.get(str(carrier).lower(), 0.50)
+                charges += PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
             return charges
 
         return 0.0
