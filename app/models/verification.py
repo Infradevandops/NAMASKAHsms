@@ -21,17 +21,22 @@ class Verification(BaseModel):
     call_duration = Column(Float)
     transcription = Column(String)
     audio_url = Column(String)
-    requested_carrier = Column(String)
-    requested_area_code = Column(String)
-    assigned_area_code = Column(String)
-    assigned_carrier = Column(String)
+
+    # Carrier and area code tracking
+    # requested_* = what user asked for (preference)
+    # assigned_* = what TextVerified actually returned
+    requested_carrier = Column(String)  # User's preference (e.g., "verizon")
+    requested_area_code = Column(String)  # User's preference (e.g., "415")
+    assigned_area_code = Column(String)  # Actual area code from TextVerified
+    assigned_carrier = Column(String)  # Generic type from TextVerified (Mobile/Landline/VOIP)
+
     fallback_applied = Column(Boolean, default=False)
     same_state_fallback = Column(Boolean, default=True)
     completed_at = Column(DateTime)
 
     # TextVerified integration fields (primary provider)
     provider = Column(String, default="textverified")
-    operator = Column(String)
+    operator = Column(String)  # DEPRECATED: Use requested_carrier or assigned_carrier
     pricing_tier = Column(String, default="standard")
     activation_id = Column(String)
     sms_text = Column(String)
