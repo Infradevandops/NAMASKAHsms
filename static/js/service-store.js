@@ -17,7 +17,7 @@ const ServiceStore = {
     source: null,
     
     // Config
-    CACHE_KEY: 'nsk_services_v4',
+    CACHE_KEY: 'nsk_services_v5',
     CACHE_TTL: 6 * 60 * 60 * 1000,  // 6 hours
     STALE_THRESHOLD: 3 * 60 * 60 * 1000,  // 3 hours
     MIN_SERVICES: 1,
