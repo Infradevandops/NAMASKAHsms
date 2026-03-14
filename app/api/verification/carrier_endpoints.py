@@ -107,7 +107,7 @@ async def get_available_carriers(
             "country": country,
             "carriers": carriers,
             "tier": user_tier,
-            "can_select": user_tier in ["pro", "custom"],
+            "can_select": user_tier in ["payg", "pro", "custom"],
             "source": "database" if len(carriers_query) > 0 else "fallback",
         }
 
@@ -146,7 +146,7 @@ async def get_available_carriers(
                 },
             ],
             "tier": user_tier,
-            "can_select": user_tier in ["pro", "custom"],
+            "can_select": user_tier in ["payg", "pro", "custom"],
             "source": "fallback",
         }
 

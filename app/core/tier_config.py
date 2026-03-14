@@ -33,7 +33,7 @@ class TierConfig:
 
         row = result.fetchone()
         if not row:
-            return cls._get_fallback_config("freemium")
+            return cls._get_fallback_config(tier)
 
         return {
             "name": row[1],
