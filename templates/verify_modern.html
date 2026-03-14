@@ -131,6 +131,9 @@
             💡 Want specific area codes? <a href="/pricing" style="color:#E8003D; font-weight:600;">Upgrade to PAYG</a>
         </div>
 
+        <!-- Selection summary chips -->
+        <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); display:flex; flex-wrap:wrap; gap:8px;"></div>
+
         <div style="margin-top:var(--spacing-lg); display:flex; gap:var(--spacing-md);">
             <button class="btn btn-secondary" onclick="history.back()">Back</button>
             <button class="btn btn-primary btn-block" id="continue-btn" onclick="confirmService()" disabled>Continue →</button>
@@ -336,6 +339,9 @@ function openImmersiveModal(type) {
                             <input type="checkbox" id="toggle-ac" ${VerificationFlow.selectedAreaCode ? 'checked' : ''} onchange="handleModalFilterToggle('ac', this.checked)">
                             <span class="slider"></span>
                         </label>
+                        <select id="modal-ac-select" class="filter-dropdown" onchange="onFilterDropdownChange('ac', this.value, this.options[this.selectedIndex].text)" style="display:none;">
+                            <option value="">Select</option>
+                        </select>
                     </div>
                     <div class="filter-row">
                         <div class="filter-label-group">
@@ -345,6 +351,9 @@ function openImmersiveModal(type) {
                             <input type="checkbox" id="toggle-carrier" ${VerificationFlow.selectedCarrier ? 'checked' : ''} onchange="handleModalFilterToggle('carrier', this.checked)">
                             <span class="slider"></span>
                         </label>
+                        <select id="modal-carrier-select" class="filter-dropdown" onchange="onFilterDropdownChange('carrier', this.value, this.options[this.selectedIndex].text)" style="display:none;">
+                            <option value="">Select</option>
+                        </select>
                     </div>
                 </div>
 
@@ -495,26 +504,76 @@ function toggleModalFilters() {
 
 function handleModalFilterToggle(type, checked) {
     if (type === 'ac') {
+        const dd = document.getElementById('modal-ac-select');
         if (checked) {
-            closeImmersiveModal();
-            setTimeout(() => openImmersiveModal('area-code'), 200);
+            if (dd) {
+                dd.style.display = 'inline-block';
+                populateFilterDropdown('ac');
+            }
         } else {
-            VerificationFlow.selectedAreaCode = null; 
+            if (dd) dd.style.display = 'none';
+            VerificationFlow.selectedAreaCode = null;
             const acInput = document.getElementById('area-code-search-input');
             if (acInput) acInput.value = '';
+            updateSelectionChips();
         }
     }
     if (type === 'carrier') {
+        const dd = document.getElementById('modal-carrier-select');
         if (checked) {
-            closeImmersiveModal();
-            setTimeout(() => openImmersiveModal('carrier'), 200);
+            if (dd) {
+                dd.style.display = 'inline-block';
+                populateFilterDropdown('carrier');
+            }
         } else {
-            VerificationFlow.selectedCarrier = null; 
+            if (dd) dd.style.display = 'none';
+            VerificationFlow.selectedCarrier = null;
             const cSel = document.getElementById('carrier-select-inline');
             if (cSel) cSel.value = '';
+            updateSelectionChips();
         }
     }
     updatePricing();
+}
+
+function populateFilterDropdown(type) {
+    if (type === 'ac') {
+        const dd = document.getElementById('modal-ac-select');
+        if (!dd) return;
+        const items = _modalItems['area-code'] || [];
+        if (items.length === 0) {
+            loadAreaCodes().then(() => populateFilterDropdown('ac'));
+            return;
+        }
+        dd.innerHTML = '<option value="">Select ▾</option>' + items.map(i =>
+            `<option value="${i.value}" ${i.value === VerificationFlow.selectedAreaCode ? 'selected' : ''}>${i.value}${i.sub ? ' — ' + i.sub : ''}</option>`
+        ).join('');
+    } else {
+        const dd = document.getElementById('modal-carrier-select');
+        if (!dd) return;
+        const items = _modalItems['carrier'] || [];
+        if (items.length === 0) {
+            loadCarriers().then(() => populateFilterDropdown('carrier'));
+            return;
+        }
+        dd.innerHTML = '<option value="">Select ▾</option>' + items.map(i =>
+            `<option value="${i.value}" ${i.value === VerificationFlow.selectedCarrier ? 'selected' : ''}>${i.label}</option>`
+        ).join('');
+    }
+}
+
+function onFilterDropdownChange(type, value, label) {
+    if (type === 'ac') {
+        VerificationFlow.selectedAreaCode = value || null;
+        const acInput = document.getElementById('area-code-search-input');
+        if (acInput) acInput.value = value || '';
+    } else {
+        VerificationFlow.selectedCarrier = value || null;
+        const cSel = document.getElementById('carrier-select-inline');
+        if (cSel) cSel.value = value || '';
+    }
+    updatePricing();
+    updateSelectionChips();
 }
 
 function togglePin(serviceId) {
@@ -525,6 +584,30 @@ function togglePin(serviceId) {
     }
     localStorage.setItem('nsk_pinned_services', JSON.stringify(_pinnedServices));
     renderImmersiveList('service', document.getElementById('modal-search-input').value);
+}
+
+function updateSelectionChips() {
+    const container = document.getElementById('selection-chips');
+    if (!container) return;
+    let html = '';
+    if (VerificationFlow.selectedAreaCode) {
+        const acItem = (_modalItems['area-code'] || []).find(i => i.value === VerificationFlow.selectedAreaCode);
+        const label = acItem ? `${acItem.value}${acItem.sub ? ' — ' + acItem.sub : ''}` : VerificationFlow.selectedAreaCode;
+        html += `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;font-size:13px;color:#1d4ed8;">
+            📍 ${label}
+            <button onclick="clearAreaCode();updateSelectionChips();" style="background:none;border:none;color:#1d4ed8;cursor:pointer;font-size:14px;padding:0;">✕</button>
+        </span>`;
+    }
+    if (VerificationFlow.selectedCarrier) {
+        const cItem = (_modalItems['carrier'] || []).find(i => i.value === VerificationFlow.selectedCarrier);
+        const label = cItem?.label || VerificationFlow.selectedCarrier;
+        html += `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:20px;font-size:13px;color:#166534;">
+            📡 ${label}
+            <button onclick="VerificationFlow.selectedCarrier=null;document.getElementById('carrier-select-inline').value='';updateSelectionChips();updatePricing();" style="background:none;border:none;color:#166534;cursor:pointer;font-size:14px;padding:0;">✕</button>
+        </span>`;
+    }
+    container.innerHTML = html;
+    container.style.display = html ? 'flex' : 'none';
 }
 
 function selectImmersiveItem(value, label, price) {
@@ -558,6 +641,7 @@ function selectImmersiveItem(value, label, price) {
         const clearBtn = document.getElementById('clear-ac-btn');
         if (acInput) acInput.value = label || '';
         if (clearBtn) clearBtn.style.display = value ? 'block' : 'none';
+        updateSelectionChips();
         
         // Persist to server
         if (value) {
@@ -572,6 +656,7 @@ function selectImmersiveItem(value, label, price) {
         VerificationFlow.selectedCarrier = value || null;
         const cSel = document.getElementById('carrier-select-inline');
         if (cSel) cSel.value = value || '';
+        updateSelectionChips();
     }
     
     updatePricing();
@@ -1119,10 +1204,9 @@ async function blacklistNumber(phone, service) {
 
 
 function goBack() {
-    if (VerificationFlow.currentStep === 1) return;
+    if (VerificationFlow.currentStep <= 1) return;
 
     if (VerificationFlow.currentStep === 3) {
-        // Cancel active verification on back from Step 3 (Task 0.3)
         if (VerificationFlow.verificationId) {
             const token = localStorage.getItem('access_token');
             fetch(`/api/verification/cancel/${VerificationFlow.verificationId}`, {
@@ -1130,18 +1214,16 @@ function goBack() {
                 headers: { 'Authorization': `Bearer ${token}` }
             }).catch(() => {});
         }
-        
         clearTimeout(VerificationFlow.scanInterval);
         VerificationFlow.verificationId = null;
         VerificationFlow.elapsedSeconds = 0;
-        
-        setStep(2);
-    } else {
-        setStep(VerificationFlow.currentStep - 1);
+        updateProgress(2);
+    } else if (VerificationFlow.currentStep === 2) {
+        updateProgress(1);
     }
 
-    const prevCard = document.getElementById(`step-${VerificationFlow.currentStep}-card`);
-    if (prevCard) prevCard.scrollIntoView({ behavior: 'smooth' });
+    const card = document.getElementById(`step-${VerificationFlow.currentStep}-card`);
+    if (card) card.scrollIntoView({ behavior: 'smooth' });
 }
 
 function setStep(step) {
