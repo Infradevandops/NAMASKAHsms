@@ -26,6 +26,9 @@ async def get_available_carriers(
     """Get list of available carriers/ISPs from actual verifications.
 
     Extracts carriers from past verifications since TextVerified doesn't have a carriers endpoint.
+    
+    IMPORTANT: Carrier selection is a PREFERENCE, not a guarantee.
+    TextVerified will try to fulfill the preference but may return a different carrier.
     """
     logger.info(f"Carrier list requested by user_id: {user_id}, country: {country}")
 
@@ -58,6 +61,8 @@ async def get_available_carriers(
                     "name": operator,
                     "success_rate": round(success_rate, 1),
                     "total_verifications": total,
+                    "guarantee": False,  # Carrier selection is best-effort, not guaranteed
+                    "type": "preference",
                 }
             )
 
@@ -70,18 +75,24 @@ async def get_available_carriers(
                     "name": "AT&T",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
                 {
                     "id": "tmobile",
                     "name": "T-Mobile",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
                 {
                     "id": "verizon",
                     "name": "Verizon",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
             ]
 
@@ -98,6 +109,7 @@ async def get_available_carriers(
             "tier": user_tier,
             "can_select": user_tier in ["payg", "pro", "custom"],
             "source": "database" if len(carriers_query) > 0 else "fallback",
+            "note": "Carrier selection is a preference, not a guarantee. TextVerified will try to fulfill your preference but may return a different carrier.",
         }
 
         logger.info(
@@ -120,23 +132,30 @@ async def get_available_carriers(
                     "name": "AT&T",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
                 {
                     "id": "tmobile",
                     "name": "T-Mobile",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
                 {
                     "id": "verizon",
                     "name": "Verizon",
                     "success_rate": 90,
                     "total_verifications": 0,
+                    "guarantee": False,
+                    "type": "preference",
                 },
             ],
             "tier": user_tier,
             "can_select": user_tier in ["payg", "pro", "custom"],
             "source": "fallback",
+            "note": "Carrier selection is a preference, not a guarantee. TextVerified will try to fulfill your preference but may return a different carrier.",
         }
 
 
