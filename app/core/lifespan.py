@@ -48,6 +48,15 @@ async def lifespan(app):
         await cache.connect()
         startup_logger.info("Unified cache initialized")
 
+        # Invalidate stale service cache (forces fresh fetch with dedup + real prices)
+        try:
+            from app.core.unified_cache import cache as _cache
+            await _cache.delete("tv:services_list")
+            await _cache.delete("tv:services_names")
+            startup_logger.info("Cleared stale service cache")
+        except Exception as e:
+            startup_logger.warning(f"Cache clear failed (non-critical): {e}")
+
         # Pre-warm services and area codes cache (non-blocking background task)
         async def _prewarm():
             try:
@@ -58,16 +67,7 @@ async def lifespan(app):
                 if not tv.enabled:
                     return
 
-                # Skip if cache already populated (rapid restart protection)
-                if await _cache.get("tv:services_list") and await _cache.get(
-                    "tv:area_codes_list"
-                ):
-                    startup_logger.info("Cache pre-warming skipped (already populated)")
-                    return
-
-                # Brief delay to avoid hammering TextVerified on rapid restarts
-                await asyncio.sleep(5)
-
+                # Skip area codes prewarm if already cached (but services always re-fetch)
                 startup_logger.info("Pre-warming TextVerified cache...")
                 await asyncio.wait_for(
                     asyncio.gather(

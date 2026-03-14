@@ -786,8 +786,16 @@ function _lsSet(key, data) {
 
 function _buildServiceItems(services) {
     const popularIds = ['telegram', 'whatsapp', 'google', 'facebook', 'instagram', 'twitter', 'discord', 'tinder'];
+    // Deduplicate by id (backend should already dedup, but safety net)
+    const seen = new Set();
+    const unique = services.filter(s => {
+        const key = (s.id || '').toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
     return [
-        ...services.map(s => ({ 
+        ...unique.map(s => ({ 
             value: s.id, 
             label: s.name || s.id, 
             price: s.price,
