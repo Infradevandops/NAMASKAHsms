@@ -410,19 +410,19 @@ class TextVerifiedService:
         )
 
     def _extract_carrier_from_number(self, phone_number: str) -> Optional[str]:
-        """
-        Extract carrier from phone number.
-        Priority 1.6: Basic implementation for US mobile numbers.
+        """DEPRECATED: TextVerified does not return specific carrier info.
+        
+        This method always returns 'Mobile' for valid US numbers because TextVerified's
+        API response does not include specific carrier information. Do not use this for
+        carrier validation or decision-making.
+        
+        See: docs/TEXTVERIFIED_CARRIER_ANALYSIS.md
         """
         if not phone_number:
             return None
-            
-        # TextVerified numbers are usually mobile. 
-        # Without a full lookup API, we return 'Mobile' as default if it looks like US number.
         clean = str(phone_number).replace("+", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
         if len(clean) >= 10:
-            return "Mobile"
-            
+            return "Mobile"  # Always returns "Mobile" — TextVerified doesn't provide specific carrier
         return "Unknown"
 
     async def get_verification_status(self, activation_id: str) -> Dict[str, Any]:
@@ -536,8 +536,6 @@ class TextVerifiedService:
                 f"assigned={assigned_area_code}({asgn_state}), same_state={same_state}"
             )
 
-        assigned_carrier = self._extract_carrier_from_number(assigned_number)
-
         return {
             "id": result.id,
             "phone_number": assigned_number,
@@ -545,7 +543,6 @@ class TextVerifiedService:
             "fallback_applied": fallback_applied,
             "requested_area_code": area_code,
             "assigned_area_code": assigned_area_code,
-            "assigned_carrier": assigned_carrier,
             "same_state_fallback": same_state,
         }
 
@@ -590,7 +587,6 @@ class TextVerifiedService:
                 "fallback_applied": result["fallback_applied"],
                 "requested_area_code": result["requested_area_code"],
                 "assigned_area_code": result["assigned_area_code"],
-                "assigned_carrier": result["assigned_carrier"],
                 "same_state_fallback": result["same_state_fallback"],
             }
         except Exception as e:

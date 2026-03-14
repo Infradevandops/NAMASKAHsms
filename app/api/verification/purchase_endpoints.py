@@ -205,36 +205,15 @@ async def request_verification(
                     f"assigned={textverified_result['assigned_area_code']}"
                 )
 
-            # Step 2.1: CRITICAL CARRIER VALIDATION (Task 2.3)
-            # If user requested a specific carrier, verify the assigned carrier matches
+            # Step 2.1: CARRIER PREFERENCE LOGGING (TextVerified best-effort)
+            # TextVerified treats carrier as a preference, not a guarantee
             if carrier:
-                 assigned_carrier = textverified_result.get("assigned_carrier")
-                 logger.info(f"Carrier validation: requested={carrier}, assigned={assigned_carrier}")
-                 
-                 # Basic normalization for comparison
-                 req_norm = carrier.lower().replace("-", "").replace(" ", "").replace("&", "")
-                 asgn_norm = (assigned_carrier or "").lower().replace("-", "").replace(" ", "").replace("&", "")
-                 
-                 if assigned_carrier and asgn_norm != req_norm:
-                     logger.warning(
-                         f"Carrier mismatch detected for user {user_id}: "
-                         f"requested={carrier}, assigned={assigned_carrier}. "
-                         "Policy: Strict enforcement - cancelling and refunding."
-                     )
-                     
-                     # Cancel immediately via TextVerified
-                     try:
-                         await tv_service.cancel_verification(textverified_result["id"])
-                     except Exception as cancel_error:
-                         logger.error(f"Failed to cancel mismatched carrier number: {cancel_error}")
-                         
-                     # Log mismatch for monitoring (Task 2.4)
-                     logger.info(f"Carrier Mismatch Log: User={user_id}, Req={carrier}, Asgn={assigned_carrier}, status=CANCELLED")
-                         
-                     raise HTTPException(
-                         status_code=status.HTTP_409_CONFLICT,
-                         detail=f"Requested carrier {carrier} was unavailable. Got {assigned_carrier}. Verification cancelled and not charged."
-                     )
+                assigned_carrier = textverified_result.get("assigned_carrier")
+                logger.info(
+                    f"Carrier preference applied: requested={carrier}, "
+                    f"assigned_type={assigned_carrier} (TextVerified best-effort, not guaranteed)"
+                )
+                # No validation — TextVerified returns generic types, not specific carriers
 
             # Step 2.2: Create verification record with filter tracking
             actual_cost = sms_cost  # Use our pricing system cost
@@ -252,9 +231,9 @@ async def request_verification(
                 idempotency_key=final_idempotency_key,
                 requested_area_code=area_code,  # Track requested filter
                 requested_carrier=carrier,      # Track requested carrier
-                operator=textverified_result.get("assigned_carrier") or carrier, 
+                operator=carrier,  # Legacy field — store requested carrier
                 assigned_area_code=textverified_result.get("assigned_area_code"),
-                assigned_carrier=textverified_result.get("assigned_carrier"),
+                assigned_carrier=carrier,  # TV doesn't return carrier; store preference
                 fallback_applied=textverified_result.get("fallback_applied", False),
                 same_state_fallback=textverified_result.get("same_state_fallback", True),
                 created_at=datetime.now(timezone.utc),
@@ -358,7 +337,7 @@ async def request_verification(
             "fallback_applied": textverified_result.get("fallback_applied", False),
             "requested_area_code": textverified_result.get("requested_area_code"),
             "assigned_area_code": textverified_result.get("assigned_area_code"),
-            "assigned_carrier": textverified_result.get("assigned_carrier"),
+            "requested_carrier": carrier,
             "same_state_fallback": textverified_result.get("same_state_fallback", True),
         }
 
