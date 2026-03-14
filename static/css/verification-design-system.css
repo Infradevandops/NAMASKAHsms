@@ -909,8 +909,8 @@
 
 /* Settings Button */
 .modal-settings-btn {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 10px;
     width: 46px;
     height: 46px;
@@ -918,12 +918,13 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: rgba(255, 255, 255, 0.7);
-    transition: background 0.2s, color 0.2s;
+    color: white;
+    font-size: 20px;
+    transition: background 0.2s, border-color 0.2s;
 }
 .modal-settings-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: white;
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.4);
 }
 
 /* Filter Card */
@@ -1072,15 +1073,15 @@ input:checked + .slider:before { transform: translateX(18px); }
 }
 
 .list-item-pin {
-    color: rgba(255, 255, 255, 0.35);
-    font-size: 18px;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 20px;
     cursor: pointer;
     transition: color 0.2s, transform 0.2s;
-    padding: 4px;
+    padding: 4px 8px;
 }
 .list-item-pin:hover {
-    color: rgba(255, 255, 255, 0.7);
-    transform: scale(1.15);
+    color: white;
+    transform: scale(1.2);
 }
 .list-item-pin.active {
     color: var(--accent, #E8003D);
