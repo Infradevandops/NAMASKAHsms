@@ -131,6 +131,9 @@
         <div id="freemium-upsell" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#fff0f0; border:1px solid #ffd1d1; border-radius:8px; font-size:13px; color:#E8003D;">
             💡 Want specific area codes? <a href="/pricing" style="color:#E8003D; font-weight:600;">Upgrade to PAYG</a>
         </div>
+        <div id="subscribed-tip" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:13px; color:#166534;">
+            ✅ Use the Advanced Options above to filter by area code &amp; carrier.
+        </div>
 
         <!-- Selection summary chips -->
         <div id="selection-chips" style="display:none; margin-top:var(--spacing-md); flex-wrap:wrap; gap:8px;"></div>
@@ -632,9 +635,16 @@ function selectImmersiveItem(value, label, price) {
             advSection.style.display = 'block';
         }
         
-        // Show upsell for freemium users
+        // Show upsell for freemium users, tip for subscribed users
         const upsell = document.getElementById('freemium-upsell');
-        if (upsell && rank < 1) upsell.style.display = 'block';
+        const subTip = document.getElementById('subscribed-tip');
+        if (rank < 1) {
+            if (upsell) upsell.style.display = 'block';
+            if (subTip) subTip.style.display = 'none';
+        } else {
+            if (upsell) upsell.style.display = 'none';
+            if (subTip) subTip.style.display = 'block';
+        }
         
     } else if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
@@ -677,9 +687,11 @@ function clearServiceSelection() {
     const advSection = document.getElementById('advanced-options-section');
     if (advSection) advSection.style.display = 'none';
     
-    // Hide upsell
+    // Hide upsell and subscribed tip
     const upsell = document.getElementById('freemium-upsell');
     if (upsell) upsell.style.display = 'none';
+    const subTip = document.getElementById('subscribed-tip');
+    if (subTip) subTip.style.display = 'none';
 }
 
 function toggleAdvanced() {
