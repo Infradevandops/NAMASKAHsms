@@ -229,8 +229,14 @@ class TextVerifiedService:
         try:
             cached = await cache.get(_SERVICES_CACHE_KEY)
             if cached:
-                logger.info(f"Returning {len(cached)} services from cache")
-                return cached
+                # Deduplicate cached data (legacy cache may have dupes)
+                seen = {}
+                for s in cached:
+                    if s["id"] not in seen:
+                        seen[s["id"]] = s
+                deduped = list(seen.values())
+                logger.info(f"Returning {len(deduped)} services from cache")
+                return deduped
         except Exception as e:
             logger.warning(f"Cache read failed: {e}")
 
@@ -238,8 +244,13 @@ class TextVerifiedService:
         try:
             cached_names = await cache.get(_SERVICES_NAMES_CACHE_KEY)
             if cached_names:
-                logger.info(f"Returning {len(cached_names)} services from names cache")
-                return cached_names
+                seen = {}
+                for s in cached_names:
+                    if s["id"] not in seen:
+                        seen[s["id"]] = s
+                deduped = list(seen.values())
+                logger.info(f"Returning {len(deduped)} services from names cache")
+                return deduped
         except Exception as e:
             logger.warning(f"Names cache read failed: {e}")
 
@@ -261,24 +272,46 @@ class TextVerifiedService:
                     logger.error("TextVerified API returned empty services list")
                     raise RuntimeError("TextVerified API returned no services")
                 
+                # Deduplicate by service_name (API returns SMS + Voice variants)
+                seen = {}
+                for s in services:
+                    if s.service_name not in seen:
+                        seen[s.service_name] = s
+                unique_services = list(seen.values())
+                
+                logger.info(f"Fetched {len(services)} services, {len(unique_services)} unique after dedup")
+                
+                # Try to fetch real prices inline (up to 12s)
+                try:
+                    priced = await asyncio.wait_for(
+                        self._fetch_prices_inline(unique_services), timeout=12.0
+                    )
+                    try:
+                        await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
+                        await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                    except Exception as e:
+                        logger.warning(f"Failed to cache services: {e}")
+                    return priced
+                except (asyncio.TimeoutError, Exception) as e:
+                    logger.warning(f"Inline pricing timed out/failed ({e}), returning names only")
+                
+                # Fallback: return without prices, background fetch
                 result = [
                     {
                         "id": s.service_name,
                         "name": s.service_name.title(),
-                        "price": 2.50,
-                        "cost": 2.50,
+                        "price": None,
+                        "cost": None,
                     }
-                    for s in services
+                    for s in unique_services
                 ]
-                
-                logger.info(f"Successfully fetched {len(result)} services from TextVerified API")
                 
                 try:
                     await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
                 except Exception as e:
                     logger.warning(f"Failed to cache services: {e}")
                 
-                asyncio.create_task(self._fetch_and_cache_pricing(services))
+                asyncio.create_task(self._fetch_and_cache_pricing(unique_services))
                 return result
                 
             except asyncio.TimeoutError:
@@ -300,6 +333,32 @@ class TextVerifiedService:
         raise RuntimeError(
             f"TextVerified API failed after 3 attempts. Please try again in a few moments."
         )
+
+    async def _fetch_prices_inline(self, services) -> list:
+        """Fetch real prices for all services inline (called with timeout)."""
+        sem = asyncio.Semaphore(10)
+
+        async def _price(s) -> dict:
+            async with sem:
+                try:
+                    snap = await asyncio.wait_for(
+                        asyncio.to_thread(
+                            self.client.verifications.pricing,
+                            service_name=s.service_name,
+                            area_code=False,
+                            carrier=False,
+                            number_type=NumberType.MOBILE,
+                            capability=ReservationCapability.SMS,
+                        ),
+                        timeout=8.0,
+                    )
+                    return {"id": s.service_name, "name": s.service_name.title(), "price": float(snap.price), "cost": float(snap.price)}
+                except Exception:
+                    return {"id": s.service_name, "name": s.service_name.title(), "price": None, "cost": None}
+
+        results = await asyncio.gather(*[_price(s) for s in services])
+        logger.info(f"Inline pricing: {sum(1 for r in results if r['price'] is not None)}/{len(results)} priced")
+        return list(results)
 
     async def _fetch_and_cache_pricing(self, services) -> None:
         """Background task: fetch all service prices and update 24h cache."""
@@ -323,7 +382,7 @@ class TextVerifiedService:
                     )
                     return snap.price
                 except Exception:
-                    return 2.50
+                    return None
 
         try:
             prices = await asyncio.gather(*[_price(s.service_name) for s in services])
@@ -331,8 +390,8 @@ class TextVerifiedService:
                 {
                     "id": s.service_name,
                     "name": s.service_name.title(),
-                    "price": float(p),
-                    "cost": float(p),
+                    "price": float(p) if p is not None else None,
+                    "cost": float(p) if p is not None else None,
                 }
                 for s, p in zip(services, prices)
             ]

@@ -43,10 +43,10 @@ async def get_services(country: str):
         return {
             "services": [
                 {
-                    "id": s["id"],          # exact provider ID — must be passed back unchanged
+                    "id": s["id"],
                     "name": s["name"],
-                    "price": round(s["price"] * settings.price_markup, 2),
-                    "cost": round(s["price"] * settings.price_markup, 2),
+                    "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                    "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
                 }
                 for s in raw
             ],
@@ -128,8 +128,8 @@ async def get_services_batch_pricing(country: str):
                     {
                         "id": s["id"],
                         "name": s["name"],
-                        "price": round(s["price"] * settings.price_markup, 2),
-                        "cost": round(s["price"] * settings.price_markup, 2),
+                        "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                        "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
                     }
                     for s in cached
                 ],
@@ -154,8 +154,8 @@ async def get_services_batch_pricing(country: str):
                 {
                     "id": s["id"],
                     "name": s["name"],
-                    "price": round(s["price"] * settings.price_markup, 2),
-                    "cost": round(s["price"] * settings.price_markup, 2),
+                    "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                    "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
                 }
                 for s in raw
             ],
