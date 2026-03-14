@@ -20,13 +20,15 @@ class TierManager:
 
     def get_user_tier(self, user_id: str) -> str:
         """Get user's current subscription tier."""
+        # Refresh from DB to avoid stale session data
+        self.db.expire_all()
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
-            return "freemium"  # Default to freemium for non-existent users
+            return "freemium"
 
-        # Check if paid tier has expired
+        # Only check expiration if tier_expires_at is explicitly set
         expires = getattr(user, "tier_expires_at", None)
-        if expires and user.subscription_tier in ["pro", "custom"]:
+        if expires is not None and user.subscription_tier in ["pro", "custom"]:
             if expires.tzinfo is None:
                 expires = expires.replace(tzinfo=timezone.utc)
 

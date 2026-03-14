@@ -11,6 +11,7 @@ from app.core.dependencies import get_current_user_id
 from app.core.logging import get_logger
 from app.core.tier_config import TierConfig
 from app.models.user import User
+from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -26,7 +27,8 @@ async def get_current_tier(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        tier = getattr(user, "subscription_tier", "freemium")
+        tier_manager = TierManager(db)
+        tier = tier_manager.get_user_tier(user_id)
         tier_config = TierConfig.get_tier_config(tier, db)
 
         return {

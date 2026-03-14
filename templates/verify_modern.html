@@ -290,6 +290,42 @@ const VerificationFlow = {
     tierRank: { freemium: 0, payg: 1, pro: 2, custom: 3 }
 };
 
+/**
+ * Central tier-gating function. Call this whenever tier changes or service is selected.
+ * Controls: upsell, subscribed-tip, advanced-options, area-code lock, carrier lock.
+ */
+function applyTierGating() {
+    const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
+    const hasService = !!VerificationFlow.selectedService;
+
+    // Advanced options section (only visible for PAYG+ AND service selected)
+    const advSection = document.getElementById('advanced-options-section');
+    if (advSection) advSection.style.display = (rank >= 1 && hasService) ? 'block' : 'none';
+
+    // Upsell vs subscribed tip (only visible when service selected)
+    const upsell = document.getElementById('freemium-upsell');
+    const subTip = document.getElementById('subscribed-tip');
+    if (hasService) {
+        if (upsell) upsell.style.display = rank < 1 ? 'block' : 'none';
+        if (subTip) subTip.style.display = rank >= 1 ? 'block' : 'none';
+    } else {
+        if (upsell) upsell.style.display = 'none';
+        if (subTip) subTip.style.display = 'none';
+    }
+
+    // Area code lock
+    const acInput = document.getElementById('area-code-search-input');
+    const acLock = document.getElementById('area-code-lock-msg');
+    if (acInput) acInput.disabled = rank < 1;
+    if (acLock) acLock.style.display = rank < 1 ? 'block' : 'none';
+
+    // Carrier lock
+    const carrierSel = document.getElementById('carrier-select-inline');
+    const carrierLock = document.getElementById('carrier-lock-msg');
+    if (carrierSel) carrierSel.disabled = rank < 1;
+    if (carrierLock) carrierLock.style.display = rank < 1 ? 'block' : 'none';
+}
+
 // --- Immersive Modal System (Task 3) ---
 let _modalType = null;
 let _modalItems = {};
@@ -628,23 +664,7 @@ function selectImmersiveItem(value, label, price) {
         const costEl = document.getElementById('selected-service-cost');
         if (costEl) costEl.textContent = price > 0 ? `$${price.toFixed(2)}` : 'Market rate';
         
-        // Show advanced options for PAYG+ users after service selection
-        const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
-        const advSection = document.getElementById('advanced-options-section');
-        if (advSection && rank >= 1) {
-            advSection.style.display = 'block';
-        }
-        
-        // Show upsell for freemium users, tip for subscribed users
-        const upsell = document.getElementById('freemium-upsell');
-        const subTip = document.getElementById('subscribed-tip');
-        if (rank < 1) {
-            if (upsell) upsell.style.display = 'block';
-            if (subTip) subTip.style.display = 'none';
-        } else {
-            if (upsell) upsell.style.display = 'none';
-            if (subTip) subTip.style.display = 'block';
-        }
+        applyTierGating();
         
     } else if (_modalType === 'area-code') {
         VerificationFlow.selectedAreaCode = value || null;
@@ -683,15 +703,7 @@ function clearServiceSelection() {
     document.getElementById('service-search-input').value = '';
     document.getElementById('continue-btn').disabled = true;
     
-    // Hide advanced options when service is cleared
-    const advSection = document.getElementById('advanced-options-section');
-    if (advSection) advSection.style.display = 'none';
-    
-    // Hide upsell and subscribed tip
-    const upsell = document.getElementById('freemium-upsell');
-    if (upsell) upsell.style.display = 'none';
-    const subTip = document.getElementById('subscribed-tip');
-    if (subTip) subTip.style.display = 'none';
+    applyTierGating();
 }
 
 function toggleAdvanced() {
@@ -883,18 +895,7 @@ async function retryLoadServices() {
 }
 
 async function loadAreaCodes() {
-    const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
-    const input = document.getElementById('area-code-search-input');
-    const lockMsg = document.getElementById('area-code-lock-msg');
-    
-    // Always load area codes for modal display, but lock input for freemium
-    if (rank < 1) { 
-        if (input) input.disabled = true; 
-        if (lockMsg) lockMsg.style.display = 'block'; 
-    } else {
-        if (input) input.disabled = false; 
-        if (lockMsg) lockMsg.style.display = 'none';
-    }
+    applyTierGating();
 
     const cached = _lsGet(_LS_AREA_CODES_KEY);
     if (cached && cached.length > 1) { _modalItems['area-code'] = cached; return; }
@@ -917,21 +918,7 @@ async function loadAreaCodes() {
 }
 
 async function loadCarriers() {
-    const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
-    const sel = document.getElementById('carrier-select-inline');
-    
-    // Always load carriers for modal display, but lock select for freemium
-    if (sel) {
-        if (rank < 1) {
-            sel.disabled = true;
-            const lockMsg = document.getElementById('carrier-lock-msg');
-            if (lockMsg) lockMsg.style.display = 'block';
-        } else {
-            sel.disabled = false;
-            const lockMsg = document.getElementById('carrier-lock-msg');
-            if (lockMsg) lockMsg.style.display = 'none';
-        }
-    }
+    applyTierGating();
 
     // Issue #7: carrier caching (24h localStorage)
     const _LS_CARRIERS_KEY = 'nsk_carriers_cache';
@@ -1374,20 +1361,25 @@ async function loadTier() {
                     VerificationFlow.userTier = freshTier;
                     loadAreaCodes();
                     loadCarriers();
-                    updatePricing(); // Re-apply gated logic if tier changed
+                    updatePricing();
+                    applyTierGating();
                 }
             }
         }
     } catch(e) {}
     if (!hasCached) { loadAreaCodes(); loadCarriers(); }
+    applyTierGating();
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Load services first (critical path)
+    // Load tier FIRST — must know tier before any UI renders
+    await loadTier();
+    
+    // Load services (critical path)
     await loadServices();
     
-    // Load other data in parallel (non-blocking)
-    Promise.all([loadTier(), loadBalance()]);
+    // Load balance in background
+    loadBalance();
     
     updateProgress(1);
 
