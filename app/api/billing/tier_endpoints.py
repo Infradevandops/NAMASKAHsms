@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.core.logging import get_logger
+from app.core.logging import get_logger, log_tier_access
 from app.core.tier_config import TierConfig
 from app.models.user import User
 from app.services.tier_manager import TierManager
@@ -30,6 +30,9 @@ async def get_current_tier(
         tier_manager = TierManager(db)
         tier = tier_manager.get_user_tier(user_id)
         tier_config = TierConfig.get_tier_config(tier, db)
+        
+        # Log tier access
+        log_tier_access(user_id, tier, "tier_info", True)
 
         return {
             "current_tier": tier,
