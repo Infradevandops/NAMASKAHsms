@@ -1,0 +1,54 @@
+# Prometheus Configuration
+# Scrapes metrics from the application
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'namaskah-sms'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - localhost:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "alert_rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Application metrics
+  - job_name: 'namaskah-app'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Tier identification metrics
+  - job_name: 'tier-identification'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics/tier'
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # Cache metrics
+  - job_name: 'cache'
+    static_configs:
+      - targets: ['localhost:6379']
+    scrape_interval: 15s
+
+  # Database metrics
+  - job_name: 'database'
+    static_configs:
+      - targets: ['localhost:5432']
+    scrape_interval: 30s

@@ -1,0 +1,135 @@
+# Prometheus Alert Rules
+# Defines alerts for monitoring tier identification system
+
+groups:
+  - name: tier_identification
+    interval: 30s
+    rules:
+      # Tier identification latency alert
+      - alert: TierIdentificationLatencyHigh
+        expr: histogram_quantile(0.95, tier_identification_latency_seconds) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tier identification latency is high"
+          description: "95th percentile tier identification latency is {{ $value }}s (threshold: 0.5s)"
+
+      # Tier identification error rate alert
+      - alert: TierIdentificationErrorRateHigh
+        expr: rate(tier_identification_errors_total[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Tier identification error rate is high"
+          description: "Error rate is {{ $value }} errors/sec (threshold: 0.01)"
+
+      # Cache hit rate alert
+      - alert: CacheHitRateLow
+        expr: cache_hit_rate < 0.80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cache hit rate is low"
+          description: "Cache hit rate is {{ $value }} (threshold: 0.80)"
+
+      # Cache size alert
+      - alert: CacheSizeHigh
+        expr: cache_size_bytes > 1073741824  # 1GB
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cache size is high"
+          description: "Cache size is {{ $value | humanize }}B (threshold: 1GB)"
+
+  - name: api_performance
+    interval: 30s
+    rules:
+      # API latency alert
+      - alert: APILatencyHigh
+        expr: histogram_quantile(0.95, api_request_duration_seconds) > 1.0
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "API latency is high"
+          description: "95th percentile API latency is {{ $value }}s (threshold: 1.0s)"
+
+      # API error rate alert
+      - alert: APIErrorRateHigh
+        expr: rate(api_errors_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API error rate is high"
+          description: "Error rate is {{ $value }} errors/sec (threshold: 0.05)"
+
+      # API 5xx error alert
+      - alert: API5xxErrorsHigh
+        expr: rate(api_requests_total{status=~"5.."}[5m]) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "API 5xx errors are high"
+          description: "5xx error rate is {{ $value }} errors/sec (threshold: 0.01)"
+
+  - name: feature_access
+    interval: 30s
+    rules:
+      # Unauthorized access attempts alert
+      - alert: UnauthorizedAccessAttemptsHigh
+        expr: rate(unauthorized_access_attempts_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unauthorized access attempts are high"
+          description: "Unauthorized access rate is {{ $value }} attempts/sec (threshold: 0.1)"
+
+      # Feature access denial rate alert
+      - alert: FeatureAccessDenialRateHigh
+        expr: rate(feature_access_denied_total[5m]) > 0.2
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Feature access denial rate is high"
+          description: "Denial rate is {{ $value }} denials/sec (threshold: 0.2)"
+
+  - name: system_health
+    interval: 30s
+    rules:
+      # High active requests alert
+      - alert: HighActiveRequests
+        expr: active_requests > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of active requests"
+          description: "Active requests: {{ $value }} (threshold: 1000)"
+
+      # Request queue length alert
+      - alert: RequestQueueLengthHigh
+        expr: request_queue_length > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Request queue length is high"
+          description: "Queue length: {{ $value }} (threshold: 500)"
+
+      # Tier change rate alert
+      - alert: TierChangeRateHigh
+        expr: rate(tier_changes_total[5m]) > 1.0
+        for: 5m
+        labels:
+          severity: info
+        annotations:
+          summary: "Tier change rate is high"
+          description: "Change rate: {{ $value }} changes/sec (threshold: 1.0)"
