@@ -49,6 +49,7 @@ from app.middleware.csrf_middleware import CSRFMiddleware
 from app.middleware.logging import RequestLoggingMiddleware
 from app.middleware.security import SecurityHeadersMiddleware
 from app.middleware.xss_protection import XSSProtectionMiddleware
+from app.middleware.tier_verification import tier_verification_middleware
 import jwt
 from app.models.base import Base
 import uvicorn
@@ -140,6 +141,11 @@ def create_app() -> FastAPI:
     fastapi_app.add_middleware(SecurityHeadersMiddleware)
     fastapi_app.add_middleware(XSSProtectionMiddleware)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
+    
+    # Tier verification middleware (must be after auth middleware)
+    @fastapi_app.middleware("http")
+    async def tier_verification_wrapper(request: Request, call_next):
+        return await tier_verification_middleware(request, call_next)
 
     # ============== STATIC FILES ==============
     if STATIC_DIR.exists():

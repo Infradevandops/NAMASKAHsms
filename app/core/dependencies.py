@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.user import User
 from app.services.auth_service import AuthService
+from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
 security = HTTPBearer(auto_error=False)
@@ -147,6 +148,72 @@ def require_tier(required_tier: str):
 require_payg = require_tier("payg")
 require_pro = require_tier("pro")
 require_custom = require_tier("custom")
+
+
+def require_feature(feature: str):
+    """Create a dependency that requires a specific feature.
+    
+    This decorator checks if the user's tier has access to the specified feature.
+    Features include: api_access, area_code_selection, isp_filtering, webhooks, etc.
+    
+    Args:
+        feature: Feature name to check access for
+        
+    Returns:
+        Dependency function that validates feature access
+        
+    Raises:
+        HTTPException 403 if user doesn't have access to feature
+    """
+    def feature_dependency(
+        request: Request,
+        user_id: str = Depends(get_current_user_id),
+        db: Session = Depends(get_db)
+    ) -> str:
+        """Validate user has access to feature and return user_id if authorized."""
+        try:
+            # Get tier_manager from request state (set by middleware)
+            tier_manager = getattr(request.state, 'tier_manager', None)
+            if not tier_manager:
+                tier_manager = TierManager(db)
+            
+            # Check feature access
+            if not tier_manager.check_feature_access(user_id, feature):
+                # Log unauthorized access attempt
+                logger.warning(
+                    f"TIER_ACCESS | status=DENIED | user={user_id} | feature={feature} | "
+                    f"reason=insufficient_tier"
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=f"Feature '{feature}' requires higher tier"
+                )
+            
+            # Log authorized access
+            logger.debug(
+                f"TIER_ACCESS | status=ALLOWED | user={user_id} | feature={feature}"
+            )
+            return user_id
+            
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Feature access check failed: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to verify feature access"
+            )
+    
+    return feature_dependency
+
+
+# Common feature dependencies
+require_api_access = require_feature("api_access")
+require_area_codes = require_feature("area_code_selection")
+require_isp_filtering = require_feature("isp_filtering")
+require_webhooks = require_feature("webhooks")
+require_priority_routing = require_feature("priority_routing")
+require_custom_branding = require_feature("custom_branding")
 
 
 def require_payment_method(
