@@ -1,309 +1,240 @@
-"""
-Production Metrics Collection System
-Prometheus-compatible metrics for monitoring and alerting.
+"""Prometheus metrics for performance monitoring.
+
+Tracks:
+- Tier identification latency
+- Cache hit rates
+- API response times
+- Error rates
+- Request throughput
 """
 
-import re
+from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
 import time
-from collections import Counter, defaultdict
-from typing import Any, Dict
+from functools import wraps
+import logging
 
-import psutil
-from prometheus_client import CONTENT_TYPE_LATEST
-from prometheus_client import Counter as PrometheusCounter
-from prometheus_client import Gauge, Histogram, generate_latest
+logger = logging.getLogger(__name__)
 
-from app.core.config import settings
-from app.core.logging import get_logger, log_business_event, log_performance
+# Create registry
+registry = CollectorRegistry()
 
-logger = get_logger("metrics")
+# ============================================================================
+# TIER IDENTIFICATION METRICS
+# ============================================================================
 
-REQUEST_COUNT = PrometheusCounter(
-    "http_requests_total", "Total HTTP requests", ["method", "endpoint", "status_code"]
+tier_identification_latency = Histogram(
+    'tier_identification_latency_seconds',
+    'Tier identification latency in seconds',
+    buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0),
+    registry=registry
 )
-REQUEST_DURATION = Histogram(
-    "http_request_duration_seconds",
-    "HTTP request duration in seconds",
-    ["method", "endpoint"],
+
+tier_identification_errors = Counter(
+    'tier_identification_errors_total',
+    'Total tier identification errors',
+    ['error_type'],
+    registry=registry
 )
-ACTIVE_CONNECTIONS = Gauge("active_connections_total", "Number of active connections")
-DATABASE_CONNECTIONS = Gauge(
-    "database_connections_active", "Active database connections"
+
+tier_identification_cache_hits = Counter(
+    'tier_identification_cache_hits_total',
+    'Total tier identification cache hits',
+    registry=registry
 )
-REDIS_CONNECTIONS = Gauge("redis_connections_active", "Active Redis connections")
-BUSINESS_EVENTS = PrometheusCounter(
-    "business_events_total", "Business events counter", ["event_type", "status"]
+
+tier_identification_cache_misses = Counter(
+    'tier_identification_cache_misses_total',
+    'Total tier identification cache misses',
+    registry=registry
 )
-ERROR_COUNT = PrometheusCounter(
-    "errors_total", "Total errors", ["error_type", "severity"]
+
+# ============================================================================
+# CACHE METRICS
+# ============================================================================
+
+cache_hit_rate = Gauge(
+    'cache_hit_rate',
+    'Cache hit rate (0-1)',
+    registry=registry
 )
-SYSTEM_CPU = Gauge("system_cpu_usage_percent", "System CPU usage percentage")
-SYSTEM_MEMORY = Gauge("system_memory_usage_percent", "System memory usage percentage")
-SYSTEM_DISK = Gauge("system_disk_usage_percent", "System disk usage percentage")
 
+cache_size_bytes = Gauge(
+    'cache_size_bytes',
+    'Cache size in bytes',
+    registry=registry
+)
 
-class MetricsCollector:
-    """Centralized metrics collection and management."""
+cache_evictions = Counter(
+    'cache_evictions_total',
+    'Total cache evictions',
+    registry=registry
+)
 
-    def __init__(self):
-        self.start_time = time.time()
-        self.request_stats = defaultdict(lambda: {"count": 0, "total_time": 0})
-        self.error_stats = Counter()
-        self.business_stats = Counter()
+# ============================================================================
+# API METRICS
+# ============================================================================
 
-    def record_request(
-        self, method: str, endpoint: str, status_code: int, duration: float
-    ):
-        """Record HTTP request metrics."""
-        REQUEST_COUNT.labels(
-            method=method, endpoint=endpoint, status_code=status_code
-        ).inc()
-        REQUEST_DURATION.labels(method=method, endpoint=endpoint).observe(duration)
+api_request_duration = Histogram(
+    'api_request_duration_seconds',
+    'API request duration in seconds',
+    ['method', 'endpoint'],
+    buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0),
+    registry=registry
+)
 
-        key = f"{method}:{endpoint}"
-        self.request_stats[key]["count"] += 1
-        self.request_stats[key]["total_time"] += duration
+api_requests_total = Counter(
+    'api_requests_total',
+    'Total API requests',
+    ['method', 'endpoint', 'status'],
+    registry=registry
+)
 
-    def record_error(self, error_type: str, severity: str = "medium"):
-        """Record error metrics."""
-        ERROR_COUNT.labels(error_type=error_type, severity=severity).inc()
-        self.error_stats[f"{error_type}:{severity}"] += 1
+api_errors_total = Counter(
+    'api_errors_total',
+    'Total API errors',
+    ['method', 'endpoint', 'error_type'],
+    registry=registry
+)
 
-    def record_business_event(self, event_type: str, status: str = "success"):
-        """Record business event metrics."""
-        BUSINESS_EVENTS.labels(event_type=event_type, status=status).inc()
-        self.business_stats[f"{event_type}:{status}"] += 1
+# ============================================================================
+# FEATURE ACCESS METRICS
+# ============================================================================
 
-    @staticmethod
-    def update_system_metrics():
-        """Update system resource metrics."""
-        try:
-            cpu_percent = psutil.cpu_percent(interval=1)
-            SYSTEM_CPU.set(cpu_percent)
-            memory = psutil.virtual_memory()
-            SYSTEM_MEMORY.set(memory.percent)
-            disk = psutil.disk_usage("/")
-            SYSTEM_DISK.set(disk.percent)
-        except Exception as e:
-            logger.error("Failed to update system metrics", error=str(e))
+feature_access_allowed = Counter(
+    'feature_access_allowed_total',
+    'Total allowed feature accesses',
+    ['feature', 'tier'],
+    registry=registry
+)
 
-    def get_application_metrics(self) -> Dict[str, Any]:
-        """Get application-specific metrics."""
-        uptime = time.time() - self.start_time
-        total_requests = sum(stats["count"] for stats in self.request_stats.values())
-        avg_response_time = 0
-        if total_requests > 0:
-            total_time = sum(
-                stats["total_time"] for stats in self.request_stats.values()
-            )
-            avg_response_time = total_time / total_requests
+feature_access_denied = Counter(
+    'feature_access_denied_total',
+    'Total denied feature accesses',
+    ['feature', 'tier'],
+    registry=registry
+)
 
-        return {
-            "uptime_seconds": uptime,
-            "total_requests": total_requests,
-            "average_response_time": avg_response_time,
-            "error_count": sum(self.error_stats.values()),
-            "business_events": sum(self.business_stats.values()),
-            "requests_per_second": total_requests / uptime if uptime > 0 else 0,
-        }
+# ============================================================================
+# TIER CHANGE METRICS
+# ============================================================================
 
-    def get_health_score(self) -> Dict[str, Any]:
-        """Calculate overall health score."""
-        try:
-            cpu_percent = psutil.cpu_percent()
-            memory_percent = psutil.virtual_memory().percent
-            disk_percent = psutil.disk_usage("/").percent
+tier_changes = Counter(
+    'tier_changes_total',
+    'Total tier changes',
+    ['old_tier', 'new_tier'],
+    registry=registry
+)
 
-            health_score = 100
+# ============================================================================
+# ERROR METRICS
+# ============================================================================
 
-            if cpu_percent > 80:
-                health_score -= 20
-            elif cpu_percent > 60:
-                health_score -= 10
+errors_total = Counter(
+    'errors_total',
+    'Total errors',
+    ['error_type', 'severity'],
+    registry=registry
+)
 
-            if memory_percent > 85:
-                health_score -= 20
-            elif memory_percent > 70:
-                health_score -= 10
+unauthorized_access_attempts = Counter(
+    'unauthorized_access_attempts_total',
+    'Total unauthorized access attempts',
+    ['feature', 'tier'],
+    registry=registry
+)
 
-            if disk_percent > 90:
-                health_score -= 15
-            elif disk_percent > 80:
-                health_score -= 5
+# ============================================================================
+# PERFORMANCE METRICS
+# ============================================================================
 
-            app_metrics = self.get_application_metrics()
-            error_rate = 0
-            if app_metrics["total_requests"] > 0:
-                error_rate = app_metrics["error_count"] / app_metrics["total_requests"]
+active_requests = Gauge(
+    'active_requests',
+    'Number of active requests',
+    registry=registry
+)
 
-            if error_rate > 0.05:
-                health_score -= 25
-            elif error_rate > 0.01:
-                health_score -= 10
+request_queue_length = Gauge(
+    'request_queue_length',
+    'Request queue length',
+    registry=registry
+)
 
-            if app_metrics["average_response_time"] > 2.0:
-                health_score -= 15
-            elif app_metrics["average_response_time"] > 1.0:
-                health_score -= 5
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
 
-            health_score = max(0, health_score)
-
-            return {
-                "health_score": health_score,
-                "status": (
-                    "healthy"
-                    if health_score >= 80
-                    else "degraded" if health_score >= 60 else "unhealthy"
-                ),
-                "factors": {
-                    "cpu_usage": cpu_percent,
-                    "memory_usage": memory_percent,
-                    "disk_usage": disk_percent,
-                    "error_rate": error_rate,
-                    "avg_response_time": app_metrics["average_response_time"],
-                },
-            }
-
-        except Exception as e:
-            logger.error("Failed to calculate health score", error=str(e))
-            return {"health_score": 0, "status": "unknown", "error": str(e)}
-
-
-metrics_collector = MetricsCollector()
-
-
-class MetricsMiddleware:
-    """Middleware to collect request metrics."""
-
-    def __init__(self, app):
-        self.app = app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-
+def track_tier_identification(func):
+    """Decorator to track tier identification metrics."""
+    @wraps(func)
+    def wrapper(*args, **kwargs):
         start_time = time.time()
-        method = scope["method"]
-        path = scope["path"]
-        normalized_path = MetricsMiddleware._normalize_path(path)
-
-        async def send_wrapper(message):
-            if message["type"] == "http.response.start":
-                duration = time.time() - start_time
-                status_code = message["status"]
-                metrics_collector.record_request(
-                    method, normalized_path, status_code, duration
-                )
-                ACTIVE_CONNECTIONS.inc()
-            await send(message)
-
         try:
-            await self.app(scope, receive, send_wrapper)
+            result = func(*args, **kwargs)
+            duration = time.time() - start_time
+            tier_identification_latency.observe(duration)
+            return result
         except Exception as e:
-            metrics_collector.record_error(type(e).__name__, "high")
+            duration = time.time() - start_time
+            tier_identification_latency.observe(duration)
+            tier_identification_errors.labels(error_type=type(e).__name__).inc()
             raise
-        finally:
-            ACTIVE_CONNECTIONS.dec()
-
-    @staticmethod
-    def _normalize_path(path: str) -> str:
-        """Normalize path for metrics grouping."""
-        path = re.sub(
-            r"/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
-            "/{uuid}",
-            path,
-        )
-        path = re.sub(r"/\d+", "/{id}", path)
-        path = re.sub(r"/[A-Z0-9]{6,}", "/{code}", path)
-        return path
+    return wrapper
 
 
-def get_prometheus_metrics() -> str:
-    """Get Prometheus-formatted metrics."""
-    metrics_collector.update_system_metrics()
-    return generate_latest()
+def track_cache_hit(hit: bool):
+    """Track cache hit or miss."""
+    if hit:
+        tier_identification_cache_hits.inc()
+    else:
+        tier_identification_cache_misses.inc()
 
 
-def get_metrics_content_type() -> str:
-    """Get Prometheus metrics content type."""
-    return CONTENT_TYPE_LATEST
+def track_feature_access(feature: str, tier: str, allowed: bool):
+    """Track feature access attempt."""
+    if allowed:
+        feature_access_allowed.labels(feature=feature, tier=tier).inc()
+    else:
+        feature_access_denied.labels(feature=feature, tier=tier).inc()
+        unauthorized_access_attempts.labels(feature=feature, tier=tier).inc()
 
 
-async def record_business_event(event_type: str, status: str = "success", **kwargs):
-    """Record a business event with additional context."""
-    metrics_collector.record_business_event(event_type, status)
-    business_logger = get_logger("business")
-    log_business_event(business_logger, event_type, {"status": status, **kwargs})
+def track_tier_change(old_tier: str, new_tier: str):
+    """Track tier change."""
+    tier_changes.labels(old_tier=old_tier, new_tier=new_tier).inc()
 
 
-async def record_performance_metric(operation: str, duration: float, **kwargs):
-    """Record performance metrics."""
-    operation_histogram = Histogram(
-        "operation_duration_seconds", "Operation duration in seconds", ["operation"]
-    )
-    operation_histogram.labels(operation=operation).observe(duration)
-    performance_logger = get_logger("performance")
-    log_performance(performance_logger, operation, duration, kwargs)
+def track_api_request(method: str, endpoint: str, status: int, duration: float):
+    """Track API request."""
+    api_request_duration.labels(method=method, endpoint=endpoint).observe(duration)
+    api_requests_total.labels(method=method, endpoint=endpoint, status=status).inc()
 
 
-class DatabaseMetrics:
-    """Database-specific metrics collection."""
-
-    @staticmethod
-    def record_query(query_type: str, duration: float, success: bool = True):
-        """Record database query metrics."""
-        query_histogram = Histogram(
-            "database_query_duration_seconds",
-            "Database query duration",
-            ["query_type", "status"],
-        )
-        status = "success" if success else "error"
-        query_histogram.labels(query_type=query_type, status=status).observe(duration)
-
-        if not success:
-            metrics_collector.record_error("database_query", "medium")
-
-    @staticmethod
-    def update_connection_count(active_connections: int):
-        """Update database connection count."""
-        DATABASE_CONNECTIONS.set(active_connections)
+def track_error(error_type: str, severity: str = "error"):
+    """Track error."""
+    errors_total.labels(error_type=error_type, severity=severity).inc()
 
 
-class CacheMetrics:
-    """Cache-specific metrics collection."""
-
-    def __init__(self):
-        self.hit_counter = PrometheusCounter("cache_hits_total", "Cache hits")
-        self.miss_counter = PrometheusCounter("cache_misses_total", "Cache misses")
-        self.operation_histogram = Histogram(
-            "cache_operation_duration_seconds",
-            "Cache operation duration",
-            ["operation"],
-        )
-
-    def record_hit(self):
-        """Record cache hit."""
-        self.hit_counter.inc()
-
-    def record_miss(self):
-        """Record cache miss."""
-        self.miss_counter.inc()
-
-    def record_operation(self, operation: str, duration: float):
-        """Record cache operation."""
-        self.operation_histogram.labels(operation=operation).observe(duration)
+def update_cache_hit_rate(hits: int, total: int):
+    """Update cache hit rate."""
+    if total > 0:
+        cache_hit_rate.set(hits / total)
 
 
-cache_metrics = CacheMetrics()
+def update_cache_size(size_bytes: int):
+    """Update cache size."""
+    cache_size_bytes.set(size_bytes)
 
 
-def get_application_info() -> Dict[str, Any]:
-    """Get application information for metrics."""
-    return {
-        "name": settings.app_name,
-        "version": settings.app_version,
-        "environment": settings.environment,
-        "start_time": metrics_collector.start_time,
-        "uptime": time.time() - metrics_collector.start_time,
-    }
+def increment_cache_evictions():
+    """Increment cache evictions."""
+    cache_evictions.inc()
+
+
+def set_active_requests(count: int):
+    """Set active request count."""
+    active_requests.set(count)
+
+
+def set_request_queue_length(length: int):
+    """Set request queue length."""
+    request_queue_length.set(length)

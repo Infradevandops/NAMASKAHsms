@@ -1,0 +1,277 @@
+{
+  "dashboard": {
+    "title": "Tier Identification System - Monitoring",
+    "description": "Real-time monitoring of tier identification system performance",
+    "tags": ["tier-identification", "monitoring", "performance"],
+    "timezone": "UTC",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Tier Identification Latency (p95)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, tier_identification_latency_seconds)",
+            "legendFormat": "p95 latency"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Latency (seconds)",
+            "format": "s"
+          }
+        ],
+        "alert": {
+          "name": "TierIdentificationLatencyHigh",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.5],
+                "type": "gt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "title": "Cache Hit Rate",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "cache_hit_rate",
+            "legendFormat": "Hit Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "red",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 0.8
+                },
+                {
+                  "color": "green",
+                  "value": 0.9
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(api_requests_total[5m])",
+            "legendFormat": "{{ method }} {{ endpoint }}"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Requests/sec",
+            "format": "reqps"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "API Error Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(api_errors_total[5m])",
+            "legendFormat": "{{ error_type }}"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Errors/sec",
+            "format": "short"
+          }
+        ],
+        "alert": {
+          "name": "APIErrorRateHigh",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.05],
+                "type": "gt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": 5,
+        "title": "Feature Access - Allowed vs Denied",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum(rate(feature_access_allowed_total[5m])) by (feature)",
+            "legendFormat": "{{ feature }} (allowed)"
+          },
+          {
+            "expr": "sum(rate(feature_access_denied_total[5m])) by (feature)",
+            "legendFormat": "{{ feature }} (denied)"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Tier Changes",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(tier_changes_total[5m])",
+            "legendFormat": "{{ old_tier }} → {{ new_tier }}"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Changes/sec",
+            "format": "short"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Active Requests",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "active_requests",
+            "legendFormat": "Active"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 500
+                },
+                {
+                  "color": "red",
+                  "value": 1000
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Cache Size",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "cache_size_bytes",
+            "legendFormat": "Size"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "color": "green",
+                  "value": 0
+                },
+                {
+                  "color": "yellow",
+                  "value": 536870912
+                },
+                {
+                  "color": "red",
+                  "value": 1073741824
+                }
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Unauthorized Access Attempts",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(unauthorized_access_attempts_total[5m])",
+            "legendFormat": "{{ feature }} ({{ tier }})"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Attempts/sec",
+            "format": "short"
+          }
+        ],
+        "alert": {
+          "name": "UnauthorizedAccessAttemptsHigh",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.1],
+                "type": "gt"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "id": 10,
+        "title": "Tier Identification Errors",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(tier_identification_errors_total[5m])",
+            "legendFormat": "{{ error_type }}"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Errors/sec",
+            "format": "short"
+          }
+        ],
+        "alert": {
+          "name": "TierIdentificationErrorRateHigh",
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.01],
+                "type": "gt"
+              }
+            }
+          ]
+        }
+      }
+    ],
+    "refresh": "10s",
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    }
+  }
+}
