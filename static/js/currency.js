@@ -3,7 +3,7 @@ class CurrencyFormatter {
         this.currency = localStorage.getItem('currency') || 'USD';
         this.rates = {};
         this.lastUpdate = null;
-        this.init();
+        this.init().catch(e => console.error('CurrencyFormatter init failed:', e));
     }
 
     async init() {

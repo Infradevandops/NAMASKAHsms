@@ -469,7 +469,7 @@
                 this.totalNotifications = 0;
                 this.filters = {};
                 this.selectedNotifications = new Set();
-                this.init();
+                this.init().catch(e => console.error('NotificationCenter init failed:', e));
             }
 
             async init() {

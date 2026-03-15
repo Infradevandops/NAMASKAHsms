@@ -7,7 +7,7 @@ class NotificationPreferencesManager {
     constructor() {
         this.preferences = {};
         this.defaults = {};
-        this.init();
+        this.init().catch(e => console.error('NotificationPreferencesManager init failed:', e));
     }
 
     async init() {
