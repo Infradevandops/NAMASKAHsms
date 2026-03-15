@@ -6,7 +6,7 @@
 class APIKeyManager {
     constructor() {
         this.apiKeys = [];
-        this.init();
+        this.init().catch(e => console.error('APIKeyManager init failed:', e));
     }
 
     async init() {

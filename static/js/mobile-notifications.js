@@ -9,7 +9,7 @@ class MobileNotificationHandler {
         this.deviceToken = null;
         this.platform = this.detectPlatform();
         this.isSupported = this.checkSupport();
-        this.init();
+        this.init().catch(e => console.error('MobileNotificationHandler init failed:', e));
     }
 
     /**
