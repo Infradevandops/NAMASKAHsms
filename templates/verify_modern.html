@@ -295,8 +295,11 @@ const VerificationFlow = {
  * Controls: upsell, subscribed-tip, advanced-options, area-code lock, carrier lock.
  */
 function applyTierGating() {
-    const rank = VerificationFlow.tierRank[VerificationFlow.userTier] || 0;
+    const normalizedTier = (VerificationFlow.userTier || 'freemium').toLowerCase();
+    const rank = VerificationFlow.tierRank[normalizedTier] || 0;
     const hasService = !!VerificationFlow.selectedService;
+
+    console.log(`[TierGating] Tier: ${normalizedTier}, Rank: ${rank}, HasService: ${hasService}`);
 
     // Advanced options section (only visible for PAYG+ AND service selected)
     const advSection = document.getElementById('advanced-options-section');
@@ -306,8 +309,16 @@ function applyTierGating() {
     const upsell = document.getElementById('freemium-upsell');
     const subTip = document.getElementById('subscribed-tip');
     if (hasService) {
-        if (upsell) upsell.style.display = rank < 1 ? 'block' : 'none';
-        if (subTip) subTip.style.display = rank >= 1 ? 'block' : 'none';
+        const shouldShowUpsell = rank < 1;
+        const shouldShowTip = rank >= 1;
+        if (upsell) {
+            upsell.style.display = shouldShowUpsell ? 'block' : 'none';
+            console.log(`[TierGating] Upsell: ${shouldShowUpsell ? 'SHOW' : 'HIDE'}`);
+        }
+        if (subTip) {
+            subTip.style.display = shouldShowTip ? 'block' : 'none';
+            console.log(`[TierGating] SubTip: ${shouldShowTip ? 'SHOW' : 'HIDE'}`);
+        }
     } else {
         if (upsell) upsell.style.display = 'none';
         if (subTip) subTip.style.display = 'none';
@@ -1354,19 +1365,24 @@ async function loadTier() {
         clearTimeout(tid);
         if (res.ok) {
             const d = await res.json();
-            if (d.success && d.user) {
-                const freshTier = d.user.subscription_tier || 'freemium';
-                localStorage.setItem('nsk_tier_cache', JSON.stringify({ ts: Date.now(), tier: freshTier }));
-                if (freshTier !== VerificationFlow.userTier) {
-                    VerificationFlow.userTier = freshTier;
-                    loadAreaCodes();
-                    loadCarriers();
-                    updatePricing();
-                    applyTierGating();
-                }
+            // Support multiple API response formats
+            let freshTier = 'freemium';
+            if (d.current_tier) freshTier = d.current_tier;
+            else if (d.user?.subscription_tier) freshTier = d.user.subscription_tier;
+            else if (d.tier) freshTier = d.tier;
+            
+            freshTier = freshTier.toLowerCase();
+            localStorage.setItem('nsk_tier_cache', JSON.stringify({ ts: Date.now(), tier: freshTier }));
+            if (freshTier !== VerificationFlow.userTier) {
+                VerificationFlow.userTier = freshTier;
+                console.log(`[Tier] Updated to: ${freshTier}`);
+                loadAreaCodes();
+                loadCarriers();
+                updatePricing();
+                applyTierGating();
             }
         }
-    } catch(e) {}
+    } catch(e) { console.error('[Tier] Background validation failed:', e); }
     if (!hasCached) { loadAreaCodes(); loadCarriers(); }
     applyTierGating();
 }
