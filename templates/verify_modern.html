@@ -1152,7 +1152,7 @@ function startPolling() {
         }
     }
     
-    poll();
+    poll().catch(e => console.error('Poll error:', e));
 }
 
 function stopPolling() {
@@ -1392,6 +1392,7 @@ async function loadTier() {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    try {
     // Load tier FIRST — must know tier before any UI renders
     await loadTier();
     
@@ -1426,6 +1427,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }, 100);
     }
+    } catch(e) { console.error('Page init error:', e); }
 });
 
 async function loadBalance() {

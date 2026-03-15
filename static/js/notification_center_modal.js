@@ -11,7 +11,7 @@ class NotificationCenterModal {
         this.filters = {};
         this.selectedNotifications = new Set();
         this.isOpen = false;
-        this.init();
+        this.init().catch(e => console.error('NotificationCenterModal init failed:', e));
     }
 
     async init() {
