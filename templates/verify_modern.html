@@ -1095,11 +1095,15 @@ function startPolling() {
         
         // Update timer UI every second or so
         VerificationFlow.elapsedSeconds += delay / 1000;
-        document.getElementById('elapsed-time').textContent = Math.round(VerificationFlow.elapsedSeconds);
-        document.getElementById('progress-elapsed').textContent = Math.round(VerificationFlow.elapsedSeconds) + 's elapsed';
         const remaining = Math.max(0, 120 - VerificationFlow.elapsedSeconds);
-        document.getElementById('progress-remaining').textContent = Math.round(remaining) + 's left';
-        document.getElementById('progress-bar-fill').style.width = (VerificationFlow.elapsedSeconds / 120 * 100) + '%';
+        const elEl = document.getElementById('elapsed-time');
+        const elapsedEl = document.getElementById('progress-elapsed');
+        const remainEl = document.getElementById('progress-remaining');
+        if (elEl) elEl.textContent = Math.round(VerificationFlow.elapsedSeconds);
+        if (elapsedEl) elapsedEl.textContent = Math.round(VerificationFlow.elapsedSeconds) + 's elapsed';
+        if (remainEl) remainEl.textContent = Math.round(remaining) + 's left';
+        const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
+        if (progressFill) progressFill.style.width = (VerificationFlow.elapsedSeconds / 120 * 100) + '%';
         
         if (VerificationFlow.verificationId) {
             try {
