@@ -50,7 +50,6 @@ class NotificationDispatcher:
                 notification_type="verification_started",
                 title="Verification Started",
                 message=f"Started {service} verification for {phone_number} (${cost:.2f})",
-                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -70,7 +69,6 @@ class NotificationDispatcher:
                 notification_type="verification_completed",
                 title="Verification Completed",
                 message=f"SMS received for {service} verification ({phone_number})",
-                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -90,7 +88,6 @@ class NotificationDispatcher:
                 notification_type="verification_failed",
                 title="Verification Failed",
                 message=f"{service} verification failed: {reason}",
-                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -110,7 +107,6 @@ class NotificationDispatcher:
                 notification_type="payment_completed",
                 title="Payment Completed",
                 message=f"${amount:.2f} added to your account. New balance: ${new_balance:.2f}",
-                link="/billing",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -130,7 +126,6 @@ class NotificationDispatcher:
                 notification_type="verification_timeout",
                 title="Verification Timeout - Refunded",
                 message=f"{service} verification timed out. ${refund_amount:.2f} refunded to your account.",
-                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -158,7 +153,6 @@ class NotificationDispatcher:
                 notification_type="verification_cancelled",
                 title="Verification Cancelled",
                 message=f"${refund_amount:.2f} refunded for {service}.{balance_str}",
-                link=f"/history?id={verification_id}",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -178,7 +172,6 @@ class NotificationDispatcher:
                 notification_type="refund_completed",
                 title="Refund Completed",
                 message=f"${amount:.2f} refunded. New balance: ${new_balance:.2f}",
-                link="/billing/history",
             )
 
             self._broadcast_notification(user_id, notification)
@@ -196,7 +189,6 @@ class NotificationDispatcher:
                 notification_type="sms_received",
                 title="SMS Code Received",
                 message=f"Verification code received for {verification.service_name}",
-                link=f"/history?id={verification.id}",
             )
 
             self._broadcast_notification(verification.user_id, notification)
