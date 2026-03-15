@@ -422,8 +422,22 @@ function openImmersiveModal(type) {
     renderImmersiveList(type);
     if (type === 'area-code' && (!_modalItems['area-code'] || _modalItems['area-code'].length === 0)) {
         loadAreaCodes().then(() => renderImmersiveList('area-code'));
-    } else if (type === 'carrier' && (!_modalItems['carrier'] || _modalItems['carrier'].length === 0)) {
-        loadCarriers().then(() => renderImmersiveList('carrier'));
+    } else if (type === 'carrier') {
+        const _afterCarrierLoad = () => {
+            renderImmersiveList('carrier');
+            // If toggle is checked, show and populate the dropdown
+            const toggle = document.getElementById('toggle-carrier');
+            const dd = document.getElementById('modal-carrier-select');
+            if (toggle && toggle.checked && dd) {
+                dd.style.display = 'inline-block';
+                populateFilterDropdown('carrier');
+            }
+        };
+        if (!_modalItems['carrier'] || _modalItems['carrier'].length === 0) {
+            loadCarriers().then(_afterCarrierLoad);
+        } else {
+            _afterCarrierLoad();
+        }
     }
     setTimeout(() => document.getElementById('modal-search-input').focus(), 100);
 }
@@ -941,12 +955,7 @@ async function loadCarriers() {
         const options = tempDiv.querySelectorAll('option');
         _modalItems['carrier'] = Array.from(options)
             .filter(opt => opt.value)
-            .map(opt => ({ value: opt.value, label: opt.textContent, price: 0.50 }));
-        
-        if (sel) {
-            sel.innerHTML = cached;
-            sel.onchange = () => { VerificationFlow.selectedCarrier = sel.value || null; updatePricing(); };
-        }
+            .map(opt => ({ value: opt.value, label: opt.textContent.trim(), price: 0.50 }));
         console.log(`✅ Loaded ${_modalItems['carrier'].length} carriers from cache`);
         return;
     }
@@ -963,11 +972,6 @@ async function loadCarriers() {
         
         const html = '<option value="">Any Carrier</option>' + 
             _modalItems['carrier'].map(c => `<option value="${c.value}">${c.label}</option>`).join('');
-        
-        if (sel) {
-            sel.innerHTML = html;
-            sel.onchange = () => { VerificationFlow.selectedCarrier = sel.value || null; updatePricing(); };
-        }
         
         _lsSet(_LS_CARRIERS_KEY, html);
         console.log(`✅ Loaded ${carriers.length} carriers from API`);
