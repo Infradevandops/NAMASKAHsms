@@ -15,22 +15,22 @@ class NotificationDispatcher:
         self.db = db
         self.notification_service = NotificationService(db)
 
-    def _broadcast_notification(self, user_id: str, notification: Dict[str, Any]):
+    def _broadcast_notification(self, user_id: str, notification):
         """Broadcast notification via WebSocket."""
         try:
-            # Import here to avoid circular dependency
             import asyncio
-
             from app.websocket.manager import manager
 
-            # Send via WebSocket in background
+            # Serialize ORM object to dict before sending over WebSocket
+            payload = notification.to_dict() if hasattr(notification, "to_dict") else notification
+
             asyncio.create_task(
                 manager.send_personal_message(
-                    {"type": "notification", "data": notification}, user_id
+                    {"type": "notification", "data": payload}, user_id
                 )
             )
             logger.info(
-                f"Notification broadcasted to user {user_id}: {notification.get('title', 'No title')}"
+                f"Notification broadcasted to user {user_id}: {payload.get('title', 'No title')}"
             )
         except Exception as e:
             logger.error(f"Failed to broadcast notification via WebSocket: {e}")
