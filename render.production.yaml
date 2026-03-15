@@ -1,20 +1,106 @@
-# Render.com deployment configuration for production
-# This file is for reference - actual production config is in Render dashboard
-
 services:
+  # Backend API (Production)
   - type: web
-    name: namaskah-api
+    name: namaskah-api-prod
     env: python
-    plan: free
+    plan: standard
     region: oregon
-    buildCommand: pip install --upgrade pip && pip install -r requirements.txt
-    startCommand: ./start.sh
-    healthCheckPath: /health
+    buildCommand: |
+      pip install --no-cache-dir --upgrade pip && \
+      pip install --no-cache-dir -r requirements.txt && \
+      pip install --no-cache-dir -r requirements-monitoring.txt
+    startCommand: |
+      python scripts/deployment/pre_deploy_checks.py && \
+      ./start.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: namaskah-db-prod
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: namaskah-redis-prod
+          type: redis
+          property: connectionString
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: SENTRY_DSN
+        sync: false
+      - key: PROMETHEUS_ENABLED
+        value: "true"
+      - key: MONITORING_ENABLED
+        value: "true"
+      - key: CANARY_DEPLOYMENT
+        value: "true"
+      - key: CANARY_PERCENTAGE
+        value: "10"
+    healthCheck:
+      path: /health
+      interval: 30
+      timeout: 10
+      retries: 3
+      startPeriod: 40
+    autoDeploy: true
+    preDeployCommand: python scripts/deployment/pre_deploy_checks.py
+    postDeployCommand: python scripts/deployment/post_deploy_verification.py
+
+  # PostgreSQL Database (Production)
+  - type: db
+    name: namaskah-db-prod
+    plan: standard
+    region: oregon
+    ipAllowList:
+      - 0.0.0.0/0
+
+  # Redis Cache (Production)
+  - type: redis
+    name: namaskah-redis-prod
+    plan: standard
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList:
+      - 0.0.0.0/0
+
+  # Monitoring Service (Prometheus)
+  - type: web
+    name: namaskah-prometheus-prod
+    env: docker
+    plan: starter
+    region: oregon
+    dockerCommand: prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
     envVars:
       - key: ENVIRONMENT
         value: production
-      - key: PYTHON_VERSION
-        value: 3.11.0
-      # DATABASE_URL should be set in Render dashboard
-      # REDIS_URL should be set in Render dashboard
-      # All secrets should be set in Render dashboard, not here
+    volumes:
+      - prometheus_data:/prometheus
+    healthCheck:
+      path: /-/healthy
+      interval: 30
+      timeout: 10
+      retries: 3
+
+  # Grafana Dashboard (Monitoring)
+  - type: web
+    name: namaskah-grafana-prod
+    env: docker
+    plan: starter
+    region: oregon
+    dockerCommand: grafana-server --config=/etc/grafana/grafana.ini
+    envVars:
+      - key: GF_SECURITY_ADMIN_PASSWORD
+        sync: false
+      - key: GF_INSTALL_PLUGINS
+        value: grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+    healthCheck:
+      path: /api/health
+      interval: 30
+      timeout: 10
+      retries: 3
+
+volumes:
+  prometheus_data:
+  grafana_data:
