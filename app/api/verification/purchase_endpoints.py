@@ -371,38 +371,16 @@ async def request_verification(
             except Exception as cache_error:
                 logger.warning(f"Failed to cache response: {cache_error}")
 
-        # Notification: Balance Updated (Task 2.5)
+        # Notification: Balance Updated — read committed balance to avoid stale value
         try:
+            db.refresh(user)
+            committed_balance = float(user.credits)
             notif_service = NotificationService(db)
             notif_service.create_notification(
                 user_id=user_id,
                 notification_type="balance_update",
                 title="Balance Updated",
-                message=f"${actual_cost:.2f} charged for {request.service} - New balance: ${new_balance:.2f}",
-            )
-        except Exception:
-            pass
-
-        # Notification: Number Purchased (Task 2.2)
-        try:
-            notif_service = NotificationService(db)
-            notif_service.create_notification(
-                user_id=user_id,
-                notification_type="number_purchased",
-                title="Number Purchased",
-                message=f"Phone: {textverified_result['phone_number']} - Waiting for SMS code...",
-            )
-        except Exception:
-            pass
-
-        # Notification: Verification Initiated (Task 2.1 Enhanced)
-        try:
-            notif_service = NotificationService(db)
-            notif_service.create_notification(
-                user_id=user_id,
-                notification_type="verification_initiated",
-                title="Verification Started",
-                message=f"Purchasing {request.service} number in {request.country} for ${actual_cost:.2f}",
+                message=f"${actual_cost:.2f} charged for {request.service} - New balance: ${committed_balance:.2f}",
             )
         except Exception:
             pass
