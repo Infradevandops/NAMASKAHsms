@@ -283,6 +283,6 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
         } catch (e) {
             console.error('[Header] Failed to load tier badge:', e);
         }
-    })();
+    })().catch(e => console.error('[Header] loadHeaderTierBadge failed:', e));
 </script>
 {% endblock %}

@@ -15,7 +15,7 @@ class NotificationSystem {
         this.maxToasts = 5;
         this.unreadCount = 0;
         
-        this.init();
+        this.init().catch(e => console.error('NotificationSystem init failed:', e));
     }
 
     async init() {
