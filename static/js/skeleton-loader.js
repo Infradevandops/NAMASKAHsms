@@ -1,244 +1,184 @@
 /**
- * Skeleton Loader Utility
+ * Skeleton loading state to prevent UI flashing
  * 
- * Provides functions to create and manage skeleton loading states
+ * This loader displays a skeleton/placeholder UI while the tier is being loaded.
+ * It prevents the "freemium flash" by showing a loading state instead of the
+ * actual UI with wrong tier information.
  */
 
-/**
- * Create a skeleton text element
- * @param {string} size - 'short', 'medium', or 'long'
- * @returns {HTMLElement}
- */
-export function createSkeletonText(size = 'medium') {
-    const el = document.createElement('div');
-    el.className = `skeleton skeleton-text ${size}`;
-    return el;
-}
-
-/**
- * Create a skeleton title element
- * @returns {HTMLElement}
- */
-export function createSkeletonTitle() {
-    const el = document.createElement('div');
-    el.className = 'skeleton skeleton-title';
-    return el;
-}
-
-/**
- * Create a skeleton stat element
- * @returns {HTMLElement}
- */
-export function createSkeletonStat() {
-    const el = document.createElement('div');
-    el.className = 'skeleton skeleton-stat';
-    return el;
-}
-
-/**
- * Create a tier card skeleton
- * @returns {HTMLElement}
- */
-export function createTierCardSkeleton() {
-    const container = document.createElement('div');
-    container.className = 'skeleton-tier-card';
-    container.innerHTML = `
-        <div class="skeleton skeleton-tier-name"></div>
-        <div class="skeleton skeleton-tier-price"></div>
-        <div class="skeleton-tier-features">
-            <div class="skeleton skeleton-text short"></div>
-            <div class="skeleton skeleton-text medium"></div>
-            <div class="skeleton skeleton-text short"></div>
+class SkeletonLoader {
+    static SKELETON_HTML = `
+        <div class="skeleton-container" style="
+            width: 100%;
+            height: 100vh;
+            background: #f9fafb;
+            display: flex;
+            flex-direction: column;
+            font-family: system-ui, -apple-system, sans-serif;
+        ">
+            <!-- Header Skeleton -->
+            <div class="skeleton-header" style="
+                height: 60px;
+                background: #fff;
+                border-bottom: 1px solid #e5e7eb;
+                display: flex;
+                align-items: center;
+                padding: 0 20px;
+                gap: 12px;
+            ">
+                <div class="skeleton-pulse" style="
+                    width: 40px;
+                    height: 40px;
+                    border-radius: 50%;
+                    background: #e5e7eb;
+                "></div>
+                <div class="skeleton-pulse" style="
+                    width: 200px;
+                    height: 20px;
+                    background: #e5e7eb;
+                "></div>
+                <div style="flex: 1;"></div>
+                <div class="skeleton-pulse" style="
+                    width: 100px;
+                    height: 20px;
+                    background: #e5e7eb;
+                "></div>
+            </div>
+            
+            <!-- Main Content -->
+            <div style="display: flex; flex: 1;">
+                <!-- Sidebar Skeleton -->
+                <div class="skeleton-sidebar" style="
+                    width: 250px;
+                    background: #fff;
+                    border-right: 1px solid #e5e7eb;
+                    padding: 20px;
+                    display: flex;
+                    flex-direction: column;
+                    gap: 12px;
+                ">
+                    ${Array(5).fill(0).map(() => `
+                        <div class="skeleton-pulse" style="
+                            width: 100%;
+                            height: 40px;
+                            background: #e5e7eb;
+                            border-radius: 6px;
+                        "></div>
+                    `).join('')}
+                </div>
+                
+                <!-- Content Skeleton -->
+                <div class="skeleton-content" style="
+                    flex: 1;
+                    padding: 20px;
+                    display: grid;
+                    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                    gap: 20px;
+                    overflow-y: auto;
+                ">
+                    ${Array(4).fill(0).map(() => `
+                        <div class="skeleton-card" style="
+                            background: #fff;
+                            border-radius: 8px;
+                            padding: 20px;
+                            display: flex;
+                            flex-direction: column;
+                            gap: 12px;
+                            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                        ">
+                            <div class="skeleton-pulse" style="
+                                width: 100%;
+                                height: 20px;
+                                background: #e5e7eb;
+                            "></div>
+                            <div class="skeleton-pulse" style="
+                                width: 80%;
+                                height: 16px;
+                                background: #e5e7eb;
+                            "></div>
+                            <div class="skeleton-pulse" style="
+                                width: 60%;
+                                height: 16px;
+                                background: #e5e7eb;
+                            "></div>
+                            <div style="flex: 1;"></div>
+                            <div class="skeleton-pulse" style="
+                                width: 100%;
+                                height: 40px;
+                                background: #e5e7eb;
+                                border-radius: 6px;
+                            "></div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
         </div>
+        
+        <style>
+            @keyframes skeleton-pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+            .skeleton-pulse {
+                animation: skeleton-pulse 2s ease-in-out infinite;
+            }
+            @keyframes fadeOut {
+                from { opacity: 1; }
+                to { opacity: 0; }
+            }
+        </style>
     `;
-    return container;
-}
-
-/**
- * Create an activity table skeleton
- * @param {number} rows - Number of skeleton rows
- * @returns {HTMLElement}
- */
-export function createActivityTableSkeleton(rows = 5) {
-    const container = document.createElement('div');
-    container.className = 'skeleton-activity-table';
-
-    for (let i = 0; i < rows; i++) {
-        const row = document.createElement('div');
-        row.className = 'skeleton-activity-row';
-        row.innerHTML = `
-            <div class="skeleton skeleton-cell"></div>
-            <div class="skeleton skeleton-cell"></div>
-            <div class="skeleton skeleton-cell"></div>
-            <div class="skeleton skeleton-cell"></div>
-        `;
-        container.appendChild(row);
-    }
-
-    return container;
-}
-
-/**
- * Create a stats grid skeleton
- * @param {number} count - Number of stat cards
- * @returns {HTMLElement}
- */
-export function createStatsGridSkeleton(count = 4) {
-    const container = document.createElement('div');
-    container.className = 'skeleton-stats-grid';
-
-    for (let i = 0; i < count; i++) {
-        const card = document.createElement('div');
-        card.className = 'skeleton-stat-card';
-        card.innerHTML = `
-            <div class="skeleton skeleton-stat-label"></div>
-            <div class="skeleton skeleton-stat-value"></div>
-        `;
-        container.appendChild(card);
-    }
-
-    return container;
-}
-
-/**
- * Create a loading container with spinner
- * @param {string} message - Loading message
- * @returns {HTMLElement}
- */
-export function createLoadingContainer(message = 'Loading...') {
-    const container = document.createElement('div');
-    container.className = 'loading-container';
-    container.innerHTML = `
-        <div class="loading-spinner large"></div>
-        <div class="loading-text">${escapeHtml(message)}</div>
-    `;
-    return container;
-}
-
-/**
- * Show skeleton in a container
- * @param {HTMLElement|string} container - Container element or selector
- * @param {string} type - Type of skeleton ('tier', 'activity', 'stats', 'loading')
- * @param {object} options - Additional options
- */
-export function showSkeleton(container, type = 'loading', options = {}) {
-    const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (!el) return;
-
-    let skeleton;
-    switch (type) {
-        case 'tier':
-            skeleton = createTierCardSkeleton();
-            break;
-        case 'activity':
-            skeleton = createActivityTableSkeleton(options.rows || 5);
-            break;
-        case 'stats':
-            skeleton = createStatsGridSkeleton(options.count || 4);
-            break;
-        case 'loading':
-        default:
-            skeleton = createLoadingContainer(options.message || 'Loading...');
-            break;
-    }
-
-    el.innerHTML = '';
-    el.appendChild(skeleton);
-}
-
-/**
- * Hide skeleton and show content with animation
- * @param {HTMLElement|string} container - Container element or selector
- * @param {string} html - HTML content to show
- */
-export function hideSkeleton(container, html) {
-    const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (!el) return;
-
-    el.innerHTML = html;
-    el.classList.add('fade-in');
-
-    // Remove animation class after it completes
-    setTimeout(() => {
-        el.classList.remove('fade-in');
-    }, 300);
-}
-
-/**
- * Escape HTML to prevent XSS
- */
-export function escapeHtml(text) {
-    if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-/**
- * Add fade-in animation to an element
- * @param {HTMLElement|string} element - Element or selector
- */
-export function fadeIn(element) {
-    const el = typeof element === 'string' ? document.querySelector(element) : element;
-    if (!el) return;
-
-    el.classList.add('fade-in');
-    setTimeout(() => {
-        el.classList.remove('fade-in');
-    }, 300);
-}
-
-/**
- * Transition between loading and content states
- * @param {HTMLElement|string} container - Container element or selector
- * @param {function} loadFn - Async function that returns content
- * @param {object} options - Options for skeleton type and messages
- */
-export async function withLoading(container, loadFn, options = {}) {
-    const el = typeof container === 'string' ? document.querySelector(container) : container;
-    if (!el) return;
-
-    const {
-        skeletonType = 'loading',
-        loadingMessage = 'Loading...',
-        errorMessage = 'Failed to load',
-        onError
-    } = options;
-
-    // Show skeleton
-    showSkeleton(el, skeletonType, { message: loadingMessage, ...options });
-
-    try {
-        const result = await loadFn();
-        return result;
-    } catch (error) {
-        error = error || new Error('Unknown error');
-        if (onError) {
-            onError(error);
-        } else {
-            el.innerHTML = `<div class="loading-container"><div style="color: var(--text-muted);">⚠️ ${escapeHtml(errorMessage)}</div></div>`;
+    
+    /**
+     * Show skeleton loading state
+     * 
+     * Replaces the entire body with skeleton HTML to show loading state
+     * while tier is being loaded.
+     */
+    static show() {
+        try {
+            const container = document.createElement('div');
+            container.innerHTML = this.SKELETON_HTML;
+            document.body.innerHTML = '';
+            document.body.appendChild(container);
+            console.log('[SkeletonLoader] Skeleton displayed');
+        } catch (error) {
+            console.error('[SkeletonLoader] Failed to show skeleton:', error);
         }
-        throw error;
+    }
+    
+    /**
+     * Hide skeleton loading state
+     * 
+     * Fades out and removes the skeleton, revealing the actual UI
+     * that was rendered behind it.
+     */
+    static hide() {
+        try {
+            const skeleton = document.querySelector('.skeleton-container');
+            if (skeleton) {
+                skeleton.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => {
+                    skeleton.remove();
+                    console.log('[SkeletonLoader] Skeleton hidden');
+                }, 300);
+            }
+        } catch (error) {
+            console.error('[SkeletonLoader] Failed to hide skeleton:', error);
+        }
+    }
+    
+    /**
+     * Check if skeleton is currently visible
+     * 
+     * @returns {boolean} True if skeleton is visible
+     */
+    static isVisible() {
+        return !!document.querySelector('.skeleton-container');
     }
 }
 
-export const SkeletonLoader = {
-    createSkeletonText,
-    createSkeletonTitle,
-    createSkeletonStat,
-    createTierCardSkeleton,
-    createActivityTableSkeleton,
-    createStatsGridSkeleton,
-    createLoadingContainer,
-    showSkeleton,
-    hideSkeleton,
-    fadeIn,
-    withLoading
-};
-
-// Expose to window for backward compatibility
-if (typeof window !== 'undefined') {
-    window.SkeletonLoader = SkeletonLoader;
+// Export for use in other modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = SkeletonLoader;
 }
-
-export default SkeletonLoader;
