@@ -217,6 +217,8 @@ async def get_verification_history(
                     "service_name": v.service_name,
                     "country": v.country,
                     "status": v.status,
+                    "outcome": v.outcome,
+                    "cancel_reason": v.cancel_reason,
                     "cost": float(v.cost) if v.cost else 0.0,
                     "sms_code": getattr(v, "sms_code", None),
                     "sms_text": getattr(v, "sms_text", None),
@@ -228,6 +230,7 @@ async def get_verification_history(
                     "fallback_applied": v.fallback_applied,
                     "same_state_fallback": v.same_state_fallback,
                     "created_at": v.created_at.isoformat() if v.created_at else None,
+                    "completed_at": v.completed_at.isoformat() if v.completed_at else None,
                 }
                 for v in verifications
             ],

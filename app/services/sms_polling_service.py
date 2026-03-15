@@ -87,6 +87,7 @@ class SMSPollingService:
 
                 if sms_data and sms_data.get("messages"):
                     verification.status = "completed"
+                    verification.outcome = "completed"
                     verification.completed_at = datetime.now(timezone.utc)
                     latest_sms = (
                         sms_data["messages"][-1]
@@ -131,6 +132,7 @@ class SMSPollingService:
 
                 elif sms_data and sms_data.get("status") == "TIMEOUT":
                     verification.status = "timeout"
+                    verification.outcome = "timeout"
                     db.commit()
 
                     try:

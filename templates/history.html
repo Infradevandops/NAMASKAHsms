@@ -132,15 +132,31 @@ function formatPhone(raw) {
                     break;
                 case 'failed':
                 case 'cancelled':
+                case 'timeout':
                 case 'refunded':
                     statusColor = '#fee2e2';
                     statusText = '#991b1b';
                     break;
+                case 'error':
+                    statusColor = '#fce7f3';
+                    statusText = '#9d174d';
+                    break;
+            }
+
+            // Build human-readable status label
+            let statusLabel = status;
+            if (status === 'cancelled' && item.cancel_reason) {
+                statusLabel = item.cancel_reason; // e.g. "User cancelled"
+            } else if (status === 'completed' && item.sms_code) {
+                statusLabel = 'SMS received';
+            } else if (status === 'timeout') {
+                statusLabel = 'Timed out';
             }
 
             const smsCode = item.sms_code ? `<span style="font-family: monospace; font-weight: bold; background: #eee; padding: 2px 6px; border-radius: 4px;">${item.sms_code}</span>` : '<span style="color: #9ca3af;">-</span>';
             const carrier = item.assigned_carrier || item.carrier || '<span style="color: #9ca3af;">Auto</span>';
             const fallbackIndicator = item.fallback_applied ? ` <i class="fas fa-info-circle" style="color: #b45309; font-size: 11px;" title="Fallback applied (Requested ${item.requested_area_code || 'any'})"></i>` : '';
+            const cancelReasonTip = (item.cancel_reason && status !== 'cancelled') ? ` title="${item.cancel_reason}"` : '';
 
             return `
             <tr style="border-bottom: 1px solid rgba(0,0,0,0.05);" data-id="${item.id}">
@@ -148,9 +164,8 @@ function formatPhone(raw) {
                 <td style="padding: 12px;">${item.country || 'US'}</td>
                 <td style="padding: 12px;">${carrier}${fallbackIndicator}</td>
                 <td style="padding: 12px;">${formatPhone(item.phone_number)}</td>
-
                 <td style="padding: 12px;">${smsCode}</td>
-                <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${statusColor}; color: ${statusText}; text-transform: capitalize;">${status}</span></td>
+                <td style="padding: 12px;"><span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; background: ${statusColor}; color: ${statusText};"${cancelReasonTip}>${statusLabel}</span></td>
                 <td style="padding: 12px;">$${item.cost.toFixed(2)}</td>
                 <td style="padding: 12px;">${new Date(item.created_at).toLocaleDateString()} ${new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                 <td style="padding: 12px;">
