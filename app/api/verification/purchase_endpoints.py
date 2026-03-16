@@ -268,7 +268,6 @@ async def request_verification(
             # the deduction and notification reflect the real account balance
             if user.is_admin:
                 try:
-                    from app.services.textverified_service import TextVerifiedService
                     tv_bal = await TextVerifiedService().get_balance()
                     live_balance = tv_bal.get("balance")
                     if live_balance is not None:
