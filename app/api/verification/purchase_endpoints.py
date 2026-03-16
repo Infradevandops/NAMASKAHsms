@@ -264,6 +264,18 @@ async def request_verification(
             logger.info(f"Verification record created with ID: {verification.id}")
 
             # Step 3: Deduct credits ONLY after API success
+            # For admin users, sync from live TextVerified balance first so
+            # the deduction and notification reflect the real account balance
+            if user.is_admin:
+                try:
+                    from app.services.textverified_service import TextVerifiedService
+                    tv_bal = await TextVerifiedService().get_balance()
+                    live_balance = tv_bal.get("balance")
+                    if live_balance is not None:
+                        user.credits = live_balance
+                except Exception as _sync_err:
+                    logger.warning(f"TV balance sync before deduct failed: {_sync_err}")
+
             old_balance = user.credits
             user.credits -= actual_cost
             new_balance = user.credits
@@ -338,6 +350,18 @@ async def request_verification(
             except Exception:
                 pass
 
+        # Notification: Balance Updated — send before commit so created_at is
+        # ordered after verification_started (same transaction window)
+        try:
+            await notification_dispatcher.notify_balance_deducted(
+                user_id=user_id,
+                amount=actual_cost,
+                service=request.service,
+                new_balance=float(new_balance),
+            )
+        except Exception:
+            pass
+
         # CRITICAL: Commit transaction (all or nothing)
         db.commit()
         logger.info(
@@ -370,19 +394,6 @@ async def request_verification(
                 redis.setex(cache_key, 86400, json.dumps(response))
             except Exception as cache_error:
                 logger.warning(f"Failed to cache response: {cache_error}")
-
-        # Notification: Balance Updated — use committed balance from DB
-        try:
-            db.refresh(user)
-            committed_balance = float(user.credits)
-            await notification_dispatcher.notify_balance_deducted(
-                user_id=user_id,
-                amount=actual_cost,
-                service=request.service,
-                new_balance=committed_balance,
-            )
-        except Exception:
-            pass
 
         logger.info(
             f"✓ Verification {verification.id} completed successfully | "
