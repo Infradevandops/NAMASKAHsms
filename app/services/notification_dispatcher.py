@@ -181,6 +181,24 @@ class NotificationDispatcher:
             logger.error(f"Failed to create refund_completed notification: {e}")
         return False
 
+    async def notify_balance_deducted(
+        self, user_id: str, amount: float, service: str, new_balance: float
+    ) -> bool:
+        """Notify when credits are deducted for a verification purchase."""
+        try:
+            notification = self.notification_service.create_notification(
+                user_id=user_id,
+                notification_type="balance_update",
+                title="Balance Updated",
+                message=f"${amount:.2f} charged for {service} - New balance: ${new_balance:.2f}",
+            )
+            self._broadcast_notification(user_id, notification)
+            logger.info(f"Created balance_update notification for {user_id}")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create balance_update notification: {e}")
+        return False
+
     async def on_sms_received(self, verification) -> bool:
         """Notify when SMS is received for verification."""
         try:

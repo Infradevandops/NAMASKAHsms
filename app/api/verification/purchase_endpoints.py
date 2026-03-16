@@ -371,16 +371,15 @@ async def request_verification(
             except Exception as cache_error:
                 logger.warning(f"Failed to cache response: {cache_error}")
 
-        # Notification: Balance Updated — read committed balance to avoid stale value
+        # Notification: Balance Updated — use committed balance from DB
         try:
             db.refresh(user)
             committed_balance = float(user.credits)
-            notif_service = NotificationService(db)
-            notif_service.create_notification(
+            await notification_dispatcher.notify_balance_deducted(
                 user_id=user_id,
-                notification_type="balance_update",
-                title="Balance Updated",
-                message=f"${actual_cost:.2f} charged for {request.service} - New balance: ${committed_balance:.2f}",
+                amount=actual_cost,
+                service=request.service,
+                new_balance=committed_balance,
             )
         except Exception:
             pass
