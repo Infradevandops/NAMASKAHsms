@@ -1030,7 +1030,7 @@ async function createVerification() {
         if (data.fallback_applied) {
             const assignedCode = data.assigned_area_code || '?';
             const requestedCode = data.requested_area_code || areaCode;
-            const sameState = data.same_state !== false;
+            const sameState = data.same_state_fallback !== false;
             showFallbackWarning(requestedCode, assignedCode, sameState);
         } else {
             window.toast && window.toast.success('Number received — waiting for SMS...');
@@ -1064,11 +1064,11 @@ window.addEventListener('unhandledrejection', function(event) {
 });
 
 function showFallbackWarning(requested, assigned, sameState) {
-    const container = document.getElementById('step-3-card');
     const existing = document.getElementById('fallback-warning');
     if (existing) existing.remove();
     const el = document.createElement('div');
     el.id = 'fallback-warning';
+    const container = document.querySelector('.scanning-container') || document.getElementById('step-3-card');
     const msg = sameState
         ? `<strong>${requested}</strong> unavailable — assigned nearby <strong>${assigned}</strong> (same state).`
         : `<strong>${requested}</strong> unavailable — assigned <strong>${assigned}</strong> (different state). <a href="/settings?tab=verification" style="color:#b45309;text-decoration:underline;">Update preferences →</a>`;
@@ -1076,7 +1076,7 @@ function showFallbackWarning(requested, assigned, sameState) {
         ? 'background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#166534;'
         : 'background:#fffbeb;border:1px solid #fcd34d;border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:13px;color:#92400e;';
     el.innerHTML = msg;
-    container.insertBefore(el, container.firstChild);
+    container.parentNode.insertBefore(el, container);
     if (window.toast) {
         sameState
             ? window.toast.info(`Area code ${requested} unavailable — assigned nearby ${assigned}`)
