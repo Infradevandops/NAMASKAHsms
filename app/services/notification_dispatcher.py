@@ -199,6 +199,99 @@ class NotificationDispatcher:
             logger.error(f"Failed to create balance_update notification: {e}")
         return False
 
+    async def notify_area_code_fallback(
+        self,
+        user_id: str,
+        verification_id: str,
+        service: str,
+        requested_area_code: str,
+        assigned_area_code: str,
+        same_state: bool,
+    ) -> bool:
+        """Notify when area code fallback is applied during auto-selection."""
+        try:
+            if same_state:
+                title = "Area Code Substituted"
+                message = (
+                    f"{service}: requested {requested_area_code}, "
+                    f"assigned {assigned_area_code} (same state)"
+                )
+                ntype = "area_code_fallback"
+            else:
+                title = "⚠️ Cross-State Area Code"
+                message = (
+                    f"{service}: requested {requested_area_code}, "
+                    f"assigned {assigned_area_code} (different state)"
+                )
+                ntype = "area_code_cross_state"
+
+            notification = self.notification_service.create_notification(
+                user_id=user_id,
+                notification_type=ntype,
+                title=title,
+                message=message,
+            )
+            self._broadcast_notification(user_id, notification)
+            logger.info(
+                f"Created {ntype} notification for {user_id}: "
+                f"{requested_area_code} → {assigned_area_code}"
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create area_code_fallback notification: {e}")
+        return False
+
+    async def notify_retry_attempt(
+        self,
+        user_id: str,
+        verification_id: str,
+        service: str,
+        attempt: int,
+        max_attempts: int,
+        reason: str,
+    ) -> bool:
+        """Notify when retry attempt is made (v4.4.1 Phase 6)."""
+        try:
+            # Format reason for user-friendly display
+            reason_map = {
+                "area_code_mismatch": "area code didn't match",
+                "carrier_mismatch": "carrier didn't match",
+                "voip_detected": "VOIP number detected",
+                "not_mobile": "landline number detected",
+            }
+            friendly_reason = reason_map.get(reason, reason.replace("_", " "))
+            
+            # Determine if this is the final attempt
+            is_final = attempt == max_attempts
+            
+            if is_final:
+                title = f"Final Retry Attempt ({attempt}/{max_attempts})"
+                message = (
+                    f"{service}: Accepting number on final attempt "
+                    f"(reason: {friendly_reason})"
+                )
+            else:
+                title = f"Retry {attempt}/{max_attempts}"
+                message = (
+                    f"{service}: Retrying purchase because {friendly_reason}"
+                )
+            
+            notification = self.notification_service.create_notification(
+                user_id=user_id,
+                notification_type="verification_retry",
+                title=title,
+                message=message,
+            )
+            self._broadcast_notification(user_id, notification)
+            logger.info(
+                f"Created verification_retry notification for {user_id}: "
+                f"attempt {attempt}/{max_attempts}, reason={reason}"
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Failed to create verification_retry notification: {e}")
+        return False
+
     async def on_sms_received(self, verification) -> bool:
         """Notify when SMS is received for verification."""
         try:
