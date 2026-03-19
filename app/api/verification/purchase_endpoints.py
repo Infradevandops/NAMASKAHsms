@@ -205,6 +205,17 @@ async def request_verification(
                     f"Area code fallback for user {user_id}: requested={textverified_result['requested_area_code']}, "
                     f"assigned={textverified_result['assigned_area_code']}"
                 )
+                try:
+                    await notification_dispatcher.notify_area_code_fallback(
+                        user_id=user_id,
+                        verification_id="pending",
+                        service=request.service,
+                        requested_area_code=textverified_result["requested_area_code"],
+                        assigned_area_code=textverified_result["assigned_area_code"],
+                        same_state=textverified_result.get("same_state_fallback", True),
+                    )
+                except Exception:
+                    pass
 
             # Step 2.1: CARRIER PREFERENCE LOGGING (TextVerified best-effort)
             # TextVerified treats carrier as a preference, not a guarantee
@@ -237,10 +248,31 @@ async def request_verification(
                 assigned_carrier=carrier,  # TV doesn't return carrier; store preference
                 fallback_applied=textverified_result.get("fallback_applied", False),
                 same_state_fallback=textverified_result.get("same_state_fallback", True),
+                # v4.4.1 retry tracking
+                retry_attempts=textverified_result.get("retry_attempts", 0),
+                area_code_matched=textverified_result.get("area_code_matched", True),
+                carrier_matched=textverified_result.get("carrier_matched", True),
+                real_carrier=textverified_result.get("real_carrier"),
+                carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
+                area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
+                voip_rejected=textverified_result.get("voip_rejected", False),
                 created_at=datetime.now(timezone.utc),
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
+
+            # Step 2.3: Process automatic refunds (v4.4.1 Phase 5)
+            from app.services.refund_service import RefundService
+            refund_service = RefundService()
+            refund_result = await refund_service.process_refund(verification, user, db)
+            
+            if refund_result["refund_issued"]:
+                logger.info(
+                    f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
+                    f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
+                )
+                # Adjust actual cost if refund was issued
+                actual_cost -= refund_result["refund_amount"]
 
             # Record carrier analytics for tracking preferences vs assignments
             if carrier:
@@ -268,7 +300,7 @@ async def request_verification(
             # the deduction and notification reflect the real account balance
             if user.is_admin:
                 try:
-                    tv_bal = await TextVerifiedService().get_balance()
+                    tv_bal = await tv_service.get_balance()  # Use existing instance
                     live_balance = tv_bal.get("balance")
                     if live_balance is not None:
                         user.credits = live_balance

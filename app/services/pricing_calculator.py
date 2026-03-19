@@ -17,7 +17,7 @@ class PricingCalculator:
         "t-mobile": 0.25,
         "att": 0.20,
         "at&t": 0.20,
-        "sprint": 0.20,  # DEPRECATED: Sprint merged with T-Mobile
+        # Sprint merged with T-Mobile in 2020 - removed in v4.4.1
     }
 
     # Area code premiums (PAYG tier only)
@@ -47,17 +47,22 @@ class PricingCalculator:
                 "Please contact support."
             )
 
-        filter_charges = 0.0
+        # Track individual surcharges (v4.4.1)
+        carrier_premium = 0.0
+        area_code_premium = 0.0
+        
         if user.subscription_tier == "payg":
             # Area code premiums
             ac = filters.get("area_code")
             if ac:
-                filter_charges += PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
+                area_code_premium = PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
             
             # Carrier premiums
             carrier = filters.get("carrier")
             if carrier:
-                filter_charges += PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
+                carrier_premium = PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
+
+        filter_charges = carrier_premium + area_code_premium
 
         if user.subscription_tier == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
@@ -80,6 +85,8 @@ class PricingCalculator:
             "overage_charge": overage_charge,
             "total_cost": total_cost,
             "tier": user.subscription_tier,
+            "carrier_surcharge": carrier_premium,  # NEW (v4.4.1)
+            "area_code_surcharge": area_code_premium,  # NEW (v4.4.1)
         }
 
     @staticmethod

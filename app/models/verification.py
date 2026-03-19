@@ -1,6 +1,6 @@
 """Verification - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, String
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
 
 from app.models.base import BaseModel
 
@@ -30,6 +30,15 @@ class Verification(BaseModel):
     assigned_area_code = Column(String)  # Actual area code from TextVerified
     assigned_carrier = Column(String)  # Generic type from TextVerified (Mobile/Landline/VOIP)
 
+    # Retry tracking (v4.4.1)
+    retry_attempts = Column(Integer, nullable=False, default=0)
+    area_code_matched = Column(Boolean, nullable=False, default=True)
+    carrier_matched = Column(Boolean, nullable=False, default=True)
+    real_carrier = Column(String, nullable=True)
+    carrier_surcharge = Column(Float, nullable=False, default=0.0)
+    area_code_surcharge = Column(Float, nullable=False, default=0.0)
+    voip_rejected = Column(Boolean, nullable=False, default=False)
+
     fallback_applied = Column(Boolean, default=False)
     same_state_fallback = Column(Boolean, default=True)
     completed_at = Column(DateTime)
@@ -53,6 +62,16 @@ class Verification(BaseModel):
     outcome = Column(String, nullable=True)  # completed, cancelled, timeout, error
     cancel_reason = Column(String, nullable=True)
     error_message = Column(String, nullable=True)
+
+    def __init__(self, **kwargs):
+        # Set defaults for retry tracking fields
+        kwargs.setdefault('retry_attempts', 0)
+        kwargs.setdefault('area_code_matched', True)
+        kwargs.setdefault('carrier_matched', True)
+        kwargs.setdefault('carrier_surcharge', 0.0)
+        kwargs.setdefault('area_code_surcharge', 0.0)
+        kwargs.setdefault('voip_rejected', False)
+        super().__init__(**kwargs)
 
 
 class NumberRental(BaseModel):
