@@ -83,8 +83,14 @@ class CarrierLookupService:
                     
                     # Check if API returned an error
                     if "error" in data:
+                        error_code = data["error"].get("code")
                         error_info = data["error"].get("info", "Unknown error")
-                        logger.warning(f"Numverify API error: {error_info}")
+                        if error_code == 104:
+                            logger.error(f"NUMVERIFY QUOTA EXHAUSTED — carrier lookup disabled until next billing cycle. ({error_info})")
+                        elif error_code in (101, 102, 103):
+                            logger.error(f"NUMVERIFY AUTH FAILURE (code {error_code}) — check NUMVERIFY_API_KEY on Render. ({error_info})")
+                        else:
+                            logger.warning(f"Numverify API error {error_code}: {error_info}")
                         return {
                             "success": False,
                             "carrier": "unknown",
