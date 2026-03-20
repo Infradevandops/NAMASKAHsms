@@ -1,6 +1,7 @@
 """Authentication service for user login and token management."""
 
 import traceback
+import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
@@ -15,6 +16,11 @@ from app.models.user import User
 logger = get_logger(__name__)
 settings = get_settings()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+def _get_redis():
+    from app.core.cache import get_redis
+    return get_redis()
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -58,16 +64,19 @@ class AuthService:
             traceback.print_exc()
             return None
 
-    def create_user_token(self, user: User, expires_hours: int = 24 * 30) -> str:
+    def create_user_token(self, user: User, expires_hours: Optional[int] = None) -> str:
         """Create JWT token for user."""
         try:
-            expire = datetime.now(timezone.utc) + timedelta(hours=expires_hours)
+            hours = expires_hours if expires_hours is not None else settings.jwt_expiration_hours
+            expire = datetime.now(timezone.utc) + timedelta(hours=hours)
+            jti = str(uuid.uuid4())
             payload = {
                 "sub": user.id,
                 "email": user.email,
                 "exp": expire,
                 "iat": datetime.now(timezone.utc),
                 "type": "access",
+                "jti": jti,
             }
 
             token = jwt.encode(
@@ -89,6 +98,17 @@ class AuthService:
                 token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
             )
 
+            # Check token blacklist (logout revocation)
+            jti = payload.get("jti")
+            if jti:
+                try:
+                    redis = _get_redis()
+                    if redis.exists(f"blacklist:jti:{jti}"):
+                        logger.debug("Token revoked", extra={"jti": jti})
+                        return None
+                except Exception as e:
+                    logger.warning(f"Blacklist check failed (allowing token): {e}")
+
             # Support both 'sub' and 'user_id' for backwards compatibility
             user_id = payload.get("sub") or payload.get("user_id")
             if not user_id:
@@ -108,6 +128,28 @@ class AuthService:
         except Exception as e:
             logger.error("Token verification error", extra={"error": str(e)})
             return None
+
+    def revoke_token(self, token: str) -> bool:
+        """Blacklist a JWT token so it cannot be used after logout."""
+        try:
+            payload = jwt.decode(
+                token,
+                settings.jwt_secret_key,
+                algorithms=[settings.jwt_algorithm],
+                options={"verify_exp": False},
+            )
+            jti = payload.get("jti")
+            exp = payload.get("exp")
+            if not jti:
+                return False
+            ttl = max(int(exp - datetime.now(timezone.utc).timestamp()), 1) if exp else 86400
+            redis = _get_redis()
+            redis.setex(f"blacklist:jti:{jti}", ttl, "1")
+            logger.info("Token revoked", extra={"jti": jti})
+            return True
+        except Exception as e:
+            logger.error(f"Token revocation failed: {e}")
+            return False
 
     def create_user(self, email: str, password: str, **kwargs) -> User:
         """Create a new user."""

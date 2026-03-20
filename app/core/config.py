@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     # Basic app settings
     app_name: str = "Namaskah SMS"
-    version: str = "2.5.0"
+    version: str = "4.4.1"
     environment: str = "development"
     debug: bool = False
 
@@ -64,7 +64,7 @@ class Settings(BaseSettings):
     # External API settings
     textverified_api_key: Optional[str] = None
     textverified_user_id: Optional[str] = None
-    textverified_email: Optional[str] = None
+    textverified_email: Optional[str] = None  # used as api_username by TextVerifiedService
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 
@@ -133,6 +133,9 @@ class Settings(BaseSettings):
     # Payment settings
     payment_provider: str = "paystack"
     payment_webhook_timeout: int = 30
+    # NGN/USD rate — update this when rate drifts significantly.
+    # Last updated: March 2026. Current market rate ~1600.
+    ngn_usd_rate: float = 1600.0
 
     # Admin settings
     admin_email: Optional[str] = None

@@ -1,9 +1,10 @@
 """WebSocket endpoints for real-time notifications."""
 
+import json
 from datetime import datetime, timezone
 
 import jwt
-from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
@@ -13,55 +14,67 @@ logger = get_logger(__name__)
 router = APIRouter(tags=["WebSocket"])
 settings = get_settings()
 
+_AUTH_TIMEOUT_SECONDS = 10
 
-async def authenticate_websocket(token: str) -> str:
-    """Authenticate WebSocket connection and return user_id."""
+
+async def _authenticate_from_message(websocket: WebSocket) -> str:
+    """
+    Receive the first WebSocket message and extract the JWT token from it.
+    Expects: {"type": "auth", "token": "<jwt>"}
+    Raises ValueError on failure.
+    """
+    try:
+        raw = await websocket.receive_text()
+        msg = json.loads(raw)
+    except Exception:
+        raise ValueError("Expected JSON auth message as first frame")
+
+    if msg.get("type") != "auth":
+        raise ValueError("First message must be type='auth'")
+
+    token = msg.get("token", "")
+    if not token:
+        raise ValueError("Missing token in auth message")
+
     try:
         payload = jwt.decode(
             token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
         )
-
-        user_id = payload.get("user_id")
-        if not user_id:
-            raise ValueError("No user_id in token")
-
-        return user_id
-
     except jwt.ExpiredSignatureError:
         raise ValueError("Token expired")
     except jwt.InvalidTokenError:
         raise ValueError("Invalid token")
-    except Exception as e:
-        raise ValueError(f"Authentication failed: {str(e)}")
+
+    user_id = payload.get("user_id") or payload.get("sub")
+    if not user_id:
+        raise ValueError("No user_id in token")
+
+    return user_id
 
 
 @router.websocket("/ws/notifications")
-async def websocket_notifications(
-    websocket: WebSocket,
-    token: str = Query(..., description="JWT token for authentication"),
-):
+async def websocket_notifications(websocket: WebSocket):
     """WebSocket endpoint for real-time notifications.
 
-    Usage:
-        ws://localhost:8000/ws/notifications?token=YOUR_JWT_TOKEN
+    Auth flow (token is NOT passed in the URL to avoid log exposure):
+        1. Client connects: ws://host/ws/notifications
+        2. Client sends first message: {"type": "auth", "token": "<jwt>"}
+        3. Server replies {"type": "connected"} on success, or closes with 1008.
     """
+    await websocket.accept()
     user_id = None
 
     try:
-        # Authenticate user from token
-        user_id = await authenticate_websocket(token)
+        user_id = await _authenticate_from_message(websocket)
         logger.info(f"🔐 WebSocket auth successful: {user_id}")
-
     except Exception as e:
-        logger.error(f"❌ WebSocket auth failed: {e}")
+        logger.warning(f"❌ WebSocket auth failed: {e}")
         await websocket.close(code=1008, reason="Authentication failed")
         return
 
-    # Connect
     await manager.connect(websocket, user_id)
 
     try:
-        # Send welcome message
         await websocket.send_json(
             {
                 "type": "connected",
@@ -71,36 +84,24 @@ async def websocket_notifications(
             }
         )
 
-        # Keep connection alive and handle incoming messages
         while True:
             data = await websocket.receive_text()
 
-            # Handle ping/pong for keepalive
             if data == "ping":
                 await websocket.send_text("pong")
                 logger.debug(f"🏓 Pong sent to {user_id}")
-
-            # Handle other messages (future expansion)
             elif data.startswith("{"):
-                # JSON message
-                import json
-
                 try:
                     message = json.loads(data)
-                    message_type = message.get("type")
-
-                    if message_type == "mark_read":
-                        # Handle mark notification as read
+                    if message.get("type") == "mark_read":
                         notification_id = message.get("notification_id")
                         logger.debug(f"Mark read: {notification_id}")
-
                 except json.JSONDecodeError:
-                    logger.warning(f"Invalid JSON from {user_id}: {data}")
+                    logger.warning(f"Invalid JSON from {user_id}")
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, user_id)
         logger.info(f"👋 WebSocket disconnected normally: {user_id}")
-
     except Exception as e:
         manager.disconnect(websocket, user_id)
         logger.error(f"❌ WebSocket error for {user_id}: {e}", exc_info=True)

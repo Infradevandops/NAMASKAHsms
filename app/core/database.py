@@ -185,10 +185,21 @@ SessionLocal = db_manager.SessionLocal
 
 def get_db():
     """Dependency to get database session with resilience."""
+    from fastapi import HTTPException
     session = None
     try:
         session = db_manager.get_session()
         yield session
+    except HTTPException:
+        # Business logic exceptions — let them propagate without DB error logging
+        if session:
+            session.rollback()
+        raise
+    except (OperationalError, DisconnectionError, RuntimeError) as e:
+        logger.error(f"Database session error: {e}")
+        if session:
+            session.rollback()
+        raise
     except Exception as e:
         logger.error(f"Database session error: {e}")
         if session:

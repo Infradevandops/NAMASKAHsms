@@ -1,6 +1,6 @@
 """User - related database models."""
 
-from sqlalchemy import Boolean, Column, DateTime, Float, Integer, String
+from sqlalchemy import Boolean, Column, DateTime, Float, Integer, Numeric, String
 from sqlalchemy.orm import relationship
 
 from app.models.base import BaseModel
@@ -13,8 +13,8 @@ class User(BaseModel):
 
     email = Column(String, unique=True, nullable=False, index=True)
     password_hash = Column(String, nullable=True)  # Nullable for OAuth users
-    credits = Column(Float, default=0.0, nullable=False)
-    free_verifications = Column(Float, default=1.0, nullable=False)
+    credits = Column(Numeric(10, 4), default=0.0, nullable=False)
+    free_verifications = Column(Numeric(10, 4), default=1.0, nullable=False)
     is_admin = Column(Boolean, default=False, nullable=False)
     is_moderator = Column(Boolean, default=False, nullable=False)
     email_verified = Column(Boolean, default=False, nullable=False)
@@ -30,15 +30,15 @@ class User(BaseModel):
     tier_expires_at = Column(DateTime)  # For subscription expiration
 
     # Pricing enforcement fields
-    bonus_sms_balance = Column(Float, default=0.0, nullable=False)  # Freemium bonus SMS
+    bonus_sms_balance = Column(Numeric(10, 4), default=0.0, nullable=False)  # Freemium bonus SMS
     monthly_quota_used = Column(
-        Float, default=0.0, nullable=False
+        Numeric(10, 4), default=0.0, nullable=False
     )  # Current month usage
     monthly_quota_reset_date = Column(DateTime, nullable=True)  # Last reset date
 
     referral_code = Column(String, unique=True, index=True)
     referred_by = Column(String)
-    referral_earnings = Column(Float, default=0.0, nullable=False)
+    referral_earnings = Column(Numeric(10, 4), default=0.0, nullable=False)
 
     # Google OAuth fields
     google_id = Column(String(255), nullable=True, index=True)
@@ -81,7 +81,7 @@ class User(BaseModel):
         "NotificationPreference", back_populates="user"
     )
     device_tokens = relationship("DeviceToken", back_populates="user")
-    # activities = relationship("Activity", back_populates="user")  # Disabled to fix circular import
+    activities = relationship("Activity", back_populates="user", lazy="select")
     balance_transactions = relationship("BalanceTransaction", back_populates="user")
     commissions = relationship("AffiliateCommission", back_populates="affiliate")
     enterprise_account = relationship(
@@ -123,7 +123,7 @@ class NotificationSettings(BaseModel):
     user_id = Column(String, unique=True, nullable=False, index=True)
     email_on_sms = Column(Boolean, default=True, nullable=False)
     email_on_low_balance = Column(Boolean, default=True, nullable=False)
-    low_balance_threshold = Column(Float, default=1.0, nullable=False)
+    low_balance_threshold = Column(Numeric(10, 4), default=1.0, nullable=False)
 
 
 class Referral(BaseModel):
@@ -133,7 +133,7 @@ class Referral(BaseModel):
 
     referrer_id = Column(String, nullable=False, index=True)
     referred_id = Column(String, nullable=False, index=True)
-    reward_amount = Column(Float, default=1.0, nullable=False)
+    reward_amount = Column(Numeric(10, 4), default=1.0, nullable=False)
 
 
 class Subscription(BaseModel):
@@ -144,9 +144,9 @@ class Subscription(BaseModel):
     user_id = Column(String, unique=True, nullable=False, index=True)
     plan = Column(String, nullable=False)
     status = Column(String, default="active", nullable=False)
-    price = Column(Float, nullable=False)
-    discount = Column(Float, default=0.0, nullable=False)
-    duration = Column(Float, default=0, nullable=False)
+    price = Column(Numeric(10, 4), nullable=False)
+    discount = Column(Numeric(10, 4), default=0.0, nullable=False)
+    duration = Column(Numeric(10, 4), default=0, nullable=False)
     expires_at = Column(DateTime)
     cancelled_at = Column(DateTime)
 

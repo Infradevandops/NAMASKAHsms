@@ -16,7 +16,6 @@ from app.api.core.gdpr import router as gdpr_router
 from app.api.admin.router import router as admin_router
 from app.api.auth_routes import router as auth_router
 from app.api.core.user_settings_endpoints import router as user_settings_endpoints_router
-from app.api.core.user_settings import router as user_settings_router, auth_router as user_auth_router
 from app.api.core.api_key_endpoints import router as api_key_router
 from app.api.core.forwarding import router as forwarding_router
 from app.api.core.blacklist import router as blacklist_router
@@ -25,7 +24,6 @@ from app.api.billing.router import router as billing_router
 from app.api.compatibility_routes import router as compatibility_router
 from app.api.core.notification_endpoints import router as notification_router
 from app.api.dashboard_router import router as dashboard_router
-from app.api.emergency import router as emergency_router
 from app.api.health import router as health_router
 from app.api.preview_router import router as preview_router
 from app.api.main_routes import router as routes_router
@@ -93,7 +91,7 @@ def create_app() -> FastAPI:
     # Create FastAPI app with lifespan
     fastapi_app = FastAPI(
         title="Namaskah SMS API",
-        version="4.0.0",
+        version=settings.version,
         description="Modular SMS Verification Service",
         lifespan=lifespan,
     )
@@ -158,17 +156,12 @@ def create_app() -> FastAPI:
     # Health checks (must be first for monitoring)
     fastapi_app.include_router(health_router)
 
-    # Emergency admin reset (TEMPORARY)
-    fastapi_app.include_router(emergency_router, prefix="/api")
-
     # GDPR endpoints
     fastapi_app.include_router(gdpr_router)
 
     # Auth endpoints
     fastapi_app.include_router(auth_router)
     fastapi_app.include_router(user_settings_endpoints_router)
-    fastapi_app.include_router(user_settings_router)
-    fastapi_app.include_router(user_auth_router)
     fastapi_app.include_router(api_key_router)
     fastapi_app.include_router(forwarding_router)
     fastapi_app.include_router(blacklist_router)
@@ -221,7 +214,7 @@ def create_app() -> FastAPI:
         return {
             "timestamp": datetime.now().isoformat(),
             "environment": settings.environment,
-            "version": "4.0.0",
+            "version": settings.version,
             "database": db_status,
             "static_files": {"mounted": STATIC_DIR.exists()},
             "templates": {"count": (len(list(TEMPLATES_DIR.glob("*.html"))) if TEMPLATES_DIR.exists() else 0)},
