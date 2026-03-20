@@ -13,7 +13,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   
   <!-- Tailwind Config - must be AFTER script loads -->
-  <script>
+  <script nonce="{{ request.state.csp_nonce }}">
     tailwind.config = {
       theme: {
         extend: {
@@ -41,7 +41,7 @@
   <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
   
   <!-- Debug: Check if Alpine loads -->
-  <script>
+  <script nonce="{{ request.state.csp_nonce }}">
     window.addEventListener('alpine:init', () => {
       console.log('Alpine.js initialized successfully');
     });
@@ -249,7 +249,7 @@
       </div>
       
       <!-- Search Bar with Autocomplete -->
-      <script>
+      <script nonce="{{ request.state.csp_nonce }}">
         window.servicesData = {{ services|tojson|safe }};
       </script>
       <div x-data="{
@@ -354,7 +354,7 @@
           <span class="text-xs font-mono text-zinc-500 uppercase">Updated 1s ago</span>
         </div>
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <script>
+          <script nonce="{{ request.state.csp_nonce }}">
             window.servicesDataGrid = {{ services|tojson|safe }};
           </script>
           <div x-data="{ services: window.servicesDataGrid || [] }">
@@ -557,16 +557,16 @@
               Premium SMS verification platform. Trusted by <span class="text-brand-400 font-semibold">{{ user_count|default(10000) }}+</span> developers worldwide.
             </p>
             <div class="flex gap-3">
-              <a href="https://twitter.com/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+              <a href="https://twitter.com/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
                 <i class="ph-fill ph-twitter-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
               </a>
-              <a href="https://github.com/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+              <a href="https://github.com/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
                 <i class="ph-fill ph-github-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
               </a>
-              <a href="https://discord.gg/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+              <a href="https://discord.gg/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
                 <i class="ph-fill ph-discord-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
               </a>
-              <a href="https://linkedin.com/company/namaskah" target="_blank" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
+              <a href="https://linkedin.com/company/namaskah" target="_blank" rel="noopener noreferrer" class="group w-11 h-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-brand-500 hover:border-brand-500 transition-all duration-300">
                 <i class="ph-fill ph-linkedin-logo text-zinc-400 group-hover:text-white transition text-lg"></i>
               </a>
             </div>
@@ -793,7 +793,7 @@
   </footer>
 
   <!-- Translation & Currency Script -->
-  <script>
+  <script nonce="{{ request.state.csp_nonce }}">
     const translations = {
       en: {
         title: 'Instant SMS Verification',

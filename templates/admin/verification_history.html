@@ -98,7 +98,7 @@
         <div class="pagination" id="pagination" style="display: none;"></div>
     </div>
 
-    <script>
+    <script nonce="{{ request.state.csp_nonce }}">
         let currentData = [];
         let currentPage = 0;
         const pageSize = 50;

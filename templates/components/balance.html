@@ -25,7 +25,7 @@
 .account-cta-btn:hover { background: #e8e8e8; }
 </style>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 async function loadBalance(silent = false) {
     const display = document.getElementById('balance-display');
     if (!display) return;

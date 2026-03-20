@@ -52,7 +52,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     let allHistory = [];
 
 function formatPhone(raw) {

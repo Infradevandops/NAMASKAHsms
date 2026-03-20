@@ -135,7 +135,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 function openModal(options = {}) {
     const template = document.getElementById('modal-template');
     const modal = template.cloneNode(true);

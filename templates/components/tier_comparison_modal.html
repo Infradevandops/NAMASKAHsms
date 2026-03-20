@@ -435,7 +435,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 let tierCompareCurrentTier = 'freemium';
 
 async function showTierCompareModal(currentTier) {

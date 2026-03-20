@@ -266,7 +266,7 @@
 
 {% block scripts %}
 {{ super() }}
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     let autoRefreshEnabled = true;
     let refreshInterval = null;
     let providerData = [];

@@ -348,7 +348,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 let previouslyFocusedElement = null;
 
 function showApiKeyGenerateModal() {

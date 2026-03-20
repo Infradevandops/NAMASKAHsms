@@ -2,14 +2,14 @@
 
 {% block head_extra %}
 <!-- Embed translations for instant load (no 502 errors!) -->
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 window.EMBEDDED_TRANSLATIONS = {{ translations|safe }};
 window.USER_LOCALE = "{{ locale }}";
 console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANSLATIONS).length, 'keys');
 </script>
 
 <!-- Force cache clear for i18n fix (one-time) -->
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 (function() {
     const I18N_FIX_VERSION = '20260308j';
     const lastVersion = localStorage.getItem('i18n_version');
@@ -243,7 +243,7 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <!-- Temporarily disabled: causing errors
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     // Load tier badge in header (i18n-aware)
     (async function loadHeaderTierBadge() {
         const badge = document.getElementById('header-tier-badge');

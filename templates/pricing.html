@@ -525,7 +525,7 @@
         }
     </style>
 
-    <script>
+    <script nonce="{{ request.state.csp_nonce }}">
         function selectTier(tier) {
             // Check if user is logged in
             const token = localStorage.getItem('access_token');

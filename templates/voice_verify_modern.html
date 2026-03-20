@@ -181,7 +181,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 let currentStep = 1;
 let selectedService = null;
 let verificationId = null;

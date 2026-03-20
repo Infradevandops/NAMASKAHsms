@@ -43,7 +43,7 @@
     </p>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const reference = urlParams.get('reference');
