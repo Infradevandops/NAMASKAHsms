@@ -157,13 +157,13 @@
 {% block public_content %}
 <div class="auth-container">
     <div class="auth-tabs">
-        <div class="auth-tab" onclick="window.location.href='/auth/login'">Login</div>
-        <div class="auth-tab active" onclick="window.location.href='/auth/register'">Sign Up</div>
+        <div class="auth-tab" id="tab-login">Login</div>
+        <div class="auth-tab active" id="tab-register">Sign Up</div>
     </div>
 
     <div id="error-message" class="error-msg"></div>
 
-    <form id="register-form" onsubmit="handleRegister(event)">
+    <form id="register-form">
         <div class="form-group">
             <label class="form-label">Email Address</label>
             <input type="email" class="form-input" id="email" required placeholder="name@example.com" autocomplete="email">
@@ -171,8 +171,7 @@
 
         <div class="form-group">
             <label class="form-label">Password</label>
-            <input type="password" class="form-input" id="password" required placeholder="Create a strong password"
-                oninput="checkStrength(this.value)" autocomplete="new-password">
+            <input type="password" class="form-input" id="password" required placeholder="Create a strong password" autocomplete="new-password">
             <div class="strength-meter" id="strength-meter">
                 <div class="strength-segment"></div>
                 <div class="strength-segment"></div>
@@ -185,7 +184,12 @@
     </form>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
+    document.getElementById('tab-login').addEventListener('click', () => { window.location.href = '/auth/login'; });
+    document.getElementById('tab-register').addEventListener('click', () => { window.location.href = '/auth/register'; });
+    document.getElementById('register-form').addEventListener('submit', handleRegister);
+    document.getElementById('password').addEventListener('input', (e) => checkStrength(e.target.value));
+
     function checkStrength(password) {
         const meter = document.getElementById('strength-meter');
         const text = document.getElementById('strength-text');

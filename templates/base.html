@@ -71,7 +71,7 @@
     {% include "components/loading_spinner.html" %}
 
     <!-- Core JS - Deferred -->
-    <script>
+    <script nonce="{{ request.state.csp_nonce }}">
         const API_BASE = '/api';
         const getToken = () => localStorage.getItem('access_token');
         const setToken = (token) => localStorage.setItem('access_token', token);
