@@ -1,43 +1,44 @@
 # TODO
 
-## Current State (March 20, 2026)
+## Current State (March 2026)
 
-✅ **v4.4.1 Complete** - All features implemented and tested (61/61 tests passing)
-✅ **Application Running** - Server operational on port 8000
-✅ **Production Ready** - All deployment checklists complete
+✅ **v4.4.1 Complete** — All features implemented and tested  
+✅ **Security hardened** — Emergency endpoint removed, JWT revocation, CSP nonce, WebSocket auth fixed  
+✅ **Deployed** — Running on Render at https://namaskah.onrender.com  
+✅ **TextVerified configured** — `TEXTVERIFIED_API_KEY` + `TEXTVERIFIED_EMAIL` set in Render env  
+✅ **Database migrated** — Monetary columns converted to `Numeric(10,4)`  
+✅ **Codebase cleaned** — 54 dead files removed, stub services deleted  
+
+---
 
 ## Immediate Actions
 
-### Required for Production
-- [ ] Configure TextVerified API credentials in `.env`
-- [ ] Configure email service (SendGrid or AWS SES)
-- [ ] Deploy to production environment
-- [ ] Monitor metrics (retry rates, VOIP rejection, carrier accuracy)
+### Required
+- [ ] Configure email service (SendGrid or AWS SES) — `SENDGRID_API_KEY` or AWS SES credentials
+- [ ] Add `nonce="{{ request.state.csp_nonce }}"` to all `<script>` tags in Jinja2 templates (CSP nonce is generated but templates not yet updated)
+- [ ] Monitor first production deployment — check TextVerified initialises cleanly in Render logs
 
 ### Optional Enhancements
-- [ ] Enable Numverify API for carrier lookup (optional, graceful degradation)
-- [ ] Setup monitoring stack (Prometheus + Grafana)
-- [ ] Configure Sentry for error tracking
+- [ ] Enable Numverify API for real carrier lookup — set `NUMVERIFY_API_KEY` in Render env (graceful degradation if absent)
+- [ ] Setup Prometheus + Grafana monitoring stack
+- [ ] Confirm Sentry DSN is active and receiving errors
 
-## Future Roadmap (Q2-Q4 2026)
+---
+
+## Roadmap (Q2–Q4 2026)
 
 ### Q2 2026
 - [ ] Enhanced analytics dashboard (carrier success rates, user preferences)
 - [ ] SDK libraries (Python, JavaScript, Go)
 - [ ] API rate limiting improvements
+- [ ] Update `NGN_USD_RATE` in Render env if exchange rate drifts significantly from 1600
 
 ### Q3 2026
 - [ ] Premium tier with Carrier Guarantee feature
 - [ ] Multi-region deployment
-- [ ] Advanced carrier analytics
+- [ ] Advanced carrier analytics dashboard
 
 ### Q4 2026
 - [ ] Commercial APIs (if volume justifies)
 - [ ] Enterprise tier features
 - [ ] Advanced reporting
-
-## Notes
-
-- No code TODOs or FIXMEs remaining
-- All documentation up to date
-- Zero blockers for production deployment
