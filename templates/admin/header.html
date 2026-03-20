@@ -24,7 +24,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     // Mark current page button as active
     const path = window.location.pathname;
     document.getElementById('btn-dashboard').classList.toggle('active', path === '/admin');

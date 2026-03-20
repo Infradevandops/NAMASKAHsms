@@ -163,7 +163,7 @@
 <script src="/static/js/monthly-summary.js"></script>
 <script src="/static/js/auto-reload.js"></script>
 <script src="/static/js/pending-transactions.js"></script>
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     let cryptoAddresses = {};
     let currentCrypto = 'btc';
     let selectedCryptoAmount = null;

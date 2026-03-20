@@ -200,7 +200,7 @@
     </div>
 </div>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
 // Tier display name mapping
 const TIER_DISPLAY_NAMES = {
     'freemium': 'Freemium',

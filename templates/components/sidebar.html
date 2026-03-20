@@ -309,7 +309,7 @@
     }
 </style>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     // Tier hierarchy for access checks
     const TIER_HIERARCHY = {
         'freemium': 0,

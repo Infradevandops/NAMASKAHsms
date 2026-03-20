@@ -188,7 +188,7 @@
         </div>
     </div>
     
-    <script>
+    <script nonce="{{ request.state.csp_nonce }}">
         const token = localStorage.getItem('access_token');
         let tierChart, statusChart;
         

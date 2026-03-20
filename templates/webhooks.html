@@ -234,7 +234,7 @@
 {% block scripts %}
 {{ super() }}
 <script type="module" src="/static/js/api-retry.js"></script>
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     async function loadWebhooks() {
         const container = document.getElementById('webhooks-container');
         const emptyState = document.getElementById('empty-state');

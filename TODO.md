@@ -3,7 +3,7 @@
 ## Current State (March 2026)
 
 ✅ **v4.4.1 Complete** — All features implemented and tested  
-✅ **Security hardened** — Emergency endpoint removed, JWT revocation, CSP nonce, WebSocket auth fixed  
+✅ **Security hardened** — Emergency endpoint removed, JWT revocation, CSP nonce applied to all templates, WebSocket auth fixed  
 ✅ **Deployed** — Running on Render at https://namaskah.onrender.com  
 ✅ **TextVerified configured** — `TEXTVERIFIED_API_KEY` + `TEXTVERIFIED_EMAIL` set in Render env  
 ✅ **Database migrated** — Monetary columns converted to `Numeric(10,4)`  
@@ -14,12 +14,11 @@
 ## Immediate Actions
 
 ### Required
-- [ ] Configure email service (SendGrid or AWS SES) — `SENDGRID_API_KEY` or AWS SES credentials
-- [ ] Add `nonce="{{ request.state.csp_nonce }}"` to all `<script>` tags in Jinja2 templates (CSP nonce is generated but templates not yet updated)
+- [ ] Configure email service (SMTP credentials) — set `SMTP_USERNAME` + `SMTP_PASSWORD` in Render env
 - [ ] Monitor first production deployment — check TextVerified initialises cleanly in Render logs
 
 ### Optional Enhancements
-- [ ] Enable Numverify API for real carrier lookup — set `NUMVERIFY_API_KEY` in Render env (graceful degradation if absent)
+- [ ] Enable Numverify API for carrier name lookup (AT&T, Verizon, etc.) — set `NUMVERIFY_API_KEY` in Render env. VOIP rejection and mobile/landline detection already work offline via `phonenumbers` library.
 - [ ] Setup Prometheus + Grafana monitoring stack
 - [ ] Confirm Sentry DSN is active and receiving errors
 

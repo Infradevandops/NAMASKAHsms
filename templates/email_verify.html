@@ -169,7 +169,7 @@
 
   
   <script src="/static/js/design-system.js') }}"></script>
-  <script>
+  <script nonce="{{ request.state.csp_nonce }}">
     const codeInputs = document.querySelectorAll('.code-input');
     const timerValue = document.getElementById('timerValue');
     const resendBtn = document.getElementById('resendBtn');

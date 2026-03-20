@@ -624,7 +624,7 @@
                     <strong>Base URL</strong>
                     <code style="display: block; margin-top: 8px; font-size: 13px;">https://namaskah.app/api</code>
                 </div>
-                <a href="/api-docs" target="_blank" class="btn btn-primary">Open Full API Docs ↗</a>
+                <a href="/api-docs" target="_blank" rel="noopener noreferrer" class="btn btn-primary">Open Full API Docs ↗</a>
             </div>
         </div>
 
@@ -735,7 +735,7 @@
 <script type="module" src="/static/js/api-retry.js"></script>
 <script src="/static/js/skeleton-loader.js"></script>
 <script src="/static/js/error-messages.js"></script>
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     (function () {
         'use strict';
 

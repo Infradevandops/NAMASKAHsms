@@ -346,7 +346,7 @@ endblock %}
 <script src="/static/js/loading-skeleton.js"></script>
 <script type="module" src="/static/js/frontend-logger.js"></script>
 <script type="module" src="/static/js/api-retry.js"></script>
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     // Lazy load ApexCharts only when needed
     let apexChartsLoaded = false;
     
@@ -366,7 +366,7 @@ endblock %}
     }
 </script>
 
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     // Analytics state
     let analyticsData = null;
     let chartRange = 30;

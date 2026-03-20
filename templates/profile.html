@@ -274,7 +274,7 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
+<script nonce="{{ request.state.csp_nonce }}">
     const TIER_DISPLAY = {
         'freemium': 'Freemium',
         'payg': 'Pay-As-You-Go',
