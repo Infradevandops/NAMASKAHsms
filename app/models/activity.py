@@ -33,8 +33,8 @@ class Activity(BaseModel):
     ip_address = Column(String(45), nullable=True)
     user_agent = Column(Text, nullable=True)
 
-    # Relationship - disabled to fix circular import
-    # user = relationship("User", back_populates="activities")
+    # Relationship
+    user = relationship("User", back_populates="activities", lazy="select")
 
     def to_dict(self):
         """Convert to dictionary."""

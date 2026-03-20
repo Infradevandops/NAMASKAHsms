@@ -88,7 +88,7 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.now(timezone.utc) + timedelta(days=7),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours),
         }
 
         access_token = jwt.encode(
@@ -157,7 +157,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         token_data = {
             "user_id": str(user.id),
             "email": user.email,
-            "exp": datetime.now(timezone.utc) + timedelta(days=7),
+            "exp": datetime.now(timezone.utc) + timedelta(hours=settings.jwt_expiration_hours),
         }
 
         access_token = jwt.encode(
@@ -241,6 +241,12 @@ async def get_current_user(
 
 
 @router.post("/logout")
-async def logout():
-    """Logout endpoint (client should discard token)."""
+async def logout(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: Session = Depends(get_db),
+):
+    """Logout endpoint — revokes the JWT so it cannot be reused."""
+    from app.services.auth_service import AuthService
+    auth_service = AuthService(db)
+    auth_service.revoke_token(credentials.credentials)
     return {"message": "Successfully logged out"}

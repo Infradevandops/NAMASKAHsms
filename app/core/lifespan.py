@@ -60,11 +60,14 @@ async def lifespan(app):
         # Pre-warm services and area codes cache (non-blocking background task)
         async def _prewarm():
             try:
-                from app.core.unified_cache import cache as _cache
                 from app.services.textverified_service import TextVerifiedService
 
                 tv = TextVerifiedService()
                 if not tv.enabled:
+                    startup_logger.error(
+                        "⚠️  TextVerified is DISABLED — SMS verification will not work. "
+                        "Set TEXTVERIFIED_API_KEY and TEXTVERIFIED_EMAIL in your environment."
+                    )
                     return
 
                 # Skip area codes prewarm if already cached (but services always re-fetch)

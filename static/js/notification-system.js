@@ -401,14 +401,16 @@ class NotificationSystem {
             return;
         }
 
-        // Use token directly in query parameter
+        // Token is sent as first message after connect — never in the URL
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/notifications?token=${encodeURIComponent(token)}`;
+        const wsUrl = `${protocol}//${window.location.host}/ws/notifications`;
 
         try {
             this.websocket = new WebSocket(wsUrl);
 
             this.websocket.onopen = () => {
+                // Send auth as first message so token never appears in URL or logs
+                this.websocket.send(JSON.stringify({ type: 'auth', token }));
                 console.log('✅ WebSocket connected for real-time notifications');
                 this.reconnectAttempts = 0;
                 this.startKeepalive();

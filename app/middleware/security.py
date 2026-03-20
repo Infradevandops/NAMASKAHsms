@@ -1,5 +1,8 @@
 """Security middleware - comprehensive security headers."""
 
+import base64
+import os
+
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.core.config import get_settings
@@ -13,6 +16,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         self.settings = get_settings()
 
     async def dispatch(self, request, call_next):
+        # Generate a per-request nonce for inline scripts
+        nonce = base64.b64encode(os.urandom(16)).decode("utf-8")
+        request.state.csp_nonce = nonce
+
         response = await call_next(request)
 
         # Basic security headers
@@ -20,17 +27,17 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
-        # Content Security Policy
+        # Content Security Policy — no unsafe-eval, nonce-based inline scripts
         csp_policy = (
-            "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
-            "font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
-            "img-src 'self' data: https:; "
-            "connect-src 'self' https://api.paystack.co https://checkout.paystack.com; "
-            "frame-src https://checkout.paystack.com; "
-            "object-src 'none'; "
-            "base-uri 'self';"
+            f"default-src 'self'; "
+            f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
+            f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
+            f"font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
+            f"img-src 'self' data: https:; "
+            f"connect-src 'self' https://api.paystack.co https://checkout.paystack.com; "
+            f"frame-src https://checkout.paystack.com; "
+            f"object-src 'none'; "
+            f"base-uri 'self';"
         )
         response.headers["Content-Security-Policy"] = csp_policy
 
@@ -45,8 +52,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Permissions-Policy"] = (
             "geolocation=(), microphone=(), camera=()"
         )
-        # Relaxed COEP for CDN resources
-        # response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
 
         return response

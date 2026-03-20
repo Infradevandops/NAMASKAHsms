@@ -61,7 +61,7 @@ class PaymentService:
                     return cached
 
             # Convert USD to kobo (Paystack uses kobo for NGN)
-            amount_kobo = int(amount_usd * 100 * 800)  # Rough USD to NGN conversion
+            amount_kobo = int(amount_usd * 100 * settings.ngn_usd_rate)
             reference = f"namaskah_{user_id}_{int(datetime.now().timestamp())}"
 
             # Create PaymentLog with state='pending'
