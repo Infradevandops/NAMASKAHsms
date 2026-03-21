@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/verification.py
+# hypothesis_version: 6.141.1
+
+[0.0, 'US', 'active', 'always_ready', 'area_code_matched', 'area_code_surcharge', 'carrier_matched', 'carrier_surcharge', 'number_rentals', 'pending', 'retry_attempts', 'sms', 'standard', 'textverified', 'verifications', 'voip_rejected']

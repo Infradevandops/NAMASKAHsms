@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/credit_service.py
+# hypothesis_version: 6.141.1
+
+[0.0, 100, 'Credit transfer', 'Service charge', 'admin_reset', 'amount', 'amount_added', 'amount_deducted', 'bonus', 'created_at', 'credit', 'current_balance', 'debit', 'description', 'from_user_id', 'id', 'limit', 'month', 'new_balance', 'old_balance', 'refund', 'skip', 'timestamp', 'to_user_id', 'to_user_new_balance', 'total', 'total_bonuses', 'total_credits_added', 'total_refunds', 'transaction_count', 'transaction_type', 'transactions', 'transfer', 'type', 'user_id', 'year']

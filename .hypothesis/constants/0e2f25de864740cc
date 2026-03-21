@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/status_polling.py
+# hypothesis_version: 6.141.1
+
+[404, 500, '/status-updates', '/verification', 'assigned_area_code', 'assigned_carrier', 'cancelled', 'completed', 'count', 'created_at', 'data', 'error', 'failed', 'fallback_applied', 'id', 'message', 'pending', 'phone_number', 'processing', 'refreshed_at', 'requested_area_code', 'requested_carrier', 'same_state_fallback', 'service_name', 'sms_code', 'sms_text', 'status', 'timestamp', 'updated_at', 'updates', 'verification-status']

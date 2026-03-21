@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/__init__.py
+# hypothesis_version: 6.141.1
+
+['BaseService', 'ServiceFactory', 'auth', 'get_auth_service', 'get_service_factory']

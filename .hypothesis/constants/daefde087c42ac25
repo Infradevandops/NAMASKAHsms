@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/tier_manager.py
+# hypothesis_version: 6.141.1
+
+[100, 3000, 'api_access', 'api_key_limit', 'area_code_selection', 'custom', 'custom_branding', 'features', 'freemium', 'has_api_access', 'has_isp_filtering', 'is_admin', 'isp_filtering', 'manual', 'payg', 'priority_routing', 'pro', 'rate_limit_per_hour', 'tier_expires_at', 'webhooks']

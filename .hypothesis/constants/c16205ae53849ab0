@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/auth_routes.py
+# hypothesis_version: 6.141.1
+
+[0.0, '/api/auth', '/login', '/logout', '/me', '/register', '@', 'Account is disabled', 'Authentication', 'Invalid token', 'Login failed', 'Registration failed', 'Token expired', 'User not found', 'access_token', 'bearer', 'credits', 'email', 'exp', 'id', 'is_active', 'is_admin', 'message', 'token_type', 'user', 'user_id', 'username', 'utf-8']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/forwarding.py
+# hypothesis_version: 6.141.1
+
+[10.0, 200, 201, 202, 204, 400, 500, '+1234567890', '/configure', '/forwarding', '/test', 'Content-Type', 'Forwarding', 'From', 'Subject', 'Test SMS forwarding', 'Test Service', 'To', 'User-Agent', 'X-Webhook-Signature', 'alternative', 'application/json', 'config', 'configured', 'data', 'email', 'email_address', 'email_enabled', 'error', 'event', 'forward_all', 'forwarded', 'html', 'is_active', 'is_test', 'message', 'phone_number', 'reason', 'results', 'service', 'sha256', 'sms.received', 'success', 'success_count', 'timestamp', 'type', 'webhook', 'webhook_enabled', 'webhook_url']

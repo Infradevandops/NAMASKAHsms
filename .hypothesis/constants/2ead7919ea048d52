@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/outcome_endpoint.py
+# hypothesis_version: 6.141.1
+
+[404, 'Verification', 'success']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/sql_safety.py
+# hypothesis_version: 6.141.1
+
+[128, 1000, '\x00', '$', '%', "'\\s*;\\s*", "'\\s*\\+\\s*", "'\\s*or\\s*'", '--\\s*', '/\\*.*\\*/', 'ASC', 'DESC', 'Input must be string', 'Invalid email format', 'sp_', 'xp_']

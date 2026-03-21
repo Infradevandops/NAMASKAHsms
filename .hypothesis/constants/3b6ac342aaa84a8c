@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/mobile_notification_service.py
+# hypothesis_version: 6.141.1
+
+[200, 86400, 'Authorization', 'Content-Type', 'FCM request timeout', 'android', 'android_', 'application/json', 'body', 'both', 'click_action', 'data', 'failed', 'failure', 'high', 'ic_notification', 'icon', 'ios', 'ios_', 'link', 'notification', 'notification_id', 'notification_type', 'priority', 'registration_ids', 'sent', 'success', 'time_to_live', 'title']

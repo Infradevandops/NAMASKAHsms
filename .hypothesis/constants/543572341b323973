@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/credit_endpoints.py
+# hypothesis_version: 6.141.1
+
+[0.0, 400, 404, 500, '/add', '/balance', 'USD', 'User not found', 'amount_added', 'balance', 'completed', 'credit', 'credits', 'currency', 'free_verifications', 'last_updated', 'new_balance', 'source', 'success', 'textverified', 'transaction_id', 'tv:admin_balance']

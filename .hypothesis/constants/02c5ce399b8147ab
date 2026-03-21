@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/notification_analytics_service.py
+# hypothesis_version: 6.141.1
+
+[100, 1000, 'avg_click_time_ms', 'avg_delivery_time_ms', 'avg_read_time_ms', 'click_rate', 'clicked', 'day', 'delivered', 'delivery_rate', 'failed', 'failure_rate', 'period', 'read', 'read_rate', 'sent', 'total', 'total_notifications']

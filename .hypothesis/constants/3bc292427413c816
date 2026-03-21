@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/payment_method_endpoints.py
+# hypothesis_version: 6.141.1
+
+['/status', 'card_expiry', 'card_last4', 'card_type', 'has_card', 'success']

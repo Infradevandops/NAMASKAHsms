@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/alerting_service.py
+# hypothesis_version: 6.141.1
+
+[300, 900, 1800, 'Alert sending failed', 'Email alert', 'Slack alert', 'Webhook alert', 'cooldown', 'critical', 'deduplicated', 'email', 'error', 'escalation', 'info', 'message', 'sent', 'severity', 'slack', 'sms', 'type', 'warning', 'webhook']

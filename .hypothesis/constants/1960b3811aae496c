@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/verification_pricing_service.py
+# hypothesis_version: 6.141.1
+
+['User not found', 'custom', 'freemium', 'pro', 'total_cost']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/user_quota.py
+# hypothesis_version: 6.141.1
+
+[0.0, 100.0, 'month', 'monthly_quota_usage', 'uq_user_month', 'user_id', 'user_quotas', 'users.id']

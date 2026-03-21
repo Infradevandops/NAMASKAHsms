@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/notification.py
+# hypothesis_version: 6.141.1
+
+[255, 'User', 'Z', 'created_at', 'icon', 'id', 'is_read', 'link', 'message', 'notifications', 'title', 'type', 'users.id']

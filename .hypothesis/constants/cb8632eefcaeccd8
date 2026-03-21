@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/stats.py
+# hypothesis_version: 6.141.1
+
+[0.0, 403, '/stats', '/stats/summary', 'credit', 'error', 'revenue', 'summary', 'timestamp', 'transactions', 'users', 'verifications']

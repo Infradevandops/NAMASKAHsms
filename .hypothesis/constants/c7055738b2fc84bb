@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/notifications/analytics_endpoints.py
+# hypothesis_version: 6.141.1
+
+[365, 400, 404, 500, '/by-method', '/by-type', '/summary', '/timeline', 'User not found', 'day', 'hour']

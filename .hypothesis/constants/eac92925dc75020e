@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/referrals.py
+# hypothesis_version: 6.141.1
+
+['***', '/list', '/referrals', '/stats', '@', 'Active', 'Pending', 'Referrals', 'bonus_credits', 'created_at', 'email', 'id', 'referral_code', 'referral_link', 'status', 'total_earnings', 'total_referred']

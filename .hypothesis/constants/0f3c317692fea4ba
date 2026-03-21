@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/logging_dashboard.py
+# hypothesis_version: 6.141.1
+
+[403, '/logging/status', 'operational', 'status']

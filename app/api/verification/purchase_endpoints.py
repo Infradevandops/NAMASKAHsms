@@ -205,6 +205,7 @@ async def request_verification(
 
         textverified_result = None
         verification = None
+        notification_dispatcher = NotificationDispatcher(db)
 
         try:
             # Step 1: Call TextVerified API FIRST with filters
@@ -335,7 +336,6 @@ async def request_verification(
             )
 
             # CRITICAL: Notify user of credit deduction immediately
-            notification_dispatcher = NotificationDispatcher(db)
             await notification_dispatcher.notify_verification_started(
                 user_id=user_id,
                 verification_id=str(verification.id),
@@ -369,7 +369,6 @@ async def request_verification(
 
             # Notification: Verification Failed (Task 1.3)
             try:
-                notification_dispatcher = NotificationDispatcher(db)
                 await notification_dispatcher.notify_verification_failed(
                     user_id=user_id,
                     verification_id="unknown",
