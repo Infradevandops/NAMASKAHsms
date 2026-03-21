@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/payment_endpoints.py
+# hypothesis_version: 6.141.1
+
+[5.0, 10000.0, 400, 401, 404, 500, '/initialize', '/methods', '/verify', '/webhook', 'Idempotency-Key', 'Invalid signature', 'Missing reference', 'Missing signature', 'NGN', 'Paystack', 'USD', 'User not found', 'charge.success', 'custom', 'data', 'display_name', 'enabled', 'event', 'failed', 'max_amount', 'metadata', 'methods', 'min_amount', 'namaskah_amount', 'name', 'paystack', 'pro', 'reference', 'status', 'success', 'supported_currencies', 'upgrade_to', 'user_id', 'x-paystack-signature']

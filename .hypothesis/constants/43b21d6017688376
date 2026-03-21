@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/dashboard_activity.py
+# hypothesis_version: 6.141.1
+
+[0.0, '/activity', '/api/dashboard', 'N/A', 'Unknown', 'cost', 'created_at', 'dashboard', 'id', 'limit', 'page', 'pending', 'phone_number', 'service_name', 'status', 'total', 'verifications']

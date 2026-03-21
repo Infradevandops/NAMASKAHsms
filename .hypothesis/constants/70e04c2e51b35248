@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/notification_dispatcher.py
+# hypothesis_version: 6.141.1
+
+['Balance Updated', 'Payment Completed', 'Refund Completed', 'SMS Code Received', 'VOIP number detected', 'Verification Failed', 'Verification Started', '_', 'area_code_fallback', 'area_code_mismatch', 'balance_update', "carrier didn't match", 'carrier_mismatch', 'data', 'not_mobile', 'notification', 'payment_completed', 'refund_completed', 'sms_received', 'to_dict', 'type', 'verification_failed', 'verification_retry', 'verification_started', 'verification_timeout', 'voip_detected']

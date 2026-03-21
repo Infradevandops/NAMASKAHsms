@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/sanitization.py
+# hypothesis_version: 6.141.1
+
+[255, '[^a-zA-Z0-9._-]', 'b', 'br', 'content', 'description', 'em', 'email', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'javascript:', 'message', 'name', 'on\\w+\\s*=', 'p', 'strong', 'title', 'unnamed_file']

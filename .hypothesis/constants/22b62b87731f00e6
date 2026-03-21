@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/gdpr.py
+# hypothesis_version: 6.141.1
+
+[404, '/account', '/export', '/gdpr', 'GDPR', 'User not found', 'audit_logs', 'country', 'created_at', 'credits', 'email', 'email_verified', 'event', 'export_date', 'free_verifications', 'id', 'ip_address', 'is_admin', 'provider', 'referral_code', 'service', 'status', 'user', 'verifications']

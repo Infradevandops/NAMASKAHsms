@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/websocket_endpoints.py
+# hypothesis_version: 6.141.1
+
+[1008, '/ws/notifications', '/ws/stats', 'Invalid token', 'No user_id in token', 'Token expired', 'WebSocket', 'auth', 'connected', 'connected_users', 'mark_read', 'message', 'notification_id', 'operational', 'ping', 'pong', 'status', 'sub', 'timestamp', 'token', 'total_connections', 'type', 'user_id', '{']

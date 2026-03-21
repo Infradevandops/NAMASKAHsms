@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/countries.py
+# hypothesis_version: 6.141.1
+
+[404, 500, '/', '/US', '/api/countries', '/us', '/usa', '/usa/area-codes', '/usa/carriers', '/{country_code}', 'AT&T', 'Any Carrier', 'Area code selection', 'Carrier filtering', 'Countries', 'Sprint', 'T-Mobile', 'TextVerified', 'US', 'US Cellular', 'United States', 'Verizon', 'any', 'area_code', 'area_codes', 'area_codes_available', 'att', 'available', 'carriers', 'carriers_available', 'code', 'countries', 'country', 'default', 'features', 'flag', 'id', 'name', 'note', 'provider', 'region', 'sprint', 'state', 'success', 'supported', 'tmobile', 'total', 'us_cellular', 'verizon', '🇺🇸']

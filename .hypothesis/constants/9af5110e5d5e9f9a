@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/balance_transaction.py
+# hypothesis_version: 6.141.1
+
+['User', 'amount', 'balance_after', 'balance_transactions', 'created_at', 'description', 'id', 'type', 'users.id']

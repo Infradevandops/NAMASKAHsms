@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/pricing_calculator.py
+# hypothesis_version: 6.141.1
+
+[0.0, 0.2, 0.25, 0.3, 0.4, 0.5, 2.5, '212', '310', '312', '404', '415', '617', '702', '917', 'Unknown', 'area_code', 'area_code_surcharge', 'at&t', 'att', 'base_cost', 'base_sms_cost', 'bonus_sms', 'carrier', 'carrier_surcharge', 'custom', 'filter_charges', 'freemium', 'name', 'overage_charge', 'payg', 'pro', 'quota_limit', 'quota_remaining', 'quota_used', 'remaining', 'sufficient_balance', 't-mobile', 'tier', 'tier_name', 'tmobile', 'total_cost', 'user_balance', 'verizon']

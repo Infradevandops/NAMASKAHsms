@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/path_security.py
+# hypothesis_version: 6.141.1
+
+[250, 255, '\x00', '"', '*', '. ', '..', '/', ':', '<', '>', '?', '\\', '_', '|', '~']

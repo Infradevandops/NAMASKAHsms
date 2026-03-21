@@ -27,7 +27,7 @@ class XSSProtectionMiddleware:
         is_json = False
 
         async def send_wrapper(message: dict) -> None:
-            nonlocal initial_message, body_chunks, is_json
+            nonlocal initial_message, is_json
 
             if message["type"] == "http.response.start":
                 headers = dict(

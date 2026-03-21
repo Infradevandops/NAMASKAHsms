@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/services_endpoint.py
+# hypothesis_version: 6.141.1
+
+[2.5, '/countries', '/{country}/services', 'Amazon', 'Apple', 'Discord', 'Facebook', 'Google / Gmail', 'Instagram', 'LinkedIn', 'Microsoft', 'PayPal', 'Services', 'Snapchat', 'Telegram', 'TikTok', 'Twitter / X', 'Uber', 'WhatsApp', 'amazon', 'api', 'apple', 'cache', 'cost', 'dev-fallback', 'dev_mode', 'development', 'discord', 'error', 'facebook', 'google', 'id', 'instagram', 'linkedin', 'microsoft', 'name', 'paypal', 'price', 'services', 'snapchat', 'source', 'telegram', 'tiktok', 'total', 'tv:services_list', 'twitter', 'uber', 'warming', 'whatsapp']

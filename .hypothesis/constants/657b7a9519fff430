@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/pricing_endpoints.py
+# hypothesis_version: 6.141.1
+
+[0.0, 0.2, 0.3, 2.22, 2.5, 25.0, 35.0, 404, 500, '/current', '/tiers', 'API access', 'All Pro features', 'Area code selection', 'Community support', 'Custom', 'Custom branding', 'Dedicated support', 'Freemium', 'Pay-As-You-Go', 'Priority support', 'Pro', 'SMS verification', 'USD', 'User not found', 'Webhooks', 'base_cost', 'currency', 'custom', 'features', 'free_verifications', 'freemium', 'last_updated', 'monthly_fee', 'name', 'overage_rate', 'payg', 'pricing', 'pro', 'tier', 'tiers', 'user_tier']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/audit_compliance.py
+# hypothesis_version: 6.141.1
+
+[100, 365, 403, 500, 1000, '/audit-logs', '/compliance-report', 'action', 'active_users', 'admin_actions', 'admin_id', 'compliance_score', 'days', 'filters', 'generated_at', 'generated_by', 'logs', 'page', 'pages', 'report_id', 'summary', 'total', 'total_users']

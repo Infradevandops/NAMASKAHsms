@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/pricing_control.py
+# hypothesis_version: 6.141.1
+
+[403, '/pricing/current', 'Standard rates apply', 'pricing']

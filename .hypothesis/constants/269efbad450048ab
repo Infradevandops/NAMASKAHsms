@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/unified_rate_limiting.py
+# hypothesis_version: 6.141.1
+
+[0.0, 0.2, 0.8, 1.0, 1.5, 2.0, 5.0, 100.0, 100, 200, 300, 500, 3600, ',', '/', '/about', '/admin', '/api/diagnostics', '/api/health', '/app', '/auth/login', '/auth/register', '/contact', '/docs', '/openapi.json', '/pricing', '/redoc', '/services', '/static', '/support/submit', '/system/health', '/verify/create', 'CF-Connecting-IP', 'Rate limit exceeded', 'Retry-After', 'X-Forwarded-For', 'X-RateLimit-Limit', 'X-RateLimit-Reset', 'X-Real-IP', 'X-System-Load', 'adaptive_high_load', 'burst', 'error', 'limit', 'limit_type', 'message', 'rate_limit_requests', 'rate_limit_window', 'remaining', 'reset', 'retry_after', 'system_load', 'unknown', 'user_id', 'window']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/preview_router.py
+# hypothesis_version: 6.141.1
+
+['/dashboard/dark', '/dashboard/minimal', '/dashboard/soft', '/landing/dark', '/landing/minimal', '/landing/soft', '/preview', '/themes', 'landing_dark.html', 'landing_minimal.html', 'landing_soft.html', 'preview', 'request', 'templates', 'theme_selector.html']

@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/middleware/rate_limiting.py
+# hypothesis_version: 6.141.1
+
+[429, '10/minute', '100/hour', '100/minute', '20/minute', '3/hour', '30/minute', '5/minute', '60', '60/minute', 'Content-Type', 'Retry after', 'Retry after ', 'Retry-After', 'api_external', 'application/json', 'auth_login', 'auth_password_reset', 'auth_register', 'fixed-window', 'memory://', 'payment_initialize', 'payment_verify', 'verification_create', 'verification_status', 'wallet_balance', 'wallet_transactions']

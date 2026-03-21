@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/error_handling.py
+# hypothesis_version: 6.141.1
+
+[1.0, 2.0, 60.0, 400, 401, 404, 429, 500, 502, 503, 504, 'Resource not found.', 'T', 'error_type', 'message', 'status_code']

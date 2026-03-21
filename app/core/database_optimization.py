@@ -269,6 +269,7 @@ def setup_query_monitoring(engine):
     @event.listens_for(engine, "before_cursor_execute")
     def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         """Log query start."""
+        import time
         conn.info.setdefault("query_start_time", []).append(time.time())
 
     @event.listens_for(engine, "after_cursor_execute")

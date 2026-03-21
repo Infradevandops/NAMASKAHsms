@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/startup.py
+# hypothesis_version: 6.141.1
+
+[2.1, 2.2, 2.22, 2.5, 30.0, 50.0, 1000.0, 10000.0, 2500, 3500, 'ADMIN_EMAIL', 'ADMIN_PASSWORD', 'Custom', 'Freemium', 'None', 'Pay-As-You-Go', 'Pro', 'admin@namaskah.app', 'api_key_limit', 'community', 'custom', 'dedicated', 'freemium', 'has_api_access', 'has_isp_filtering', 'id', 'name', 'overage_rate', 'payg', 'payment_required', 'price_monthly', 'priority', 'pro', 'quota_usd', 'startup', 'support_level', 'tier', 'tier_custom', 'tier_freemium', 'tier_payg', 'tier_pro']

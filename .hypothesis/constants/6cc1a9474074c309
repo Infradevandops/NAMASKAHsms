@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/schemas/verification.py
+# hypothesis_version: 6.141.1
+
+['&', 'CA', 'CANADA', 'Country code', 'DE', 'FR', 'FRANCE', 'GB', 'GERMANY', 'IN', 'INDIA', 'Preferred area codes', 'Preferred carriers', 'RU', 'RUSSIA', 'Rental ID to extend', 'Service name', 'UK', 'UNITED KINGDOM', 'UNITED STATES', 'US', 'USA', '^[A-Z]{2,3}$', '^[a-zA-Z0-9_-]+$', '^\\d{3}$', '_', 'amazon', 'area_codes', 'att', 'before', 'capability', 'carriers', 'country', 'discord', 'facebook', 'github', 'google', 'idempotency_key', 'instagram', 'linkedin', 'microsoft', 'netflix', 'paypal', 'service', 'sms', 'sms or voice', 'snapchat', 'spotify', 'telegram', 'tiktok', 'tmobile', 'twitter', 'uber', 'verizon', 'voice', 'whatsapp']

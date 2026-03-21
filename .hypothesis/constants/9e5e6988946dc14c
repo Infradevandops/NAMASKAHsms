@@ -1,0 +1,4 @@
+# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/config.py
+# hypothesis_version: 6.141.1
+
+[1.8, 1600.0, 100, 300, 587, 1024, 3600, 8000, 9090, '*', ',', '.env', '127.0.0.1', '4.4.1', 'BASE_URL', 'ENVIRONMENT', 'HS256', 'INFO', 'Namaskah SMS', 'base_url', 'before', 'cors_origins', 'database_url', 'development', 'freemium', 'http://', 'https://', 'ignore', 'jwt_secret_key', 'noreply@namaskah.app', 'paystack', 'production', 'secret_key', 'smtp.gmail.com', 'textverified', 'uploads', 'utf-8']
