@@ -184,9 +184,12 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
                 # Set subscription tier if this was an upgrade payment
                 upgrade_to = metadata.get("upgrade_to")
                 if upgrade_to in ("pro", "custom"):
+                    from datetime import timedelta
                     user = db.query(User).filter(User.id == user_id).first()
                     if user:
                         user.subscription_tier = upgrade_to
+                        user.tier_upgraded_at = datetime.now(timezone.utc)
+                        user.tier_expires_at = datetime.now(timezone.utc) + timedelta(days=30)
                         db.commit()
                         logger.info(
                             f"Tier upgraded to {upgrade_to} for user {user_id} via webhook"

@@ -155,11 +155,31 @@ async def request_verification(
             f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}"
         )
 
-        # Check user has sufficient credits BEFORE calling API
+        # Check user has sufficient balance BEFORE calling API
         logger.info(
-            f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}"
+            f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}, tier: {user_tier}"
         )
-        if user.credits < sms_cost:
+        if user_tier in ("pro", "custom"):
+            from app.services.quota_service import QuotaService
+            usage = QuotaService.get_monthly_usage(db, user_id, tier=user_tier)
+            quota_remaining = usage["remaining"]
+            tier_config_data = TierManager(db).get_tier_limits(user_id)
+            # Within quota — subscription covers it
+            if quota_remaining >= pricing_info["base_cost"]:
+                pass  # allowed
+            else:
+                # In overage — need credits for the overage portion
+                from app.services.pricing_calculator import PricingCalculator as _PC
+                overage = QuotaService.calculate_overage(db, user_id, sms_cost, tier=user_tier)
+                if user.credits < overage:
+                    logger.warning(
+                        f"User {user_id} insufficient credits for overage: ${user.credits:.2f} < ${overage:.2f}"
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                        detail=f"Insufficient credits for overage. Available: ${user.credits:.2f}, Overage: ${overage:.2f}",
+                    )
+        elif user.credits < sms_cost:
             logger.warning(
                 f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}"
             )

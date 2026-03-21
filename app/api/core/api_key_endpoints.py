@@ -21,13 +21,13 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/keys", tags=["API Keys"])
 
-# Tier dependency for payg+ access
-require_payg = require_tier("payg")
+# Tier dependency for pro+ access
+require_pro = require_tier("pro")
 
 
 @router.get("/", response_model=List[APIKeyListResponse])
 async def list_api_keys(
-    user_id: str = Depends(require_payg),
+    user_id: str = Depends(require_pro),
     db: Session = Depends(get_db),
     _: str = Depends(require_payment_method),
 ):
@@ -59,7 +59,7 @@ async def list_api_keys(
 )
 async def generate_api_key(
     key_create: APIKeyCreate,
-    user_id: str = Depends(require_payg),
+    user_id: str = Depends(require_pro),
     db: Session = Depends(get_db),
     _: str = Depends(require_payment_method),
 ):

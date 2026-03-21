@@ -8,6 +8,19 @@
 ✅ **TextVerified configured** — `TEXTVERIFIED_API_KEY` + `TEXTVERIFIED_EMAIL` set in Render env  
 ✅ **Database migrated** — Monetary columns converted to `Numeric(10,4)`  
 ✅ **Codebase cleaned** — 54 dead files removed, stub services deleted  
+✅ **v4.5.0 Tier System Fixed** — All 13 billing/access/runtime issues resolved, 57 tests passing  
+
+---
+
+## Pending Deploy Verification
+
+These fixes are in code and tested but need a production deploy to confirm end-to-end:
+
+- [ ] **Admin account tier** — Verify admin dashboard shows `custom` (not Freemium) after next deploy. `init_admin.py` clears `tier_expires_at = NULL` on startup and `get_user_tier()` bypasses expiry for admins.
+
+- [ ] **Cancel subscription** — Verify cancelled users retain pro/custom access until `tier_expires_at` and are not immediately downgraded. `subscription_renews_at` should be `NULL` in DB after cancelling.
+
+- [ ] **CSP inline handlers** — Verify no CSP errors in browser console on any page using `onclick=` handlers after deploy.
 
 ---
 

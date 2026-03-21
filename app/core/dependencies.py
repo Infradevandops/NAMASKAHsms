@@ -120,8 +120,12 @@ def require_tier(required_tier: str):
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
-        # Simple tier check - you can expand this logic
-        user_tier = getattr(user, "subscription_tier", "freemium")
+        # Admins always pass any tier gate
+        if getattr(user, "is_admin", False):
+            return user_id
+
+        # Use TierManager to get the live, expiry-checked tier
+        user_tier = TierManager(db).get_user_tier(user_id)
 
         tier_hierarchy = ["freemium", "payg", "pro", "custom"]
         required_level = (

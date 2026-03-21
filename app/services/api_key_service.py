@@ -10,14 +10,6 @@ from app.core.tier_config import TierConfig
 from app.models.api_key import APIKey
 from app.models.user import User
 
-# Tier configuration for API key limits
-TIER_CONFIG = {
-    "freemium": {"api_key_limit": 0},
-    "payg": {"api_key_limit": 0},
-    "pro": {"api_key_limit": 10},
-    "custom": {"api_key_limit": -1},  # Unlimited
-}
-
 
 class APIKeyService:
     """Service for managing API keys."""
@@ -31,12 +23,11 @@ class APIKeyService:
         if not user:
             return False
 
-        tier = TIER_CONFIG.get(user.tier or "freemium", {})
-        limit = tier.get("api_key_limit", 0)
+        config = TierConfig.get_tier_config(user.subscription_tier or "freemium", self.db)
+        limit = config.get("api_key_limit", 0)
 
         if limit == 0:
             return False
-
         if limit == -1:
             return True
 
@@ -45,7 +36,6 @@ class APIKeyService:
             .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
-
         return current_count < limit
 
     def get_remaining_keys(self, user_id: str) -> int:
@@ -54,12 +44,11 @@ class APIKeyService:
         if not user:
             return 0
 
-        tier = TIER_CONFIG.get(user.tier or "freemium", {})
-        limit = tier.get("api_key_limit", 0)
+        config = TierConfig.get_tier_config(user.subscription_tier or "freemium", self.db)
+        limit = config.get("api_key_limit", 0)
 
         if limit == 0:
             return 0
-
         if limit == -1:
             return 999  # Unlimited
 
@@ -68,7 +57,6 @@ class APIKeyService:
             .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
             .count()
         )
-
         return max(0, limit - current_count)
 
     def generate_api_key(self, user_id: str, name: str) -> Tuple[str, APIKey]:
@@ -94,14 +82,12 @@ class APIKeyService:
 
         return plain_key, api_key
 
-    def get_user_keys(self, user_id: str) -> List[APIKey]:
-        """Get all API keys for user."""
-        return (
-            self.db.query(APIKey)
-            .filter(APIKey.user_id == user_id)
-            .order_by(APIKey.created_at.desc())
-            .all()
-        )
+    def get_user_keys(self, user_id: str, include_inactive: bool = True) -> List[APIKey]:
+        """Get API keys for user."""
+        query = self.db.query(APIKey).filter(APIKey.user_id == user_id)
+        if not include_inactive:
+            query = query.filter(APIKey.is_active.is_(True))
+        return query.order_by(APIKey.created_at.desc()).all()
 
     def revoke_api_key(self, key_id: str, user_id: str) -> bool:
         """Revoke an API key."""
@@ -146,11 +132,14 @@ class APIKeyService:
             .first()
         )
 
-        if api_key and api_key.expires_at > datetime.now(timezone.utc):
-            # Update last used timestamp
-            api_key.last_used = datetime.now(timezone.utc)
-            api_key.request_count += 1
-            self.db.commit()
-        return api_key
+        if api_key:
+            expires = api_key.expires_at
+            if expires.tzinfo is None:
+                expires = expires.replace(tzinfo=timezone.utc)
+            if expires > datetime.now(timezone.utc):
+                api_key.last_used = datetime.now(timezone.utc)
+                api_key.request_count += 1
+                self.db.commit()
+                return api_key
 
         return None
