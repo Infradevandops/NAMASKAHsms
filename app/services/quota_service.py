@@ -14,8 +14,12 @@ class QuotaService:
     """Manage user quotas and overage charges."""
 
     @staticmethod
-    def get_monthly_usage(db: Session, user_id: str, month: str = None) -> dict:
-        """Get quota usage for a month."""
+    def get_monthly_usage(db: Session, user_id: str, month: str = None, tier: str = None) -> dict:
+        """Get quota usage for a month.
+        
+        `tier` should be the value resolved by TierManager.get_user_tier() so that
+        expired subscriptions use the correct (downgraded) limits.
+        """
         if not month:
             month = datetime.now().strftime("%Y-%m")
 
@@ -27,9 +31,12 @@ class QuotaService:
             .first()
         )
 
-        user = db.query(User).filter(User.id == user_id).first()
-        tier = TierConfig.get_tier_config(user.subscription_tier, db)
-        quota_limit = tier.get("quota_usd", 0)
+        if tier is None:
+            user = db.query(User).filter(User.id == user_id).first()
+            tier = user.subscription_tier if user else "freemium"
+
+        tier_config = TierConfig.get_tier_config(tier, db)
+        quota_limit = tier_config.get("quota_usd", 0)
 
         if not usage:
             return {
@@ -77,20 +84,22 @@ class QuotaService:
 
     @staticmethod
     def calculate_overage(
-        db: Session, user_id: str, cost: float, month: str = None
+        db: Session, user_id: str, cost: float, month: str = None, tier: str = None
     ) -> float:
         """Calculate overage charge if quota exceeded."""
         if not month:
             month = datetime.now().strftime("%Y-%m")
 
-        usage = QuotaService.get_monthly_usage(db, user_id, month)
+        usage = QuotaService.get_monthly_usage(db, user_id, month, tier=tier)
         quota_limit = usage["quota_limit"]
         quota_used = usage["quota_used"]
 
         if quota_used + cost > quota_limit:
-            user = db.query(User).filter(User.id == user_id).first()
-            tier = TierConfig.get_tier_config(user.subscription_tier, db)
-            overage_rate = tier.get("overage_rate", 0)
+            if tier is None:
+                user = db.query(User).filter(User.id == user_id).first()
+                tier = user.subscription_tier if user else "freemium"
+            tier_config = TierConfig.get_tier_config(tier, db)
+            overage_rate = tier_config.get("overage_rate", 0)
             overage_amount = (quota_used + cost) - quota_limit
             return overage_amount * overage_rate
 

@@ -34,7 +34,8 @@ def init_admin_user():
             # Update existing user
             db.execute(
                 text(
-                    "UPDATE users SET password_hash = :hash, is_admin = true, is_active = true, subscription_tier = 'custom' WHERE email = :email"
+                    "UPDATE users SET password_hash = :hash, is_admin = true, is_active = true, "
+                    "subscription_tier = 'custom', tier_expires_at = NULL WHERE email = :email"
                 ),
                 {"hash": password_hash, "email": ADMIN_EMAIL},
             )

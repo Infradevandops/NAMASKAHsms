@@ -38,7 +38,17 @@ class TierManager:
             if not user:
                 return "freemium"
 
+        # Admins always keep their assigned tier — never subject to expiry
+        if getattr(user, "is_admin", False):
+            return user.subscription_tier or "custom"
+
         tier = user.subscription_tier or "freemium"
+
+        # Validate tier is a known value — unknown tiers fall back to freemium
+        valid_tiers = {"freemium", "payg", "pro", "custom"}
+        if tier not in valid_tiers:
+            logger.warning(f"User {user_id} has unknown tier '{tier}', defaulting to freemium")
+            tier = "freemium"
 
         # Only auto-downgrade if tier_expires_at is explicitly set (not None)
         expires = getattr(user, "tier_expires_at", None)
@@ -52,6 +62,7 @@ class TierManager:
                     "downgrading to freemium"
                 )
                 user.subscription_tier = "freemium"
+                user.tier_expires_at = None
                 self.db.commit()
                 tier = "freemium"
 
@@ -128,6 +139,31 @@ class TierManager:
     def get_all_tiers(self) -> List[Dict]:
         """Get all available tiers with their configurations."""
         return TierConfig.get_all_tiers(self.db)
+
+    def can_create_api_key(self, user_id: str) -> tuple[bool, str]:
+        """Check if user can create another API key based on their tier limit."""
+        from app.models.api_key import APIKey
+
+        tier = self.get_user_tier(user_id)
+        config = TierConfig.get_tier_config(tier, self.db)
+        limit = config.get("api_key_limit", 0)
+
+        if limit == 0:
+            return False, f"API key access requires Pro tier or higher. Current tier: {tier}"
+
+        if limit == -1:  # unlimited
+            return True, ""
+
+        active_count = (
+            self.db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active.is_(True))
+            .count()
+        )
+
+        if active_count >= limit:
+            return False, f"API key limit reached ({limit}/{limit}). Revoke an existing key to create a new one."
+
+        return True, ""
 
     def check_tier_hierarchy(self, current_tier: str, required_tier: str) -> bool:
         """Check if current tier meets or exceeds required tier."""

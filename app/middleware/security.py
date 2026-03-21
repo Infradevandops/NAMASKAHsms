@@ -27,10 +27,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
-        # Content Security Policy — no unsafe-eval, nonce-based inline scripts
+        # Content Security Policy — nonce-based inline scripts, unsafe-inline for event handlers
         csp_policy = (
             f"default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
+            f"script-src-attr 'unsafe-inline'; "
             f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
             f"font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
             f"img-src 'self' data: https:; "

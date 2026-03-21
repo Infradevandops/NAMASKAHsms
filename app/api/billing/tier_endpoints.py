@@ -83,14 +83,19 @@ async def upgrade_tier(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        # Validate target tier
         available_tiers = ["freemium", "payg", "pro", "custom"]
         if target_tier not in available_tiers:
             raise HTTPException(status_code=400, detail="Invalid tier")
 
-        current_tier = getattr(user, "subscription_tier", "freemium")
-        if current_tier == target_tier:
-            raise HTTPException(status_code=400, detail="Already on this tier")
+        tier_manager = TierManager(db)
+        current_tier = tier_manager.get_user_tier(user_id)
+
+        tier_hierarchy = {"freemium": 0, "payg": 1, "pro": 2, "custom": 3}
+        if tier_hierarchy.get(target_tier, 0) <= tier_hierarchy.get(current_tier, 0):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Cannot upgrade to '{target_tier}' from '{current_tier}'",
+            )
 
         # PAYG is free — commit immediately
         if target_tier == "payg":
@@ -104,12 +109,26 @@ async def upgrade_tier(
                 "user_id": user_id,
             }
 
-        # Paid tiers — caller must initialize payment
+        # Paid tiers — initialize Paystack transaction
+        from app.services.payment_service import PaymentService
+        tier_config = TierConfig.get_tier_config(target_tier, db)
+        monthly_fee = tier_config.get("monthly_fee_usd", 0)
+
+        payment_service = PaymentService(db)
+        payment_result = await payment_service.initialize_payment(
+            user_id=user_id,
+            email=user.email,
+            amount_usd=monthly_fee,
+            metadata={"upgrade_to": target_tier, "user_id": user_id},
+        )
+
         return {
-            "message": f"Tier upgrade initiated from {current_tier} to {target_tier}",
+            "message": f"Complete payment to upgrade to {target_tier}",
             "current_tier": current_tier,
             "target_tier": target_tier,
             "status": "pending_payment",
+            "authorization_url": payment_result["authorization_url"],
+            "reference": payment_result["reference"],
             "user_id": user_id,
         }
 
@@ -124,7 +143,7 @@ async def upgrade_tier(
 async def cancel_subscription(
     user_id: str = Depends(get_current_user_id), db: Session = Depends(get_db)
 ):
-    """Cancel paid subscription — downgrades to freemium at period end."""
+    """Cancel paid subscription — access continues until period end, then downgrades to freemium."""
     from app.models.user_preference import UserPreference
 
     user = db.query(User).filter(User.id == user_id).first()
@@ -135,14 +154,18 @@ async def cancel_subscription(
         raise HTTPException(
             status_code=400, detail="No active paid subscription to cancel"
         )
+
+    # tier_expires_at already set from upgrade webhook — downgrade happens naturally
+    # when get_user_tier() detects expiry. Just clear renewal so it won't re-bill.
     pref = db.query(UserPreference).filter(UserPreference.user_id == user_id).first()
-    renews_at = pref.subscription_renews_at if pref else None
-    # Mark for downgrade — actual downgrade happens at renewal date via a scheduled job
-    # For now, downgrade immediately
-    user.subscription_tier = "freemium"
-    db.commit()
+    if pref:
+        pref.subscription_renews_at = None
+        db.commit()
+
+    expires_at = getattr(user, "tier_expires_at", None)
     return {
         "success": True,
-        "message": "Subscription cancelled. You have been downgraded to Freemium.",
-        "effective_date": renews_at,
+        "message": "Subscription cancelled. Access continues until period end.",
+        "effective_date": expires_at.isoformat() if expires_at else None,
+        "current_tier": tier,
     }

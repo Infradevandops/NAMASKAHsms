@@ -32,14 +32,26 @@ class VerificationPricingService:
         return cost_info
 
     @staticmethod
-    def deduct_cost(db: Session, user_id: str, cost: float) -> None:
-        """Deduct cost from user balance."""
+    def deduct_cost(db: Session, user_id: str, cost: float, tier: str = None) -> None:
+        """Deduct cost from user balance.
+        
+        - freemium: deduct 1 from bonus_sms_balance
+        - payg: deduct full cost from credits
+        - pro/custom: only deduct the overage portion from credits;
+          within-quota usage is tracked by QuotaService only.
+        """
         user = db.query(User).filter(User.id == user_id).first()
+        resolved_tier = tier or user.subscription_tier
 
-        if user.subscription_tier == "freemium":
+        if resolved_tier == "freemium":
             user.bonus_sms_balance -= 1
+        elif resolved_tier in ("pro", "custom"):
+            overage = QuotaService.calculate_overage(db, user_id, cost, tier=resolved_tier)
+            if overage > 0:
+                user.credits = float(user.credits) - overage
         else:
-            user.credits -= cost
+            # payg
+            user.credits = float(user.credits) - cost
 
         QuotaService.add_quota_usage(db, user_id, cost)
         db.commit()

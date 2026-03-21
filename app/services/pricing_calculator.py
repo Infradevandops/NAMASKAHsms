@@ -36,14 +36,15 @@ class PricingCalculator:
             filters = {}
 
         user = db.query(User).filter(User.id == user_id).first()
-        tier = TierConfig.get_tier_config(user.subscription_tier, db)
+        tier_name = user.subscription_tier
+        tier = TierConfig.get_tier_config(tier_name, db)
 
         base_cost = tier.get("base_sms_cost", 2.50)
         
         # VALIDATION: Block purchase without price (Task 4.2)
         if base_cost is None:
             raise ValueError(
-                f"Cannot purchase SMS: base cost is not configured for tier '{user.subscription_tier}'. "
+                f"Cannot purchase SMS: base cost is not configured for tier '{tier_name}'. "
                 "Please contact support."
             )
 
@@ -51,7 +52,7 @@ class PricingCalculator:
         carrier_premium = 0.0
         area_code_premium = 0.0
         
-        if user.subscription_tier == "payg":
+        if tier_name == "payg":
             # Area code premiums
             ac = filters.get("area_code")
             if ac:
@@ -64,11 +65,11 @@ class PricingCalculator:
 
         filter_charges = carrier_premium + area_code_premium
 
-        if user.subscription_tier == "freemium" and any(filters.values()):
+        if tier_name == "freemium" and any(filters.values()):
             raise ValueError("Filters not available for Freemium tier")
 
         overage_charge = QuotaService.calculate_overage(
-            db, user_id, base_cost + filter_charges
+            db, user_id, base_cost + filter_charges, tier=tier_name
         )
         total_cost = base_cost + filter_charges + overage_charge
         
@@ -113,12 +114,29 @@ class PricingCalculator:
         return 0.0
 
     @staticmethod
-    def validate_balance(db: Session, user_id: str, cost: float) -> bool:
-        """Check if user has sufficient balance."""
+    def validate_balance(db: Session, user_id: str, cost: float, tier: str = None) -> bool:
+        """Check if user has sufficient balance.
+        
+        For pro/custom: passes if remaining quota covers the base cost.
+        Credits are only required for the overage portion.
+        `tier` should be the value from TierManager.get_user_tier() when available.
+        """
         user = db.query(User).filter(User.id == user_id).first()
+        resolved_tier = tier or user.subscription_tier
 
-        if user.subscription_tier == "freemium":
+        if resolved_tier == "freemium":
             return user.bonus_sms_balance >= 1
+
+        if resolved_tier in ("pro", "custom"):
+            usage = QuotaService.get_monthly_usage(db, user_id, tier=resolved_tier)
+            quota_remaining = usage["remaining"]
+            tier_config = TierConfig.get_tier_config(resolved_tier, db)
+            base_cost = tier_config.get("base_sms_cost", 0.30)
+            if quota_remaining >= base_cost:
+                return True  # within quota — subscription covers it
+            # In overage: check credits cover the overage amount
+            overage = QuotaService.calculate_overage(db, user_id, cost, tier=resolved_tier)
+            return user.credits >= overage
 
         return user.credits >= cost
 
