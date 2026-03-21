@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/token_manager.py
-# hypothesis_version: 6.141.1
-
-[86400, 'access', 'access_token', 'bearer', 'email', 'expires_in', 'refresh_token', 'token_type', 'type', 'user_id']

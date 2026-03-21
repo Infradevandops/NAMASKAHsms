@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/notification_service.py
-# hypothesis_version: 6.141.1
-
-[100, 'created_at', 'id', 'is_read', 'limit', 'message', 'notifications', 'skip', 'title', 'total', 'type', 'user_id']

@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/user_settings_endpoints.py
-# hypothesis_version: 6.141.1
-
-[0.0, 5.0, 10.0, 404, 500, '*', ',', '/api/user', '/billing', '/export', '/privacy', '/referrals', '/settings', '/webhooks', 'Content-Disposition', 'User Settings', 'User not found', 'amount', 'analytics', 'auto_recharge', 'billing_address', 'billing_email', 'bonus_credits', 'card_expiry', 'card_last4', 'card_type', 'created_at', 'email', 'email_notifications', 'events', 'has_card', 'id', 'last_export', 'marketing', 'message', 'name', 'phone_number', 'preferred_area_codes', 'profile', 'recharge_amount', 'referral_code', 'referrals', 'settings', 'sms_alerts', 'spending_limit', 'status', 'success', 'total_earnings', 'total_referrals', 'transactions', 'type', 'url', 'user_id', 'verifications', 'webhooks']

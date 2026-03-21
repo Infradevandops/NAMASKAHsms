@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/textverified_health.py
-# hypothesis_version: 6.141.1
-
-[0.95, 100, 1000, 3000, 5000, 'avg_response_time_ms', 'balance', 'degraded', 'enabled', 'error', 'error_count', 'healthy', 'last_check', 'p95_response_time_ms', 'reason', 'response_time_ms', 'status', 'success_count', 'success_rate', 'unhealthy', 'unknown']

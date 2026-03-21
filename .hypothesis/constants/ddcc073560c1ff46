@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/middleware/csrf_middleware.py
-# hypothesis_version: 6.141.1
-
-[3600, '/', '/api/auth/google', '/api/auth/login', '/api/auth/logout', '/api/auth/logout-all', '/api/auth/refresh', '/api/auth/register', '/api/countries', '/api/system/health', '/auth/', '/static/', 'CSRF token invalid', 'CSRF token missing', 'DELETE', 'GET', 'HEAD', 'OPTIONS', 'PATCH', 'POST', 'PUT', 'X-CSRF-Token', 'csrf_token', 'strict']

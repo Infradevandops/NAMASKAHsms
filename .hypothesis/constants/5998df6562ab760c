@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/system.py
-# hypothesis_version: 6.141.1
-
-[200, '/config', '/health', '/health/liveness', '/health/readiness', '/info', '/status', '/system', '2.4.0', 'NGN', 'Namaskah SMS', 'System', 'alive', 'connected', 'currencies', 'database', 'degraded', 'discord', 'down', 'environment', 'healthy', 'operational', 'payment_methods', 'paystack', 'ready', 'service_name', 'status', 'supported_services', 'telegram', 'timestamp', 'version', 'whatsapp']

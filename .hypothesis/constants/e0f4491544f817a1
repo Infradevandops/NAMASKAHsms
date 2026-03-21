@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/activity.py
-# hypothesis_version: 6.141.1
-
-[100, 255, 'User', 'action', 'activities', 'activity_data', 'activity_type', 'completed', 'created_at', 'description', 'id', 'resource_id', 'resource_type', 'select', 'status', 'title', 'users.id']

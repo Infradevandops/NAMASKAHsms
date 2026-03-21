@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/user_profile.py
-# hypothesis_version: 6.141.1
-
-['/me', '/user', 'created_at', 'credits', 'email', 'id', 'is_admin', 'is_moderator', 'subscription_tier', 'user']

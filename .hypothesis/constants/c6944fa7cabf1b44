@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/tier_endpoints.py
-# hypothesis_version: 6.141.1
-
-[400, 404, 500, '/available', '/cancel', '/current', '/upgrade', 'Invalid tier', 'User not found', 'authorization_url', 'available_tiers', 'current_tier', 'current_user', 'custom', 'effective_date', 'freemium', 'last_updated', 'message', 'monthly_fee_usd', 'payg', 'pending_payment', 'pro', 'reference', 'status', 'subscription_tier', 'success', 'target_tier', 'tier_expires_at', 'tier_info', 'upgrade_to', 'user_id']

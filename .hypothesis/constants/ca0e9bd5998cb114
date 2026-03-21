@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/auth.py
-# hypothesis_version: 6.141.1
-
-[0.0, 3600, '/login', '/logout', '/me', '/register', 'Bearer', 'Registration failed', 'User not found', 'WWW-Authenticate', 'access_token', 'bearer', 'expires_in', 'freemium', 'lax', 'message', 'tier', 'token_type']

@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/exception_handling.py
-# hypothesis_version: 6.141.1
-
-['AWS service error', 'AccessDenied', 'CONFIG_ERROR', 'Code', 'Configuration error', 'DATABASE_ERROR', 'ENCRYPTION_ERROR', 'Error', 'Invalid', 'Message', 'NoSuchKey', 'Unknown', 'connection', 'data', 'error_code', 'key', 'original_error', 'service', 'timeout', 'token', 'value']

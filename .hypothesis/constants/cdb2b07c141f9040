@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/purchase_endpoints.py
-# hypothesis_version: 6.141.1
-
-[0.0, 5.0, 86400, '&', '/request', '/verification', 'Low Balance Warning', 'User not found', 'Verification', 'X-Idempotency-Key', '_', 'accepted', 'activation_id', 'area_code', 'area_code_matched', 'area_code_selection', 'area_code_surcharge', 'assigned_area_code', 'assigned_carrier', 'balance', 'base_cost', 'carrier', 'carrier_matched', 'carrier_surcharge', 'cost', 'country', 'custom', 'demo_mode', 'duplicate', 'fallback_applied', 'id', 'isp_filtering', 'low_balance', 'pending', 'phone_number', 'pro', 'real_carrier', 'refund_amount', 'refund_issued', 'remaining', 'requested_area_code', 'requested_carrier', 'retry_attempts', 'same_state_fallback', 'service', 'status', 'success', 'textverified', 'total_cost', 'unknown', 'verification_id', 'voip_rejected']

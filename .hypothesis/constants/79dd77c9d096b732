@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/exceptions.py
-# hypothesis_version: 6.141.1
-
-['AUTHENTICATION_ERROR', 'AUTHORIZATION_ERROR', 'CONFIGURATION_ERROR', 'CSRF_ERROR', 'DUPLICATE_PAYMENT', 'EXPIRED_TOKEN', 'INSUFFICIENT_CREDITS', 'INTERNAL_ERROR', 'INVALID_TOKEN', 'MESSAGE_TIMEOUT', 'PAYSTACK_API_ERROR', 'Paystack', 'RATE_LIMIT_EXCEEDED', 'SERVICE_UNAVAILABLE', 'TIER_LIMIT_EXCEEDED', 'TextVerified', 'VALIDATION_ERROR', 'available', 'current_tier', 'feature', 'limit', 'required', 'required_tier', 'response_data', 'retry_after', 'service', 'status_code', 'window']

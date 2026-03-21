@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/refund_service.py
-# hypothesis_version: 6.141.1
-
-[0.0, ', ', '__call__', 'area_code_mismatch', 'carrier_mismatch', 'commit', 'completed', 'custom', 'freemium', 'freemium_no_filters', 'no_mismatch', 'none', 'overage', 'payg', 'pro', 'reason', 'refund', 'refund_amount', 'refund_issued', 'refund_type', 'surcharge', 'timestamp']

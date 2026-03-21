@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/subscription_tier.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 500, 3000, 'community', 'custom', 'freemium', 'payg', 'pro', 'subscription_tiers']

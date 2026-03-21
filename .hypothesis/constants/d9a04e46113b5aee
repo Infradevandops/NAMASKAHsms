@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/activities/activity_endpoints.py
-# hypothesis_version: 6.141.1
-
-[100, 400, 404, 500, '%Y-%m-%d', '/', '/api/activities', '/summary', 'Activities', 'User not found', 'by_resource_type', 'by_status', 'recent_count', 'total_activities', 'unknown']

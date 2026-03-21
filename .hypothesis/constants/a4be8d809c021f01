@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/device_token.py
-# hypothesis_version: 6.141.1
-
-[255, 500, 'User', 'created_at', 'device_name', 'device_token', 'device_tokens', 'id', 'is_active', 'platform', 'updated_at', 'user_id', 'users.id']

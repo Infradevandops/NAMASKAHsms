@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/phone_validator.py
-# hypothesis_version: 6.141.1
-
-['463', '747', 'FIXED_LINE', 'FIXED_LINE_OR_MOBILE', 'MOBILE', 'PAGER', 'PERSONAL_NUMBER', 'PREMIUM_RATE', 'SHARED_COST', 'TOLL_FREE', 'UAN', 'UNKNOWN', 'US', 'VOICEMAIL', 'VOIP', 'error', 'high', 'is_mobile', 'is_valid', 'is_voip', 'low', 'number_type', 'voip_risk']

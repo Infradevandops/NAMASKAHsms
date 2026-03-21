@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/payment_service.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 200, 'Authorization', 'Content-Type', 'NGN', 'access_code', 'amount', 'application/json', 'authorization_url', 'cached', 'completed', 'credit', 'currency', 'data', 'email', 'failed', 'metadata', 'namaskah_amount', 'payment_id', 'pending', 'processing', 'reference', 'status', 'user_id', 'utf-8']

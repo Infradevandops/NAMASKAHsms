@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/dashboard.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 403, 500, '/dashboard/stats', '< 10ms', 'active_users', 'activities', 'admin_users', 'auth', 'connected', 'database', 'failed_verifications', 'healthy', 'limit', 'operational', 'payment', 'response_time', 'services', 'status', 'timestamp', 'total', 'total_revenue', 'total_users', 'total_verifications', 'verification']

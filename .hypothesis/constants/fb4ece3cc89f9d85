@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/data_masking.py
-# hypothesis_version: 6.141.1
-
-['*', '/[^\\s]*\\.py', '@', '[AWS_RESOURCE]', '[DB_CONNECTION]', '[FILE_PATH]', '[IP_ADDRESS]', '[JWT_TOKEN]', '[REDACTED]', '\\D', '\\b[A-Za-z0-9]{20,}\\b', '^[A-Za-z0-9]{20,}$', 'api[_-]?key', 'api_key', 'arn:aws:[^\\s]*', 'auth', 'authorization', 'bearer', 'cookie', 'credit_card', 'email', 'headers', 'key', 'mysql://[^\\s]*', 'password', 'phone', 'postgresql://[^\\s]*', 'query_params', 'secret', 'ssn', 'token', 'x-api-key', 'x-auth-token', 'x-forwarded-for', 'x-real-ip']

@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/schemas/tier.py
-# hypothesis_version: 6.141.1
-
-[0.0, 'Current tier limits', 'Current tier name', 'Monthly quota in USD', 'Payment method', 'Tier features', "User's current tier", 'custom', 'freemium', 'payg', 'paystack', 'pro', 'target_tier', 'tier', 'tiers']

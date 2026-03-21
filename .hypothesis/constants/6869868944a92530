@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/logging.py
-# hypothesis_version: 6.141.1
-
-['ALLOWED', 'DENIED', 'RENDER', 'app.log', 'logs', 'security', 'tier_access', 'tier_change']

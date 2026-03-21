@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/fraud_detection_service.py
-# hypothesis_version: 6.141.1
-
-[0.0, 0.2, 0.3, 0.7, 0.88, 0.9, 0.92, 0.95, 1.0, 'accuracy', 'country', 'f1_score', 'high_risk_country', 'high_risk_service', 'ip', 'precision', 'recall', 'service', 'user_id']

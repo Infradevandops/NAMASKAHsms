@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/database.py
-# hypothesis_version: 6.141.1
-
-[3600, '@', '@***', 'SELECT 1', 'application_name', 'check_same_thread', 'circuit_breaker_open', 'connect_timeout', 'connected', 'engine', 'error', 'failed', 'namaskah_sms', 'production', 'sqlite', 'status']

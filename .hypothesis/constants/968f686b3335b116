@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/reseller.py
-# hypothesis_version: 6.141.1
-
-[0.0, 1.0, 100.0, 500.0, 100, 255, 'ResellerAccount', 'SubAccount', 'User', 'bronze', 'bulk_operations', 'credit_allocations', 'manual', 'pending', 'reseller', 'reseller_account', 'reseller_accounts', 'reseller_accounts.id', 'sub_account', 'sub_accounts', 'sub_accounts.id', 'transactions', 'users.id']

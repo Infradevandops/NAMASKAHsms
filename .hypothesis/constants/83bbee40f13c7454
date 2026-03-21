@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/schemas/validators.py
-# hypothesis_version: 6.141.1
-
-[0.01, 100000.0, 100, 8760, '<[^>]*>', '@', 'Invalid JSON format', 'Invalid email format', 'T', '[A-Z]', '[^\\d+]', '[a-z]', '\\D', '\\d', '^[a-z0-9_-]+$', '^[a-zA-Z0-9_\\-\\s]+$', '^\\+\\d{10,15}$', '^https?://', 'area_code', 'before', 'carrier', 'from_attributes', 'javascript:', 'on\\w+\\s*=', 'phone_number', 'referral_code', 'service_name']

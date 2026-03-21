@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/event_broadcaster.py
-# hypothesis_version: 6.141.1
-
-['active_connections', 'active_users', 'activities', 'activity', 'activity_type', 'amount', 'channel', 'content', 'description', 'event_type', 'icon', 'id', 'link', 'message', 'metadata', 'notification', 'notification_type', 'notifications', 'payment', 'payments', 'reference', 'service_name', 'status', 'timestamp', 'title', 'type', 'user_ids', 'verification', 'verification_id']

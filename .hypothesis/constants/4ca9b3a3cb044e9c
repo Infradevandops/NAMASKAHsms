@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/carrier_lookup.py
-# hypothesis_version: 6.141.1
-
-[5.0, 101, 102, 103, 104, 200, '+', '-', 'API timeout', 'Invalid phone number', 'NUMVERIFY_API_KEY', 'Unknown', 'Unknown error', 'access_key', 'at&t', 'att', 'boost', 'carrier', 'code', 'cricket', 'error', 'format', 'info', 'line_type', 'metro', 'number', 'raw_carrier', 'sprint', 'success', 't mobile', 't-mobile', 'tmobile', 'unknown', 'us cellular', 'us_cellular', 'uscellular', 'valid', 'verizon']

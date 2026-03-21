@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/analytics_enhanced.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 404, 500, '%Y-%m-%d', '+00:00', '/api/analytics', '/real-time-stats', '/summary', 'Analytics Enhanced', 'Unknown', 'User not found', 'Z', 'amount', 'average_cost', 'completed', 'count', 'created_at', 'daily_verifications', 'date', 'failed', 'failed_verifications', 'id', 'last_updated', 'monthly_spent', 'name', 'pending', 'pending_count', 'phone_number', 'processing', 'recent_activity', 'revenue', 'service_name', 'spending_by_service', 'spent', 'status', 'success', 'success_rate', 'top_services', 'total_spent', 'total_verifications', 'updates']

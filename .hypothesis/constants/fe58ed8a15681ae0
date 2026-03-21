@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/notifications/notification_center.py
-# hypothesis_version: 6.141.1
-
-[100, 400, 404, '%Y-%m-%d', '/api/notifications', '/bulk-delete', '/bulk-read', '/categories', '/center', '/export', '/search', 'Notification Center', 'Search query', 'categories', 'created_at', 'csv', 'data', 'deleted', 'format', 'id', 'is_read', 'json', 'limit', 'message', 'newest', 'notifications', 'oldest', 'query', 'skip', 'title', 'total', 'type', 'unread', 'unread_first', 'updated']

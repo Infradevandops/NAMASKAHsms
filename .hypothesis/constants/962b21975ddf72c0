@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/dependencies.py
-# hypothesis_version: 6.141.1
-
-[0.0, 1.0, 'Not authenticated', 'User not found', 'access_token', 'api_access', 'area_code_selection', 'custom', 'custom_branding', 'error', 'freemium', 'is_admin', 'isp_filtering', 'payg', 'priority_routing', 'pro', 'tier_manager', 'webhooks']

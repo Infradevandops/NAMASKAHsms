@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/utils/security.py
-# hypothesis_version: 6.141.1
-
-['auto', 'bcrypt', 'exp', 'refresh', 'type']

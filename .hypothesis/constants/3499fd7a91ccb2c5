@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/wallet.py
-# hypothesis_version: 6.141.1
-
-[100, 400, 402, 404, 500, '%Y-%m-%d', '%Y-%m-%d %H:%M:%S', '/balance', '/paystack/initialize', '/paystack/verify', '/paystack/webhook', '/spending-summary', '/transactions', '/transactions/export', '/wallet', 'Amount (N)', 'Content-Disposition', 'Date', 'Description', 'Export failed', 'Invalid JSON', 'Invalid signature', 'Missing signature', 'Type', 'User not found', 'Wallet', 'amount', 'application/json', 'avg_daily_spending', 'credit', 'csv', 'current_balance', 'daily_spending', 'date', 'debit', 'description', 'failed', 'ignored', 'json', 'metadata', 'namaskah_amount', 'net_change', 'period_days', 'status', 'success', 'text/csv', 'total_funded', 'total_spent', 'type', 'x-paystack-signature']
