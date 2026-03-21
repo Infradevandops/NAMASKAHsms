@@ -20,6 +20,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 def _get_redis():
     from app.core.cache import get_redis
+
     return get_redis()
 
 
@@ -67,7 +68,11 @@ class AuthService:
     def create_user_token(self, user: User, expires_hours: Optional[int] = None) -> str:
         """Create JWT token for user."""
         try:
-            hours = expires_hours if expires_hours is not None else settings.jwt_expiration_hours
+            hours = (
+                expires_hours
+                if expires_hours is not None
+                else settings.jwt_expiration_hours
+            )
             expire = datetime.now(timezone.utc) + timedelta(hours=hours)
             jti = str(uuid.uuid4())
             payload = {
@@ -142,7 +147,11 @@ class AuthService:
             exp = payload.get("exp")
             if not jti:
                 return False
-            ttl = max(int(exp - datetime.now(timezone.utc).timestamp()), 1) if exp else 86400
+            ttl = (
+                max(int(exp - datetime.now(timezone.utc).timestamp()), 1)
+                if exp
+                else 86400
+            )
             redis = _get_redis()
             redis.setex(f"blacklist:jti:{jti}", ttl, "1")
             logger.info("Token revoked", extra={"jti": jti})

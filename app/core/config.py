@@ -64,7 +64,9 @@ class Settings(BaseSettings):
     # External API settings
     textverified_api_key: Optional[str] = None
     textverified_user_id: Optional[str] = None
-    textverified_email: Optional[str] = None  # used as api_username by TextVerifiedService
+    textverified_email: Optional[str] = (
+        None  # used as api_username by TextVerifiedService
+    )
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 

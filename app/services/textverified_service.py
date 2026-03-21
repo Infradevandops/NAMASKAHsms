@@ -97,16 +97,16 @@ class TextVerifiedService:
                     asyncio.to_thread(self.client.services.area_codes), timeout=15.0
                 )
                 result = [{"area_code": c.area_code, "state": c.state} for c in codes]
-                
+
                 # Cache aggressively (24 hours instead of 2)
                 try:
                     await cache.set(_AREA_CODES_CACHE_KEY, result, 86400)
                     logger.info(f"Cached {len(result)} area codes for 24h")
                 except Exception as e:
                     logger.warning(f"Cache write failed: {e}")
-                
+
                 return result
-                
+
             except asyncio.TimeoutError:
                 logger.warning(f"Area codes API timeout (attempt {attempt + 1}/3)")
                 if attempt < 2:
@@ -117,7 +117,7 @@ class TextVerifiedService:
                 if attempt < 2:
                     await asyncio.sleep(1)
                 continue
-        
+
         # All retries failed
         logger.error("Area codes API failed after 3 attempts")
         return []
@@ -211,7 +211,7 @@ class TextVerifiedService:
 
     async def get_services_list(self) -> List[Dict[str, Any]]:
         """Fetch live services from TextVerified API.
-        
+
         CRITICAL: This MUST return live data from TextVerified.
         If API fails, return empty list - DO NOT use fallbacks.
         Frontend will show error and prevent purchases.
@@ -258,7 +258,9 @@ class TextVerifiedService:
         last_error = None
         for attempt in range(3):
             try:
-                logger.info(f"Fetching services from TextVerified API (attempt {attempt + 1}/3)...")
+                logger.info(
+                    f"Fetching services from TextVerified API (attempt {attempt + 1}/3)..."
+                )
                 services = await asyncio.wait_for(
                     asyncio.to_thread(
                         self.client.services.list,
@@ -267,20 +269,22 @@ class TextVerifiedService:
                     ),
                     timeout=15.0,
                 )
-                
+
                 if not services:
                     logger.error("TextVerified API returned empty services list")
                     raise RuntimeError("TextVerified API returned no services")
-                
+
                 # Deduplicate by service_name (API returns SMS + Voice variants)
                 seen = {}
                 for s in services:
                     if s.service_name not in seen:
                         seen[s.service_name] = s
                 unique_services = list(seen.values())
-                
-                logger.info(f"Fetched {len(services)} services, {len(unique_services)} unique after dedup")
-                
+
+                logger.info(
+                    f"Fetched {len(services)} services, {len(unique_services)} unique after dedup"
+                )
+
                 # Try to fetch real prices inline (up to 12s)
                 try:
                     priced = await asyncio.wait_for(
@@ -288,13 +292,17 @@ class TextVerifiedService:
                     )
                     try:
                         await cache.set(_SERVICES_CACHE_KEY, priced, _SERVICES_TTL)
-                        await cache.set(_SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL)
+                        await cache.set(
+                            _SERVICES_NAMES_CACHE_KEY, priced, _SERVICES_NAMES_TTL
+                        )
                     except Exception as e:
                         logger.warning(f"Failed to cache services: {e}")
                     return priced
                 except (asyncio.TimeoutError, Exception) as e:
-                    logger.warning(f"Inline pricing timed out/failed ({e}), returning names only")
-                
+                    logger.warning(
+                        f"Inline pricing timed out/failed ({e}), returning names only"
+                    )
+
                 # Fallback: return without prices, background fetch
                 result = [
                     {
@@ -305,15 +313,17 @@ class TextVerifiedService:
                     }
                     for s in unique_services
                 ]
-                
+
                 try:
-                    await cache.set(_SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL)
+                    await cache.set(
+                        _SERVICES_NAMES_CACHE_KEY, result, _SERVICES_NAMES_TTL
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to cache services: {e}")
-                
+
                 asyncio.create_task(self._fetch_and_cache_pricing(unique_services))
                 return result
-                
+
             except asyncio.TimeoutError:
                 last_error = "TextVerified API is not responding"
                 logger.warning(f"TextVerified API timeout (attempt {attempt + 1}/3)")
@@ -328,7 +338,7 @@ class TextVerifiedService:
                 if attempt < 2:
                     await asyncio.sleep(1)
                 continue
-        
+
         logger.error(f"TextVerified API failed after 3 attempts: {last_error}")
         raise RuntimeError(
             f"TextVerified API failed after 3 attempts. Please try again in a few moments."
@@ -352,12 +362,24 @@ class TextVerifiedService:
                         ),
                         timeout=8.0,
                     )
-                    return {"id": s.service_name, "name": s.service_name.title(), "price": float(snap.price), "cost": float(snap.price)}
+                    return {
+                        "id": s.service_name,
+                        "name": s.service_name.title(),
+                        "price": float(snap.price),
+                        "cost": float(snap.price),
+                    }
                 except Exception:
-                    return {"id": s.service_name, "name": s.service_name.title(), "price": None, "cost": None}
+                    return {
+                        "id": s.service_name,
+                        "name": s.service_name.title(),
+                        "price": None,
+                        "cost": None,
+                    }
 
         results = await asyncio.gather(*[_price(s) for s in services])
-        logger.info(f"Inline pricing: {sum(1 for r in results if r['price'] is not None)}/{len(results)} priced")
+        logger.info(
+            f"Inline pricing: {sum(1 for r in results if r['price'] is not None)}/{len(results)} priced"
+        )
         return list(results)
 
     async def _fetch_and_cache_pricing(self, services) -> None:
@@ -411,16 +433,23 @@ class TextVerifiedService:
 
     def _extract_carrier_from_number(self, phone_number: str) -> Optional[str]:
         """DEPRECATED: TextVerified does not return specific carrier info.
-        
+
         This method always returns 'Mobile' for valid US numbers because TextVerified's
         API response does not include specific carrier information. Do not use this for
         carrier validation or decision-making.
-        
+
         See: docs/TEXTVERIFIED_CARRIER_ANALYSIS.md
         """
         if not phone_number:
             return None
-        clean = str(phone_number).replace("+", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
+        clean = (
+            str(phone_number)
+            .replace("+", "")
+            .replace("-", "")
+            .replace(" ", "")
+            .replace("(", "")
+            .replace(")", "")
+        )
         if len(clean) >= 10:
             return "Mobile"  # Always returns "Mobile" — TextVerified doesn't provide specific carrier
         return "Unknown"
@@ -429,12 +458,14 @@ class TextVerifiedService:
         """Get the current status of a verification/activation."""
         if not self.enabled:
             return {"status": "error", "error": "Service disabled"}
-            
+
         try:
             # Note: The textverified lib might use different method names
             # We'll try to get it via the client
-            status = await asyncio.to_thread(self.client.verifications.get, activation_id)
-            
+            status = await asyncio.to_thread(
+                self.client.verifications.get, activation_id
+            )
+
             # Extract common fields
             return {
                 "status": status.status,
@@ -453,14 +484,14 @@ class TextVerifiedService:
         """
         if not self.enabled:
             return {"status": "ERROR", "messages": []}
-            
+
         try:
             # Use the existing get_sms logic but return in the format expected by SMSPollingService
             sms_data = await self.get_sms(activation_id)
             if sms_data.get("success"):
                 return {
                     "status": "COMPLETED",
-                    "messages": [{"text": sms_data.get("sms")}]
+                    "messages": [{"text": sms_data.get("sms")}],
                 }
             return {"status": "PENDING", "messages": []}
         except Exception as e:
@@ -469,7 +500,7 @@ class TextVerifiedService:
 
     async def _cancel_safe(self, verification_id: str) -> bool:
         """Cancel verification without raising exceptions (v4.4.1).
-        
+
         Returns True if cancellation succeeded, False otherwise.
         Never raises exceptions - failures are logged as warnings.
         """
@@ -496,7 +527,7 @@ class TextVerifiedService:
         When area_code is requested, builds a live proximity chain from
         TextVerified's own area-codes endpoint (same state, ordered).
         TextVerified tries each code in order — first available wins.
-        
+
         If area code doesn't match OR number is VOIP/landline OR carrier
         doesn't match, cancels and retries up to max_retries times.
         Final attempt is always accepted.
@@ -521,9 +552,9 @@ class TextVerifiedService:
             )
 
         # Initialize validators (v4.4.1)
-        from app.services.phone_validator import PhoneValidator
         from app.services.carrier_lookup import CarrierLookupService
-        
+        from app.services.phone_validator import PhoneValidator
+
         phone_validator = PhoneValidator()
         carrier_lookup = CarrierLookupService()
 
@@ -534,7 +565,7 @@ class TextVerifiedService:
         voip_rejected = False
         real_carrier = None
         result = None
-        
+
         while retry_attempts < max_retries:
             result = await asyncio.to_thread(
                 self.client.verifications.create,
@@ -550,39 +581,43 @@ class TextVerifiedService:
             assigned_area_code = (
                 assigned_number[2:5] if assigned_number.startswith("+1") else None
             )
-            
+
             # Check area code match
             area_code_match = not area_code or assigned_area_code == area_code
-            
+
             # Check VOIP/landline (v4.4.1 Phase 3)
             phone_validation = phone_validator.validate_mobile(assigned_number, country)
             is_mobile = phone_validation.get("is_mobile", True)
             is_voip = phone_validation.get("is_voip", False)
-            
+
             # Check real carrier (v4.4.1 Phase 4)
             carrier_match = True
             if carrier and carrier_lookup.enabled:
                 carrier_result = await carrier_lookup.lookup_carrier(assigned_number)
                 if carrier_result["success"]:
                     real_carrier = carrier_result["carrier"]
-                    requested_carrier_normalized = carrier.lower().replace(" ", "_").replace("-", "")
+                    requested_carrier_normalized = (
+                        carrier.lower().replace(" ", "_").replace("-", "")
+                    )
                     carrier_match = real_carrier == requested_carrier_normalized
                     logger.info(
                         f"Carrier verification: requested={carrier}, "
                         f"real={real_carrier}, match={carrier_match}"
                     )
-            
+
             # Accept if all checks pass
             if area_code_match and is_mobile and not is_voip and carrier_match:
                 area_code_matched = True
                 carrier_matched = True
                 break
-            
+
             # Reject if not final attempt
             if retry_attempts < max_retries - 1:
                 reason = []
                 if not area_code_match:
-                    reason.append(f"area code mismatch (requested {area_code}, got {assigned_area_code})")
+                    reason.append(
+                        f"area code mismatch (requested {area_code}, got {assigned_area_code})"
+                    )
                 if not is_mobile:
                     reason.append(f"not mobile ({phone_validation.get('number_type')})")
                     voip_rejected = True
@@ -590,8 +625,10 @@ class TextVerifiedService:
                     reason.append("VOIP detected")
                     voip_rejected = True
                 if not carrier_match:
-                    reason.append(f"carrier mismatch (requested {carrier}, got {real_carrier})")
-                
+                    reason.append(
+                        f"carrier mismatch (requested {carrier}, got {real_carrier})"
+                    )
+
                 logger.warning(
                     f"Rejecting number (attempt {retry_attempts + 1}/{max_retries}): {', '.join(reason)}"
                 )

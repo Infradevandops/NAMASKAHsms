@@ -3,8 +3,8 @@
 import logging
 import os
 import sys
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
 
@@ -35,18 +35,14 @@ def get_logger(name: str) -> logging.Logger:
 
 
 def log_tier_access(
-    user_id: str,
-    tier: str,
-    feature: str,
-    allowed: bool,
-    reason: str = ""
+    user_id: str, tier: str, feature: str, allowed: bool, reason: str = ""
 ) -> None:
     """Log all tier-based access decisions.
-    
+
     This function logs every time a user attempts to access a feature,
     whether they were allowed or denied, and why. This creates an audit
     trail for compliance and debugging.
-    
+
     Args:
         user_id: User ID attempting access
         tier: User's current tier
@@ -57,15 +53,15 @@ def log_tier_access(
     logger = get_logger("tier_access")
     status = "ALLOWED" if allowed else "DENIED"
     timestamp = datetime.now().isoformat()
-    
+
     log_message = (
         f"TIER_ACCESS | timestamp={timestamp} | status={status} | "
         f"user={user_id} | tier={tier} | feature={feature}"
     )
-    
+
     if reason:
         log_message += f" | reason={reason}"
-    
+
     if allowed:
         logger.info(log_message)
     else:
@@ -73,17 +69,14 @@ def log_tier_access(
 
 
 def log_tier_change(
-    user_id: str,
-    old_tier: str,
-    new_tier: str,
-    reason: str = ""
+    user_id: str, old_tier: str, new_tier: str, reason: str = ""
 ) -> None:
     """Log tier changes.
-    
+
     This function logs every time a user's tier is changed, including
     upgrades, downgrades, and automatic expirations. This creates an
     audit trail for billing and compliance.
-    
+
     Args:
         user_id: User ID whose tier changed
         old_tier: Previous tier
@@ -92,30 +85,27 @@ def log_tier_change(
     """
     logger = get_logger("tier_change")
     timestamp = datetime.now().isoformat()
-    
+
     log_message = (
         f"TIER_CHANGE | timestamp={timestamp} | user={user_id} | "
         f"old_tier={old_tier} | new_tier={new_tier}"
     )
-    
+
     if reason:
         log_message += f" | reason={reason}"
-    
+
     logger.info(log_message)
 
 
 def log_unauthorized_access(
-    user_id: str,
-    tier: str,
-    feature: str,
-    required_tier: Optional[str] = None
+    user_id: str, tier: str, feature: str, required_tier: Optional[str] = None
 ) -> None:
     """Log unauthorized access attempts.
-    
+
     This function logs when a user attempts to access a feature they
     don't have permission for. This helps identify potential security
     issues or user confusion.
-    
+
     Args:
         user_id: User ID attempting unauthorized access
         tier: User's current tier
@@ -124,13 +114,13 @@ def log_unauthorized_access(
     """
     logger = get_logger("security")
     timestamp = datetime.now().isoformat()
-    
+
     log_message = (
         f"UNAUTHORIZED_ACCESS | timestamp={timestamp} | user={user_id} | "
         f"tier={tier} | feature={feature}"
     )
-    
+
     if required_tier:
         log_message += f" | required_tier={required_tier}"
-    
+
     logger.warning(log_message)

@@ -30,7 +30,9 @@ class User(BaseModel):
     tier_expires_at = Column(DateTime)  # For subscription expiration
 
     # Pricing enforcement fields
-    bonus_sms_balance = Column(Numeric(10, 4), default=0.0, nullable=False)  # Freemium bonus SMS
+    bonus_sms_balance = Column(
+        Numeric(10, 4), default=0.0, nullable=False
+    )  # Freemium bonus SMS
     monthly_quota_used = Column(
         Numeric(10, 4), default=0.0, nullable=False
     )  # Current month usage

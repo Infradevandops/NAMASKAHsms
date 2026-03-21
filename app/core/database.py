@@ -186,6 +186,7 @@ SessionLocal = db_manager.SessionLocal
 def get_db():
     """Dependency to get database session with resilience."""
     from fastapi import HTTPException
+
     session = None
     try:
         session = db_manager.get_session()

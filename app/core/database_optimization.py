@@ -8,8 +8,9 @@ Implements:
 """
 
 import logging
-from typing import List, Dict, Any
-from sqlalchemy import text, event
+from typing import Any, Dict, List
+
+from sqlalchemy import event, text
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 
@@ -22,42 +23,62 @@ class DatabaseOptimizer:
     @staticmethod
     def create_indexes(engine):
         """Create optimized indexes.
-        
+
         Args:
             engine: SQLAlchemy engine
         """
         try:
             with engine.connect() as conn:
                 # Tier identification indexes
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     CREATE INDEX IF NOT EXISTS idx_user_tier 
                     ON users(id, tier) 
                     WHERE deleted_at IS NULL
-                """))
+                """
+                    )
+                )
 
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     CREATE INDEX IF NOT EXISTS idx_user_tier_updated 
                     ON users(id, tier_updated_at) 
                     WHERE deleted_at IS NULL
-                """))
+                """
+                    )
+                )
 
                 # Feature access indexes
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     CREATE INDEX IF NOT EXISTS idx_tier_features 
                     ON subscription_tiers(name, features)
-                """))
+                """
+                    )
+                )
 
                 # Verification indexes
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     CREATE INDEX IF NOT EXISTS idx_verification_user 
                     ON verifications(user_id, created_at)
-                """))
+                """
+                    )
+                )
 
                 # Transaction indexes
-                conn.execute(text("""
+                conn.execute(
+                    text(
+                        """
                     CREATE INDEX IF NOT EXISTS idx_transaction_user 
                     ON transactions(user_id, created_at)
-                """))
+                """
+                    )
+                )
 
                 conn.commit()
                 logger.info("Database indexes created")
@@ -68,11 +89,11 @@ class DatabaseOptimizer:
     @staticmethod
     def analyze_query(db: Session, query_str: str) -> Dict[str, Any]:
         """Analyze query performance.
-        
+
         Args:
             db: Database session
             query_str: SQL query string
-            
+
         Returns:
             Query analysis results
         """
@@ -95,7 +116,7 @@ class DatabaseOptimizer:
     @staticmethod
     def optimize_connection_pool(engine, pool_size: int = 20, max_overflow: int = 40):
         """Optimize connection pool.
-        
+
         Args:
             engine: SQLAlchemy engine
             pool_size: Pool size
@@ -135,7 +156,7 @@ class QueryCache:
 
     def __init__(self, redis_client=None, ttl: int = 300):
         """Initialize query cache.
-        
+
         Args:
             redis_client: Redis client
             ttl: Cache TTL in seconds
@@ -145,10 +166,10 @@ class QueryCache:
 
     def get(self, query_key: str) -> Any:
         """Get cached query result.
-        
+
         Args:
             query_key: Query cache key
-            
+
         Returns:
             Cached result or None
         """
@@ -169,11 +190,11 @@ class QueryCache:
 
     def set(self, query_key: str, value: Any) -> bool:
         """Set cached query result.
-        
+
         Args:
             query_key: Query cache key
             value: Query result
-            
+
         Returns:
             True if successful
         """
@@ -192,10 +213,10 @@ class QueryCache:
 
     def invalidate(self, pattern: str) -> int:
         """Invalidate cached queries.
-        
+
         Args:
             pattern: Pattern to match
-            
+
         Returns:
             Number of keys deleted
         """
@@ -221,7 +242,7 @@ class SlowQueryLogger:
 
     def __init__(self, threshold_ms: float = 100):
         """Initialize slow query logger.
-        
+
         Args:
             threshold_ms: Threshold in milliseconds
         """
@@ -230,16 +251,18 @@ class SlowQueryLogger:
 
     def log_query(self, query_str: str, duration_ms: float):
         """Log query if slow.
-        
+
         Args:
             query_str: SQL query string
             duration_ms: Query duration in milliseconds
         """
         if duration_ms > self.threshold_ms:
-            self.slow_queries.append({
-                "query": query_str,
-                "duration_ms": duration_ms,
-            })
+            self.slow_queries.append(
+                {
+                    "query": query_str,
+                    "duration_ms": duration_ms,
+                }
+            )
 
             logger.warning(
                 f"Slow query detected ({duration_ms:.2f}ms): {query_str[:100]}..."
@@ -247,7 +270,7 @@ class SlowQueryLogger:
 
     def get_slow_queries(self) -> List[Dict[str, Any]]:
         """Get list of slow queries.
-        
+
         Returns:
             List of slow queries
         """
@@ -260,20 +283,25 @@ class SlowQueryLogger:
 
 def setup_query_monitoring(engine):
     """Setup query monitoring.
-    
+
     Args:
         engine: SQLAlchemy engine
     """
     slow_query_logger = SlowQueryLogger(threshold_ms=100)
 
     @event.listens_for(engine, "before_cursor_execute")
-    def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    def receive_before_cursor_execute(
+        conn, cursor, statement, parameters, context, executemany
+    ):
         """Log query start."""
         import time
+
         conn.info.setdefault("query_start_time", []).append(time.time())
 
     @event.listens_for(engine, "after_cursor_execute")
-    def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+    def receive_after_cursor_execute(
+        conn, cursor, statement, parameters, context, executemany
+    ):
         """Log query end."""
         import time
 

@@ -7,14 +7,16 @@ Integrates Sentry for:
 - User feedback
 """
 
+import logging
+
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
-from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
-from sentry_sdk.integrations.redis import RedisIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
+from sentry_sdk.integrations.redis import RedisIntegration
+from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
 from sentry_sdk.integrations.threading import ThreadingIntegration
+
 from app.core.config import settings
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -72,7 +74,10 @@ def before_send_sentry(event, hint):
         return None
 
     # Don't send auth errors for invalid credentials
-    if event.get("exception", {}).get("values", [{}])[0].get("type") == "InvalidCredentials":
+    if (
+        event.get("exception", {}).get("values", [{}])[0].get("type")
+        == "InvalidCredentials"
+    ):
         return None
 
     return event
@@ -82,11 +87,7 @@ def capture_tier_error(user_id: str, tier: str, error: Exception, context: dict 
     """Capture tier-related errors with context."""
     with sentry_sdk.push_scope() as scope:
         scope.set_user({"id": user_id})
-        scope.set_context("tier", {
-            "user_id": user_id,
-            "tier": tier,
-            **(context or {})
-        })
+        scope.set_context("tier", {"user_id": user_id, "tier": tier, **(context or {})})
         scope.set_tag("error_type", "tier_identification")
         sentry_sdk.capture_exception(error)
 
@@ -97,18 +98,23 @@ def capture_performance_metric(metric_name: str, value: float, tags: dict = None
         if tags:
             for key, val in tags.items():
                 scope.set_tag(key, val)
-        scope.set_context("performance", {
-            "metric": metric_name,
-            "value": value,
-        })
+        scope.set_context(
+            "performance",
+            {
+                "metric": metric_name,
+                "value": value,
+            },
+        )
 
 
 def set_user_context(user_id: str, tier: str = None, email: str = None):
     """Set user context for Sentry."""
-    sentry_sdk.set_user({
-        "id": user_id,
-        "email": email,
-    })
+    sentry_sdk.set_user(
+        {
+            "id": user_id,
+            "email": email,
+        }
+    )
     if tier:
         sentry_sdk.set_context("user_tier", {"tier": tier})
 

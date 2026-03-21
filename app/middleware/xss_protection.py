@@ -33,8 +33,7 @@ class XSSProtectionMiddleware:
                 headers = dict(
                     (k.lower(), v)
                     for k, v in (
-                        (k.decode(), v.decode())
-                        for k, v in message.get("headers", [])
+                        (k.decode(), v.decode()) for k, v in message.get("headers", [])
                     )
                 )
                 is_json = headers.get("content-type", "").startswith("application/json")
@@ -69,9 +68,7 @@ class XSSProtectionMiddleware:
                     for k, v in initial_message.get("headers", [])
                     if k.lower() != b"content-length"
                 ]
-                raw_headers.append(
-                    (b"content-length", str(len(full_body)).encode())
-                )
+                raw_headers.append((b"content-length", str(len(full_body)).encode()))
                 initial_message["headers"] = raw_headers
 
                 await send(initial_message)

@@ -47,7 +47,9 @@ class TierManager:
         # Validate tier is a known value — unknown tiers fall back to freemium
         valid_tiers = {"freemium", "payg", "pro", "custom"}
         if tier not in valid_tiers:
-            logger.warning(f"User {user_id} has unknown tier '{tier}', defaulting to freemium")
+            logger.warning(
+                f"User {user_id} has unknown tier '{tier}', defaulting to freemium"
+            )
             tier = "freemium"
 
         # Only auto-downgrade if tier_expires_at is explicitly set (not None)
@@ -149,7 +151,10 @@ class TierManager:
         limit = config.get("api_key_limit", 0)
 
         if limit == 0:
-            return False, f"API key access requires Pro tier or higher. Current tier: {tier}"
+            return (
+                False,
+                f"API key access requires Pro tier or higher. Current tier: {tier}",
+            )
 
         if limit == -1:  # unlimited
             return True, ""
@@ -161,7 +166,10 @@ class TierManager:
         )
 
         if active_count >= limit:
-            return False, f"API key limit reached ({limit}/{limit}). Revoke an existing key to create a new one."
+            return (
+                False,
+                f"API key limit reached ({limit}/{limit}). Revoke an existing key to create a new one.",
+            )
 
         return True, ""
 
