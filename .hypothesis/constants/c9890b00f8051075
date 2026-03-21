@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/tier_management.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 400, 403, 404, '/tiers/expiring', '/tiers/list', '/tiers/stats', '/tiers/users', 'User not found', 'by_tier', 'count', 'created_at', 'credits', 'custom', 'email', 'expires_at', 'expiring_within_days', 'freemium', 'id', 'is_active', 'name', 'new_tier', 'payg', 'price', 'pro', 'subscription_tier', 'success', 'tier', 'tiers', 'total', 'total_users', 'updated', 'user_id', 'users']

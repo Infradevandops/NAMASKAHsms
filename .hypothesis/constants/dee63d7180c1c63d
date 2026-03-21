@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/middleware/xss_protection.py
-# hypothesis_version: 6.141.1
-
-[b'content-length', 'application/json', 'body', 'content-type', 'headers', 'http', 'http.response.body', 'http.response.start', 'more_body', 'type']

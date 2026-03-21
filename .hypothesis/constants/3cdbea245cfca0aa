@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/webhook_queue.py
-# hypothesis_version: 6.141.1
-
-[b'0', b'data', b'event', b'retry_count', b'webhook_id', 1000, '0', '>', 'data', 'event', 'id', 'payload', 'retry_count', 'secret', 'webhook-workers', 'webhook_id', 'webhooks:failed', 'webhooks:pending', 'worker-1']

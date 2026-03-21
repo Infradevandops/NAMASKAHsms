@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/billing/payment_history_endpoints.py
-# hypothesis_version: 6.141.1
-
-[0.0, 100, 365, 404, 500, '/history', '/summary', 'User not found', 'amount', 'created_at', 'credit', 'current_balance', 'debit', 'description', 'id', 'last_updated', 'limit', 'offset', 'reference', 'status', 'summary_period_days', 'total', 'total_credits', 'total_debits', 'transactions', 'type']

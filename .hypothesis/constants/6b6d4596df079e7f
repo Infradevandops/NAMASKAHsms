@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/webhook_notification_service.py
-# hypothesis_version: 6.141.1
-
-[200, 201, 202, 'Content-Type', 'Namaskah/1.0', 'User-Agent', 'application/json', 'cancelled', 'completed', 'cost', 'data', 'event', 'pending', 'phone_number', 'refund_amount', 'service', 'sms.received', 'sms_code', 'status', 'timeout', 'timestamp', 'verification.created', 'verification.timeout', 'verification_id']

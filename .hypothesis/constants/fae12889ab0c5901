@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/affiliate_endpoints.py
-# hypothesis_version: 6.141.1
-
-[0.0, '/api/affiliate', '/applications', '/apply', '/programs', '/stats', 'Affiliate Program', 'company_name', 'conversion_rate', 'created_at', 'email', 'id', 'monthly_volume', 'paid_commission', 'payg', 'pending_commission', 'program_type', 'referral', 'referral_link', 'status', 'total_referrals', 'website']

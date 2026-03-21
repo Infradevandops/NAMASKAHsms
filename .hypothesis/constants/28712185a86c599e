@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/notifications/push_endpoints.py
-# hypothesis_version: 6.141.1
-
-[255, ',', '/devices', '/devices/{device_id}', '/preferences', '/register-device', '/test', '/unregister-device', 'Device not found', 'Preference not found', 'Push Notifications', 'Test Notification', '^(ios|android)$', 'device_token', 'devices', 'devices_count', 'ic_notification', 'message', 'platform', 'preference', 'preferences', 'push', 'results', 'success', 'test', 'total']

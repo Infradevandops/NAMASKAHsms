@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/schemas/auth.py
-# hypothesis_version: 6.141.1
-
-[25.5, 2592000, '2024-01-20T10:00:00Z', 'ABC123', 'API key ID', 'API key name', 'API key value', 'Creation date', 'Email to verify', 'Google ID token', 'JWT access token', 'List of API keys', 'My API Key', 'New email address', 'New password', 'NewSecurePass123!', 'Referral code', 'Reset token', 'SecurePass123!', 'Token type', 'Total number of keys', 'User ID', 'User credits', 'User email', 'User email address', 'User password', 'User tier', 'access_token', 'bearer', 'before', 'created_at', 'credits', 'email', 'example', 'expires_in', 'from_attributes', 'google_id_token_here', 'id', 'id_token', 'json_schema_extra', 'key', 'key_123', 'keys', 'name', 'new_password', 'password', 'pro', 'referral_code', 'reset_token_123', 'tier', 'token', 'token_type', 'total', 'user@example.com', 'user_123']

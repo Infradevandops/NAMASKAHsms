@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/user_settings.py
-# hypothesis_version: 6.141.1
-
-[400, 404, 500, '/api/auth', '/change-password', '/delete-account', '/forgot-password', '/logout-all', '/settings/billing', '/settings/privacy', '/user', '90', 'Account deleted', 'Auth', 'Invalid old password', 'Invalid password', 'User Settings', 'User not found', 'analytics_tracking', 'auto_recharge', 'billing_address', 'billing_email', 'data_retention', 'message', 'payment_receipts', 'profile_visibility', 'recharge_amount', 'reset_token', 'status', 'success', 'verification_alerts']

@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/user.py
-# hypothesis_version: 6.141.1
-
-[0.0, 1.0, 100, 255, 500, '*', 'Activity', 'AffiliateCommission', 'BalanceTransaction', 'DeviceToken', 'EnterpriseAccount', 'Notification', 'PartnerFeature', 'PayoutRequest', 'ResellerAccount', 'RevenueShare', 'USD', 'Unnamed Webhook', 'active', 'affiliate', 'email', 'en', 'freemium', 'partner', 'referrals', 'select', 'subscriptions', 'user', 'users', 'webhooks']

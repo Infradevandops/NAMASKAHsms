@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/notification_preference.py
-# hypothesis_version: 6.141.1
-
-[255, ',', 'User', 'created_at', 'created_at_override', 'delivery_methods', 'description', 'enabled', 'frequency', 'id', 'instant', 'notification_type', 'push_enabled', 'quiet_hours_end', 'quiet_hours_start', 'toast', 'updated_at', 'user_id', 'users.id']

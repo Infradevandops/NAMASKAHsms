@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/tier_config.py
-# hypothesis_version: 6.141.1
-
-[0.2, 0.3, 2.22, 2.5, 100, 500, 2000, 2500, 3000, 3500, 10000, 15000, 60000, 300000, 'Custom', 'Freemium', 'Pay-As-You-Go', 'Pro', 'api_key_limit', 'base_sms_cost', 'community', 'country_limit', 'custom', 'custom_branding', 'dedicated', 'features', 'freemium', 'has_api_access', 'has_isp_filtering', 'name', 'overage_rate', 'payg', 'payment_required', 'price_monthly', 'priority', 'priority_routing', 'pro', 'quota_usd', 'rate_limit_per_hour', 'sms_retention_days', 'support_level', 'tier', 'webhooks']

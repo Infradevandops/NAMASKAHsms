@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/admin/user_management.py
-# hypothesis_version: 6.141.1
-
-[0.0, 403, 500, '/users', '/users/list', 'created_at', 'credits', 'email', 'freemium', 'id', 'is_admin', 'limit', 'offset', 'tier', 'total', 'users']

@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/compliance_service.py
-# hypothesis_version: 6.141.1
-
-[100, 'Access controls', 'Access reviews', 'Alert logs', 'Backup procedures', 'CC1', 'CC2', 'CC3', 'CC4', 'CC5', 'CC6', 'CC7', 'CC8', 'CC9', 'Change Management', 'Change management', 'Communication logs', 'Control Activities', 'Control Environment', 'Documentation', 'Incident response', 'MFA implementation', 'Patch management', 'Risk Assessment', 'Risk Mitigation', 'Risk assessments', 'SOC 2 Type II', 'Security policies', 'System Operations', 'Threat modeling', 'Training records', 'Version control', 'Vulnerability scans', 'assessment_date', 'compliance_framework', 'compliance_score', 'compliant', 'compliant_controls', 'controls', 'controls_summary', 'evidence', 'next_audit', 'next_steps', 'non_compliant', 'overall_status', 'recommendations', 'report_date', 'report_id', 'status', 'total_controls']

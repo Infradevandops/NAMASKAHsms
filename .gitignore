@@ -69,3 +69,8 @@ docs/tasks/coverage-initiative/
 # Generated artifacts
 uvicorn_startup*.log
 server.log
+
+# Test artifacts
+.hypothesis/
+namaskah_fallback.db
+*.db

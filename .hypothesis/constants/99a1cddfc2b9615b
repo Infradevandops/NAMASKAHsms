@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/preset_endpoints.py
-# hypothesis_version: 6.141.1
-
-[400, 404, '/', '/presets', '/{preset_id}', 'Preset deleted', 'Preset not found', 'US', 'Verification Presets', 'isp_filtering', 'message', 'pro', 'success']

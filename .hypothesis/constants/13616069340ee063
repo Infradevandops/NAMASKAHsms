@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/middleware/security.py
-# hypothesis_version: 6.141.1
-
-['1; mode=block', 'DENY', 'Permissions-Policy', 'Referrer-Policy', 'X-Frame-Options', 'X-XSS-Protection', 'https', 'nosniff', 'production', 'same-origin', 'utf-8']

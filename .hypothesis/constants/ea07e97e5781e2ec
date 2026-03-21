@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/textverified_service.py
-# hypothesis_version: 6.141.1
-
-[0.0, 0.5, 8.0, 12.0, 15.0, 7200, 86400, '&', '(', ')', '+', '+1', '-', 'COMPLETED', 'ERROR', 'Mobile', 'PENDING', 'Service disabled', 'TEXTVERIFIED_API_KEY', 'TEXTVERIFIED_EMAIL', 'US', 'USD', 'Unknown', 'VOIP detected', '_', '_session', 'area_code', 'area_code_matched', 'assigned_area_code', 'balance', 'carrier', 'carrier_matched', 'code', 'cost', 'country', 'currency', 'error', 'fallback_applied', 'http://', 'https://', 'id', 'is_mobile', 'is_voip', 'messages', 'name', 'phone_number', 'price', 'raw_cost', 'real_carrier', 'received_at', 'requested_area_code', 'retry_attempts', 'same_state_fallback', 'service', 'sms', 'sms_code', 'sms_text', 'state', 'status', 'success', 'text', 'tv:area_codes_list', 'tv:services_list', 'tv:services_names', 'verification_id', 'voip_rejected']

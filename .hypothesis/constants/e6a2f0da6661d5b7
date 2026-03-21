@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/sms_polling_service.py
-# hypothesis_version: 6.141.1
-
-['TIMEOUT', '\\b(\\d{4,8})\\b', 'completed', 'messages', 'pending', 'sms_code', 'sms_text', 'status', 'text', 'textverified', 'timeout', 'verification_failed', '⏳ Still Waiting']

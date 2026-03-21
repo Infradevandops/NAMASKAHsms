@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/__init__.py
-# hypothesis_version: 6.141.1
-
-['APIKey', 'ActivityLog', 'AffiliateApplication', 'AffiliateCommission', 'AffiliateProgram', 'BalanceTransaction', 'BannedNumber', 'Base', 'BaseModel', 'BulkOperation', 'CarrierAnalytics', 'CommissionTier', 'CreditAllocation', 'DeviceToken', 'EnterpriseAccount', 'EnterpriseTier', 'InAppNotification', 'MonthlyQuotaUsage', 'Notification', 'NotificationSettings', 'NumberRental', 'PartnerFeature', 'PaymentLog', 'PayoutRequest', 'Referral', 'ResellerAccount', 'RevenueShare', 'ServiceStatus', 'SubAccount', 'Subscription', 'SubscriptionTier', 'SupportTicket', 'Transaction', 'User', 'UserPreference', 'Verification', 'VerificationReceipt', 'Webhook', 'WhiteLabelAsset', 'WhiteLabelConfig', 'WhiteLabelDomain', 'WhiteLabelTheme']

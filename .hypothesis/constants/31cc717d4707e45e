@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/compatibility_routes.py
-# hypothesis_version: 6.141.1
-
-[0.0, 404, '/billing/balance', '/tiers', '/tiers/', '/tiers/current', '/user/activity', '/user/me', '/user/settings', '@', 'Payment', 'Security', 'Settings updated', 'System', 'UTC', 'User not found', 'Verification', 'activities', 'amount', 'analytics_consent', 'btc_address', 'categories', 'created_at', 'credits', 'details', 'email', 'email_notifications', 'en', 'enabled', 'eth_address', 'event', 'freemium', 'id', 'is_active', 'is_admin', 'language', 'ltc_address', 'marketing_consent', 'message', 'name', 'payment', 'pending', 'reference', 'security', 'sms_alerts', 'sol_address', 'status', 'subscription_tier', 'system', 'tier', 'timezone', 'username', 'verification']

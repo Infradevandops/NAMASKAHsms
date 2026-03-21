@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/models/enterprise.py
-# hypothesis_version: 6.141.1
-
-[0.0, 99.9, 255, 1000, 2000, 'EnterpriseTier', 'User', 'analytics_retention', 'api_rate_limit', 'enterprise_account', 'enterprise_accounts', 'enterprise_tiers', 'enterprise_tiers.id', 'users.id', 'webhook_retries']

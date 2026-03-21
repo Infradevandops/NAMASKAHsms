@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/auto_refund_service.py
-# hypothesis_version: 6.141.1
-
-[0.0, 'already_refunded', 'cancelled', 'cost', 'created_at', 'dry_run', 'error', 'failed', 'id', 'needs_refund', 'new_balance', 'old_balance', 'reason', 'refund_amount', 'refund_errors', 'refunded', 'refunded_now', 'service', 'status', 'timeout', 'timestamp', 'total_failed', 'transaction_id', 'user_id', 'verification_id', 'verification_refund', 'verifications']

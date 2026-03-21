@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/core/blacklist.py
-# hypothesis_version: 6.141.1
-
-[404, '/add', '/api/blacklist', '/check', '/cleanup', '/{blacklist_id}', 'Manual blacklist', 'Number Blacklist', 'expires_at', 'id', 'is_blacklisted', 'message', 'phone_number', 'reason', 'service_name', 'success']

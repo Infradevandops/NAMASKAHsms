@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/api/notifications/preferences.py
-# hypothesis_version: 6.141.1
-
-[400, 404, ',', '/defaults', '/reset', 'Default frequency', 'Description', 'Enabled by default', 'Notification type', 'Type of notification', 'created', 'defaults', 'instant', 'preferences', 'reset', 'status', 'success', 'toast', 'total', 'updated']

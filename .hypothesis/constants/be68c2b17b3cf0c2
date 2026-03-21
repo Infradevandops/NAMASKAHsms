@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/paystack_service.py
-# hypothesis_version: 6.141.1
-
-[10.0, 30.0, 100, 1500, 'Authorization', 'Content-Type', 'NGN', 'Paystack error: ', 'Unknown', 'access_code', 'amount', 'application/json', 'authorization', 'authorization_code', 'authorization_url', 'balance', 'currency', 'customer', 'data', 'email', 'message', 'metadata', 'paid_at', 'reference', 'status', 'success']

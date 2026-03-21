@@ -1,4 +1,0 @@
-# file: /Users/machine/My Drive/Github Projects/Namaskah. app/app/core/unified_cache.py
-# hypothesis_version: 6.141.1
-
-[300, 600, 1800, 3600, 86400, '*', 'All caches cleared', 'connected_clients', 'countries', 'countries:all', 'default', 'memory_keys', 'provider', 'redis_connected', 'redis_total_commands', 'redis_url', 'redis_used_memory', 'services', 'used_memory_human', 'user', 'verification']
