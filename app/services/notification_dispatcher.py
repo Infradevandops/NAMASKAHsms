@@ -19,10 +19,15 @@ class NotificationDispatcher:
         """Broadcast notification via WebSocket."""
         try:
             import asyncio
+
             from app.websocket.manager import manager
 
             # Serialize ORM object to dict before sending over WebSocket
-            payload = notification.to_dict() if hasattr(notification, "to_dict") else notification
+            payload = (
+                notification.to_dict()
+                if hasattr(notification, "to_dict")
+                else notification
+            )
 
             asyncio.create_task(
                 manager.send_personal_message(
@@ -260,10 +265,10 @@ class NotificationDispatcher:
                 "not_mobile": "landline number detected",
             }
             friendly_reason = reason_map.get(reason, reason.replace("_", " "))
-            
+
             # Determine if this is the final attempt
             is_final = attempt == max_attempts
-            
+
             if is_final:
                 title = f"Final Retry Attempt ({attempt}/{max_attempts})"
                 message = (
@@ -272,10 +277,8 @@ class NotificationDispatcher:
                 )
             else:
                 title = f"Retry {attempt}/{max_attempts}"
-                message = (
-                    f"{service}: Retrying purchase because {friendly_reason}"
-                )
-            
+                message = f"{service}: Retrying purchase because {friendly_reason}"
+
             notification = self.notification_service.create_notification(
                 user_id=user_id,
                 notification_type="verification_retry",

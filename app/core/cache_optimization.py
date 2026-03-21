@@ -7,12 +7,12 @@ Implements:
 - Memory management
 """
 
-import time
-import logging
-from typing import Any, Optional, Dict
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
+import logging
+import time
+from datetime import datetime, timedelta, timezone
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ class CacheOptimizer:
 
     def __init__(self, redis_client=None):
         """Initialize cache optimizer.
-        
+
         Args:
             redis_client: Redis client instance
         """
@@ -43,11 +43,11 @@ class CacheOptimizer:
 
     def get_optimal_ttl(self, cache_type: str, hit_rate: float = None) -> int:
         """Calculate optimal TTL based on hit rate.
-        
+
         Args:
             cache_type: Type of cache (tier, features, user, verification)
             hit_rate: Current hit rate (0-1)
-            
+
         Returns:
             Optimal TTL in seconds
         """
@@ -72,11 +72,11 @@ class CacheOptimizer:
 
     def warm_cache(self, cache_type: str, data: Dict[str, Any]) -> bool:
         """Warm cache with frequently accessed data.
-        
+
         Args:
             cache_type: Type of cache to warm
             data: Data to cache
-            
+
         Returns:
             True if successful
         """
@@ -103,10 +103,10 @@ class CacheOptimizer:
 
     def invalidate_cache(self, pattern: str) -> int:
         """Invalidate cache entries matching pattern.
-        
+
         Args:
             pattern: Pattern to match (e.g., "tier:*")
-            
+
         Returns:
             Number of keys deleted
         """
@@ -134,7 +134,7 @@ class CacheOptimizer:
 
     def get_cache_stats(self) -> Dict[str, Any]:
         """Get cache statistics.
-        
+
         Returns:
             Cache statistics
         """
@@ -152,7 +152,7 @@ class CacheOptimizer:
 
     def optimize_memory(self) -> bool:
         """Optimize cache memory usage.
-        
+
         Returns:
             True if optimization successful
         """
@@ -184,7 +184,7 @@ class CacheOptimizer:
 
     def track_hit(self, hit: bool):
         """Track cache hit or miss.
-        
+
         Args:
             hit: True if cache hit, False if miss
         """
@@ -195,7 +195,7 @@ class CacheOptimizer:
 
     def update_cache_size(self, size: int):
         """Update total cache size.
-        
+
         Args:
             size: Cache size in bytes
         """
@@ -207,7 +207,7 @@ class CacheWarmer:
 
     def __init__(self, db_session=None, redis_client=None):
         """Initialize cache warmer.
-        
+
         Args:
             db_session: Database session
             redis_client: Redis client
@@ -218,7 +218,7 @@ class CacheWarmer:
 
     def warm_tier_cache(self) -> bool:
         """Warm tier configuration cache.
-        
+
         Returns:
             True if successful
         """
@@ -249,7 +249,7 @@ class CacheWarmer:
 
     def warm_feature_cache(self) -> bool:
         """Warm feature access cache.
-        
+
         Returns:
             True if successful
         """
@@ -275,7 +275,7 @@ class CacheWarmer:
 
     def warm_all_caches(self) -> Dict[str, bool]:
         """Warm all caches.
-        
+
         Returns:
             Results for each cache type
         """
@@ -293,7 +293,7 @@ class CacheInvalidationPolicy:
 
     def __init__(self, redis_client=None):
         """Initialize invalidation policy.
-        
+
         Args:
             redis_client: Redis client
         """
@@ -306,10 +306,10 @@ class CacheInvalidationPolicy:
 
     def on_tier_change(self, user_id: str) -> int:
         """Invalidate cache on tier change.
-        
+
         Args:
             user_id: User ID
-            
+
         Returns:
             Number of keys invalidated
         """
@@ -326,7 +326,9 @@ class CacheInvalidationPolicy:
                 if keys:
                     total_deleted += self.redis.delete(*keys)
 
-            logger.info(f"Cache invalidated on tier change: {user_id} ({total_deleted} keys)")
+            logger.info(
+                f"Cache invalidated on tier change: {user_id} ({total_deleted} keys)"
+            )
             return total_deleted
 
         except Exception as e:
@@ -335,7 +337,7 @@ class CacheInvalidationPolicy:
 
     def on_feature_change(self) -> int:
         """Invalidate cache on feature change.
-        
+
         Returns:
             Number of keys invalidated
         """
@@ -358,7 +360,7 @@ class CacheInvalidationPolicy:
 
     def on_config_change(self) -> int:
         """Invalidate cache on config change.
-        
+
         Returns:
             Number of keys invalidated
         """

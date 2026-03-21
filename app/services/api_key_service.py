@@ -23,7 +23,9 @@ class APIKeyService:
         if not user:
             return False
 
-        config = TierConfig.get_tier_config(user.subscription_tier or "freemium", self.db)
+        config = TierConfig.get_tier_config(
+            user.subscription_tier or "freemium", self.db
+        )
         limit = config.get("api_key_limit", 0)
 
         if limit == 0:
@@ -44,7 +46,9 @@ class APIKeyService:
         if not user:
             return 0
 
-        config = TierConfig.get_tier_config(user.subscription_tier or "freemium", self.db)
+        config = TierConfig.get_tier_config(
+            user.subscription_tier or "freemium", self.db
+        )
         limit = config.get("api_key_limit", 0)
 
         if limit == 0:
@@ -82,7 +86,9 @@ class APIKeyService:
 
         return plain_key, api_key
 
-    def get_user_keys(self, user_id: str, include_inactive: bool = True) -> List[APIKey]:
+    def get_user_keys(
+        self, user_id: str, include_inactive: bool = True
+    ) -> List[APIKey]:
         """Get API keys for user."""
         query = self.db.query(APIKey).filter(APIKey.user_id == user_id)
         if not include_inactive:

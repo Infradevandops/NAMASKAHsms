@@ -14,7 +14,9 @@ class NotificationAnalytics(BaseModel):
     notification_id = Column(
         UUID(as_uuid=False), ForeignKey("notifications.id"), nullable=False, index=True
     )
-    user_id = Column(UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True)
+    user_id = Column(
+        UUID(as_uuid=False), ForeignKey("users.id"), nullable=False, index=True
+    )
     notification_type = Column(String(50), nullable=False, index=True)
     delivery_method = Column(
         String(50), nullable=False

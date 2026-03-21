@@ -8,10 +8,11 @@ Tracks:
 - Request throughput
 """
 
-from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
+import logging
 import time
 from functools import wraps
-import logging
+
+from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 logger = logging.getLogger(__name__)
 
@@ -23,51 +24,41 @@ registry = CollectorRegistry()
 # ============================================================================
 
 tier_identification_latency = Histogram(
-    'tier_identification_latency_seconds',
-    'Tier identification latency in seconds',
+    "tier_identification_latency_seconds",
+    "Tier identification latency in seconds",
     buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0),
-    registry=registry
+    registry=registry,
 )
 
 tier_identification_errors = Counter(
-    'tier_identification_errors_total',
-    'Total tier identification errors',
-    ['error_type'],
-    registry=registry
+    "tier_identification_errors_total",
+    "Total tier identification errors",
+    ["error_type"],
+    registry=registry,
 )
 
 tier_identification_cache_hits = Counter(
-    'tier_identification_cache_hits_total',
-    'Total tier identification cache hits',
-    registry=registry
+    "tier_identification_cache_hits_total",
+    "Total tier identification cache hits",
+    registry=registry,
 )
 
 tier_identification_cache_misses = Counter(
-    'tier_identification_cache_misses_total',
-    'Total tier identification cache misses',
-    registry=registry
+    "tier_identification_cache_misses_total",
+    "Total tier identification cache misses",
+    registry=registry,
 )
 
 # ============================================================================
 # CACHE METRICS
 # ============================================================================
 
-cache_hit_rate = Gauge(
-    'cache_hit_rate',
-    'Cache hit rate (0-1)',
-    registry=registry
-)
+cache_hit_rate = Gauge("cache_hit_rate", "Cache hit rate (0-1)", registry=registry)
 
-cache_size_bytes = Gauge(
-    'cache_size_bytes',
-    'Cache size in bytes',
-    registry=registry
-)
+cache_size_bytes = Gauge("cache_size_bytes", "Cache size in bytes", registry=registry)
 
 cache_evictions = Counter(
-    'cache_evictions_total',
-    'Total cache evictions',
-    registry=registry
+    "cache_evictions_total", "Total cache evictions", registry=registry
 )
 
 # ============================================================================
@@ -75,25 +66,25 @@ cache_evictions = Counter(
 # ============================================================================
 
 api_request_duration = Histogram(
-    'api_request_duration_seconds',
-    'API request duration in seconds',
-    ['method', 'endpoint'],
+    "api_request_duration_seconds",
+    "API request duration in seconds",
+    ["method", "endpoint"],
     buckets=(0.01, 0.05, 0.1, 0.5, 1.0, 2.0, 5.0),
-    registry=registry
+    registry=registry,
 )
 
 api_requests_total = Counter(
-    'api_requests_total',
-    'Total API requests',
-    ['method', 'endpoint', 'status'],
-    registry=registry
+    "api_requests_total",
+    "Total API requests",
+    ["method", "endpoint", "status"],
+    registry=registry,
 )
 
 api_errors_total = Counter(
-    'api_errors_total',
-    'Total API errors',
-    ['method', 'endpoint', 'error_type'],
-    registry=registry
+    "api_errors_total",
+    "Total API errors",
+    ["method", "endpoint", "error_type"],
+    registry=registry,
 )
 
 # ============================================================================
@@ -101,17 +92,17 @@ api_errors_total = Counter(
 # ============================================================================
 
 feature_access_allowed = Counter(
-    'feature_access_allowed_total',
-    'Total allowed feature accesses',
-    ['feature', 'tier'],
-    registry=registry
+    "feature_access_allowed_total",
+    "Total allowed feature accesses",
+    ["feature", "tier"],
+    registry=registry,
 )
 
 feature_access_denied = Counter(
-    'feature_access_denied_total',
-    'Total denied feature accesses',
-    ['feature', 'tier'],
-    registry=registry
+    "feature_access_denied_total",
+    "Total denied feature accesses",
+    ["feature", "tier"],
+    registry=registry,
 )
 
 # ============================================================================
@@ -119,10 +110,10 @@ feature_access_denied = Counter(
 # ============================================================================
 
 tier_changes = Counter(
-    'tier_changes_total',
-    'Total tier changes',
-    ['old_tier', 'new_tier'],
-    registry=registry
+    "tier_changes_total",
+    "Total tier changes",
+    ["old_tier", "new_tier"],
+    registry=registry,
 )
 
 # ============================================================================
@@ -130,17 +121,14 @@ tier_changes = Counter(
 # ============================================================================
 
 errors_total = Counter(
-    'errors_total',
-    'Total errors',
-    ['error_type', 'severity'],
-    registry=registry
+    "errors_total", "Total errors", ["error_type", "severity"], registry=registry
 )
 
 unauthorized_access_attempts = Counter(
-    'unauthorized_access_attempts_total',
-    'Total unauthorized access attempts',
-    ['feature', 'tier'],
-    registry=registry
+    "unauthorized_access_attempts_total",
+    "Total unauthorized access attempts",
+    ["feature", "tier"],
+    registry=registry,
 )
 
 # ============================================================================
@@ -148,23 +136,21 @@ unauthorized_access_attempts = Counter(
 # ============================================================================
 
 active_requests = Gauge(
-    'active_requests',
-    'Number of active requests',
-    registry=registry
+    "active_requests", "Number of active requests", registry=registry
 )
 
 request_queue_length = Gauge(
-    'request_queue_length',
-    'Request queue length',
-    registry=registry
+    "request_queue_length", "Request queue length", registry=registry
 )
 
 # ============================================================================
 # HELPER FUNCTIONS
 # ============================================================================
 
+
 def track_tier_identification(func):
     """Decorator to track tier identification metrics."""
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -178,6 +164,7 @@ def track_tier_identification(func):
             tier_identification_latency.observe(duration)
             tier_identification_errors.labels(error_type=type(e).__name__).inc()
             raise
+
     return wrapper
 
 

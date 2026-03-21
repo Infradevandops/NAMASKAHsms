@@ -14,9 +14,11 @@ class QuotaService:
     """Manage user quotas and overage charges."""
 
     @staticmethod
-    def get_monthly_usage(db: Session, user_id: str, month: str = None, tier: str = None) -> dict:
+    def get_monthly_usage(
+        db: Session, user_id: str, month: str = None, tier: str = None
+    ) -> dict:
         """Get quota usage for a month.
-        
+
         `tier` should be the value resolved by TierManager.get_user_tier() so that
         expired subscriptions use the correct (downgraded) limits.
         """

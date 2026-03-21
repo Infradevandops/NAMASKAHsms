@@ -147,13 +147,15 @@ async def request_verification(
 
         # Calculate SMS cost using new pricing system
         # Get pricing for this SMS
-        filters = {"area_code": area_code, "carrier": carrier} if area_code or carrier else None
+        filters = (
+            {"area_code": area_code, "carrier": carrier}
+            if area_code or carrier
+            else None
+        )
         pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
         sms_cost = pricing_info["total_cost"]
 
-        logger.info(
-            f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}"
-        )
+        logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
 
         # Check user has sufficient balance BEFORE calling API
         logger.info(
@@ -161,6 +163,7 @@ async def request_verification(
         )
         if user_tier in ("pro", "custom"):
             from app.services.quota_service import QuotaService
+
             usage = QuotaService.get_monthly_usage(db, user_id, tier=user_tier)
             quota_remaining = usage["remaining"]
             tier_config_data = TierManager(db).get_tier_limits(user_id)
@@ -170,7 +173,10 @@ async def request_verification(
             else:
                 # In overage — need credits for the overage portion
                 from app.services.pricing_calculator import PricingCalculator as _PC
-                overage = QuotaService.calculate_overage(db, user_id, sms_cost, tier=user_tier)
+
+                overage = QuotaService.calculate_overage(
+                    db, user_id, sms_cost, tier=user_tier
+                )
                 if user.credits < overage:
                     logger.warning(
                         f"User {user_id} insufficient credits for overage: ${user.credits:.2f} < ${overage:.2f}"
@@ -263,12 +269,14 @@ async def request_verification(
                 status="pending",
                 idempotency_key=final_idempotency_key,
                 requested_area_code=area_code,  # Track requested filter
-                requested_carrier=carrier,      # Track requested carrier
+                requested_carrier=carrier,  # Track requested carrier
                 operator=carrier,  # Legacy field — store requested carrier
                 assigned_area_code=textverified_result.get("assigned_area_code"),
                 assigned_carrier=carrier,  # TV doesn't return carrier; store preference
                 fallback_applied=textverified_result.get("fallback_applied", False),
-                same_state_fallback=textverified_result.get("same_state_fallback", True),
+                same_state_fallback=textverified_result.get(
+                    "same_state_fallback", True
+                ),
                 # v4.4.1 retry tracking
                 retry_attempts=textverified_result.get("retry_attempts", 0),
                 area_code_matched=textverified_result.get("area_code_matched", True),
@@ -284,9 +292,10 @@ async def request_verification(
 
             # Step 2.3: Process automatic refunds (v4.4.1 Phase 5)
             from app.services.refund_service import RefundService
+
             refund_service = RefundService()
             refund_result = await refund_service.process_refund(verification, user, db)
-            
+
             if refund_result["refund_issued"]:
                 logger.info(
                     f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
@@ -301,12 +310,17 @@ async def request_verification(
                     verification_id=str(verification.id),
                     user_id=user_id,
                     requested_carrier=carrier,
-                    sent_to_textverified=carrier.lower().replace(" ", "_").replace("&", ""),
+                    sent_to_textverified=carrier.lower()
+                    .replace(" ", "_")
+                    .replace("&", ""),
                     textverified_response=textverified_result.get("assigned_carrier"),
                     assigned_phone=textverified_result["phone_number"],
                     assigned_area_code=textverified_result.get("assigned_area_code"),
                     outcome="accepted",
-                    exact_match=(textverified_result.get("assigned_carrier", "").lower() == carrier.lower()),
+                    exact_match=(
+                        textverified_result.get("assigned_carrier", "").lower()
+                        == carrier.lower()
+                    ),
                 )
                 db.add(analytics)
                 logger.info(
@@ -385,6 +399,7 @@ async def request_verification(
 
         # Record usage for quota tracking
         from app.services.quota_service import QuotaService
+
         QuotaService.add_quota_usage(db, user_id, actual_cost)
 
         # Low balance warning

@@ -30,7 +30,7 @@ async def get_current_tier(
         tier_manager = TierManager(db)
         tier = tier_manager.get_user_tier(user_id)
         tier_config = TierConfig.get_tier_config(tier, db)
-        
+
         # Log tier access
         log_tier_access(user_id, tier, "tier_info", True)
 
@@ -111,6 +111,7 @@ async def upgrade_tier(
 
         # Paid tiers — initialize Paystack transaction
         from app.services.payment_service import PaymentService
+
         tier_config = TierConfig.get_tier_config(target_tier, db)
         monthly_fee = tier_config.get("monthly_fee_usd", 0)
 

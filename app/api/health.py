@@ -19,7 +19,7 @@ async def check_textverified_health(
     db: Session = Depends(get_db),
 ):
     """Check TextVerified API health status.
-    
+
     Returns health metrics including:
     - API connectivity status
     - Response time (ms)
@@ -28,9 +28,9 @@ async def check_textverified_health(
     """
     monitor = get_health_monitor()
     health_status = await monitor.check_health()
-    
+
     logger.info(f"Health check requested by user {user_id}: {health_status['status']}")
-    
+
     return {
         "success": True,
         "service": "textverified",
@@ -44,7 +44,7 @@ async def get_textverified_metrics(
     db: Session = Depends(get_db),
 ):
     """Get TextVerified API metrics.
-    
+
     Returns aggregated metrics:
     - Overall status
     - Success rate
@@ -52,9 +52,9 @@ async def get_textverified_metrics(
     """
     monitor = get_health_monitor()
     metrics = monitor.get_metrics()
-    
+
     logger.info(f"Metrics requested by user {user_id}: {metrics['status']}")
-    
+
     return {
         "success": True,
         "service": "textverified",
@@ -65,7 +65,7 @@ async def get_textverified_metrics(
 @router.get("/app")
 async def check_app_health(db: Session = Depends(get_db)):
     """Check application health status.
-    
+
     Returns:
     - Database connectivity
     - TextVerified API status

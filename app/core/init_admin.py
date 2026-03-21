@@ -13,6 +13,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 def init_admin_user():
     """Create or update admin user."""
     from app.core.config import get_settings
+
     settings = get_settings()
 
     ADMIN_EMAIL = settings.admin_email or "admin@namaskah.app"

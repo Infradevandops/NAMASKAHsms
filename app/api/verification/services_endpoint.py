@@ -20,7 +20,7 @@ _tv = TextVerifiedService()
 @router.get("/{country}/services")
 async def get_services(country: str):
     """Get services - MUST return live data from TextVerified API.
-    
+
     NO FALLBACKS. If API fails, return error.
     """
     settings = get_settings()
@@ -39,14 +39,22 @@ async def get_services(country: str):
             }
 
         logger.info(f"Successfully fetched {len(raw)} services from TextVerified API")
-        
+
         return {
             "services": [
                 {
                     "id": s["id"],
                     "name": s["name"],
-                    "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
-                    "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                    "price": (
+                        round(s["price"] * settings.price_markup, 2)
+                        if s.get("price")
+                        else None
+                    ),
+                    "cost": (
+                        round(s["price"] * settings.price_markup, 2)
+                        if s.get("price")
+                        else None
+                    ),
                 }
                 for s in raw
             ],
@@ -102,7 +110,9 @@ async def get_services(country: str):
             "error": str(e),
         }
     except Exception as e:
-        logger.error(f"Unexpected error fetching services for {country}: {str(e)}", exc_info=True)
+        logger.error(
+            f"Unexpected error fetching services for {country}: {str(e)}", exc_info=True
+        )
         return {
             "services": [],
             "total": 0,
@@ -114,7 +124,7 @@ async def get_services(country: str):
 @router.get("/{country}/services/batch-pricing")
 async def get_services_batch_pricing(country: str):
     """Return services with accurate pricing from 24h cache. Warms cache if cold.
-    
+
     NO FALLBACKS. If API fails, return error.
     """
     settings = get_settings()
@@ -128,8 +138,16 @@ async def get_services_batch_pricing(country: str):
                     {
                         "id": s["id"],
                         "name": s["name"],
-                        "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
-                        "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                        "price": (
+                            round(s["price"] * settings.price_markup, 2)
+                            if s.get("price")
+                            else None
+                        ),
+                        "cost": (
+                            round(s["price"] * settings.price_markup, 2)
+                            if s.get("price")
+                            else None
+                        ),
                     }
                     for s in cached
                 ],
@@ -154,8 +172,16 @@ async def get_services_batch_pricing(country: str):
                 {
                     "id": s["id"],
                     "name": s["name"],
-                    "price": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
-                    "cost": round(s["price"] * settings.price_markup, 2) if s.get("price") else None,
+                    "price": (
+                        round(s["price"] * settings.price_markup, 2)
+                        if s.get("price")
+                        else None
+                    ),
+                    "cost": (
+                        round(s["price"] * settings.price_markup, 2)
+                        if s.get("price")
+                        else None
+                    ),
                 }
                 for s in raw
             ],

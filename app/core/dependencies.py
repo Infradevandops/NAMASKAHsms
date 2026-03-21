@@ -156,31 +156,32 @@ require_custom = require_tier("custom")
 
 def require_feature(feature: str):
     """Create a dependency that requires a specific feature.
-    
+
     This decorator checks if the user's tier has access to the specified feature.
     Features include: api_access, area_code_selection, isp_filtering, webhooks, etc.
-    
+
     Args:
         feature: Feature name to check access for
-        
+
     Returns:
         Dependency function that validates feature access
-        
+
     Raises:
         HTTPException 403 if user doesn't have access to feature
     """
+
     def feature_dependency(
         request: Request,
         user_id: str = Depends(get_current_user_id),
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
     ) -> str:
         """Validate user has access to feature and return user_id if authorized."""
         try:
             # Get tier_manager from request state (set by middleware)
-            tier_manager = getattr(request.state, 'tier_manager', None)
+            tier_manager = getattr(request.state, "tier_manager", None)
             if not tier_manager:
                 tier_manager = TierManager(db)
-            
+
             # Check feature access
             if not tier_manager.check_feature_access(user_id, feature):
                 # Log unauthorized access attempt
@@ -190,24 +191,24 @@ def require_feature(feature: str):
                 )
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Feature '{feature}' requires higher tier"
+                    detail=f"Feature '{feature}' requires higher tier",
                 )
-            
+
             # Log authorized access
             logger.debug(
                 f"TIER_ACCESS | status=ALLOWED | user={user_id} | feature={feature}"
             )
             return user_id
-            
+
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Feature access check failed: {e}")
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to verify feature access"
+                detail="Failed to verify feature access",
             )
-    
+
     return feature_dependency
 
 

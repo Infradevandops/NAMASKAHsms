@@ -2,7 +2,7 @@
 
 import time
 from datetime import datetime, timezone
-from typing import Dict, Any
+from typing import Any, Dict
 
 from app.core.logging import get_logger
 from app.services.textverified_service import TextVerifiedService
@@ -23,7 +23,7 @@ class TextVerifiedHealthMonitor:
 
     async def check_health(self) -> Dict[str, Any]:
         """Check TextVerified API health status.
-        
+
         Returns:
             {
                 "status": "healthy" | "degraded" | "unhealthy",
@@ -37,7 +37,7 @@ class TextVerifiedHealthMonitor:
             }
         """
         start_time = time.time()
-        
+
         try:
             if not self.tv_service.enabled:
                 return {
@@ -49,11 +49,11 @@ class TextVerifiedHealthMonitor:
 
             # Test API connectivity with balance check
             balance_result = await self.tv_service.get_balance()
-            
+
             response_time_ms = (time.time() - start_time) * 1000
             self.response_times.append(response_time_ms)
             self.success_count += 1
-            
+
             # Keep only last 100 response times
             if len(self.response_times) > 100:
                 self.response_times.pop(0)
@@ -65,7 +65,11 @@ class TextVerifiedHealthMonitor:
                 status = "healthy"
 
             avg_response_time = sum(self.response_times) / len(self.response_times)
-            p95_response_time = sorted(self.response_times)[int(len(self.response_times) * 0.95)] if self.response_times else 0
+            p95_response_time = (
+                sorted(self.response_times)[int(len(self.response_times) * 0.95)]
+                if self.response_times
+                else 0
+            )
 
             self.last_check = datetime.now(timezone.utc)
             self.last_status = status
@@ -91,7 +95,7 @@ class TextVerifiedHealthMonitor:
         except Exception as e:
             response_time_ms = (time.time() - start_time) * 1000
             self.error_count += 1
-            
+
             logger.error(f"TextVerified health check failed: {str(e)}", exc_info=True)
 
             return {
@@ -115,8 +119,10 @@ class TextVerifiedHealthMonitor:
             }
 
         avg_response_time = sum(self.response_times) / len(self.response_times)
-        p95_response_time = sorted(self.response_times)[int(len(self.response_times) * 0.95)]
-        
+        p95_response_time = sorted(self.response_times)[
+            int(len(self.response_times) * 0.95)
+        ]
+
         # Determine overall status
         if self.error_count > self.success_count:
             status = "unhealthy"
@@ -130,10 +136,12 @@ class TextVerifiedHealthMonitor:
             "success_count": self.success_count,
             "error_count": self.error_count,
             "success_rate": round(
-                (self.success_count / (self.success_count + self.error_count) * 100)
-                if (self.success_count + self.error_count) > 0
-                else 0,
-                2
+                (
+                    (self.success_count / (self.success_count + self.error_count) * 100)
+                    if (self.success_count + self.error_count) > 0
+                    else 0
+                ),
+                2,
             ),
             "avg_response_time_ms": round(avg_response_time, 2),
             "p95_response_time_ms": round(p95_response_time, 2),

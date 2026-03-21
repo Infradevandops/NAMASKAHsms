@@ -28,7 +28,9 @@ class Verification(BaseModel):
     requested_carrier = Column(String)  # User's preference (e.g., "verizon")
     requested_area_code = Column(String)  # User's preference (e.g., "415")
     assigned_area_code = Column(String)  # Actual area code from TextVerified
-    assigned_carrier = Column(String)  # Generic type from TextVerified (Mobile/Landline/VOIP)
+    assigned_carrier = Column(
+        String
+    )  # Generic type from TextVerified (Mobile/Landline/VOIP)
 
     # Retry tracking (v4.4.1)
     retry_attempts = Column(Integer, nullable=False, default=0)
@@ -65,12 +67,12 @@ class Verification(BaseModel):
 
     def __init__(self, **kwargs):
         # Set defaults for retry tracking fields
-        kwargs.setdefault('retry_attempts', 0)
-        kwargs.setdefault('area_code_matched', True)
-        kwargs.setdefault('carrier_matched', True)
-        kwargs.setdefault('carrier_surcharge', 0.0)
-        kwargs.setdefault('area_code_surcharge', 0.0)
-        kwargs.setdefault('voip_rejected', False)
+        kwargs.setdefault("retry_attempts", 0)
+        kwargs.setdefault("area_code_matched", True)
+        kwargs.setdefault("carrier_matched", True)
+        kwargs.setdefault("carrier_surcharge", 0.0)
+        kwargs.setdefault("area_code_surcharge", 0.0)
+        kwargs.setdefault("voip_rejected", False)
         super().__init__(**kwargs)
 
 

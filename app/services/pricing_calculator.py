@@ -22,14 +22,20 @@ class PricingCalculator:
 
     # Area code premiums (PAYG tier only)
     AREA_CODE_PREMIUMS = {
-        "212": 0.50, "917": 0.50, "310": 0.50, "415": 0.50,
-        "312": 0.40, "404": 0.40, "617": 0.40, "702": 0.30,
+        "212": 0.50,
+        "917": 0.50,
+        "310": 0.50,
+        "415": 0.50,
+        "312": 0.40,
+        "404": 0.40,
+        "617": 0.40,
+        "702": 0.30,
     }
 
     @staticmethod
     def calculate_sms_cost(db: Session, user_id: str, filters: dict = None) -> dict:
         """Calculate total cost for SMS verification.
-        
+
         Raises ValueError if price is None (validation for Task 4.2).
         """
         if not filters:
@@ -40,7 +46,7 @@ class PricingCalculator:
         tier = TierConfig.get_tier_config(tier_name, db)
 
         base_cost = tier.get("base_sms_cost", 2.50)
-        
+
         # VALIDATION: Block purchase without price (Task 4.2)
         if base_cost is None:
             raise ValueError(
@@ -51,17 +57,21 @@ class PricingCalculator:
         # Track individual surcharges (v4.4.1)
         carrier_premium = 0.0
         area_code_premium = 0.0
-        
+
         if tier_name == "payg":
             # Area code premiums
             ac = filters.get("area_code")
             if ac:
-                area_code_premium = PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
-            
+                area_code_premium = PricingCalculator.AREA_CODE_PREMIUMS.get(
+                    str(ac), 0.25
+                )
+
             # Carrier premiums
             carrier = filters.get("carrier")
             if carrier:
-                carrier_premium = PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
+                carrier_premium = PricingCalculator.CARRIER_PREMIUMS.get(
+                    str(carrier).lower(), 0.50
+                )
 
         filter_charges = carrier_premium + area_code_premium
 
@@ -72,7 +82,7 @@ class PricingCalculator:
             db, user_id, base_cost + filter_charges, tier=tier_name
         )
         total_cost = base_cost + filter_charges + overage_charge
-        
+
         # VALIDATION: Block purchase without total price (Task 4.2)
         if total_cost is None or total_cost <= 0:
             raise ValueError(
@@ -105,18 +115,22 @@ class PricingCalculator:
             ac = filters.get("area_code")
             if ac:
                 charges += PricingCalculator.AREA_CODE_PREMIUMS.get(str(ac), 0.25)
-            
+
             carrier = filters.get("carrier")
             if carrier:
-                charges += PricingCalculator.CARRIER_PREMIUMS.get(str(carrier).lower(), 0.50)
+                charges += PricingCalculator.CARRIER_PREMIUMS.get(
+                    str(carrier).lower(), 0.50
+                )
             return charges
 
         return 0.0
 
     @staticmethod
-    def validate_balance(db: Session, user_id: str, cost: float, tier: str = None) -> bool:
+    def validate_balance(
+        db: Session, user_id: str, cost: float, tier: str = None
+    ) -> bool:
         """Check if user has sufficient balance.
-        
+
         For pro/custom: passes if remaining quota covers the base cost.
         Credits are only required for the overage portion.
         `tier` should be the value from TierManager.get_user_tier() when available.
@@ -135,7 +149,9 @@ class PricingCalculator:
             if quota_remaining >= base_cost:
                 return True  # within quota — subscription covers it
             # In overage: check credits cover the overage amount
-            overage = QuotaService.calculate_overage(db, user_id, cost, tier=resolved_tier)
+            overage = QuotaService.calculate_overage(
+                db, user_id, cost, tier=resolved_tier
+            )
             return user.credits >= overage
 
         return user.credits >= cost

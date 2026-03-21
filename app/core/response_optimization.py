@@ -8,11 +8,12 @@ Implements:
 - Response caching
 """
 
-import logging
-from typing import Any, Dict, List, Optional
-from functools import wraps
 import gzip
 import json
+import logging
+from functools import wraps
+from typing import Any, Dict, List, Optional
+
 from fastapi import Request, Response
 from sqlalchemy.orm import Session
 
@@ -25,17 +26,18 @@ class QueryOptimizer:
     @staticmethod
     def optimize_tier_query(db: Session, user_id: str):
         """Optimize tier query with eager loading.
-        
+
         Args:
             db: Database session
             user_id: User ID
-            
+
         Returns:
             Optimized query result
         """
         try:
-            from app.models.user import User
             from sqlalchemy.orm import joinedload
+
+            from app.models.user import User
 
             # Use eager loading to avoid N+1 queries
             user = (
@@ -57,11 +59,11 @@ class QueryOptimizer:
     @staticmethod
     def optimize_feature_query(db: Session, tier: str):
         """Optimize feature query.
-        
+
         Args:
             db: Database session
             tier: Tier name
-            
+
         Returns:
             Optimized query result
         """
@@ -70,9 +72,7 @@ class QueryOptimizer:
 
             # Use select to only get needed columns
             tier_obj = (
-                db.query(SubscriptionTier)
-                .filter(SubscriptionTier.name == tier)
-                .first()
+                db.query(SubscriptionTier).filter(SubscriptionTier.name == tier).first()
             )
 
             return tier_obj
@@ -84,11 +84,11 @@ class QueryOptimizer:
     @staticmethod
     def batch_query(db: Session, user_ids: List[str]):
         """Batch query for multiple users.
-        
+
         Args:
             db: Database session
             user_ids: List of user IDs
-            
+
         Returns:
             Batch query results
         """
@@ -111,10 +111,10 @@ class ResponseOptimizer:
     @staticmethod
     def compress_response(data: Dict[str, Any]) -> bytes:
         """Compress response with gzip.
-        
+
         Args:
             data: Response data
-            
+
         Returns:
             Compressed data
         """
@@ -139,11 +139,11 @@ class ResponseOptimizer:
     @staticmethod
     def select_fields(data: Dict[str, Any], fields: List[str]) -> Dict[str, Any]:
         """Select only specified fields from response.
-        
+
         Args:
             data: Response data
             fields: Fields to include
-            
+
         Returns:
             Filtered response
         """
@@ -159,12 +159,12 @@ class ResponseOptimizer:
         page_size: int = 20,
     ) -> Dict[str, Any]:
         """Paginate response.
-        
+
         Args:
             data: Response data
             page: Page number (1-indexed)
             page_size: Items per page
-            
+
         Returns:
             Paginated response
         """
@@ -185,11 +185,12 @@ class ResponseOptimizer:
 
 def optimize_response(compress: bool = True, fields: Optional[List[str]] = None):
     """Decorator to optimize API responses.
-    
+
     Args:
         compress: Whether to compress response
         fields: Fields to include in response
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, request: Request = None, **kwargs):
@@ -201,7 +202,11 @@ def optimize_response(compress: bool = True, fields: Optional[List[str]] = None)
                 result = ResponseOptimizer.select_fields(result, fields)
 
             # Compress if requested
-            if compress and request and "gzip" in request.headers.get("accept-encoding", ""):
+            if (
+                compress
+                and request
+                and "gzip" in request.headers.get("accept-encoding", "")
+            ):
                 compressed = ResponseOptimizer.compress_response(result)
                 return Response(
                     content=compressed,
@@ -221,7 +226,7 @@ class ResponseCache:
 
     def __init__(self, redis_client=None, ttl: int = 300):
         """Initialize response cache.
-        
+
         Args:
             redis_client: Redis client
             ttl: Cache TTL in seconds
@@ -231,10 +236,10 @@ class ResponseCache:
 
     def get(self, key: str) -> Optional[Dict[str, Any]]:
         """Get cached response.
-        
+
         Args:
             key: Cache key
-            
+
         Returns:
             Cached response or None
         """
@@ -254,11 +259,11 @@ class ResponseCache:
 
     def set(self, key: str, value: Dict[str, Any]) -> bool:
         """Set cached response.
-        
+
         Args:
             key: Cache key
             value: Response value
-            
+
         Returns:
             True if successful
         """
@@ -280,10 +285,10 @@ class ResponseCache:
 
     def invalidate(self, pattern: str) -> int:
         """Invalidate cached responses.
-        
+
         Args:
             pattern: Pattern to match
-            
+
         Returns:
             Number of keys deleted
         """
@@ -304,11 +309,12 @@ class ResponseCache:
 
 def cache_response(ttl: int = 300, key_prefix: str = ""):
     """Decorator to cache API responses.
-    
+
     Args:
         ttl: Cache TTL in seconds
         key_prefix: Prefix for cache key
     """
+
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, request: Request = None, **kwargs):

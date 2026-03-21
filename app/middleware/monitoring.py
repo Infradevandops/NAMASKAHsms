@@ -7,14 +7,16 @@ Tracks:
 - Tier identification metrics
 """
 
-import time
 import logging
+import time
+
 from fastapi import Request
+
 from app.core.metrics import (
-    track_api_request,
     set_active_requests,
-    track_tier_identification,
+    track_api_request,
     track_cache_hit,
+    track_tier_identification,
 )
 
 logger = logging.getLogger(__name__)
@@ -50,9 +52,7 @@ async def monitoring_middleware(request: Request, call_next):
 
         # Log slow requests
         if duration > 1.0:
-            logger.warning(
-                f"Slow request: {method} {endpoint} took {duration:.2f}s"
-            )
+            logger.warning(f"Slow request: {method} {endpoint} took {duration:.2f}s")
 
         return response
 

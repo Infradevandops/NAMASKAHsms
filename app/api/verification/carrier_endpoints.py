@@ -27,7 +27,7 @@ async def get_available_carriers(
     """Get list of available carriers/ISPs with real success rates from analytics.
 
     Extracts carriers from past verifications and CarrierAnalytics data.
-    
+
     IMPORTANT: Carrier selection is a PREFERENCE, not a guarantee.
     TextVerified will try to fulfill the preference but may return a different carrier.
     """
@@ -35,15 +35,18 @@ async def get_available_carriers(
 
     try:
         # Query real success rates from CarrierAnalytics
-        analytics_query = db.query(
-            CarrierAnalytics.requested_carrier,
-            func.count(CarrierAnalytics.id).label("total"),
-            func.sum(case((CarrierAnalytics.exact_match == True, 1), else_=0)).label("matches"),
-        ).filter(
-            CarrierAnalytics.outcome == "accepted"
-        ).group_by(
-            CarrierAnalytics.requested_carrier
-        ).all()
+        analytics_query = (
+            db.query(
+                CarrierAnalytics.requested_carrier,
+                func.count(CarrierAnalytics.id).label("total"),
+                func.sum(
+                    case((CarrierAnalytics.exact_match == True, 1), else_=0)
+                ).label("matches"),
+            )
+            .filter(CarrierAnalytics.outcome == "accepted")
+            .group_by(CarrierAnalytics.requested_carrier)
+            .all()
+        )
 
         # Build carrier list with real success rates
         carriers = []

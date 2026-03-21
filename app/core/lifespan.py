@@ -51,6 +51,7 @@ async def lifespan(app):
         # Invalidate stale service cache (forces fresh fetch with dedup + real prices)
         try:
             from app.core.unified_cache import cache as _cache
+
             await _cache.delete("tv:services_list")
             await _cache.delete("tv:services_names")
             startup_logger.info("Cleared stale service cache")
