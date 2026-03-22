@@ -35,7 +35,7 @@ jobs:
           cache: 'pip'
 
       - name: Install linting tools
-        run: pip install flake8 black isort
+        run: pip install flake8 black==24.3.0 isort==5.13.2
 
       - name: Critical syntax check
         run: flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
