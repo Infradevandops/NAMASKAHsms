@@ -21,8 +21,9 @@ See full plan: [`docs/tasks/CI_FIX_PLAN.md`](./docs/tasks/CI_FIX_PLAN.md)
 |-----|--------|-------|
 | Code Quality | ✅ Green | Done |
 | Secrets Detection (Gitleaks) | ❌ | Fix 1 |
-| Security Scan (Bandit/Safety/Semgrep) | ❌ | Fix 2 |
+| Security Scan (Bandit + Safety + Semgrep) | ❌ | Fix 2 |
 | Tests | ❌ | Fixes 3–7 |
+| Deployment Readiness | ⏳ Skipped | Auto-unblocks when above 3 pass |
 
 - [ ] **Fix 3** — Remove `--maxfail=10`, add 6 `--ignore` flags in `ci.yml`
 - [ ] **Fix 4** — Add ~30 missing model imports to `conftest.py` (fixes ~76 notification table errors)
@@ -31,6 +32,9 @@ See full plan: [`docs/tasks/CI_FIX_PLAN.md`](./docs/tasks/CI_FIX_PLAN.md)
 - [ ] **Fix 7** — Fix code-level bugs: `WhiteLabelEnhancedService` import, `auto_topup` patch target, `access_token` KeyError, `get_current_user_id` import
 - [ ] **Fix 1** — Run gitleaks locally, find exact trigger, update `tools/gitleaks.toml`
 - [ ] **Fix 2** — Pin `bandit==1.7.8` in CI, verify `safety` + `semgrep` pass
+  - Note: all three tools run in the same job — any one of them can be the failure
+- [ ] **Raise `--cov-fail-under`** — currently set to 36% in `ci.yml`; bump to 60%+ after test fixes land and passing count jumps from ~834 → ~1700
+- [ ] **Delete or archive `tests/unit/test_payment_race_condition.py`** — causes a segfault that kills the entire pytest process; currently only ignored via `--ignore` flag
 
 ---
 
@@ -42,7 +46,8 @@ These fixes are in code and tested but need a production deploy to confirm end-t
 
 - [ ] **Cancel subscription** — Verify cancelled users retain pro/custom access until `tier_expires_at` and are not immediately downgraded. `subscription_renews_at` should be `NULL` in DB after cancelling.
 
-- [ ] **CSP inline handlers** — Verify no CSP errors in browser console on any page using `onclick=` handlers after 
+- [ ] **CSP inline handlers** — Verify no CSP errors in browser console on any page using `onclick=` handlers after deploy (nonce applied to all templates)
+
 ---
 
 ## Immediate Actions
