@@ -9,6 +9,28 @@
 ✅ **Database migrated** — Monetary columns converted to `Numeric(10,4)`  
 ✅ **Codebase cleaned** — 54 dead files removed, stub services deleted  
 ✅ **v4.5.0 Tier System Fixed** — All 13 billing/access/runtime issues resolved, 57 tests passing  
+✅ **CI Fix Plan created** — Full plan documented in `docs/tasks/CI_FIX_PLAN.md` (8 fixes, ordered by impact)  
+
+---
+
+## CI Fixes (In Progress)
+
+See full plan: [`docs/tasks/CI_FIX_PLAN.md`](./docs/tasks/CI_FIX_PLAN.md)
+
+| Job | Status | Fix # |
+|-----|--------|-------|
+| Code Quality | ✅ Green | Done |
+| Secrets Detection (Gitleaks) | ❌ | Fix 1 |
+| Security Scan (Bandit/Safety/Semgrep) | ❌ | Fix 2 |
+| Tests | ❌ | Fixes 3–7 |
+
+- [ ] **Fix 3** — Remove `--maxfail=10`, add 6 `--ignore` flags in `ci.yml`
+- [ ] **Fix 4** — Add ~30 missing model imports to `conftest.py` (fixes ~76 notification table errors)
+- [ ] **Fix 5** — Add 12 missing fixtures to `conftest.py` (`db_session`, `user_token`, `authenticated_regular_client`, `payg_user`, `redis_client`, etc.) — fixes ~500 errors
+- [ ] **Fix 6** — Fix UNIQUE email collisions in tests (UUID emails or function-scoped engine)
+- [ ] **Fix 7** — Fix code-level bugs: `WhiteLabelEnhancedService` import, `auto_topup` patch target, `access_token` KeyError, `get_current_user_id` import
+- [ ] **Fix 1** — Run gitleaks locally, find exact trigger, update `tools/gitleaks.toml`
+- [ ] **Fix 2** — Pin `bandit==1.7.8` in CI, verify `safety` + `semgrep` pass
 
 ---
 
@@ -20,8 +42,7 @@ These fixes are in code and tested but need a production deploy to confirm end-t
 
 - [ ] **Cancel subscription** — Verify cancelled users retain pro/custom access until `tier_expires_at` and are not immediately downgraded. `subscription_renews_at` should be `NULL` in DB after cancelling.
 
-- [ ] **CSP inline handlers** — Verify no CSP errors in browser console on any page using `onclick=` handlers after deploy.
-
+- [ ] **CSP inline handlers** — Verify no CSP errors in browser console on any page using `onclick=` handlers after 
 ---
 
 ## Immediate Actions
