@@ -343,7 +343,7 @@ async def request_verification(
                     logger.warning(f"TV balance sync before deduct failed: {_sync_err}")
 
             old_balance = user.credits
-            user.credits -= actual_cost
+            user.credits -= type(user.credits)(actual_cost)
             new_balance = user.credits
             logger.info(
                 f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}"
