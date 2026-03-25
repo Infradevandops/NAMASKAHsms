@@ -14,7 +14,7 @@ from app.models.user import User
 def test_user(db: Session):
     """Create a test user."""
     user = User(
-        id="test-user-prefs-001",
+        id=str(uuid.uuid4()),
         email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed_password",
     )
@@ -26,37 +26,27 @@ def test_user(db: Session):
 @pytest.fixture
 def test_defaults(db: Session):
     """Create default notification preferences."""
-    defaults = [
-        NotificationPreferenceDefaults(
-            notification_type="verification_initiated",
-            enabled=True,
-            delivery_methods="toast,email",
-            frequency="instant",
-            description="When a verification starts",
-        ),
-        NotificationPreferenceDefaults(
-            notification_type="sms_received",
-            enabled=True,
-            delivery_methods="toast",
-            frequency="instant",
-            description="When SMS code is received",
-        ),
-        NotificationPreferenceDefaults(
-            notification_type="credit_deducted",
-            enabled=True,
-            delivery_methods="toast,email",
-            frequency="instant",
-            description="When credits are deducted",
-        ),
-        NotificationPreferenceDefaults(
-            notification_type="balance_low",
-            enabled=True,
-            delivery_methods="email",
-            frequency="daily",
-            description="When balance is low",
-        ),
+    defaults_data = [
+        ("verification_initiated", True, "toast,email", "instant", "When a verification starts"),
+        ("sms_received", True, "toast", "instant", "When SMS code is received"),
+        ("credit_deducted", True, "toast,email", "instant", "When credits are deducted"),
+        ("balance_low", True, "email", "daily", "When balance is low"),
     ]
-    db.add_all(defaults)
+    defaults = []
+    for notification_type, enabled, delivery_methods, frequency, description in defaults_data:
+        existing = db.query(NotificationPreferenceDefaults).filter(
+            NotificationPreferenceDefaults.notification_type == notification_type
+        ).first()
+        if not existing:
+            existing = NotificationPreferenceDefaults(
+                notification_type=notification_type,
+                enabled=enabled,
+                delivery_methods=delivery_methods,
+                frequency=frequency,
+                description=description,
+            )
+            db.add(existing)
+        defaults.append(existing)
     db.commit()
     return defaults
 
@@ -305,7 +295,7 @@ class TestNotificationPreferences:
         """Test that users can only see their own preferences."""
         # Create another user
         other_user = User(
-            id="other-user-prefs-002",
+            id=str(uuid.uuid4()),
             email=f"{uuid.uuid4().hex[:8]}@example.com",
             password_hash="hashed_password",
         )

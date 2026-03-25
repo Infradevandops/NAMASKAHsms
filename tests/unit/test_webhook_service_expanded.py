@@ -2,7 +2,7 @@ import uuid
 """Unit tests for webhook service"""
 
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from app.services.webhook_service import WebhookService
 
 
@@ -51,8 +51,10 @@ class TestWebhookService:
 
     async def test_trigger_webhook(self, webhook_service):
         """Test triggering a webhook"""
-        with patch("aiohttp.ClientSession.post") as mock_post:
-            mock_post.return_value.__aenter__.return_value.status = 200
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
+            mock_response = MagicMock()
+            mock_response.status_code = 200
+            mock_post.return_value = mock_response
 
             result = await webhook_service.trigger_webhook(
                 url="https://example.com/webhook",
@@ -63,7 +65,7 @@ class TestWebhookService:
 
     async def test_trigger_webhook_timeout(self, webhook_service):
         """Test webhook timeout"""
-        with patch("aiohttp.ClientSession.post") as mock_post:
+        with patch("httpx.AsyncClient.post", new_callable=AsyncMock) as mock_post:
             mock_post.side_effect = TimeoutError()
 
             result = await webhook_service.trigger_webhook(

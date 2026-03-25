@@ -184,10 +184,17 @@ class TestAuthService:
         assert user.email_verified is True
         assert user.verification_token is None
 
-    def test_get_user_api_keys(self, auth_service, regular_user):
+    def test_get_user_api_keys(self, auth_service, db_session):
+        import uuid
+        user = User(
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
+            password_hash="$2b$12$test_hash",
+        )
+        db_session.add(user)
+        db_session.commit()
 
-        auth_service.create_api_key(regular_user.id, "Key 1")
-        auth_service.create_api_key(regular_user.id, "Key 2")
+        auth_service.create_api_key(user.id, "Key 1")
+        auth_service.create_api_key(user.id, "Key 2")
 
-        keys = auth_service.get_user_api_keys(regular_user.id)
+        keys = auth_service.get_user_api_keys(user.id)
         assert len(keys) == 2
