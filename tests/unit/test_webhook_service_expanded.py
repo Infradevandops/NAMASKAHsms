@@ -1,3 +1,4 @@
+import uuid
 """Unit tests for webhook service"""
 
 import pytest

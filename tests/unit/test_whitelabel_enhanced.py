@@ -6,6 +6,7 @@ from app.models.whitelabel_enhanced import (
     WhiteLabelDomain,
     WhiteLabelTheme,
 )
+from app.services.whitelabel_enhanced import WhiteLabelEnhancedService
 
 
 @pytest.fixture

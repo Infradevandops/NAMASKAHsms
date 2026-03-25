@@ -1,3 +1,4 @@
+import uuid
 """Unit tests for Reseller Service."""
 
 import pytest
@@ -59,7 +60,7 @@ class TestResellerService:
     def reseller_user(self, db_session):
         """Create a parent user who will be the reseller."""
         user = User(
-            email="reseller@example.com",
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
             subscription_tier="pro",
             credits=1000.0,
             password_hash="hashed_pw",
@@ -118,7 +119,7 @@ class TestResellerService:
         result = await reseller_service.create_sub_account(
             reseller_id,
             name="Sub Client A",
-            email="client_a@example.com",
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
             initial_credits=50.0,
         )
 

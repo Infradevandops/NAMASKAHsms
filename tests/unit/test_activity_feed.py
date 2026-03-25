@@ -1,3 +1,4 @@
+import uuid
 """Tests for activity feed system."""
 
 from datetime import datetime, timedelta, timezone
@@ -12,8 +13,8 @@ from app.services.activity_service import ActivityService
 def test_user(db: Session):
     """Create test user."""
     user = User(
-        id="test-user-123",
-        email="test@example.com",
+        id=str(uuid.uuid4()),
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed_password",
         credits=100.0,
     )

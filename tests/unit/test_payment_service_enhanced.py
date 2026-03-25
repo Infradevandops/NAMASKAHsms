@@ -1,3 +1,4 @@
+import uuid
 """
 Comprehensive Payment Service Tests
 Coverage: Race conditions, idempotency, webhooks, security
@@ -22,7 +23,7 @@ class TestPaymentServiceCore:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id="test_user_1", email="test@example.com", credits=10.0)
+        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=10.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -178,7 +179,7 @@ class TestPaymentServiceRaceConditions:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id="race_user", email="race@example.com", credits=0.0)
+        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=0.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -290,7 +291,7 @@ class TestPaymentServiceEdgeCases:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id="edge_user", email="edge@example.com", credits=5.0)
+        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=5.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -298,8 +299,8 @@ class TestPaymentServiceEdgeCases:
     def test_credit_nonexistent_user(self, payment_service, db_session):
         """Test crediting non-existent user raises error"""
         log = PaymentLog(
-            user_id="nonexistent",
-            email="none@example.com",
+            user_id=str(uuid.uuid4()),
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
             reference="ref_none",
             amount_usd=10.0,
             state="processing",
