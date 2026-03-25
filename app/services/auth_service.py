@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
+from app.models.api_key import APIKey
 from app.models.user import User
 
 logger = get_logger(__name__)
@@ -201,3 +202,165 @@ class AuthService:
             self.db.rollback()
             logger.error("Password update failed", extra={"error": str(e)})
             return False
+
+    def register_user(
+        self, email: str, password: str, referral_code: Optional[str] = None
+    ) -> User:
+        """Register a new user. Alias for create_user with referral support."""
+        from app.core.exceptions import ValidationError
+
+        existing = self.db.query(User).filter(User.email == email).first()
+        if existing:
+            raise ValidationError("Email already registered")
+
+        referral_code_generated = str(uuid.uuid4().hex[:8]).upper()
+        referred_by = None
+        free_verifications = 1.0
+
+        if referral_code:
+            referrer = (
+                self.db.query(User)
+                .filter(User.referral_code == referral_code)
+                .first()
+            )
+            if referrer:
+                referred_by = referrer.id
+                free_verifications = 2.0
+
+        user = User(
+            email=email,
+            password_hash=get_password_hash(password),
+            referral_code=referral_code_generated,
+            referred_by=referred_by,
+            free_verifications=free_verifications,
+        )
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def create_api_key(self, user_id: str, name: str):
+        """Create an API key for a user."""
+        raw = f"nsk_{uuid.uuid4().hex}"
+        key_hash = get_password_hash(raw)
+        api_key = APIKey(
+            user_id=user_id,
+            name=name,
+            key_hash=key_hash,
+            key_preview=raw[-4:],
+            is_active=True,
+        )
+        self.db.add(api_key)
+        self.db.commit()
+        self.db.refresh(api_key)
+        api_key.raw_key = raw
+        return api_key
+
+    def verify_api_key(self, raw_key: str) -> Optional[User]:
+        """Verify an API key and return the owning user."""
+        keys = (
+            self.db.query(APIKey)
+            .filter(APIKey.is_active == True)
+            .all()
+        )
+        for key_obj in keys:
+            if verify_password(raw_key, key_obj.key_hash):
+                return self.db.query(User).filter(User.id == key_obj.user_id).first()
+        return None
+
+    def deactivate_api_key(self, key_id: str, user_id: str) -> bool:
+        """Deactivate an API key."""
+        key_obj = (
+            self.db.query(APIKey)
+            .filter(APIKey.id == key_id, APIKey.user_id == user_id)
+            .first()
+        )
+        if not key_obj:
+            return False
+        key_obj.is_active = False
+        self.db.commit()
+        return True
+
+    def get_user_api_keys(self, user_id: str) -> list:
+        """Get all active API keys for a user."""
+        return (
+            self.db.query(APIKey)
+            .filter(APIKey.user_id == user_id, APIKey.is_active == True)
+            .all()
+        )
+
+    def reset_password_request(self, email: str) -> Optional[str]:
+        """Generate a password reset token."""
+        user = self.db.query(User).filter(User.email == email).first()
+        if not user:
+            return None
+        token = uuid.uuid4().hex
+        user.reset_token = token
+        user.reset_token_expires = datetime.now(timezone.utc) + timedelta(hours=1)
+        self.db.commit()
+        return token
+
+    def reset_password(self, token: str, new_password: str) -> bool:
+        """Reset password using a reset token."""
+        user = self.db.query(User).filter(User.reset_token == token).first()
+        if not user:
+            return False
+        if user.reset_token_expires and user.reset_token_expires < datetime.now(
+            timezone.utc
+        ).replace(tzinfo=None):
+            return False
+        user.password_hash = get_password_hash(new_password)
+        user.reset_token = None
+        user.reset_token_expires = None
+        self.db.commit()
+        return True
+
+    def verify_admin_access(self, user_id: str) -> bool:
+        """Check if user has admin access."""
+        user = self.db.query(User).filter(User.id == user_id).first()
+        return bool(user and user.is_admin)
+
+    def create_or_get_google_user(
+        self,
+        google_id: str,
+        email: str,
+        avatar_url: Optional[str] = None,
+    ) -> User:
+        """Create or retrieve a user via Google OAuth."""
+        user = self.db.query(User).filter(User.google_id == google_id).first()
+        if user:
+            return user
+
+        user = self.db.query(User).filter(User.email == email).first()
+        if user:
+            user.google_id = google_id
+            user.email_verified = True
+            self.db.commit()
+            self.db.refresh(user)
+            return user
+
+        user = User(
+            email=email,
+            google_id=google_id,
+            provider="google",
+            email_verified=True,
+            avatar_url=avatar_url,
+        )
+        self.db.add(user)
+        self.db.commit()
+        self.db.refresh(user)
+        return user
+
+    def verify_email(self, token: str) -> bool:
+        """Verify a user's email using their verification token."""
+        user = (
+            self.db.query(User)
+            .filter(User.verification_token == token)
+            .first()
+        )
+        if not user:
+            return False
+        user.email_verified = True
+        user.verification_token = None
+        self.db.commit()
+        return True

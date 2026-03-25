@@ -3,6 +3,7 @@
 # Sample message response from TextVerified
 
 import asyncio
+import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from app.models.user import User
@@ -48,13 +49,12 @@ def mock_settings():
 @pytest.fixture
 def mock_verification(db_session):
     """Create a pending verification."""
-    # Ensure user exists first
-    user = User(email="poll_test@example.com", credits=10.0)
+    user = User(email=f"{uuid.uuid4().hex[:8]}@example.com", credits=10.0)
     db_session.add(user)
     db_session.commit()
 
     ver = Verification(
-        id="ver_123",
+        id=str(uuid.uuid4()),
         user_id=user.id,
         status="pending",
         provider="textverified",
@@ -62,7 +62,7 @@ def mock_verification(db_session):
         country="US",
         service_name="whatsapp",
         cost=1.0,
-        activation_id="tv_123",  # Important for polling
+        activation_id="tv_123",
     )
     db_session.add(ver)
     db_session.commit()

@@ -35,6 +35,7 @@ from app.models.balance_transaction import BalanceTransaction
 from app.models.carrier_analytics import CarrierAnalytics
 from app.models.verification_preset import VerificationPreset
 from app.models.waitlist import Waitlist
+from app.models.reseller import ResellerAccount, SubAccount, SubAccountTransaction, CreditAllocation, BulkOperation
 from app.utils.security import create_access_token
 from main import app
 
@@ -237,7 +238,10 @@ def redis_client():
 
 @pytest.fixture
 def auth_headers():
-    return {"Authorization": "Bearer test-token"}
+    def _make(user_id: str) -> dict:
+        token = create_test_token(user_id)
+        return {"Authorization": f"Bearer {token}"}
+    return _make
 
 
 @pytest.fixture

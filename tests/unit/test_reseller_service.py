@@ -1,13 +1,15 @@
-import uuid
 """Unit tests for Reseller Service."""
 
+import uuid
 import pytest
+from app.models.user import User
 from app.models.reseller import (
     BulkOperation,
     ResellerAccount,
     SubAccount,
     SubAccountTransaction,
 )
+from app.services.reseller_service import ResellerService, get_reseller_service
 
 
 @pytest.fixture
@@ -157,7 +159,7 @@ class TestResellerService:
         reseller_id = res["reseller_id"]
 
         sub_res = await reseller_service.create_sub_account(
-            reseller_id, "Sub", "sub@example.com", initial_credits=0
+            reseller_id, "Sub", f"{uuid.uuid4().hex[:8]}@example.com", initial_credits=0
         )
         sub_id = sub_res["sub_account_id"]
 
@@ -192,7 +194,7 @@ class TestResellerService:
         reseller_id = res["reseller_id"]
 
         sub_res = await reseller_service.create_sub_account(
-            reseller_id, "Sub", "sub@example.com"
+            reseller_id, "Sub", f"{uuid.uuid4().hex[:8]}@example.com"
         )
         sub_id = sub_res["sub_account_id"]
 
@@ -239,7 +241,7 @@ class TestResellerService:
         reseller_id = res["reseller_id"]
 
         sub_res = await reseller_service.create_sub_account(
-            reseller_id, "Sub", "sub@example.com"
+            reseller_id, "Sub", f"{uuid.uuid4().hex[:8]}@example.com"
         )
         sub_id = sub_res["sub_account_id"]
 
