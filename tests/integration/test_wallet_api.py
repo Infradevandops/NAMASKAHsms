@@ -9,10 +9,11 @@ client = TestClient(app)
 
 @pytest.fixture
 def auth_token():
-    """Get authentication token"""
-    response = client.post(
-        "/api/auth/login", json={"email": "test@example.com", "password": "testpass123"}
-    )
+    """Register and login to get token"""
+    email = "wallet_test@example.com"
+    password = "testpass123"
+    client.post("/api/auth/register", json={"email": email, "password": password})
+    response = client.post("/api/auth/login", json={"email": email, "password": password})
     return response.json()["access_token"]
 
 

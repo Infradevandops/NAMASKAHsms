@@ -57,10 +57,11 @@ def test_regular_user(db: Session):
 @pytest.fixture
 def verification_data(db: Session, test_regular_user):
     """Create verification records for testing."""
+    import uuid
     verifications = []
     for i in range(5):
         v = Verification(
-            id=f"verify_{i}",
+            id=str(uuid.uuid4()),
             user_id=test_regular_user.id,
             country="US",
             service_name="telegram",

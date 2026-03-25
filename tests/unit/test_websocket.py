@@ -315,13 +315,13 @@ class TestWebSocketEndpoints:
     """Test WebSocket endpoints."""
 
     def test_get_websocket_status_endpoint(
-        self, client, test_user, db: Session, auth_headers
+        self, client, test_user, db: Session, auth_headers_factory
     ):
         """Test GET /api/websocket/status endpoint."""
         with client:
             response = client.get(
                 "/api/websocket/status",
-                headers=auth_headers(test_user.id),
+                headers=auth_headers_factory(test_user.id),
             )
 
         assert response.status_code in [200, 401, 404, 405]
@@ -331,7 +331,7 @@ class TestWebSocketEndpoints:
             assert "subscriptions" in data
 
     def test_broadcast_notification_endpoint_admin(
-        self, client, test_user, db: Session, auth_headers
+        self, client, test_user, db: Session, auth_headers_factory
     ):
         """Test POST /api/websocket/broadcast endpoint (admin)."""
         # Make user admin
@@ -347,7 +347,7 @@ class TestWebSocketEndpoints:
             with client:
                 response = client.post(
                     "/api/websocket/broadcast?channel=notifications&message_type=notification&title=Test&content=Test",
-                    headers=auth_headers(test_user.id),
+                    headers=auth_headers_factory(test_user.id),
                 )
 
         assert response.status_code in [200, 401, 403, 404, 405]
@@ -356,13 +356,13 @@ class TestWebSocketEndpoints:
             assert data["success"] is True
 
     def test_broadcast_notification_endpoint_non_admin(
-        self, client, test_user, auth_headers
+        self, client, test_user, auth_headers_factory
     ):
         """Test POST /api/websocket/broadcast endpoint (non-admin)."""
         with client:
             response = client.post(
                 "/api/websocket/broadcast?channel=notifications&message_type=notification&title=Test&content=Test",
-                headers=auth_headers(test_user.id),
+                headers=auth_headers_factory(test_user.id),
             )
 
         assert response.status_code in [401, 403, 404, 405]

@@ -238,6 +238,11 @@ def redis_client():
 
 @pytest.fixture
 def auth_headers():
+    return {"Authorization": "Bearer test-token"}
+
+
+@pytest.fixture
+def auth_headers_factory():
     def _make(user_id: str) -> dict:
         token = create_test_token(user_id)
         return {"Authorization": f"Bearer {token}"}
