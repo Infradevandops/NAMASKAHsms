@@ -288,7 +288,66 @@ class PaymentService:
         except Exception as e:
             logger.error(f"Failed to log dead letter: {e}")
 
+    async def initiate_payment(self, user_id: str, amount_usd: float) -> Dict[str, Any]:
+        """Alias for initialize_payment used by tests."""
+        if amount_usd <= 0:
+            raise ValueError("Amount must be positive")
+        user = self.db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise ValueError("User not found")
+        return await self.initialize_payment(
+            user_id=user_id,
+            email=user.email,
+            amount_usd=amount_usd,
+        )
+
+    async def process_webhook(self, event: str, payload: dict) -> Dict[str, Any]:
+        """Process a Paystack webhook event."""
+        if event == "charge.success":
+            reference = payload.get("reference") or payload.get("data", {}).get("reference")
+            if reference:
+                return await self.verify_payment(reference)
+            return {"status": "error", "message": "No reference"}
+        return {"status": "ignored", "event": event}
+
+    def get_payment_history(self, user_id: str, limit: int = 50) -> list:
+        """Get payment history for a user."""
+        logs = (
+            self.db.query(PaymentLog)
+            .filter(PaymentLog.user_id == user_id)
+            .order_by(PaymentLog.created_at.desc())
+            .limit(limit)
+            .all()
+        )
+        return [
+            {
+                "reference": l.reference,
+                "amount_usd": l.amount_usd,
+                "status": l.status,
+                "created_at": str(l.created_at),
+            }
+            for l in logs
+        ]
+
+    def get_payment_summary(self, user_id: str) -> Dict[str, Any]:
+        """Get payment summary stats for a user."""
+        logs = (
+            self.db.query(PaymentLog)
+            .filter(PaymentLog.user_id == user_id)
+            .all()
+        )
+        total = sum(float(l.amount_usd or 0) for l in logs if l.status == "success")
+        return {
+            "total_paid": total,
+            "transaction_count": len(logs),
+            "successful": sum(1 for l in logs if l.status == "success"),
+        }
+
 
 def get_payment_service(db: Session) -> PaymentService:
     """Get payment service instance."""
     return PaymentService(db)
+
+
+# Alias used by tests
+paystack_service = None

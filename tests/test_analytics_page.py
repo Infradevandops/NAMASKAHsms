@@ -18,7 +18,7 @@ class TestAnalyticsEndpoints:
         return TestClient(app)
 
     @pytest.fixture
-    def auth_headers(self):
+    def auth_headers_factory(self):
         """Mock auth headers."""
         return {"Authorization": "Bearer test_token"}
 

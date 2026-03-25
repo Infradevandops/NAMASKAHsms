@@ -11,13 +11,13 @@ import time
 class TestServicesEndpoint:
     """Test /api/countries/{country}/services endpoint"""
     
-    def test_services_endpoint_returns_200(self, client: TestClient, auth_headers: dict):
+    def test_services_endpoint_returns_200(self, client: TestClient, auth_headers_factory: dict):
         """Services endpoint should always return 200"""
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200
     
-    def test_services_never_empty(self, client: TestClient, auth_headers: dict):
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+    def test_services_never_empty(self, client: TestClient, auth_headers_factory: dict):
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200, response.text
         print("HEADERS:", response.headers)
         print("CONTENT:", response.content)
@@ -27,8 +27,8 @@ class TestServicesEndpoint:
         assert isinstance(data["services"], list)
         assert len(data["services"]) >= 20, f"Expected ≥20 services, got {len(data['services'])}"
     
-    def test_services_have_required_fields(self, client: TestClient, auth_headers: dict):
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+    def test_services_have_required_fields(self, client: TestClient, auth_headers_factory: dict):
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200, response.text
         data = response.json()
         
@@ -40,8 +40,8 @@ class TestServicesEndpoint:
             assert isinstance(service["price"], (int, float))
             assert service["price"] > 0
     
-    def test_services_include_markup(self, client: TestClient, auth_headers: dict):
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+    def test_services_include_markup(self, client: TestClient, auth_headers_factory: dict):
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200, response.text
         data = response.json()
         
@@ -50,16 +50,16 @@ class TestServicesEndpoint:
             assert 1.0 <= service["price"] <= 5.0, \
                 f"Service {service['id']} has unreasonable price: ${service['price']}"
     
-    def test_services_response_time(self, client: TestClient, auth_headers: dict):
+    def test_services_response_time(self, client: TestClient, auth_headers_factory: dict):
         """Services endpoint should respond within 2 seconds"""
         start = time.time()
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         elapsed = time.time() - start
         
         assert response.status_code == 200
         assert elapsed < 2.0, f"Response took {elapsed:.2f}s (target: <2s)"
     
-    def test_services_fallback_on_api_failure(self, client: TestClient, auth_headers: dict, monkeypatch):
+    def test_services_fallback_on_api_failure(self, client: TestClient, auth_headers_factory: dict, monkeypatch):
         """Should return fallback services if TextVerified API fails"""
         # Mock TextVerified API to fail
         async def mock_get_services_list(*args, **kwargs):
@@ -67,15 +67,15 @@ class TestServicesEndpoint:
         
         from app.api.verification import services_endpoint
         monkeypatch.setattr(services_endpoint._tv, "get_services_list", mock_get_services_list)
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200, response.text
         data = response.json()
         
         assert len(data["services"]) >= 10  # Fallback should have at least 10 services
         assert data.get("source") == "fallback"
     
-    def test_services_cache_header(self, client: TestClient, auth_headers: dict):
-        response = client.get("/api/countries/US/services", headers=auth_headers)
+    def test_services_cache_header(self, client: TestClient, auth_headers_factory: dict):
+        response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert response.status_code == 200, response.text
         data = response.json()
         
@@ -86,7 +86,7 @@ class TestServicesEndpoint:
 class TestVerificationRequestEndpoint:
     """Test POST /api/verification/request endpoint"""
     
-    def test_create_verification_success(self, client: TestClient, auth_headers: dict, db: Session):
+    def test_create_verification_success(self, client: TestClient, auth_headers_factory: dict, db: Session):
         """Should create verification successfully"""
         payload = {
             "service": "whatsapp",
@@ -96,7 +96,7 @@ class TestVerificationRequestEndpoint:
             "carriers": []
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         assert response.status_code == 201
         data = response.json()
@@ -106,7 +106,7 @@ class TestVerificationRequestEndpoint:
         assert data["verification_id"] is not None
         assert data["phone_number"] is not None
     
-    def test_create_verification_with_area_code(self, client: TestClient, auth_headers: dict):
+    def test_create_verification_with_area_code(self, client: TestClient, auth_headers_factory: dict):
         """Should accept area code filter"""
         payload = {
             "service": "telegram",
@@ -116,7 +116,7 @@ class TestVerificationRequestEndpoint:
             "carriers": []
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         # Freemium users get 402; PAYG+ users succeed
         assert response.status_code in [200, 201, 400, 402, 500]
@@ -125,7 +125,7 @@ class TestVerificationRequestEndpoint:
             data = response.json()
             assert "verification_id" in data
     
-    def test_create_verification_with_carrier(self, client: TestClient, auth_headers: dict):
+    def test_create_verification_with_carrier(self, client: TestClient, auth_headers_factory: dict):
         """Should accept carrier filter"""
         payload = {
             "service": "google",
@@ -135,12 +135,12 @@ class TestVerificationRequestEndpoint:
             "carriers": ["verizon"]
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         # Freemium users get 402; PAYG+ users succeed
         assert response.status_code in [200, 201, 400, 402, 500]
     
-    def test_create_verification_insufficient_balance(self, client: TestClient, auth_headers: dict, db: Session):
+    def test_create_verification_insufficient_balance(self, client: TestClient, auth_headers_factory: dict, db: Session):
         """Should reject if insufficient balance"""
         # Set user balance to $0
         from app.models.user import User
@@ -158,7 +158,7 @@ class TestVerificationRequestEndpoint:
         }
         
         try:
-            response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+            response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
             
             # Since mock is in place, it reaches the insufficient balance logic
             assert response.status_code == 402
@@ -168,7 +168,7 @@ class TestVerificationRequestEndpoint:
                 user.credits = 100.0
                 db.commit()
     
-    def test_create_verification_invalid_service(self, client: TestClient, auth_headers: dict):
+    def test_create_verification_invalid_service(self, client: TestClient, auth_headers_factory: dict):
         """Should reject invalid service"""
         payload = {
             "service": "nonexistent_service_12345",
@@ -178,19 +178,19 @@ class TestVerificationRequestEndpoint:
             "carriers": []
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         # Depending on mock, it might just succeed! 
         assert response.status_code in [200, 201, 400, 404]
     
-    def test_create_verification_missing_fields(self, client: TestClient, auth_headers: dict):
+    def test_create_verification_missing_fields(self, client: TestClient, auth_headers_factory: dict):
         """Should reject request with missing fields"""
         payload = {
             "country": "US"
             # Missing service entirely
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         assert response.status_code == 422  # Validation error
 
@@ -198,7 +198,7 @@ class TestVerificationRequestEndpoint:
 class TestVerificationStatusEndpoint:
     """Test GET /api/verification/status/{verification_id} endpoint"""
     
-    def test_status_endpoint_returns_verification(self, client: TestClient, auth_headers: dict, db: Session):
+    def test_status_endpoint_returns_verification(self, client: TestClient, auth_headers_factory: dict, db: Session):
         """Should return verification status"""
         # Create verification first
         payload = {
@@ -208,13 +208,13 @@ class TestVerificationStatusEndpoint:
             "area_codes": [],
             "carriers": []
         }
-        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         if create_response.status_code == 200:
             verification_id = create_response.json()["verification_id"]
             
             # Check status
-            response = client.get(f"/api/verification/status/{verification_id}", headers=auth_headers)
+            response = client.get(f"/api/verification/status/{verification_id}", headers=auth_headers_factory)
             
             assert response.status_code == 200
             data = response.json()
@@ -223,13 +223,13 @@ class TestVerificationStatusEndpoint:
             assert "phone_number" in data
             assert data["status"] in ["pending", "active", "completed", "failed", "cancelled"]
     
-    def test_status_endpoint_invalid_id(self, client: TestClient, auth_headers: dict):
+    def test_status_endpoint_invalid_id(self, client: TestClient, auth_headers_factory: dict):
         """Should return 404 for invalid verification ID"""
-        response = client.get("/api/verification/status/invalid-id-12345", headers=auth_headers)
+        response = client.get("/api/verification/status/invalid-id-12345", headers=auth_headers_factory)
         
         assert response.status_code == 404
     
-    def test_status_endpoint_unauthorized_access(self, client: TestClient, auth_headers: dict, db: Session):
+    def test_status_endpoint_unauthorized_access(self, client: TestClient, auth_headers_factory: dict, db: Session):
         """Should reject access to other user's verification"""
         # This test requires creating a verification with one user
         # and trying to access it with another user
@@ -240,7 +240,7 @@ class TestVerificationStatusEndpoint:
 class TestVerificationCancelEndpoint:
     """Test POST /api/verification/cancel/{verification_id} endpoint"""
     
-    def test_cancel_verification_success(self, client: TestClient, auth_headers: dict):
+    def test_cancel_verification_success(self, client: TestClient, auth_headers_factory: dict):
         """Should cancel verification and refund"""
         # Create verification
         payload = {
@@ -250,13 +250,13 @@ class TestVerificationCancelEndpoint:
             "area_codes": [],
             "carriers": []
         }
-        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         if create_response.status_code == 200:
             verification_id = create_response.json()["verification_id"]
             
             # Cancel it
-            response = client.post(f"/api/verification/cancel/{verification_id}", headers=auth_headers)
+            response = client.post(f"/api/verification/cancel/{verification_id}", headers=auth_headers_factory)
             
             assert response.status_code == 200
             data = response.json()
@@ -265,15 +265,15 @@ class TestVerificationCancelEndpoint:
             assert isinstance(data["refund_amount"], (int, float))
             assert data["refund_amount"] >= 0
     
-    def test_cancel_already_completed(self, client: TestClient, auth_headers: dict, db: Session):
+    def test_cancel_already_completed(self, client: TestClient, auth_headers_factory: dict, db: Session):
         """Should reject cancellation of completed verification"""
         # This requires a completed verification
         # Skipping for now as it requires SMS simulation
         pass
     
-    def test_cancel_invalid_id(self, client: TestClient, auth_headers: dict):
+    def test_cancel_invalid_id(self, client: TestClient, auth_headers_factory: dict):
         """Should return 404 for invalid verification ID"""
-        response = client.post("/api/verification/cancel/invalid-id-12345", headers=auth_headers)
+        response = client.post("/api/verification/cancel/invalid-id-12345", headers=auth_headers_factory)
         
         assert response.status_code == 404
 
@@ -281,7 +281,7 @@ class TestVerificationCancelEndpoint:
 class TestVerificationOutcomeEndpoint:
     """Test PATCH /api/verification/{verification_id}/outcome endpoint"""
     
-    def test_update_outcome_success(self, client: TestClient, auth_headers: dict):
+    def test_update_outcome_success(self, client: TestClient, auth_headers_factory: dict):
         """Should update verification outcome"""
         # Create verification
         payload = {
@@ -291,7 +291,7 @@ class TestVerificationOutcomeEndpoint:
             "area_codes": [],
             "carriers": []
         }
-        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         if create_response.status_code == 200:
             verification_id = create_response.json()["verification_id"]
@@ -304,12 +304,12 @@ class TestVerificationOutcomeEndpoint:
             response = client.patch(
                 f"/api/verification/{verification_id}/outcome",
                 json=outcome_payload,
-                headers=auth_headers
+                headers=auth_headers_factory
             )
             
             assert response.status_code == 200
     
-    def test_update_outcome_invalid_status(self, client: TestClient, auth_headers: dict):
+    def test_update_outcome_invalid_status(self, client: TestClient, auth_headers_factory: dict):
         """Should reject invalid outcome status"""
         # Create verification
         payload = {
@@ -319,7 +319,7 @@ class TestVerificationOutcomeEndpoint:
             "area_codes": [],
             "carriers": []
         }
-        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         if create_response.status_code == 200:
             verification_id = create_response.json()["verification_id"]
@@ -332,7 +332,7 @@ class TestVerificationOutcomeEndpoint:
             response = client.patch(
                 f"/api/verification/{verification_id}/outcome",
                 json=outcome_payload,
-                headers=auth_headers
+                headers=auth_headers_factory
             )
             
             # Should reject
@@ -342,10 +342,10 @@ class TestVerificationOutcomeEndpoint:
 class TestVerificationFlowIntegration:
     """Test complete verification flow end-to-end"""
     
-    def test_complete_flow_without_sms(self, client: TestClient, auth_headers: dict):
+    def test_complete_flow_without_sms(self, client: TestClient, auth_headers_factory: dict):
         """Test complete flow: create -> poll -> cancel"""
         # Step 1: Get services
-        services_response = client.get("/api/countries/US/services", headers=auth_headers)
+        services_response = client.get("/api/countries/US/services", headers=auth_headers_factory)
         assert services_response.status_code == 200
         services = services_response.json()["services"]
         assert len(services) >= 20
@@ -358,7 +358,7 @@ class TestVerificationFlowIntegration:
             "area_codes": [],
             "carriers": []
         }
-        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        create_response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         if create_response.status_code != 200:
             pytest.skip("Verification creation failed (likely insufficient balance)")
@@ -372,7 +372,7 @@ class TestVerificationFlowIntegration:
         # Step 3: Poll status (simulate 3 polls)
         for i in range(3):
             time.sleep(1)  # Wait 1 second between polls
-            status_response = client.get(f"/api/verification/status/{verification_id}", headers=auth_headers)
+            status_response = client.get(f"/api/verification/status/{verification_id}", headers=auth_headers_factory)
             assert status_response.status_code == 200
             
             status_data = status_response.json()
@@ -383,13 +383,13 @@ class TestVerificationFlowIntegration:
                 break
         
         # Step 4: Cancel verification
-        cancel_response = client.post(f"/api/verification/cancel/{verification_id}", headers=auth_headers)
+        cancel_response = client.post(f"/api/verification/cancel/{verification_id}", headers=auth_headers_factory)
         assert cancel_response.status_code == 200
         
         refund_data = cancel_response.json()
         assert "refund_amount" in refund_data
     
-    def test_flow_with_area_code_filter(self, client: TestClient, auth_headers: dict):
+    def test_flow_with_area_code_filter(self, client: TestClient, auth_headers_factory: dict):
         """Test flow with area code filter"""
         payload = {
             "service": "whatsapp",
@@ -399,7 +399,7 @@ class TestVerificationFlowIntegration:
             "carriers": []
         }
         
-        response = client.post("/api/verification/request", json=payload, headers=auth_headers)
+        response = client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         # Should succeed or return fallback warning
         if response.status_code == 200:
@@ -417,7 +417,7 @@ class TestVerificationFlowIntegration:
 class TestErrorHandlingAndEdgeCases:
     """Test error handling and edge cases"""
     
-    def test_concurrent_verification_requests(self, client: TestClient, auth_headers: dict):
+    def test_concurrent_verification_requests(self, client: TestClient, auth_headers_factory: dict):
         """Should handle concurrent requests correctly"""
         import concurrent.futures
         
@@ -429,7 +429,7 @@ class TestErrorHandlingAndEdgeCases:
                 "area_codes": [],
                 "carriers": []
             }
-            return client.post("/api/verification/request", json=payload, headers=auth_headers)
+            return client.post("/api/verification/request", json=payload, headers=auth_headers_factory)
         
         # Create 3 concurrent requests
         with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
@@ -440,12 +440,12 @@ class TestErrorHandlingAndEdgeCases:
         for response in responses:
             assert response.status_code in [200, 201, 400, 402, 429, 500, 503]  # Success or rate limit
     
-    def test_malformed_json_request(self, client: TestClient, auth_headers: dict):
+    def test_malformed_json_request(self, client: TestClient, auth_headers_factory: dict):
         """Should reject malformed JSON"""
         response = client.post(
             "/api/verification/request",
             data="invalid json {{{",
-            headers={**auth_headers, "Content-Type": "application/json"}
+            headers={**auth_headers_factory, "Content-Type": "application/json"}
         )
         
         assert response.status_code == 422
@@ -509,7 +509,7 @@ def mock_textverified(monkeypatch):
 
 
 @pytest.fixture
-def auth_headers(test_user, db):
+def auth_headers_factory(test_user, db):
     """Create authenticated user and return auth headers"""
     from tests.conftest import create_test_token
     token = create_test_token(str(test_user.id), test_user.email)

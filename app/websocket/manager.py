@@ -82,6 +82,41 @@ class ConnectionManager:
         """Get number of users with active connections."""
         return len(self.active_connections)
 
+    def is_user_connected(self, user_id: str) -> bool:
+        return bool(self.active_connections.get(user_id))
+
+    async def broadcast_to_user(self, user_id: str, message: dict) -> bool:
+        if not self.is_user_connected(user_id):
+            return False
+        await self.send_personal_message(message, user_id)
+        return True
+
+    def subscribe_user(self, user_id: str, channel: str) -> bool:
+        if not hasattr(self, "_channels"):
+            self._channels: Dict[str, Set[str]] = {}
+        self._channels.setdefault(channel, set()).add(user_id)
+        return True
+
+    def unsubscribe_user(self, user_id: str, channel: str) -> bool:
+        if hasattr(self, "_channels") and channel in self._channels:
+            self._channels[channel].discard(user_id)
+        return True
+
+    async def broadcast_to_channel(self, channel: str, message: dict) -> int:
+        if not hasattr(self, "_channels"):
+            return 0
+        sent = 0
+        for user_id in self._channels.get(channel, set()):
+            if await self.broadcast_to_user(user_id, message):
+                sent += 1
+        return sent
+
+    def get_active_connections_count(self) -> int:
+        return self.get_total_connections()
+
+    def get_active_users(self) -> list:
+        return list(self.active_connections.keys())
+
 
 # Global instance
 manager = ConnectionManager()
