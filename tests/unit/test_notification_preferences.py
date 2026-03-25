@@ -55,7 +55,7 @@ class TestNotificationPreferences:
     """Test notification preferences endpoints."""
 
     def test_get_preferences_empty(
-        self, client, test_user, test_defaults, auth_headers
+        self, client, test_user, test_defaults, auth_headers_factory
     ):
         """Test getting preferences when none exist."""
         response = client.get(
@@ -132,7 +132,7 @@ class TestNotificationPreferences:
             )
 
     def test_update_preferences_create_new(
-        self, client, test_user, test_defaults, auth_headers
+        self, client, test_user, test_defaults, auth_headers_factory
     ):
         """Test creating new preferences."""
         payload = [
@@ -198,7 +198,7 @@ class TestNotificationPreferences:
             assert data["created"] == 0
 
     def test_update_preferences_with_quiet_hours(
-        self, client, test_user, test_defaults, auth_headers
+        self, client, test_user, test_defaults, auth_headers_factory
     ):
         """Test updating preferences with quiet hours."""
         payload = [
@@ -224,7 +224,7 @@ class TestNotificationPreferences:
             assert data["created"] == 1
 
     def test_update_preferences_invalid_time_format(
-        self, client, test_user, test_defaults, auth_headers
+        self, client, test_user, test_defaults, auth_headers_factory
     ):
         """Test updating preferences with invalid time format."""
         payload = [
@@ -332,7 +332,7 @@ class TestNotificationPreferences:
             assert len(data["preferences"]) == 0
 
     def test_bulk_update_preferences(
-        self, client, test_user, test_defaults, auth_headers
+        self, client, test_user, test_defaults, auth_headers_factory
     ):
         """Test updating multiple preferences at once."""
         payload = [
