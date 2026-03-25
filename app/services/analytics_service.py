@@ -128,3 +128,48 @@ class AnalyticsService:
             }
             for row in results
         ]
+
+    def calculate_summary(self, verifications: list) -> dict:
+        total = len(verifications)
+        completed = sum(1 for v in verifications if v.get("status") == "completed")
+        failed = sum(1 for v in verifications if v.get("status") == "failed")
+        pending = sum(1 for v in verifications if v.get("status") == "pending")
+        total_spent = sum(float(v.get("cost", 0) or 0) for v in verifications)
+        return {
+            "total_verifications": total,
+            "successful_verifications": completed,
+            "failed_verifications": failed,
+            "pending_verifications": pending,
+            "success_rate": round(completed / total * 100, 1) if total else 0.0,
+            "total_spent": total_spent,
+        }
+
+    def group_by_service(self, verifications: list) -> dict:
+        groups = {}
+        for v in verifications:
+            svc = v.get("service_name") or v.get("service", "unknown")
+            if svc not in groups:
+                groups[svc] = {"count": 0, "total_cost": 0.0}
+            groups[svc]["count"] += 1
+            groups[svc]["total_cost"] += float(v.get("cost", 0) or 0)
+        return groups
+
+    def calculate_daily_stats(self, verifications: list, days: int = 30) -> list:
+        from datetime import datetime, timedelta
+        from collections import defaultdict
+        buckets = defaultdict(int)
+        for v in verifications:
+            created = v.get("created_at")
+            if isinstance(created, datetime):
+                buckets[created.date()] += 1
+        cutoff = (datetime.now() - timedelta(days=days)).date()
+        return [
+            {"date": str(d), "count": c}
+            for d, c in sorted(buckets.items())
+            if d >= cutoff
+        ]
+
+    def get_top_services(self, verifications: list, limit: int = 5) -> list:
+        grouped = self.group_by_service(verifications)
+        sorted_svcs = sorted(grouped.items(), key=lambda x: x[1]["count"], reverse=True)
+        return [{"name": name, **stats} for name, stats in sorted_svcs[:limit]]

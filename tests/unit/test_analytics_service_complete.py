@@ -7,8 +7,8 @@ from app.services.analytics_service import AnalyticsService
 
 
 @pytest.fixture
-def analytics_service():
-    return AnalyticsService()
+def analytics_service(db_session):
+    return AnalyticsService(db_session)
 
 
 @pytest.fixture
