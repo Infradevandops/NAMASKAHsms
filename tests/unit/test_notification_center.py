@@ -62,12 +62,12 @@ class TestNotificationCenter:
     """Test notification center endpoints."""
 
     def test_get_notification_center(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test getting notifications with pagination."""
         response = client.get(
             "/api/notifications/center?skip=0&limit=10",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -78,12 +78,12 @@ class TestNotificationCenter:
             assert data["limit"] == 10
 
     def test_get_notification_center_with_category_filter(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test filtering notifications by category."""
         response = client.get(
             "/api/notifications/center?category=verification_initiated",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -92,12 +92,12 @@ class TestNotificationCenter:
             assert data["notifications"][0]["type"] == "verification_initiated"
 
     def test_get_notification_center_with_read_filter(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test filtering notifications by read status."""
         response = client.get(
             "/api/notifications/center?is_read=false",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -107,12 +107,12 @@ class TestNotificationCenter:
             assert notif["is_read"] is False
 
     def test_get_notification_center_with_sorting(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test sorting notifications."""
         response = client.get(
             "/api/notifications/center?sort_by=oldest",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -125,12 +125,12 @@ class TestNotificationCenter:
             )
 
     def test_get_notification_categories(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test getting notification categories."""
         response = client.get(
             "/api/notifications/categories",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -145,12 +145,12 @@ class TestNotificationCenter:
             assert "unread" in category
 
     def test_search_notifications(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test searching notifications."""
         response = client.post(
             "/api/notifications/search?query=verification",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -159,12 +159,12 @@ class TestNotificationCenter:
             assert data["query"] == "verification"
 
     def test_search_notifications_min_length(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test search with minimum length validation."""
         response = client.post(
             "/api/notifications/search?query=a",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [
             404,
@@ -173,14 +173,14 @@ class TestNotificationCenter:
         ]  # Validation error or endpoint not found
 
     def test_bulk_mark_as_read(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test marking multiple notifications as read."""
         unread_ids = [n.id for n in test_notifications if not n.is_read]
 
         response = client.post(
             f"/api/notifications/bulk-read?notification_ids={unread_ids[0]}&notification_ids={unread_ids[1]}",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -188,14 +188,14 @@ class TestNotificationCenter:
             assert data["updated"] == 2
 
     def test_bulk_delete_notifications(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test deleting multiple notifications."""
         ids_to_delete = [test_notifications[0].id, test_notifications[1].id]
 
         response = client.post(
             f"/api/notifications/bulk-delete?notification_ids={ids_to_delete[0]}&notification_ids={ids_to_delete[1]}",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -203,12 +203,12 @@ class TestNotificationCenter:
             assert data["deleted"] == 2
 
     def test_export_notifications_json(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test exporting notifications as JSON."""
         response = client.get(
             "/api/notifications/export?format=json",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -218,12 +218,12 @@ class TestNotificationCenter:
             assert len(data["data"]) == 4
 
     def test_export_notifications_csv(
-        self, client, test_user, test_notifications, auth_headers
+        self, client, test_user, test_notifications, auth_headers_factory
     ):
         """Test exporting notifications as CSV."""
         response = client.get(
             "/api/notifications/export?format=csv",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -238,7 +238,7 @@ class TestNotificationCenter:
         assert response.status_code in [401, 405]
 
     def test_user_isolation(
-        self, client, test_user, test_notifications, auth_headers, db: Session
+        self, client, test_user, test_notifications, auth_headers_factory, db: Session
     ):
         """Test that users can only see their own notifications."""
         # Create another user
@@ -253,7 +253,7 @@ class TestNotificationCenter:
         # Get notifications as first user
         response = client.get(
             "/api/notifications/center",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -263,7 +263,7 @@ class TestNotificationCenter:
         # Get notifications as second user (should be empty)
         response = client.get(
             "/api/notifications/center",
-            headers=auth_headers(other_user.id),
+            headers=auth_headers_factory(other_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:

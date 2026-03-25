@@ -46,7 +46,7 @@ class TestAuthEndpoints:
             new_callable=AsyncMock,
         ):
             response = client.post(
-                "/api/v1/auth/register",
+                "/api/auth/register",
                 json={"email": "newuser@example.com", "password": "SecurePassword123!"},
             )
 
@@ -64,7 +64,7 @@ class TestAuthEndpoints:
     def test_register_duplicate_email(self, client, regular_user):
         """Test registration with existing email."""
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": regular_user.email, "password": "SecurePassword123!"},
         )
 
@@ -73,7 +73,7 @@ class TestAuthEndpoints:
     def test_register_invalid_email(self, client):
         """Test registration with invalid email format."""
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": "invalid-email", "password": "SecurePassword123!"},
         )
 
@@ -82,7 +82,7 @@ class TestAuthEndpoints:
     def test_register_weak_password(self, client):
         """Test registration with weak password."""
         response = client.post(
-            "/api/v1/auth/register",
+            "/api/auth/register",
             json={"email": "newuser@example.com", "password": "123"},
         )
 
@@ -96,7 +96,7 @@ class TestAuthEndpoints:
             new_callable=AsyncMock,
         ):
             response = client.post(
-                "/api/v1/auth/register",
+                "/api/auth/register",
                 json={
                     "email": "newuser@example.com",
                     "password": "SecurePassword123!",
@@ -120,7 +120,7 @@ class TestAuthEndpoints:
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/login",
+            "/api/auth/login",
             json={"email": "logintest@example.com", "password": "TestPassword123!"},
         )
 
@@ -134,7 +134,7 @@ class TestAuthEndpoints:
     def test_login_invalid_email(self, client):
         """Test login with non-existent email."""
         response = client.post(
-            "/api/v1/auth/login",
+            "/api/auth/login",
             json={"email": "nonexistent@example.com", "password": "password123"},
         )
 
@@ -146,7 +146,7 @@ class TestAuthEndpoints:
     def test_login_wrong_password(self, client, regular_user):
         """Test login with incorrect password."""
         response = client.post(
-            "/api/v1/auth/login",
+            "/api/auth/login",
             json={"email": regular_user.email, "password": "wrongpassword"},
         )
 
@@ -154,13 +154,13 @@ class TestAuthEndpoints:
 
     def test_login_missing_credentials(self, client):
         """Test login with missing credentials."""
-        response = client.post("/api/v1/auth/login", json={})
+        response = client.post("/api/auth/login", json={})
 
         assert response.status_code == 422  # Validation error
 
     def test_get_current_user_success(self, authenticated_regular_client, regular_user):
         """Test getting current user information."""
-        response = authenticated_regular_client.get("/api/v1/auth/me")
+        response = authenticated_regular_client.get("/api/auth/me")
 
         assert response.status_code == 200
         data = response.json()
@@ -170,7 +170,7 @@ class TestAuthEndpoints:
 
     def test_get_current_user_unauthorized(self, client):
         """Test getting current user without authentication."""
-        response = client.get("/api/v1/auth/me")
+        response = client.get("/api/auth/me")
 
         # Should fail without auth
         assert response.status_code in [401, 403, 422]
@@ -190,7 +190,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[get_current_user_id] = override_get_current_user_id
 
         try:
-            response = client.get("/api/v1/auth/me")
+            response = client.get("/api/auth/me")
             assert response.status_code == 404
         finally:
             app.dependency_overrides.clear()
@@ -202,7 +202,7 @@ class TestAuthEndpoints:
             new_callable=AsyncMock,
         ):
             response = client.post(
-                "/api/v1/auth/forgot-password", json={"email": regular_user.email}
+                "/api/auth/forgot-password", json={"email": regular_user.email}
             )
 
         assert response.status_code == 200
@@ -217,7 +217,7 @@ class TestAuthEndpoints:
             new_callable=AsyncMock,
         ):
             response = client.post(
-                "/api/v1/auth/forgot-password",
+                "/api/auth/forgot-password",
                 json={"email": "nonexistent@example.com"},
             )
 
@@ -236,7 +236,7 @@ class TestAuthEndpoints:
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/reset-password",
+            "/api/auth/reset-password",
             json={"token": reset_token, "new_password": "NewSecurePassword123!"},
         )
 
@@ -248,7 +248,7 @@ class TestAuthEndpoints:
     def test_reset_password_invalid_token(self, client):
         """Test password reset with invalid token."""
         response = client.post(
-            "/api/v1/auth/reset-password",
+            "/api/auth/reset-password",
             json={"token": "invalid-token", "new_password": "NewSecurePassword123!"},
         )
 
@@ -265,7 +265,7 @@ class TestAuthEndpoints:
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/reset-password",
+            "/api/auth/reset-password",
             json={"token": reset_token, "new_password": "NewSecurePassword123!"},
         )
 
@@ -279,7 +279,7 @@ class TestAuthEndpoints:
         regular_user.email_verified = False
         db.commit()
 
-        response = client.get(f"/api/v1/auth/verify-email?token={verification_token}")
+        response = client.get(f"/api/auth/verify-email?token={verification_token}")
 
         assert response.status_code == 200
         db.refresh(regular_user)
@@ -288,13 +288,13 @@ class TestAuthEndpoints:
 
     def test_verify_email_invalid_token(self, client):
         """Test email verification with invalid token."""
-        response = client.get("/api/v1/auth/verify-email?token=invalid-token")
+        response = client.get("/api/auth/verify-email?token=invalid-token")
 
         assert response.status_code == 400
 
     def test_google_auth_config(self, client):
         """Test getting Google OAuth configuration."""
-        response = client.get("/api/v1/auth/google/config")
+        response = client.get("/api/auth/google/config")
 
         assert response.status_code == 200
         data = response.json()
@@ -314,7 +314,7 @@ class TestAuthEndpoints:
             "google.oauth2.id_token.verify_oauth2_token", return_value=mock_idinfo
         ):
             response = client.post(
-                "/api/v1/auth/google", json={"token": "valid-google-token"}
+                "/api/auth/google", json={"token": "valid-google-token"}
             )
 
         assert response.status_code == 200
@@ -329,14 +329,14 @@ class TestAuthEndpoints:
             side_effect=ValueError("Invalid token"),
         ):
             response = client.post(
-                "/api/v1/auth/google", json={"token": "invalid-token"}
+                "/api/auth/google", json={"token": "invalid-token"}
             )
 
         assert response.status_code == 401
 
     def test_logout_success(self, authenticated_regular_client):
         """Test user logout."""
-        response = authenticated_regular_client.post("/api/v1/auth/logout")
+        response = authenticated_regular_client.post("/api/auth/logout")
 
         assert response.status_code == 200
         data = response.json()
@@ -353,7 +353,7 @@ class TestAuthEndpoints:
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+            "/api/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
         )
 
         # Token refresh has complex setup requirements
@@ -366,14 +366,14 @@ class TestAuthEndpoints:
     def test_refresh_token_invalid(self, client):
         """Test refresh with invalid token."""
         response = client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": "invalid-token"}
+            "/api/auth/refresh", json={"refresh_token": "invalid-token"}
         )
 
         assert response.status_code == 401
 
     def test_refresh_token_missing(self, client):
         """Test refresh without token."""
-        response = client.post("/api/v1/auth/refresh", json={})
+        response = client.post("/api/auth/refresh", json={})
 
         assert response.status_code == 401
 
@@ -388,7 +388,7 @@ class TestAuthEndpoints:
         db.commit()
 
         response = client.post(
-            "/api/v1/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
+            "/api/auth/refresh", json={"refresh_token": tokens["refresh_token"]}
         )
 
         assert response.status_code == 401
@@ -417,7 +417,7 @@ class TestAuthEndpoints:
 
         try:
             response = client.post(
-                "/api/v1/auth/api-keys", json={"name": "Test API Key"}
+                "/api/auth/api-keys", json={"name": "Test API Key"}
             )
 
             # API key creation has complex tier requirements and async handling
@@ -457,7 +457,7 @@ class TestAuthEndpoints:
 
         try:
             response = client.post(
-                "/api/v1/auth/api-keys", json={"name": "Test API Key"}
+                "/api/auth/api-keys", json={"name": "Test API Key"}
             )
 
             assert response.status_code == 403
@@ -467,7 +467,7 @@ class TestAuthEndpoints:
     def test_create_api_key_tier_restriction(self, authenticated_regular_client):
         """Test creating API key requires PayG tier."""
         response = authenticated_regular_client.post(
-            "/api/v1/auth/api-keys", json={"name": "Test API Key"}
+            "/api/auth/api-keys", json={"name": "Test API Key"}
         )
 
         # Should fail due to tier restriction
@@ -503,7 +503,7 @@ class TestAuthEndpoints:
             app.dependency_overrides[require_tier] = override_require_tier
 
             try:
-                response = client.get("/api/v1/auth/api-keys")
+                response = client.get("/api/auth/api-keys")
 
                 # API key listing has complex tier requirements and async handling
                 assert response.status_code in [200, 401, 403, 404, 500]
@@ -533,7 +533,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.get("/api/v1/auth/api-keys")
+            response = client.get("/api/auth/api-keys")
 
             assert response.status_code == 200
             data = response.json()
@@ -571,7 +571,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
+            response = client.delete(f"/api/auth/api-keys/{api_key.id}")
 
             assert response.status_code == 200
 
@@ -601,7 +601,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.delete("/api/v1/auth/api-keys/nonexistent-id")
+            response = client.delete("/api/auth/api-keys/nonexistent-id")
 
             assert response.status_code == 404
         finally:
@@ -637,7 +637,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.delete(f"/api/v1/auth/api-keys/{api_key.id}")
+            response = client.delete(f"/api/auth/api-keys/{api_key.id}")
 
             assert response.status_code == 404
         finally:

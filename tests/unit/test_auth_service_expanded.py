@@ -29,7 +29,7 @@ class TestAuthServiceExpanded:
 
     def test_login_valid_credentials(self, auth_service, regular_user):
         """Test login with valid credentials"""
-        result = auth_service.authenticate(
+        result = auth_service.authenticate_user(
             email=regular_user.email, password="testpass123"
         )
         assert result["success"] == True
@@ -37,21 +37,21 @@ class TestAuthServiceExpanded:
 
     def test_login_invalid_password(self, auth_service, regular_user):
         """Test login with wrong password"""
-        result = auth_service.authenticate(
+        result = auth_service.authenticate_user(
             email=regular_user.email, password="wrongpassword"
         )
         assert result["success"] == False
 
     def test_login_nonexistent_user(self, auth_service):
         """Test login with non-existent email"""
-        result = auth_service.authenticate(
+        result = auth_service.authenticate_user(
             email="nonexistent@test.com", password="anypassword"
         )
         assert result["success"] == False
 
     def test_verify_token_valid(self, auth_service, regular_user):
         """Test token verification"""
-        login = auth_service.authenticate(regular_user.email, "testpass123")
+        login = auth_service.authenticate_user(regular_user.email, "testpass123")
         token = login["access_token"]
 
         result = auth_service.verify_token(token)
@@ -65,7 +65,7 @@ class TestAuthServiceExpanded:
 
     def test_refresh_token(self, auth_service, regular_user):
         """Test token refresh"""
-        login = auth_service.authenticate(regular_user.email, "testpass123")
+        login = auth_service.authenticate_user(regular_user.email, "testpass123")
         refresh_token = login.get("refresh_token")
 
         if refresh_token:

@@ -1,18 +1,12 @@
-"""
+"""Utility Module Tests - Comprehensive Coverage."""
 import json
-from datetime import datetime, timedelta, timezone
-from app.utils.security import hash_password, verify_password
+import re
 import secrets
-from app.utils.security import create_access_token
-from html import escape
-import re
-import re
-from pathlib import Path
 import time
-
-Utility Module Tests - Comprehensive Coverage
-Tests for utility functions and helpers
-"""
+from datetime import datetime, timedelta, timezone
+from html import escape
+from pathlib import Path
+from app.utils.security import create_access_token, hash_password, verify_password
 
 
 class TestUtilityModules:

@@ -40,7 +40,7 @@ from app.utils.security import create_access_token
 from main import app
 
 
-def create_test_token(user_id: str, email: str = "test@example.com") -> str:
+def create_test_token(user_id: str, email: str = "test@example.com", **kwargs) -> str:
     return create_access_token({"sub": user_id, "email": email})
 
 
@@ -190,7 +190,11 @@ def pro_user(db):
 
 @pytest.fixture
 def user_token(test_user):
-    return create_test_token(test_user.id, test_user.email)
+    def _make(user_id: str = None, email: str = None):
+        uid = user_id or test_user.id
+        em = email or test_user.email
+        return create_test_token(uid, em)
+    return _make
 
 
 @pytest.fixture
@@ -227,13 +231,8 @@ def freemium_user_token(db):
 
 @pytest.fixture
 def redis_client():
-    mock = MagicMock()
-    mock.get = AsyncMock(return_value=None)
-    mock.set = AsyncMock(return_value=True)
-    mock.delete = AsyncMock(return_value=1)
-    mock.exists = AsyncMock(return_value=0)
-    mock.expire = AsyncMock(return_value=True)
-    return mock
+    import fakeredis
+    return fakeredis.FakeRedis(decode_responses=True)
 
 
 @pytest.fixture
