@@ -152,12 +152,43 @@ jobs:
           file: ./coverage.xml
           fail_ci_if_error: true
 
-  # Deployment readiness (main branch only, needs all jobs)
+  # Database backup — runs on every push to main before deployment
+  db-backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [secrets-scan, code-quality, security, tests]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run database backup
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
+          BACKUP_KEEP_DAYS: '30'
+        run: python scripts/backup_database.py
+
+      - name: Confirm backup
+        run: echo "✅ Pre-deploy backup complete"
+
+  # Deployment readiness (main branch only, needs all jobs + backup)
   deployment-readiness:
     name: Deployment Readiness
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: [secrets-scan, code-quality, security, tests]
+    needs: [secrets-scan, code-quality, security, tests, db-backup]
 
     steps:
       - uses: actions/checkout@v4

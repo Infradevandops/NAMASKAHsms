@@ -170,3 +170,34 @@ Fixed `access_token` KeyError (register before login), `verify_0..4` UNIQUE IDs,
 **Acceptance criteria**
 - `--cov-fail-under=60` passes in CI
 - Deployment Readiness job unblocks
+
+---
+
+## Task 19 — Database backup before deploy
+
+**Scope**: `scripts/backup_database.py`, `.github/workflows/ci.yml`  
+**Status**: ✅ Implemented
+
+- Rewrote `scripts/backup_database.py` — `pg_dump | gzip` → S3 upload with local fallback
+- Supports `--restore <s3-key-or-local-file>` for recovery
+- Keeps 30 days of backups, auto-cleans older ones
+- Added `db-backup` CI job that runs on every `main` push after tests pass, before deployment
+- Requires secrets: `PRODUCTION_DATABASE_URL`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`, `BACKUP_S3_BUCKET`
+
+**Required Render/GitHub secrets to set**
+- [ ] `PRODUCTION_DATABASE_URL` — production Postgres connection string
+- [ ] `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` — IAM user with S3 write access
+- [ ] `AWS_REGION` — e.g. `us-east-1`
+- [ ] `BACKUP_S3_BUCKET` — e.g. `namaskah-db-backups`
+
+**To restore**
+```bash
+python scripts/backup_database.py --restore s3://namaskah-db-backups/db-backups/namaskah_backup_20260325_120000.sql.gz
+# or from local file:
+python scripts/backup_database.py --restore backups/namaskah_backup_20260325_120000.sql.gz
+```
+
+**Acceptance criteria**
+- `db-backup` CI job passes on every main push
+- Backup file appears in S3 bucket before each deploy
+- Restore procedure tested and documented
