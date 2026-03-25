@@ -1,3 +1,4 @@
+import uuid
 """Tests for notification preferences endpoints."""
 
 import pytest
@@ -14,7 +15,7 @@ def test_user(db: Session):
     """Create a test user."""
     user = User(
         id="test-user-prefs-001",
-        email="test-prefs@example.com",
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed_password",
     )
     db.add(user)
@@ -305,7 +306,7 @@ class TestNotificationPreferences:
         # Create another user
         other_user = User(
             id="other-user-prefs-002",
-            email="other-prefs@example.com",
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
             password_hash="hashed_password",
         )
         db.add(other_user)

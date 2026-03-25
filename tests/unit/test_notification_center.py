@@ -1,3 +1,4 @@
+import uuid
 """Tests for notification center endpoints."""
 
 import pytest
@@ -10,8 +11,8 @@ from app.models.user import User
 def test_user(db: Session):
     """Create a test user."""
     user = User(
-        id="test-user-123",
-        email="test@example.com",
+        id=str(uuid.uuid4()),
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed_password",
     )
     db.add(user)
@@ -242,8 +243,8 @@ class TestNotificationCenter:
         """Test that users can only see their own notifications."""
         # Create another user
         other_user = User(
-            id="other-user-456",
-            email="other@example.com",
+            id=str(uuid.uuid4()),
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
             password_hash="hashed_password",
         )
         db.add(other_user)

@@ -1,3 +1,4 @@
+import uuid
 """Tests for WebSocket real-time notifications."""
 
 from unittest.mock import AsyncMock, patch
@@ -13,8 +14,8 @@ from app.websocket.manager import ConnectionManager
 def test_user(db: Session):
     """Create test user."""
     user = User(
-        id="test-user-123",
-        email="test@example.com",
+        id=str(uuid.uuid4()),
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed_password",
         credits=100.0,
     )

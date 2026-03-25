@@ -1,3 +1,4 @@
+import uuid
 """Comprehensive tests for WebSocket functionality."""
 
 import json

@@ -1,3 +1,4 @@
+import uuid
 """
 SMS Service Tests
 Coverage: Verification creation, polling, TextVerified integration
@@ -83,7 +84,7 @@ class TestSMSService:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id="sms_user", email="sms@example.com", credits=50.0)
+        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=50.0)
         db_session.add(user)
         db_session.commit()
         return user
@@ -107,7 +108,7 @@ class TestSMSService:
     ):
         """Test verification fails with insufficient balance"""
         poor_user = User(
-            id="poor_user", email="poor@example.com", credits=1.0  # Less than cost
+            id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=1.0  # Less than cost
         )
         db_session.add(poor_user)
         db_session.commit()
@@ -205,7 +206,7 @@ class TestSMSServiceEdgeCases:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id="edge_sms_user", email="edge_sms@example.com", credits=100.0)
+        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=100.0)
         db_session.add(user)
         db_session.commit()
         return user

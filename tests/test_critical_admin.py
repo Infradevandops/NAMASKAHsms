@@ -1,3 +1,4 @@
+import uuid
 """Tests for critical admin endpoints."""
 
 
@@ -26,8 +27,8 @@ def create_token(user_id: str, email: str = "test@test.com") -> str:
 def test_admin_user(db: Session):
     """Create admin user for testing."""
     admin = User(
-        id="admin_test",
-        email="admin_test@test.com",
+        id=str(uuid.uuid4()),
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed",
         is_admin=True,
         subscription_tier="pro",
@@ -41,8 +42,8 @@ def test_admin_user(db: Session):
 def test_regular_user(db: Session):
     """Create regular user for testing."""
     user = User(
-        id="user_test",
-        email="user_test@test.com",
+        id=str(uuid.uuid4()),
+        email=f"{uuid.uuid4().hex[:8]}@example.com",
         password_hash="hashed",
         is_admin=False,
         subscription_tier="freemium",
