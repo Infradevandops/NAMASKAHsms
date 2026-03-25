@@ -12,7 +12,7 @@ from app.core.database import Base, get_db
 from app.core.dependencies import get_current_user_id
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.transaction import Transaction
+from app.models.transaction import Transaction, PaymentLog
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.notification_analytics import NotificationAnalytics

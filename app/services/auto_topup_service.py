@@ -63,7 +63,7 @@ class AutoTopupService:
                 state="completed",
             )
             self.db.add(log)
-            user.credits = (user.credits or 0.0) + topup_amount
+            user.credits = type(user.credits)(float(user.credits) + topup_amount)
             self.db.commit()
 
             return {"status": "success", "amount": topup_amount, "reference": reference}

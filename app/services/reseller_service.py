@@ -101,7 +101,7 @@ class ResellerService:
             return {"error": "Insufficient reseller credits"}
 
         user.credits = type(user.credits)(float(user.credits) - amount)
-        sub.credits += amount
+        sub.credits = type(sub.credits)(float(sub.credits or 0) + float(amount))
 
         tx = SubAccountTransaction(
             sub_account_id=sub.id,

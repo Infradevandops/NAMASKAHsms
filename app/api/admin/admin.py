@@ -134,7 +134,7 @@ def manage_user_credits(
 
     # Update credits
     if operation == "add":
-        user.credits += amount
+        user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
         transaction_amount = amount
         description = "Admin added credits"
     else:
@@ -173,7 +173,7 @@ def add_user_credits(
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
-        user.credits += amount
+        user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
 
         transaction = Transaction(
             user_id=user_id,
@@ -479,7 +479,7 @@ async def admin_cancel_verification(
     # Refund user
     user = db.query(User).filter(User.id == verification.user_id).first()
     if user:
-        user.credits += verification.cost
+        user.credits = type(user.credits)(float(user.credits or 0) + float(verification.cost))
 
         # Create refund transaction
         transaction = Transaction(

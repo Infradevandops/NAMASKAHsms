@@ -179,7 +179,7 @@ class PaymentService:
                 raise ValueError(f"User {user_id} not found")
 
             # Update in transaction
-            user.credits = (user.credits or 0.0) + amount
+            user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
             payment_log.credited = True
             payment_log.state = "completed"
             payment_log.processing_completed_at = datetime.now(timezone.utc)

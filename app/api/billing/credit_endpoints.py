@@ -91,7 +91,7 @@ async def add_credits(
             raise HTTPException(status_code=404, detail="User not found")
 
         # Add credits
-        user.credits = (user.credits or 0.0) + amount
+        user.credits = type(user.credits)(float(user.credits or 0) + float(amount))
 
         # Create transaction record
         transaction = Transaction(
