@@ -60,7 +60,7 @@ class TestNotificationPreferences:
         """Test getting preferences when none exist."""
         response = client.get(
             "/api/notifications/preferences",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -69,7 +69,7 @@ class TestNotificationPreferences:
             assert len(data["defaults"]) == 4
 
     def test_get_preferences_with_data(
-        self, client, test_user, test_defaults, auth_headers, db: Session
+        self, client, test_user, test_defaults, auth_headers_factory, db: Session
     ):
         """Test getting preferences with existing data."""
         # Create a preference
@@ -85,7 +85,7 @@ class TestNotificationPreferences:
 
         response = client.get(
             "/api/notifications/preferences",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -98,7 +98,7 @@ class TestNotificationPreferences:
             assert data["preferences"][0]["frequency"] == "daily"
 
     def test_get_preferences_filter_by_type(
-        self, client, test_user, test_defaults, auth_headers, db: Session
+        self, client, test_user, test_defaults, auth_headers_factory, db: Session
     ):
         """Test filtering preferences by notification type."""
         # Create multiple preferences
@@ -121,7 +121,7 @@ class TestNotificationPreferences:
 
         response = client.get(
             "/api/notifications/preferences?notification_type=verification_initiated",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -150,7 +150,7 @@ class TestNotificationPreferences:
         response = client.put(
             "/api/notifications/preferences",
             json=payload,
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -159,7 +159,7 @@ class TestNotificationPreferences:
             assert data["updated"] == 0
 
     def test_update_preferences_update_existing(
-        self, client, test_user, test_defaults, auth_headers, db: Session
+        self, client, test_user, test_defaults, auth_headers_factory, db: Session
     ):
         """Test updating existing preferences."""
         # Create initial preference
@@ -189,7 +189,7 @@ class TestNotificationPreferences:
         response = client.put(
             "/api/notifications/preferences",
             json=payload,
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -216,7 +216,7 @@ class TestNotificationPreferences:
         response = client.put(
             "/api/notifications/preferences",
             json=payload,
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -242,12 +242,12 @@ class TestNotificationPreferences:
         response = client.put(
             "/api/notifications/preferences",
             json=payload,
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [400, 404, 405]
 
     def test_reset_preferences(
-        self, client, test_user, test_defaults, auth_headers, db: Session
+        self, client, test_user, test_defaults, auth_headers_factory, db: Session
     ):
         """Test resetting preferences to defaults."""
         # Create some preferences
@@ -268,7 +268,7 @@ class TestNotificationPreferences:
 
         response = client.post(
             "/api/notifications/preferences/reset",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -290,7 +290,7 @@ class TestNotificationPreferences:
         assert response.status_code in [401, 405]
 
     def test_user_isolation(
-        self, client, test_user, test_defaults, auth_headers, db: Session
+        self, client, test_user, test_defaults, auth_headers_factory, db: Session
     ):
         """Test that users can only see their own preferences."""
         # Create another user
@@ -314,7 +314,7 @@ class TestNotificationPreferences:
         # Get preferences as first user
         response = client.get(
             "/api/notifications/preferences",
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -324,7 +324,7 @@ class TestNotificationPreferences:
         # Get preferences as second user (should be empty)
         response = client.get(
             "/api/notifications/preferences",
-            headers=auth_headers(other_user.id),
+            headers=auth_headers_factory(other_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
@@ -368,7 +368,7 @@ class TestNotificationPreferences:
         response = client.put(
             "/api/notifications/preferences",
             json=payload,
-            headers=auth_headers(test_user.id),
+            headers=auth_headers_factory(test_user.id),
         )
         assert response.status_code in [200, 404, 405]
         if response.status_code == 200:
