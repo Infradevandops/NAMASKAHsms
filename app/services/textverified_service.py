@@ -77,7 +77,7 @@ class TextVerifiedService:
     # Live area code index — fetched from TextVerified, grouped by state
     # ------------------------------------------------------------------
 
-    async def get_area_codes_list(self) -> List[Dict[str, Any]]:
+    async def get_area_codes_list(self, service: str = None) -> List[Dict[str, Any]]:
         """Fetch live area codes from TextVerified API with aggressive caching."""
         if not self.enabled:
             return []
@@ -699,6 +699,7 @@ class TextVerifiedService:
     async def purchase_number(
         self,
         service: str,
+        country: str = "US",
         area_code: Optional[str] = None,
         carrier: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -776,18 +777,28 @@ class TextVerifiedService:
 
     async def buy_number(self, country: str, service: str, **kwargs) -> Dict[str, Any]:
         """Alias for purchase_number used by tests."""
-        return await self.purchase_number(country=country, service_name=service, **kwargs)
+        return await self.purchase_number(service=service, country=country, **kwargs)
 
     async def get_health_status(self) -> Dict[str, Any]:
         """Return service health status."""
         if not self.enabled:
-            return {"status": "disabled", "enabled": False}
+            return {"status": "error", "enabled": False, "error": "Service not configured"}
         try:
-            balance = await self.get_balance()
-            return {"status": "ok", "enabled": True, "balance": balance}
+            balance_data = await self.get_balance()
+            return {"status": "operational", "enabled": True, "balance": balance_data.get("balance", 0.0)}
         except Exception as e:
             return {"status": "error", "enabled": True, "error": str(e)}
 
-    async def get_area_codes_list(self, service: str = None) -> List[Dict[str, Any]]:
-        """Get area codes list, optionally filtered by service."""
-        return await self._get_area_codes_by_state()
+    async def get_account_balance(self) -> float:
+        """Legacy alias — returns balance as float."""
+        data = await self.get_balance()
+        return data.get("balance", 0.0)
+
+    async def cancel_number(self, verification_id: str) -> bool:
+        """Legacy alias for cancel_verification."""
+        result = await self.cancel_verification(verification_id)
+        return result.get("success", False)
+
+    async def get_number(self, service: str, country: str = "US", **kwargs) -> Dict[str, Any]:
+        """Legacy alias for buy_number."""
+        return await self.buy_number(country=country, service=service, **kwargs)
