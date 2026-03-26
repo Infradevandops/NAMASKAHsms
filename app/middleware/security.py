@@ -3,63 +3,74 @@
 import base64
 import os
 
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Receive, Scope, Send
 
 from app.core.config import get_settings
 
 
-class SecurityHeadersMiddleware(BaseHTTPMiddleware):
-    """Comprehensive security headers middleware."""
+class SecurityHeadersMiddleware:
+    """Pure ASGI security headers middleware.
 
-    def __init__(self, app):
-        super().__init__(app)
+    Replaces BaseHTTPMiddleware to avoid the WebSocket crash:
+    BaseHTTPMiddleware intercepts all ASGI scopes including websocket,
+    corrupting the message sequence and causing RuntimeError on accept().
+    """
+
+    def __init__(self, app: ASGIApp):
+        self.app = app
         self.settings = get_settings()
 
-    async def dispatch(self, request, call_next):
-        # Generate a per-request nonce for inline scripts
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        # Generate per-request nonce and attach to request.state
         nonce = base64.b64encode(os.urandom(16)).decode("utf-8")
-        request.state.csp_nonce = nonce
+        if "state" not in scope:
+            scope["state"] = {}
+        scope["state"]["csp_nonce"] = nonce
 
-        response = await call_next(request)
+        is_production = (
+            self.settings.environment == "production"
+        )
 
-        # Basic security headers
-        response.headers["X-Content-Type-Options"] = "nosniff"
-        response.headers["X-Frame-Options"] = "DENY"
-        response.headers["X-XSS-Protection"] = "1; mode=block"
-
-        # Content Security Policy — nonce-based inline scripts, unsafe-inline for event handlers
         csp_policy = (
             f"default-src 'self'; "
             f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
             f"script-src-attr 'unsafe-inline'; "
             f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
             f"font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
-            f"img-src 'self' data: https:; "
+            f"img-src 'self' data: https: https://cdn.simpleicons.org; "
             f"connect-src 'self' https://api.paystack.co https://checkout.paystack.com; "
             f"frame-src https://checkout.paystack.com; "
             f"object-src 'none'; "
             f"base-uri 'self';"
         )
-        response.headers["Content-Security-Policy"] = csp_policy
 
-        # HSTS (only in production with HTTPS)
-        if self.settings.environment == "production" and request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains"
-            )
+        async def send_with_headers(message: dict) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                headers["X-Content-Type-Options"] = "nosniff"
+                headers["X-Frame-Options"] = "DENY"
+                headers["X-XSS-Protection"] = "1; mode=block"
+                headers["Content-Security-Policy"] = csp_policy
+                headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+                headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+                headers["Cross-Origin-Opener-Policy"] = "same-origin"
+                if is_production:
+                    headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+            await send(message)
 
-        # Additional security headers
-        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Permissions-Policy"] = (
-            "geolocation=(), microphone=(), camera=()"
-        )
-        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
-
-        return response
+        await self.app(scope, receive, send_with_headers)
 
 
-class JWTAuthMiddleware(BaseHTTPMiddleware):
+class JWTAuthMiddleware:
     """Minimal JWT auth middleware."""
 
-    async def dispatch(self, request, call_next):
-        return await call_next(request)
+    def __init__(self, app: ASGIApp):
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        await self.app(scope, receive, send)

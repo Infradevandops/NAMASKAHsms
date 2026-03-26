@@ -3,7 +3,7 @@
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 
@@ -19,6 +19,11 @@ router = APIRouter(tags=["Pages"])
 # Templates directory
 TEMPLATES_DIR = Path("templates").resolve()
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
+
+
+@router.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.ico")
 
 
 @router.get("/", response_class=HTMLResponse)

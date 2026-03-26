@@ -148,12 +148,20 @@ class NotificationCenterModal {
 
     renderCategories(categories) {
         const list = document.getElementById('modal-categories-list');
-        list.innerHTML = categories.map(cat => `
-            <div class="category-item" onclick="notificationCenterModal.filterByCategory('${cat.type}')">
-                <span class="category-name">${this.formatCategoryName(cat.type)}</span>
-                <span class="category-count">${cat.unread}/${cat.total}</span>
-            </div>
-        `).join('');
+        if (!categories || !categories.length) {
+            list.innerHTML = '';
+            return;
+        }
+        list.innerHTML = categories.map(cat => {
+            const type = cat.type || cat.id || '';
+            const unread = cat.unread != null ? cat.unread : '';
+            const total = cat.total != null ? `/${cat.total}` : '';
+            return `
+            <div class="category-item" onclick="notificationCenterModal.filterByCategory('${type}')">
+                <span class="category-name">${this.formatCategoryName(type || cat.name || '')}</span>
+                ${unread !== '' ? `<span class="category-count">${unread}${total}</span>` : ''}
+            </div>`;
+        }).join('');
     }
 
     formatCategoryName(type) {
