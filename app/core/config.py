@@ -60,7 +60,7 @@ class Settings(BaseSettings):
 
     @property
     def from_email(self) -> str:
-        return self.smtp_username or "noreply@namaskahsms.onrender.com"
+        return self.smtp_username or "noreply@namaskah.app"
 
     # External API settings
     textverified_api_key: Optional[str] = None
