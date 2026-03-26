@@ -181,6 +181,24 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
                 await payment_service.credit_user_with_lock(user_id, amount, reference)
                 logger.info(f"Webhook processed: {reference}")
 
+                # Send payment receipt email (non-blocking)
+                try:
+                    from app.services.email_service import email_service
+                    user = db.query(User).filter(User.id == user_id).first()
+                    if user:
+                        asyncio.create_task(email_service.send_payment_receipt(
+                            user.email,
+                            {
+                                "reference": reference,
+                                "amount_usd": amount,
+                                "credits_added": amount,
+                                "new_balance": float(user.credits or 0) + float(amount),
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                            }
+                        ))
+                except Exception as email_err:
+                    logger.warning(f"Payment receipt email failed: {email_err}")
+
                 # Set subscription tier if this was an upgrade payment
                 upgrade_to = metadata.get("upgrade_to")
                 if upgrade_to in ("pro", "custom"):

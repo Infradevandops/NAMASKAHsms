@@ -20,23 +20,28 @@ class EmailNotificationService:
     """Service for sending notification emails."""
 
     def __init__(self, db: Optional[Session] = None):
-        """Initialize email notification service.
-
-        Args:
-            db: Database session (optional)
-        """
         settings = get_settings()
+        self.resend_api_key = settings.resend_api_key
         self.smtp_host = settings.smtp_host
         self.smtp_port = settings.smtp_port
         self.smtp_user = settings.smtp_user
         self.smtp_password = settings.smtp_password
         self.from_email = settings.from_email
-        self.enabled = bool(self.smtp_host and self.smtp_user and self.smtp_password)
         self.db = db
 
-        if self.enabled:
-            logger.info("Email notification service initialized")
+        if self.resend_api_key:
+            import resend
+            resend.api_key = self.resend_api_key
+            self.enabled = True
+            self._mode = "resend"
+            logger.info("Email notification service initialised — Resend")
+        elif self.smtp_host and self.smtp_user and self.smtp_password:
+            self.enabled = True
+            self._mode = "smtp"
+            logger.info("Email notification service initialised — SMTP")
         else:
+            self.enabled = False
+            self._mode = None
             logger.warning("Email notification service not configured")
 
     async def send_notification_email(
@@ -299,33 +304,29 @@ class EmailNotificationService:
             return False
 
     async def _send_email(self, to_email: str, subject: str, html_body: str) -> bool:
-        """Send email via SMTP.
-
-        Args:
-            to_email: Recipient email address
-            subject: Email subject
-            html_body: HTML email body
-
-        Returns:
-            True if email sent successfully, False otherwise
-        """
+        """Send email via Resend or SMTP."""
         try:
-            # Create message
+            if self._mode == "resend":
+                import resend
+                loop = asyncio.get_event_loop()
+                await loop.run_in_executor(None, lambda: resend.Emails.send({
+                    "from": f"Namaskah <{self.from_email}>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_body,
+                }))
+                return True
+
+            # SMTP fallback
             message = MIMEMultipart("alternative")
             message["Subject"] = subject
             message["From"] = self.from_email
             message["To"] = to_email
-
-            # Attach HTML body
-            html_part = MIMEText(html_body, "html")
-            message.attach(html_part)
-
-            # Send email asynchronously
+            message.attach(MIMEText(html_body, "html"))
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
                 None, self._send_smtp, to_email, message.as_string()
             )
-
             return True
 
         except Exception as e:
