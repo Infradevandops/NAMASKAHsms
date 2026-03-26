@@ -44,7 +44,8 @@ def get_user_tier(user_id: str, db: Session) -> str:
         return "freemium"
     # Admins always return their assigned tier — never fall back to freemium
     if getattr(user, "is_admin", False):
-        return user.subscription_tier or "custom"
+        tier = user.subscription_tier
+        return tier if tier in {"freemium", "payg", "pro", "custom"} else "custom"
     return user.subscription_tier or "freemium"
 
 
