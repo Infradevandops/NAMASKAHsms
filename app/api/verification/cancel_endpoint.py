@@ -11,10 +11,10 @@ from app.services.auto_refund_service import AutoRefundService
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/verification", tags=["Verification"])
+router = APIRouter(tags=["Verification"])
 
 
-@router.post("/verification/cancel/{verification_id}")
+@router.post("/cancel/{verification_id}")
 async def cancel_verification(
     verification_id: str,
     db: Session = Depends(get_db),

@@ -21,7 +21,7 @@ router.include_router(services_router)
 router.include_router(status_router)
 
 # Include cancel routes
-router.include_router(cancel_router)
+router.include_router(cancel_router, prefix="/verification")
 
 # Include outcome routes
 router.include_router(outcome_router)
