@@ -110,6 +110,23 @@ class SMSPollingService:
                         verification.sms_code = matches[-1] if matches else ""
                     db.commit()
 
+                    # Forward SMS to configured destinations (email/webhook)
+                    try:
+                        from app.api.core.forwarding import forward_sms_message
+                        asyncio.create_task(forward_sms_message(
+                            user_id=verification.user_id,
+                            sms_data={
+                                "message": verification.sms_text or "",
+                                "sms_code": verification.sms_code or "",
+                                "phone_number": verification.phone_number,
+                                "service": verification.service_name,
+                                "timestamp": datetime.now(timezone.utc).isoformat(),
+                            },
+                            db=db,
+                        ))
+                    except Exception as fwd_err:
+                        logger.warning(f"SMS forwarding failed: {fwd_err}")
+
                     try:
                         logger.info(
                             f"Recording successful verification for {verification.service_name}"

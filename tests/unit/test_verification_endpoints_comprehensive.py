@@ -29,7 +29,7 @@ class TestVerificationEndpoints:
             )
             mock_tv.return_value = mock_instance
 
-            response = client.get("/api/v1/verify/services")
+            response = client.get("/api/countries/US/services")
             assert response.status_code == 200
             data = response.json()
             assert data["success"] is True
@@ -43,7 +43,7 @@ class TestVerificationEndpoints:
             mock_instance.enabled = False
             mock_tv.return_value = mock_instance
 
-            response = client.get("/api/v1/verify/services")
+            response = client.get("/api/countries/US/services")
             assert response.status_code == 503
             data = response.json()
             assert "detail" in data or "message" in data or "error" in data
@@ -65,7 +65,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={"service_name": "telegram", "country": "US", "capability": "sms"},
             )
 
@@ -85,7 +85,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create",
+            "/api/verification/request",
             json={"service_name": "telegram", "country": "US", "capability": "sms"},
         )
 
@@ -115,7 +115,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={"service_name": "telegram", "country": "US", "capability": "sms"},
             )
 
@@ -128,7 +128,7 @@ class TestVerificationEndpoints:
     ):
         """Test verification creation without service name."""
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create", json={"country": "US", "capability": "sms"}
+            "/api/verification/request", json={"country": "US", "capability": "sms"}
         )
 
         assert response.status_code == 422  # Validation error
@@ -152,7 +152,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create",
+            "/api/verification/request",
             json={
                 "service_name": "telegram",
                 "country": "US",
@@ -190,7 +190,7 @@ class TestVerificationEndpoints:
                 mock_tv.return_value = mock_instance
 
                 response = client.post(
-                    "/api/v1/verify/create",
+                    "/api/verification/request",
                     json={
                         "service_name": "telegram",
                         "country": "US",
@@ -210,7 +210,7 @@ class TestVerificationEndpoints:
     ):
         """Test area code selection requires PayG tier."""
         response = authenticated_regular_client.post(
-            "/api/v1/verify/create",
+            "/api/verification/request",
             json={
                 "service_name": "telegram",
                 "country": "US",
@@ -236,7 +236,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_pro_client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={
                     "service_name": "telegram",
                     "country": "US",
@@ -260,7 +260,7 @@ class TestVerificationEndpoints:
 
         try:
             response = client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={
                     "service_name": "telegram",
                     "country": "US",
@@ -287,7 +287,7 @@ class TestVerificationEndpoints:
         db.add(verification)
         db.commit()
 
-        response = client.get(f"/api/v1/verify/{verification.id}")
+        response = client.get(f"/api/verification/status/{verification.id}")
         assert response.status_code == 200
         data = response.json()
         assert data["id"] == verification.id
@@ -296,7 +296,7 @@ class TestVerificationEndpoints:
 
     def test_get_verification_status_not_found(self, client):
         """Test getting status for non-existent verification."""
-        response = client.get("/api/v1/verify/nonexistent-id")
+        response = client.get("/api/verification/status/nonexistent-id")
         assert response.status_code == 404
 
     def test_get_verification_history_success(
@@ -316,7 +316,7 @@ class TestVerificationEndpoints:
             db.add(verification)
         db.commit()
 
-        response = authenticated_regular_client.get("/api/v1/verify/history")
+        response = authenticated_regular_client.get("/api/verify/history")
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
@@ -344,7 +344,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.get(
-            "/api/v1/verify/history?limit=5&offset=0"
+            "/api/verify/history?limit=5&offset=0"
         )
 
         # Endpoint doesn't exist yet
@@ -356,7 +356,7 @@ class TestVerificationEndpoints:
 
     def test_get_verification_history_empty(self, authenticated_regular_client):
         """Test getting history when no verifications exist."""
-        response = authenticated_regular_client.get("/api/v1/verify/history")
+        response = authenticated_regular_client.get("/api/verify/history")
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
@@ -388,7 +388,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.get(
-                f"/api/v1/verify/{verification.id}/status"
+                f"/api/verification/status/{verification.id}/status"
             )
 
         assert response.status_code == 200
@@ -421,7 +421,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.get(
-                f"/api/v1/verify/{verification.id}/status"
+                f"/api/verification/status/{verification.id}/status"
             )
 
         assert response.status_code == 200
@@ -434,7 +434,7 @@ class TestVerificationEndpoints:
     ):
         """Test polling for non-existent verification."""
         response = authenticated_regular_client.get(
-            "/api/v1/verify/nonexistent-id/status"
+            "/api/verification/status/nonexistent-id/status"
         )
 
         assert response.status_code == 404
@@ -462,7 +462,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.delete(
-                f"/api/v1/verify/{verification.id}"
+                f"/api/verification/status/{verification.id}"
             )
 
         assert response.status_code == 200
@@ -471,7 +471,7 @@ class TestVerificationEndpoints:
 
     def test_cancel_verification_not_found(self, authenticated_regular_client):
         """Test canceling non-existent verification."""
-        response = authenticated_regular_client.delete("/api/v1/verify/nonexistent-id")
+        response = authenticated_regular_client.delete("/api/verification/status/nonexistent-id")
 
         assert response.status_code == 404
 
@@ -493,7 +493,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.delete(
-            f"/api/v1/verify/{verification.id}"
+            f"/api/verification/status/{verification.id}"
         )
 
         assert response.status_code == 200
@@ -510,7 +510,7 @@ class TestVerificationEndpoints:
             mock_tv.return_value = mock_instance
 
             response = authenticated_regular_client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={"service_name": "telegram", "country": "US", "capability": "sms"},
             )
 
@@ -527,7 +527,7 @@ class TestVerificationEndpoints:
 
         try:
             response = client.post(
-                "/api/v1/verify/create",
+                "/api/verification/request",
                 json={"service_name": "telegram", "country": "US", "capability": "sms"},
             )
 

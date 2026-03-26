@@ -36,6 +36,7 @@ from app.models.carrier_analytics import CarrierAnalytics
 from app.models.verification_preset import VerificationPreset
 from app.models.waitlist import Waitlist
 from app.models.reseller import ResellerAccount, SubAccount, SubAccountTransaction, CreditAllocation, BulkOperation
+from app.models.forwarding import ForwardingConfig
 from app.utils.security import create_access_token
 from main import app
 
