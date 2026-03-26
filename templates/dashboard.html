@@ -157,7 +157,7 @@ endblock %}
 <script type="module" src="/static/js/response-validator.js?v=20260112"></script>
 
 <!-- New modular architecture -->
-<script type="module">
+<script type="module" nonce="{{ request.state.csp_nonce }}">
     /**
      * Dashboard Initialization
      * Uses new modular architecture from static/js/
