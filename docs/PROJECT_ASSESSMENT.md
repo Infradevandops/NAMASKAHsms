@@ -1,198 +1,179 @@
-# Namaskah — Project Assessment
-
-**Date**: March 2026  
-**Version**: v4.4.1  
-**Assessed by**: Amazon Q
+# Namaskah Project Assessment
+March 2026 — v4.4.1
 
 ---
 
-## Overview
+## What the app does
 
-Namaskah is an SMS verification platform. Users buy credits, get temporary phone numbers via TextVerified, and receive OTP codes. Payments via Paystack. Hosted on Render.com (free tier).
+SMS verification platform. Users buy credits → get a temporary phone number via TextVerified → receive an OTP code on it. Payments via Paystack. Hosted on Render.com.
 
-**Stack**: FastAPI/Python 3.9, PostgreSQL, Redis, TextVerified API, Paystack, Jinja2 templates, vanilla JS frontend.
-
----
-
-## Scale
-
-| Component | Count |
-|-----------|-------|
-| Python source lines | 39,448 |
-| Services | 52 |
-| Models | 36 |
-| API route files | 95 |
-| HTML templates | 50 |
-| JS files | 52 |
-| Test files | 184 |
-| DB migrations | 12 |
-| Git commits | 399 |
+Stack → FastAPI / Python 3.9 / PostgreSQL / Redis / Jinja2 templates / vanilla JS
 
 ---
 
-## What's Working ✅
+## Size
 
-- **Core verification flow** — TextVerified called first, credits deducted after success, Decimal/float arithmetic correct, `verification.cost` synced after refund
-- **Auth** — JWT login/register, Google OAuth, token revocation, password reset
-- **Wallet** — Paystack payment init, webhook processing, credit deduction, transaction history
-- **Tier system** — Freemium/PAYG/Pro/Custom, quota tracking, overage billing, tier gating
-- **Admin** — User management, verification history, audit logs, KYC
-- **Notifications** — WebSocket real-time, email, mobile push, notification preferences
-- **Refund system** — Auto-refund on area code/carrier mismatch (v4.4.1)
-- **CI pipeline** — 5 jobs: secrets scan, code quality, security, tests, deployment readiness
-- **Test suite** — 1,306/1,780 passing (73.4%), 0 collection errors
+39,000 lines of Python
+52 services → 36 models → 95 API route files
+50 HTML templates → 52 JS files → 184 test files
+12 DB migrations → 399 git commits
 
 ---
 
-## Critical Issues 🔴
+## What's confirmed working
 
-### 1. Duplicate `payment_logs` table
-**Files**: `app/models/payment.py` and `app/models/transaction.py` both define `__tablename__ = "payment_logs"`  
-**Risk**: SQLAlchemy mapper conflict if both are imported in the same process. Currently avoided by only importing `Transaction` from `transaction.py`, but any future import of `payment.py` will crash the app.  
-**Fix**: Delete `app/models/payment.py` or rename its table. Audit all imports.
-
-### 2. SMTP not configured
-**Impact**: Email verification and password reset are silently disabled in production. Users who register cannot verify their email. Users who forget their password cannot reset it.  
-**Fix**: Set `SMTP_USERNAME` and `SMTP_PASSWORD` in Render environment variables.
-
-### 3. `SMSForwarding` model references non-existent `rentals` table
-**File**: `app/models/sms_forwarding.py` — `ForeignKey("rentals.id")`  
-**Risk**: Any migration or `create_all` that includes this model will fail with `NoReferencedTableError`. Currently avoided by not importing it in conftest, but it's a landmine.  
-**Fix**: Remove the FK or create the `rentals` table if SMS forwarding is a planned feature.
+Auth → JWT login, register, Google OAuth, token revocation
+Wallet → Paystack payment init, webhook, credit deduction, transaction history
+Tier system → Freemium / PAYG / Pro / Custom, quota, overage billing, tier gating
+Admin tier → Fixed. Admin always gets custom tier, never falls to freemium
+Admin panel → User management, verification history, audit logs, KYC
+Notifications → WebSocket real-time, mobile push, notification preferences
+Test suite → 1,306 / 1,780 passing (73.4%), 0 collection errors (was 56)
+CI pipeline → 5 jobs configured: secrets, quality, security, tests, deployment
 
 ---
 
-## High Priority Issues 🟠
+## What's code-correct but NOT confirmed live in production
 
-### 4. 22 dead services with zero imports
-These services exist in `app/services/` but nothing in the app imports them:
-
-| Service | Notes |
-|---------|-------|
-| `activity_service` | Activity logging — not wired up |
-| `adaptive_polling` | Alternative polling strategy — unused |
-| `alerting_service` | Alerts — not connected |
-| `analytics_service` | Analytics — not wired to any router |
-| `audit_service` | Audit logging — not used |
-| `business_intelligence` | BI reporting — not used |
-| `commission_engine` | Affiliate commissions — not wired |
-| `currency_service` | Currency conversion — not used |
-| `error_handling` | Error handling — not used |
-| `event_broadcaster` | WebSocket events — not wired |
-| `event_service` | Events — not used |
-| `fraud_detection_service` | Fraud detection — not used |
-| `mfa_service` | MFA — not used |
-| `pricing_template_service` | Pricing templates — not wired |
-| `reseller_service` | Reseller — service created, no API endpoints |
-| `sms_gateway` | SMS gateway — not used |
-| `transaction_service` | Transactions — not used |
-| `verification_pricing_service` | Pricing — not used |
-| `webhook_notification_service` | Webhook notifications — not used |
-| `whitelabel_enhanced` | Whitelabel — not wired |
-
-**Risk**: Maintenance burden, confusion about what's active, dead code inflating codebase size.  
-**Fix**: Either wire them up or delete them. Don't leave half-built features silently sitting.
-
-### 5. Reseller system half-built
-`app/services/reseller_service.py` and `app/models/reseller.py` exist with full data models (`ResellerAccount`, `SubAccount`, `SubAccountTransaction`, `BulkOperation`) but there are **zero API endpoints**. Users cannot access reseller functionality.  
-**Fix**: Either build the endpoints or remove the models/service until ready.
-
-### 6. WhiteLabel half-built
-`app/services/whitelabel_enhanced.py`, `app/models/whitelabel.py`, `app/models/whitelabel_enhanced.py` exist but no active API routes serve them.  
-**Fix**: Same as reseller — build or remove.
-
-### 7. CI Tests job still failing
-474 test failures remaining. Coverage at 36% (target 60%). Three CI jobs failing:
-- Secrets Detection (Gitleaks) — not investigated
-- Security Scan (Bandit/Safety/Semgrep) — not verified
-- Tests — 474 failures, coverage below threshold
-
-See `docs/tasks/CI_TEST_FAILURES.md` for full breakdown.
+Verification flow → TextVerified called first, credits deducted after, cost synced after refund — unit tested only, never confirmed with a real API call on Render
+SMS polling → Logic correct, unit tests pass with mocks — never confirmed a real OTP was received end-to-end
+Refund system → Auto-refund on area code / carrier mismatch — unit tested only, never confirmed credits land back in production
+Email → SMTP not configured so email verification and password reset are silently broken
 
 ---
 
-## Medium Priority Issues 🟡
+## Things that need a live test on production
 
-### 8. `namaskah_fallback.db` in repo root
-A 932KB SQLite fallback database sits in the project root. It's in `.gitignore` so not tracked by git, but it exists locally and gets created whenever PostgreSQL is unavailable (e.g. local dev without Postgres running). This file may contain real user data from local testing.  
-**Fix**: Add to `.gitignore` explicitly (already there), delete the file, and ensure it's never committed.
-
-### 9. Render free tier limitations
-Currently on Render free plan:
-- **Spins down after 15 minutes of inactivity** — first request after sleep takes 30–60 seconds
-- **512MB RAM** — may be tight with 2 Uvicorn workers + PostgreSQL connections
-- **750 hours/month** — enough for one service running continuously
-
-**Fix**: Upgrade to Render Starter ($7/month) to eliminate cold starts. Critical for user experience.
-
-### 10. No database backup active
-`scripts/backup_database.py` is written and the CI job exists, but it requires AWS S3 credentials (`BACKUP_S3_BUCKET`, `AWS_ACCESS_KEY_ID`, etc.) which aren't set. If the Render PostgreSQL database is corrupted or accidentally dropped, there is no recovery path.  
-**Fix**: Set up S3 bucket and credentials, or use an alternative free backup (pg_dump to GitHub artifact, Supabase, etc.).
-
-### 11. Multiple CI workflow files
-`.github/workflows/` contains: `ci.yml` (active), `ci-simple.yml` (disabled), `ci-strict.yml` (disabled), `deploy.yml`, `security-testing.yml`, `sync-to-gitlab.yml`.  
-The disabled files are marked `[DISABLED - use ci.yml]` but still exist.  
-**Fix**: Delete `ci-simple.yml` and `ci-strict.yml` to reduce confusion.
-
-### 12. Python version inconsistency
-CI uses Python 3.11 (`env.PYTHON_VERSION: '3.11'`). Local `.venv` uses Python 3.9.6. No `.python-version` file to enforce consistency.  
-**Fix**: Add `.python-version` file with `3.11`, recreate venv with Python 3.11 to match CI.
-
-### 13. `test_payment_race_condition.py` — segfault risk
-This file causes a process-level segfault that kills the entire pytest run. Currently only `--ignore`d in CI. It's not skipped, it's not deleted — it's a live grenade.  
-**Fix**: Delete it.
-
-### 14. Alembic migrations not chained properly
-Migration files use non-standard revision IDs (`quota_pricing_v3_1`, `safe_add_tiers`) instead of Alembic-generated hashes. The chain is incomplete — `safe_add_tiers` has `down_revision = None` suggesting it's a root, but there are 12 migration files with unclear ordering.  
-**Fix**: Run `alembic history` on production to confirm current state. Ensure all migrations are applied and the chain is linear.
+Create a verification → confirm a real phone number comes back
+Use that number on Telegram or WhatsApp → confirm OTP arrives
+Complete a Paystack test payment → confirm credits land
+Request a specific area code, get a different one → confirm refund hits balance
+Register a new user → confirm verification email arrives (needs SMTP first)
+Trigger password reset → confirm email arrives with working link
+Log in as admin after cold start → confirm tier shows custom at /api/tiers/current
+Hit the app after 15+ min idle → measure how long cold start takes
 
 ---
 
-## Low Priority / Future 🟢
+## Critical — fix now
 
-### 15. `BASE_URL` not in `.env`
-Config references `BASE_URL` but it's not set in `.env`. May affect email links, OAuth callbacks, or webhook URLs.  
-**Fix**: Add `BASE_URL=https://namaskah.onrender.com` to Render env vars.
+1. Duplicate payment_logs table
+   app/models/payment.py and app/models/transaction.py both define the same table name
+   → SQLAlchemy will crash if both are ever imported together
+   → Delete app/models/payment.py or rename its table
 
-### 16. Hypothesis test data in repo
-`.hypothesis/constants/` contains 200+ binary files from property-based testing. These are test artifacts, not source code.  
-**Fix**: Add `.hypothesis/` to `.gitignore` and remove from repo.
+2. SMTP not configured
+   Email verification and password reset are silently disabled
+   → Set SMTP_USERNAME and SMTP_PASSWORD in Render environment variables
 
-### 17. Monitoring stack not connected
-`monitoring/` directory has full Prometheus + Grafana config, but it's not running. `app/core/metrics.py` and `app/middleware/prometheus.py` exist but Prometheus isn't scraping anything in production.  
-**Fix**: Either set up monitoring or remove the dead config to reduce confusion.
-
-### 18. i18n partially implemented
-9 locale files exist (`en`, `es`, `fr`, `de`, `ar`, `hi`, `ja`, `pt`, `zh`). `app/utils/i18n.py` exists. But `test_i18n.py` and `test_i18n_frontend.py` are ignored in CI — suggesting i18n is incomplete or broken.  
-**Fix**: Either complete i18n or remove it from the codebase until ready.
-
-### 19. Forwarding feature disabled
-`app/api/core/forwarding.py` is imported in `main.py` but the router is commented out (`# from app.api.core.forwarding import router as forwarding_router`). `SMSForwarding` model references a non-existent `rentals` table.  
-**Fix**: Either complete the feature or remove the model and router file.
-
-### 20. `scripts/` directory cluttered
-60+ scripts in `scripts/` root, many one-off migration/diagnostic scripts (`purchase_new_215.py`, `distribute_users.py`, `clean_test_balances.py`). These are operational scripts that ran once and should be archived.  
-**Fix**: Move one-off scripts to `scripts/archive/` or delete them.
+3. SMSForwarding model points to a table that doesn't exist
+   app/models/sms_forwarding.py has a ForeignKey to rentals.id — that table was never created
+   → Remove the FK or create the rentals table if forwarding is a planned feature
 
 ---
 
-## Action Priority
+## High priority — fix soon
 
-| Priority | Item | Effort |
-|----------|------|--------|
-| 🔴 Now | Fix duplicate `payment_logs` table | 30 min |
-| 🔴 Now | Configure SMTP in Render | 5 min |
-| 🔴 Now | Fix `SMSForwarding` FK to non-existent table | 15 min |
-| 🟠 Soon | Delete 22 dead services or wire them up | 2–4 hrs |
-| 🟠 Soon | Delete `test_payment_race_condition.py` | 1 min |
-| 🟠 Soon | Fix remaining CI jobs (Gitleaks, Bandit, coverage) | 2–4 hrs |
-| 🟡 Next | Upgrade Render to Starter plan | 5 min |
-| 🟡 Next | Set up DB backup (S3 or alternative) | 1 hr |
-| 🟡 Next | Add `.python-version` file, align to 3.11 | 30 min |
-| 🟡 Next | Delete `ci-simple.yml`, `ci-strict.yml` | 5 min |
-| 🟢 Later | Complete or remove reseller system | 1–2 days |
-| 🟢 Later | Complete or remove whitelabel system | 1–2 days |
-| 🟢 Later | Add `.hypothesis/` to `.gitignore` | 5 min |
-| 🟢 Later | Archive one-off scripts | 30 min |
-| 🟢 Later | Complete or remove i18n | 1 day |
-| 🟢 Later | Complete or remove forwarding feature | 1 day |
+4. 22 dead services with zero imports
+   These files exist in app/services/ but nothing in the app calls them:
+   activity_service, adaptive_polling, alerting_service, analytics_service,
+   audit_service, business_intelligence, commission_engine, currency_service,
+   error_handling, event_broadcaster, event_service, fraud_detection_service,
+   mfa_service, pricing_template_service, reseller_service, sms_gateway,
+   transaction_service, verification_pricing_service, webhook_notification_service,
+   whitelabel_enhanced
+   → Wire them up or delete them
+
+5. Reseller system half-built
+   Models and service exist → no API endpoints → users can't access it
+   → Build the endpoints or remove everything until ready
+
+6. WhiteLabel half-built
+   Models and service exist → no active API routes serve them
+   → Same as reseller — build or remove
+
+7. CI still failing
+   474 test failures remaining → coverage at 36% (target 60%)
+   Gitleaks job → not investigated
+   Bandit / Safety / Semgrep → not verified
+   → See docs/tasks/CI_TEST_FAILURES.md for full breakdown
+
+8. test_payment_race_condition.py causes a process-level segfault
+   Currently only ignored in CI — not deleted
+   → Delete it
+
+---
+
+## Medium priority — fix next
+
+9. Render free tier cold starts
+   App spins down after 15 min of inactivity → first request takes 30–60 seconds
+   512MB RAM → tight with 2 workers and DB connections
+   → Upgrade to Render Starter ($7/month) to eliminate cold starts
+
+10. No database backup running
+    Backup script is written → CI job exists → but S3 credentials are not set
+    If the Render DB is dropped there is no recovery path
+    → Set up S3 credentials or use an alternative free backup method
+
+11. Python version mismatch
+    CI uses Python 3.11 → local venv uses Python 3.9.6 → no .python-version file
+    → Add .python-version with 3.11, recreate venv to match CI
+
+12. Alembic migration chain unclear
+    12 migration files with non-standard revision IDs and unclear ordering
+    safe_add_tiers has down_revision = None suggesting it's a root but the chain is incomplete
+    → Run alembic history on production to confirm current state
+
+13. Two disabled CI workflow files still in repo
+    ci-simple.yml and ci-strict.yml are marked disabled but still exist
+    → Delete them
+
+---
+
+## Low priority — fix later
+
+14. BASE_URL not set in environment
+    Config references BASE_URL but it's missing → may break email links and OAuth callbacks
+    → Add BASE_URL=https://namaskah.onrender.com to Render env vars
+
+15. .hypothesis/ folder in repo
+    200+ binary test artifact files committed to git
+    → Add .hypothesis/ to .gitignore and remove from repo
+
+16. Monitoring stack not connected
+    Full Prometheus + Grafana config exists in monitoring/ but nothing is running
+    → Set it up or remove the dead config
+
+17. i18n partially implemented
+    9 locale files exist → i18n tests are ignored in CI → feature is incomplete
+    → Complete it or remove it
+
+18. Forwarding feature disabled
+    Router is commented out in main.py → model references non-existent rentals table
+    → Complete the feature or remove the model and router file
+
+19. scripts/ directory cluttered
+    60+ scripts in root including one-off migration and diagnostic scripts
+    → Move one-off scripts to scripts/archive/ or delete them
+
+---
+
+## Action order
+
+Fix duplicate payment_logs table → 30 min
+Configure SMTP in Render → 5 min
+Fix SMSForwarding FK → 15 min
+Delete test_payment_race_condition.py → 1 min
+Delete 22 dead services or wire them up → 2–4 hrs
+Fix remaining CI jobs → 2–4 hrs
+Upgrade Render to Starter plan → 5 min
+Set up DB backup → 1 hr
+Add .python-version file → 30 min
+Delete ci-simple.yml and ci-strict.yml → 5 min
+Complete or remove reseller system → 1–2 days
+Complete or remove whitelabel system → 1–2 days
+Add .hypothesis/ to .gitignore → 5 min
+Archive one-off scripts → 30 min
+Complete or remove i18n → 1 day
+Complete or remove forwarding feature → 1 day

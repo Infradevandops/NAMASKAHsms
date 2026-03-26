@@ -140,14 +140,10 @@ class TestVerificationRequestEndpoint:
         # Freemium users get 402; PAYG+ users succeed
         assert response.status_code in [200, 201, 400, 402, 500]
     
-    def test_create_verification_insufficient_balance(self, client: TestClient, auth_headers_factory: dict, db: Session):
+    def test_create_verification_insufficient_balance(self, client: TestClient, auth_headers_factory: dict, db: Session, test_user):
         """Should reject if insufficient balance"""
-        # Set user balance to $0
-        from app.models.user import User
-        user = db.query(User).filter(User.email == "test@example.com").first()
-        if user:
-            user.credits = 0.0
-            db.commit()
+        test_user.credits = 0.0
+        db.commit()
         
         payload = {
             "service": "whatsapp",

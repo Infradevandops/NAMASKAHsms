@@ -160,6 +160,12 @@ class Settings(BaseSettings):
     backup_enabled: bool = False
     backup_interval_hours: int = 24
 
+    # SMS polling
+    sms_polling_initial_interval_seconds: float = 5.0
+    sms_polling_later_interval_seconds: float = 10.0
+    sms_polling_max_minutes: int = 10
+    sms_polling_error_backoff_seconds: float = 15.0
+
     # Development settings
     reload: bool = False
     workers: int = 1
