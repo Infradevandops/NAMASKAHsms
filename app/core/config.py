@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     smtp_port: int = 587
     smtp_username: Optional[str] = None
     smtp_password: Optional[str] = None
+    resend_api_key: Optional[str] = None
     smtp_use_tls: bool = True
 
     # Backward-compat aliases

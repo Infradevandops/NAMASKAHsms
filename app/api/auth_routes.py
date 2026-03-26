@@ -154,6 +154,20 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
         db.commit()
         db.refresh(user)
 
+        # Send verification email (non-blocking — don't fail registration if email fails)
+        try:
+            import uuid
+            from app.services.email_service import email_service
+            verification_token = uuid.uuid4().hex
+            user.verification_token = verification_token
+            db.commit()
+            base_url = settings.base_url if hasattr(settings, 'base_url') and settings.base_url else "https://namaskah.onrender.com"
+            asyncio.create_task(
+                email_service.send_verification_email(user.email, verification_token, base_url)
+            )
+        except Exception as email_err:
+            logger.warning(f"Verification email failed for {user.email}: {email_err}")
+
         # Generate JWT token
         token_data = {
             "user_id": str(user.id),
