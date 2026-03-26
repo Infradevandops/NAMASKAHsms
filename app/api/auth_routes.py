@@ -161,7 +161,7 @@ async def register(register_data: RegisterRequest, db: Session = Depends(get_db)
             verification_token = uuid.uuid4().hex
             user.verification_token = verification_token
             db.commit()
-            base_url = settings.base_url if hasattr(settings, 'base_url') and settings.base_url else "https://namaskah.onrender.com"
+            base_url = settings.base_url if hasattr(settings, 'base_url') and settings.base_url else "https://namaskahsms.onrender.com"
             asyncio.create_task(
                 email_service.send_verification_email(user.email, verification_token, base_url)
             )
