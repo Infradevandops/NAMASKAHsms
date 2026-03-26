@@ -301,8 +301,9 @@ async def request_verification(
                     f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
                     f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
                 )
-                # Adjust actual cost if refund was issued
+                # Adjust actual cost and sync back to verification record
                 actual_cost -= refund_result["refund_amount"]
+                verification.cost = type(verification.cost)(actual_cost)
 
             # Record carrier analytics for tracking preferences vs assignments
             if carrier:
