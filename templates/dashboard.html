@@ -342,14 +342,10 @@ endblock %}
         initDashboard();
     }
 
-    // Update tier card with live data (i18n-aware)
+    // Update tier card with live data
     (async function() {
         const token = localStorage.getItem('access_token');
         if (!token) return;
-        
-        // Wait for i18n to be ready
-        await window.i18nReady;
-        
         try {
             const ctrl = new AbortController();
             const tid = setTimeout(() => ctrl.abort(), 8000);
