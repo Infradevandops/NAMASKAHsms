@@ -22,6 +22,10 @@ TIER_FEATURES = {
 
 def require_tier(user: User, feature: str):
     """Validate user has required tier for feature."""
+    # Admins always pass any tier gate
+    if getattr(user, "is_admin", False):
+        return True
+
     required_tiers = TIER_FEATURES.get(feature, [])
 
     if user.subscription_tier not in required_tiers:

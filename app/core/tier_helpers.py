@@ -42,6 +42,9 @@ def get_user_tier(user_id: str, db: Session) -> str:
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         return "freemium"
+    # Admins always return their assigned tier — never fall back to freemium
+    if getattr(user, "is_admin", False):
+        return user.subscription_tier or "custom"
     return user.subscription_tier or "freemium"
 
 
