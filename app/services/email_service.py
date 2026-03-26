@@ -23,7 +23,7 @@ class EmailService:
         self.smtp_port = settings.smtp_port
         self.smtp_user = settings.smtp_username
         self.smtp_password = settings.smtp_password
-        self.from_email = settings.smtp_username or "noreply@namaskah.app"
+        self.from_email = settings.smtp_username or "noreply@namaskahsms.onrender.com"
         self.from_name = "Namaskah"
 
         if self.resend_api_key:
