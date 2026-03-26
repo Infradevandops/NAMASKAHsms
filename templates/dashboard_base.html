@@ -244,16 +244,13 @@ console.log('[Embedded] Translations loaded:', Object.keys(window.EMBEDDED_TRANS
 <script src="/static/js/real-time-dashboard.js" defer></script>
 -->
 <script nonce="{{ request.state.csp_nonce }}">
-    // Load tier badge in header (i18n-aware)
+    // Load tier badge in header
     (async function loadHeaderTierBadge() {
         const badge = document.getElementById('header-tier-badge');
         if (!badge) return;
         
         const token = localStorage.getItem('access_token');
         if (!token) return;
-        
-        // Wait for i18n to be ready
-        await window.i18nReady;
         
         try {
             const response = await fetch('/api/tiers/current', {
