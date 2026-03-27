@@ -6,7 +6,7 @@ import sys
 
 BASE_URL = "http://localhost:9876"
 ADMIN_EMAIL = "admin@namaskah.app"
-ADMIN_PASSWORD = "Namaskah@Admin2024"
+ADMIN_PASSWORD = "<admin-password>"
 
 print("🧪 Testing Admin Login API")
 print("=" * 60)

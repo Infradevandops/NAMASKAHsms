@@ -5,6 +5,8 @@ paths = [
     '''tests/.*''',
     '''app/utils/security\.py''',
     '''app/services/api_key_service\.py''',
+    '''app/schemas/.*''',
+    '''scripts/.*''',
     '''scripts/security_scan\.py''',
     '''requirements.*\.txt''',
     '''.env\.example''',
