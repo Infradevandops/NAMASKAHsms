@@ -63,9 +63,7 @@ class ResellerService:
         if not reseller:
             return {"error": "Reseller account not found"}
 
-        existing = (
-            self.db.query(SubAccount).filter(SubAccount.email == email).first()
-        )
+        existing = self.db.query(SubAccount).filter(SubAccount.email == email).first()
         if existing:
             return {"error": "Email already exists"}
 
@@ -88,11 +86,7 @@ class ResellerService:
             .filter(ResellerAccount.id == reseller_id)
             .first()
         )
-        sub = (
-            self.db.query(SubAccount)
-            .filter(SubAccount.id == sub_account_id)
-            .first()
-        )
+        sub = self.db.query(SubAccount).filter(SubAccount.id == sub_account_id).first()
         if not reseller or not sub:
             return {"error": "Invalid reseller or sub - account"}
 
@@ -159,9 +153,7 @@ class ResellerService:
             .all()
         )
 
-        total_allocated = sum(
-            t.amount for t in txs if t.transaction_type == "credit"
-        )
+        total_allocated = sum(t.amount for t in txs if t.transaction_type == "credit")
         total_usage = sum(t.amount for t in txs if t.transaction_type == "debit")
 
         return {

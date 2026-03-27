@@ -479,7 +479,9 @@ async def admin_cancel_verification(
     # Refund user
     user = db.query(User).filter(User.id == verification.user_id).first()
     if user:
-        user.credits = type(user.credits)(float(user.credits or 0) + float(verification.cost))
+        user.credits = type(user.credits)(
+            float(user.credits or 0) + float(verification.cost)
+        )
 
         # Create refund transaction
         transaction = Transaction(

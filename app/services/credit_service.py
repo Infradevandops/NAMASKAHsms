@@ -394,7 +394,9 @@ class CreditService:
 
         # Perform transfer
         from_user.credits = (from_user.credits or 0.0) - amount
-        to_user.credits = type(to_user.credits)(float(to_user.credits or 0) + float(amount))
+        to_user.credits = type(to_user.credits)(
+            float(to_user.credits or 0) + float(amount)
+        )
 
         # Create transaction records
         from_transaction = Transaction(

@@ -1,5 +1,6 @@
 """Payment endpoints for billing operations."""
 
+import asyncio
 import json
 import uuid
 from datetime import datetime, timezone
@@ -184,18 +185,22 @@ async def paystack_webhook(request: Request, db: Session = Depends(get_db)):
                 # Send payment receipt email (non-blocking)
                 try:
                     from app.services.email_service import email_service
+
                     user = db.query(User).filter(User.id == user_id).first()
                     if user:
-                        asyncio.create_task(email_service.send_payment_receipt(
-                            user.email,
-                            {
-                                "reference": reference,
-                                "amount_usd": amount,
-                                "credits_added": amount,
-                                "new_balance": float(user.credits or 0) + float(amount),
-                                "timestamp": datetime.now(timezone.utc).isoformat(),
-                            }
-                        ))
+                        asyncio.create_task(
+                            email_service.send_payment_receipt(
+                                user.email,
+                                {
+                                    "reference": reference,
+                                    "amount_usd": amount,
+                                    "credits_added": amount,
+                                    "new_balance": float(user.credits or 0)
+                                    + float(amount),
+                                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                                },
+                            )
+                        )
                 except Exception as email_err:
                     logger.warning(f"Payment receipt email failed: {email_err}")
 

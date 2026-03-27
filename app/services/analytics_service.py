@@ -155,8 +155,9 @@ class AnalyticsService:
         return groups
 
     def calculate_daily_stats(self, verifications: list, days: int = 30) -> list:
-        from datetime import datetime, timedelta
         from collections import defaultdict
+        from datetime import datetime, timedelta
+
         buckets = defaultdict(int)
         for v in verifications:
             created = v.get("created_at")

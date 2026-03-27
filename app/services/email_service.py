@@ -28,6 +28,7 @@ class EmailService:
 
         if self.resend_api_key:
             import resend
+
             resend.api_key = self.resend_api_key
             self.enabled = True
             self._mode = "resend"
@@ -55,13 +56,19 @@ class EmailService:
 
     async def _send_resend(self, to_email: str, subject: str, html_body: str) -> bool:
         import resend
+
         loop = asyncio.get_event_loop()
-        await loop.run_in_executor(None, lambda: resend.Emails.send({
-            "from": f"{self.from_name} <{self.from_email}>",
-            "to": [to_email],
-            "subject": subject,
-            "html": html_body,
-        }))
+        await loop.run_in_executor(
+            None,
+            lambda: resend.Emails.send(
+                {
+                    "from": f"{self.from_name} <{self.from_email}>",
+                    "to": [to_email],
+                    "subject": subject,
+                    "html": html_body,
+                }
+            ),
+        )
         logger.info(f"Email sent via Resend to {to_email}: {subject}")
         return True
 
@@ -84,28 +91,39 @@ class EmailService:
 
     # ── Public methods ────────────────────────────────────────────────────────
 
-    async def send_payment_receipt(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
+    async def send_payment_receipt(
+        self, user_email: str, payment_details: Dict[str, Any]
+    ) -> bool:
         return await self._send(
             user_email,
             "Payment Receipt — Namaskah",
             self._receipt_html(payment_details),
         )
 
-    async def send_payment_failed_alert(self, user_email: str, payment_details: Dict[str, Any]) -> bool:
+    async def send_payment_failed_alert(
+        self, user_email: str, payment_details: Dict[str, Any]
+    ) -> bool:
         return await self._send(
             user_email,
             "Payment Failed — Namaskah",
             self._failed_html(payment_details),
         )
 
-    async def send_refund_notification(self, user_email: str, refund_details: Dict[str, Any]) -> bool:
+    async def send_refund_notification(
+        self, user_email: str, refund_details: Dict[str, Any]
+    ) -> bool:
         return await self._send(
             user_email,
             "Refund Processed — Namaskah",
             self._refund_html(refund_details),
         )
 
-    async def send_verification_email(self, user_email: str, verification_token: str, base_url: str = "https://namaskah.onrender.com") -> bool:
+    async def send_verification_email(
+        self,
+        user_email: str,
+        verification_token: str,
+        base_url: str = "https://namaskah.onrender.com",
+    ) -> bool:
         verify_url = f"{base_url}/api/auth/verify-email?token={verification_token}"
         html = f"""
         <html><body style="font-family:Arial,sans-serif;color:#333;">
@@ -119,7 +137,12 @@ class EmailService:
         """
         return await self._send(user_email, "Verify your Namaskah email", html)
 
-    async def send_password_reset(self, user_email: str, reset_token: str, base_url: str = "https://namaskah.onrender.com") -> bool:
+    async def send_password_reset(
+        self,
+        user_email: str,
+        reset_token: str,
+        base_url: str = "https://namaskah.onrender.com",
+    ) -> bool:
         reset_url = f"{base_url}/reset-password?token={reset_token}"
         html = f"""
         <html><body style="font-family:Arial,sans-serif;color:#333;">

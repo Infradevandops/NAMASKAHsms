@@ -88,7 +88,9 @@ class RefundService:
 
             if refund_amount > 0:
                 # Issue refund
-                user.credits = type(user.credits)(float(user.credits or 0) + float(refund_amount))
+                user.credits = type(user.credits)(
+                    float(user.credits or 0) + float(refund_amount)
+                )
 
                 # Create transaction record
                 await self._create_refund_transaction(
@@ -119,7 +121,9 @@ class RefundService:
                 reasons.append("carrier_mismatch")
 
             # Issue refund
-            user.credits = type(user.credits)(float(user.credits or 0) + float(refund_amount))
+            user.credits = type(user.credits)(
+                float(user.credits or 0) + float(refund_amount)
+            )
 
             # Create transaction record
             await self._create_refund_transaction(

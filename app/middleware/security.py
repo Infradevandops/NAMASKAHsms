@@ -32,9 +32,7 @@ class SecurityHeadersMiddleware:
             scope["state"] = {}
         scope["state"]["csp_nonce"] = nonce
 
-        is_production = (
-            self.settings.environment == "production"
-        )
+        is_production = self.settings.environment == "production"
 
         csp_policy = (
             f"default-src 'self'; "
@@ -57,10 +55,14 @@ class SecurityHeadersMiddleware:
                 headers["X-XSS-Protection"] = "1; mode=block"
                 headers["Content-Security-Policy"] = csp_policy
                 headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-                headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+                headers["Permissions-Policy"] = (
+                    "geolocation=(), microphone=(), camera=()"
+                )
                 headers["Cross-Origin-Opener-Policy"] = "same-origin"
                 if is_production:
-                    headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+                    headers["Strict-Transport-Security"] = (
+                        "max-age=31536000; includeSubDomains"
+                    )
             await send(message)
 
         await self.app(scope, receive, send_with_headers)

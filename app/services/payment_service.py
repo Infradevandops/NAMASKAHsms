@@ -304,7 +304,9 @@ class PaymentService:
     async def process_webhook(self, event: str, payload: dict) -> Dict[str, Any]:
         """Process a Paystack webhook event."""
         if event == "charge.success":
-            reference = payload.get("reference") or payload.get("data", {}).get("reference")
+            reference = payload.get("reference") or payload.get("data", {}).get(
+                "reference"
+            )
             if reference:
                 return await self.verify_payment(reference)
             return {"status": "error", "message": "No reference"}
@@ -331,11 +333,7 @@ class PaymentService:
 
     def get_payment_summary(self, user_id: str) -> Dict[str, Any]:
         """Get payment summary stats for a user."""
-        logs = (
-            self.db.query(PaymentLog)
-            .filter(PaymentLog.user_id == user_id)
-            .all()
-        )
+        logs = self.db.query(PaymentLog).filter(PaymentLog.user_id == user_id).all()
         total = sum(float(l.amount_usd or 0) for l in logs if l.status == "success")
         return {
             "total_paid": total,
