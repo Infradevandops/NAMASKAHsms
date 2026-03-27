@@ -12,7 +12,7 @@ DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://localhost/namaskah")
 
 # Default admin credentials
 ADMIN_EMAIL = "admin@namaskah.app"
-ADMIN_PASSWORD = "Namaskah@Admin2024"
+ADMIN_PASSWORD = "<admin-password>"
 
 print("🔐 Admin Login Verification")
 print("=" * 60)

@@ -15,7 +15,7 @@ def create_admin_user():
 
     db_path = "namaskah.db"
     email = "admin@namaskah.app"
-    password = "Namaskah@Admin2024"
+    password = "<admin-password>"
 
     print(f"🔧 Creating admin user in {db_path}")
 
