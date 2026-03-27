@@ -27,7 +27,7 @@ def authenticated_page(page_manual: Page, base_url):
     # 1. Login
     page_manual.goto(f"{base}/login", timeout=15000)
     page_manual.fill("#email", "admin@namaskah.app")
-    page_manual.fill("#password", "Namaskah@Admin2024")
+    page_manual.fill("#password", "<admin-password>")
     page_manual.click("button[type='submit']")
     page_manual.wait_for_url("**/dashboard", timeout=15000)
     
