@@ -219,9 +219,7 @@ class AuthService:
 
         if referral_code:
             referrer = (
-                self.db.query(User)
-                .filter(User.referral_code == referral_code)
-                .first()
+                self.db.query(User).filter(User.referral_code == referral_code).first()
             )
             if referrer:
                 referred_by = referrer.id
@@ -258,11 +256,7 @@ class AuthService:
 
     def verify_api_key(self, raw_key: str) -> Optional[User]:
         """Verify an API key and return the owning user."""
-        keys = (
-            self.db.query(APIKey)
-            .filter(APIKey.is_active == True)
-            .all()
-        )
+        keys = self.db.query(APIKey).filter(APIKey.is_active == True).all()
         for key_obj in keys:
             if verify_password(raw_key, key_obj.key_hash):
                 return self.db.query(User).filter(User.id == key_obj.user_id).first()
@@ -353,11 +347,7 @@ class AuthService:
 
     def verify_email(self, token: str) -> bool:
         """Verify a user's email using their verification token."""
-        user = (
-            self.db.query(User)
-            .filter(User.verification_token == token)
-            .first()
-        )
+        user = self.db.query(User).filter(User.verification_token == token).first()
         if not user:
             return False
         user.email_verified = True

@@ -23,9 +23,7 @@ class WebhookService:
 
     # --- Sync CRUD methods used by API and tests ---
 
-    def create_webhook(
-        self, user_id: str, url: str, events: list
-    ) -> dict:
+    def create_webhook(self, user_id: str, url: str, events: list) -> dict:
         if not url.startswith("http://") and not url.startswith("https://"):
             return {"success": False, "error": "Invalid URL"}
         secret = uuid.uuid4().hex
@@ -61,9 +59,7 @@ class WebhookService:
         expected = self.generate_signature(payload, secret)
         return hmac.compare_digest(expected, signature)
 
-    async def trigger_webhook(
-        self, url: str, event: str, data: Dict[str, Any]
-    ) -> dict:
+    async def trigger_webhook(self, url: str, event: str, data: Dict[str, Any]) -> dict:
         payload = json.dumps({"event": event, "data": data})
         try:
             async with httpx.AsyncClient(timeout=self.timeout) as client:

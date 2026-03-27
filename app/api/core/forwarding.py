@@ -144,19 +144,33 @@ async def test_forwarding(
 
         if config.email_enabled and config.email_address:
             sent = await _send_forwarding_email(config.email_address, sms_data)
-            results.append({
-                "type": "email",
-                "success": sent,
-                "message": f"Test email sent to {config.email_address}" if sent else "Email delivery failed",
-            })
+            results.append(
+                {
+                    "type": "email",
+                    "success": sent,
+                    "message": (
+                        f"Test email sent to {config.email_address}"
+                        if sent
+                        else "Email delivery failed"
+                    ),
+                }
+            )
 
         if config.webhook_enabled and config.webhook_url:
-            sent = await _send_forwarding_webhook(config.webhook_url, config.webhook_secret, sms_data)
-            results.append({
-                "type": "webhook",
-                "success": sent,
-                "message": f"Test webhook posted to {config.webhook_url}" if sent else "Webhook delivery failed",
-            })
+            sent = await _send_forwarding_webhook(
+                config.webhook_url, config.webhook_secret, sms_data
+            )
+            results.append(
+                {
+                    "type": "webhook",
+                    "success": sent,
+                    "message": (
+                        f"Test webhook posted to {config.webhook_url}"
+                        if sent
+                        else "Webhook delivery failed"
+                    ),
+                }
+            )
 
         if not results:
             raise HTTPException(status_code=400, detail="No forwarding methods enabled")
@@ -177,7 +191,11 @@ async def test_forwarding(
 async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
     """Forward SMS to email using the active email service (Resend or SMTP)."""
     try:
-        subject = "SMS Forwarding — Test Message" if sms_data.get("is_test") else "SMS Forwarding — New Message"
+        subject = (
+            "SMS Forwarding — Test Message"
+            if sms_data.get("is_test")
+            else "SMS Forwarding — New Message"
+        )
         html_body = f"""
         <html><body style="font-family:Arial,sans-serif;color:#333;">
         <div style="max-width:600px;margin:0 auto;padding:20px;">
@@ -201,14 +219,18 @@ async def _send_forwarding_email(email_address: str, sms_data: dict) -> bool:
         return False
 
 
-async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_data: dict) -> bool:
+async def _send_forwarding_webhook(
+    webhook_url: str, webhook_secret: str, sms_data: dict
+) -> bool:
     """Forward SMS to webhook URL with HMAC signature."""
     try:
-        payload = json.dumps({
-            "event": "sms.received",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-            "data": sms_data,
-        })
+        payload = json.dumps(
+            {
+                "event": "sms.received",
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "data": sms_data,
+            }
+        )
 
         headers = {
             "Content-Type": "application/json",
@@ -216,21 +238,25 @@ async def _send_forwarding_webhook(webhook_url: str, webhook_secret: str, sms_da
         }
 
         if webhook_secret:
-            sig = hmac.new(webhook_secret.encode(), payload.encode(), hashlib.sha256).hexdigest()
+            sig = hmac.new(
+                webhook_secret.encode(), payload.encode(), hashlib.sha256
+            ).hexdigest()
             headers["X-Webhook-Signature"] = sig
 
         for attempt in range(3):
             try:
                 async with httpx.AsyncClient(timeout=10.0) as client:
-                    resp = await client.post(webhook_url, content=payload, headers=headers)
+                    resp = await client.post(
+                        webhook_url, content=payload, headers=headers
+                    )
                     if resp.status_code in [200, 201, 202, 204]:
                         return True
                     if attempt < 2:
-                        await asyncio.sleep(2 ** attempt)
+                        await asyncio.sleep(2**attempt)
             except (httpx.TimeoutException, httpx.RequestError) as e:
                 logger.warning(f"Webhook attempt {attempt + 1} failed: {e}")
                 if attempt < 2:
-                    await asyncio.sleep(2 ** attempt)
+                    await asyncio.sleep(2**attempt)
 
         return False
     except Exception as e:
@@ -261,7 +287,9 @@ async def forward_sms_message(user_id: str, sms_data: dict, db: Session) -> dict
             results.append({"type": "email", "success": sent})
 
         if config.webhook_enabled and config.webhook_url:
-            sent = await _send_forwarding_webhook(config.webhook_url, config.webhook_secret, sms_data)
+            sent = await _send_forwarding_webhook(
+                config.webhook_url, config.webhook_secret, sms_data
+            )
             results.append({"type": "webhook", "success": sent})
 
         # Telegram — coming soon, not yet implemented

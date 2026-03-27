@@ -31,6 +31,7 @@ class EmailNotificationService:
 
         if self.resend_api_key:
             import resend
+
             resend.api_key = self.resend_api_key
             self.enabled = True
             self._mode = "resend"
@@ -308,13 +309,19 @@ class EmailNotificationService:
         try:
             if self._mode == "resend":
                 import resend
+
                 loop = asyncio.get_event_loop()
-                await loop.run_in_executor(None, lambda: resend.Emails.send({
-                    "from": f"Namaskah <{self.from_email}>",
-                    "to": [to_email],
-                    "subject": subject,
-                    "html": html_body,
-                }))
+                await loop.run_in_executor(
+                    None,
+                    lambda: resend.Emails.send(
+                        {
+                            "from": f"Namaskah <{self.from_email}>",
+                            "to": [to_email],
+                            "subject": subject,
+                            "html": html_body,
+                        }
+                    ),
+                )
                 return True
 
             # SMTP fallback

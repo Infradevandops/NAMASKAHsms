@@ -782,10 +782,18 @@ class TextVerifiedService:
     async def get_health_status(self) -> Dict[str, Any]:
         """Return service health status."""
         if not self.enabled:
-            return {"status": "error", "enabled": False, "error": "Service not configured"}
+            return {
+                "status": "error",
+                "enabled": False,
+                "error": "Service not configured",
+            }
         try:
             balance_data = await self.get_balance()
-            return {"status": "operational", "enabled": True, "balance": balance_data.get("balance", 0.0)}
+            return {
+                "status": "operational",
+                "enabled": True,
+                "balance": balance_data.get("balance", 0.0),
+            }
         except Exception as e:
             return {"status": "error", "enabled": True, "error": str(e)}
 
@@ -799,6 +807,8 @@ class TextVerifiedService:
         result = await self.cancel_verification(verification_id)
         return result.get("success", False)
 
-    async def get_number(self, service: str, country: str = "US", **kwargs) -> Dict[str, Any]:
+    async def get_number(
+        self, service: str, country: str = "US", **kwargs
+    ) -> Dict[str, Any]:
         """Legacy alias for buy_number."""
         return await self.buy_number(country=country, service=service, **kwargs)
