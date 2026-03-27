@@ -19,3 +19,5 @@ pytest-security==0.1.0
 
 # Secrets detection
 detect-secrets==1.4.0
+requests>=2.33.0 # not directly required, pinned by Snyk to avoid a vulnerability
+ujson>=5.12.0 # not directly required, pinned by Snyk to avoid a vulnerability
