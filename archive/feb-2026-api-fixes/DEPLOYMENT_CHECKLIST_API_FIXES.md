@@ -57,7 +57,7 @@ python3 test_api_fixes.py
 # Get auth token first
 TOKEN=$(curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@namaskah.app","password":"Namaskah@Admin2024"}' \
+  -d '{"email":"admin@namaskah.app","password":"<admin-password>"}' \
   | jq -r '.access_token')
 
 # Test each fixed endpoint
@@ -221,7 +221,7 @@ echo $TOKEN
 # Get new token
 TOKEN=$(curl -X POST http://localhost:8000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin@namaskah.app","password":"Namaskah@Admin2024"}' \
+  -d '{"email":"admin@namaskah.app","password":"<admin-password>"}' \
   | jq -r '.access_token')
 
 # Retry request
