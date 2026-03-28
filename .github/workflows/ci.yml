@@ -138,6 +138,7 @@ jobs:
             --cov-report=term-missing \
             --cov-fail-under=42 \
             --tb=short \
+            --continue-on-collection-errors \
             --ignore=tests/unit/test_disaster_recovery.py \
             --ignore=tests/unit/test_enterprise_service.py \
             --ignore=tests/unit/test_sms_logic.py \
