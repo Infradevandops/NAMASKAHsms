@@ -156,10 +156,7 @@ jobs:
   db-backup:
     name: Database Backup
     runs-on: ubuntu-latest
-    if: |
-      github.ref == 'refs/heads/main' &&
-      secrets.PRODUCTION_DATABASE_URL != '' &&
-      secrets.BACKUP_S3_BUCKET != ''
+    if: github.ref == 'refs/heads/main'
     needs: [secrets-scan, code-quality, security, tests]
     continue-on-error: true
     steps:
