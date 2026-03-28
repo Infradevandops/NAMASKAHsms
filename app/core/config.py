@@ -3,9 +3,9 @@
 from functools import lru_cache
 from typing import List, Optional, Union
 
-from pydantic import ConfigDict
+from pydantic import ConfigDict, field_validator
+from pydantic_settings import BaseSettings
 
-from app.core.pydantic_compat import BaseSettings, field_validator
 from app.core.secrets import SecretsManager
 
 
@@ -91,7 +91,7 @@ class Settings(BaseSettings):
 
     @field_validator("cors_origins", mode="before")
     @classmethod
-    def parse_cors_origins(cls, value, values=None, config=None, field=None, **kwargs):
+    def parse_cors_origins(cls, value):
         """Parse CORS origins — reject wildcard in production."""
         import os
 
@@ -173,7 +173,7 @@ class Settings(BaseSettings):
 
     @field_validator("secret_key", "jwt_secret_key")
     @classmethod
-    def validate_key_length(cls, value, values=None, config=None, field=None, **kwargs):
+    def validate_key_length(cls, value):
         """Validate secret keys are at least 32 characters in production."""
         import os
 
@@ -182,17 +182,13 @@ class Settings(BaseSettings):
                 raise ValueError(
                     "Secret keys must be at least 32 characters long and set in production"
                 )
-
         if value and len(value) < 32:
             raise ValueError("Secret keys must be at least 32 characters long")
-
         return value
 
     @field_validator("database_url")
     @classmethod
-    def validate_database_url(
-        cls, value, values=None, config=None, field=None, **kwargs
-    ):
+    def validate_database_url(cls, value):
         """Validate database URL format."""
         if not value:
             raise ValueError("Database URL is required")
@@ -200,7 +196,7 @@ class Settings(BaseSettings):
 
     @field_validator("base_url")
     @classmethod
-    def validate_base_url(cls, value, values=None, config=None, field=None, **kwargs):
+    def validate_base_url(cls, value):
         """Validate base URL format."""
         if not value.startswith(("http://", "https://")):
             raise ValueError("Base URL must start with http:// or https://")
