@@ -13,9 +13,7 @@ class NotificationAnalytics(BaseModel):
     notification_id = Column(
         String, ForeignKey("notifications.id"), nullable=False, index=True
     )
-    user_id = Column(
-        String, ForeignKey("users.id"), nullable=False, index=True
-    )
+    user_id = Column(String, ForeignKey("users.id"), nullable=False, index=True)
     notification_type = Column(String(50), nullable=False, index=True)
     delivery_method = Column(
         String(50), nullable=False
