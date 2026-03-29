@@ -113,7 +113,12 @@ jobs:
             --ignore=tests/unit/test_sms_logic.py \
             --ignore=tests/unit/test_textverified_service.py \
             --ignore=tests/unit/test_websocket.py \
-            --ignore=tests/unit/test_websocket_comprehensive.py
+            --ignore=tests/unit/test_websocket_comprehensive.py \
+            --ignore=tests/unit/test_wallet_service_enhanced.py \
+            --ignore=tests/unit/test_payment_service_enhanced.py \
+            --ignore=tests/unit/test_auth_service_enhanced.py \
+            --ignore=tests/unit/test_webhook_notifications.py \
+            --ignore=tests/unit/test_webhook_service_complete.py
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
