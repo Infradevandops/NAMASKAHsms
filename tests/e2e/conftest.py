@@ -5,9 +5,9 @@ import pytest
 from playwright.async_api import async_playwright, Browser, Page
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture
 async def browser():
-    """Session-scoped browser fixture using async API."""
+    """Function-scoped browser fixture using async API."""
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         yield browser

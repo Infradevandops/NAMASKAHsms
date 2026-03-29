@@ -1,16 +1,18 @@
-name: CI - Balanced Pipeline
+name: CI - Optimized Pipeline
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
+  schedule:
+    - cron: '0 9 * * 1'  # Weekly accessibility audit on Monday 9am UTC
 
 env:
   PYTHON_VERSION: '3.11'
 
 jobs:
-  # Task 4.1 — Gitleaks secrets detection (blocking)
+  # Stage 1: Fast checks (no dependencies) — ~2 minutes
   secrets-scan:
     name: Secrets Detection
     runs-on: ubuntu-latest
@@ -25,7 +27,6 @@ jobs:
       - name: Run gitleaks
         run: gitleaks detect --source . --config tools/gitleaks.toml --verbose
 
-  # Task 1.2 — All quality checks now blocking
   code-quality:
     name: Code Quality
     runs-on: ubuntu-latest
@@ -47,7 +48,6 @@ jobs:
           black --check app/ --diff
           isort --check-only app/ --profile black --diff
 
-  # Tasks 1.2 + 4.2 — Security checks now blocking, semgrep added
   security:
     name: Security Scan
     runs-on: ubuntu-latest
@@ -79,10 +79,11 @@ jobs:
             safety-report.json
             semgrep-report.json
 
-  # Tasks 3.1 + 3.2 + 3.3 — Coverage gate 50%, integration tests included, regression guard
+  # Stage 2: Tests with services — ~3-4 minutes
   tests:
     name: Tests
     runs-on: ubuntu-latest
+    needs: [secrets-scan, code-quality, security]
 
     services:
       postgres:
@@ -122,13 +123,14 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-test.txt
 
-      - name: Run tests with coverage
+      - name: Run unit tests with coverage
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
           REDIS_URL: redis://localhost:6379/0
           SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
           JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
           ENVIRONMENT: testing
+          TESTING: '1'
           TEXTVERIFIED_API_KEY: test-key
           PAYSTACK_SECRET_KEY: test-key
         run: |
@@ -146,26 +148,251 @@ jobs:
             --ignore=tests/unit/test_textverified_service.py
           EXIT_CODE=$?
           set -e
-          # Exit 2 = coverage below threshold, Exit 4 = collection error
           if [ $EXIT_CODE -eq 2 ]; then echo "Coverage below 42%" && exit 2; fi
           if [ $EXIT_CODE -eq 4 ]; then echo "Collection error" && exit 4; fi
-          # Exit 1 = test failures (pre-existing) — allow if coverage passed
           exit 0
 
-      # Task 3.3 — Codecov with regression guard
       - name: Upload coverage
         uses: codecov/codecov-action@v4
         with:
           file: ./coverage.xml
           fail_ci_if_error: true
 
-  # Database backup — runs on every push to main before deployment
-  # Requires: PRODUCTION_DATABASE_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION, BACKUP_S3_BUCKET
+  # Stage 3: E2E tests (only on main branch) — ~2-3 minutes
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    needs: [tests]
+    continue-on-error: true
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: namaskah_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-playwright pytest-html
+
+      - name: Initialize Database
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+        run: |
+          psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;" 2>/dev/null || true
+          python scripts/fix_production_schema.py || true
+
+      - name: Install Playwright
+        run: playwright install chromium --with-deps
+
+      - name: Start Application
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
+          ENVIRONMENT: testing
+          TESTING: '1'
+          TEXTVERIFIED_API_KEY: test-key
+          PAYSTACK_SECRET_KEY: test-key
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          
+          uvicorn main:app --host 0.0.0.0 --port 8000 --log-level debug 2>&1 | tee app-startup.log &
+          APP_PID=$!
+          
+          for i in {1..60}; do
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "✅ App is ready"
+              break
+            fi
+            echo "Waiting for app... ($i/60)"
+            sleep 1
+          done
+          
+          if ! curl -f http://localhost:8000/health; then
+            echo "❌ App failed to start"
+            echo "=== App startup logs ==="
+            cat app-startup.log
+            kill $APP_PID 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Run E2E Tests
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
+          ENVIRONMENT: testing
+          TESTING: '1'
+          BASE_URL: http://localhost:8000
+          TEST_USER_EMAIL: admin@namaskah.app
+          TEST_USER_PASSWORD: test-password-123
+        run: pytest tests/e2e/ -v --html=e2e-report.html -m "not slow"
+
+      - name: Upload E2E Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-reports-${{ github.run_id }}
+          path: e2e-report.html
+
+  # Stage 4: Accessibility audit (weekly schedule + main branch) — ~2-3 minutes
+  accessibility-audit:
+    name: Accessibility Audit
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+    needs: [tests]
+    continue-on-error: true
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: namaskah_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install accessibility tools
+        run: |
+          npm install -g @axe-core/cli pa11y lighthouse
+          npx playwright install chromium
+
+      - name: Set up Python and start app
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Start application for testing
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
+          ENVIRONMENT: testing
+          TESTING: '1'
+          TEXTVERIFIED_API_KEY: test-key
+          PAYSTACK_SECRET_KEY: test-key
+        run: |
+          pip install -r requirements.txt
+          
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          
+          uvicorn main:app --host 0.0.0.0 --port 8000 --log-level debug 2>&1 | tee app-startup.log &
+          APP_PID=$!
+          
+          for i in {1..60}; do
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "✅ App is ready"
+              break
+            fi
+            echo "Waiting for app... ($i/60)"
+            sleep 1
+          done
+          
+          if ! curl -f http://localhost:8000/health; then
+            echo "❌ App failed to start"
+            echo "=== App startup logs ==="
+            cat app-startup.log
+            kill $APP_PID 2>/dev/null || true
+            exit 1
+          fi
+
+      - name: Set audit target URL
+        run: |
+          if [ "${{ github.event_name }}" == "schedule" ] && [ -n "${{ secrets.PRODUCTION_URL }}" ]; then
+            echo "AUDIT_URL=${{ secrets.PRODUCTION_URL }}" >> $GITHUB_ENV
+          else
+            echo "AUDIT_URL=http://localhost:8000" >> $GITHUB_ENV
+          fi
+
+      - name: Run axe accessibility scan
+        run: axe ${{ env.AUDIT_URL }} --save axe-report.json || true
+
+      - name: Run pa11y accessibility test
+        run: pa11y ${{ env.AUDIT_URL }} --reporter json > pa11y-report.json || true
+
+      - name: Run Lighthouse accessibility audit
+        run: lighthouse ${{ env.AUDIT_URL }} --only-categories=accessibility --output json --output-path lighthouse-a11y.json || true
+
+      - name: Upload Accessibility Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-reports-${{ github.run_id }}
+          path: |
+            axe-report.json
+            pa11y-report.json
+            lighthouse-a11y.json
+
+  # Stage 5: Database backup (main branch only) — ~1 minute
   db-backup:
     name: Database Backup
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-    needs: [secrets-scan, code-quality, security, tests]
+    needs: [tests]
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
@@ -197,7 +424,7 @@ jobs:
       - name: Confirm backup
         run: echo "✅ Pre-deploy backup complete"
 
-  # Deployment readiness (main branch only, needs all jobs + backup)
+  # Stage 6: Deployment readiness (main branch only)
   deployment-readiness:
     name: Deployment Readiness
     runs-on: ubuntu-latest
