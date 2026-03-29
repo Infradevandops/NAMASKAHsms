@@ -71,11 +71,17 @@ jobs:
         TEXTVERIFIED_API_KEY: test-key
         PAYSTACK_SECRET_KEY: test-key
       run: |
+        # Verify database is ready before starting app
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        
         uvicorn main:app --host 0.0.0.0 --port 8000 &
-        for i in {1..12}; do
+        for i in {1..30}; do
           curl -sf http://localhost:8000/health && break
-          echo "Waiting for app... ($i/12)"
-          sleep 5
+          echo "Waiting for app... ($i/30)"
+          sleep 2
         done
         curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
 
@@ -153,11 +159,18 @@ jobs:
         PAYSTACK_SECRET_KEY: test-key
       run: |
         pip install -r requirements.txt
+        
+        # Verify database is ready before starting app
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 2
+        done
+        
         uvicorn main:app --host 0.0.0.0 --port 8000 &
-        for i in {1..12}; do
+        for i in {1..30}; do
           curl -sf http://localhost:8000/health && break
-          echo "Waiting for app... ($i/12)"
-          sleep 5
+          echo "Waiting for app... ($i/30)"
+          sleep 2
         done
         curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
 
