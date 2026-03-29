@@ -187,7 +187,12 @@ jobs:
           AWS_REGION: ${{ secrets.AWS_REGION }}
           BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
           BACKUP_KEEP_DAYS: '30'
-        run: python scripts/backup_database.py
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "⚠️ PRODUCTION_DATABASE_URL not set — skipping backup"
+            exit 0
+          fi
+          python scripts/backup_database.py
 
       - name: Confirm backup
         run: echo "✅ Pre-deploy backup complete"
