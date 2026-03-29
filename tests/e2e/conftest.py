@@ -4,6 +4,12 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 
+@pytest.fixture
+def base_url():
+    """Provide base URL for tests"""
+    return "http://127.0.0.1:8000"
+
+
 @pytest.fixture(scope="session")
 def browser():
     """Create browser instance for all tests"""

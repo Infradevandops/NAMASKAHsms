@@ -11,9 +11,10 @@ class TestVerificationFlow:
     """Test complete verification flow matching TextVerified UX"""
     
     @pytest.fixture(autouse=True)
-    def setup(self, page: Page, authenticated_page):
+    def setup(self, page: Page, base_url):
         """Setup: Navigate to verification page"""
-        page.goto("/verify")
+        base = base_url.replace("localhost", "127.0.0.1")
+        page.goto(f"{base}/verify")
         page.wait_for_load_state("networkidle")
         yield page
     
@@ -309,10 +310,11 @@ class TestVerificationFlow:
 
 
 @pytest.fixture
-def authenticated_page(page: Page):
+def authenticated_page(page: Page, base_url):
     """Fixture to authenticate user before tests"""
+    base = base_url.replace("localhost", "127.0.0.1")
     # Login
-    page.goto("/login")
+    page.goto(f"{base}/login")
     page.fill("input[name='email']", "admin@namaskah.app")
     page.fill("input[name='password']", "admin123")
     page.click("button[type='submit']")
