@@ -1,29 +1,25 @@
-"""Pytest configuration for E2E tests"""
+"""E2E test configuration and fixtures."""
 
+import os
 import pytest
-from playwright.sync_api import sync_playwright
 
 
 @pytest.fixture(scope="session")
 def base_url():
-    """Provide base URL for tests"""
-    return "http://127.0.0.1:8000"
-
-
-@pytest.fixture(scope="session")
-def browser():
-    """Create browser instance for all tests"""
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        yield browser
-        browser.close()
+    """Base URL for E2E tests."""
+    return os.getenv("BASE_URL", "http://localhost:8000")
 
 
 @pytest.fixture
-def page(browser):
-    """Create new page for each test"""
-    context = browser.new_context()
-    page = context.new_page()
-    yield page
-    page.close()
-    context.close()
+def test_user():
+    """Test user credentials."""
+    return {
+        "email": os.getenv("TEST_USER_EMAIL", "admin@namaskah.app"),
+        "password": os.getenv("TEST_USER_PASSWORD", "test-password-123"),
+    }
+
+
+@pytest.fixture
+def test_timeout():
+    """Test timeout in milliseconds."""
+    return int(os.getenv("TEST_TIMEOUT", "30000"))

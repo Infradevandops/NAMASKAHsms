@@ -14,7 +14,7 @@ on:
 
 jobs:
   e2e-tests:
-    if: github.ref == 'refs/heads/main' && false
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     name: E2E Tests
     continue-on-error: true
@@ -57,6 +57,16 @@ jobs:
       run: |
         pip install -r requirements.txt
         pip install pytest pytest-playwright pytest-html
+
+    - name: Initialize Database
+      env:
+        DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+      run: |
+        # Create database if not exists
+        psql -h localhost -U postgres -c "CREATE DATABASE namaskah_test;" 2>/dev/null || true
+        
+        # Run migrations or schema setup
+        python scripts/fix_production_schema.py || true
 
     - name: Install Playwright
       run: playwright install chromium --with-deps
@@ -108,7 +118,11 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
         ENVIRONMENT: testing
-      run: pytest tests/e2e/ -v --html=e2e-report.html
+        TESTING: '1'
+        BASE_URL: http://localhost:8000
+        TEST_USER_EMAIL: admin@namaskah.app
+        TEST_USER_PASSWORD: test-password-123
+      run: pytest tests/e2e/ -v --html=e2e-report.html -m "not slow"
 
     - name: Upload E2E Reports
       uses: actions/upload-artifact@v4

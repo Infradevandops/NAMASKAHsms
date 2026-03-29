@@ -33,10 +33,18 @@ class SecurityHeadersMiddleware:
         scope["state"]["csp_nonce"] = nonce
 
         is_production = self.settings.environment == "production"
+        is_testing = self.settings.environment == "testing"
 
         csp_policy = (
             f"default-src 'self'; "
-            f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com; "
+            f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com"
+        )
+        
+        if is_testing:
+            csp_policy += " 'unsafe-eval'"
+        
+        csp_policy += (
+            f"; "
             f"script-src-attr 'unsafe-inline'; "
             f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
             f"font-src 'self' https://fonts.gstatic.com https://unpkg.com; "

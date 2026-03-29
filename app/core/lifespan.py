@@ -45,8 +45,13 @@ async def lifespan(app):
         # Initialize unified cache
         from app.core.unified_cache import cache
 
-        await cache.connect()
-        startup_logger.info("Unified cache initialized")
+        try:
+            await asyncio.wait_for(cache.connect(), timeout=10.0)
+            startup_logger.info("Unified cache initialized")
+        except asyncio.TimeoutError:
+            startup_logger.warning("Cache connection timeout - continuing without cache")
+        except Exception as e:
+            startup_logger.warning(f"Cache initialization failed: {e}")
 
         # Invalidate stale service cache (forces fresh fetch with dedup + real prices)
         try:
@@ -79,7 +84,7 @@ async def lifespan(app):
                         tv.get_area_codes_list(),
                         return_exceptions=True,
                     ),
-                    timeout=30.0,
+                    timeout=15.0,
                 )
                 startup_logger.info("Cache pre-warming completed")
             except asyncio.TimeoutError:
@@ -89,15 +94,22 @@ async def lifespan(app):
             except Exception as e:
                 startup_logger.warning(f"Cache pre-warming failed (non-critical): {e}")
 
-        asyncio.create_task(_prewarm())
+        # Skip pre-warming in test mode
+        if os.getenv("TESTING") != "1":
+            asyncio.create_task(_prewarm())
+        else:
+            startup_logger.info("Skipping TextVerified pre-warming in test mode")
 
         # Start SMS polling background service
-        from app.services.sms_polling_service import sms_polling_service
+        if os.getenv("TESTING") != "1":
+            from app.services.sms_polling_service import sms_polling_service
 
-        polling_task = asyncio.create_task(
-            sms_polling_service.start_background_service()
-        )
-        startup_logger.info("SMS polling background service started")
+            polling_task = asyncio.create_task(
+                sms_polling_service.start_background_service()
+            )
+            startup_logger.info("SMS polling background service started")
+        else:
+            startup_logger.info("Skipping SMS polling in test mode")
 
     except Exception as e:
         startup_logger.error(f"Startup failed: {e}")
@@ -108,10 +120,14 @@ async def lifespan(app):
 
     # Shutdown
     startup_logger.info("🛑 Shutting down Namaskah SMS API...")
-    from app.services.sms_polling_service import sms_polling_service
+    if os.getenv("TESTING") != "1":
+        from app.services.sms_polling_service import sms_polling_service
 
-    await sms_polling_service.stop_background_service()
+        await sms_polling_service.stop_background_service()
     from app.core.unified_cache import cache
 
-    await cache.disconnect()
+    try:
+        await cache.disconnect()
+    except Exception as e:
+        startup_logger.warning(f"Cache disconnect failed: {e}")
     startup_logger.info("✅ Shutdown completed")
