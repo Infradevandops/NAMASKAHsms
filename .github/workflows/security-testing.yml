@@ -68,6 +68,7 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
         ENVIRONMENT: testing
+        TESTING: '1'
         TEXTVERIFIED_API_KEY: test-key
         PAYSTACK_SECRET_KEY: test-key
       run: |
@@ -77,13 +78,28 @@ jobs:
           sleep 2
         done
         
-        uvicorn main:app --host 0.0.0.0 --port 8000 &
-        for i in {1..30}; do
-          curl -sf http://localhost:8000/health && break
-          echo "Waiting for app... ($i/30)"
-          sleep 2
+        # Start app with output logging
+        uvicorn main:app --host 0.0.0.0 --port 8000 --log-level debug 2>&1 | tee app-startup.log &
+        APP_PID=$!
+        
+        # Wait for app with extended timeout (60 seconds)
+        for i in {1..60}; do
+          if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+            echo "✅ App is ready"
+            break
+          fi
+          echo "Waiting for app... ($i/60)"
+          sleep 1
         done
-        curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
+        
+        # Final health check
+        if ! curl -f http://localhost:8000/health; then
+          echo "❌ App failed to start"
+          echo "=== App startup logs ==="
+          cat app-startup.log
+          kill $APP_PID 2>/dev/null || true
+          exit 1
+        fi
 
     - name: Run Full E2E Suite
       env:
@@ -155,6 +171,7 @@ jobs:
         SECRET_KEY: test-secret-key-for-ci-testing-only-min-32-chars
         JWT_SECRET_KEY: test-jwt-secret-key-for-ci-testing-min-32-chars
         ENVIRONMENT: testing
+        TESTING: '1'
         TEXTVERIFIED_API_KEY: test-key
         PAYSTACK_SECRET_KEY: test-key
       run: |
@@ -166,13 +183,28 @@ jobs:
           sleep 2
         done
         
-        uvicorn main:app --host 0.0.0.0 --port 8000 &
-        for i in {1..30}; do
-          curl -sf http://localhost:8000/health && break
-          echo "Waiting for app... ($i/30)"
-          sleep 2
+        # Start app with output logging
+        uvicorn main:app --host 0.0.0.0 --port 8000 --log-level debug 2>&1 | tee app-startup.log &
+        APP_PID=$!
+        
+        # Wait for app with extended timeout (60 seconds)
+        for i in {1..60}; do
+          if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+            echo "✅ App is ready"
+            break
+          fi
+          echo "Waiting for app... ($i/60)"
+          sleep 1
         done
-        curl -f http://localhost:8000/health || (echo "❌ App failed to start" && exit 1)
+        
+        # Final health check
+        if ! curl -f http://localhost:8000/health; then
+          echo "❌ App failed to start"
+          echo "=== App startup logs ==="
+          cat app-startup.log
+          kill $APP_PID 2>/dev/null || true
+          exit 1
+        fi
 
     # Task 5.2 — Use PRODUCTION_URL for scheduled runs, localhost for push/PR
     - name: Set audit target URL
