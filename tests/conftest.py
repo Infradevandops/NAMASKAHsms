@@ -20,13 +20,21 @@ from app.models.api_key import APIKey
 from app.models.subscription_tier import SubscriptionTier
 from app.models.activity import Activity
 from app.models.audit_log import AuditLog
-from app.models.affiliate import AffiliateProgram, AffiliateApplication, AffiliateCommission
+from app.models.affiliate import (
+    AffiliateProgram,
+    AffiliateApplication,
+    AffiliateCommission,
+)
 from app.models.commission import CommissionTier, RevenueShare
 from app.models.blacklist import NumberBlacklist
 from app.models.kyc import KYCProfile
 from app.models.refund import Refund
 from app.models.whitelabel import WhiteLabelConfig
-from app.models.whitelabel_enhanced import WhiteLabelAsset, WhiteLabelDomain, WhiteLabelTheme
+from app.models.whitelabel_enhanced import (
+    WhiteLabelAsset,
+    WhiteLabelDomain,
+    WhiteLabelTheme,
+)
 from app.models.pricing_template import PricingTemplate
 from app.models.device_token import DeviceToken
 from app.models.user_preference import UserPreference
@@ -35,7 +43,13 @@ from app.models.balance_transaction import BalanceTransaction
 from app.models.carrier_analytics import CarrierAnalytics
 from app.models.verification_preset import VerificationPreset
 from app.models.waitlist import Waitlist
-from app.models.reseller import ResellerAccount, SubAccount, SubAccountTransaction, CreditAllocation, BulkOperation
+from app.models.reseller import (
+    ResellerAccount,
+    SubAccount,
+    SubAccountTransaction,
+    CreditAllocation,
+    BulkOperation,
+)
 from app.models.forwarding import ForwardingConfig
 from app.utils.security import create_access_token
 from main import app
@@ -56,7 +70,7 @@ def engine():
         "sqlite:///:memory:",
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
-        echo=False
+        echo=False,
     )
     Base.metadata.create_all(bind=engine)
     return engine
@@ -80,12 +94,15 @@ def db_session(db):
 @pytest.fixture
 def client(engine):
     def override_get_db():
-        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        TestingSessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=engine
+        )
         session = TestingSessionLocal()
         try:
             yield session
         finally:
             session.close()
+
     app.dependency_overrides[get_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
@@ -195,6 +212,7 @@ def user_token(test_user):
         uid = user_id or test_user.id
         em = email or test_user.email
         return create_test_token(uid, em)
+
     return _make
 
 
@@ -233,6 +251,7 @@ def freemium_user_token(db):
 @pytest.fixture
 def redis_client():
     import fakeredis
+
     return fakeredis.FakeRedis(decode_responses=True)
 
 
@@ -246,6 +265,7 @@ def auth_headers_factory():
     def _make(user_id: str) -> dict:
         token = create_test_token(user_id)
         return {"Authorization": f"Bearer {token}"}
+
     return _make
 
 
@@ -285,12 +305,15 @@ def test_transaction(db, test_user):
 
 def _make_client_with_user(engine, user_id):
     def override_get_db():
-        TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+        TestingSessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=engine
+        )
         session = TestingSessionLocal()
         try:
             yield session
         finally:
             session.close()
+
     app.dependency_overrides[get_db] = override_get_db
     app.dependency_overrides[get_current_user_id] = lambda: str(user_id)
     return TestClient(app)
