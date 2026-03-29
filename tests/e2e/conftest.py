@@ -4,7 +4,7 @@ import pytest
 from playwright.sync_api import sync_playwright
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def base_url():
     """Provide base URL for tests"""
     return "http://127.0.0.1:8000"
