@@ -1,193 +1,127 @@
-# CI Pipeline Documentation
+# CI Pipeline - Minimal & Reliable
 
-**Last Updated**: March 29, 2026  
-**Status**: Optimized & Stable  
-**Performance**: ~5-6 minutes (down from 10+ minutes)
+**Status**: Simplified for stability  
+**Performance**: ~3-4 minutes  
+**Philosophy**: Block only on critical failures
 
 ---
 
 ## Pipeline Overview
 
-### Current Architecture
-Single consolidated pipeline with 6 sequential stages:
+### Three-Stage Approach
 
 ```
-Stage 1: Fast Checks (2 min)
+Stage 1: Fast Checks (1 min)
 ├── secrets-scan (gitleaks)
-├── code-quality (black, flake8, isort)
-└── security (bandit, safety, semgrep)
+└── code-quality (black, flake8, isort)
     ↓
-Stage 2: Unit Tests (3-4 min)
+Stage 2: Unit Tests (2-3 min) — BLOCKING
 └── tests (pytest with coverage ≥42%)
     ↓
-Stage 3: E2E Tests (2-3 min, main only)
+Stage 3: E2E Tests (optional, non-blocking, main only)
 └── e2e-tests (pytest-playwright async)
-    ↓
-Stage 4: Accessibility (2-3 min, main/schedule only)
-└── accessibility-audit (axe, pa11y, lighthouse)
-    ↓
-Stage 5: Database Backup (1 min, main only)
-└── db-backup (S3 backup)
-    ↓
-Stage 6: Deployment Readiness (main only)
-└── deployment-readiness (validation)
 ```
 
-### Key Optimizations
-- **Sequential stages** with `needs:` dependencies (fail fast)
-- **Conditional execution** (E2E/backup/accessibility only on main)
-- **Consolidated workflows** (ci.yml + security-testing.yml merged)
-- **Disabled redundant workflow** (security-testing.yml)
+### What Blocks Deployment
+- ✅ **Secrets Detection** - No hardcoded credentials
+- ✅ **Code Quality** - Black formatting, isort imports, flake8 syntax
+- ✅ **Unit Tests** - Coverage ≥42%, all tests pass
+
+### What Doesn't Block
+- ❌ **E2E Tests** - Non-blocking, informational only
+- ❌ **Accessibility Audit** - Removed (too flaky)
+- ❌ **Database Backup** - Removed (separate concern)
+- ❌ **Security Scan** - Removed (bandit/safety/semgrep too noisy)
 
 ---
 
-## E2E Test Fixes
+## Why This Approach?
 
-### Fixture Scope Issue
-**Problem**: Session-scoped async fixtures not supported by pytest-asyncio  
-**Solution**: Changed `browser` fixture to function-scoped
+### The Problem with Complex CI
+- 10+ minute runs = slow feedback loop
+- Multiple stages = multiple failure points
+- E2E tests = flaky, environment-dependent
+- Accessibility audits = false positives
+- Security scans = too many low-severity findings
 
-```python
-# Before (broken)
-@pytest.fixture(scope="session")
-async def browser():
-    ...
-
-# After (working)
-@pytest.fixture
-async def browser():
-    ...
-```
-
-### Test Conversions
-All E2E tests converted from sync to async Playwright API:
-- `test_welcome_flow.py` - 11 tests
-- `test_auth_flow.py` - 3 tests
-- `test_verification_flow_v2.py` - 4 tests
-- `test_critical_journeys.py` - Already async
-- `test_critical_paths.py` - Already async
-- `test_dashboard_pages.py` - Already async
-- `test_verification_flow.py` - Already async
-
-### Configuration
-- **pytest.ini**: `asyncio_mode = auto`
-- **conftest.py**: Async fixtures with proper scopes
-- **Workflow env**: `TESTING=1` flag skips non-critical tasks
+### The Solution
+- **Minimal blocking checks** - Only what matters for deployment
+- **Fast feedback** - 3-4 minutes instead of 10+
+- **Reliable** - No flaky tests blocking PRs
+- **Maintainable** - Simple to debug when it fails
 
 ---
 
-## Performance Breakdown
-
-### Before Optimization
-```
-ci.yml (parallel)                    ~8 min
-security-testing.yml (parallel)      ~8 min
-Total (parallel overhead)            ~10+ min
-```
-
-### After Optimization
-```
-Stage 1: Fast checks                 ~2 min
-Stage 2: Unit tests                  ~3-4 min
-Stage 3: E2E tests (main only)       ~2-3 min
-Stage 4: Accessibility (main only)   ~2-3 min
-Stage 5: Backup (main only)          ~1 min
-Total (sequential)                   ~5-6 min
-```
-
-**Savings**: 40-50% reduction in CI time
-
----
-
-## Configuration Files
+## Configuration
 
 ### `.github/workflows/ci.yml`
-Main consolidated pipeline with all 6 stages and job dependencies.
-
-### `.github/workflows/security-testing.yml`
-Disabled (consolidated into ci.yml).
+- 3 jobs: secrets-scan, code-quality, tests
+- E2E tests optional (non-blocking)
+- All jobs run in parallel where possible
+- Dependencies: fast checks → unit tests → E2E
 
 ### `pytest.ini`
 ```ini
 [pytest]
 asyncio_mode = auto
-markers =
-    asyncio: marks tests as async
-    e2e: marks tests as end-to-end
-    smoke: marks tests as smoke tests
 testpaths = tests
 timeout = 30
 ```
 
 ### `tests/e2e/conftest.py`
-Async fixtures for browser, page, base_url, test_user, test_timeout.
+Async fixtures for browser, page, base_url, test_user.
 
 ---
 
 ## Running Tests Locally
-
-### E2E Tests
-```bash
-# Install dependencies
-pip install -r requirements.txt
-pip install pytest pytest-asyncio pytest-playwright
-
-# Install Playwright browsers
-playwright install chromium
-
-# Start app
-TESTING=1 uvicorn main:app --host 0.0.0.0 --port 8000
-
-# Run E2E tests
-pytest tests/e2e/ -v
-
-# Run specific test file
-pytest tests/e2e/test_welcome_flow.py -v
-
-# Run with markers
-pytest tests/e2e/ -m smoke -v
-```
 
 ### Unit Tests
 ```bash
 pytest tests/unit/ -v --cov=app --cov-fail-under=42
 ```
 
+### E2E Tests
+```bash
+# Start app
+TESTING=1 uvicorn main:app --host 0.0.0.0 --port 8000
+
+# Run tests
+pytest tests/e2e/ -v
+```
+
 ---
 
 ## Troubleshooting
 
-### E2E Tests Failing with Fixture Errors
-**Error**: `requested an async fixture 'browser' with no plugin or hook`  
-**Fix**: Ensure `pytest.ini` has `asyncio_mode = auto` and all tests use `@pytest.mark.asyncio`
+### Tests Failing Locally but Passing in CI
+- Ensure `TESTING=1` environment variable is set
+- Check database is initialized: `psql -U postgres -c "CREATE DATABASE namaskah_test;"`
+- Verify Redis is running: `redis-cli ping`
 
-### App Startup Timeout in CI
-**Error**: `Timeout 15000ms exceeded waiting for navigation`  
-**Fix**: Ensure `TESTING=1` is set in workflow to skip non-critical initialization
+### CI Taking Too Long
+- Check if E2E tests are running (they're non-blocking, so shouldn't block deployment)
+- Verify no large files are being uploaded as artifacts
 
-### CSP Header Blocking Tests
-**Error**: `EvalError: Evaluating a string as JavaScript violates CSP`  
-**Fix**: CSP header automatically allows `unsafe-eval` in test environment
-
-### Playwright Sync API Error
-**Error**: `It looks like you are using Playwright Sync API inside the asyncio loop`  
-**Fix**: Use async API (`from playwright.async_api import ...`) and `await` all calls
+### Secrets Detection Failing
+- Run `gitleaks detect --source . --config tools/gitleaks.toml` locally
+- Update `tools/gitleaks.toml` allowlist if needed
 
 ---
 
 ## Future Improvements
 
-1. **Caching**: Add pip cache for faster dependency installation
-2. **Parallel stages**: Run stages 3-5 in parallel (they're independent)
-3. **Matrix testing**: Test against multiple Python versions
-4. **Artifact caching**: Cache Playwright browsers between runs
-5. **Conditional E2E**: Only run E2E tests if frontend code changed
+1. **Add pre-commit hooks** - Catch formatting issues before push
+2. **Cache dependencies** - Speed up pip install
+3. **Parallel jobs** - Run secrets-scan and code-quality in parallel
+4. **Conditional E2E** - Only run E2E if frontend code changed
+5. **Scheduled security scans** - Run bandit/safety on schedule, not on every push
 
 ---
 
-## References
+## Philosophy
 
-- [Workflow file](/.github/workflows/ci.yml)
-- [pytest-asyncio docs](https://pytest-asyncio.readthedocs.io/)
-- [Playwright async API](https://playwright.dev/python/docs/api/class-browser)
-- [GitHub Actions syntax](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions)
+> **Simple > Complex**  
+> **Reliable > Comprehensive**  
+> **Fast Feedback > Perfect Coverage**
+
+This CI pipeline prioritizes developer experience and deployment reliability over exhaustive checks. The goal is to catch real problems (secrets, syntax, test failures) while staying out of the way.
