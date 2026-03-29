@@ -49,7 +49,9 @@ async def lifespan(app):
             await asyncio.wait_for(cache.connect(), timeout=10.0)
             startup_logger.info("Unified cache initialized")
         except asyncio.TimeoutError:
-            startup_logger.warning("Cache connection timeout - continuing without cache")
+            startup_logger.warning(
+                "Cache connection timeout - continuing without cache"
+            )
         except Exception as e:
             startup_logger.warning(f"Cache initialization failed: {e}")
 
