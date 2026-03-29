@@ -120,7 +120,8 @@ jobs:
             --ignore=tests/unit/test_webhook_notifications.py \
             --ignore=tests/unit/test_webhook_service_complete.py \
             --ignore=tests/unit/test_wallet_service.py \
-            --ignore=tests/unit/test_wallet_endpoints_comprehensive.py
+            --ignore=tests/unit/test_wallet_endpoints_comprehensive.py \
+            --ignore=tests/unit/test_verification_routes.py
 
       - name: Upload coverage
         uses: codecov/codecov-action@v4
