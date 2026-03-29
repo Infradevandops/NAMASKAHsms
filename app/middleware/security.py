@@ -37,22 +37,23 @@ class SecurityHeadersMiddleware:
 
         csp_policy = (
             f"default-src 'self'; "
-            f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net https://cdn.tailwindcss.com"
+            f"script-src 'self' 'nonce-{nonce}' https://checkout.paystack.com "
+            f"https://js.paystack.co https://unpkg.com https://cdn.jsdelivr.net "
+            f"https://cdn.tailwindcss.com"
         )
-        
+
         if is_testing:
             csp_policy += " 'unsafe-eval'"
-        
+
         csp_policy += (
-            f"; "
-            f"script-src-attr 'unsafe-inline'; "
-            f"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; "
-            f"font-src 'self' https://fonts.gstatic.com https://unpkg.com; "
-            f"img-src 'self' data: https: https://cdn.simpleicons.org; "
-            f"connect-src 'self' https://api.paystack.co https://checkout.paystack.com; "
-            f"frame-src https://checkout.paystack.com; "
-            f"object-src 'none'; "
-            f"base-uri 'self';"
+            "; script-src-attr 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com "
+            "https://unpkg.com; font-src 'self' https://fonts.gstatic.com "
+            "https://unpkg.com; img-src 'self' data: https: "
+            "https://cdn.simpleicons.org; connect-src 'self' "
+            "https://api.paystack.co https://checkout.paystack.com; "
+            "frame-src https://checkout.paystack.com; object-src 'none'; "
+            "base-uri 'self';"
         )
 
         async def send_with_headers(message: dict) -> None:
