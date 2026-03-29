@@ -143,8 +143,7 @@ jobs:
             --ignore=tests/unit/test_disaster_recovery.py \
             --ignore=tests/unit/test_enterprise_service.py \
             --ignore=tests/unit/test_sms_logic.py \
-            --ignore=tests/unit/test_textverified_service.py \
-            --ignore=tests/e2e
+            --ignore=tests/unit/test_textverified_service.py
           EXIT_CODE=$?
           set -e
           # Exit 2 = coverage below threshold, Exit 4 = collection error

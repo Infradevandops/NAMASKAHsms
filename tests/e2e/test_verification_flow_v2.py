@@ -6,39 +6,26 @@ import pytest
 import time
 from playwright.sync_api import Page, expect
 
-@pytest.fixture(scope="function")
-def page_manual(playwright):
-    """Manually manage browser to avoid protocol errors"""
-    browser = playwright.chromium.launch(headless=True)
-    context = browser.new_context()
-    page = context.new_page()
-    yield page
-    browser.close()
 
 @pytest.fixture(autouse=True)
-def authenticated_page(page_manual: Page, base_url):
+def authenticated_page(page: Page, base_url):
     """Fixture to authenticate user and navigate to verification page before each test"""
-    # Use base_url or default
-    base = base_url if base_url else "http://127.0.0.1:8000"
-    
-    # Ensure base uses 127.0.0.1 if it's localhost
-    base = base.replace("localhost", "127.0.0.1")
+    base = base_url.replace("localhost", "127.0.0.1")
     
     # 1. Login
-    page_manual.goto(f"{base}/login", timeout=15000)
-    page_manual.fill("#email", "admin@namaskah.app")
-    page_manual.fill("#password", "<admin-password>")
-    page_manual.click("button[type='submit']")
-    page_manual.wait_for_url("**/dashboard", timeout=15000)
+    page.goto(f"{base}/login", timeout=15000)
+    page.fill("#email", "admin@namaskah.app")
+    page.fill("#password", "<admin-password>")
+    page.click("button[type='submit']")
+    page.wait_for_url("**/dashboard", timeout=15000)
     
     # 2. Go to verification
-    page_manual.goto(f"{base}/verify", timeout=15000)
-    page_manual.wait_for_load_state("networkidle")
-    return page_manual
+    page.goto(f"{base}/verify", timeout=15000)
+    page.wait_for_load_state("networkidle")
+    return page
 
-def test_service_loading_error_and_retry(page_manual: Page):
-    # Use page_manual instead of page
-    page = page_manual
+
+def test_service_loading_error_and_retry(page: Page):
     """Test Case for Priority 0 & 1: API Failure -> Error State -> Retry -> Success"""
     
     # 1. Mock API to fail
@@ -63,23 +50,15 @@ def test_service_loading_error_and_retry(page_manual: Page):
         body='{"services": [{"id": "telegram", "name": "Telegram", "price": 0.50}], "total": 1}'
     ))
     
-    # Click service input (which should now be disabled, so we use evaluate to trigger retry if we added a button, 
-    # but the task P1.3 says "Add error message with retry button in modal content")
-    # Wait, the modal doesn't open if items are empty. 
-    # Let's check the code: in openImmersiveModal it returns early.
-    
-    # Actually, Task 1.2 "Add retry button to the empty/error state' in the modal" 
-    # suggests the modal SHOULD open even if empty? 
-    # Click the actual retry button
+    # Click retry button
     page.click("#service-retry-btn")
     
     # Verify recovered
     expect(service_input).to_be_enabled(timeout=15000)
     expect(service_input).to_have_attribute("placeholder", "Search services e.g. Telegram, WhatsApp...", timeout=10000)
 
-def test_immersive_modal_opens(page_manual: Page):
-    # Use page_manual
-    page = page_manual
+
+def test_immersive_modal_opens(page: Page):
     """Test that clicking service selection opens the immersive modal"""
     # Wait for services
     page.wait_for_function(
@@ -93,9 +72,8 @@ def test_immersive_modal_opens(page_manual: Page):
     expect(modal).not_to_be_empty()
     expect(page.locator(".immersive-modal-title")).to_have_text("Select Service")
 
-def test_area_code_fallback_and_receipt(page_manual: Page):
-    # Use page_manual
-    page = page_manual
+
+def test_area_code_fallback_and_receipt(page: Page):
     """Test Case for Priority 1.5: Fallback warning and receipt accuracy"""
     
     # 1. Setup mocks for successful service loading
@@ -156,9 +134,8 @@ def test_area_code_fallback_and_receipt(page_manual: Page):
     expect(page.locator("#receipt-fallback-row")).to_be_visible()
     expect(page.locator("#receipt-requested-ac")).to_have_text("212")
 
-def test_carrier_mismatch_error(page_manual: Page):
-    # Use page_manual
-    page = page_manual
+
+def test_carrier_mismatch_error(page: Page):
     """Test Case for Priority 2.3: Carrier mismatch raises 409 and shown to user"""
     
     # 1. Mock purchase failure with 409
@@ -178,8 +155,4 @@ def test_carrier_mismatch_error(page_manual: Page):
     page.click("#get-number-btn")
     
     # 4. Verify Error Toast or Message
-    # In my JS, it catches error and shows window.toast.error(msg)
-    # Give it more time for the toast to appear
     expect(page.locator(".toast-error")).to_contain_text("Requested carrier Verizon was unavailable", timeout=15000)
-
-
