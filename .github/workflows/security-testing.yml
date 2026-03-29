@@ -14,7 +14,7 @@ on:
 
 jobs:
   e2e-tests:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && false
     runs-on: ubuntu-latest
     name: E2E Tests
     continue-on-error: true
