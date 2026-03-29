@@ -1,7 +1,7 @@
 """E2E tests for authentication flows"""
 
 import pytest
-from playwright.sync_api import Page, expect
+from playwright.async_api import Page, expect
 
 BASE_URL = "http://localhost:8000"
 
@@ -15,47 +15,50 @@ def test_user():
     }
 
 
-def test_registration_flow(page: Page, test_user):
+@pytest.mark.asyncio
+async def test_registration_flow(page: Page, test_user):
     """Test user registration end-to-end"""
-    page.goto(f"{BASE_URL}/auth/register")
+    await page.goto(f"{BASE_URL}/auth/register")
 
     # Fill registration form
-    page.fill('input[name="email"]', test_user["email"])
-    page.fill('input[name="password"]', test_user["password"])
-    page.fill('input[name="confirm_password"]', test_user["password"])
+    await page.fill('input[name="email"]', test_user["email"])
+    await page.fill('input[name="password"]', test_user["password"])
+    await page.fill('input[name="confirm_password"]', test_user["password"])
 
     # Submit form
-    page.click('button[type="submit"]')
+    await page.click('button[type="submit"]')
 
     # Should redirect to dashboard or login
-    expect(page).to_have_url(f"{BASE_URL}/dashboard", timeout=5000)
+    await expect(page).to_have_url(f"{BASE_URL}/dashboard", timeout=5000)
 
 
-def test_login_logout_flow(page: Page, test_user):
+@pytest.mark.asyncio
+async def test_login_logout_flow(page: Page, test_user):
     """Test login and logout flow"""
     # Login
-    page.goto(f"{BASE_URL}/auth/login")
-    page.fill('input[name="email"]', test_user["email"])
-    page.fill('input[name="password"]', test_user["password"])
-    page.click('button[type="submit"]')
+    await page.goto(f"{BASE_URL}/auth/login")
+    await page.fill('input[name="email"]', test_user["email"])
+    await page.fill('input[name="password"]', test_user["password"])
+    await page.click('button[type="submit"]')
 
     # Verify dashboard loaded
-    expect(page).to_have_url(f"{BASE_URL}/dashboard", timeout=5000)
-    expect(page.locator("text=Dashboard")).to_be_visible()
+    await expect(page).to_have_url(f"{BASE_URL}/dashboard", timeout=5000)
+    await expect(page.locator("text=Dashboard")).to_be_visible()
 
     # Logout
-    page.click("#user-avatar-btn")
-    page.click("#dropdown-logout")
+    await page.click("#user-avatar-btn")
+    await page.click("#dropdown-logout")
 
     # Should redirect to login
-    expect(page).to_have_url(f"{BASE_URL}/auth/login", timeout=5000)
+    await expect(page).to_have_url(f"{BASE_URL}/auth/login", timeout=5000)
 
 
-def test_password_reset_flow(page: Page, test_user):
+@pytest.mark.asyncio
+async def test_password_reset_flow(page: Page, test_user):
     """Test password reset request"""
-    page.goto(f"{BASE_URL}/auth/password-reset")
-    page.fill('input[name="email"]', test_user["email"])
-    page.click('button[type="submit"]')
+    await page.goto(f"{BASE_URL}/auth/password-reset")
+    await page.fill('input[name="email"]', test_user["email"])
+    await page.click('button[type="submit"]')
 
     # Should show success message
-    expect(page.locator("text=email sent")).to_be_visible(timeout=3000)
+    await expect(page.locator("text=email sent")).to_be_visible(timeout=3000)
