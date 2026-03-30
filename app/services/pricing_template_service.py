@@ -189,7 +189,9 @@ class PricingTemplateService:
         # Update only whitelisted fields
         for key, value in updates.items():
             if key not in ALLOWED_FIELDS:
-                raise ValueError(f"Cannot update field '{key}'. Allowed fields: {ALLOWED_FIELDS}")
+                raise ValueError(
+                    f"Cannot update field '{key}'. Allowed fields: {ALLOWED_FIELDS}"
+                )
             if hasattr(template, key):
                 setattr(template, key, value)
 
