@@ -40,27 +40,27 @@ async def get_wallet_balance(
     """Get current wallet balance with source tracking."""
     try:
         from app.services.balance_service import BalanceService
-        
+
         balance_info = await BalanceService.get_user_balance(user_id, db)
         user = db.query(User).filter(User.id == user_id).first()
         if not user:
             raise NamaskahException("User not found")
-        
+
         response = WalletBalanceResponse(
             credits=balance_info["balance"],
             credits_usd=balance_info["balance"],
             free_verifications=user.free_verifications,
         )
-        
+
         # Add metadata for admin users
         if balance_info.get("is_admin"):
             response.source = balance_info["source"]
             response.last_synced = balance_info.get("last_synced")
             if balance_info.get("error"):
                 response.sync_error = balance_info["error"]
-        
+
         return response
-        
+
     except NamaskahException as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

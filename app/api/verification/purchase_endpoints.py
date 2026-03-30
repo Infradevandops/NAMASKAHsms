@@ -160,11 +160,11 @@ async def request_verification(
         # Check user has sufficient balance using unified service
         from app.services.balance_service import BalanceService
         from app.services.transaction_service import TransactionService
-        
+
         balance_check = await BalanceService.check_sufficient_balance(
             user_id, sms_cost, db
         )
-        
+
         if not balance_check["sufficient"]:
             logger.warning(
                 f"User {user_id} insufficient balance: "
@@ -179,7 +179,7 @@ async def request_verification(
                     f"Required: ${sms_cost:.2f}"
                 ),
             )
-        
+
         old_balance = balance_check["current_balance"]
 
         # CRITICAL FIX: Call TextVerified API FIRST (before deducting credits)
@@ -344,7 +344,7 @@ async def request_verification(
                     f"User balance deducted: "
                     f"${old_balance:.2f} → ${new_balance:.2f}"
                 )
-            
+
             # Record transaction for BOTH admin and regular users
             TransactionService.record_sms_purchase(
                 db=db,
@@ -354,8 +354,12 @@ async def request_verification(
                 verification_id=str(verification.id),
                 old_balance=old_balance,
                 new_balance=new_balance,
-                filters={"area_code": area_code, "carrier": carrier} if (area_code or carrier) else None,
-                tier=user_tier
+                filters=(
+                    {"area_code": area_code, "carrier": carrier}
+                    if (area_code or carrier)
+                    else None
+                ),
+                tier=user_tier,
             )
 
             # CRITICAL: Notify user of credit deduction immediately
