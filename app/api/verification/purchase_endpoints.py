@@ -157,42 +157,30 @@ async def request_verification(
 
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
 
-        # Check user has sufficient balance BEFORE calling API
-        logger.info(
-            f"User {user_id} current balance: ${user.credits:.2f}, SMS cost: ${sms_cost:.2f}, tier: {user_tier}"
+        # Check user has sufficient balance using unified service
+        from app.services.balance_service import BalanceService
+        from app.services.transaction_service import TransactionService
+        
+        balance_check = await BalanceService.check_sufficient_balance(
+            user_id, sms_cost, db
         )
-        if user_tier in ("pro", "custom"):
-            from app.services.quota_service import QuotaService
-
-            usage = QuotaService.get_monthly_usage(db, user_id, tier=user_tier)
-            quota_remaining = usage["remaining"]
-            tier_config_data = TierManager(db).get_tier_limits(user_id)
-            # Within quota — subscription covers it
-            if quota_remaining >= pricing_info["base_cost"]:
-                pass  # allowed
-            else:
-                # In overage — need credits for the overage portion
-                from app.services.pricing_calculator import PricingCalculator as _PC
-
-                overage = QuotaService.calculate_overage(
-                    db, user_id, sms_cost, tier=user_tier
-                )
-                if user.credits < overage:
-                    logger.warning(
-                        f"User {user_id} insufficient credits for overage: ${user.credits:.2f} < ${overage:.2f}"
-                    )
-                    raise HTTPException(
-                        status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                        detail=f"Insufficient credits for overage. Available: ${user.credits:.2f}, Overage: ${overage:.2f}",
-                    )
-        elif user.credits < sms_cost:
+        
+        if not balance_check["sufficient"]:
             logger.warning(
-                f"User {user_id} has insufficient credits: ${user.credits:.2f} < ${sms_cost:.2f}"
+                f"User {user_id} insufficient balance: "
+                f"${balance_check['current_balance']:.2f} < ${sms_cost:.2f} "
+                f"(source: {balance_check['source']})"
             )
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=f"Insufficient credits. Available: ${user.credits:.2f}, Required: ${sms_cost:.2f}",
+                detail=(
+                    f"Insufficient balance. "
+                    f"Available: ${balance_check['current_balance']:.2f}, "
+                    f"Required: ${sms_cost:.2f}"
+                ),
             )
+        
+        old_balance = balance_check["current_balance"]
 
         # CRITICAL FIX: Call TextVerified API FIRST (before deducting credits)
         logger.info(
@@ -331,23 +319,43 @@ async def request_verification(
                 )
             logger.info(f"Verification record created with ID: {verification.id}")
 
-            # Step 3: Deduct credits ONLY after API success
-            # For admin users, sync from live TextVerified balance first so
-            # the deduction and notification reflect the real account balance
+            # Step 3: Deduct credits and record transaction
+            # For admin users, sync from live TextVerified balance
             if user.is_admin:
+                # Admin: Fetch new balance from TextVerified
                 try:
-                    tv_bal = await tv_service.get_balance()  # Use existing instance
-                    live_balance = tv_bal.get("balance")
-                    if live_balance is not None:
-                        user.credits = live_balance
-                except Exception as _sync_err:
-                    logger.warning(f"TV balance sync before deduct failed: {_sync_err}")
-
-            old_balance = user.credits
-            user.credits -= type(user.credits)(actual_cost)
-            new_balance = user.credits
-            logger.info(
-                f"Deducting ${actual_cost:.2f} from user {user_id}: ${old_balance:.2f} → ${new_balance:.2f}"
+                    tv_bal = await tv_service.get_balance()
+                    new_balance = tv_bal.get("balance", 0.0)
+                    user.credits = new_balance  # Update cache
+                    logger.info(
+                        f"Admin balance synced after purchase: "
+                        f"${old_balance:.2f} → ${new_balance:.2f}"
+                    )
+                except Exception as sync_err:
+                    logger.warning(f"Post-purchase balance sync failed: {sync_err}")
+                    # Estimate new balance
+                    new_balance = old_balance - actual_cost
+                    user.credits = new_balance
+            else:
+                # Regular user: Deduct locally
+                user.credits -= type(user.credits)(actual_cost)
+                new_balance = float(user.credits)
+                logger.info(
+                    f"User balance deducted: "
+                    f"${old_balance:.2f} → ${new_balance:.2f}"
+                )
+            
+            # Record transaction for BOTH admin and regular users
+            TransactionService.record_sms_purchase(
+                db=db,
+                user_id=user_id,
+                amount=actual_cost,
+                service=request.service,
+                verification_id=str(verification.id),
+                old_balance=old_balance,
+                new_balance=new_balance,
+                filters={"area_code": area_code, "carrier": carrier} if (area_code or carrier) else None,
+                tier=user_tier
             )
 
             # CRITICAL: Notify user of credit deduction immediately
