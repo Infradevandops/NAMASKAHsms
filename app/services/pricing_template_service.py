@@ -183,8 +183,13 @@ class PricingTemplateService:
         if template.is_active:
             raise ValueError("Cannot update active template. Deactivate first.")
 
-        # Update fields
+        # Whitelist of allowed fields to update (CWE-94 fix)
+        ALLOWED_FIELDS = {"name", "description", "currency", "metadata"}
+
+        # Update only whitelisted fields
         for key, value in updates.items():
+            if key not in ALLOWED_FIELDS:
+                raise ValueError(f"Cannot update field '{key}'. Allowed fields: {ALLOWED_FIELDS}")
             if hasattr(template, key):
                 setattr(template, key, value)
 
