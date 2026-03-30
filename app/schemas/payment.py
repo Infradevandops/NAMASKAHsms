@@ -166,6 +166,11 @@ class WalletBalanceResponse(BaseModel):
     credits: float = Field(..., description="Current wallet credits")
     credits_usd: float = Field(..., description="Credits in USD")
     free_verifications: int = Field(..., description="Free verifications remaining")
+    
+    # Admin-specific fields
+    source: Optional[str] = Field(None, description="Balance source: textverified, local, or cached")
+    last_synced: Optional[datetime] = Field(None, description="Last sync time for admin balance")
+    sync_error: Optional[str] = Field(None, description="Sync error message if any")
 
     model_config = {
         "from_attributes": True,

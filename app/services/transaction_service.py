@@ -1,92 +1,105 @@
-"""Transaction logging service."""
+"""Transaction recording service for analytics and audit."""
 
-import uuid
 from datetime import datetime, timezone
+from typing import Dict, Optional
 
 from sqlalchemy.orm import Session
 
+from app.core.logging import get_logger
 from app.models.transaction import Transaction
+
+logger = get_logger(__name__)
 
 
 class TransactionService:
-    """Log transactions for audit trail."""
+    """Record all financial transactions for analytics."""
 
     @staticmethod
-    def log_sms_purchase(
+    def record_sms_purchase(
         db: Session,
         user_id: str,
-        cost: float,
-        tier: str,
-        service: str = None,
-        filters: dict = None,
-    ) -> str:
-        """Log SMS purchase transaction."""
-        if not filters:
-            filters = {}
+        amount: float,
+        service: str,
+        verification_id: str,
+        old_balance: float,
+        new_balance: float,
+        filters: Optional[Dict] = None,
+        tier: Optional[str] = None,
+    ) -> Transaction:
+        """Record SMS purchase transaction.
 
+        This creates an audit trail for:
+        - Analytics dashboards
+        - Spending reports
+        - User transaction history
+        - Admin monitoring
+        """
         transaction = Transaction(
-            id=str(uuid.uuid4()),
             user_id=user_id,
+            amount=-abs(amount),  # Negative for debit
             type="sms_purchase",
-            amount=cost,
+            description=f"SMS verification for {service}",
             tier=tier,
             service=service,
-            filters=str(filters),
+            filters=str(filters) if filters else None,
             status="completed",
-            created_at=datetime.now(timezone.utc),
+            reference=f"sms_{verification_id}",
         )
+
         db.add(transaction)
-        db.commit()
-        return transaction.id
+        db.flush()
+
+        logger.info(
+            f"Transaction recorded: user={user_id}, amount=${amount:.2f}, "
+            f"balance: ${old_balance:.2f} → ${new_balance:.2f}"
+        )
+
+        return transaction
 
     @staticmethod
-    def log_api_key_creation(db: Session, user_id: str, key_id: str) -> str:
-        """Log API key creation."""
+    def record_credit_addition(
+        db: Session,
+        user_id: str,
+        amount: float,
+        payment_reference: str,
+        payment_method: str = "paystack",
+    ) -> Transaction:
+        """Record credit addition (top-up)."""
         transaction = Transaction(
-            id=str(uuid.uuid4()),
             user_id=user_id,
-            type="api_key_created",
-            amount=0.0,
-            tier=None,
-            service=key_id,
+            amount=abs(amount),  # Positive for credit
+            type="credit",
+            description=f"Credit added via {payment_method}",
             status="completed",
-            created_at=datetime.now(timezone.utc),
+            reference=payment_reference,
         )
+
         db.add(transaction)
-        db.commit()
-        return transaction.id
+        db.flush()
+
+        logger.info(f"Credit added: user={user_id}, amount=${amount:.2f}")
+        return transaction
 
     @staticmethod
-    def log_filter_charge(
-        db: Session, user_id: str, cost: float, filter_type: str, tier: str
-    ) -> str:
-        """Log filter charge."""
+    def record_refund(
+        db: Session,
+        user_id: str,
+        amount: float,
+        verification_id: str,
+        reason: str,
+    ) -> Transaction:
+        """Record refund transaction."""
         transaction = Transaction(
-            id=str(uuid.uuid4()),
             user_id=user_id,
-            type="filter_charge",
-            amount=cost,
-            tier=tier,
-            service=filter_type,
+            amount=abs(amount),  # Positive for refund
+            type="refund",
+            description=f"Refund: {reason}",
             status="completed",
-            created_at=datetime.now(timezone.utc),
+            reference=f"refund_{verification_id}",
         )
-        db.add(transaction)
-        db.commit()
-        return transaction.id
 
-    @staticmethod
-    def log_overage_charge(db: Session, user_id: str, cost: float, tier: str) -> str:
-        """Log overage charge."""
-        transaction = Transaction(
-            id=str(uuid.uuid4()),
-            user_id=user_id,
-            type="overage_charge",
-            amount=cost,
-            tier=tier,
-            status="completed",
-            created_at=datetime.now(timezone.utc),
-        )
         db.add(transaction)
-        db.commit()
-        return transaction.id
+        db.flush()
+
+        logger.info(f"Refund recorded: user={user_id}, amount=${amount:.2f}")
+        return transaction
