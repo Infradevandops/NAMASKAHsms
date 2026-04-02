@@ -110,11 +110,7 @@ jobs:
             --continue-on-collection-errors \
             --maxfail=5 2>&1 | tail -50 || true
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          fail_ci_if_error: false
+
 
   # Optional: E2E tests (non-blocking, main only)
   e2e-tests:
