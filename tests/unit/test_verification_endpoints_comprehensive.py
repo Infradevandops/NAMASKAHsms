@@ -316,7 +316,7 @@ class TestVerificationEndpoints:
             db.add(verification)
         db.commit()
 
-        response = authenticated_regular_client.get("/api/verify/history")
+        response = authenticated_regular_client.get("/api/verification/history")
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
@@ -344,7 +344,7 @@ class TestVerificationEndpoints:
         db.commit()
 
         response = authenticated_regular_client.get(
-            "/api/verify/history?limit=5&offset=0"
+            "/api/verification/history?limit=5&offset=0"
         )
 
         # Endpoint doesn't exist yet
@@ -356,7 +356,7 @@ class TestVerificationEndpoints:
 
     def test_get_verification_history_empty(self, authenticated_regular_client):
         """Test getting history when no verifications exist."""
-        response = authenticated_regular_client.get("/api/verify/history")
+        response = authenticated_regular_client.get("/api/verification/history")
 
         # Endpoint doesn't exist yet
         assert response.status_code in [200, 404]
