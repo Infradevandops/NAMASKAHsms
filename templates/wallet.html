@@ -5,17 +5,17 @@
 
 {% block content %}
 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; margin-bottom: 24px;">
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.current_balance">Current Balance</div>
-        <div style="font-size: 32px; font-weight: 700; color: var(--primary);" id="wallet-balance">$0.00</div>
+    <div class="card nsk-stat">
+        <div class="nsk-stat-label">Current Balance</div>
+        <div class="nsk-stat-value red" id="wallet-balance">$0.00</div>
     </div>
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.this_month">This Month</div>
-        <div style="font-size: 32px; font-weight: 700;" id="monthly-spent">$0.00</div>
+    <div class="card nsk-stat">
+        <div class="nsk-stat-label">This Month</div>
+        <div class="nsk-stat-value" id="monthly-spent">$0.00</div>
     </div>
-    <div class="card">
-        <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;" data-i18n="wallet.total_spent">Total Spent</div>
-        <div style="font-size: 32px; font-weight: 700;" id="total-spent">$0.00</div>
+    <div class="card nsk-stat">
+        <div class="nsk-stat-label">Total Spent</div>
+        <div class="nsk-stat-value" id="total-spent">$0.00</div>
     </div>
 </div>
 
@@ -39,14 +39,14 @@
     <!-- Card Payment Section -->
     <div id="payment-card">
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px;">
-            <button class="btn" onclick="addCredits(10, 0, this)" style="background: #3b82f6;">$10</button>
-            <button class="btn" onclick="addCredits(25, 0, this)" style="background: #8b5cf6;">$25</button>
-            <button class="btn" onclick="addCredits(50, 0, this)" style="background: #ec4899;">$50 <span style="font-size: 10px;">+10%</span></button>
-            <button class="btn" onclick="addCredits(100, 0, this)" style="background: #f59e0b;">$100 <span style="font-size: 10px;">+15%</span></button>
+            <button class="btn nsk-btn nsk-btn-primary" onclick="addCredits(10, 0, this)" style="background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:0 4px 14px rgba(59,130,246,0.35);">$10</button>
+            <button class="btn nsk-btn nsk-btn-primary" onclick="addCredits(25, 0, this)" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);box-shadow:0 4px 14px rgba(139,92,246,0.35);">$25</button>
+            <button class="btn nsk-btn nsk-btn-primary" onclick="addCredits(50, 0, this)" style="background:linear-gradient(135deg,#FE3C72,#E0245E);box-shadow:0 4px 14px rgba(254,60,114,0.35);">$50 <span style="font-size:11px;opacity:0.85;">+10%</span></button>
+            <button class="btn nsk-btn nsk-btn-primary" onclick="addCredits(100, 0, this)" style="background:linear-gradient(135deg,#f59e0b,#d97706);box-shadow:0 4px 14px rgba(245,158,11,0.35);">$100 <span style="font-size:11px;opacity:0.85;">+15%</span></button>
         </div>
         <div style="display: flex; gap: 8px;">
-            <input type="number" id="custom-amount" placeholder="Custom amount" style="flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
-            <button class="btn" onclick="addCustomCredits(this)">Add Custom</button>
+            <input type="number" id="custom-amount" placeholder="Custom amount" style="flex: 1; padding: 12px; border: 1px solid #f0f0f0; border-radius: 10px; font-family: 'Inter', sans-serif; font-size:14px; outline:none; transition: border-color 0.2s;" onfocus="this.style.borderColor='#FE3C72'" onblur="this.style.borderColor='#f0f0f0'">
+            <button class="btn nsk-btn nsk-btn-primary" onclick="addCustomCredits(this)">Add Custom</button>
         </div>
     </div>
 
