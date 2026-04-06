@@ -94,20 +94,35 @@ class SMSPollingService:
                         if isinstance(sms_data["messages"], list)
                         else sms_data["messages"]
                     )
+                    sms_text = (
+                        latest_sms
+                        if isinstance(latest_sms, str)
+                        else latest_sms.get("text", "")
+                    )
+                    # CRITICAL: Use pre-parsed code from TextVerified API.
+                    # This handles hyphenated codes (806-185), alphanumeric,
+                    # and all formats TextVerified supports natively.
+                    # Only fall back to regex if code field is missing.
+                    pre_parsed_code = (
+                        latest_sms.get("code", "")
+                        if isinstance(latest_sms, dict)
+                        else ""
+                    )
                     if hasattr(verification, "sms_text"):
-                        verification.sms_text = (
-                            latest_sms
-                            if isinstance(latest_sms, str)
-                            else latest_sms.get("text", "")
-                        )
+                        verification.sms_text = sms_text
                     if hasattr(verification, "sms_code"):
-                        text = (
-                            latest_sms
-                            if isinstance(latest_sms, str)
-                            else latest_sms.get("text", "")
-                        )
-                        matches = re.findall(r"\b(\d{4,8})\b", text)
-                        verification.sms_code = matches[-1] if matches else ""
+                        if pre_parsed_code:
+                            verification.sms_code = pre_parsed_code
+                        else:
+                            # Last-resort regex fallback
+                            hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_text)
+                            plain = re.findall(r"\b(\d{4,8})\b", sms_text)
+                            if hyphen:
+                                verification.sms_code = hyphen[-1].replace("-", "")
+                            elif plain:
+                                verification.sms_code = plain[-1]
+                            else:
+                                verification.sms_code = ""
                     db.commit()
 
                     # Forward SMS to configured destinations (email/webhook)

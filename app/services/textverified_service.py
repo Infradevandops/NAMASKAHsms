@@ -489,12 +489,18 @@ class TextVerifiedService:
             return {"status": "ERROR", "messages": []}
 
         try:
-            # Use the existing get_sms logic but return in the format expected by SMSPollingService
             sms_data = await self.get_sms(activation_id)
             if sms_data.get("success"):
                 return {
                     "status": "COMPLETED",
-                    "messages": [{"text": sms_data.get("sms")}],
+                    "messages": [
+                        {
+                            "text": sms_data.get("sms", ""),
+                            "code": sms_data.get(
+                                "code", ""
+                            ),  # pass parsed code through
+                        }
+                    ],
                 }
             return {"status": "PENDING", "messages": []}
         except Exception as e:
@@ -745,11 +751,28 @@ class TextVerifiedService:
                 lambda: list(self.client.sms.list(verification_id))
             )
             if sms_list:
+                # Use the most recent SMS only
                 latest = sms_list[-1]
+                sms_content = latest.sms_content or ""
+                # CRITICAL: Use TextVerified's parsed_code first — it handles
+                # hyphenated codes (e.g. 806-185), alphanumeric codes, etc.
+                # Only fall back to regex if parsed_code is empty.
+                parsed = getattr(latest, "parsed_code", None) or ""
+                if not parsed:
+                    # Fallback regex — handles plain numeric codes only
+                    import re
+
+                    # Match hyphenated codes like 806-185 first, then plain digits
+                    hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_content)
+                    plain = re.findall(r"\b(\d{4,8})\b", sms_content)
+                    if hyphen:
+                        parsed = hyphen[-1].replace("-", "")
+                    elif plain:
+                        parsed = plain[-1]
                 return {
                     "success": True,
-                    "sms": latest.sms_content,
-                    "code": latest.parsed_code,
+                    "sms": sms_content,
+                    "code": parsed,
                     "received_at": latest.created_at.isoformat(),
                 }
             return {"success": False, "sms": None, "code": None}

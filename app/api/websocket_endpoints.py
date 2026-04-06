@@ -72,7 +72,8 @@ async def websocket_notifications(websocket: WebSocket):
         await websocket.close(code=1008, reason="Authentication failed")
         return
 
-    await manager.connect(websocket, user_id)
+    # Register connection WITHOUT calling accept() again — already accepted above
+    manager.register(websocket, user_id)
 
     try:
         await websocket.send_json(
