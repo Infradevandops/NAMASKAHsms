@@ -203,7 +203,8 @@
             <div class="phone-label">Call or text this number:</div>
             <div class="phone-number" id="phone-number">+1 (479) 502-2832</div>
             <div class="phone-actions">
-                <button class="copy-btn" onclick="copyPhoneNumber()">Copy</button>
+                <button class="copy-btn" id="copy-with-code-btn" onclick="copyPhoneNumber(true)" title="Copy with country code">Copy +1</button>
+                <button class="copy-btn" id="copy-without-code-btn" onclick="copyPhoneNumber(false)" title="Copy without country code">Copy local</button>
             </div>
         </div>
 
@@ -1171,11 +1172,27 @@ function formatPhone(raw) {
     return raw;
 }
 
-async function copyPhoneNumber() {
-    const num = document.getElementById('phone-number').textContent;
+async function copyPhoneNumber(withCountryCode = true) {
+    const raw = document.getElementById('phone-number').textContent;
+    // Strip to digits only, then reformat based on preference
+    const digits = raw.replace(/\D/g, '');
+    let toCopy;
+    if (withCountryCode) {
+        // Always include +1 prefix
+        toCopy = digits.length === 11 ? `+${digits}` : `+1${digits}`;
+    } else {
+        // Local number only — last 10 digits, formatted (XXX) XXX-XXXX
+        const local = digits.slice(-10);
+        toCopy = `(${local.slice(0,3)}) ${local.slice(3,6)}-${local.slice(6)}`;
+    }
     try {
-        await navigator.clipboard.writeText(num);
-        window.toast.success('Phone number copied!');
+        await navigator.clipboard.writeText(toCopy);
+        const btnId = withCountryCode ? 'copy-with-code-btn' : 'copy-without-code-btn';
+        const btn = document.getElementById(btnId);
+        const original = btn.textContent;
+        btn.textContent = '✓ Copied';
+        setTimeout(() => { btn.textContent = original; }, 2000);
+        window.toast.success(`Copied: ${toCopy}`);
     } catch (err) {
         console.error('Clipboard failed', err);
     }
