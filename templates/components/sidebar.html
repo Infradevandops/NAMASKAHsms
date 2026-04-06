@@ -1,14 +1,18 @@
 <aside class="sidebar" id="app-sidebar" role="navigation" aria-label="Main navigation">
     <div class="sidebar-header">
-        <h2>Namaskah</h2>
+        <div class="sidebar-brand">
+            <div class="sidebar-logo">N</div>
+            <h2>Namaskah</h2>
+        </div>
         <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle navigation menu"
             aria-expanded="false" aria-controls="sidebar-nav">
-            <span aria-hidden="true">☰</span>
+            <span aria-hidden="true">&#9776;</span>
         </button>
     </div>
     <nav class="sidebar-nav" id="sidebar-nav" aria-label="Primary navigation">
         <!-- Main -->
         <a href="/dashboard" class="nav-item" data-page="dashboard" data-tooltip="Dashboard" aria-current="false">
+            <span class="nav-icon">&#9783;</span>
             <span data-i18n="common.dashboard">Dashboard</span>
         </a>
 
@@ -17,12 +21,15 @@
         <div class="nav-section-title" role="heading" aria-level="2">Services</div>
 
         <a href="/verify" class="nav-item" data-page="verify" data-tooltip="SMS Verification">
+            <span class="nav-icon">&#128241;</span>
             <span data-i18n="verify.title">SMS Verification</span>
         </a>
         <a href="/history" class="nav-item" data-page="history" data-tooltip="History">
+            <span class="nav-icon">&#128336;</span>
             <span>History</span>
         </a>
         <a href="/voice-verify" class="nav-item" data-page="voice-verify" data-tooltip="Voice Verification">
+            <span class="nav-icon">&#127908;</span>
             <span>Voice Verify</span>
             <span class="tier-badge">Premium</span>
         </a>
@@ -32,6 +39,7 @@
         <div class="nav-section-title" role="heading" aria-level="2">Finance</div>
 
         <a href="/wallet" class="nav-item" data-page="wallet" data-tooltip="Wallet">
+            <span class="nav-icon">&#128179;</span>
             <span data-i18n="common.wallet">Wallet</span>
         </a>
 
@@ -40,37 +48,43 @@
         <div class="nav-section-title" role="heading" aria-level="2">General</div>
 
         <a href="/analytics" class="nav-item" data-page="analytics" data-tooltip="Analytics">
+            <span class="nav-icon">&#128202;</span>
             <span data-i18n="analytics.title">Analytics</span>
         </a>
         <a href="/settings" class="nav-item" data-page="settings" data-tooltip="Settings">
+            <span class="nav-icon">&#9881;</span>
             <span data-i18n="common.settings">Settings</span>
         </a>
 
-
         {% if user and user.is_admin %}
         <div class="nav-divider" role="separator"></div>
-        <div class="nav-section-title" role="heading" aria-level="2">ADMIN</div>
-        <a href="/admin" class="nav-item admin-item" data-page="admin" aria-label="Admin Dashboard">Admin Dashboard</a>
+        <div class="nav-section-title" role="heading" aria-level="2">Admin</div>
+        <a href="/admin" class="nav-item admin-item" data-page="admin" aria-label="Admin Dashboard">
+            <span class="nav-icon">&#128737;</span>
+            Admin Dashboard
+        </a>
         {% endif %}
     </nav>
     <div class="sidebar-footer">
         <a href="/referrals" class="nav-item" data-page="referrals" data-tooltip="Referrals">
+            <span class="nav-icon">&#127873;</span>
             <span>Referrals</span>
         </a>
         <label for="lang-switcher" class="sr-only">Select language</label>
         <select onchange="i18n.changeLanguage(this.value)" id="lang-switcher" aria-label="Select language">
-            <option value="en">🇺🇸 English</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="hi">🇮🇳 हिन्दी</option>
+            <option value="en">&#127482;&#127480; English</option>
+            <option value="es">&#127466;&#127480; Espa&#241;ol</option>
+            <option value="fr">&#127467;&#127479; Fran&#231;ais</option>
+            <option value="de">&#127465;&#127466; Deutsch</option>
+            <option value="pt">&#127477;&#127481; Portugu&#234;s</option>
+            <option value="zh">&#127464;&#127475; &#20013;&#25991;</option>
+            <option value="ja">&#127471;&#127477; &#26085;&#26412;&#35486;</option>
+            <option value="ar">&#127480;&#127462; &#1575;&#1604;&#1593;&#1585;&#1576;&#1610;&#1577;</option>
+            <option value="hi">&#127470;&#127475; &#2361;&#2367;&#2344;&#2381;&#2342;&#2368;</option>
         </select>
         <a href="#" class="nav-item" data-tooltip="Logout" onclick="logout(); return false;" role="button"
             aria-label="Log out of your account">
+            <span class="nav-icon">&#8594;</span>
             <span data-i18n="common.logout">Logout</span>
         </a>
     </div>
@@ -157,11 +171,40 @@
         justify-content: space-between;
     }
 
+    .sidebar-brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sidebar-logo {
+        width: 32px;
+        height: 32px;
+        background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 16px;
+        font-weight: 800;
+        box-shadow: 0 2px 8px rgba(254, 60, 114, 0.3);
+        flex-shrink: 0;
+    }
+
     .sidebar-header h2 {
-        font-size: 20px !important;
-        font-weight: 700 !important;
-        color: #FE3C72 !important;
+        font-size: 18px !important;
+        font-weight: 800 !important;
+        color: #21262D !important;
         opacity: 1 !important;
+        letter-spacing: -0.3px;
+    }
+
+    .nav-icon {
+        font-size: 16px;
+        width: 20px;
+        text-align: center;
+        flex-shrink: 0;
     }
 
     .sidebar-toggle {
