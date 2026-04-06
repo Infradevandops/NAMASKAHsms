@@ -49,7 +49,7 @@ class VerificationTemplates {
         container.innerHTML = this.templates.map(t => `
             <div onclick="verificationTemplates.apply('${t.id}')" 
                  style="padding: 12px; cursor: pointer; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 8px; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;"
-                 onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#667eea'"
+                 onmouseover="this.style.background='#f9fafb'; this.style.borderColor='#FE3C72'"
                  onmouseout="this.style.background='white'; this.style.borderColor='#e5e7eb'">
                 <div>
                     <div style="font-weight: 600; color: #1f2937; font-size: 13px;">${t.name}</div>
@@ -89,7 +89,7 @@ class VerificationTemplates {
                     <button onclick="this.closest('[style*=fixed]').remove()" 
                             style="flex: 1; padding: 12px; background: #f3f4f6; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Cancel</button>
                     <button onclick="verificationTemplates.saveFromModal()" 
-                            style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Save</button>
+                            style="flex: 1; padding: 12px; background: #FE3C72; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Save</button>
                 </div>
             </div>
         `;

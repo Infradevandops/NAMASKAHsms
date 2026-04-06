@@ -67,7 +67,7 @@ class MonthlySummary {
         const monthName = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
         container.innerHTML = `
-            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+            <div style="background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%); color: white; padding: 24px; border-radius: 12px; margin-bottom: 24px;">
                 <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">📊 ${monthName} Summary</h3>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 20px;">
@@ -142,7 +142,7 @@ class MonthlySummary {
                                 ${this.data.topServices.map(([service, amount], i) => `
                                     <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; ${i < this.data.topServices.length - 1 ? 'border-bottom: 1px solid #e5e7eb;' : ''}">
                                         <div style="display: flex; align-items: center; gap: 12px;">
-                                            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">${i + 1}</div>
+                                            <div style="width: 32px; height: 32px; background: linear-gradient(135deg, #FE3C72, #E0245E); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 14px;">${i + 1}</div>
                                             <span style="font-weight: 600;">${service}</span>
                                         </div>
                                         <span style="font-weight: 700; color: #f59e0b;">$${amount.toFixed(2)}</span>
