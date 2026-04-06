@@ -87,9 +87,6 @@ class SMSPollingService:
                     continue
 
                 if sms_data and sms_data.get("messages"):
-                    verification.status = "completed"
-                    verification.outcome = "completed"
-                    verification.completed_at = datetime.now(timezone.utc)
                     latest_sms = (
                         sms_data["messages"][-1]
                         if isinstance(sms_data["messages"], list)
@@ -100,30 +97,44 @@ class SMSPollingService:
                         if isinstance(latest_sms, str)
                         else latest_sms.get("text", "")
                     )
-                    # CRITICAL: Use pre-parsed code from TextVerified API.
-                    # This handles hyphenated codes (806-185), alphanumeric,
-                    # and all formats TextVerified supports natively.
-                    # Only fall back to regex if code field is missing.
                     pre_parsed_code = (
                         latest_sms.get("code", "")
                         if isinstance(latest_sms, dict)
                         else ""
                     )
-                    if hasattr(verification, "sms_text"):
-                        verification.sms_text = sms_text
-                    if hasattr(verification, "sms_code"):
-                        if pre_parsed_code:
-                            verification.sms_code = pre_parsed_code
+
+                    # Extract code — try parsed first, then regex
+                    if pre_parsed_code:
+                        extracted_code = pre_parsed_code
+                    else:
+                        hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_text)
+                        plain = re.findall(r"\b(\d{4,8})\b", sms_text)
+                        if hyphen:
+                            extracted_code = hyphen[-1].replace("-", "")
+                        elif plain:
+                            extracted_code = plain[-1]
                         else:
-                            # Last-resort regex fallback
-                            hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_text)
-                            plain = re.findall(r"\b(\d{4,8})\b", sms_text)
-                            if hyphen:
-                                verification.sms_code = hyphen[-1].replace("-", "")
-                            elif plain:
-                                verification.sms_code = plain[-1]
-                            else:
-                                verification.sms_code = ""
+                            extracted_code = None
+
+                    # CRITICAL: Only mark completed if we actually have a code.
+                    # If SMS arrived but no code found, keep polling — do NOT
+                    # charge user for an empty result.
+                    if not extracted_code:
+                        logger.warning(
+                            f"SMS received for {verification_id} but no code extracted "
+                            f"from text: '{sms_text[:80]}' — continuing to poll"
+                        )
+                        attempt += 1
+                        await asyncio.sleep(
+                            settings.sms_polling_initial_interval_seconds
+                        )
+                        continue
+
+                    verification.status = "completed"
+                    verification.outcome = "completed"
+                    verification.completed_at = datetime.now(timezone.utc)
+                    verification.sms_text = sms_text
+                    verification.sms_code = extracted_code
                     db.commit()
 
                     # Forward SMS to configured destinations (email/webhook)
