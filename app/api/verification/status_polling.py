@@ -65,15 +65,29 @@ class VerificationStatusService:
                     )
 
                     old_status = verification.status
-                    verification.status = tv_status.get("status", verification.status)
-                    verification.sms_code = (
-                        tv_status.get("sms_code") or verification.sms_code
-                    )
-                    verification.sms_text = (
-                        tv_status.get("sms_text") or verification.sms_text
-                    )
-                    verification.updated_at = datetime.now(timezone.utc)
 
+                    # Only accept sms_code if it arrived AFTER this verification
+                    # was created — prevents stale codes from recycled numbers
+                    incoming_code = tv_status.get("sms_code")
+                    incoming_text = tv_status.get("sms_text")
+
+                    if incoming_code and incoming_code != verification.sms_code:
+                        # Validate freshness via check_sms which applies created_after
+                        fresh = await self.textverified.check_sms(
+                            verification.activation_id,
+                            created_after=verification.created_at,
+                        )
+                        if fresh.get("status") == "COMPLETED":
+                            verification.sms_code = incoming_code
+                            verification.sms_text = incoming_text
+                            verification.status = "completed"
+                        # else: stale code — do not update
+                    else:
+                        verification.status = tv_status.get(
+                            "status", verification.status
+                        )
+
+                    verification.updated_at = datetime.now(timezone.utc)
                     self.db.commit()
 
                     if old_status != verification.status:
