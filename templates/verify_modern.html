@@ -6,8 +6,10 @@
 {% block head_extra %}
 {{ super() }}
 <link rel="stylesheet" href="/static/css/verification-design-system.css">
+<link rel="stylesheet" href="/static/css/sms-polling-ui.css">
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <script src="/static/js/service-store.js"></script>
+<script src="/static/js/sms-arrival-sound.js"></script>
 <style>
     .verification-container {
         animation: slideUp 0.3s ease-out;
@@ -200,7 +202,7 @@
 
         <!-- Phone Display -->
         <div class="phone-display">
-            <div class="phone-label">Call or text this number:</div>
+            <div class="phone-label">📱 Your Verification Number</div>
             <div class="phone-number" id="phone-number">+1 (479) 502-2832</div>
             <div class="phone-actions">
                 <button class="copy-btn" id="copy-with-code-btn" onclick="copyPhoneNumber(true)" title="Copy with country code">Copy +1</button>
@@ -209,39 +211,67 @@
         </div>
 
         <!-- Scanning Animation -->
-        <div class="scanning-container">
-            <div class="scanning-icon"></div>
-            <div class="scanning-text">Scanning for SMS...</div>
+        <div class="scanning-container" id="scanning-container">
+            <div class="scanning-dot"></div>
+            <div class="timer-ring-wrapper">
+                <svg class="timer-ring-svg" width="40" height="40" viewBox="0 0 40 40">
+                    <circle class="timer-ring-bg" cx="20" cy="20" r="16"/>
+                    <circle class="timer-ring-fill" id="timer-ring-fill" cx="20" cy="20" r="16"/>
+                </svg>
+                <div>
+                    <div class="scanning-text">Scanning for SMS...</div>
+                    <div class="scanning-service" id="scanning-service-name"></div>
+                </div>
+            </div>
             <div class="scanning-time">
-                <span id="elapsed-time">0</span>s elapsed
+                <strong><span id="elapsed-time">0</span>s</strong> elapsed &nbsp;·&nbsp;
+                <span id="progress-remaining">~120s remaining</span>
+            </div>
+            <div id="progress-info" style="display:none;">
+                <span id="progress-elapsed"></span>
             </div>
             <div class="scanning-progress">
-                <div class="scanning-progress-bar"></div>
+                <div class="scanning-progress-bar" id="scanning-progress-bar"></div>
             </div>
         </div>
 
         <!-- SMS Code Display (Hidden until received) -->
         <div id="code-received" style="display: none;">
-            <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: var(--radius-lg); padding: var(--spacing-lg); text-align: center;">
-                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">SMS Code Received</div>
-                <div style="font-size: var(--font-size-3xl); font-weight: 700; color: var(--success); font-family: 'Courier New', monospace; letter-spacing: 4px; margin-bottom: var(--spacing-lg);" id="sms-code">123456</div>
-                <button class="btn btn-success btn-block" onclick="copySMSCode()">Copy Code</button>
+            <div class="code-arrival-wrapper">
+                <div class="code-arrival-header">
+                    <div class="code-arrival-icon">✅</div>
+                    <div class="code-arrival-title">SMS Code Received!</div>
+                </div>
+                <div class="sms-code-display" id="sms-code">------</div>
+                <button class="copy-code-btn" id="copy-code-btn" onclick="copySMSCode()">
+                    <span id="copy-code-icon">📋</span>
+                    <span id="copy-code-text">Copy Code</span>
+                </button>
+                <div class="auto-copy-row">
+                    <span class="auto-copy-label">🔔 Auto-copy on arrival</span>
+                    <label class="nsk-toggle">
+                        <input type="checkbox" id="auto-copy-toggle" onchange="toggleAutoCopy(this.checked)">
+                        <div class="nsk-toggle-track">
+                            <div class="nsk-toggle-thumb"></div>
+                        </div>
+                    </label>
+                </div>
             </div>
-            
-            <div id="verification-receipt-details" style="margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; text-align: left; font-size: 13px;">
-                <h4 style="margin: 0 0 12px 0; font-size: 14px; font-weight: 600; color: #374151;">Verification Details</h4>
+
+            <div id="verification-receipt-details" style="margin-top: 16px; padding: 16px; background: #fff; border: 1px solid #f0f0f0; border-radius: 12px; text-align: left; font-size: 13px;">
+                <h4 style="margin: 0 0 12px 0; font-size: 13px; font-weight: 700; color: #21262D;">Verification Details</h4>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #6b7280;">Assigned Carrier</span>
-                    <span id="receipt-carrier" style="font-weight: 600; color: #111827;">-</span>
+                    <span style="color: #9CA3AF;">Assigned Carrier</span>
+                    <span id="receipt-carrier" style="font-weight: 600; color: #21262D;">-</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="color: #6b7280;">Assigned Area Code</span>
-                    <span id="receipt-area-code" style="font-weight: 600; color: #111827;">-</span>
+                    <span style="color: #9CA3AF;">Assigned Area Code</span>
+                    <span id="receipt-area-code" style="font-weight: 600; color: #21262D;">-</span>
                 </div>
                 <div id="receipt-fallback-row" style="display: none; align-items: flex-start; gap: 8px; color: #b45309; margin-top: 12px; padding-top: 12px; border-top: 1px solid #f3f4f6;">
                     <i class="ph ph-info" style="margin-top: 2px;"></i>
                     <span>
-                        <strong>Fallback applied:</strong> 
+                        <strong>Fallback applied:</strong>
                         Requested <span id="receipt-requested-ac" style="font-weight: 600;">-</span> was unavailable.
                     </span>
                 </div>
@@ -1109,6 +1139,10 @@ function startPolling() {
         if (remainEl) remainEl.textContent = Math.round(remaining) + 's left';
         const progressFill = document.getElementById('progress-bar-fill') || document.querySelector('.scanning-progress-bar');
         if (progressFill) progressFill.style.width = (VerificationFlow.elapsedSeconds / 120 * 100) + '%';
+        updateTimerRing(VerificationFlow.elapsedSeconds, 120);
+        // Show service name in scanning container
+        const svcEl = document.getElementById('scanning-service-name');
+        if (svcEl && VerificationFlow.selectedService) svcEl.textContent = VerificationFlow.selectedService;
         
         if (VerificationFlow.verificationId) {
             try {
@@ -1135,6 +1169,14 @@ function startPolling() {
                         }
                         
                         window.toast.success('SMS code received');
+                        playArrivalSound();
+                        // Auto-copy if enabled
+                        if (localStorage.getItem('nsk_auto_copy') === 'true') {
+                            navigator.clipboard.writeText(data.sms_code).catch(() => {});
+                        }
+                        // Update copy button state
+                        const copyBtn = document.getElementById('copy-code-btn');
+                        if (copyBtn) copyBtn.classList.remove('copied');
                         return;
                     }
                 }
@@ -1200,13 +1242,46 @@ async function copyPhoneNumber(withCountryCode = true) {
 
 // Copy SMS code
 async function copySMSCode() {
-    const code = document.getElementById('sms-code').textContent;
+    const code = document.getElementById('sms-code').textContent.trim();
     try {
         await navigator.clipboard.writeText(code);
-        window.toast.success('SMS code copied!');
+        const btn = document.getElementById('copy-code-btn');
+        const txt = document.getElementById('copy-code-text');
+        const ico = document.getElementById('copy-code-icon');
+        if (btn) btn.classList.add('copied');
+        if (txt) txt.textContent = 'Copied!';
+        if (ico) ico.textContent = '\u2713';
+        setTimeout(() => {
+            if (btn) btn.classList.remove('copied');
+            if (txt) txt.textContent = 'Copy Code';
+            if (ico) ico.textContent = '\ud83d\udccb';
+        }, 2500);
+        window.toast.success('Code copied!');
     } catch (err) {
         console.error('Clipboard failed', err);
     }
+}
+
+function toggleAutoCopy(enabled) {
+    localStorage.setItem('nsk_auto_copy', enabled.toString());
+}
+
+// Init auto-copy toggle state
+document.addEventListener('DOMContentLoaded', () => {
+    const toggle = document.getElementById('auto-copy-toggle');
+    if (toggle) toggle.checked = localStorage.getItem('nsk_auto_copy') === 'true';
+});
+
+// Update timer ring fill based on elapsed seconds
+function updateTimerRing(elapsed, max) {
+    const ring = document.getElementById('timer-ring-fill');
+    if (!ring) return;
+    const circumference = 100.53; // 2π × 16
+    const ratio = Math.min(elapsed / max, 1);
+    ring.style.strokeDashoffset = circumference * ratio;
+    if (ratio > 0.75)      ring.className = 'timer-ring-fill danger';
+    else if (ratio > 0.5)  ring.className = 'timer-ring-fill warning';
+    else                   ring.className = 'timer-ring-fill';
 }
 
 // Cancel verification
