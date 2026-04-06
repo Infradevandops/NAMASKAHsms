@@ -18,10 +18,16 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, user_id: str):
         """Accept and store WebSocket connection."""
         await websocket.accept()
+        self._store(websocket, user_id)
 
+    def register(self, websocket: WebSocket, user_id: str):
+        """Store an already-accepted WebSocket connection (no accept call)."""
+        self._store(websocket, user_id)
+
+    def _store(self, websocket: WebSocket, user_id: str):
+        """Internal: store connection in active_connections."""
         if user_id not in self.active_connections:
             self.active_connections[user_id] = set()
-
         self.active_connections[user_id].add(websocket)
         logger.info(
             f"✅ WebSocket connected: user={user_id}, "
