@@ -1,0 +1,404 @@
+/**
+ * Namaskah — SMS Polling UI
+ * Phase 2: Premium Step 3 experience
+ * Brand: Tinder Red #FE3C72
+ */
+
+/* ─── PHONE CARD ─────────────────────────────────────────────────────────── */
+.phone-display {
+    background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(254, 60, 114, 0.35);
+    position: relative;
+    overflow: hidden;
+}
+
+.phone-display::before {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+}
+.phone-display::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -30px;
+    width: 90px; height: 90px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
+}
+
+.phone-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 10px;
+}
+
+.phone-number {
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+    font-family: 'Inter', monospace;
+    letter-spacing: 1px;
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+}
+
+.phone-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    position: relative;
+    z-index: 1;
+}
+
+.copy-btn {
+    background: rgba(255,255,255,0.18);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 8px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
+}
+.copy-btn:hover {
+    background: rgba(255,255,255,0.28);
+    border-color: rgba(255,255,255,0.5);
+    transform: translateY(-1px);
+}
+.copy-btn:active { transform: translateY(0); }
+.copy-btn.copied {
+    background: rgba(1, 223, 138, 0.3);
+    border-color: rgba(1, 223, 138, 0.6);
+}
+
+/* ─── SCANNING CONTAINER ─────────────────────────────────────────────────── */
+.scanning-container {
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Animated top border */
+.scanning-container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 2px;
+    background: linear-gradient(90deg, transparent, #FE3C72, transparent);
+    animation: nsk-scan-line 2s ease-in-out infinite;
+}
+
+@keyframes nsk-scan-line {
+    0%   { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Pulsing dot */
+.scanning-dot {
+    width: 14px; height: 14px;
+    background: #FE3C72;
+    border-radius: 50%;
+    display: inline-block;
+    margin-bottom: 14px;
+    animation: nsk-dot-pulse 1.4s ease-in-out infinite;
+    box-shadow: 0 0 0 0 rgba(254, 60, 114, 0.4);
+}
+
+@keyframes nsk-dot-pulse {
+    0%   { transform: scale(1);    box-shadow: 0 0 0 0 rgba(254,60,114,0.4); }
+    50%  { transform: scale(1.15); box-shadow: 0 0 0 8px rgba(254,60,114,0); }
+    100% { transform: scale(1);    box-shadow: 0 0 0 0 rgba(254,60,114,0); }
+}
+
+.scanning-text {
+    font-size: 15px;
+    font-weight: 700;
+    color: #21262D;
+    margin-bottom: 4px;
+}
+
+.scanning-service {
+    font-size: 13px;
+    color: #9CA3AF;
+    margin-bottom: 20px;
+}
+
+.scanning-time {
+    font-size: 13px;
+    color: #656E77;
+    margin-bottom: 12px;
+}
+
+.scanning-time strong {
+    color: #FE3C72;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Progress bar */
+.scanning-progress {
+    height: 4px;
+    background: #f0f0f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.scanning-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #FE3C72, #FF6B9D);
+    border-radius: 9999px;
+    transition: width 1s linear;
+    width: 0%;
+}
+
+/* ─── CODE RECEIVED ──────────────────────────────────────────────────────── */
+.code-arrival-wrapper {
+    background: linear-gradient(135deg, rgba(1,223,138,0.06) 0%, rgba(1,223,138,0.02) 100%);
+    border: 1.5px solid rgba(1, 223, 138, 0.3);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    animation: nsk-arrival-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes nsk-arrival-pop {
+    from { opacity: 0; transform: scale(0.92); }
+    to   { opacity: 1; transform: scale(1); }
+}
+
+.code-arrival-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.code-arrival-icon {
+    width: 32px; height: 32px;
+    background: var(--nsk-green-bg, rgba(1,223,138,0.12));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    animation: nsk-check-bounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+
+@keyframes nsk-check-bounce {
+    from { transform: scale(0); }
+    to   { transform: scale(1); }
+}
+
+.code-arrival-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #00C278;
+}
+
+/* Code digits display */
+.sms-code-display {
+    font-size: 40px;
+    font-weight: 800;
+    color: #21262D;
+    font-family: 'Inter', monospace;
+    letter-spacing: 8px;
+    margin: 16px 0;
+    padding: 16px;
+    background: white;
+    border-radius: 12px;
+    border: 1px solid #f0f0f0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    animation: nsk-code-reveal 0.3s ease 0.2s both;
+}
+
+@keyframes nsk-code-reveal {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Copy code button */
+.copy-code-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #FE3C72 0%, #E0245E 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 700;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 16px rgba(254, 60, 114, 0.3);
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.copy-code-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(254, 60, 114, 0.4);
+}
+.copy-code-btn.copied {
+    background: linear-gradient(135deg, #01DF8A 0%, #00C278 100%);
+    box-shadow: 0 4px 16px rgba(1, 223, 138, 0.3);
+}
+
+/* Auto-copy toggle row */
+.auto-copy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0 0;
+    margin-top: 12px;
+    border-top: 1px solid rgba(1,223,138,0.15);
+}
+.auto-copy-label {
+    font-size: 13px;
+    color: #656E77;
+    font-weight: 500;
+}
+
+/* Toggle switch */
+.nsk-toggle {
+    position: relative;
+    width: 40px; height: 22px;
+    cursor: pointer;
+}
+.nsk-toggle input { opacity: 0; width: 0; height: 0; }
+.nsk-toggle-track {
+    position: absolute;
+    inset: 0;
+    background: #e5e7eb;
+    border-radius: 9999px;
+    transition: background 0.2s ease;
+}
+.nsk-toggle input:checked ~ .nsk-toggle-track { background: #FE3C72; }
+.nsk-toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 16px; height: 16px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    transition: transform 0.2s ease;
+}
+.nsk-toggle input:checked ~ .nsk-toggle-track .nsk-toggle-thumb {
+    transform: translateX(18px);
+}
+
+/* ─── TIMER RING ─────────────────────────────────────────────────────────── */
+.timer-ring-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.timer-ring-svg {
+    transform: rotate(-90deg);
+    flex-shrink: 0;
+}
+
+.timer-ring-bg {
+    fill: none;
+    stroke: #f0f0f0;
+    stroke-width: 3;
+}
+
+.timer-ring-fill {
+    fill: none;
+    stroke: #FE3C72;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 100.53; /* 2π × 16 */
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 1s linear, stroke 0.5s ease;
+}
+
+.timer-ring-fill.warning { stroke: #f59e0b; }
+.timer-ring-fill.danger  { stroke: #ef4444; }
+
+/* ─── RECEIPT DETAILS ────────────────────────────────────────────────────── */
+#verification-receipt-details {
+    background: white;
+    border: 1px solid #f0f0f0;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+    text-align: left;
+    font-size: 13px;
+    animation: nsk-fade-up 0.3s ease 0.3s both;
+}
+
+#verification-receipt-details h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: #21262D;
+    margin-bottom: 12px;
+}
+
+/* ─── STEP PROGRESS ──────────────────────────────────────────────────────── */
+.progress-step.active .step-number {
+    background: #FE3C72;
+    border-color: #FE3C72;
+    box-shadow: 0 0 0 4px rgba(254, 60, 114, 0.15);
+}
+
+.progress-step.completed .step-number {
+    background: #01DF8A;
+    border-color: #01DF8A;
+}
+
+.progress-step.active .step-label { color: #FE3C72; }
+
+.progress-fill {
+    background: linear-gradient(90deg, #FE3C72, #FF6B9D);
+}
+
+/* ─── VERIFICATION CARD HOVER ────────────────────────────────────────────── */
+.verification-card:hover {
+    border-color: rgba(254, 60, 114, 0.2);
+    box-shadow: 0 4px 20px rgba(254, 60, 114, 0.08);
+}
+
+/* ─── IMMERSIVE MODAL ACTIVE BUTTON ─────────────────────────────────────── */
+.type-btn.active {
+    background: #FE3C72;
+    box-shadow: 0 4px 12px rgba(254, 60, 114, 0.35);
+}
+
+/* ─── PREMIUM BADGE ──────────────────────────────────────────────────────── */
+.premium-tag {
+    font-size: 10px;
+    font-weight: 700;
+    color: #FE3C72;
+    background: rgba(254, 60, 114, 0.08);
+    border: 1px solid rgba(254, 60, 114, 0.2);
+    padding: 2px 7px;
+    border-radius: 4px;
+    letter-spacing: 0.3px;
+}
