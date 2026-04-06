@@ -480,25 +480,28 @@ class TextVerifiedService:
             logger.error(f"Failed to get verification status for {activation_id}: {e}")
             return {"status": "error", "error": str(e)}
 
-    async def check_sms(self, activation_id: str) -> Dict[str, Any]:
+    async def check_sms(self, activation_id: str, created_after=None) -> Dict[str, Any]:
         """
         Check for SMS messages for a specific activation.
         Used by SMSPollingService.
+
+        Args:
+            activation_id: TextVerified activation ID.
+            created_after: datetime — only return SMS received after this time.
+                           Pass verification.created_at to reject stale SMS.
         """
         if not self.enabled:
             return {"status": "ERROR", "messages": []}
 
         try:
-            sms_data = await self.get_sms(activation_id)
+            sms_data = await self.get_sms(activation_id, created_after=created_after)
             if sms_data.get("success"):
                 return {
                     "status": "COMPLETED",
                     "messages": [
                         {
                             "text": sms_data.get("sms", ""),
-                            "code": sms_data.get(
-                                "code", ""
-                            ),  # pass parsed code through
+                            "code": sms_data.get("code", ""),
                         }
                     ],
                 }
@@ -743,7 +746,14 @@ class TextVerifiedService:
             logger.error(f"purchase_number failed: {e}")
             return {"success": False, "error": str(e), "verification_id": None}
 
-    async def get_sms(self, verification_id: str) -> Dict[str, Any]:
+    async def get_sms(self, verification_id: str, created_after=None) -> Dict[str, Any]:
+        """Fetch SMS for a verification, filtering out stale messages.
+
+        Args:
+            verification_id: The TextVerified activation ID.
+            created_after: datetime — only return SMS received after this time.
+                           Prevents stale SMS from recycled numbers being delivered.
+        """
         if not self.enabled:
             return {"success": False, "error": "Service not available", "sms": None}
         try:
@@ -751,18 +761,40 @@ class TextVerifiedService:
                 lambda: list(self.client.sms.list(verification_id))
             )
             if sms_list:
-                # Use the most recent SMS only
+                # CRITICAL: Filter out stale SMS from recycled numbers.
+                # TextVerified reuses numbers — sms.list() returns ALL historical
+                # SMS on that activation, including codes from prior activations.
+                # Only accept SMS received AFTER this verification was created.
+                if created_after is not None:
+                    from datetime import timezone
+
+                    # Normalise created_after to UTC-aware
+                    if created_after.tzinfo is None:
+                        created_after = created_after.replace(tzinfo=timezone.utc)
+
+                    fresh = []
+                    for sms in sms_list:
+                        sms_time = getattr(sms, "created_at", None)
+                        if sms_time is None:
+                            continue
+                        if sms_time.tzinfo is None:
+                            sms_time = sms_time.replace(tzinfo=timezone.utc)
+                        if sms_time >= created_after:
+                            fresh.append(sms)
+
+                    if not fresh:
+                        # No fresh SMS yet — still pending
+                        return {"success": False, "sms": None, "code": None}
+                    sms_list = fresh
+
                 latest = sms_list[-1]
                 sms_content = latest.sms_content or ""
                 # CRITICAL: Use TextVerified's parsed_code first — it handles
                 # hyphenated codes (e.g. 806-185), alphanumeric codes, etc.
-                # Only fall back to regex if parsed_code is empty.
                 parsed = getattr(latest, "parsed_code", None) or ""
                 if not parsed:
-                    # Fallback regex — handles plain numeric codes only
                     import re
 
-                    # Match hyphenated codes like 806-185 first, then plain digits
                     hyphen = re.findall(r"\b(\d{3}-\d{3})\b", sms_content)
                     plain = re.findall(r"\b(\d{4,8})\b", sms_content)
                     if hyphen:

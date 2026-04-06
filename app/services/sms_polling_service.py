@@ -75,7 +75,8 @@ class SMSPollingService:
 
                 try:
                     sms_data = await self.textverified.check_sms(
-                        verification.activation_id
+                        verification.activation_id,
+                        created_after=verification.created_at,
                     )
                 except Exception as e:
                     logger.warning(
