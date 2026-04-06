@@ -368,7 +368,7 @@ class APIKeyManager {
       position: fixed;
       bottom: 20px;
       right: 20px;
-      background: ${type === 'success' ? '#10b981' : '#667eea'};
+      background: ${type === 'success' ? '#10b981' : '#FE3C72'};
       color: white;
       padding: 15px 20px;
       border-radius: 8px;

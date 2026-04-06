@@ -5,9 +5,9 @@
 
 :root {
     /* Primary Colors (Namaskah Brand) */
-    --primary: #E8003D;
+    --primary: #FE3C72;
     --primary-light: #ff3366;
-    --primary-dark: #b3002f;
+    --primary-dark: #E0245E;
     --accent: #F5A623;
     --accent-light: #ffba4d;
     --accent-dark: #cc8400;
@@ -1084,7 +1084,7 @@ input:checked + .slider:before { transform: translateX(18px); }
     transform: scale(1.2);
 }
 .list-item-pin.active {
-    color: var(--accent, #E8003D);
+    color: var(--accent, #FE3C72);
     opacity: 1;
 }
 
