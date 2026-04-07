@@ -480,6 +480,107 @@ class TextVerifiedService:
             logger.error(f"Failed to get verification status for {activation_id}: {e}")
             return {"status": "error", "error": str(e)}
 
+    async def poll_sms_standard(
+        self,
+        tv_verification,
+        timeout_seconds: float = 600.0,
+    ) -> Dict[str, Any]:
+        """Poll for SMS using TextVerified's standard sms.incoming() method.
+
+        This is the correct way to poll — passes the VerificationExpanded
+        object (not a string), uses TV's built-in since filter, deduplication,
+        and timeout. Works identically for both SMS and voice capability.
+
+        Args:
+            tv_verification: VerificationExpanded object from verifications.create()
+            timeout_seconds: How long to wait. Use ends_at delta for accuracy.
+
+        Returns:
+            {"success": True, "code": str, "sms": str} or
+            {"success": False, "timed_out": True}
+        """
+        if not self.enabled:
+            return {"success": False, "error": "Service not available"}
+
+        def _blocking_poll():
+            try:
+                for sms in self.client.sms.incoming(
+                    data=tv_verification,
+                    since=tv_verification.created_at,
+                    timeout=timeout_seconds,
+                    polling_interval=3.0,
+                ):
+                    parsed = sms.parsed_code or ""
+                    if not parsed:
+                        import re
+
+                        text = sms.sms_content or ""
+                        hyphen = re.findall(r"\b(\d{3}-\d{3})\b", text)
+                        plain = re.findall(r"\b(\d{4,8})\b", text)
+                        if hyphen:
+                            parsed = hyphen[-1].replace("-", "")
+                        elif plain:
+                            parsed = plain[-1]
+                    return {
+                        "success": True,
+                        "code": parsed,
+                        "sms": sms.sms_content or "",
+                        "received_at": sms.created_at.isoformat(),
+                    }
+                return {"success": False, "timed_out": True}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+
+        return await asyncio.to_thread(_blocking_poll)
+
+    async def report_verification(self, verification_id: str) -> bool:
+        """Report a failed verification to TextVerified.
+
+        This triggers an automatic refund from TextVerified to the account
+        balance. Always call this when a verification fails or times out
+        so the platform recovers the cost from TextVerified.
+
+        Returns True if report was submitted successfully.
+        """
+        if not self.enabled:
+            return False
+        try:
+            await asyncio.to_thread(self.client.verifications.report, verification_id)
+            logger.info(
+                f"Reported verification {verification_id} to TextVerified — refund triggered"
+            )
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to report verification {verification_id}: {e}")
+            return False
+
+    async def get_verification_details(self, verification_id: str) -> Dict[str, Any]:
+        """Get full VerificationExpanded details from TextVerified.
+
+        Use this to read the real state, ends_at, and action flags.
+        """
+        if not self.enabled:
+            return {}
+        try:
+            tv = await asyncio.to_thread(
+                self.client.verifications.details, verification_id
+            )
+            return {
+                "id": tv.id,
+                "number": tv.number,
+                "state": tv.state.value,
+                "created_at": tv.created_at.isoformat(),
+                "ends_at": tv.ends_at.isoformat(),
+                "total_cost": tv.total_cost,
+                "can_cancel": tv.cancel.can_cancel,
+                "can_report": tv.report.can_report,
+            }
+        except Exception as e:
+            logger.error(
+                f"Failed to get verification details for {verification_id}: {e}"
+            )
+            return {}
+
     async def check_sms(self, activation_id: str, created_after=None) -> Dict[str, Any]:
         """
         Check for SMS messages for a specific activation.
@@ -687,11 +788,13 @@ class TextVerifiedService:
             "id": result.id,
             "phone_number": assigned_number,
             "cost": result.total_cost,
-            "retry_attempts": retry_attempts,  # NEW (v4.4.1)
-            "area_code_matched": area_code_matched,  # NEW (v4.4.1)
-            "carrier_matched": carrier_matched,  # NEW (v4.4.1 Phase 4)
-            "real_carrier": real_carrier,  # NEW (v4.4.1 Phase 4)
-            "voip_rejected": voip_rejected,  # NEW (v4.4.1 Phase 3)
+            "ends_at": result.ends_at.isoformat(),
+            "tv_object": result,
+            "retry_attempts": retry_attempts,
+            "area_code_matched": area_code_matched,
+            "carrier_matched": carrier_matched,
+            "real_carrier": real_carrier,
+            "voip_rejected": voip_rejected,
             "fallback_applied": fallback_applied,
             "requested_area_code": area_code,
             "assigned_area_code": assigned_area_code,
