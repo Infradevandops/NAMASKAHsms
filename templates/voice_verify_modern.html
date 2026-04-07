@@ -116,6 +116,11 @@
             <span class="pricing-value success">92%</span>
         </div>
 
+        <div class="pricing-row">
+            <span class="pricing-label">Your Balance</span>
+            <span class="pricing-value" id="pricing-balance">$0.00</span>
+        </div>
+
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
             <button class="btn btn-secondary" onclick="goBack()">← Back</button>
             <button class="btn btn-primary btn-block" onclick="createVerification()">
@@ -275,9 +280,13 @@ async function createVerification() {
         window.toast.error('Please select a service');
         return;
     }
-    
+
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Getting number...';
+
     try {
-        const response = await fetch('/api/verify/create', {
+        const response = await fetch('/api/verification/request', {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
@@ -287,74 +296,84 @@ async function createVerification() {
                 service: selectedService,
                 country: 'US',
                 capability: 'voice',
-                area_code: document.getElementById('area-code-select').value || null,
-                carrier: document.getElementById('carrier-select').value || null,
+                area_codes: document.getElementById('area-code-select').value ? [document.getElementById('area-code-select').value] : [],
+                carriers: document.getElementById('carrier-select').value ? [document.getElementById('carrier-select').value] : [],
             })
         });
-        
-        if (!response.ok) throw new Error('Failed to create verification');
-        
+
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || 'Failed to create verification');
+        }
+
         const data = await response.json();
-        verificationId = data.id;
-        
+        verificationId = data.verification_id;
+
         document.getElementById('phone-number').textContent = data.phone_number;
         updateProgress(3);
-        
         startWaiting();
-        window.toast.success('✅ Number assigned! Waiting for call...');
-        
+        window.toast.success('Number assigned — waiting for call...');
+
     } catch (error) {
         console.error('Error:', error);
         showError('Failed to create verification', error.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Get Number';
     }
 }
 
 function startWaiting() {
     elapsedSeconds = 0;
-    scanInterval = setInterval(async () => {
-        elapsedSeconds++;
-        document.getElementById('elapsed-time').textContent = elapsedSeconds;
-        if (verificationId) {
-            try {
-                const token = localStorage.getItem('access_token');
-                const res = await fetch(`/api/verify/${verificationId}/status`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.status === 'completed' && data.sms_code) {
-                        clearInterval(scanInterval);
-                        document.querySelector('.scanning-container').style.display = 'none';
-                        const section = document.getElementById('code-input-section');
-                        section.style.display = 'block';
-                        section.innerHTML = `
-                            <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-lg);padding:var(--spacing-lg);text-align:center;">
-                                <div style="font-size:var(--font-size-sm);color:var(--text-secondary);margin-bottom:var(--spacing-md);">✅ Voice Code Received!</div>
-                                <div style="font-size:var(--font-size-3xl);font-weight:700;color:var(--success);font-family:'Courier New',monospace;letter-spacing:4px;margin-bottom:var(--spacing-lg);">${data.sms_code}</div>
-                                <button class="btn btn-success btn-block" onclick="navigator.clipboard.writeText('${data.sms_code}');window.toast.success('📋 Code copied!')">📋 Copy Code</button>
-                            </div>`;
-                        window.toast.success('✅ Voice code received!');
-                        return;
+    clearTimeout(scanInterval);
+
+    function poll() {
+        scanInterval = setTimeout(async () => {
+            elapsedSeconds += 5;
+            document.getElementById('elapsed-time').textContent = elapsedSeconds;
+
+            if (verificationId) {
+                try {
+                    const token = localStorage.getItem('access_token');
+                    const res = await fetch(`/api/verification/status/${verificationId}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.status === 'completed' && data.sms_code) {
+                            clearTimeout(scanInterval);
+                            document.querySelector('.scanning-container').style.display = 'none';
+                            const section = document.getElementById('code-input-section');
+                            section.style.display = 'block';
+                            section.innerHTML = `
+                                <div class="code-arrival-wrapper">
+                                    <div class="code-arrival-header">
+                                        <div class="code-arrival-icon">✅</div>
+                                        <div class="code-arrival-title">Voice Code Received!</div>
+                                    </div>
+                                    <div class="sms-code-display">${data.sms_code}</div>
+                                    <button class="copy-code-btn" onclick="navigator.clipboard.writeText('${data.sms_code}').then(() => window.toast.success('Code copied!'))">
+                                        📋 Copy Code
+                                    </button>
+                                </div>`;
+                            window.toast.success('✅ Voice code received!');
+                            return;
+                        }
                     }
-                }
-            } catch (e) { /* continue polling */ }
-        }
-        if (elapsedSeconds >= 300) {
-            clearInterval(scanInterval);
-            const phone = document.getElementById('phone-number')?.textContent.trim() || '';
-            showError('Call Timeout', 'No call received within 5 minutes. Did the call not arrive?');
-            const errEl = document.getElementById('error-message') || document.querySelector('.error-card') || document.querySelector('[id*="error"]');
-            const cta = document.createElement('div');
-            cta.style.cssText = 'margin-top:16px;display:flex;gap:8px;flex-wrap:wrap;justify-content:center;';
-            cta.innerHTML = `
-                <button class="btn btn-secondary" style="font-size:13px;" onclick="blacklistNumber('${phone}', '${selectedService || ''}')">
-                    🚫 Blacklist this number
-                </button>
-                <a href="/settings?tab=blacklist" class="btn btn-secondary" style="font-size:13px;">Manage Blacklist →</a>
-            `;
-            if (errEl) errEl.appendChild(cta);
-        }
-    }, 5000);
+                } catch (e) { /* continue polling */ }
+            }
+
+            if (elapsedSeconds >= 300) {
+                clearTimeout(scanInterval);
+                showError('Call Timeout', 'No call received within 5 minutes.');
+                return;
+            }
+
+            poll();
+        }, 5000);
+    }
+
+    poll();
 }
 
 function cancelVerification() {
@@ -388,15 +407,15 @@ function goBack() {
 }
 
 function resetFlow() {
-    clearInterval(scanInterval);
+    clearTimeout(scanInterval);
     currentStep = 1;
     selectedService = null;
     verificationId = null;
     elapsedSeconds = 0;
-    
+
     document.getElementById('error-container').style.display = 'none';
     document.getElementById('code-input-section').style.display = 'none';
-    
+
     updateProgress(1);
     document.getElementById('step-1-card').scrollIntoView({ behavior: 'smooth' });
 }
@@ -411,9 +430,28 @@ function showError(title, message) {
 
 document.addEventListener('DOMContentLoaded', () => {
     loadServices();
+    loadAreaCodes();
     loadBalance();
     updateProgress(1);
 });
+
+async function loadAreaCodes() {
+    const sel = document.getElementById('area-code-select');
+    try {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/area-codes?country=US', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const codes = data.area_codes || [];
+        if (!codes.length) return;
+        sel.innerHTML = '<option value="">Any Area Code</option>' +
+            codes.map(c => `<option value="${c.area_code}">${c.area_code}${c.state ? ' — ' + c.state : ''}</option>`).join('');
+    } catch (e) {
+        // keep static fallback options already in HTML
+    }
+}
 
 async function loadBalance() {
     try {
