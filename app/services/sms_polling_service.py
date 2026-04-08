@@ -93,12 +93,14 @@ class SMSPollingService:
             # Build a minimal object that sms.incoming() can use
             # sms.incoming() needs data.number to filter by phone number
             class _TVVerif:
-                def __init__(self, d):
+                def __init__(self, d, _created_at, _service_name="unknown"):
                     self.number = d["number"]
-                    self.created_at = verification.created_at
+                    self.created_at = _created_at
                     self.id = d["id"]
+                    self.ends_at = d.get("ends_at")
+                    self.service_name = _service_name
 
-            tv_obj = _TVVerif(tv_details)
+            tv_obj = _TVVerif(tv_details, verification.created_at, verification.service_name)
 
             logger.info(
                 f"Polling {verification_id} via sms.incoming() "

@@ -66,6 +66,12 @@ docs/roadmaps/
 docs/status/
 docs/tasks/coverage-initiative/
 
+# Internal docs (not for repo)
+docs/SMS_LOGIC.md
+docs/BUSINESS_LOGIC.md
+docs/PROJECT_ASSESSMENT.md
+docs/PROJECT_STATUS.md
+
 # Generated artifacts
 uvicorn_startup*.log
 server.log
