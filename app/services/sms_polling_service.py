@@ -100,7 +100,9 @@ class SMSPollingService:
                     self.ends_at = d.get("ends_at")
                     self.service_name = _service_name
 
-            tv_obj = _TVVerif(tv_details, verification.created_at, verification.service_name)
+            tv_obj = _TVVerif(
+                tv_details, verification.created_at, verification.service_name
+            )
 
             logger.info(
                 f"Polling {verification_id} via sms.incoming() "
