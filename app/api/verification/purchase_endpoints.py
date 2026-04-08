@@ -131,6 +131,14 @@ async def request_verification(
         area_code = request.area_codes[0] if request.area_codes else None
         carrier = request.carriers[0] if request.carriers else None
 
+        # VOICE TIER GATE (Issue 14): Voice requires PAYG+
+        if request.capability == "voice":
+            if not tier_manager.check_tier_hierarchy(user_tier, "payg"):
+                raise HTTPException(
+                    status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                    detail="Voice verification requires PAYG tier or higher. Upgrade your plan.",
+                )
+
         if request.area_codes:
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 raise HTTPException(

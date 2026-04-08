@@ -19,7 +19,7 @@ class OutcomeUpdate(BaseModel):
     error_message: Optional[str] = None
 
 
-@router.patch("/verification/{verification_id}/outcome")
+@router.post("/verification/outcome/{verification_id}")
 async def record_outcome(
     verification_id: str,
     body: OutcomeUpdate,

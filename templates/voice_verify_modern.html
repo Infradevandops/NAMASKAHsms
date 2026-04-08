@@ -60,11 +60,7 @@
                 <div>
                     <label class="form-label" style="font-size: var(--font-size-sm);">Area Code (Optional)</label>
                     <select class="form-select" id="area-code-select" onchange="updatePricing()">
-                        <option value="">Any Area Code</option>
-                        <option value="212">212 - New York</option>
-                        <option value="310">310 - Los Angeles</option>
-                        <option value="415">415 - San Francisco</option>
-                        <option value="479">479 - Arkansas</option>
+                        <option value="">Loading area codes...</option>
                     </select>
                 </div>
                 
@@ -154,16 +150,8 @@
             </div>
         </div>
 
-        <!-- Code Input (After call) -->
-        <div id="code-input-section" style="display: none;">
-            <div style="background: rgba(59, 130, 246, 0.05); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-lg); padding: var(--spacing-lg);">
-                <div style="font-size: var(--font-size-sm); color: var(--text-secondary); margin-bottom: var(--spacing-md);">
-                    ✅ Call received! Enter the code you heard:
-                </div>
-                <input type="text" class="form-input" id="voice-code-input" placeholder="Enter 4-6 digit code" maxlength="6" style="font-size: var(--font-size-2xl); text-align: center; letter-spacing: 4px; font-family: 'Courier New', monospace;">
-                <button class="btn btn-success btn-block" style="margin-top: var(--spacing-md);" onclick="submitVoiceCode()">Verify Code</button>
-            </div>
-        </div>
+        <!-- Code Display (auto-populated by polling) -->
+        <div id="code-input-section" style="display: none;"></div>
 
         <!-- Actions -->
         <div style="margin-top: var(--spacing-lg); display: flex; gap: var(--spacing-md);">
@@ -365,6 +353,14 @@ function startWaiting() {
 
             if (elapsedSeconds >= 300) {
                 clearTimeout(scanInterval);
+                if (verificationId) {
+                    const token = localStorage.getItem('access_token');
+                    fetch(`/api/verification/outcome/${verificationId}`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ outcome: 'timeout' })
+                    }).catch(() => {});
+                }
                 showError('Call Timeout', 'No call received within 5 minutes.');
                 return;
             }
@@ -442,14 +438,14 @@ async function loadAreaCodes() {
         const res = await fetch('/api/area-codes?country=US', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
+        if (!res.ok) throw new Error('API error');
         const data = await res.json();
         const codes = data.area_codes || [];
-        if (!codes.length) return;
+        if (!codes.length) throw new Error('Empty');
         sel.innerHTML = '<option value="">Any Area Code</option>' +
             codes.map(c => `<option value="${c.area_code}">${c.area_code}${c.state ? ' — ' + c.state : ''}</option>`).join('');
     } catch (e) {
-        // keep static fallback options already in HTML
+        sel.innerHTML = '<option value="">Any Area Code</option>';
     }
 }
 
