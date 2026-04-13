@@ -71,6 +71,16 @@ class Settings(BaseSettings):
     paystack_secret_key: Optional[str] = None
     paystack_public_key: Optional[str] = None
 
+    # Multi-provider SMS settings
+    telnyx_api_key: Optional[str] = None
+    telnyx_enabled: bool = False
+    telnyx_timeout: int = 30
+    fivesim_api_key: Optional[str] = None
+    fivesim_enabled: bool = False
+    fivesim_timeout: int = 30
+    enable_provider_failover: bool = True
+    prefer_enterprise_provider: bool = False
+
     # Feature flags
     enable_registration: bool = True
     enable_email_verification: bool = False

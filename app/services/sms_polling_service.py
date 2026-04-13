@@ -1,4 +1,4 @@
-"""SMS polling service — uses TextVerified's standard sms.incoming() flow."""
+"""SMS polling service with multi-provider support."""
 
 import asyncio
 from datetime import datetime, timezone
@@ -39,12 +39,7 @@ class SMSPollingService:
             logger.info(f"Stopped polling for verification {verification_id}")
 
     async def _poll_verification(self, verification_id: str):
-        """Poll TextVerified for SMS using the standard sms.incoming() method.
-
-        Uses poll_sms_standard() which passes the VerificationExpanded object
-        (not a string ID) to sms.incoming() — the correct TextVerified flow.
-        Calls report_verification() on timeout to recover cost from TextVerified.
-        """
+        """Poll provider for SMS using provider-specific method."""
         db = None
         try:
             db = SessionLocal()
@@ -66,7 +61,7 @@ class SMSPollingService:
                 )
                 return
 
-            # Calculate timeout from ends_at if available, else use config
+            # Calculate timeout
             timeout_seconds = settings.sms_polling_max_minutes * 60
             if hasattr(verification, "ends_at") and verification.ends_at:
                 ends_at = verification.ends_at
@@ -76,102 +71,17 @@ class SMSPollingService:
                 if remaining > 0:
                     timeout_seconds = min(remaining, timeout_seconds)
 
-            # Get the VerificationExpanded object from TextVerified
-            # so we can pass it to sms.incoming() correctly
-            tv_details = await self.textverified.get_verification_details(
-                verification.activation_id
-            )
+            # Dispatch to provider-specific polling
+            provider = verification.provider or "textverified"
 
-            if not tv_details:
-                logger.warning(
-                    f"Could not get TV details for {verification.activation_id}, "
-                    f"falling back to legacy polling"
-                )
-                await self._poll_legacy(verification, db, timeout_seconds)
-                return
-
-            # Build a minimal object that sms.incoming() can use
-            # sms.incoming() needs data.number to filter by phone number
-            class _TVVerif:
-                def __init__(self, d, _created_at, _service_name="unknown"):
-                    self.number = d["number"]
-                    self.created_at = _created_at
-                    self.id = d["id"]
-                    self.ends_at = d.get("ends_at")
-                    self.service_name = _service_name
-
-            tv_obj = _TVVerif(
-                tv_details, verification.created_at, verification.service_name
-            )
-
-            logger.info(
-                f"Polling {verification_id} via sms.incoming() "
-                f"(timeout={timeout_seconds:.0f}s)"
-            )
-
-            # Notify user we're still waiting after ~20s
-            asyncio.create_task(
-                self._notify_waiting(verification.user_id, verification.service_name)
-            )
-
-            # Standard TextVerified poll — blocks until SMS arrives or timeout
-            result = await self.textverified.poll_sms_standard(
-                tv_obj, timeout_seconds=timeout_seconds
-            )
-
-            # Reload verification in case it was cancelled while polling
-            db.expire(verification)
-            verification = (
-                db.query(Verification)
-                .filter(Verification.id == verification_id)
-                .first()
-            )
-            if not verification or verification.status != "pending":
-                return
-
-            if result.get("success") and result.get("code"):
-                # SMS received with valid code
-                verification.status = "completed"
-                verification.outcome = "completed"
-                verification.completed_at = datetime.now(timezone.utc)
-                verification.sms_text = result.get("sms", "")
-                verification.sms_code = result["code"]
-                db.commit()
-
-                # Forward SMS
-                try:
-                    from app.api.core.forwarding import forward_sms_message
-
-                    asyncio.create_task(
-                        forward_sms_message(
-                            user_id=verification.user_id,
-                            sms_data={
-                                "message": verification.sms_text or "",
-                                "sms_code": verification.sms_code or "",
-                                "phone_number": verification.phone_number,
-                                "service": verification.service_name,
-                                "timestamp": datetime.now(timezone.utc).isoformat(),
-                            },
-                            db=db,
-                        )
-                    )
-                except Exception as fwd_err:
-                    logger.warning(f"SMS forwarding failed: {fwd_err}")
-
-                # Notify user
-                try:
-                    dispatcher = NotificationDispatcher(db)
-                    dispatcher.on_sms_received(verification)
-                except Exception as e:
-                    logger.warning(f"Failed to dispatch SMS received notification: {e}")
-
-                logger.info(
-                    f"✅ SMS received for {verification_id} — "
-                    f"code={verification.sms_code}"
-                )
-
+            if provider == "textverified":
+                await self._poll_textverified(verification, db, timeout_seconds)
+            elif provider == "telnyx":
+                await self._poll_telnyx(verification, db, timeout_seconds)
+            elif provider == "5sim":
+                await self._poll_fivesim(verification, db, timeout_seconds)
             else:
-                # Timed out — report to TextVerified to recover cost
+                logger.error(f"Unknown provider: {provider}")
                 await self._handle_timeout(verification, db)
 
         except asyncio.CancelledError:
@@ -187,26 +97,211 @@ class SMSPollingService:
             if verification_id in self.polling_tasks:
                 self.polling_tasks.pop(verification_id)
 
+    async def _poll_textverified(self, verification, db, timeout_seconds: float):
+        """Poll TextVerified using standard sms.incoming() method."""
+        tv_details = await self.textverified.get_verification_details(
+            verification.activation_id
+        )
+
+        if not tv_details:
+            logger.warning(
+                f"Could not get TV details for {verification.activation_id}, "
+                f"falling back to legacy polling"
+            )
+            await self._poll_legacy(verification, db, timeout_seconds)
+            return
+
+        # Build minimal object for sms.incoming()
+        class _TVVerif:
+            def __init__(self, d, _created_at, _service_name="unknown"):
+                self.number = d["number"]
+                self.created_at = _created_at
+                self.id = d["id"]
+                self.ends_at = d.get("ends_at")
+                self.service_name = _service_name
+
+        tv_obj = _TVVerif(
+            tv_details, verification.created_at, verification.service_name
+        )
+
+        logger.info(
+            f"Polling {verification.id} via sms.incoming() "
+            f"(timeout={timeout_seconds:.0f}s)"
+        )
+
+        # Notify user we're still waiting
+        asyncio.create_task(
+            self._notify_waiting(verification.user_id, verification.service_name)
+        )
+
+        # Standard TextVerified poll
+        result = await self.textverified.poll_sms_standard(
+            tv_obj, timeout_seconds=timeout_seconds
+        )
+
+        # Reload verification
+        db.expire(verification)
+        verification = (
+            db.query(Verification)
+            .filter(Verification.id == verification.id)
+            .first()
+        )
+        if not verification or verification.status != "pending":
+            return
+
+        if result.get("success") and result.get("code"):
+            # SMS received
+            verification.status = "completed"
+            verification.outcome = "completed"
+            verification.completed_at = datetime.now(timezone.utc)
+            verification.sms_text = result.get("sms", "")
+            verification.sms_code = result["code"]
+            db.commit()
+
+            # Forward SMS
+            try:
+                from app.api.core.forwarding import forward_sms_message
+
+                asyncio.create_task(
+                    forward_sms_message(
+                        user_id=verification.user_id,
+                        sms_data={
+                            "message": verification.sms_text or "",
+                            "sms_code": verification.sms_code or "",
+                            "phone_number": verification.phone_number,
+                            "service": verification.service_name,
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                        },
+                        db=db,
+                    )
+                )
+            except Exception as fwd_err:
+                logger.warning(f"SMS forwarding failed: {fwd_err}")
+
+            # Notify user
+            try:
+                dispatcher = NotificationDispatcher(db)
+                dispatcher.on_sms_received(verification)
+            except Exception as e:
+                logger.warning(f"Failed to dispatch SMS received notification: {e}")
+
+            logger.info(
+                f"✅ SMS received for {verification.id} — "
+                f"code={verification.sms_code}"
+            )
+        else:
+            await self._handle_timeout(verification, db)
+
+    async def _poll_telnyx(self, verification, db, timeout_seconds: float):
+        """Poll Telnyx for messages."""
+        from app.services.providers.telnyx_adapter import TelnyxAdapter
+
+        adapter = TelnyxAdapter()
+        elapsed = 0
+        interval = 5.0
+
+        logger.info(f"Polling Telnyx for verification {verification.id}")
+
+        while elapsed < timeout_seconds:
+            messages = await adapter.check_messages(
+                verification.activation_id,
+                created_after=verification.created_at
+            )
+
+            if messages:
+                msg = messages[0]
+                verification.status = "completed"
+                verification.outcome = "completed"
+                verification.completed_at = datetime.now(timezone.utc)
+                verification.sms_text = msg.text
+                verification.sms_code = msg.code
+                db.commit()
+
+                try:
+                    dispatcher = NotificationDispatcher(db)
+                    dispatcher.on_sms_received(verification)
+                except Exception:
+                    pass
+
+                logger.info(f"✅ Telnyx SMS received for {verification.id}")
+                return
+
+            await asyncio.sleep(interval)
+            elapsed += interval
+
+        await self._handle_timeout(verification, db)
+
+    async def _poll_fivesim(self, verification, db, timeout_seconds: float):
+        """Poll 5sim for messages."""
+        from app.services.providers.fivesim_adapter import FiveSimAdapter
+
+        adapter = FiveSimAdapter()
+        elapsed = 0
+        interval = 5.0
+
+        logger.info(f"Polling 5sim for verification {verification.id}")
+
+        while elapsed < timeout_seconds:
+            messages = await adapter.check_messages(
+                verification.activation_id,
+                created_after=verification.created_at
+            )
+
+            if messages:
+                msg = messages[0]
+                verification.status = "completed"
+                verification.outcome = "completed"
+                verification.completed_at = datetime.now(timezone.utc)
+                verification.sms_text = msg.text
+                verification.sms_code = msg.code
+                db.commit()
+
+                try:
+                    dispatcher = NotificationDispatcher(db)
+                    dispatcher.on_sms_received(verification)
+                except Exception:
+                    pass
+
+                logger.info(f"✅ 5sim SMS received for {verification.id}")
+                return
+
+            await asyncio.sleep(interval)
+            elapsed += interval
+
+        await self._handle_timeout(verification, db)
+
     async def _handle_timeout(self, verification: Verification, db):
-        """Handle verification timeout — report to TV, refund user, notify."""
+        """Handle verification timeout."""
         verification.status = "timeout"
         verification.outcome = "timeout"
         db.commit()
 
-        # Report to TextVerified — triggers automatic refund to TV account balance
-        reported = await self.textverified.report_verification(
-            verification.activation_id
-        )
+        # Report to provider for refund
+        provider = verification.provider or "textverified"
+        reported = False
+
+        if provider == "textverified":
+            reported = await self.textverified.report_verification(
+                verification.activation_id
+            )
+        elif provider == "telnyx":
+            from app.services.providers.telnyx_adapter import TelnyxAdapter
+            adapter = TelnyxAdapter()
+            reported = await adapter.report_failed(verification.activation_id)
+        elif provider == "5sim":
+            from app.services.providers.fivesim_adapter import FiveSimAdapter
+            adapter = FiveSimAdapter()
+            reported = await adapter.report_failed(verification.activation_id)
+
         if reported:
             logger.info(
-                f"Reported {verification.id} to TextVerified — TV refund triggered"
+                f"Reported {verification.id} to {provider} — refund triggered"
             )
         else:
             logger.warning(
-                f"Failed to report {verification.id} to TextVerified — "
+                f"Failed to report {verification.id} to {provider} — "
                 f"falling back to platform refund"
             )
-            # Fallback: refund from platform balance if TV report failed
             try:
                 refund_service = AutoRefundService(db)
                 refund_result = await refund_service.process_verification_refund(
@@ -258,11 +353,7 @@ class SMSPollingService:
     async def _poll_legacy(
         self, verification: Verification, db, timeout_seconds: float
     ):
-        """Legacy polling fallback using check_sms() with created_after filter.
-
-        Used only when get_verification_details() fails to return TV object.
-        Preserves the created_after stale filter and empty-code guard.
-        """
+        """Legacy polling fallback."""
         import re
 
         initial_interval = settings.sms_polling_initial_interval_seconds
@@ -329,7 +420,6 @@ class SMSPollingService:
             )
             attempt += 1
 
-        # Timed out
         await self._handle_timeout(verification, db)
 
     async def start_background_service(self):
@@ -343,10 +433,7 @@ class SMSPollingService:
                 db = SessionLocal()
                 pending = (
                     db.query(Verification)
-                    .filter(
-                        Verification.status == "pending",
-                        Verification.provider == "textverified",
-                    )
+                    .filter(Verification.status == "pending")
                     .all()
                 )
                 for v in pending:
