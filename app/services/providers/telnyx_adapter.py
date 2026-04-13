@@ -36,13 +36,24 @@ class TelnyxAdapter(SMSProvider):
         self.base_url = "https://api.telnyx.com/v2"
         self.timeout = getattr(settings, "telnyx_timeout", 30)
         self._enabled = bool(self.api_key)
-        self.client = httpx.AsyncClient(
-            timeout=self.timeout,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Content-Type": "application/json",
-            },
-        ) if self._enabled else None
+        # Single shared client — not recreated per request (prevents connection leaks)
+        self._client: Optional[httpx.AsyncClient] = None
+
+    def _get_client(self) -> httpx.AsyncClient:
+        """Return shared client, creating it once if needed."""
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=self.timeout,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Content-Type": "application/json",
+                },
+            )
+        return self._client
+
+    @property
+    def client(self) -> httpx.AsyncClient:
+        return self._get_client()
 
     @property
     def name(self) -> str:

@@ -100,6 +100,8 @@ jobs:
           TESTING: '1'
           TEXTVERIFIED_API_KEY: test-key
           PAYSTACK_SECRET_KEY: test-key
+          TELNYX_ENABLED: 'false'
+          FIVESIM_ENABLED: 'false'
         run: |
           pytest tests/unit/ -v \
             --cov=app \
@@ -109,6 +111,23 @@ jobs:
             --tb=short \
             --continue-on-collection-errors \
             --maxfail=5 2>&1 | tail -50 || true
+
+      - name: Run provider tests (blocking — must pass)
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
+          REDIS_URL: redis://localhost:6379/0
+          SECRET_KEY: test-secret-key-for-ci-only-min-32-chars-long
+          JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
+          ENVIRONMENT: testing
+          TESTING: '1'
+          TELNYX_ENABLED: 'false'
+          FIVESIM_ENABLED: 'false'
+        run: |
+          pytest tests/unit/providers/ -v \
+            --cov=app/services/providers \
+            --cov-report=term-missing \
+            --cov-fail-under=90 \
+            --tb=short
 
 
 
