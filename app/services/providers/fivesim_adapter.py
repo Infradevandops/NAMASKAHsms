@@ -35,17 +35,28 @@ class FiveSimAdapter(SMSProvider):
         self.base_url = "https://5sim.net/v1"
         self.timeout = getattr(settings, "fivesim_timeout", 30)
         self._enabled = bool(self.api_key)
-        self.client = httpx.AsyncClient(
-            timeout=self.timeout,
-            headers={
-                "Authorization": f"Bearer {self.api_key}",
-                "Accept": "application/json",
-            },
-        ) if self._enabled else None
+        # Single shared client — not recreated per request (prevents connection leaks)
+        self._client: Optional[httpx.AsyncClient] = None
 
         # Cache for country/service/operator mappings
         self._country_cache: Dict[str, str] = {}  # ISO code -> 5sim country name
         self._service_cache: Dict[str, str] = {}  # Service name -> 5sim service name
+
+    def _get_client(self) -> httpx.AsyncClient:
+        """Return shared client, creating it once if needed."""
+        if self._client is None or self._client.is_closed:
+            self._client = httpx.AsyncClient(
+                timeout=self.timeout,
+                headers={
+                    "Authorization": f"Bearer {self.api_key}",
+                    "Accept": "application/json",
+                },
+            )
+        return self._client
+
+    @property
+    def client(self) -> httpx.AsyncClient:
+        return self._get_client()
 
     @property
     def name(self) -> str:

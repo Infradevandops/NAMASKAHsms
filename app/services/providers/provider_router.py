@@ -23,6 +23,7 @@ class ProviderRouter:
     """
 
     def __init__(self):
+        # Singletons — created once, reused across requests (fixes HTTP client leaks)
         self._textverified: Optional[TextVerifiedAdapter] = None
         self._telnyx: Optional[TelnyxAdapter] = None
         self._fivesim: Optional[FiveSimAdapter] = None
