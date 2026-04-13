@@ -190,7 +190,7 @@ async def request_verification(
 
         old_balance = balance_check["current_balance"]
 
-        # CRITICAL FIX: Call TextVerified API FIRST (before deducting credits)
+        # CRITICAL FIX: Call provider via router (supports TextVerified, Telnyx, 5sim)
         logger.info(
             f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
         )
@@ -205,23 +205,50 @@ async def request_verification(
         if carrier:
             logger.info(f"User {user_id} requesting carrier: {carrier}")
 
+        # Use smart provider router
+        from app.services.providers.provider_router import ProviderRouter
+
+        provider_router = ProviderRouter()
+
         textverified_result = None
         verification = None
         notification_dispatcher = NotificationDispatcher(db)
 
         try:
-            # Step 1: Call TextVerified API FIRST with filters
+            # Step 1: Purchase via smart router with failover
             logger.info(
-                f"Calling TextVerified API - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}"
+                f"Calling provider router - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}"
             )
-            textverified_result = await tv_service.create_verification(
+            purchase_result = await provider_router.purchase_with_failover(
                 service=request.service,
                 country=request.country,
                 area_code=area_code,
                 carrier=carrier,
+                capability=request.capability,
             )
+
+            # Map PurchaseResult to existing variable names (minimal change)
+            textverified_result = {
+                "id": purchase_result.order_id,
+                "phone_number": purchase_result.phone_number,
+                "cost": purchase_result.cost,
+                "ends_at": purchase_result.expires_at,
+                "tv_object": purchase_result.tv_object,
+                "retry_attempts": purchase_result.retry_attempts,
+                "area_code_matched": purchase_result.area_code_matched,
+                "carrier_matched": purchase_result.carrier_matched,
+                "real_carrier": purchase_result.real_carrier,
+                "voip_rejected": purchase_result.voip_rejected,
+                "fallback_applied": purchase_result.fallback_applied,
+                "requested_area_code": purchase_result.requested_area_code,
+                "assigned_area_code": purchase_result.assigned_area_code,
+                "same_state_fallback": purchase_result.same_state_fallback,
+                "assigned_carrier": carrier,  # Store preference
+            }
+            provider_name = purchase_result.provider
+
             logger.info(
-                f"TextVerified API success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
+                f"Provider router success: {purchase_result.phone_number} from {provider_name}, id: {purchase_result.order_id}"
             )
             if textverified_result.get("fallback_applied"):
                 logger.warning(
@@ -260,7 +287,7 @@ async def request_verification(
                 country=request.country,
                 capability=request.capability,
                 cost=actual_cost,
-                provider="textverified",
+                provider=provider_name,  # "textverified", "telnyx", or "5sim"
                 activation_id=textverified_result["id"],
                 status="pending",
                 idempotency_key=final_idempotency_key,
@@ -268,7 +295,7 @@ async def request_verification(
                 requested_carrier=carrier,  # Track requested carrier
                 operator=carrier,  # Legacy field — store requested carrier
                 assigned_area_code=textverified_result.get("assigned_area_code"),
-                assigned_carrier=carrier,  # TV doesn't return carrier; store preference
+                assigned_carrier=carrier,  # Store preference
                 fallback_applied=textverified_result.get("fallback_applied", False),
                 same_state_fallback=textverified_result.get(
                     "same_state_fallback", True
