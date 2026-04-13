@@ -67,6 +67,10 @@ docs/status/
 docs/tasks/coverage-initiative/
 
 # Internal docs (not for repo)
+docs/PROJECT_STATUS.md
+docs/tasks/SMSPOOL_INTEGRATION_TASK.md
+docs/tasks/SMSPOOL_FILTERING_SUMMARY.md
+docs/development/SMSPOOL_INTEGRATION.txt
 
 # Generated artifacts
 uvicorn_startup*.log
