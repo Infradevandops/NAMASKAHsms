@@ -169,4 +169,4 @@
 
 ---
 
-**See also**: `docs/PROJECT_STATUS.md` for current project state
+**See also**: `docs/tasks/SMART_MULTI_PROVIDER_ROUTING.md` for routing implementation details
