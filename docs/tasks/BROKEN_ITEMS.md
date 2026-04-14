@@ -67,7 +67,9 @@
 ## 🚀 ROADMAP
 
 ### Q2 2026
-- [ ] Enable Telnyx/5sim in production (needs API keys)
+- [x] Multi-provider routing — TextVerified, Telnyx, 5sim (done, commit 0bcace42)
+- [x] Phase 4 hardening — health checks, error handling, balance monitor, all tests (done, commit 7bc73629)
+- [ ] Enable Telnyx/5sim in production (needs API keys + Phase 5 go-live)
 - [ ] Enhanced analytics dashboard
 - [ ] SDK libraries (Python, JavaScript, Go)
 - [ ] API rate limiting improvements
