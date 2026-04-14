@@ -94,8 +94,10 @@ class TextVerifiedAdapter(SMSProvider):
 
             return []
 
+        except RuntimeError:
+            raise  # Already a clean error from TextVerifiedService
         except Exception as e:
-            logger.error(f"TextVerified check_messages failed: {e}")
+            logger.error(f"TextVerified check_messages unexpected error: {e}")
             return []
 
     async def report_failed(self, order_id: str) -> bool:

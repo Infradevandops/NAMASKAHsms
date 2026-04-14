@@ -151,12 +151,21 @@ class TelnyxAdapter(SMSProvider):
                 metadata={"telnyx_order_id": order_id},
             )
 
+        except httpx.TimeoutException as e:
+            logger.error(f"Telnyx purchase timeout: {e}")
+            raise RuntimeError(f"Telnyx purchase timed out")
+        except httpx.ConnectError as e:
+            logger.error(f"Telnyx connection error: {e}")
+            raise RuntimeError(f"Telnyx unreachable")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"Telnyx HTTP {e.response.status_code}: {e}")
+            raise RuntimeError(f"Telnyx purchase failed: HTTP {e.response.status_code}")
         except httpx.HTTPError as e:
             logger.error(f"Telnyx API error: {e}")
             raise RuntimeError(f"Telnyx purchase failed: {e}")
-        except Exception as e:
-            logger.error(f"Telnyx purchase error: {e}")
-            raise RuntimeError(f"Telnyx purchase failed: {e}")
+        except KeyError as e:
+            logger.error(f"Telnyx malformed response, missing key: {e}")
+            raise RuntimeError(f"Telnyx returned unexpected response")
 
     async def check_messages(
         self, order_id: str, created_after=None
@@ -205,8 +214,14 @@ class TelnyxAdapter(SMSProvider):
 
             return messages
 
-        except Exception as e:
-            logger.error(f"Telnyx check_messages error: {e}")
+        except httpx.TimeoutException:
+            logger.error(f"Telnyx check_messages timeout for {order_id}")
+            return []
+        except httpx.ConnectError:
+            logger.error(f"Telnyx unreachable during check_messages for {order_id}")
+            return []
+        except httpx.HTTPError as e:
+            logger.error(f"Telnyx check_messages HTTP error: {e}")
             return []
 
     async def report_failed(self, order_id: str) -> bool:
@@ -229,7 +244,10 @@ class TelnyxAdapter(SMSProvider):
             logger.info(f"Cancelled Telnyx order {order_id}")
             return True
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.warning(f"Telnyx cancel timeout for {order_id}")
+            return False
+        except httpx.HTTPError as e:
             logger.warning(f"Telnyx cancel failed for {order_id}: {e}")
             return False
 
@@ -244,7 +262,10 @@ class TelnyxAdapter(SMSProvider):
             data = response.json()
             return float(data.get("data", {}).get("balance", 0.0))
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.error("Telnyx balance check timed out")
+            return 0.0
+        except httpx.HTTPError as e:
             logger.error(f"Telnyx balance check failed: {e}")
             return 0.0
 
