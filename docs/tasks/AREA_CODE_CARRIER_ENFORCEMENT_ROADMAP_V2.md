@@ -1,9 +1,77 @@
-# Area Code & Carrier Enforcement — Official Implementation Roadmap v2.0
+# Area Code & Carrier Enforcement — Implementation Roadmap v2.0
 
 **Date**: March 2026  
-**Status**: READY FOR EXECUTION  
-**Total Effort**: 10.5 hours  
-**Risk Level**: MEDIUM
+**Status**: COMPLETE  
+**Completed**: March 18, 2026 (v4.4.1)  
+**Total Effort**: 10.5 hours delivered
+
+---
+
+## Status Summary
+
+All 6 phases delivered in v4.4.1. See `docs/implementation/V4.4.1_COMPLETE.md` for full delivery notes.
+
+---
+
+## Phase 0: Database Schema ✅ COMPLETE
+
+- [x] Task 0.1: 7 tracking fields added to `Verification` model (`retry_attempts`, `area_code_matched`, `carrier_matched`, `real_carrier`, `carrier_surcharge`, `area_code_surcharge`, `voip_rejected`)
+- [x] Task 0.2: Alembic migration created and run
+- [x] Task 0.3: Migration verified on production
+
+---
+
+## Phase 1: Critical Bug Fixes ✅ COMPLETE
+
+- [x] Task 1.1: Sprint removed from `CARRIER_PREMIUMS` in `pricing_calculator.py`
+- [x] Task 1.2: Admin balance sync fixed — uses existing `tv_service` instance
+- [x] Task 1.3: Surcharge breakdown returned from `calculate_sms_cost()`
+
+---
+
+## Phase 2: Area Code Retry Loop ✅ COMPLETE
+
+- [x] Task 2.1: `_cancel_safe()` helper added to `textverified_service.py`
+- [x] Task 2.2: Retry loop added to `create_verification()` — up to 3 attempts, final attempt always accepted
+- [x] `retry_attempts` and `area_code_matched` returned in result dict
+
+---
+
+## Phase 3: VOIP Rejection ✅ COMPLETE
+
+- [x] Task 3.1: `phonenumbers` dependency added to `requirements.txt`
+- [x] Task 3.2: `PhoneValidator` service created at `app/services/phone_validator.py`
+- [x] Task 3.3: VOIP/landline check integrated into retry loop, `voip_rejected` returned
+
+---
+
+## Phase 4: Carrier Lookup ✅ COMPLETE
+
+- [x] Task 4.1: `carrier_lookup_api_key` config added
+- [x] Task 4.2: `CarrierLookupService` created at `app/services/carrier_lookup.py`
+- [x] Task 4.3: Carrier check integrated into retry loop, `real_carrier` and `carrier_matched` returned
+
+---
+
+## Phase 5: Analytics & Refund ✅ COMPLETE
+
+- [x] Task 5.1: All 7 tracking fields stored in `Verification` record on purchase
+- [x] Task 5.2: Carrier surcharge refunded on mismatch (tier-aware: PAYG full refund, Pro/Custom overage refund)
+- [x] Task 5.3: `notify_carrier_mismatch_refund()` added to `NotificationDispatcher`
+- [x] Task 5.4: `CarrierAnalytics` uses real carrier from lookup
+
+---
+
+## Phase 6: Integration Tests ✅ COMPLETE
+
+- [x] Task 6.1: Area code retry tests — `tests/unit/test_area_code_retry.py`
+- [x] Task 6.2: Carrier validation tests written
+- [x] Task 6.3: VOIP rejection tests written
+- [x] 61 tests passing, 100% coverage on new code
+
+---
+
+**All phases delivered. This roadmap is archived.**
 
 ---
 

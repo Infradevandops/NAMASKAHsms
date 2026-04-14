@@ -1,7 +1,8 @@
-# Roadmap v2.0 — What's New
+# Roadmap v2.0 — What Was New
 
-**Original Plan**: 8-9 hours, 5 phases  
-**Updated Plan**: 10.5 hours, 6 phases
+**Status**: COMPLETE — All changes delivered in v4.4.1 (March 18, 2026)
+
+This document recorded the differences between the original 5-phase plan and the updated 6-phase plan. All items were delivered. See `AREA_CODE_CARRIER_ENFORCEMENT_ROADMAP_V2.md` for the full delivery checklist.
 
 ---
 

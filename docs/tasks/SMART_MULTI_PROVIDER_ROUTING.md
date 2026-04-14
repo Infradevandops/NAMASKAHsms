@@ -237,9 +237,10 @@ Phase 4 - Harden  (done, commit b98571a2 + d0e53a5d)
     [x]  TextVerified regression tests  ->  10 tests covering 18 bug fixes
     [x]  Load tests  ->  ProviderRoutingUser added to locustfile.py
 
-Phase 5 - Go Live  (blocked on Phase 4)
+Phase 5 - Go Live  (ready — needs API keys)
     [ ]  Set TELNYX_API_KEY + TELNYX_ENABLED=true in production
     [ ]  Set FIVESIM_API_KEY + FIVESIM_ENABLED=true in production
+    [ ]  Run load test against staging: locust -f tests/load/locustfile.py ProviderRoutingUser
     [ ]  Manual test: GB number via Telnyx
     [ ]  Manual test: DE number via 5sim
     [ ]  Manual test: timeout -> refund on each provider

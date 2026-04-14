@@ -2,8 +2,57 @@
 
 **Version**: 1.0  
 **Date**: March 14, 2026  
-**Status**: Active  
-**Owner**: Engineering Team
+**Status**: COMPLETE  
+**Completed**: April 13, 2026
+
+---
+
+## Status Summary
+
+All 5 milestones delivered. Work was completed across v4.4.1 and the multi-provider routing implementation.
+
+---
+
+## Milestone 1: Stop the Bleeding ✅ COMPLETE
+
+- [x] Task 1.1: Carrier validation removed — `_extract_carrier_from_number()` deprecated, carrier treated as preference not guarantee
+- [x] Task 1.2: Service loading error recovery — modal blocked when services empty, retry button added
+- [x] Task 1.3: Honest carrier UX — label updated to "Carrier Preference", tooltip added
+
+---
+
+## Milestone 2: Data Integrity ✅ COMPLETE
+
+- [x] Task 2.1: `operator` field documented as legacy, `requested_carrier` and `assigned_carrier` used correctly
+- [x] Task 2.2: Receipt generation fixed — shows assigned values not requested
+- [x] Task 2.3: `CarrierAnalytics` model created and wired into purchase flow
+
+---
+
+## Milestone 3: Align Carrier List ✅ COMPLETE
+
+- [x] Task 3.1: Sprint removed from all carrier lists and schema validation
+- [x] Task 3.2: Carrier lookup research completed — `CarrierLookupService` implemented using libphonenumber
+- [x] Task 3.3: Real success rates built from `CarrierAnalytics` table
+
+---
+
+## Milestone 4: Pricing Alignment ✅ COMPLETE
+
+- [x] Task 4.1: Carrier filter pricing audited — labeled as "best effort" in API response
+- [x] Task 4.2: Purchase blocked when service price is null
+
+---
+
+## Milestone 5: Observability ✅ COMPLETE
+
+- [x] Task 5.1: TextVerified API health metrics added
+- [x] Task 5.2: Structured logging added to purchase and polling flows
+- [x] Task 5.3: Admin carrier analytics view implemented
+
+---
+
+**All tasks delivered. This roadmap is archived.**
 
 ---
 
