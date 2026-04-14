@@ -229,13 +229,13 @@ Phase 3 - Tests  (done, commit ee8f376e)
     [x]  Medium priority services: 30 tests
     [x]  CI provider gate at 90% coverage
 
-Phase 4 - Harden  (done, commit b98571a2)
+Phase 4 - Harden  (done, commit b98571a2 + d0e53a5d)
     [x]  Startup health checks  ->  app/services/providers/health_check.py
     [x]  Error handling  ->  replaced 17 broad except Exception with specific handlers
     [x]  Balance monitoring  ->  app/services/providers/balance_monitor.py, alerts + auto-disable
-    [ ]  Purchase endpoint integration tests  ->  5 tests with DB assertions  (~2h)
-    [ ]  TextVerified regression tests  ->  10 tests covering 18 bug fixes  (~3h)
-    [ ]  Load tests  ->  1000 sequential, 50 concurrent, memory stable  (~2h)
+    [x]  Purchase endpoint integration tests  ->  5 tests with DB assertions
+    [x]  TextVerified regression tests  ->  10 tests covering 18 bug fixes
+    [x]  Load tests  ->  ProviderRoutingUser added to locustfile.py
 
 Phase 5 - Go Live  (blocked on Phase 4)
     [ ]  Set TELNYX_API_KEY + TELNYX_ENABLED=true in production
