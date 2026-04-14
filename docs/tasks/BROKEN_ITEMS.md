@@ -69,7 +69,8 @@
 ### Q2 2026
 - [x] Multi-provider routing — TextVerified, Telnyx, 5sim (done, commit 0bcace42)
 - [x] Phase 4 hardening — health checks, error handling, balance monitor, all tests (done, commit 7bc73629)
-- [ ] Enable Telnyx/5sim in production (needs API keys + Phase 5 go-live)
+- [ ] City & country filtering — retire carrier filtering, add city-level routing (task: `docs/tasks/CITY_COUNTRY_FILTERING.md`)
+- [ ] Enable Telnyx/5sim in production (needs API keys + city filtering done first)
 - [ ] Enhanced analytics dashboard
 - [ ] SDK libraries (Python, JavaScript, Go)
 - [ ] API rate limiting improvements
