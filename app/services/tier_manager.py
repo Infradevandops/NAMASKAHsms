@@ -80,11 +80,11 @@ class TierManager:
         feature_map = {
             "api_access": config.get("has_api_access", False),
             "area_code_selection": config.get("has_area_code_selection", False),
-            "isp_filtering": config.get("has_isp_filtering", False),
+            "isp_filtering": config.get("has_isp_filtering", False),  # backward compat
+            "city_filtering": config.get("has_city_filtering", False),
+            "precise_city_filtering": config.get("has_precise_city_filtering", False),
             "webhooks": config.get("features", {}).get("webhooks", False),
-            "priority_routing": config.get("features", {}).get(
-                "priority_routing", False
-            ),
+            "priority_routing": config.get("features", {}).get("priority_routing", False),
             "custom_branding": config.get("features", {}).get("custom_branding", False),
         }
 

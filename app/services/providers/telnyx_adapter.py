@@ -3,7 +3,6 @@
 Enterprise-grade SMS provider with global coverage and direct carrier connections.
 """
 
-import asyncio
 import re
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
@@ -13,6 +12,7 @@ import httpx
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.services.providers.base_provider import MessageResult, PurchaseResult, SMSProvider
+from app.services.providers.provider_errors import ProviderError
 
 logger = get_logger(__name__)
 
@@ -70,63 +70,76 @@ class TelnyxAdapter(SMSProvider):
         area_code: Optional[str] = None,
         carrier: Optional[str] = None,
         capability: str = "sms",
+        city: Optional[str] = None,
     ) -> PurchaseResult:
-        """Purchase number from Telnyx.
+        """Purchase number from Telnyx with city and area code filtering.
 
-        Telnyx flow:
-        1. Search for available numbers with filters
-        2. Order the number
-        3. Configure messaging profile
-        4. Return number details
+        City retry pattern:
+        1. Try with filter[locality]=city
+        2. If empty -> retry without city, set city_honoured=False
+        3. If still empty -> raise ProviderError(no_inventory_country)
         """
         if not self.enabled:
-            raise RuntimeError("Telnyx provider not configured")
+            raise ProviderError("not_configured", "Telnyx API key not set")
 
         try:
-            # Step 1: Search for available numbers
+            # Build search params
             search_params = {
                 "filter[country_code]": country,
                 "filter[features]": "sms" if capability == "sms" else "voice",
                 "filter[limit]": 10,
             }
 
-            if area_code and country == "US":
-                # US area code filtering
+            # NDC works for any country (not US-only)
+            if area_code:
                 search_params["filter[national_destination_code]"] = area_code
+
+            # City-level filtering via locality
+            if city:
+                search_params["filter[locality]"] = city
 
             response = await self.client.get(
                 f"{self.base_url}/available_phone_numbers",
                 params=search_params,
             )
             response.raise_for_status()
-            data = response.json()
+            available = response.json().get("data", [])
 
-            available = data.get("data", [])
+            # Level 1: city retry — drop locality, keep country
+            city_honoured = True
+            city_note = None
+            if not available and city:
+                city_honoured = False
+                city_note = f"No numbers available in {city}, country-level number assigned"
+                logger.warning(f"Telnyx: no inventory in {city} for {country}, retrying without city")
+                del search_params["filter[locality]"]
+                response = await self.client.get(
+                    f"{self.base_url}/available_phone_numbers",
+                    params=search_params,
+                )
+                response.raise_for_status()
+                available = response.json().get("data", [])
+
+            # Level 2: no inventory for country at all
             if not available:
-                raise RuntimeError(
+                raise ProviderError(
+                    "no_inventory_country",
                     f"No Telnyx numbers available for {country}"
-                    + (f" with area code {area_code}" if area_code else "")
+                    + (f" (city={city})" if city else ""),
                 )
 
-            # Select first available number
             selected = available[0]
             phone_number = selected["phone_number"]
 
-            # Step 2: Order the number (reserve for 20 minutes)
             order_response = await self.client.post(
                 f"{self.base_url}/number_orders",
-                json={
-                    "phone_numbers": [{"phone_number": phone_number}],
-                    "connection_id": None,  # Will configure later
-                },
+                json={"phone_numbers": [{"phone_number": phone_number}], "connection_id": None},
             )
             order_response.raise_for_status()
             order_data = order_response.json()
-
             order_id = order_data["data"]["id"]
             cost = float(selected.get("cost_information", {}).get("upfront_cost", 1.0))
 
-            # Extract area code from phone number
             assigned_area_code = None
             if phone_number.startswith("+1") and len(phone_number) >= 5:
                 assigned_area_code = phone_number[2:5]
@@ -137,35 +150,39 @@ class TelnyxAdapter(SMSProvider):
                 cost=cost,
                 expires_at=(datetime.now(timezone.utc) + timedelta(minutes=20)).isoformat(),
                 provider="telnyx",
-                operator=carrier,
+                operator=None,
                 area_code_matched=(not area_code or assigned_area_code == area_code),
-                carrier_matched=True,  # Telnyx doesn't filter by carrier
+                carrier_matched=True,
                 real_carrier=None,
                 voip_rejected=False,
-                fallback_applied=False,
+                fallback_applied=not city_honoured,
                 requested_area_code=area_code,
                 assigned_area_code=assigned_area_code,
                 same_state_fallback=True,
                 retry_attempts=0,
-                routing_reason=f"telnyx_country={country}",
+                routing_reason=f"telnyx_country={country}" + (f"_city={city}" if city else ""),
                 metadata={"telnyx_order_id": order_id},
+                city_honoured=city_honoured,
+                city_note=city_note,
             )
 
+        except ProviderError:
+            raise
         except httpx.TimeoutException as e:
-            logger.error(f"Telnyx purchase timeout: {e}")
-            raise RuntimeError(f"Telnyx purchase timed out")
+            logger.error(f"Telnyx purchase timeout for {country}: {e}")
+            raise ProviderError("timeout", f"Telnyx timed out for {country}")
         except httpx.ConnectError as e:
             logger.error(f"Telnyx connection error: {e}")
-            raise RuntimeError(f"Telnyx unreachable")
+            raise ProviderError("provider_unreachable", f"Telnyx unreachable: {e}")
         except httpx.HTTPStatusError as e:
-            logger.error(f"Telnyx HTTP {e.response.status_code}: {e}")
-            raise RuntimeError(f"Telnyx purchase failed: HTTP {e.response.status_code}")
+            logger.error(f"Telnyx HTTP {e.response.status_code} for {country}: {e}")
+            raise ProviderError("provider_unreachable", f"Telnyx HTTP {e.response.status_code}")
         except httpx.HTTPError as e:
-            logger.error(f"Telnyx API error: {e}")
-            raise RuntimeError(f"Telnyx purchase failed: {e}")
+            logger.error(f"Telnyx API error for {country}: {e}")
+            raise ProviderError("provider_unreachable", f"Telnyx API error: {e}")
         except KeyError as e:
             logger.error(f"Telnyx malformed response, missing key: {e}")
-            raise RuntimeError(f"Telnyx returned unexpected response")
+            raise ProviderError("malformed_response", f"Telnyx response missing key: {e}")
 
     async def check_messages(
         self, order_id: str, created_after=None
