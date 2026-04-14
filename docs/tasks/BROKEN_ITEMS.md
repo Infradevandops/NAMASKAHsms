@@ -69,8 +69,9 @@
 ### Q2 2026
 - [x] Multi-provider routing — TextVerified, Telnyx, 5sim (done, commit 0bcace42)
 - [x] Phase 4 hardening — health checks, error handling, balance monitor, all tests (done, commit 7bc73629)
-- [ ] City & country filtering — retire carrier filtering, add city-level routing (task: `docs/tasks/CITY_COUNTRY_FILTERING.md`)
-- [ ] Enable Telnyx/5sim in production (needs API keys + city filtering done first)
+- [x] City & country filtering — carrier filtering retired, city-level routing, clean errors (done, commit 3bef4bc8)
+- [ ] DB migration — `has_city_filtering` + `has_precise_city_filtering` columns on `subscription_tiers`
+- [ ] Enable Telnyx/5sim in production (needs API keys)
 - [ ] Enhanced analytics dashboard
 - [ ] SDK libraries (Python, JavaScript, Go)
 - [ ] API rate limiting improvements
@@ -90,10 +91,10 @@
 
 ## 📊 SUMMARY
 
-**Progress**: Phase 4 fully complete — all critical and should-do items done  
+**Progress**: City/country filtering complete. One DB migration outstanding before go-live.  
 **Critical Issues**: 0  
 **CI Health**: 4/4 checks passing + provider 90% coverage gate  
-**Next Action**: Phase 5 go-live — set API keys, test in staging, enable providers
+**Next Action**: Run DB migration, set API keys, enable providers in production
 
 ---
 
