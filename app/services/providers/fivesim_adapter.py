@@ -133,12 +133,21 @@ class FiveSimAdapter(SMSProvider):
                 metadata={"5sim_id": order_id, "country": country_name, "operator": operator},
             )
 
+        except httpx.TimeoutException as e:
+            logger.error(f"5sim purchase timeout: {e}")
+            raise RuntimeError("5sim purchase timed out")
+        except httpx.ConnectError as e:
+            logger.error(f"5sim connection error: {e}")
+            raise RuntimeError("5sim unreachable")
+        except httpx.HTTPStatusError as e:
+            logger.error(f"5sim HTTP {e.response.status_code}: {e}")
+            raise RuntimeError(f"5sim purchase failed: HTTP {e.response.status_code}")
         except httpx.HTTPError as e:
             logger.error(f"5sim API error: {e}")
             raise RuntimeError(f"5sim purchase failed: {e}")
-        except Exception as e:
-            logger.error(f"5sim purchase error: {e}")
-            raise RuntimeError(f"5sim purchase failed: {e}")
+        except KeyError as e:
+            logger.error(f"5sim malformed response, missing key: {e}")
+            raise RuntimeError("5sim returned unexpected response")
 
     async def check_messages(
         self, order_id: str, created_after=None
@@ -176,8 +185,14 @@ class FiveSimAdapter(SMSProvider):
 
             return []
 
-        except Exception as e:
-            logger.error(f"5sim check_messages error: {e}")
+        except httpx.TimeoutException:
+            logger.error(f"5sim check_messages timeout for {order_id}")
+            return []
+        except httpx.ConnectError:
+            logger.error(f"5sim unreachable during check_messages for {order_id}")
+            return []
+        except httpx.HTTPError as e:
+            logger.error(f"5sim check_messages HTTP error: {e}")
             return []
 
     async def report_failed(self, order_id: str) -> bool:
@@ -194,7 +209,10 @@ class FiveSimAdapter(SMSProvider):
             logger.info(f"Reported failed 5sim activation {order_id}")
             return True
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.warning(f"5sim report_failed timeout for {order_id}")
+            return False
+        except httpx.HTTPError as e:
             logger.warning(f"5sim report_failed error for {order_id}: {e}")
             return False
 
@@ -213,7 +231,10 @@ class FiveSimAdapter(SMSProvider):
             data = response.json()
             return float(data.get("balance", 0.0))
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.error("5sim balance check timed out")
+            return 0.0
+        except httpx.HTTPError as e:
             logger.error(f"5sim balance check failed: {e}")
             return 0.0
 
@@ -253,7 +274,10 @@ class FiveSimAdapter(SMSProvider):
 
             return None
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.error(f"5sim country mapping timed out for {iso_code}")
+            return None
+        except httpx.HTTPError as e:
             logger.error(f"5sim country mapping failed: {e}")
             return None
 
@@ -320,7 +344,10 @@ class FiveSimAdapter(SMSProvider):
             # Fallback: return "any"
             return "any"
 
-        except Exception as e:
+        except httpx.TimeoutException:
+            logger.warning(f"5sim operator selection timed out, using 'any'")
+            return "any"
+        except httpx.HTTPError as e:
             logger.warning(f"5sim operator selection failed: {e}, using 'any'")
             return "any"
 
