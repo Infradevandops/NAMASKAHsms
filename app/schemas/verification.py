@@ -8,7 +8,11 @@ from app.core.pydantic_compat import BaseModel, Field, field_validator
 
 
 class VerificationRequest(BaseModel):
-    """Request to purchase SMS verification with comprehensive validation."""
+    """Request to purchase SMS verification.
+
+    Filters: country (required) + city (optional).
+    Carrier filtering has been retired.
+    """
 
     service: str = Field(
         ...,
@@ -17,14 +21,16 @@ class VerificationRequest(BaseModel):
         description="Service name (telegram, whatsapp, etc)",
     )
     country: str = Field(
-        default="US", min_length=2, max_length=3, description="Country code"
+        default="US", min_length=2, max_length=3, description="ISO country code"
     )
     capability: str = Field(default="sms", description="sms or voice")
-    area_codes: Optional[List[str]] = Field(
-        default=None, description="Preferred area codes"
+    city: Optional[str] = Field(
+        default=None,
+        max_length=100,
+        description="City for number selection. Pro/Custom: precise. PAYG: best-effort.",
     )
-    carriers: Optional[List[str]] = Field(
-        default=None, description="Preferred carriers"
+    area_codes: Optional[List[str]] = Field(
+        default=None, description="US area codes (internal use, derived from city)"
     )
     idempotency_key: Optional[str] = Field(
         default=None,
@@ -115,54 +121,38 @@ class VerificationRequest(BaseModel):
 
         return v
 
+    @field_validator("city", mode="before")
+    @classmethod
+    def validate_city(cls, v):
+        """Validate and normalize city name."""
+        if v is None:
+            return v
+        if not isinstance(v, str):
+            raise ValueError("City must be a string")
+        v = v.strip()
+        if len(v) == 0:
+            return None
+        if len(v) > 100:
+            raise ValueError("City name too long")
+        return v
+
     @field_validator("area_codes", mode="before")
     @classmethod
     def validate_area_codes(cls, v):
-        """Validate area codes format."""
+        """Validate area codes format (US only, internal use)."""
         if v is None:
             return v
-
         if not isinstance(v, list):
             raise ValueError("Area codes must be a list")
-
         validated_codes = []
         for code in v:
             if not isinstance(code, str):
                 raise ValueError("Area code must be a string")
-
             code = code.strip()
-
-            # US area codes are 3 digits
             if not re.match(r"^\d{3}$", code):
                 raise ValueError(f"Invalid area code format: {code}")
-
             validated_codes.append(code)
-
-        return validated_codes[:10]  # Limit to 10 area codes
-
-    @field_validator("carriers", mode="before")
-    @classmethod
-    def validate_carriers(cls, v):
-        """Validate carrier names."""
-        if v is None:
-            return v
-
-        if not isinstance(v, list):
-            raise ValueError("Carriers must be a list")
-
-        validated_carriers = []
-        allowed_carriers = {"verizon", "att", "tmobile"}
-
-        for carrier in v:
-            if not isinstance(carrier, str):
-                raise ValueError("Carrier must be a string")
-
-            carrier = carrier.strip().lower().replace(" ", "_").replace("&", "")
-
-            if carrier in allowed_carriers:
-                validated_carriers.append(carrier)
-
-        return validated_carriers[:5]  # Limit to 5 carriers
+        return validated_codes[:10]
 
     @field_validator("idempotency_key", mode="before")
     @classmethod

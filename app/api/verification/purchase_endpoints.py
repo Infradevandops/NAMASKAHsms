@@ -129,9 +129,9 @@ async def request_verification(
         logger.info(f"Tier check for user {user_id}: resolved tier = {user_tier}")
 
         area_code = request.area_codes[0] if request.area_codes else None
-        carrier = request.carriers[0] if request.carriers else None
+        city = request.city
 
-        # VOICE TIER GATE (Issue 14): Voice requires PAYG+
+        # VOICE TIER GATE
         if request.capability == "voice":
             if not tier_manager.check_tier_hierarchy(user_tier, "payg"):
                 raise HTTPException(
@@ -143,21 +143,22 @@ async def request_verification(
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                    detail="Area code filtering requires payg tier or higher. Upgrade your plan.",
+                    detail="Area code filtering requires PAYG tier or higher. Upgrade your plan.",
                 )
 
-        if request.carriers:
-            if not tier_manager.check_feature_access(user_id, "isp_filtering"):
+        # CITY TIER GATE
+        if city and request.country.upper() != "US":
+            if not tier_manager.check_feature_access(user_id, "city_filtering"):
                 raise HTTPException(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                    detail="Carrier filtering requires payg tier or higher. Upgrade your plan.",
+                    detail="City filtering requires PAYG tier or higher. Upgrade your plan.",
                 )
 
         # Calculate SMS cost using new pricing system
         # Get pricing for this SMS
         filters = (
-            {"area_code": area_code, "carrier": carrier}
-            if area_code or carrier
+            {"area_code": area_code, "city": city}
+            if area_code or city
             else None
         )
         pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
@@ -197,13 +198,12 @@ async def request_verification(
 
         # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
-        carrier = request.carriers[0] if request.carriers else None
+        city = request.city
 
-        # Log what filters are being applied
         if area_code:
             logger.info(f"User {user_id} requesting area code: {area_code}")
-        if carrier:
-            logger.info(f"User {user_id} requesting carrier: {carrier}")
+        if city:
+            logger.info(f"User {user_id} requesting city: {city}")
 
         # Use smart provider router
         from app.services.providers.provider_router import ProviderRouter
@@ -223,8 +223,10 @@ async def request_verification(
                 service=request.service,
                 country=request.country,
                 area_code=area_code,
-                carrier=carrier,
+                carrier=None,
                 capability=request.capability,
+                city=city,
+                user_tier=user_tier,
             )
 
             # Map PurchaseResult to existing variable names (minimal change)
@@ -243,7 +245,9 @@ async def request_verification(
                 "requested_area_code": purchase_result.requested_area_code,
                 "assigned_area_code": purchase_result.assigned_area_code,
                 "same_state_fallback": purchase_result.same_state_fallback,
-                "assigned_carrier": carrier,  # Store preference
+                "assigned_carrier": None,
+                "city_honoured": purchase_result.city_honoured,
+                "city_note": purchase_result.city_note,
             }
             provider_name = purchase_result.provider
 
@@ -267,15 +271,13 @@ async def request_verification(
                 except Exception:
                     pass
 
-            # Step 2.1: CARRIER PREFERENCE LOGGING (TextVerified best-effort)
-            # TextVerified treats carrier as a preference, not a guarantee
-            if carrier:
-                assigned_carrier = textverified_result.get("assigned_carrier")
+            # Step 2.1: Log city filter outcome
+            if city:
                 logger.info(
-                    f"Carrier preference applied: requested={carrier}, "
-                    f"assigned_type={assigned_carrier} (TextVerified best-effort, not guaranteed)"
+                    f"City filter outcome: requested={city}, "
+                    f"honoured={textverified_result['city_honoured']}, "
+                    f"note={textverified_result['city_note']}"
                 )
-                # No validation — TextVerified returns generic types, not specific carriers
 
             # Step 2.2: Create verification record with filter tracking
             actual_cost = sms_cost  # Use our pricing system cost
@@ -292,10 +294,10 @@ async def request_verification(
                 status="pending",
                 idempotency_key=final_idempotency_key,
                 requested_area_code=area_code,  # Track requested filter
-                requested_carrier=carrier,  # Track requested carrier
-                operator=carrier,  # Legacy field — store requested carrier
+                requested_carrier=None,
+                operator=None,
                 assigned_area_code=textverified_result.get("assigned_area_code"),
-                assigned_carrier=carrier,  # Store preference
+                assigned_carrier=None,
                 fallback_applied=textverified_result.get("fallback_applied", False),
                 same_state_fallback=textverified_result.get(
                     "same_state_fallback", True
@@ -328,30 +330,6 @@ async def request_verification(
                 actual_cost -= refund_result["refund_amount"]
                 verification.cost = type(verification.cost)(actual_cost)
 
-            # Record carrier analytics for tracking preferences vs assignments
-            if carrier:
-                analytics = CarrierAnalytics(
-                    verification_id=str(verification.id),
-                    user_id=user_id,
-                    requested_carrier=carrier,
-                    sent_to_textverified=carrier.lower()
-                    .replace(" ", "_")
-                    .replace("&", ""),
-                    textverified_response=textverified_result.get("assigned_carrier"),
-                    assigned_phone=textverified_result["phone_number"],
-                    assigned_area_code=textverified_result.get("assigned_area_code"),
-                    outcome="accepted",
-                    exact_match=(
-                        textverified_result.get("assigned_carrier", "").lower()
-                        == carrier.lower()
-                    ),
-                )
-                db.add(analytics)
-                logger.info(
-                    f"Carrier analytics recorded: user={user_id}, "
-                    f"requested={carrier}, assigned={textverified_result.get('assigned_carrier')}, "
-                    f"exact_match={analytics.exact_match}"
-                )
             logger.info(f"Verification record created with ID: {verification.id}")
 
             # Step 3: Deduct credits and record transaction
@@ -407,42 +385,50 @@ async def request_verification(
             )
 
         except HTTPException:
-            # Re-raise HTTP exceptions (like carrier mismatch) to be caught by the outer handler
             raise
         except Exception as api_error:
-            # CRITICAL: Rollback if TextVerified API fails
+            from app.services.providers.provider_errors import ProviderError
             db.rollback()
+
+            # Translate ProviderError to clean user message (no provider names)
+            if isinstance(api_error, ProviderError):
+                logger.error(
+                    f"Provider error [{api_error.category}] for user {user_id}: {api_error.internal}"
+                )
+                if api_error.category in ("unsupported_country", "unsupported_service"):
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail=api_error.user_message,
+                    )
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail=api_error.user_message,
+                )
+
             logger.error(
-                f"TextVerified API failed, transaction rolled back: {str(api_error)}",
+                f"Purchase failed, transaction rolled back: {str(api_error)}",
                 exc_info=True,
             )
 
-            # If we got a number but DB failed, cancel it
             if textverified_result and textverified_result.get("id"):
                 try:
                     await tv_service.cancel_verification(textverified_result["id"])
-                    logger.info(
-                        f"Cancelled TextVerified number: {textverified_result['id']}"
-                    )
                 except Exception as cancel_error:
-                    logger.error(
-                        f"Failed to cancel TextVerified number: {cancel_error}"
-                    )
+                    logger.error(f"Failed to cancel number after rollback: {cancel_error}")
 
-            # Notification: Verification Failed (Task 1.3)
             try:
                 await notification_dispatcher.notify_verification_failed(
                     user_id=user_id,
                     verification_id="unknown",
                     service=request.service,
-                    reason="SMS service temporarily unavailable",
+                    reason="Verification service temporarily unavailable",
                 )
             except Exception:
                 pass
 
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="SMS service temporarily unavailable. Your credits were not charged.",
+                detail="Verification is temporarily unavailable. Your credits were not charged.",
             )
 
         # Record usage for quota tracking
@@ -495,8 +481,10 @@ async def request_verification(
             "fallback_applied": textverified_result.get("fallback_applied", False),
             "requested_area_code": textverified_result.get("requested_area_code"),
             "assigned_area_code": textverified_result.get("assigned_area_code"),
-            "requested_carrier": carrier,
             "same_state_fallback": textverified_result.get("same_state_fallback", True),
+            "requested_city": city,
+            "city_honoured": textverified_result.get("city_honoured", True),
+            "city_note": textverified_result.get("city_note"),
         }
 
         # Cache response for idempotency (24 hours)
@@ -535,21 +523,21 @@ async def request_verification(
         logger.warning(f"Validation error in verification request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Validation error: {str(e)}",
+            detail="Invalid request. Please check your inputs and try again.",
         )
     except ConnectionError as e:
         db.rollback()
-        logger.error(f"Connection error to TextVerified API: {str(e)}")
+        logger.error(f"SMS provider connection error: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Unable to connect to SMS service. Please try again.",
+            detail="Verification service is temporarily unavailable. Please try again.",
         )
     except TimeoutError as e:
         db.rollback()
-        logger.error(f"Timeout error in verification request: {str(e)}")
+        logger.error(f"Timeout in verification request: {str(e)}")
         raise HTTPException(
             status_code=status.HTTP_504_GATEWAY_TIMEOUT,
-            detail="Request timeout. Please try again.",
+            detail="Verification is taking longer than expected. Please try again.",
         )
     except Exception as e:
         db.rollback()

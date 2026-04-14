@@ -1,6 +1,301 @@
 # City & Country Filtering — Implementation Task
 
-Version 1.0 | Status: Ready for execution | Created: April 13, 2026
+Version 1.1.0 | Status: In Progress | Updated: April 13, 2026
+
+---
+
+## What This Is
+
+Retiring carrier filtering entirely. Replacing with country + city level filtering
+routed intelligently to the provider that can actually honour the request.
+
+Users get two filter dimensions:
+    country  ->  ISO code (US, GB, DE, FR, IN...)
+    city     ->  city name (London, Berlin, New York, Mumbai...)
+
+The platform decides which provider handles the request based on what was asked
+and what tier the user is on. Users never see provider names. Ever.
+
+---
+
+## Hard Rules
+
+1. Provider names (Telnyx, 5sim, TextVerified) never appear in any HTTP response body
+2. "No inventory in city" is not an error — it is a routing signal. User gets a number.
+3. "No inventory in country" triggers provider failover. User gets a number.
+4. Only when ALL providers have no inventory does the user see an error.
+5. routing_reason is internal only — never forwarded to API response.
+6. Every failure has a category. Every category has a clean user message.
+
+---
+
+## Provider Capability Map
+
+    TextVerified
+        country: US only
+        city: yes — via area code lookup (New York -> 212/646/718, LA -> 213/310/323)
+        tiers: all (area code = PAYG+)
+
+    Telnyx
+        country: 190+ countries
+        city: yes — filter[locality] globally (not US-only)
+        tiers: Pro/Custom only
+        notes: only provider with genuine city-level filtering internationally
+
+    5sim
+        country: 100+ countries
+        city: no — country level only
+        tiers: PAYG+
+
+---
+
+## Routing Logic
+
+    country=US, any city
+        ->  TextVerified
+        ->  city translated to area codes via city_to_area_code.py
+        ->  unknown city -> no area code, TextVerified picks any US number
+        ->  city_honoured=True if assigned area code in city list, else False
+
+    country=international, city provided, tier=Pro or Custom
+        ->  Telnyx with filter[locality]=city
+        ->  if Telnyx empty for city: retry without city, city_honoured=False
+        ->  if Telnyx empty for country: failover to 5sim (country level)
+        ->  if all fail: surface error
+
+    country=international, city provided, tier=PAYG
+        ->  5sim (city not sent to API)
+        ->  city_honoured=False, city_note="Precise city filtering requires Pro tier"
+
+    country=international, city provided, tier=Freemium
+        ->  402 before purchase: "City filtering requires PAYG tier or higher"
+
+    country=international, no city
+        ->  5sim (cheapest, country level)
+        ->  Telnyx as failover if 5sim unavailable
+
+---
+
+## Two-Level Rerouting (No Silent Failures)
+
+    Level 1 — City fallback (within same provider):
+        Telnyx returns empty for city=London
+            -> retry Telnyx without city filter
+            -> city_honoured=False, city_note="No numbers in London, country-level assigned"
+            -> user gets a GB number, NOT an error
+
+    Level 2 — Provider failover (across providers):
+        Telnyx returns empty for country=GB entirely
+            -> failover to 5sim for GB
+            -> 5sim has inventory -> success
+            -> routing_reason="failover telnyx->5sim, no inventory"
+
+    Level 3 — All providers exhausted:
+        Only then does user see an error
+        Message: "No numbers available for this country right now. Please try again later."
+        No provider names. No technical details.
+
+---
+
+## Error Message Map (Definitive)
+
+    Category                  HTTP    User Message
+    ─────────────────────────────────────────────────────────────────────────
+    timeout                   503     "Verification is taking longer than expected. Please try again."
+    no_inventory_city         200     city_honoured=False, city_note="No numbers in [city], country-level number assigned"
+    no_inventory_country      503     "No numbers available for this country right now. Please try again later."
+                                      (only after all providers tried)
+    unsupported_country       400     "This country is not currently supported."
+    unsupported_service       400     "This service is not currently supported."
+    provider_unreachable      503     "Verification service is temporarily unavailable. Please try again."
+    all_providers_failed      503     "Verification is temporarily unavailable. Your credits were not charged."
+    insufficient_balance      402     "Insufficient balance. Available: $X.XX, Required: $Y.YY"
+    city_filter_tier_gate     402     "Precise city filtering requires Pro tier or higher."
+    city_best_effort          200     city_honoured=False, city_note="Precise city filtering requires Pro tier"
+
+---
+
+## Tier Access
+
+    Freemium    country: yes | city: no (402 before purchase)
+    PAYG        country: yes | city: best-effort (5sim, city_honoured=False)
+    Pro         country: yes | city: precise (Telnyx filter[locality])
+    Custom      country: yes | city: precise (Telnyx, priority routing)
+
+---
+
+## Files — Complete Change List
+
+### New Files (3)
+
+    app/services/providers/provider_errors.py
+        ProviderError exception class
+        Fields: category (str), internal (str — for logs only, never shown to user)
+        Categories: timeout, no_inventory_city, no_inventory_country,
+                    unsupported_country, unsupported_service,
+                    provider_unreachable, all_providers_failed
+        USER_MESSAGES dict: category -> clean user-facing string
+
+    app/services/providers/city_to_area_code.py
+        lookup(city: str) -> List[str]  (case-insensitive, returns [] if unknown)
+        50 US cities mapped to area codes
+
+    tests/unit/providers/test_city_filtering.py
+        10 routing scenario tests
+
+### Modified Files (6)
+
+    app/services/providers/base_provider.py
+        Add to PurchaseResult:
+            city_honoured: bool = True
+            city_note: Optional[str] = None
+
+    app/schemas/verification.py
+        Remove: carriers field and validate_carriers validator
+        Add: city field (Optional[str], max_length=100)
+
+    app/services/providers/telnyx_adapter.py
+        Raise ProviderError(category=...) not RuntimeError("Telnyx...")
+        filter[national_destination_code] fires for ANY country (remove US-only guard)
+        filter[locality] wired when city provided
+        Empty city result -> retry without city (not raise)
+        Empty country result -> ProviderError(category="no_inventory_country")
+
+    app/services/providers/fivesim_adapter.py
+        Raise ProviderError(category=...) not RuntimeError("5sim...")
+        unsupported_country -> ProviderError so router can try next provider
+
+    app/services/providers/provider_router.py
+        get_provider() gains city and user_tier params
+        purchase_with_failover() gains city and user_tier params
+        no_inventory_city -> retry within provider (drop city)
+        no_inventory_country -> failover to next provider
+        All ProviderError categories translated to clean user messages at boundary
+        Provider names stripped from all errors before reaching endpoints
+
+    app/api/verification/purchase_endpoints.py
+        Remove: carrier extraction, isp_filtering gate, CarrierAnalytics block
+        Remove: carrier preference logging, carrier_surcharge usage
+        Add: city = request.city
+        Add: city_filtering tier gate
+        Pass city and user_tier to router
+        Catch ProviderError by category -> clean HTTP response
+        No provider names in any detail= string
+        Add city_honoured, city_note, requested_city to response body
+        Fix: raw validation error detail (was leaking field names)
+
+    app/services/tier_manager.py
+        Replace isp_filtering with city_filtering (PAYG+)
+        Add precise_city_filtering (Pro/Custom)
+
+    app/core/tier_config.py
+        Replace has_isp_filtering with has_city_filtering
+        Add has_precise_city_filtering
+
+### Database Migration (1)
+
+    alembic/versions/xxx_city_filtering_tier_columns.py
+        ADD COLUMN has_city_filtering BOOLEAN DEFAULT FALSE
+        ADD COLUMN has_precise_city_filtering BOOLEAN DEFAULT FALSE
+        UPDATE payg/pro/custom: has_city_filtering=TRUE
+        UPDATE pro/custom: has_precise_city_filtering=TRUE
+        has_isp_filtering kept for backward compat
+
+---
+
+## Implementation Checklist
+
+### Phase 1 — Error Foundation (1 hour)
+    [ ]  Create provider_errors.py with ProviderError + USER_MESSAGES
+    [ ]  Add city_honoured, city_note to PurchaseResult in base_provider.py
+
+### Phase 2 — Schema & Config (1 hour)
+    [ ]  Remove carriers from VerificationRequest
+    [ ]  Add city field with validator
+    [ ]  Update tier_config.py fallback configs
+    [ ]  Update tier_manager.py feature keys
+    [ ]  Write and run DB migration
+
+### Phase 3 — City Map (30 min)
+    [ ]  Create city_to_area_code.py with 50 US cities
+    [ ]  lookup() function case-insensitive
+
+### Phase 4 — Telnyx Adapter (1.5 hours)
+    [ ]  Replace all RuntimeError("Telnyx...") with ProviderError(category=...)
+    [ ]  Remove US-only guard on NDC filter
+    [ ]  Wire filter[locality] when city provided
+    [ ]  Locality retry pattern — empty city retries without city
+    [ ]  Empty country -> ProviderError(category="no_inventory_country")
+
+### Phase 5 — 5sim Adapter (30 min)
+    [ ]  Replace all RuntimeError("5sim...") with ProviderError(category=...)
+    [ ]  unsupported_country raises ProviderError so router can try next provider
+
+### Phase 6 — Provider Router (2 hours)
+    [ ]  get_provider() and purchase_with_failover() accept city + user_tier
+    [ ]  no_inventory_city -> retry within provider without city
+    [ ]  no_inventory_country -> failover to next provider
+    [ ]  Translate ProviderError categories to clean user messages at boundary
+    [ ]  routing_reason reflects city outcome
+
+### Phase 7 — Purchase Endpoints (1 hour)
+    [ ]  Remove all carrier code
+    [ ]  Add city extraction + tier gate
+    [ ]  Pass city + user_tier to router
+    [ ]  Catch ProviderError -> clean HTTP response (no provider names)
+    [ ]  Add city_honoured, city_note, requested_city to response
+    [ ]  Fix raw validation error detail
+
+### Phase 8 — Tests (2 hours)
+    [ ]  test_us_city_translates_to_area_codes
+    [ ]  test_international_city_pro_routes_telnyx_with_locality
+    [ ]  test_international_city_payg_city_dropped_city_note_set
+    [ ]  test_international_no_city_routes_fivesim
+    [ ]  test_freemium_city_request_rejected_402
+    [ ]  test_carriers_field_rejected_422
+    [ ]  test_telnyx_empty_city_retries_without_city
+    [ ]  test_telnyx_empty_country_failover_to_fivesim
+    [ ]  test_no_provider_name_in_error_response
+    [ ]  test_all_providers_failed_clean_message
+
+---
+
+## Acceptance Criteria
+
+    [ ]  carriers=[...] returns 422 — no provider names in error
+    [ ]  city="London" accepted at schema level
+    [ ]  country=US + city=New York -> TextVerified with area codes [212,646,718,917,929]
+    [ ]  country=GB + city=London + tier=pro -> Telnyx with filter[locality]=London
+    [ ]  country=GB + city=London + tier=payg -> number returned, city_honoured=False
+    [ ]  country=DE + no city -> 5sim
+    [ ]  country=US + unknown city -> TextVerified, no area code, city_honoured=False
+    [ ]  Freemium + city -> 402 "City filtering requires PAYG tier or higher"
+    [ ]  Telnyx empty for city -> retry without city, city_honoured=False, number returned
+    [ ]  Telnyx empty for country -> failover to 5sim, number returned
+    [ ]  All providers empty -> 503 "No numbers available for this country right now"
+    [ ]  No provider name in any HTTP response body under any condition
+    [ ]  city_honoured + city_note + requested_city in every response
+    [ ]  DB migration runs cleanly
+    [ ]  All 10 new tests pass
+    [ ]  All existing tests pass
+    [ ]  CI green
+
+---
+
+## What Is NOT Changing
+
+    TextVerifiedService — not touched
+    Polling service — no changes
+    Refund service — no changes
+    Balance monitor — no changes
+    5sim adapter country-level logic — no changes
+    Pricing — no city surcharge, cost difference captured in tier pricing
+
+---
+
+Owner: Backend Team
+Estimated effort: ~8.5 hours
+Blocks: Phase 5 go-live
 
 ---
 

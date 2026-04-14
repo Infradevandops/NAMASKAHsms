@@ -27,6 +27,9 @@ class PurchaseResult:
     routing_reason: str = ""
     tv_object: Any = None  # Only for TextVerified (needed by poll_sms_standard)
     metadata: Dict[str, Any] = field(default_factory=dict)
+    # City filtering outcome — always populated, never omitted
+    city_honoured: bool = True
+    city_note: Optional[str] = None
 
 
 @dataclass
