@@ -78,6 +78,9 @@ class Settings(BaseSettings):
     fivesim_api_key: Optional[str] = None
     fivesim_enabled: bool = False
     fivesim_timeout: int = 30
+    pvapins_api_key: Optional[str] = None
+    pvapins_enabled: bool = False
+    pvapins_timeout: int = 30
     enable_provider_failover: bool = True
     prefer_enterprise_provider: bool = False
 

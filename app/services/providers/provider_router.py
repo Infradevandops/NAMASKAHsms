@@ -18,6 +18,7 @@ from app.core.logging import get_logger
 from app.services.providers.base_provider import PurchaseResult, SMSProvider
 from app.services.providers.fivesim_adapter import FiveSimAdapter
 from app.services.providers.provider_errors import ProviderError
+from app.services.providers.pvapins_adapter import PVAPinsAdapter, COUNTRY_MAP as PVAPINS_COUNTRIES
 from app.services.providers.telnyx_adapter import TelnyxAdapter
 from app.services.providers.textverified_adapter import TextVerifiedAdapter
 
@@ -30,6 +31,7 @@ class ProviderRouter:
         self._textverified: Optional[TextVerifiedAdapter] = None
         self._telnyx: Optional[TelnyxAdapter] = None
         self._fivesim: Optional[FiveSimAdapter] = None
+        self._pvapins: Optional[PVAPinsAdapter] = None
         self._settings = get_settings()
 
     def _get_textverified(self) -> TextVerifiedAdapter:
@@ -46,6 +48,15 @@ class ProviderRouter:
         if self._fivesim is None:
             self._fivesim = FiveSimAdapter()
         return self._fivesim
+
+    def _get_pvapins(self) -> PVAPinsAdapter:
+        if self._pvapins is None:
+            self._pvapins = PVAPinsAdapter()
+        return self._pvapins
+
+    def _pvapins_covers(self, country: str) -> bool:
+        """True if PVApins has a country mapping for this ISO code."""
+        return country.upper() in PVAPINS_COUNTRIES
 
     def get_provider(
         self,
@@ -66,6 +77,16 @@ class ProviderRouter:
         if country_upper == "US":
             logger.info(f"Routing to TextVerified for US request (city={city})")
             return self._get_textverified(), bool(city), None
+
+        # PVApins-covered countries (SE Asia, South Asia, Africa, LATAM)
+        # PVApins is primary for these — better inventory than 5sim/Telnyx
+        if self._pvapins_covers(country_upper):
+            pvapins = self._get_pvapins()
+            if pvapins.enabled:
+                # City not supported by PVApins — note it but don't block
+                city_note = "City filtering not available for this region" if city else None
+                logger.info(f"Routing to PVApins for {country} (regional specialist)")
+                return pvapins, False, city_note
 
         # International + city + Pro/Custom -> Telnyx (precise city)
         if city and user_tier in ("pro", "custom"):
@@ -223,16 +244,36 @@ class ProviderRouter:
             fivesim = self._get_fivesim()
             if fivesim.enabled:
                 return fivesim
+            pvapins = self._get_pvapins()
+            if pvapins.enabled and self._pvapins_covers(country):
+                return pvapins
 
         elif failed_name == "telnyx":
             fivesim = self._get_fivesim()
             if fivesim.enabled:
                 return fivesim
+            pvapins = self._get_pvapins()
+            if pvapins.enabled and self._pvapins_covers(country):
+                return pvapins
             textverified = self._get_textverified()
             if textverified.enabled:
                 return textverified
 
         elif failed_name == "5sim":
+            pvapins = self._get_pvapins()
+            if pvapins.enabled and self._pvapins_covers(country):
+                return pvapins
+            telnyx = self._get_telnyx()
+            if telnyx.enabled:
+                return telnyx
+            textverified = self._get_textverified()
+            if textverified.enabled:
+                return textverified
+
+        elif failed_name == "pvapins":
+            fivesim = self._get_fivesim()
+            if fivesim.enabled:
+                return fivesim
             telnyx = self._get_telnyx()
             if telnyx.enabled:
                 return telnyx
@@ -248,6 +289,7 @@ class ProviderRouter:
             ("textverified", self._get_textverified),
             ("telnyx", self._get_telnyx),
             ("5sim", self._get_fivesim),
+            ("pvapins", self._get_pvapins),
         ]:
             adapter = adapter_fn()
             if adapter.enabled:
@@ -266,4 +308,6 @@ class ProviderRouter:
             enabled.append("telnyx")
         if self._get_fivesim().enabled:
             enabled.append("5sim")
+        if self._get_pvapins().enabled:
+            enabled.append("pvapins")
         return enabled
