@@ -71,6 +71,21 @@ async def check_fivesim_health() -> dict:
         return {"provider": "5sim", "status": "error", "balance": None, "error": str(e)}
 
 
+async def check_pvapins_health() -> dict:
+    """Validate PVApins is configured (warn only, non-critical)."""
+    from app.services.providers.pvapins_adapter import PVAPinsAdapter
+
+    adapter = PVAPinsAdapter()
+
+    if not adapter.enabled:
+        logger.info("PVApins not configured — PVAPINS_API_KEY not set (optional provider)")
+        return {"provider": "pvapins", "status": "disabled", "balance": None}
+
+    # PVApins has no balance endpoint — just confirm key is set
+    logger.info("PVApins configured — no balance endpoint available")
+    return {"provider": "pvapins", "status": "ok", "balance": None}
+
+
 async def run_provider_health_checks() -> dict:
     """Run all provider health checks on startup.
 
@@ -81,16 +96,18 @@ async def run_provider_health_checks() -> dict:
     """
     import asyncio
 
-    tv, telnyx, fivesim = await asyncio.gather(
+    tv, telnyx, fivesim, pvapins = await asyncio.gather(
         check_textverified_health(),
         check_telnyx_health(),
         check_fivesim_health(),
+        check_pvapins_health(),
     )
 
     results = {
         "textverified": tv,
         "telnyx": telnyx,
         "5sim": fivesim,
+        "pvapins": pvapins,
     }
 
     enabled = [p for p, r in results.items() if r["status"] == "ok"]
