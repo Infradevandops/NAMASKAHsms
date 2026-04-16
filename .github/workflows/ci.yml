@@ -33,8 +33,11 @@ jobs:
         with:
           clean: true
           fetch-depth: 0
-      - name: Clear any caches
-        run: rm -rf ~/.cache/pip
+          ref: ${{ github.sha }}
+      - name: Clear pip cache
+        run: |
+          rm -rf ~/.cache/pip
+          rm -rf ~/.local/lib/python*/site-packages
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
