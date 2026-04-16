@@ -15,12 +15,14 @@ from app.models.carrier_analytics import CarrierAnalytics
 from app.models.user import User
 from app.models.verification import Verification
 from app.schemas.verification import VerificationRequest
+from app.services.balance_service import BalanceService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.pricing_calculator import PricingCalculator
 from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
+from app.services.transaction_service import TransactionService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -163,9 +165,6 @@ async def request_verification(
         logger.info(f"User {user_id} tier: {user_tier}, SMS cost: ${sms_cost:.2f}")
 
         # Check user has sufficient balance using unified service
-        from app.services.balance_service import BalanceService
-        from app.services.transaction_service import TransactionService
-
         balance_check = await BalanceService.check_sufficient_balance(
             user_id, sms_cost, db
         )
