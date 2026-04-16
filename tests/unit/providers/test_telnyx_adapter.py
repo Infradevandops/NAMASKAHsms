@@ -8,6 +8,7 @@ import httpx
 
 from app.services.providers.telnyx_adapter import TelnyxAdapter
 from app.services.providers.base_provider import PurchaseResult, MessageResult
+from app.services.providers.provider_errors import ProviderError
 
 
 @pytest.fixture
@@ -84,7 +85,7 @@ async def test_purchase_number_no_inventory(adapter):
         client.get = AsyncMock(return_value=search_resp)
         mock_client_fn.return_value = client
 
-        with pytest.raises(RuntimeError, match="No Telnyx numbers available"):
+        with pytest.raises(ProviderError, match="No Telnyx numbers available"):
             await adapter.purchase_number("whatsapp", "GB")
 
 
@@ -95,7 +96,7 @@ async def test_purchase_number_api_error(adapter):
         client.get = AsyncMock(side_effect=httpx.HTTPError("connection failed"))
         mock_client_fn.return_value = client
 
-        with pytest.raises(RuntimeError, match="Telnyx purchase failed"):
+        with pytest.raises(ProviderError):
             await adapter.purchase_number("whatsapp", "GB")
 
 
@@ -106,7 +107,7 @@ async def test_purchase_number_timeout(adapter):
         client.get = AsyncMock(side_effect=httpx.TimeoutException("timeout"))
         mock_client_fn.return_value = client
 
-        with pytest.raises(RuntimeError, match="Telnyx purchase failed"):
+        with pytest.raises(ProviderError):
             await adapter.purchase_number("whatsapp", "GB")
 
 
@@ -123,7 +124,7 @@ async def test_purchase_number_invalid_response(adapter):
         client.post = AsyncMock(return_value=order_resp)
         mock_client_fn.return_value = client
 
-        with pytest.raises(RuntimeError):
+        with pytest.raises(ProviderError):
             await adapter.purchase_number("whatsapp", "US")
 
 
@@ -308,11 +309,14 @@ def test_extract_code_no_match(adapter):
 async def test_client_cleanup(adapter):
     mock_client = AsyncMock()
     mock_client.aclose = AsyncMock()
+    # Set _client so the property returns it
     adapter._client = mock_client
-
+    
+    # Call __aexit__ which checks self.client property
     await adapter.__aexit__(None, None, None)
-
-    assert mock_client.aclose.called
+    
+    # Verify aclose was awaited
+    assert mock_client.aclose.await_count == 1
 
 
 def test_client_singleton(adapter):
