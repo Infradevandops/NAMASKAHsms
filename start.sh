@@ -39,45 +39,19 @@ for i in range(max_retries):
 
 # Run Alembic migrations
 echo "📦 Running database migrations..."
-# Check for multiple heads and merge if needed
-if alembic heads | grep -q "(head)"; then
-    HEAD_COUNT=$(alembic heads | grep -c "(head)")
-    if [ "$HEAD_COUNT" -gt 1 ]; then
-        echo "⚠️  Multiple migration heads detected, using merge migration..."
-        alembic upgrade 061d9956377d || {
-            echo "⚠️  Migration failed, attempting to initialize database..."
-            python -c "
+# Always try to upgrade to the merge migration first to handle multiple heads
+alembic upgrade 061d9956377d 2>/dev/null || true
+# Then upgrade to head
+alembic upgrade head || {
+    echo "⚠️  Migration failed, attempting to initialize database..."
+    python -c "
 from app.core.database import Base, engine
 Base.metadata.create_all(bind=engine)
 print('✅ Database tables created')
 "
-            alembic stamp 061d9956377d
-            echo "✅ Database initialized"
-        }
-    else
-        alembic upgrade head || {
-            echo "⚠️  Migration failed, attempting to initialize database..."
-            python -c "
-from app.core.database import Base, engine
-Base.metadata.create_all(bind=engine)
-print('✅ Database tables created')
-"
-            alembic stamp head
-            echo "✅ Database initialized"
-        }
-    fi
-else
-    alembic upgrade head || {
-        echo "⚠️  Migration failed, attempting to initialize database..."
-        python -c "
-from app.core.database import Base, engine
-Base.metadata.create_all(bind=engine)
-print('✅ Database tables created')
-"
-        alembic stamp head
-        echo "✅ Database initialized"
-    }
-fi
+    alembic stamp head
+    echo "✅ Database initialized"
+}
 
 # Start the application
 echo "🎯 Starting Gunicorn..."
