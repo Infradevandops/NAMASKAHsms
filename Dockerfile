@@ -52,4 +52,4 @@ ENV PYTHONDONTWRITEBYTECODE=1
 EXPOSE 8000
 
 # Run migrations then start app
-CMD ["/bin/bash", "-c", "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"]
+CMD ["/bin/bash", "-c", "python -c 'from app.core.database import Base, engine; from app.models import user, verification, transaction, subscription_tier; Base.metadata.create_all(bind=engine)' && alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000} --workers ${WORKERS:-2}"]
