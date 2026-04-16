@@ -81,3 +81,4 @@ server.log
 .hypothesis/
 namaskah_fallback.db
 *.db
+# CI fix
