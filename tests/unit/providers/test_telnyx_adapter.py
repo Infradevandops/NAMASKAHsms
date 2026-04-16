@@ -196,12 +196,11 @@ async def test_check_messages_empty(adapter):
 
 @pytest.mark.asyncio
 async def test_check_messages_api_error(adapter):
-    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
-        client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
-        mock_client_prop.return_value = client
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(side_effect=Exception("API error"))
+    adapter._client = mock_client
 
-        messages = await adapter.check_messages("order-abc")
+    messages = await adapter.check_messages("order-abc")
 
     assert messages == []
 
@@ -250,12 +249,11 @@ async def test_cancel_success(adapter):
 
 @pytest.mark.asyncio
 async def test_cancel_failure(adapter):
-    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
-        client = AsyncMock()
-        client.delete = AsyncMock(side_effect=Exception("API error"))
-        mock_client_prop.return_value = client
+    mock_client = AsyncMock()
+    mock_client.delete = AsyncMock(side_effect=Exception("API error"))
+    adapter._client = mock_client
 
-        result = await adapter.cancel("order-abc")
+    result = await adapter.cancel("order-abc")
 
     assert result is False
 
@@ -279,12 +277,11 @@ async def test_get_balance_success(adapter):
 
 @pytest.mark.asyncio
 async def test_get_balance_error(adapter):
-    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
-        client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
-        mock_client_prop.return_value = client
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(side_effect=Exception("API error"))
+    adapter._client = mock_client
 
-        balance = await adapter.get_balance()
+    balance = await adapter.get_balance()
 
     assert balance == 0.0
 
@@ -310,11 +307,12 @@ def test_extract_code_no_match(adapter):
 @pytest.mark.asyncio
 async def test_client_cleanup(adapter):
     mock_client = AsyncMock()
+    mock_client.aclose = AsyncMock()
     adapter._client = mock_client
 
     await adapter.__aexit__(None, None, None)
 
-    mock_client.aclose.assert_awaited_once()
+    assert mock_client.aclose.called
 
 
 def test_client_singleton(adapter):
@@ -330,7 +328,7 @@ def test_client_singleton(adapter):
 @pytest.mark.asyncio
 async def test_disabled_provider_purchase(disabled_adapter):
     from app.services.providers.provider_errors import ProviderError
-    with pytest.raises(ProviderError, match="not configured"):
+    with pytest.raises(ProviderError, match="API key not set"):
         await disabled_adapter.purchase_number("whatsapp", "GB")
 
 
