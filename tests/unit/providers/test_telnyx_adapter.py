@@ -197,12 +197,12 @@ async def test_check_messages_empty(adapter):
 
 @pytest.mark.asyncio
 async def test_check_messages_api_error(adapter):
-    mock_client = AsyncMock()
-    mock_client.get = AsyncMock(side_effect=Exception("API error"))
-    adapter._client = mock_client
-
-    messages = await adapter.check_messages("order-abc")
-
+    """When API call fails, should return empty list (graceful degradation)."""
+    with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
+        mock_get.side_effect = Exception("API error")
+        
+        messages = await adapter.check_messages("order-abc")
+    
     assert messages == []
 
 
@@ -250,12 +250,12 @@ async def test_cancel_success(adapter):
 
 @pytest.mark.asyncio
 async def test_cancel_failure(adapter):
-    mock_client = AsyncMock()
-    mock_client.delete = AsyncMock(side_effect=Exception("API error"))
-    adapter._client = mock_client
-
-    result = await adapter.cancel("order-abc")
-
+    """When cancel API call fails, should return False (graceful degradation)."""
+    with patch("httpx.AsyncClient.delete", new_callable=AsyncMock) as mock_delete:
+        mock_delete.side_effect = Exception("API error")
+        
+        result = await adapter.cancel("order-abc")
+    
     assert result is False
 
 
@@ -278,12 +278,12 @@ async def test_get_balance_success(adapter):
 
 @pytest.mark.asyncio
 async def test_get_balance_error(adapter):
-    mock_client = AsyncMock()
-    mock_client.get = AsyncMock(side_effect=Exception("API error"))
-    adapter._client = mock_client
-
-    balance = await adapter.get_balance()
-
+    """When balance API call fails, should return 0.0 (graceful degradation)."""
+    with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
+        mock_get.side_effect = Exception("API error")
+        
+        balance = await adapter.get_balance()
+    
     assert balance == 0.0
 
 
@@ -307,16 +307,17 @@ def test_extract_code_no_match(adapter):
 
 @pytest.mark.asyncio
 async def test_client_cleanup(adapter):
-    mock_client = AsyncMock()
-    mock_client.aclose = AsyncMock()
-    # Set _client so the property returns it
-    adapter._client = mock_client
-    
-    # Call __aexit__ which checks self.client property
-    await adapter.__aexit__(None, None, None)
-    
-    # Verify aclose was awaited
-    assert mock_client.aclose.await_count == 1
+    """Verify that __aexit__ properly closes the HTTP client."""
+    # Create a real AsyncClient and track if aclose is called
+    with patch("httpx.AsyncClient.aclose", new_callable=AsyncMock) as mock_aclose:
+        # Trigger client creation
+        _ = adapter.client
+        
+        # Call cleanup
+        await adapter.__aexit__(None, None, None)
+        
+        # Verify aclose was called
+        mock_aclose.assert_awaited_once()
 
 
 def test_client_singleton(adapter):
