@@ -196,10 +196,10 @@ async def test_check_messages_empty(adapter):
 
 @pytest.mark.asyncio
 async def test_check_messages_api_error(adapter):
-    with patch.object(adapter, "_get_client") as mock_client_fn:
+    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
         client = AsyncMock()
         client.get = AsyncMock(side_effect=Exception("API error"))
-        mock_client_fn.return_value = client
+        mock_client_prop.return_value = client
 
         messages = await adapter.check_messages("order-abc")
 
@@ -250,10 +250,10 @@ async def test_cancel_success(adapter):
 
 @pytest.mark.asyncio
 async def test_cancel_failure(adapter):
-    with patch.object(adapter, "_get_client") as mock_client_fn:
+    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
         client = AsyncMock()
         client.delete = AsyncMock(side_effect=Exception("API error"))
-        mock_client_fn.return_value = client
+        mock_client_prop.return_value = client
 
         result = await adapter.cancel("order-abc")
 
@@ -279,10 +279,10 @@ async def test_get_balance_success(adapter):
 
 @pytest.mark.asyncio
 async def test_get_balance_error(adapter):
-    with patch.object(adapter, "_get_client") as mock_client_fn:
+    with patch.object(adapter, "client", new_callable=PropertyMock) as mock_client_prop:
         client = AsyncMock()
         client.get = AsyncMock(side_effect=Exception("API error"))
-        mock_client_fn.return_value = client
+        mock_client_prop.return_value = client
 
         balance = await adapter.get_balance()
 
@@ -314,7 +314,7 @@ async def test_client_cleanup(adapter):
 
     await adapter.__aexit__(None, None, None)
 
-    mock_client.aclose.assert_called_once()
+    mock_client.aclose.assert_awaited_once()
 
 
 def test_client_singleton(adapter):
@@ -329,7 +329,8 @@ def test_client_singleton(adapter):
 
 @pytest.mark.asyncio
 async def test_disabled_provider_purchase(disabled_adapter):
-    with pytest.raises(RuntimeError, match="not configured"):
+    from app.services.providers.provider_errors import ProviderError
+    with pytest.raises(ProviderError, match="not configured"):
         await disabled_adapter.purchase_number("whatsapp", "GB")
 
 
