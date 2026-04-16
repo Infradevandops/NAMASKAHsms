@@ -1,14 +1,15 @@
 """Frontend integration tests for dashboard.
 
-from datetime import datetime, timedelta, timezone
-from app.models.user import User
-from app.models.verification import Verification
-from app.utils.security import hash_password
-
 Feature: tier-system-rbac
 Tests validate that the dashboard loads correctly, displays tier information,
 and shows tier-appropriate UI elements based on user subscription tier.
 """
+
+from datetime import datetime, timedelta, timezone
+
+from app.models.user import User
+from app.models.verification import Verification
+from app.utils.security import hash_password
 
 
 class TestDashboardLoading:

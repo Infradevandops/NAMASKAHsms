@@ -198,10 +198,13 @@ async def request_verification(
 
         # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
+        carrier = getattr(request, 'carrier', None)
         city = request.city
 
         if area_code:
             logger.info(f"User {user_id} requesting area code: {area_code}")
+        if carrier:
+            logger.info(f"User {user_id} requesting carrier: {carrier}")
         if city:
             logger.info(f"User {user_id} requesting city: {city}")
 
@@ -223,7 +226,7 @@ async def request_verification(
                 service=request.service,
                 country=request.country,
                 area_code=area_code,
-                carrier=None,
+                carrier=carrier,
                 capability=request.capability,
                 city=city,
                 user_tier=user_tier,

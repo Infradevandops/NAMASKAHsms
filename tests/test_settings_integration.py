@@ -1,13 +1,14 @@
 """Frontend integration tests for settings page.
 
-from datetime import datetime, timezone
-from app.models.user import User
-from app.utils.security import hash_password
-
 Feature: tier-system-rbac
 Tests validate that the settings page loads correctly, displays tier-appropriate tabs,
 and shows correct billing information based on user subscription tier.
 """
+
+from datetime import datetime, timezone
+
+from app.models.user import User
+from app.utils.security import hash_password
 
 
 class TestSettingsPageLoading:
