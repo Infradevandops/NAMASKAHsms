@@ -48,6 +48,7 @@ jobs:
       - name: Code formatting
         run: |
           black --check app/ --diff
+          isort --check-only app/ --profile black --diff
 
   # Stage 2: Unit tests (only blocking check)
   tests:
@@ -116,7 +117,6 @@ jobs:
             --maxfail=5 2>&1 | tail -50 || true
 
       - name: Run provider tests (blocking — must pass)
-        continue-on-error: true
         env:
           DATABASE_URL: postgresql://postgres:test_password@localhost:5432/namaskah_test
           REDIS_URL: redis://localhost:6379/0
