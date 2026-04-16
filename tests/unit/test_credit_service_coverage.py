@@ -190,8 +190,20 @@ class TestTransferCredits:
     def test_transfer_success(self, db):
         uid1 = str(uuid.uuid4())
         uid2 = str(uuid.uuid4())
-        u1 = User(id=uid1, email=f"{uid1[:8]}@t.com", password_hash="h", credits=100.0, created_at=datetime.now(timezone.utc))
-        u2 = User(id=uid2, email=f"{uid2[:8]}@t.com", password_hash="h", credits=10.0, created_at=datetime.now(timezone.utc))
+        u1 = User(
+            id=uid1,
+            email=f"{uid1[:8]}@t.com",
+            password_hash="h",
+            credits=100.0,
+            created_at=datetime.now(timezone.utc),
+        )
+        u2 = User(
+            id=uid2,
+            email=f"{uid2[:8]}@t.com",
+            password_hash="h",
+            credits=10.0,
+            created_at=datetime.now(timezone.utc),
+        )
         db.add_all([u1, u2])
         db.commit()
         svc = CreditService(db)
@@ -202,8 +214,20 @@ class TestTransferCredits:
     def test_transfer_insufficient_raises(self, db):
         uid1 = str(uuid.uuid4())
         uid2 = str(uuid.uuid4())
-        u1 = User(id=uid1, email=f"{uid1[:8]}@t.com", password_hash="h", credits=5.0, created_at=datetime.now(timezone.utc))
-        u2 = User(id=uid2, email=f"{uid2[:8]}@t.com", password_hash="h", credits=10.0, created_at=datetime.now(timezone.utc))
+        u1 = User(
+            id=uid1,
+            email=f"{uid1[:8]}@t.com",
+            password_hash="h",
+            credits=5.0,
+            created_at=datetime.now(timezone.utc),
+        )
+        u2 = User(
+            id=uid2,
+            email=f"{uid2[:8]}@t.com",
+            password_hash="h",
+            credits=10.0,
+            created_at=datetime.now(timezone.utc),
+        )
         db.add_all([u1, u2])
         db.commit()
         svc = CreditService(db)
@@ -229,7 +253,13 @@ class TestTransferCredits:
 class TestResetCredits:
     def test_reset_success(self, db):
         uid = str(uuid.uuid4())
-        user = User(id=uid, email=f"{uid[:8]}@t.com", password_hash="h", credits=50.0, created_at=datetime.now(timezone.utc))
+        user = User(
+            id=uid,
+            email=f"{uid[:8]}@t.com",
+            password_hash="h",
+            credits=50.0,
+            created_at=datetime.now(timezone.utc),
+        )
         db.add(user)
         db.commit()
         svc = CreditService(db)

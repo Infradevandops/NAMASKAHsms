@@ -8,7 +8,11 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from app.core.logging import get_logger
-from app.services.providers.base_provider import MessageResult, PurchaseResult, SMSProvider
+from app.services.providers.base_provider import (
+    MessageResult,
+    PurchaseResult,
+    SMSProvider,
+)
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -79,7 +83,9 @@ class TextVerifiedAdapter(SMSProvider):
     ) -> List[MessageResult]:
         """Check for messages from TextVerified."""
         try:
-            result = await self._service.check_sms(order_id, created_after=created_after)
+            result = await self._service.check_sms(
+                order_id, created_after=created_after
+            )
 
             if result.get("status") == "COMPLETED" and result.get("messages"):
                 messages = result["messages"]

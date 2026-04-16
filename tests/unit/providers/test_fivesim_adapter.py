@@ -46,6 +46,7 @@ def _mock_response(json_data, status_code=200):
 
 # ── purchase_number ──────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_purchase_number_success(adapter):
     products_resp = _mock_response({"virtual21": {"cost": 0.5, "count": 10}})
@@ -99,11 +100,13 @@ async def test_purchase_number_service_mapping(adapter):
 
 @pytest.mark.asyncio
 async def test_purchase_number_operator_selection(adapter):
-    products_resp = _mock_response({
-        "expensive_op": {"cost": 2.0, "count": 5},
-        "cheap_op": {"cost": 0.3, "count": 10},
-        "no_stock": {"cost": 0.1, "count": 0},
-    })
+    products_resp = _mock_response(
+        {
+            "expensive_op": {"cost": 2.0, "count": 5},
+            "cheap_op": {"cost": 0.3, "count": 10},
+            "no_stock": {"cost": 0.1, "count": 0},
+        }
+    )
     purchase_resp = _mock_response({"id": 1, "phone": "447911123456", "price": 0.3})
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
@@ -157,12 +160,21 @@ async def test_purchase_number_no_phone_returned(adapter):
 
 # ── check_messages ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_check_messages_received(adapter):
-    resp = _mock_response({
-        "status": "RECEIVED",
-        "sms": [{"text": "Your code is 654321", "code": "654321", "created_at": "2026-03-26T12:00:00Z"}]
-    })
+    resp = _mock_response(
+        {
+            "status": "RECEIVED",
+            "sms": [
+                {
+                    "text": "Your code is 654321",
+                    "code": "654321",
+                    "created_at": "2026-03-26T12:00:00Z",
+                }
+            ],
+        }
+    )
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
@@ -217,6 +229,7 @@ async def test_check_messages_api_error(adapter):
 
 # ── report_failed / cancel ────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_report_failed_success(adapter):
     resp = _mock_response({"status": "CANCELED"})
@@ -245,6 +258,7 @@ async def test_report_failed_error(adapter):
 
 # ── get_balance ───────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_balance_success(adapter):
     resp = _mock_response({"balance": 75.50})
@@ -272,6 +286,7 @@ async def test_get_balance_error(adapter):
 
 
 # ── caching ───────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_map_country_cached(adapter):
@@ -311,6 +326,7 @@ async def test_map_service_cached(adapter):
 
 # ── operator selection ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_best_operator_no_inventory(adapter):
     resp = _mock_response({"op1": {"cost": 0.5, "count": 0}})
@@ -339,6 +355,7 @@ async def test_get_best_operator_api_error(adapter):
 
 # ── _extract_code ─────────────────────────────────────────────────────────────
 
+
 def test_extract_code_hyphenated(adapter):
     assert adapter._extract_code("Code: 806-185") == "806185"
 
@@ -348,6 +365,7 @@ def test_extract_code_plain(adapter):
 
 
 # ── client lifecycle ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_client_cleanup(adapter):
@@ -364,6 +382,7 @@ def test_client_singleton(adapter):
 
 
 # ── disabled provider ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_disabled_provider_purchase(disabled_adapter):

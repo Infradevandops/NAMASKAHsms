@@ -37,7 +37,11 @@ def test_enable_auto_topup(auto_topup_service, db, regular_user):
     success = auto_topup_service.enable_auto_topup(regular_user.id, amount=50.0)
     assert success is True
 
-    pref = db.query(UserPreference).filter(UserPreference.user_id == regular_user.id).first()
+    pref = (
+        db.query(UserPreference)
+        .filter(UserPreference.user_id == regular_user.id)
+        .first()
+    )
     assert pref.auto_recharge is True
     assert pref.recharge_amount == 50.0
 
@@ -47,7 +51,11 @@ def test_disable_auto_topup(auto_topup_service, db, regular_user):
     success = auto_topup_service.disable_auto_topup(regular_user.id)
     assert success is True
 
-    pref = db.query(UserPreference).filter(UserPreference.user_id == regular_user.id).first()
+    pref = (
+        db.query(UserPreference)
+        .filter(UserPreference.user_id == regular_user.id)
+        .first()
+    )
     assert pref.auto_recharge is False
 
 
@@ -55,7 +63,9 @@ def test_disable_auto_topup(auto_topup_service, db, regular_user):
 async def test_check_and_topup_not_needed(auto_topup_service, db, regular_user):
     regular_user.credits = 100.0
     db.commit()
-    _get_or_create_pref(db, regular_user.id, auto_recharge=True, auto_recharge_threshold=5.0)
+    _get_or_create_pref(
+        db, regular_user.id, auto_recharge=True, auto_recharge_threshold=5.0
+    )
 
     result = await auto_topup_service.check_and_topup(regular_user.id)
     assert result is None
@@ -72,11 +82,14 @@ async def test_check_and_topup_disabled(auto_topup_service, db, regular_user):
 
 
 @pytest.mark.asyncio
-async def test_check_and_topup_triggered(auto_topup_service, db, regular_user, mock_paystack):
+async def test_check_and_topup_triggered(
+    auto_topup_service, db, regular_user, mock_paystack
+):
     regular_user.credits = 1.0
     db.commit()
     _get_or_create_pref(
-        db, regular_user.id,
+        db,
+        regular_user.id,
         auto_recharge=True,
         auto_recharge_threshold=5.0,
         recharge_amount=20.0,
@@ -85,8 +98,9 @@ async def test_check_and_topup_triggered(auto_topup_service, db, regular_user, m
 
     with patch("app.services.auto_topup_service.PaymentLog") as MockLog:
         MockLog.return_value = MagicMock()
-        with patch.object(auto_topup_service.db, "add"), \
-             patch.object(auto_topup_service.db, "commit"):
+        with patch.object(auto_topup_service.db, "add"), patch.object(
+            auto_topup_service.db, "commit"
+        ):
             result = await auto_topup_service.check_and_topup(regular_user.id)
 
     assert result["status"] == "success"

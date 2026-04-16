@@ -1,4 +1,5 @@
 """Test pricing calculator bug fixes for v4.4.1."""
+
 import pytest
 from unittest.mock import Mock, MagicMock, patch
 from app.services.pricing_calculator import PricingCalculator
@@ -25,27 +26,33 @@ def test_surcharge_breakdown_returned_for_payg_with_filters(mock_db_session):
     mock_user = Mock()
     mock_user.subscription_tier = "payg"
     mock_user.id = "test_user"
-    
+
     # Mock DB query
-    mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
-    
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        mock_user
+    )
+
     # Mock tier config
-    with patch('app.services.pricing_calculator.TierConfig.get_tier_config') as mock_tier:
+    with patch(
+        "app.services.pricing_calculator.TierConfig.get_tier_config"
+    ) as mock_tier:
         mock_tier.return_value = {
             "base_sms_cost": 2.50,
             "overage_rate": 2.50,
         }
-        
+
         # Mock quota service
-        with patch('app.services.pricing_calculator.QuotaService.calculate_overage') as mock_quota:
+        with patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage"
+        ) as mock_quota:
             mock_quota.return_value = 0.0
-            
+
             result = PricingCalculator.calculate_sms_cost(
                 db=mock_db_session,
                 user_id="test_user",
-                filters={"carrier": "verizon", "area_code": "212"}
+                filters={"carrier": "verizon", "area_code": "212"},
             )
-    
+
     assert "carrier_surcharge" in result
     assert "area_code_surcharge" in result
     assert result["carrier_surcharge"] == 0.30  # Verizon premium
@@ -57,24 +64,28 @@ def test_surcharge_breakdown_zero_for_no_filters(mock_db_session):
     mock_user = Mock()
     mock_user.subscription_tier = "payg"
     mock_user.id = "test_user"
-    
-    mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
-    
-    with patch('app.services.pricing_calculator.TierConfig.get_tier_config') as mock_tier:
+
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        mock_user
+    )
+
+    with patch(
+        "app.services.pricing_calculator.TierConfig.get_tier_config"
+    ) as mock_tier:
         mock_tier.return_value = {
             "base_sms_cost": 2.50,
             "overage_rate": 2.50,
         }
-        
-        with patch('app.services.pricing_calculator.QuotaService.calculate_overage') as mock_quota:
+
+        with patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage"
+        ) as mock_quota:
             mock_quota.return_value = 0.0
-            
+
             result = PricingCalculator.calculate_sms_cost(
-                db=mock_db_session,
-                user_id="test_user",
-                filters={}
+                db=mock_db_session, user_id="test_user", filters={}
             )
-    
+
     assert "carrier_surcharge" in result
     assert "area_code_surcharge" in result
     assert result["carrier_surcharge"] == 0.0
@@ -86,24 +97,28 @@ def test_surcharge_breakdown_zero_for_freemium(mock_db_session):
     mock_user = Mock()
     mock_user.subscription_tier = "freemium"
     mock_user.id = "test_user"
-    
-    mock_db_session.query.return_value.filter.return_value.first.return_value = mock_user
-    
-    with patch('app.services.pricing_calculator.TierConfig.get_tier_config') as mock_tier:
+
+    mock_db_session.query.return_value.filter.return_value.first.return_value = (
+        mock_user
+    )
+
+    with patch(
+        "app.services.pricing_calculator.TierConfig.get_tier_config"
+    ) as mock_tier:
         mock_tier.return_value = {
             "base_sms_cost": 2.22,
             "overage_rate": 2.22,
         }
-        
-        with patch('app.services.pricing_calculator.QuotaService.calculate_overage') as mock_quota:
+
+        with patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage"
+        ) as mock_quota:
             mock_quota.return_value = 0.0
-            
+
             result = PricingCalculator.calculate_sms_cost(
-                db=mock_db_session,
-                user_id="test_user",
-                filters={}
+                db=mock_db_session, user_id="test_user", filters={}
             )
-    
+
     assert "carrier_surcharge" in result
     assert "area_code_surcharge" in result
     assert result["carrier_surcharge"] == 0.0

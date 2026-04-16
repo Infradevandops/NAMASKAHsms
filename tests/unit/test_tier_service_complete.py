@@ -51,7 +51,14 @@ class TestTierServiceComplete:
     def test_upgrade_freemium_to_payg(self, db):
         """Test upgrading from freemium to PAYG."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email=f"ftp2-{uuid.uuid4()}@test.com", password_hash="hash", subscription_tier="freemium", credits=0.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email=f"ftp2-{uuid.uuid4()}@test.com",
+            password_hash="hash",
+            subscription_tier="freemium",
+            credits=0.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "payg"
@@ -62,7 +69,14 @@ class TestTierServiceComplete:
     def test_upgrade_freemium_to_pro(self, db):
         """Test upgrading from freemium to pro."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email=f"ftp-{uuid.uuid4()}@test.com", password_hash="hash", subscription_tier="freemium", credits=0.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email=f"ftp-{uuid.uuid4()}@test.com",
+            password_hash="hash",
+            subscription_tier="freemium",
+            credits=0.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "pro"
@@ -73,7 +87,14 @@ class TestTierServiceComplete:
     def test_upgrade_payg_to_pro(self, db):
         """Test upgrading from PAYG to pro."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="payg@test.com", password_hash="hash", subscription_tier="payg", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="payg@test.com",
+            password_hash="hash",
+            subscription_tier="payg",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "pro"
@@ -84,7 +105,14 @@ class TestTierServiceComplete:
     def test_upgrade_pro_to_custom(self, db):
         """Test upgrading from pro to custom."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="pro@test.com", password_hash="hash", subscription_tier="pro", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="pro@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "custom"
@@ -97,7 +125,14 @@ class TestTierServiceComplete:
     def test_downgrade_pro_to_freemium(self, db):
         """Test downgrading from pro to freemium."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="downgrade@test.com", password_hash="hash", subscription_tier="pro", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="downgrade@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "freemium"
@@ -108,7 +143,14 @@ class TestTierServiceComplete:
     def test_downgrade_custom_to_pro(self, db):
         """Test downgrading from custom to pro."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="customdown@test.com", password_hash="hash", subscription_tier="custom", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="customdown@test.com",
+            password_hash="hash",
+            subscription_tier="custom",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "pro"
@@ -173,7 +215,14 @@ class TestTierServiceComplete:
     def test_subscription_renewal_tracking(self, db):
         """Test subscription renewal date tracking."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="renewal@test.com", password_hash="hash", subscription_tier="pro", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="renewal@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         assert user.subscription_tier == "pro"
@@ -223,7 +272,14 @@ class TestTierServiceComplete:
     def test_new_user_default_tier(self, db):
         """Test new users get freemium tier by default."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="newdefault@test.com", password_hash="hash", subscription_tier="freemium", credits=0.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="newdefault@test.com",
+            password_hash="hash",
+            subscription_tier="freemium",
+            credits=0.0,
+        )
         db.add(user)
         db.commit()
         assert user.subscription_tier == "freemium"
@@ -231,7 +287,14 @@ class TestTierServiceComplete:
     def test_tier_assignment_persistence(self, db):
         """Test tier assignment persists across sessions."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="persist@test.com", password_hash="hash", subscription_tier="pro", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="persist@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user_id = user.id
@@ -264,7 +327,14 @@ class TestTierServiceComplete:
     def test_subscription_cancellation(self, db):
         """Test subscription cancellation."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="cancel@test.com", password_hash="hash", subscription_tier="pro", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="cancel@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "freemium"
@@ -275,7 +345,14 @@ class TestTierServiceComplete:
     def test_subscription_reactivation(self, db):
         """Test subscription reactivation."""
         import uuid
-        user = User(id=str(uuid.uuid4()), email="reactivate@test.com", password_hash="hash", subscription_tier="freemium", credits=100.0)
+
+        user = User(
+            id=str(uuid.uuid4()),
+            email="reactivate@test.com",
+            password_hash="hash",
+            subscription_tier="freemium",
+            credits=100.0,
+        )
         db.add(user)
         db.commit()
         user.subscription_tier = "pro"

@@ -83,13 +83,13 @@ def test_create_template_duplicate_name(service, mock_db):
 
     with pytest.raises(ValueError, match="already exists"):
         service.create_template(
-        name="Existing",
-        description="desc",
-        region="US",
-        currency="USD",
-        tiers=[],
-        admin_user_id=1,
-    )
+            name="Existing",
+            description="desc",
+            region="US",
+            currency="USD",
+            tiers=[],
+            admin_user_id=1,
+        )
 
 
 def test_activate_template(service, mock_db):

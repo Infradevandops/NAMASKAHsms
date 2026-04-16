@@ -52,16 +52,16 @@ class TestMiddleware:
 
         # Test OPTIONS preflight
         response = client.options(
-        "/test",
-        headers={
-            "Origin": "https://example.com",
-            "Access-Control-Request-Method": "GET",
-        },
+            "/test",
+            headers={
+                "Origin": "https://example.com",
+                "Access-Control-Request-Method": "GET",
+            },
         )
         assert response.status_code == 200
         assert (
-        response.headers["Access-Control-Allow-Methods"]
-        == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+            response.headers["Access-Control-Allow-Methods"]
+            == "GET, POST, PUT, DELETE, OPTIONS, PATCH"
         )
 
     def test_rate_limit_middleware(self):
@@ -118,7 +118,7 @@ class TestMiddleware:
         """Test adaptive rate limiting."""
         app = create_test_app()
         app.add_middleware(
-        AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1
+            AdaptiveRateLimitMiddleware, base_limit=5, load_threshold=0.1
         )
         client = TestClient(app)
 

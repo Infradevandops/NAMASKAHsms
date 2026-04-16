@@ -471,7 +471,9 @@ class TestVerificationEndpoints:
 
     def test_cancel_verification_not_found(self, authenticated_regular_client):
         """Test canceling non-existent verification."""
-        response = authenticated_regular_client.delete("/api/verification/status/nonexistent-id")
+        response = authenticated_regular_client.delete(
+            "/api/verification/status/nonexistent-id"
+        )
 
         assert response.status_code == 404
 

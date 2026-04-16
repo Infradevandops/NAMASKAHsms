@@ -1,6 +1,5 @@
 """Tests for i18n and currency frontend integration."""
 
-
 import uuid
 import pytest
 from fastapi.testclient import TestClient
@@ -35,7 +34,6 @@ def test_user(db: Session):
 
 
 class TestPreferencesAPI:
-
     """Test user preferences API."""
 
     def test_get_default_preferences(self, client, test_user, auth_headers):
@@ -49,10 +47,8 @@ class TestPreferencesAPI:
     def test_update_language_preference(self, client, test_user, auth_headers):
         """Test updating language preference."""
         response = client.put(
-    "/api/user/preferences",
-    json={
-        "language": "es"},
-         headers=auth_headers)
+            "/api/user/preferences", json={"language": "es"}, headers=auth_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["language"] == "es"
@@ -60,10 +56,8 @@ class TestPreferencesAPI:
     def test_update_currency_preference(self, client, test_user, auth_headers):
         """Test updating currency preference."""
         response = client.put(
-    "/api/user/preferences",
-    json={
-        "currency": "EUR"},
-         headers=auth_headers)
+            "/api/user/preferences", json={"currency": "EUR"}, headers=auth_headers
+        )
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["currency"] == "EUR"
@@ -71,41 +65,25 @@ class TestPreferencesAPI:
     def test_invalid_language(self, client, test_user, auth_headers):
         """Test invalid language code."""
         response = client.put(
-    "/api/user/preferences",
-    json={
-        "language": "invalid"},
-         headers=auth_headers)
+            "/api/user/preferences", json={"language": "invalid"}, headers=auth_headers
+        )
         assert response.status_code == 400
 
     def test_all_supported_languages(self, client, test_user, auth_headers):
         """Test all supported languages."""
-        languages = [
-    "en",
-    "es",
-    "fr",
-    "de",
-    "pt",
-    "zh",
-    "ja",
-    "ar",
-    "hi",
-     "yo"]
+        languages = ["en", "es", "fr", "de", "pt", "zh", "ja", "ar", "hi", "yo"]
         for lang in languages:
             response = client.put(
-    "/api/user/preferences",
-    json={
-        "language": lang},
-         headers=auth_headers)
+                "/api/user/preferences", json={"language": lang}, headers=auth_headers
+            )
         assert response.status_code == 200
         assert response.json()["data"]["language"] == lang
 
 
 class TestCurrencyConversion:
-
     """Test currency conversion logic."""
 
     def test_usd_to_eur_conversion(self):
-
         """Test USD to EUR conversion."""
 
         amount = 100
@@ -113,7 +91,6 @@ class TestCurrencyConversion:
         assert converted == 92.0
 
     def test_currency_formatting(self):
-
         """Test currency formatting."""
 
         formatted = CurrencyService.format_currency(100, "USD")
@@ -121,11 +98,9 @@ class TestCurrencyConversion:
 
 
 class TestTranslationService:
-
     """Test translation service."""
 
     def test_translation_loading(self):
-
         """Test loading translations."""
 
         service = TranslationService(language="en")
@@ -133,7 +108,6 @@ class TestTranslationService:
         assert "en" in langs
 
     def test_translation_retrieval(self):
-
         """Test retrieving translations."""
 
         # Initialize service with English

@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for notification center endpoints."""
 
 import pytest

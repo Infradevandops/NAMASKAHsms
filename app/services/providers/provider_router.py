@@ -18,7 +18,10 @@ from app.core.logging import get_logger
 from app.services.providers.base_provider import PurchaseResult, SMSProvider
 from app.services.providers.fivesim_adapter import FiveSimAdapter
 from app.services.providers.provider_errors import ProviderError
-from app.services.providers.pvapins_adapter import PVAPinsAdapter, COUNTRY_MAP as PVAPINS_COUNTRIES
+from app.services.providers.pvapins_adapter import (
+    PVAPinsAdapter,
+    COUNTRY_MAP as PVAPINS_COUNTRIES,
+)
 from app.services.providers.telnyx_adapter import TelnyxAdapter
 from app.services.providers.textverified_adapter import TextVerifiedAdapter
 
@@ -84,7 +87,9 @@ class ProviderRouter:
             pvapins = self._get_pvapins()
             if pvapins.enabled:
                 # City not supported by PVApins — note it but don't block
-                city_note = "City filtering not available for this region" if city else None
+                city_note = (
+                    "City filtering not available for this region" if city else None
+                )
                 logger.info(f"Routing to PVApins for {country} (regional specialist)")
                 return pvapins, False, city_note
 
@@ -92,13 +97,17 @@ class ProviderRouter:
         if city and user_tier in ("pro", "custom"):
             telnyx = self._get_telnyx()
             if telnyx.enabled:
-                logger.info(f"Routing to Telnyx for {country} city={city} (tier={user_tier})")
+                logger.info(
+                    f"Routing to Telnyx for {country} city={city} (tier={user_tier})"
+                )
                 return telnyx, True, None
             # Telnyx not available — fall to 5sim, city cannot be honoured
             fivesim = self._get_fivesim()
             if fivesim.enabled:
                 note = f"Precise city filtering temporarily unavailable, country-level number assigned"
-                logger.warning(f"Telnyx unavailable for {country}, falling to 5sim (city dropped)")
+                logger.warning(
+                    f"Telnyx unavailable for {country}, falling to 5sim (city dropped)"
+                )
                 return fivesim, False, note
 
         # International + city + PAYG -> 5sim, city dropped
@@ -127,7 +136,9 @@ class ProviderRouter:
             return telnyx, bool(city), None
 
         # Last resort -> TextVerified (will likely fail for international but better than nothing)
-        logger.warning(f"No international provider available for {country}, using TextVerified")
+        logger.warning(
+            f"No international provider available for {country}, using TextVerified"
+        )
         return self._get_textverified(), False, None
 
     async def purchase_with_failover(
@@ -150,15 +161,26 @@ class ProviderRouter:
         resolved_area_code = area_code
         if country.upper() == "US" and city and not area_code:
             from app.services.providers.city_to_area_code import lookup
+
             codes = lookup(city)
             if codes:
-                resolved_area_code = codes[0]  # TextVerified proximity chain handles the rest
-                logger.info(f"City '{city}' resolved to area codes {codes} for US request")
+                resolved_area_code = codes[
+                    0
+                ]  # TextVerified proximity chain handles the rest
+                logger.info(
+                    f"City '{city}' resolved to area codes {codes} for US request"
+                )
             else:
-                logger.info(f"City '{city}' not in US map, proceeding without area code")
+                logger.info(
+                    f"City '{city}' not in US map, proceeding without area code"
+                )
 
         primary, city_attempted, pre_note = self.get_provider(country, city, user_tier)
-        routing_reason = f"country={country}" + (f"_city={city}" if city else "") + f"_tier={user_tier}"
+        routing_reason = (
+            f"country={country}"
+            + (f"_city={city}" if city else "")
+            + f"_tier={user_tier}"
+        )
 
         # Determine city to pass to provider
         city_for_provider = city if city_attempted else None
@@ -186,13 +208,16 @@ class ProviderRouter:
             # US city outcome — check if area code matched city
             if country.upper() == "US" and city and resolved_area_code:
                 from app.services.providers.city_to_area_code import lookup
+
                 city_codes = lookup(city)
                 if city_codes and result.assigned_area_code not in city_codes:
                     result.city_honoured = False
                     result.city_note = f"Requested {city}, assigned nearby area"
 
             result.routing_reason = routing_reason
-            logger.info(f"Purchase successful: {result.phone_number} via {primary.name}")
+            logger.info(
+                f"Purchase successful: {result.phone_number} via {primary.name}"
+            )
             return result
 
         except ProviderError as e:
@@ -203,10 +228,14 @@ class ProviderRouter:
                 raise
 
             # Reroutable errors — try failover provider
-            if e.is_reroutable and getattr(self._settings, "enable_provider_failover", True):
+            if e.is_reroutable and getattr(
+                self._settings, "enable_provider_failover", True
+            ):
                 secondary = self._get_failover_provider(primary, country)
                 if secondary:
-                    logger.warning(f"Failing over from {primary.name} to {secondary.name}")
+                    logger.warning(
+                        f"Failing over from {primary.name} to {secondary.name}"
+                    )
                     try:
                         result = await secondary.purchase_number(
                             service=service,
@@ -219,11 +248,17 @@ class ProviderRouter:
                         if pre_note and not result.city_note:
                             result.city_honoured = False
                             result.city_note = pre_note
-                        result.routing_reason = f"failover {primary.name}->{secondary.name}"
-                        logger.info(f"Failover successful: {result.phone_number} via {secondary.name}")
+                        result.routing_reason = (
+                            f"failover {primary.name}->{secondary.name}"
+                        )
+                        logger.info(
+                            f"Failover successful: {result.phone_number} via {secondary.name}"
+                        )
                         return result
                     except ProviderError as fe:
-                        logger.error(f"Failover provider {secondary.name} also failed [{fe.category}]: {fe.internal}")
+                        logger.error(
+                            f"Failover provider {secondary.name} also failed [{fe.category}]: {fe.internal}"
+                        )
 
             # All options exhausted
             raise ProviderError(

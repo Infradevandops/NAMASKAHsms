@@ -39,22 +39,24 @@ class TestTextVerifiedAdapter:
     @pytest.mark.asyncio
     async def test_purchase_number_success(self, adapter, mock_service):
         """Should successfully purchase number and return PurchaseResult."""
-        mock_service.create_verification = AsyncMock(return_value={
-            "id": "tv123",
-            "phone_number": "+12025551234",
-            "cost": 2.22,
-            "ends_at": "2026-03-26T12:00:00Z",
-            "area_code_matched": True,
-            "carrier_matched": True,
-            "real_carrier": "verizon",
-            "voip_rejected": False,
-            "fallback_applied": False,
-            "requested_area_code": "202",
-            "assigned_area_code": "202",
-            "same_state_fallback": True,
-            "retry_attempts": 0,
-            "tv_object": MagicMock(),
-        })
+        mock_service.create_verification = AsyncMock(
+            return_value={
+                "id": "tv123",
+                "phone_number": "+12025551234",
+                "cost": 2.22,
+                "ends_at": "2026-03-26T12:00:00Z",
+                "area_code_matched": True,
+                "carrier_matched": True,
+                "real_carrier": "verizon",
+                "voip_rejected": False,
+                "fallback_applied": False,
+                "requested_area_code": "202",
+                "assigned_area_code": "202",
+                "same_state_fallback": True,
+                "retry_attempts": 0,
+                "tv_object": MagicMock(),
+            }
+        )
 
         result = await adapter.purchase_number(
             service="whatsapp",
@@ -75,9 +77,7 @@ class TestTextVerifiedAdapter:
     @pytest.mark.asyncio
     async def test_purchase_number_failure(self, adapter, mock_service):
         """Should raise RuntimeError on purchase failure."""
-        mock_service.create_verification = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_service.create_verification = AsyncMock(side_effect=Exception("API error"))
 
         with pytest.raises(RuntimeError, match="TextVerified purchase failed"):
             await adapter.purchase_number(
@@ -88,12 +88,12 @@ class TestTextVerifiedAdapter:
     @pytest.mark.asyncio
     async def test_check_messages_with_messages(self, adapter, mock_service):
         """Should return MessageResult list when messages exist."""
-        mock_service.check_sms = AsyncMock(return_value={
-            "status": "COMPLETED",
-            "messages": [
-                {"text": "Your code is 123456", "code": "123456"}
-            ]
-        })
+        mock_service.check_sms = AsyncMock(
+            return_value={
+                "status": "COMPLETED",
+                "messages": [{"text": "Your code is 123456", "code": "123456"}],
+            }
+        )
 
         messages = await adapter.check_messages("tv123")
 
@@ -105,10 +105,9 @@ class TestTextVerifiedAdapter:
     @pytest.mark.asyncio
     async def test_check_messages_no_messages(self, adapter, mock_service):
         """Should return empty list when no messages."""
-        mock_service.check_sms = AsyncMock(return_value={
-            "status": "PENDING",
-            "messages": []
-        })
+        mock_service.check_sms = AsyncMock(
+            return_value={"status": "PENDING", "messages": []}
+        )
 
         messages = await adapter.check_messages("tv123")
 

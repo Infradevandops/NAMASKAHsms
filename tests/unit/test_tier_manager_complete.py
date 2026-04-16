@@ -65,6 +65,7 @@ class TestCanCreateApiKey:
 
     def test_pro_at_limit_returns_false(self, db, regular_user):
         from app.models.api_key import APIKey
+
         regular_user.subscription_tier = "pro"
         db.commit()
 
@@ -72,17 +73,19 @@ class TestCanCreateApiKey:
         with patch("app.services.tier_manager.TierConfig.get_tier_config") as mock_cfg:
             mock_cfg.return_value = {"api_key_limit": 2}
             for i in range(2):
-                db.add(APIKey(
-                    id=f"key-{i}",
-                    user_id=regular_user.id,
-                    name=f"k{i}",
-                    key_hash=f"hash{i}",
-                    key_preview=f"nsk_xxx...{i}",
-                    is_active=True,
-                    created_at=datetime.now(timezone.utc),
-                    expires_at=datetime.now(timezone.utc) + timedelta(days=365),
-                    request_count=0,
-                ))
+                db.add(
+                    APIKey(
+                        id=f"key-{i}",
+                        user_id=regular_user.id,
+                        name=f"k{i}",
+                        key_hash=f"hash{i}",
+                        key_preview=f"nsk_xxx...{i}",
+                        is_active=True,
+                        created_at=datetime.now(timezone.utc),
+                        expires_at=datetime.now(timezone.utc) + timedelta(days=365),
+                        request_count=0,
+                    )
+                )
             db.commit()
             tm = TierManager(db)
             can, msg = tm.can_create_api_key(regular_user.id)

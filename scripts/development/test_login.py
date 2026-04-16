@@ -38,16 +38,20 @@ except Exception as e:
 print(f"\n1️⃣ Checking if user exists...")
 try:
     result = db.execute(
-        text("SELECT id, email, password_hash, is_admin, is_active, email_verified FROM users WHERE email = :email"),
-        {"email": TEST_EMAIL}
+        text(
+            "SELECT id, email, password_hash, is_admin, is_active, email_verified FROM users WHERE email = :email"
+        ),
+        {"email": TEST_EMAIL},
     ).fetchone()
-    
+
     if not result:
         print(f"❌ User not found: {TEST_EMAIL}")
         print("\n🔧 Fix: Create user with:")
-        print(f"   psql $DATABASE_URL -c \"INSERT INTO users (email, password_hash, is_admin, is_active, email_verified) VALUES ('{TEST_EMAIL}', '\$2b\$12\$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqJfLKZvSu', true, true, true);\"")
+        print(
+            f"   psql $DATABASE_URL -c \"INSERT INTO users (email, password_hash, is_admin, is_active, email_verified) VALUES ('{TEST_EMAIL}', '\$2b\$12\$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYqJfLKZvSu', true, true, true);\""
+        )
         sys.exit(1)
-    
+
     user_id, email, password_hash, is_admin, is_active, email_verified = result
     print(f"✅ User found: {email}")
     print(f"   - ID: {user_id}")
@@ -55,7 +59,7 @@ try:
     print(f"   - Active: {is_active}")
     print(f"   - Email Verified: {email_verified}")
     print(f"   - Has Password: {password_hash is not None}")
-    
+
 except Exception as e:
     print(f"❌ Query failed: {e}")
     sys.exit(1)
@@ -95,20 +99,24 @@ if not password_hash:
 else:
     try:
         # Test password
-        password_bytes = TEST_PASSWORD.encode('utf-8')
-        hash_bytes = password_hash.encode('utf-8')
-        
+        password_bytes = TEST_PASSWORD.encode("utf-8")
+        hash_bytes = password_hash.encode("utf-8")
+
         if bcrypt.checkpw(password_bytes, hash_bytes):
             print("✅ Password matches!")
         else:
             print("❌ Password does NOT match")
             issues.append("Password incorrect")
-            
+
             # Generate correct hash for reference
-            correct_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+            correct_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode(
+                "utf-8"
+            )
             print(f"\n🔧 To set this password, run:")
-            print(f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{correct_hash}' WHERE email='{TEST_EMAIL}';\"")
-            
+            print(
+                f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{correct_hash}' WHERE email='{TEST_EMAIL}';\""
+            )
+
     except Exception as e:
         print(f"❌ Password verification failed: {e}")
         issues.append(f"Password check error: {e}")
@@ -124,29 +132,43 @@ else:
     print(f"❌ Found {len(issues)} issue(s):")
     for i, issue in enumerate(issues, 1):
         print(f"   {i}. {issue}")
-    
+
     print("\n🔧 FIXES:")
-    
+
     if "User is not active" in issues:
         print(f"\n   Fix 1: Activate user")
-        print(f"   psql $DATABASE_URL -c \"UPDATE users SET is_active=true WHERE email='{TEST_EMAIL}';\"")
-    
+        print(
+            f"   psql $DATABASE_URL -c \"UPDATE users SET is_active=true WHERE email='{TEST_EMAIL}';\""
+        )
+
     if "User is not admin" in issues:
         print(f"\n   Fix 2: Make user admin")
-        print(f"   psql $DATABASE_URL -c \"UPDATE users SET is_admin=true WHERE email='{TEST_EMAIL}';\"")
-    
+        print(
+            f"   psql $DATABASE_URL -c \"UPDATE users SET is_admin=true WHERE email='{TEST_EMAIL}';\""
+        )
+
     if "Email not verified" in issues:
         print(f"\n   Fix 3: Verify email")
-        print(f"   psql $DATABASE_URL -c \"UPDATE users SET email_verified=true WHERE email='{TEST_EMAIL}';\"")
-    
+        print(
+            f"   psql $DATABASE_URL -c \"UPDATE users SET email_verified=true WHERE email='{TEST_EMAIL}';\""
+        )
+
     if "Password incorrect" in issues or "No password hash" in issues:
         print(f"\n   Fix 4: Reset password")
-        new_hash = bcrypt.hashpw(TEST_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-        print(f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}' WHERE email='{TEST_EMAIL}';\"")
-    
+        new_hash = bcrypt.hashpw(
+            TEST_PASSWORD.encode("utf-8"), bcrypt.gensalt()
+        ).decode("utf-8")
+        print(
+            f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}' WHERE email='{TEST_EMAIL}';\""
+        )
+
     print(f"\n   Or fix all at once:")
-    new_hash = bcrypt.hashpw(TEST_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    print(f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}', is_active=true, is_admin=true, email_verified=true WHERE email='{TEST_EMAIL}';\"")
+    new_hash = bcrypt.hashpw(TEST_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
+    print(
+        f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}', is_active=true, is_admin=true, email_verified=true WHERE email='{TEST_EMAIL}';\""
+    )
 
 db.close()
 print("\n✅ Diagnostic complete")

@@ -22,7 +22,11 @@ import httpx
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.services.providers.base_provider import MessageResult, PurchaseResult, SMSProvider
+from app.services.providers.base_provider import (
+    MessageResult,
+    PurchaseResult,
+    SMSProvider,
+)
 from app.services.providers.provider_errors import ProviderError
 
 logger = get_logger(__name__)
@@ -62,9 +66,22 @@ COUNTRY_MAP: Dict[str, str] = {
 
 # Services that PVApins supports (lowercase)
 SUPPORTED_SERVICES = {
-    "google", "whatsapp", "telegram", "facebook", "instagram",
-    "twitter", "tiktok", "discord", "uber", "amazon", "netflix",
-    "spotify", "snapchat", "linkedin", "microsoft", "paypal",
+    "google",
+    "whatsapp",
+    "telegram",
+    "facebook",
+    "instagram",
+    "twitter",
+    "tiktok",
+    "discord",
+    "uber",
+    "amazon",
+    "netflix",
+    "spotify",
+    "snapchat",
+    "linkedin",
+    "microsoft",
+    "paypal",
 }
 
 
@@ -166,7 +183,9 @@ class PVAPinsAdapter(SMSProvider):
                 phone_number=phone,
                 order_id=number,  # raw number is the order ID for reuse
                 cost=0.0,  # PVApins deducts from account balance, no per-call cost in response
-                expires_at=(datetime.now(timezone.utc) + timedelta(minutes=20)).isoformat(),
+                expires_at=(
+                    datetime.now(timezone.utc) + timedelta(minutes=20)
+                ).isoformat(),
                 provider="pvapins",
                 operator=None,
                 area_code_matched=True,
@@ -179,9 +198,15 @@ class PVAPinsAdapter(SMSProvider):
                 same_state_fallback=True,
                 retry_attempts=0,
                 routing_reason=f"pvapins_country={country}",
-                metadata={"pvapins_number": number, "country": country_name, "app": app_name},
+                metadata={
+                    "pvapins_number": number,
+                    "country": country_name,
+                    "app": app_name,
+                },
                 city_honoured=False if city else True,
-                city_note="City filtering not supported for this region" if city else None,
+                city_note=(
+                    "City filtering not supported for this region" if city else None
+                ),
             )
 
         except ProviderError:
@@ -194,7 +219,9 @@ class PVAPinsAdapter(SMSProvider):
             raise ProviderError("provider_unreachable", f"PVApins unreachable: {e}")
         except httpx.HTTPStatusError as e:
             logger.error(f"PVApins HTTP {e.response.status_code}: {e}")
-            raise ProviderError("provider_unreachable", f"PVApins HTTP {e.response.status_code}")
+            raise ProviderError(
+                "provider_unreachable", f"PVApins HTTP {e.response.status_code}"
+            )
         except (ValueError, KeyError) as e:
             logger.error(f"PVApins malformed response: {e}")
             raise ProviderError("malformed_response", f"PVApins bad response: {e}")
@@ -221,7 +248,9 @@ class PVAPinsAdapter(SMSProvider):
         PVApins does not have a report/refund endpoint in the provided docs.
         Returns False — platform AutoRefundService handles the refund fallback.
         """
-        logger.info(f"PVApins: no report endpoint available for {order_id}, platform refund will handle")
+        logger.info(
+            f"PVApins: no report endpoint available for {order_id}, platform refund will handle"
+        )
         return False
 
     async def cancel(self, order_id: str) -> bool:

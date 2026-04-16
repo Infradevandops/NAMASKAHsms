@@ -1,4 +1,5 @@
 """Complete Security Tests - Comprehensive security validation."""
+
 from datetime import datetime, timedelta, timezone
 import hashlib
 import json
@@ -14,7 +15,6 @@ from app.utils.security import create_access_token, hash_password, verify_passwo
 
 
 class TestSecurityComplete:
-
     """Complete security test suite."""
 
     # ==================== Password Security ====================
@@ -71,16 +71,13 @@ class TestSecurityComplete:
         expire = datetime.now(timezone.utc) - timedelta(hours=1)
         token_data = {"sub": "user123", "exp": expire}
         token = jwt.encode(
-        token_data,
-        settings.jwt_secret_key,
-        algorithm=settings.jwt_algorithm)
+            token_data, settings.jwt_secret_key, algorithm=settings.jwt_algorithm
+        )
 
         with pytest.raises(jwt.ExpiredSignatureError):
             jwt.decode(
-            token,
-            settings.jwt_secret_key,
-            algorithms=[
-                settings.jwt_algorithm])
+                token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+            )
 
     def test_jwt_token_tampering_detection(self):
         """Test JWT detects tampering."""
@@ -94,10 +91,8 @@ class TestSecurityComplete:
 
         with pytest.raises((jwt.InvalidSignatureError, jwt.DecodeError)):
             jwt.decode(
-            tampered,
-            settings.jwt_secret_key,
-            algorithms=[
-                settings.jwt_algorithm])
+                tampered, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]
+            )
 
     def test_jwt_algorithm_security(self):
         """Test JWT uses secure algorithm."""
@@ -123,8 +118,7 @@ class TestSecurityComplete:
         malicious_email = "'; DROP TABLE users; --"
 
         # This should be safe
-        user = db_session.query(User).filter(
-        User.email == malicious_email).first()
+        user = db_session.query(User).filter(User.email == malicious_email).first()
         assert user is None  # No user found, table not dropped
 
     def test_sql_injection_prevention_orm(self, db_session):
@@ -132,8 +126,7 @@ class TestSecurityComplete:
         # Using ORM filters is safe
         malicious_input = "1' OR '1'='1"
 
-        user = db_session.query(User).filter(
-        User.id == malicious_input).first()
+        user = db_session.query(User).filter(User.id == malicious_input).first()
         assert user is None
 
     # ==================== XSS Prevention ====================
@@ -198,8 +191,8 @@ class TestSecurityComplete:
     def test_rate_limiting_per_user(self):
         """Test per-user rate limiting."""
         user_limits = {
-        "user1": {"count": 0, "max": 60},
-        "user2": {"count": 0, "max": 60},
+            "user1": {"count": 0, "max": 60},
+            "user2": {"count": 0, "max": 60},
         }
 
         # Each user has separate limit
@@ -310,10 +303,10 @@ class TestSecurityComplete:
     def test_security_headers_present(self):
         """Test security headers are set."""
         security_headers = {
-        "X-Content-Type-Options": "nosni",
-        "X-Frame-Options": "DENY",
-        "X-XSS-Protection": "1; mode=block",
-        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+            "X-Content-Type-Options": "nosni",
+            "X-Frame-Options": "DENY",
+            "X-XSS-Protection": "1; mode=block",
+            "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
         }
 
         assert "X-Content-Type-Options" in security_headers
@@ -324,11 +317,11 @@ class TestSecurityComplete:
     def test_security_event_logging(self):
         """Test security events are logged."""
         security_event = {
-        "event_type": "login_attempt",
-        "user_id": "user123",
-        "ip_address": "192.168.1.1",
-        "timestamp": datetime.now(timezone.utc),
-        "success": True,
+            "event_type": "login_attempt",
+            "user_id": "user123",
+            "ip_address": "192.168.1.1",
+            "timestamp": datetime.now(timezone.utc),
+            "success": True,
         }
 
         assert security_event["event_type"] == "login_attempt"
@@ -347,8 +340,7 @@ class TestSecurityComplete:
 
     # ==================== Access Control ====================
 
-    def test_role_based_access_control(
-        self, db_session, regular_user, admin_user):
+    def test_role_based_access_control(self, db_session, regular_user, admin_user):
         """Test RBAC enforcement."""
         assert regular_user.is_admin is False
         assert admin_user.is_admin is True

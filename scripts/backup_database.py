@@ -14,7 +14,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
@@ -29,6 +31,7 @@ KEEP_DAYS = int(os.environ.get("BACKUP_KEEP_DAYS", "30"))
 def _pg_url_to_env(database_url: str) -> dict:
     """Convert DATABASE_URL to pg env vars for pg_dump/pg_restore."""
     import urllib.parse
+
     p = urllib.parse.urlparse(database_url)
     return {
         **os.environ,
@@ -55,11 +58,15 @@ def backup() -> str:
 
     dump = subprocess.Popen(
         ["pg_dump", "--no-password", "--format=plain"],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=env
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env=env,
     )
     gzip = subprocess.Popen(
         ["gzip", "-c"],
-        stdin=dump.stdout, stdout=open(local_path, "wb"), stderr=subprocess.PIPE
+        stdin=dump.stdout,
+        stdout=open(local_path, "wb"),
+        stderr=subprocess.PIPE,
     )
     dump.stdout.close()
     gzip.communicate()
@@ -91,7 +98,11 @@ def restore(source: str):
     local_path = Path(source)
 
     if source.startswith("s3://") or (S3_BUCKET and not local_path.exists()):
-        s3_key = source.replace(f"s3://{S3_BUCKET}/", "") if source.startswith("s3://") else source
+        s3_key = (
+            source.replace(f"s3://{S3_BUCKET}/", "")
+            if source.startswith("s3://")
+            else source
+        )
         local_path = LOCAL_BACKUP_DIR / Path(s3_key).name
         LOCAL_BACKUP_DIR.mkdir(parents=True, exist_ok=True)
         _download_s3(s3_key, local_path)
@@ -105,11 +116,11 @@ def restore(source: str):
 
     gunzip = subprocess.Popen(
         ["gunzip", "-c", str(local_path)],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
     psql = subprocess.Popen(
-        ["psql", "--no-password"],
-        stdin=gunzip.stdout, stderr=subprocess.PIPE, env=env
+        ["psql", "--no-password"], stdin=gunzip.stdout, stderr=subprocess.PIPE, env=env
     )
     gunzip.stdout.close()
     _, psql_err = psql.communicate()
@@ -124,6 +135,7 @@ def restore(source: str):
 
 def _upload_s3(local_path: Path, s3_key: str):
     import boto3
+
     s3 = boto3.client(
         "s3",
         region_name=AWS_REGION,
@@ -135,6 +147,7 @@ def _upload_s3(local_path: Path, s3_key: str):
 
 def _download_s3(s3_key: str, local_path: Path):
     import boto3
+
     s3 = boto3.client(
         "s3",
         region_name=AWS_REGION,
@@ -155,7 +168,9 @@ def _cleanup_local(backup_dir: Path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--restore", metavar="SOURCE", help="Restore from file or s3://bucket/key")
+    parser.add_argument(
+        "--restore", metavar="SOURCE", help="Restore from file or s3://bucket/key"
+    )
     args = parser.parse_args()
 
     if args.restore:

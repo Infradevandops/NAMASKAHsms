@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for notification preferences endpoints."""
 
 import pytest
@@ -27,16 +28,38 @@ def test_user(db: Session):
 def test_defaults(db: Session):
     """Create default notification preferences."""
     defaults_data = [
-        ("verification_initiated", True, "toast,email", "instant", "When a verification starts"),
+        (
+            "verification_initiated",
+            True,
+            "toast,email",
+            "instant",
+            "When a verification starts",
+        ),
         ("sms_received", True, "toast", "instant", "When SMS code is received"),
-        ("credit_deducted", True, "toast,email", "instant", "When credits are deducted"),
+        (
+            "credit_deducted",
+            True,
+            "toast,email",
+            "instant",
+            "When credits are deducted",
+        ),
         ("balance_low", True, "email", "daily", "When balance is low"),
     ]
     defaults = []
-    for notification_type, enabled, delivery_methods, frequency, description in defaults_data:
-        existing = db.query(NotificationPreferenceDefaults).filter(
-            NotificationPreferenceDefaults.notification_type == notification_type
-        ).first()
+    for (
+        notification_type,
+        enabled,
+        delivery_methods,
+        frequency,
+        description,
+    ) in defaults_data:
+        existing = (
+            db.query(NotificationPreferenceDefaults)
+            .filter(
+                NotificationPreferenceDefaults.notification_type == notification_type
+            )
+            .first()
+        )
         if not existing:
             existing = NotificationPreferenceDefaults(
                 notification_type=notification_type,

@@ -98,10 +98,15 @@ async def lifespan(app):
 
         async def _run_provider_health_checks():
             try:
-                from app.services.providers.health_check import run_provider_health_checks
+                from app.services.providers.health_check import (
+                    run_provider_health_checks,
+                )
+
                 await run_provider_health_checks()
             except Exception as e:
-                startup_logger.warning(f"Provider health checks failed (non-critical): {e}")
+                startup_logger.warning(
+                    f"Provider health checks failed (non-critical): {e}"
+                )
 
         # Skip pre-warming in test mode
         if os.getenv("TESTING") != "1":
@@ -122,6 +127,7 @@ async def lifespan(app):
 
             # Start provider balance monitor
             from app.services.providers.balance_monitor import run_balance_monitor
+
             asyncio.create_task(run_balance_monitor())
             startup_logger.info("Provider balance monitor started")
         else:

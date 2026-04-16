@@ -44,9 +44,19 @@ def _mock_response(json_data, status_code=200):
 
 # ── purchase_number ──────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_purchase_number_success(adapter):
-    search_resp = _mock_response({"data": [{"phone_number": "+12025551234", "cost_information": {"upfront_cost": "1.00"}}]})
+    search_resp = _mock_response(
+        {
+            "data": [
+                {
+                    "phone_number": "+12025551234",
+                    "cost_information": {"upfront_cost": "1.00"},
+                }
+            ]
+        }
+    )
     order_resp = _mock_response({"data": {"id": "order-abc"}})
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
@@ -102,7 +112,9 @@ async def test_purchase_number_timeout(adapter):
 
 @pytest.mark.asyncio
 async def test_purchase_number_invalid_response(adapter):
-    search_resp = _mock_response({"data": [{"phone_number": "+12025551234", "cost_information": {}}]})
+    search_resp = _mock_response(
+        {"data": [{"phone_number": "+12025551234", "cost_information": {}}]}
+    )
     order_resp = _mock_response({"data": {}})  # Missing "id"
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
@@ -117,7 +129,16 @@ async def test_purchase_number_invalid_response(adapter):
 
 @pytest.mark.asyncio
 async def test_purchase_number_area_code_filter(adapter):
-    search_resp = _mock_response({"data": [{"phone_number": "+14155551234", "cost_information": {"upfront_cost": "1.00"}}]})
+    search_resp = _mock_response(
+        {
+            "data": [
+                {
+                    "phone_number": "+14155551234",
+                    "cost_information": {"upfront_cost": "1.00"},
+                }
+            ]
+        }
+    )
     order_resp = _mock_response({"data": {"id": "order-xyz"}})
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
@@ -136,9 +157,16 @@ async def test_purchase_number_area_code_filter(adapter):
 
 # ── check_messages ───────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_check_messages_success(adapter):
-    resp = _mock_response({"data": [{"text": "Your code is 123456", "received_at": "2026-03-26T12:00:00Z"}]})
+    resp = _mock_response(
+        {
+            "data": [
+                {"text": "Your code is 123456", "received_at": "2026-03-26T12:00:00Z"}
+            ]
+        }
+    )
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
@@ -182,10 +210,14 @@ async def test_check_messages_api_error(adapter):
 async def test_check_messages_created_after_filter(adapter):
     old_time = "2026-03-26T10:00:00Z"
     new_time = "2026-03-26T12:00:00Z"
-    resp = _mock_response({"data": [
-        {"text": "Old code 111111", "received_at": old_time},
-        {"text": "New code 999999", "received_at": new_time},
-    ]})
+    resp = _mock_response(
+        {
+            "data": [
+                {"text": "Old code 111111", "received_at": old_time},
+                {"text": "New code 999999", "received_at": new_time},
+            ]
+        }
+    )
 
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
@@ -200,6 +232,7 @@ async def test_check_messages_created_after_filter(adapter):
 
 
 # ── cancel ───────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_cancel_success(adapter):
@@ -229,6 +262,7 @@ async def test_cancel_failure(adapter):
 
 # ── get_balance ───────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_balance_success(adapter):
     resp = _mock_response({"data": {"balance": "150.75"}})
@@ -257,6 +291,7 @@ async def test_get_balance_error(adapter):
 
 # ── _extract_code ─────────────────────────────────────────────────────────────
 
+
 def test_extract_code_hyphenated(adapter):
     assert adapter._extract_code("Your code is 806-185") == "806185"
 
@@ -270,6 +305,7 @@ def test_extract_code_no_match(adapter):
 
 
 # ── client lifecycle ──────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_client_cleanup(adapter):
@@ -289,6 +325,7 @@ def test_client_singleton(adapter):
 
 
 # ── disabled provider ─────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_disabled_provider_purchase(disabled_adapter):

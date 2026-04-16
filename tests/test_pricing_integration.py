@@ -1,6 +1,5 @@
 """Integration tests for pricing enforcement."""
 
-
 import uuid
 import pytest
 from sqlalchemy.orm import Session
@@ -39,11 +38,9 @@ def users(db: Session):
 
 
 class TestPricingEnforcementFlow:
-
     """Test complete pricing enforcement flow."""
 
     def test_freemium_purchase_flow(self, db: Session, users: dict):
-
         """Test freemium user purchase flow."""
         user = users["freemium"]
 
@@ -62,7 +59,6 @@ class TestPricingEnforcementFlow:
         assert user.bonus_sms_balance == 8.0
 
     def test_payg_with_filters_flow(self, db: Session, users: dict):
-
         """Test PAYG user with filters."""
         user = users["payg"]
         filters = {"state": True, "isp": True}
@@ -76,11 +72,12 @@ class TestPricingEnforcementFlow:
         assert PricingCalculator.validate_balance(db, user.id, cost_info["total_cost"])
 
         # Log transaction
-        tx_id = TransactionService.log_sms_purchase(db, user.id, cost_info["total_cost"], "payg", "telegram", filters)
+        tx_id = TransactionService.log_sms_purchase(
+            db, user.id, cost_info["total_cost"], "payg", "telegram", filters
+        )
         assert tx_id is not None
 
     def test_pro_quota_tracking_flow(self, db: Session, users: dict):
-
         """Test Pro user quota tracking."""
         user = users["pro"]
 
@@ -98,7 +95,6 @@ class TestPricingEnforcementFlow:
         assert quota_info["remaining"] == 5.0
 
     def test_pro_overage_calculation_flow(self, db: Session, users: dict):
-
         """Test Pro user overage calculation."""
         user = users["pro"]
 
@@ -110,7 +106,6 @@ class TestPricingEnforcementFlow:
         assert overage == pytest.approx(0.45, rel=1e-2)  # (14 + 2.50 - 15) * 0.30
 
     def test_custom_api_key_limit_flow(self, db: Session, users: dict):
-
         """Test Custom user API key creation."""
         user = users["custom"]
         service = APIKeyService(db)
@@ -127,7 +122,6 @@ class TestPricingEnforcementFlow:
         assert api_key.name == "Test Key"
 
     def test_freemium_cannot_use_filters_flow(self, db: Session, users: dict):
-
         """Test freemium cannot use filters."""
         user = users["freemium"]
         filters = {"state": True}
@@ -137,7 +131,6 @@ class TestPricingEnforcementFlow:
             PricingCalculator.calculate_sms_cost(db, user.id, filters)
 
     def test_complete_transaction_flow(self, db: Session, users: dict):
-
         """Test complete transaction from purchase to logging."""
         user = users["pro"]
 
@@ -148,7 +141,9 @@ class TestPricingEnforcementFlow:
         VerificationPricingService.deduct_cost(db, user.id, cost_info["total_cost"])
 
         # 3. Log transaction
-        tx_id = TransactionService.log_sms_purchase(db, user.id, cost_info["total_cost"], "pro", "telegram")
+        tx_id = TransactionService.log_sms_purchase(
+            db, user.id, cost_info["total_cost"], "pro", "telegram"
+        )
 
         # 4. Verify all changes
         user = db.query(User).filter(User.id == user.id).first()

@@ -24,6 +24,7 @@ def _make_result(provider="textverified"):
 
 # ── balance edge cases ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_provider_balances_all_fail(router):
     mock_tv = AsyncMock()
@@ -38,9 +39,9 @@ async def test_get_provider_balances_all_fail(router):
     mock_fivesim.enabled = True
     mock_fivesim.get_balance = AsyncMock(side_effect=Exception("API error"))
 
-    with patch.object(router, "_get_textverified", return_value=mock_tv), \
-         patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
-         patch.object(router, "_get_fivesim", return_value=mock_fivesim):
+    with patch.object(router, "_get_textverified", return_value=mock_tv), patch.object(
+        router, "_get_telnyx", return_value=mock_telnyx
+    ), patch.object(router, "_get_fivesim", return_value=mock_fivesim):
 
         balances = await router.get_provider_balances()
 
@@ -62,9 +63,9 @@ async def test_get_provider_balances_partial_fail(router):
     mock_fivesim = AsyncMock()
     mock_fivesim.enabled = False
 
-    with patch.object(router, "_get_textverified", return_value=mock_tv), \
-         patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
-         patch.object(router, "_get_fivesim", return_value=mock_fivesim):
+    with patch.object(router, "_get_textverified", return_value=mock_tv), patch.object(
+        router, "_get_telnyx", return_value=mock_telnyx
+    ), patch.object(router, "_get_fivesim", return_value=mock_fivesim):
 
         balances = await router.get_provider_balances()
 
@@ -75,29 +76,38 @@ async def test_get_provider_balances_partial_fail(router):
 
 # ── all providers fail ────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_purchase_all_providers_fail(router):
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
-    mock_primary.purchase_number = AsyncMock(side_effect=RuntimeError("Connection timeout"))
+    mock_primary.purchase_number = AsyncMock(
+        side_effect=RuntimeError("Connection timeout")
+    )
 
     mock_secondary = AsyncMock()
     mock_secondary.name = "telnyx"
-    mock_secondary.purchase_number = AsyncMock(side_effect=RuntimeError("Connection timeout"))
+    mock_secondary.purchase_number = AsyncMock(
+        side_effect=RuntimeError("Connection timeout")
+    )
 
-    with patch("app.services.providers.provider_router.get_settings") as mock_settings_fn:
+    with patch(
+        "app.services.providers.provider_router.get_settings"
+    ) as mock_settings_fn:
         s = MagicMock()
         s.enable_provider_failover = True
         mock_settings_fn.return_value = s
 
-        with patch.object(router, "get_provider", return_value=mock_primary), \
-             patch.object(router, "_get_failover_provider", return_value=mock_secondary):
+        with patch.object(
+            router, "get_provider", return_value=mock_primary
+        ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             with pytest.raises(RuntimeError, match="All providers failed"):
                 await router.purchase_with_failover("whatsapp", "US")
 
 
 # ── concurrent failover ───────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_purchase_concurrent_failover(router):
@@ -106,24 +116,26 @@ async def test_purchase_concurrent_failover(router):
 
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
-    mock_primary.purchase_number = AsyncMock(side_effect=RuntimeError("Connection timeout"))
+    mock_primary.purchase_number = AsyncMock(
+        side_effect=RuntimeError("Connection timeout")
+    )
 
     mock_secondary = AsyncMock()
     mock_secondary.name = "telnyx"
     mock_secondary.purchase_number = AsyncMock(return_value=_make_result("telnyx"))
 
-    with patch("app.services.providers.provider_router.get_settings") as mock_settings_fn:
+    with patch(
+        "app.services.providers.provider_router.get_settings"
+    ) as mock_settings_fn:
         s = MagicMock()
         s.enable_provider_failover = True
         mock_settings_fn.return_value = s
 
-        with patch.object(router, "get_provider", return_value=mock_primary), \
-             patch.object(router, "_get_failover_provider", return_value=mock_secondary):
+        with patch.object(
+            router, "get_provider", return_value=mock_primary
+        ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
-            tasks = [
-                router.purchase_with_failover("whatsapp", "US")
-                for _ in range(10)
-            ]
+            tasks = [router.purchase_with_failover("whatsapp", "US") for _ in range(10)]
             results = await asyncio.gather(*tasks)
 
     assert len(results) == 10
@@ -131,6 +143,7 @@ async def test_purchase_concurrent_failover(router):
 
 
 # ── enabled providers ─────────────────────────────────────────────────────────
+
 
 def test_get_enabled_providers_none_enabled(router):
     mock_tv = MagicMock()
@@ -140,9 +153,9 @@ def test_get_enabled_providers_none_enabled(router):
     mock_fivesim = MagicMock()
     mock_fivesim.enabled = False
 
-    with patch.object(router, "_get_textverified", return_value=mock_tv), \
-         patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
-         patch.object(router, "_get_fivesim", return_value=mock_fivesim):
+    with patch.object(router, "_get_textverified", return_value=mock_tv), patch.object(
+        router, "_get_telnyx", return_value=mock_telnyx
+    ), patch.object(router, "_get_fivesim", return_value=mock_fivesim):
 
         enabled = router.get_enabled_providers()
 
@@ -150,6 +163,7 @@ def test_get_enabled_providers_none_enabled(router):
 
 
 # ── routing_reason populated ──────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_routing_reason_populated(router):
@@ -167,19 +181,24 @@ async def test_routing_reason_populated(router):
 async def test_routing_reason_failover_populated(router):
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
-    mock_primary.purchase_number = AsyncMock(side_effect=RuntimeError("Connection timeout"))
+    mock_primary.purchase_number = AsyncMock(
+        side_effect=RuntimeError("Connection timeout")
+    )
 
     mock_secondary = AsyncMock()
     mock_secondary.name = "telnyx"
     mock_secondary.purchase_number = AsyncMock(return_value=_make_result("telnyx"))
 
-    with patch("app.services.providers.provider_router.get_settings") as mock_settings_fn:
+    with patch(
+        "app.services.providers.provider_router.get_settings"
+    ) as mock_settings_fn:
         s = MagicMock()
         s.enable_provider_failover = True
         mock_settings_fn.return_value = s
 
-        with patch.object(router, "get_provider", return_value=mock_primary), \
-             patch.object(router, "_get_failover_provider", return_value=mock_secondary):
+        with patch.object(
+            router, "get_provider", return_value=mock_primary
+        ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             result = await router.purchase_with_failover("whatsapp", "US")
 
@@ -188,6 +207,7 @@ async def test_routing_reason_failover_populated(router):
 
 # ── failover circular guard ───────────────────────────────────────────────────
 
+
 def test_failover_no_circular_loop(router):
     """_get_failover_provider never returns the same provider that failed."""
     mock_tv = MagicMock()
@@ -195,8 +215,9 @@ def test_failover_no_circular_loop(router):
     mock_tv.enabled = True
 
     # If textverified failed, failover should NOT return textverified
-    with patch.object(router, "_get_telnyx") as mock_telnyx_fn, \
-         patch.object(router, "_get_fivesim") as mock_fivesim_fn:
+    with patch.object(router, "_get_telnyx") as mock_telnyx_fn, patch.object(
+        router, "_get_fivesim"
+    ) as mock_fivesim_fn:
 
         mock_telnyx = MagicMock()
         mock_telnyx.enabled = False

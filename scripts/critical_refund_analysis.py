@@ -6,7 +6,6 @@ Analyzing the SMS verification flow for automatic refund failures.
 ISSUE: Credits deducted for failed/timeout/cancelled verifications without auto-refund
 """
 
-
 # Analysis findings
 print("=" * 80)
 print("CRITICAL REFUND FLAW ANALYSIS - Namaskah SMS Platform")

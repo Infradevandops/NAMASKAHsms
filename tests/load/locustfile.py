@@ -100,4 +100,3 @@ class ProviderRoutingUser(HttpUser):
 # locust -f tests/load/locustfile.py ProviderRoutingUser \
 #        --host=http://localhost:8000 \
 #        --users=50 --spawn-rate=10 --run-time=60s --headless
-

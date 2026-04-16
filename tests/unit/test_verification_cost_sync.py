@@ -48,14 +48,18 @@ def pending_verification(db, user_with_credits):
 
 
 @pytest.mark.asyncio
-async def test_verification_cost_synced_after_refund(db, user_with_credits, pending_verification):
+async def test_verification_cost_synced_after_refund(
+    db, user_with_credits, pending_verification
+):
     """verification.cost must reflect actual_cost after refund, not the pre-refund price."""
     from app.services.refund_service import RefundService
 
     refund_service = RefundService()
     initial_cost = float(pending_verification.cost)  # 2.75
 
-    result = await refund_service.process_refund(pending_verification, user_with_credits, db)
+    result = await refund_service.process_refund(
+        pending_verification, user_with_credits, db
+    )
 
     if result["refund_issued"]:
         refund_amount = result["refund_amount"]
@@ -100,14 +104,18 @@ async def test_verification_cost_unchanged_when_no_refund(db, user_with_credits)
 
 
 @pytest.mark.asyncio
-async def test_credit_deduction_matches_verification_cost(db, user_with_credits, pending_verification):
+async def test_credit_deduction_matches_verification_cost(
+    db, user_with_credits, pending_verification
+):
     """verification.cost after refund sync must equal initial_cost minus refund_amount."""
     from app.services.refund_service import RefundService
 
     initial_cost = float(pending_verification.cost)  # 2.75
     refund_service = RefundService()
 
-    result = await refund_service.process_refund(pending_verification, user_with_credits, db)
+    result = await refund_service.process_refund(
+        pending_verification, user_with_credits, db
+    )
 
     actual_cost = initial_cost
     if result["refund_issued"]:
@@ -116,4 +124,8 @@ async def test_credit_deduction_matches_verification_cost(db, user_with_credits,
 
     # verification.cost must reflect what was actually charged
     assert float(pending_verification.cost) == pytest.approx(actual_cost)
-    assert float(pending_verification.cost) < initial_cost if result["refund_issued"] else True
+    assert (
+        float(pending_verification.cost) < initial_cost
+        if result["refund_issued"]
+        else True
+    )

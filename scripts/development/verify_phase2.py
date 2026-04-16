@@ -42,12 +42,13 @@ API_ENDPOINTS = [
 
 class Colors:
     """ANSI color codes for terminal output"""
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    BLUE = '\033[94m'
-    RESET = '\033[0m'
-    BOLD = '\033[1m'
+
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    BLUE = "\033[94m"
+    RESET = "\033[0m"
+    BOLD = "\033[1m"
 
 
 def print_header(text: str):
@@ -80,14 +81,14 @@ def print_info(text: str):
 def login() -> str:
     """Login and get access token"""
     print_info("Attempting to login...")
-    
+
     try:
         response = requests.post(
             f"{BASE_URL}/api/auth/login",
             json={"email": TEST_USER_EMAIL, "password": TEST_USER_PASSWORD},
-            timeout=10
+            timeout=10,
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             token = data.get("access_token")
@@ -101,7 +102,7 @@ def login() -> str:
             print_warning(f"Login failed with status {response.status_code}")
             print_warning("Continuing without authentication (some tests will fail)")
             return None
-            
+
     except requests.exceptions.RequestException as e:
         print_error(f"Login request failed: {e}")
         return None
@@ -110,110 +111,114 @@ def login() -> str:
 def test_page_accessibility(session: requests.Session) -> Dict[str, bool]:
     """Test that all dashboard pages are accessible"""
     print_header("Testing Page Accessibility")
-    
+
     results = {}
-    
+
     for page in DASHBOARD_PAGES:
         try:
             response = session.get(f"{BASE_URL}{page['path']}", timeout=10)
-            
+
             if response.status_code == 200:
                 print_success(f"{page['name']}: Accessible (200 OK)")
-                results[page['name']] = True
+                results[page["name"]] = True
             elif response.status_code == 302:
-                print_warning(f"{page['name']}: Redirect (302) - Requires authentication")
-                results[page['name']] = False
+                print_warning(
+                    f"{page['name']}: Redirect (302) - Requires authentication"
+                )
+                results[page["name"]] = False
             else:
                 print_error(f"{page['name']}: Failed ({response.status_code})")
-                results[page['name']] = False
-                
+                results[page["name"]] = False
+
         except requests.exceptions.RequestException as e:
             print_error(f"{page['name']}: Request failed - {e}")
-            results[page['name']] = False
-    
+            results[page["name"]] = False
+
     return results
 
 
 def test_api_endpoints(session: requests.Session) -> Dict[str, bool]:
     """Test that all API endpoints are accessible"""
     print_header("Testing API Endpoints")
-    
+
     results = {}
-    
+
     for endpoint in API_ENDPOINTS:
         try:
-            if endpoint['method'] == 'GET':
+            if endpoint["method"] == "GET":
                 response = session.get(f"{BASE_URL}{endpoint['path']}", timeout=10)
             else:
                 response = session.post(f"{BASE_URL}{endpoint['path']}", timeout=10)
-            
+
             if response.status_code in [200, 201]:
                 print_success(f"{endpoint['name']}: Working ({response.status_code})")
-                results[endpoint['name']] = True
+                results[endpoint["name"]] = True
             elif response.status_code == 401:
                 print_warning(f"{endpoint['name']}: Requires authentication (401)")
-                results[endpoint['name']] = False
+                results[endpoint["name"]] = False
             elif response.status_code == 404:
                 print_error(f"{endpoint['name']}: Not found (404)")
-                results[endpoint['name']] = False
+                results[endpoint["name"]] = False
             else:
                 print_warning(f"{endpoint['name']}: Status {response.status_code}")
-                results[endpoint['name']] = False
-                
+                results[endpoint["name"]] = False
+
         except requests.exceptions.RequestException as e:
             print_error(f"{endpoint['name']}: Request failed - {e}")
-            results[endpoint['name']] = False
-    
+            results[endpoint["name"]] = False
+
     return results
 
 
 def test_javascript_files() -> Dict[str, bool]:
     """Test that JavaScript files are accessible"""
     print_header("Testing JavaScript Files")
-    
+
     js_files = [
         "/static/js/dashboard.js",
         "/static/js/verification.js",
         "/static/js/api-retry.js",
         "/static/js/frontend-logger.js",
     ]
-    
+
     results = {}
-    
+
     for js_file in js_files:
         try:
             response = requests.get(f"{BASE_URL}{js_file}", timeout=10)
-            
+
             if response.status_code == 200:
                 print_success(f"{js_file}: Accessible")
                 results[js_file] = True
             else:
                 print_error(f"{js_file}: Failed ({response.status_code})")
                 results[js_file] = False
-                
+
         except requests.exceptions.RequestException as e:
             print_error(f"{js_file}: Request failed - {e}")
             results[js_file] = False
-    
+
     return results
 
 
 def print_summary(page_results: Dict, api_results: Dict, js_results: Dict):
     """Print test summary"""
     print_header("Test Summary")
-    
+
     total_tests = len(page_results) + len(api_results) + len(js_results)
-    passed_tests = sum([
-        sum(page_results.values()),
-        sum(api_results.values()),
-        sum(js_results.values())
-    ])
-    
+    passed_tests = sum(
+        [
+            sum(page_results.values()),
+            sum(api_results.values()),
+            sum(js_results.values()),
+        ]
+    )
+
     print(f"Total Tests: {total_tests}")
     print(f"Passed: {Colors.GREEN}{passed_tests}{Colors.RESET}")
     print(f"Failed: {Colors.RED}{total_tests - passed_tests}{Colors.RESET}")
     print(f"Success Rate: {(passed_tests / total_tests * 100):.1f}%\n")
-    
+
     if passed_tests == total_tests:
         print_success("All tests passed! ✨")
         return 0
@@ -226,23 +231,23 @@ def main():
     """Main test runner"""
     print_header("Phase 2 Verification Script")
     print_info(f"Testing against: {BASE_URL}")
-    
+
     # Create session
     session = requests.Session()
-    
+
     # Try to login
     token = login()
     if token:
         session.headers.update({"Authorization": f"Bearer {token}"})
-    
+
     # Run tests
     page_results = test_page_accessibility(session)
     api_results = test_api_endpoints(session)
     js_results = test_javascript_files()
-    
+
     # Print summary
     exit_code = print_summary(page_results, api_results, js_results)
-    
+
     sys.exit(exit_code)
 
 
