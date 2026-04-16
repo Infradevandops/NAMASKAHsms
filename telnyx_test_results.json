@@ -1,0 +1,31 @@
+{
+  "provider": "Telnyx",
+  "tests": {
+    "us_area_code": {
+      "supported": true,
+      "area_code": "415",
+      "count": 5,
+      "sample": "+14157279421"
+    },
+    "intl_area_code_london": {
+      "supported": true,
+      "country": "GB",
+      "prefix": "20",
+      "count": 0,
+      "sample": null
+    },
+    "intl_area_code_berlin": {
+      "supported": false,
+      "error": "{\n  \"errors\": [\n    {\n      \"code\": \"10015\",\n      \"title\": \"Bad Request\",\n      \"detail\": \"No coverage found in the specified country based on the provided search parameters.\",\n      \"meta\": {\n        \"url\": \"https://developers.telnyx.com/docs/overview/errors/10015\"\n      }\n    }\n  ]\n}"
+    },
+    "carrier_lookup": {
+      "supported": false,
+      "error": "{\"errors\":[{\"code\":\"10038\",\"meta\":{\"url\":\"https://developers.telnyx.com/docs/overview/errors/10038\"},\"title\":\"Feature not permitted\",\"source\":{\"pointer\":\"/\"},\"detail\":\"This feature is not permitted at this account level. Refer to https://telnyx.com/upgrade.\"}]}"
+    },
+    "messaging_profiles": {
+      "supported": true,
+      "count": 1
+    }
+  },
+  "score": "8/10"
+}

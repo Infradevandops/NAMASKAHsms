@@ -1,13 +1,14 @@
 """Tests for tier endpoints.
 
-from datetime import datetime, timezone
-from app.models.user import User
-from app.models.verification import Verification
-from app.utils.security import hash_password
-
 Feature: tier-system-rbac
 Tests validate tier listing, current tier retrieval, and tier upgrade/downgrade functionality.
 """
+
+from datetime import datetime, timezone
+
+from app.models.user import User
+from app.models.verification import Verification
+from app.utils.security import hash_password
 
 
 class TestTierListEndpoint:

@@ -1,14 +1,15 @@
 """Tests for analytics endpoints.
 
+Feature: tier-system-rbac
+Tests validate analytics summary and dashboard activity endpoints.
+"""
+
 from datetime import datetime, timedelta, timezone
+
 from app.models.user import User
 from app.models.verification import Verification
 from app.utils.security import hash_password
 from tests.conftest import create_test_token
-
-Feature: tier-system-rbac
-Tests validate analytics summary and dashboard activity endpoints.
-"""
 
 
 class TestAnalyticsSummaryEndpoint:
