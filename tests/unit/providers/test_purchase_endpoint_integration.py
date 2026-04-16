@@ -76,7 +76,7 @@ def test_purchase_us_routes_textverified(auth_client, db, funded_user, test_user
     result = _make_purchase_result(provider="textverified")
 
     with patch(
-        "app.api.verification.purchase_endpoints.ProviderRouter"
+        "app.services.providers.provider_router.ProviderRouter"
     ) as MockRouter, patch(
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
@@ -143,7 +143,7 @@ def test_purchase_gb_routes_fivesim(auth_client, db, funded_user, test_user_id):
     result.routing_reason = "country=GB"
 
     with patch(
-        "app.api.verification.purchase_endpoints.ProviderRouter"
+        "app.services.providers.provider_router.ProviderRouter"
     ) as MockRouter, patch(
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
@@ -207,7 +207,7 @@ def test_verification_record_provider_field(auth_client, db, funded_user, test_u
     result.routing_reason = "country=DE"
 
     with patch(
-        "app.api.verification.purchase_endpoints.ProviderRouter"
+        "app.services.providers.provider_router.ProviderRouter"
     ) as MockRouter, patch(
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
@@ -271,7 +271,7 @@ def test_purchase_failover_success(auth_client, db, funded_user, test_user_id):
     result.fallback_applied = True
 
     with patch(
-        "app.api.verification.purchase_endpoints.ProviderRouter"
+        "app.services.providers.provider_router.ProviderRouter"
     ) as MockRouter, patch(
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
@@ -326,7 +326,7 @@ def test_purchase_failover_success(auth_client, db, funded_user, test_user_id):
 def test_purchase_business_error_no_failover(auth_client, funded_user, test_user_id):
     """RuntimeError with 'no inventory' must surface as 503, not silently failover."""
     with patch(
-        "app.api.verification.purchase_endpoints.ProviderRouter"
+        "app.services.providers.provider_router.ProviderRouter"
     ) as MockRouter, patch(
         "app.api.verification.purchase_endpoints.PricingCalculator"
     ) as MockPricing, patch(
