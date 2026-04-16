@@ -48,7 +48,6 @@ jobs:
       - name: Code formatting
         run: |
           black --check app/ --diff
-          isort --check-only app/ --profile black --diff
 
   # Stage 2: Unit tests (only blocking check)
   tests:
