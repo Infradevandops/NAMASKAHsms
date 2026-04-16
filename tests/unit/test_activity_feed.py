@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for activity feed system."""
 
 from datetime import datetime, timedelta, timezone

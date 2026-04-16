@@ -1,5 +1,3 @@
-
-
 import uuid
 import pytest
 from sqlalchemy.orm import Session
@@ -43,13 +41,13 @@ def freemium_user_with_bonus(db: Session):
 
 
 class TestVerificationPricingService:
-
     """Test verification pricing service."""
 
     def test_validate_and_calculate_cost(self, db: Session, pro_user: User):
         """Test cost calculation."""
         cost_info = VerificationPricingService.validate_and_calculate_cost(
-        db, pro_user.id)
+            db, pro_user.id
+        )
         assert cost_info["total_cost"] > 0
         assert cost_info["tier"] == "pro"
 
@@ -59,8 +57,7 @@ class TestVerificationPricingService:
         db.commit()
 
         with pytest.raises(ValueError, match="Insufficient balance"):
-            VerificationPricingService.validate_and_calculate_cost(
-            db, pro_user.id)
+            VerificationPricingService.validate_and_calculate_cost(db, pro_user.id)
 
     def test_deduct_cost_pro(self, db: Session, pro_user: User):
         """Test cost deduction for pro user."""
@@ -70,75 +67,67 @@ class TestVerificationPricingService:
         pro_user = db.query(User).filter(User.id == pro_user.id).first()
         assert pro_user.credits == initial_balance - 2.50
 
-    def test_deduct_cost_freemium(
-    self,
-    db: Session,
-     freemium_user_with_bonus: User):
+    def test_deduct_cost_freemium(self, db: Session, freemium_user_with_bonus: User):
         """Test cost deduction for freemium user."""
         initial_bonus = freemium_user_with_bonus.bonus_sms_balance
-        VerificationPricingService.deduct_cost(
-        db, freemium_user_with_bonus.id, 2.50)
+        VerificationPricingService.deduct_cost(db, freemium_user_with_bonus.id, 2.50)
 
-        freemium_user = db.query(User).filter(
-    User.id == freemium_user_with_bonus.id).first()
+        freemium_user = (
+            db.query(User).filter(User.id == freemium_user_with_bonus.id).first()
+        )
         assert freemium_user.bonus_sms_balance == initial_bonus - 1
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
         """Test pricing breakdown."""
-        breakdown = VerificationPricingService.get_pricing_breakdown(
-        db, pro_user.id)
+        breakdown = VerificationPricingService.get_pricing_breakdown(db, pro_user.id)
         assert breakdown["tier"] == "pro"
         assert breakdown["quota_limit"] == 15.0
         assert breakdown["user_balance"] == 100.0
 
 
 class TestAPIKeyService:
-
     """Test API key service."""
 
     def test_can_create_key_freemium(self, db: Session, freemium_user_with_bonus: User):
-
         """Test freemium cannot create keys."""
         service = APIKeyService(db)
         assert service.can_create_key(freemium_user_with_bonus.id) is False
 
     def test_can_create_key_pro(self, db: Session, pro_user: User):
-
         """Test pro can create keys."""
         service = APIKeyService(db)
         assert service.can_create_key(pro_user.id) is True
 
     def test_get_remaining_keys_pro(self, db: Session, pro_user: User):
-
         """Test remaining keys for pro."""
         service = APIKeyService(db)
         remaining = service.get_remaining_keys(pro_user.id)
         assert remaining == 10
 
-    def test_get_remaining_keys_freemium(self, db: Session, freemium_user_with_bonus: User):
-
+    def test_get_remaining_keys_freemium(
+        self, db: Session, freemium_user_with_bonus: User
+    ):
         """Test remaining keys for freemium."""
         service = APIKeyService(db)
         remaining = service.get_remaining_keys(freemium_user_with_bonus.id)
         assert remaining == 0
 
     def test_create_key_pro(self, db: Session, pro_user: User):
-
         """Test creating key for pro user."""
         service = APIKeyService(db)
         raw_key, api_key = service.generate_api_key(pro_user.id, name="Test Key")
         assert api_key.name == "Test Key"
         assert raw_key is not None
 
-    def test_create_key_freemium_fails(self, db: Session, freemium_user_with_bonus: User):
-
+    def test_create_key_freemium_fails(
+        self, db: Session, freemium_user_with_bonus: User
+    ):
         """Test creating key for freemium fails."""
         service = APIKeyService(db)
         with pytest.raises(ValueError, match="API key limit reached"):
             service.generate_api_key(freemium_user_with_bonus.id)
 
     def test_create_key_limit_reached(self, db: Session, pro_user: User):
-
         """Test key limit enforcement."""
         service = APIKeyService(db)
         for i in range(10):
@@ -149,29 +138,28 @@ class TestAPIKeyService:
 
 
 class TestTransactionService:
-
     """Test transaction logging."""
 
     def test_log_sms_purchase(self, db: Session, pro_user: User):
-
         """Test logging SMS purchase."""
-        tx_id = TransactionService.log_sms_purchase(db, pro_user.id, 2.50, "pro", "telegram")
+        tx_id = TransactionService.log_sms_purchase(
+            db, pro_user.id, 2.50, "pro", "telegram"
+        )
         assert tx_id is not None
 
     def test_log_api_key_creation(self, db: Session, pro_user: User):
-
         """Test logging API key creation."""
         tx_id = TransactionService.log_api_key_creation(db, pro_user.id, "key-123")
         assert tx_id is not None
 
     def test_log_filter_charge(self, db: Session, pro_user: User):
-
         """Test logging filter charge."""
-        tx_id = TransactionService.log_filter_charge(db, pro_user.id, 0.25, "state", "payg")
+        tx_id = TransactionService.log_filter_charge(
+            db, pro_user.id, 0.25, "state", "payg"
+        )
         assert tx_id is not None
 
     def test_log_overage_charge(self, db: Session, pro_user: User):
-
         """Test logging overage charge."""
         tx_id = TransactionService.log_overage_charge(db, pro_user.id, 1.50, "pro")
         assert tx_id is not None

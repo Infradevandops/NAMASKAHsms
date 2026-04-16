@@ -1,4 +1,5 @@
 """Utility Module Tests - Comprehensive Coverage."""
+
 import json
 import re
 import secrets

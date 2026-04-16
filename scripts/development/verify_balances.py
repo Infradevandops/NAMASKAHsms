@@ -33,7 +33,7 @@ for user in users:
     print(f"   Transactions:     {len(transactions)}")
 
 if abs(user.credits - calculated) > 0.01:
-        print(f"   ⚠️  MISMATCH: ${abs(user.credits - calculated):.2f}")
+    print(f"   ⚠️  MISMATCH: ${abs(user.credits - calculated):.2f}")
 
 print("\n" + "=" * 70)
 print(f"Total Users: {len(users)}")

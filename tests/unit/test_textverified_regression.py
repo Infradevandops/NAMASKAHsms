@@ -11,13 +11,17 @@ from unittest.mock import AsyncMock, MagicMock, patch, call
 
 def _make_service():
     """Create TextVerifiedService with mocked client."""
-    with patch.dict("os.environ", {
-        "TEXTVERIFIED_API_KEY": "test-key",
-        "TEXTVERIFIED_EMAIL": "test@example.com",
-    }):
+    with patch.dict(
+        "os.environ",
+        {
+            "TEXTVERIFIED_API_KEY": "test-key",
+            "TEXTVERIFIED_EMAIL": "test@example.com",
+        },
+    ):
         with patch("app.services.textverified_service.textverified") as mock_tv_module:
             mock_tv_module.TextVerified.return_value = MagicMock()
             from app.services.textverified_service import TextVerifiedService
+
             svc = TextVerifiedService()
             svc.enabled = True
             svc.client = MagicMock()
@@ -25,6 +29,7 @@ def _make_service():
 
 
 # ── Deviation 1: poll_sms_standard uses TV object, not string ID ──────────────
+
 
 @pytest.mark.asyncio
 async def test_poll_sms_standard_uses_tv_object():
@@ -42,7 +47,9 @@ async def test_poll_sms_standard_uses_tv_object():
 
     def _mock_incoming(data, since, timeout, polling_interval):
         # Verify data is the object, not a string
-        assert not isinstance(data, str), "sms.incoming() received a string ID instead of TV object"
+        assert not isinstance(
+            data, str
+        ), "sms.incoming() received a string ID instead of TV object"
         assert data is tv_obj
         yield received_sms
 
@@ -55,6 +62,7 @@ async def test_poll_sms_standard_uses_tv_object():
 
 
 # ── Deviation 2: parsed_code used first, regex is fallback ───────────────────
+
 
 @pytest.mark.asyncio
 async def test_poll_sms_standard_parsed_code_first():
@@ -82,6 +90,7 @@ async def test_poll_sms_standard_parsed_code_first():
 
 # ── Deviation 2b: regex fallback handles hyphenated codes ────────────────────
 
+
 @pytest.mark.asyncio
 async def test_poll_sms_standard_regex_fallback_hyphenated():
     """When parsed_code is empty, regex must handle hyphenated codes like 806-185."""
@@ -108,6 +117,7 @@ async def test_poll_sms_standard_regex_fallback_hyphenated():
 
 # ── Deviation 3: create_verification returns ends_at and tv_object ────────────
 
+
 @pytest.mark.asyncio
 async def test_create_verification_returns_ends_at_and_tv_object():
     """create_verification must return ends_at and tv_object in result dict."""
@@ -119,17 +129,26 @@ async def test_create_verification_returns_ends_at_and_tv_object():
     mock_result.total_cost = 2.22
     mock_result.ends_at = datetime.now(timezone.utc) + timedelta(minutes=10)
 
-    with patch("asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result), \
-         patch.object(svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415"]), \
-         patch.object(svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}):
+    with patch(
+        "asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result
+    ), patch.object(
+        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415"]
+    ), patch.object(
+        svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
+    ):
 
         from app.services.phone_validator import PhoneValidator
         from app.services.carrier_lookup import CarrierLookupService
 
-        with patch.object(PhoneValidator, "validate_mobile", return_value={"is_mobile": True, "is_voip": False}), \
-             patch.object(CarrierLookupService, "__init__", return_value=None):
+        with patch.object(
+            PhoneValidator,
+            "validate_mobile",
+            return_value={"is_mobile": True, "is_voip": False},
+        ), patch.object(CarrierLookupService, "__init__", return_value=None):
 
-            with patch("app.services.textverified_service.CarrierLookupService") as MockCL:
+            with patch(
+                "app.services.textverified_service.CarrierLookupService"
+            ) as MockCL:
                 MockCL.return_value.enabled = False
 
                 result = await svc.create_verification(
@@ -146,6 +165,7 @@ async def test_create_verification_returns_ends_at_and_tv_object():
 
 # ── Deviation 5: report_verification called on timeout ───────────────────────
 
+
 @pytest.mark.asyncio
 async def test_report_verification_called_on_timeout():
     """report_verification must be called when verification times out."""
@@ -159,6 +179,7 @@ async def test_report_verification_called_on_timeout():
 
 
 # ── Deviation 6: ends_at used for real timeout ───────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_poll_sms_standard_uses_ends_at_for_timeout():
@@ -183,6 +204,7 @@ async def test_poll_sms_standard_uses_ends_at_for_timeout():
 
 # ── Deviation: get_sms filters stale SMS via created_after ───────────────────
 
+
 @pytest.mark.asyncio
 async def test_get_sms_filters_stale_messages():
     """get_sms must reject SMS received before verification was created."""
@@ -202,7 +224,9 @@ async def test_get_sms_filters_stale_messages():
     fresh_sms.sms_content = "Your code is 999999"
     fresh_sms.parsed_code = "999999"
 
-    with patch("asyncio.to_thread", new_callable=AsyncMock, return_value=[stale_sms, fresh_sms]):
+    with patch(
+        "asyncio.to_thread", new_callable=AsyncMock, return_value=[stale_sms, fresh_sms]
+    ):
         result = await svc.get_sms("tv-act-123", created_after=created_at)
 
     assert result["success"] is True
@@ -229,6 +253,7 @@ async def test_get_sms_returns_pending_when_all_stale():
 
 # ── Deviation: area code fallback same-state detection ───────────────────────
 
+
 @pytest.mark.asyncio
 async def test_area_code_fallback_same_state():
     """When area code falls back, same_state_fallback must be True for same-state codes."""
@@ -243,14 +268,25 @@ async def test_area_code_fallback_same_state():
     # Both 415 and 408 are in CA
     by_state = {"CA": ["415", "408", "510"]}
 
-    with patch("asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result), \
-         patch.object(svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=["415", "408"]), \
-         patch.object(svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value=by_state):
+    with patch(
+        "asyncio.to_thread", new_callable=AsyncMock, return_value=mock_result
+    ), patch.object(
+        svc,
+        "_build_area_code_preference",
+        new_callable=AsyncMock,
+        return_value=["415", "408"],
+    ), patch.object(
+        svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value=by_state
+    ):
 
-        with patch("app.services.textverified_service.PhoneValidator") as MockPV, \
-             patch("app.services.textverified_service.CarrierLookupService") as MockCL:
+        with patch("app.services.textverified_service.PhoneValidator") as MockPV, patch(
+            "app.services.textverified_service.CarrierLookupService"
+        ) as MockCL:
 
-            MockPV.return_value.validate_mobile.return_value = {"is_mobile": True, "is_voip": False}
+            MockPV.return_value.validate_mobile.return_value = {
+                "is_mobile": True,
+                "is_voip": False,
+            }
             MockCL.return_value.enabled = False
 
             result = await svc.create_verification(
@@ -266,6 +302,7 @@ async def test_area_code_fallback_same_state():
 
 
 # ── Deviation: VOIP rejection ─────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_voip_rejection_triggers_retry():
@@ -293,13 +330,17 @@ async def test_voip_rejection_triggers_retry():
             return voip_result
         return mobile_result
 
-    with patch("asyncio.to_thread", side_effect=_mock_to_thread), \
-         patch.object(svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=None), \
-         patch.object(svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}), \
-         patch.object(svc, "_cancel_safe", new_callable=AsyncMock, return_value=True):
+    with patch("asyncio.to_thread", side_effect=_mock_to_thread), patch.object(
+        svc, "_build_area_code_preference", new_callable=AsyncMock, return_value=None
+    ), patch.object(
+        svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
+    ), patch.object(
+        svc, "_cancel_safe", new_callable=AsyncMock, return_value=True
+    ):
 
-        with patch("app.services.textverified_service.PhoneValidator") as MockPV, \
-             patch("app.services.textverified_service.CarrierLookupService") as MockCL:
+        with patch("app.services.textverified_service.PhoneValidator") as MockPV, patch(
+            "app.services.textverified_service.CarrierLookupService"
+        ) as MockCL:
 
             # First call returns VOIP, second returns mobile
             MockPV.return_value.validate_mobile.side_effect = [
@@ -319,6 +360,7 @@ async def test_voip_rejection_triggers_retry():
 
 
 # ── Deviation: carrier preference applied ────────────────────────────────────
+
 
 def test_carrier_preference_applied():
     """_build_carrier_preference must return normalized carrier as first element."""

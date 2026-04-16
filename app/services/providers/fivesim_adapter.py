@@ -12,7 +12,11 @@ import httpx
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.services.providers.base_provider import MessageResult, PurchaseResult, SMSProvider
+from app.services.providers.base_provider import (
+    MessageResult,
+    PurchaseResult,
+    SMSProvider,
+)
 from app.services.providers.provider_errors import ProviderError
 
 logger = get_logger(__name__)
@@ -88,11 +92,15 @@ class FiveSimAdapter(SMSProvider):
         try:
             country_name = await self._map_country(country)
             if not country_name:
-                raise ProviderError("unsupported_country", f"5sim: no mapping for {country}")
+                raise ProviderError(
+                    "unsupported_country", f"5sim: no mapping for {country}"
+                )
 
             service_name = await self._map_service(service)
             if not service_name:
-                raise ProviderError("unsupported_service", f"5sim: no mapping for {service}")
+                raise ProviderError(
+                    "unsupported_service", f"5sim: no mapping for {service}"
+                )
 
             # Get best operator if not specified
             operator = carrier or await self._get_best_operator(
@@ -110,13 +118,17 @@ class FiveSimAdapter(SMSProvider):
             cost = float(data.get("price", 0.0))
 
             if not phone_number:
-                raise ProviderError("malformed_response", "5sim: no phone number in response")
+                raise ProviderError(
+                    "malformed_response", "5sim: no phone number in response"
+                )
 
             return PurchaseResult(
                 phone_number=f"+{phone_number}",
                 order_id=order_id,
                 cost=cost,
-                expires_at=(datetime.now(timezone.utc) + timedelta(minutes=20)).isoformat(),
+                expires_at=(
+                    datetime.now(timezone.utc) + timedelta(minutes=20)
+                ).isoformat(),
                 provider="5sim",
                 operator=operator,
                 area_code_matched=True,
@@ -129,7 +141,11 @@ class FiveSimAdapter(SMSProvider):
                 same_state_fallback=True,
                 retry_attempts=0,
                 routing_reason=f"5sim_country={country}_operator={operator}",
-                metadata={"5sim_id": order_id, "country": country_name, "operator": operator},
+                metadata={
+                    "5sim_id": order_id,
+                    "country": country_name,
+                    "operator": operator,
+                },
                 city_honoured=True,  # 5sim never receives city — nothing to dishonour
                 city_note=None,
             )
@@ -144,7 +160,10 @@ class FiveSimAdapter(SMSProvider):
             raise ProviderError("provider_unreachable", f"5sim unreachable: {e}")
         except httpx.HTTPStatusError as e:
             logger.error(f"5sim HTTP {e.response.status_code} for {country}: {e}")
-            raise ProviderError("no_inventory_country", f"5sim HTTP {e.response.status_code} for {country}")
+            raise ProviderError(
+                "no_inventory_country",
+                f"5sim HTTP {e.response.status_code} for {country}",
+            )
         except httpx.HTTPError as e:
             logger.error(f"5sim API error for {country}: {e}")
             raise ProviderError("provider_unreachable", f"5sim API error: {e}")
@@ -160,9 +179,7 @@ class FiveSimAdapter(SMSProvider):
             return []
 
         try:
-            response = await self.client.get(
-                f"{self.base_url}/user/check/{order_id}"
-            )
+            response = await self.client.get(f"{self.base_url}/user/check/{order_id}")
             response.raise_for_status()
             data = response.json()
 
@@ -175,7 +192,9 @@ class FiveSimAdapter(SMSProvider):
                     for sms in sms_list:
                         text = sms.get("text", "")
                         code = sms.get("code", "") or self._extract_code(text)
-                        received_at = sms.get("created_at", datetime.now(timezone.utc).isoformat())
+                        received_at = sms.get(
+                            "created_at", datetime.now(timezone.utc).isoformat()
+                        )
 
                         messages.append(
                             MessageResult(
@@ -205,9 +224,7 @@ class FiveSimAdapter(SMSProvider):
 
         try:
             # 5sim: Cancel activation to get refund
-            response = await self.client.get(
-                f"{self.base_url}/user/cancel/{order_id}"
-            )
+            response = await self.client.get(f"{self.base_url}/user/cancel/{order_id}")
             response.raise_for_status()
             logger.info(f"Reported failed 5sim activation {order_id}")
             return True

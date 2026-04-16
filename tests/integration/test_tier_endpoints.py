@@ -64,11 +64,16 @@ class TestUpgradeTier:
             "payment_id": "ref_test123",
             "access_code": "acc_test",
         }
-        with patch("app.api.billing.tier_endpoints.TierManager") as MockTM, \
-             patch("app.api.billing.tier_endpoints.PaymentService") as MockPS:
+        with patch("app.api.billing.tier_endpoints.TierManager") as MockTM, patch(
+            "app.api.billing.tier_endpoints.PaymentService"
+        ) as MockPS:
             MockTM.return_value.get_user_tier.return_value = "freemium"
-            MockPS.return_value.initialize_payment = AsyncMock(return_value=mock_payment)
-            with patch("app.api.billing.tier_endpoints.TierConfig.get_tier_config") as mock_cfg:
+            MockPS.return_value.initialize_payment = AsyncMock(
+                return_value=mock_payment
+            )
+            with patch(
+                "app.api.billing.tier_endpoints.TierConfig.get_tier_config"
+            ) as mock_cfg:
                 mock_cfg.return_value = {"monthly_fee_usd": 25.0}
                 resp = client.post("/api/billing/tiers/upgrade?target_tier=pro")
 
@@ -92,9 +97,11 @@ class TestUpgradeTier:
                 "access_code": "acc_x",
             }
 
-        with patch("app.api.billing.tier_endpoints.TierManager") as MockTM, \
-             patch("app.api.billing.tier_endpoints.PaymentService") as MockPS, \
-             patch("app.api.billing.tier_endpoints.TierConfig.get_tier_config") as mock_cfg:
+        with patch("app.api.billing.tier_endpoints.TierManager") as MockTM, patch(
+            "app.api.billing.tier_endpoints.PaymentService"
+        ) as MockPS, patch(
+            "app.api.billing.tier_endpoints.TierConfig.get_tier_config"
+        ) as mock_cfg:
             MockTM.return_value.get_user_tier.return_value = "freemium"
             MockPS.return_value.initialize_payment = capture_payment
             mock_cfg.return_value = {"monthly_fee_usd": 25.0}
@@ -123,9 +130,12 @@ class TestCancelSubscription:
 
     def test_cancel_clears_renews_at(self, engine, db):
         from app.models.user_preference import UserPreference
+
         user = _create_user(
-            db, "cancel-user-1", "pro",
-            expires_at=datetime.now(timezone.utc) + timedelta(days=20)
+            db,
+            "cancel-user-1",
+            "pro",
+            expires_at=datetime.now(timezone.utc) + timedelta(days=20),
         )
         pref = UserPreference(
             user_id=user.id,

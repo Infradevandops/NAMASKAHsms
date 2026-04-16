@@ -30,7 +30,12 @@ async def check_textverified_health() -> dict:
         return {"provider": "textverified", "status": "ok", "balance": balance}
     except Exception as e:
         logger.error(f"TextVerified health check failed: {e}")
-        return {"provider": "textverified", "status": "error", "balance": None, "error": str(e)}
+        return {
+            "provider": "textverified",
+            "status": "error",
+            "balance": None,
+            "error": str(e),
+        }
 
 
 async def check_telnyx_health() -> dict:
@@ -40,7 +45,9 @@ async def check_telnyx_health() -> dict:
     adapter = TelnyxAdapter()
 
     if not adapter.enabled:
-        logger.info("Telnyx not configured — TELNYX_API_KEY not set (optional provider)")
+        logger.info(
+            "Telnyx not configured — TELNYX_API_KEY not set (optional provider)"
+        )
         return {"provider": "telnyx", "status": "disabled", "balance": None}
 
     try:
@@ -49,7 +56,12 @@ async def check_telnyx_health() -> dict:
         return {"provider": "telnyx", "status": "ok", "balance": balance}
     except Exception as e:
         logger.warning(f"Telnyx health check failed (non-critical): {e}")
-        return {"provider": "telnyx", "status": "error", "balance": None, "error": str(e)}
+        return {
+            "provider": "telnyx",
+            "status": "error",
+            "balance": None,
+            "error": str(e),
+        }
 
 
 async def check_fivesim_health() -> dict:
@@ -78,7 +90,9 @@ async def check_pvapins_health() -> dict:
     adapter = PVAPinsAdapter()
 
     if not adapter.enabled:
-        logger.info("PVApins not configured — PVAPINS_API_KEY not set (optional provider)")
+        logger.info(
+            "PVApins not configured — PVAPINS_API_KEY not set (optional provider)"
+        )
         return {"provider": "pvapins", "status": "disabled", "balance": None}
 
     # PVApins has no balance endpoint — just confirm key is set

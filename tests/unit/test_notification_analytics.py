@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for notification analytics system."""
 
 from datetime import datetime, timezone

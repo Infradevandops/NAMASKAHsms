@@ -34,6 +34,7 @@ def info(label, value):
 
 # ── TELNYX ────────────────────────────────────────────────────────────────────
 
+
 async def probe_telnyx():
     section("TELNYX")
     headers = {
@@ -154,6 +155,7 @@ async def probe_telnyx():
 
 # ── 5SIM ──────────────────────────────────────────────────────────────────────
 
+
 async def probe_fivesim():
     section("5SIM")
     headers = {
@@ -194,7 +196,10 @@ async def probe_fivesim():
             if isinstance(d, dict) and d:
                 ok("GB whatsapp operators", f"{len(d)} operators")
                 for op, data in list(d.items())[:3]:
-                    info(f"  {op}", f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}")
+                    info(
+                        f"  {op}",
+                        f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}",
+                    )
             else:
                 fail("GB whatsapp operators", f"empty or error: {d}")
         except Exception as e:
@@ -210,7 +215,10 @@ async def probe_fivesim():
             if isinstance(d, dict) and d:
                 ok("DE telegram operators", f"{len(d)} operators")
                 for op, data in list(d.items())[:3]:
-                    info(f"  {op}", f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}")
+                    info(
+                        f"  {op}",
+                        f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}",
+                    )
             else:
                 fail("DE telegram operators", f"empty or error: {d}")
         except Exception as e:
@@ -226,7 +234,10 @@ async def probe_fivesim():
             if isinstance(d, dict) and d:
                 ok("US google operators", f"{len(d)} operators")
                 for op, data in list(d.items())[:3]:
-                    info(f"  {op}", f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}")
+                    info(
+                        f"  {op}",
+                        f"cost=${data.get('Cost', data.get('cost', '?'))} count={data.get('Count', data.get('count', '?'))}",
+                    )
             else:
                 fail("US google operators", f"empty or error: {d}")
         except Exception as e:
@@ -234,6 +245,7 @@ async def probe_fivesim():
 
 
 # ── TEXTVERIFIED ──────────────────────────────────────────────────────────────
+
 
 async def probe_textverified():
     section("TEXTVERIFIED")
@@ -303,6 +315,7 @@ async def probe_textverified():
 
 
 # ── MAIN ──────────────────────────────────────────────────────────────────────
+
 
 async def main():
     print("\nPROVIDER PROBE — testing all three APIs")

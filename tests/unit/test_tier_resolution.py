@@ -99,7 +99,6 @@ class TestGetUserTier:
         tm = TierManager(db)
         assert tm.get_user_tier("does-not-exist") == "freemium"
 
-
     def test_reads_fresh_data_not_stale_session(self, db):
         """Simulate the race: tier is 'custom' in DB but session has stale object."""
         user = _create_user(db, tier="custom")
@@ -120,26 +119,31 @@ class TestGetUserTier:
 
 class TestCheckFeatureAccess:
 
-    @pytest.mark.parametrize("tier,feature,expected", [
-        ("freemium", "area_code_selection", False),
-        ("freemium", "isp_filtering", False),
-        ("freemium", "api_access", False),
-        ("payg", "area_code_selection", True),
-        ("payg", "isp_filtering", True),
-        ("payg", "api_access", False),
-        ("pro", "area_code_selection", True),
-        ("pro", "isp_filtering", True),
-        ("pro", "api_access", True),
-        ("custom", "area_code_selection", True),
-        ("custom", "isp_filtering", True),
-        ("custom", "api_access", True),
-    ])
+    @pytest.mark.parametrize(
+        "tier,feature,expected",
+        [
+            ("freemium", "area_code_selection", False),
+            ("freemium", "isp_filtering", False),
+            ("freemium", "api_access", False),
+            ("payg", "area_code_selection", True),
+            ("payg", "isp_filtering", True),
+            ("payg", "api_access", False),
+            ("pro", "area_code_selection", True),
+            ("pro", "isp_filtering", True),
+            ("pro", "api_access", True),
+            ("custom", "area_code_selection", True),
+            ("custom", "isp_filtering", True),
+            ("custom", "api_access", True),
+        ],
+    )
     def test_feature_matrix(self, db, tier, feature, expected):
         user = _create_user(db, tier=tier)
         tm = TierManager(db)
 
         result = tm.check_feature_access(user.id, feature)
-        assert result == expected, f"{tier}/{feature}: expected {expected}, got {result}"
+        assert (
+            result == expected
+        ), f"{tier}/{feature}: expected {expected}, got {result}"
 
 
 # ── check_tier_hierarchy ─────────────────────────────────────────────────────
@@ -147,20 +151,25 @@ class TestCheckFeatureAccess:
 
 class TestTierHierarchy:
 
-    @pytest.mark.parametrize("current,required,expected", [
-        ("custom", "custom", True),
-        ("custom", "pro", True),
-        ("custom", "payg", True),
-        ("custom", "freemium", True),
-        ("pro", "custom", False),
-        ("payg", "pro", False),
-        ("freemium", "payg", False),
-        ("freemium", "freemium", True),
-    ])
+    @pytest.mark.parametrize(
+        "current,required,expected",
+        [
+            ("custom", "custom", True),
+            ("custom", "pro", True),
+            ("custom", "payg", True),
+            ("custom", "freemium", True),
+            ("pro", "custom", False),
+            ("payg", "pro", False),
+            ("freemium", "payg", False),
+            ("freemium", "freemium", True),
+        ],
+    )
     def test_hierarchy(self, current, required, expected):
         from app.services.tier_manager import TierManager
+
         # hierarchy check is stateless, db not needed
         from unittest.mock import MagicMock
+
         tm = TierManager(MagicMock())
         assert tm.check_tier_hierarchy(current, required) == expected
 

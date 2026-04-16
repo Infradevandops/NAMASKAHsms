@@ -1,4 +1,5 @@
 """Test verification schema changes for v4.4.1."""
+
 import pytest
 from app.models.verification import Verification
 
@@ -157,7 +158,7 @@ def test_can_set_retry_tracking_fields():
         area_code_surcharge=0.25,
         voip_rejected=True,
     )
-    
+
     assert v.retry_attempts == 2
     assert v.area_code_matched is False
     assert v.carrier_matched is False

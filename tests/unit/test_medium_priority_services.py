@@ -9,15 +9,18 @@ from unittest.mock import AsyncMock, MagicMock, patch
 # Issue 10: SMS Gateway
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestSMSGateway:
     @pytest.fixture
     def gateway(self):
         from app.services.sms_gateway import SMSGateway
+
         return SMSGateway(provider="twilio")
 
     @pytest.fixture
     def webhook_gateway(self):
         from app.services.sms_gateway import SMSGateway
+
         return SMSGateway(provider="webhook")
 
     @pytest.mark.asyncio
@@ -29,6 +32,7 @@ class TestSMSGateway:
     @pytest.mark.asyncio
     async def test_send_sms_manual_fallback(self):
         from app.services.sms_gateway import SMSGateway
+
         gw = SMSGateway(provider="unknown")
         result = await gw.send_sms("+12025551234", "test")
         assert result["status"] == "manual"
@@ -36,6 +40,7 @@ class TestSMSGateway:
     @pytest.mark.asyncio
     async def test_send_sms_webhook_success(self, webhook_gateway):
         import httpx
+
         mock_resp = MagicMock(spec=httpx.Response)
         mock_resp.raise_for_status = MagicMock()
 
@@ -61,16 +66,20 @@ class TestSMSGateway:
 # Issue 11: Adaptive Polling
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAdaptivePolling:
     @pytest.fixture
     def service(self):
         from app.services.adaptive_polling import AdaptivePollingService
+
         return AdaptivePollingService()
 
     def _make_db(self, verifications):
         db = MagicMock()
         db.query.return_value.filter.return_value = db.query.return_value
-        db.query.return_value.filter.return_value.filter.return_value = db.query.return_value
+        db.query.return_value.filter.return_value.filter.return_value = (
+            db.query.return_value
+        )
         db.query.return_value.all.return_value = verifications
         return db
 
@@ -91,22 +100,25 @@ class TestAdaptivePolling:
         assert result == 5.0
 
     def test_get_optimal_interval_fast_completions(self, service):
-        verifications = [self._make_verification(seconds_to_complete=15) for _ in range(5)]
+        verifications = [
+            self._make_verification(seconds_to_complete=15) for _ in range(5)
+        ]
         db = self._make_db(verifications)
         result = service.get_optimal_interval(db)
         assert 5 <= result <= 30
 
     def test_get_optimal_interval_slow_completions(self, service):
-        verifications = [self._make_verification(seconds_to_complete=90) for _ in range(5)]
+        verifications = [
+            self._make_verification(seconds_to_complete=90) for _ in range(5)
+        ]
         db = self._make_db(verifications)
         result = service.get_optimal_interval(db)
         assert 5 <= result <= 30
 
     def test_should_increase_interval_low_success(self, service):
-        verifications = (
-            [self._make_verification(status="completed")] * 3 +
-            [self._make_verification(status="timeout")] * 7
-        )
+        verifications = [self._make_verification(status="completed")] * 3 + [
+            self._make_verification(status="timeout")
+        ] * 7
         db = self._make_db(verifications)
         assert service.should_increase_interval(db) is True
 
@@ -126,10 +138,9 @@ class TestAdaptivePolling:
         assert service.should_decrease_interval(db) is True
 
     def test_should_decrease_interval_low_success(self, service):
-        verifications = (
-            [self._make_verification(status="completed")] * 5 +
-            [self._make_verification(status="timeout")] * 5
-        )
+        verifications = [self._make_verification(status="completed")] * 5 + [
+            self._make_verification(status="timeout")
+        ] * 5
         db = self._make_db(verifications)
         assert service.should_decrease_interval(db) is False
 
@@ -146,6 +157,7 @@ class TestAdaptivePolling:
 # Issue 12: Availability Service
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestAvailabilityService:
     @pytest.fixture
     def db(self):
@@ -154,6 +166,7 @@ class TestAvailabilityService:
     @pytest.fixture
     def service(self, db):
         from app.services.availability_service import AvailabilityService
+
         return AvailabilityService(db)
 
     def _make_verifications(self, completed=8, total=10):
@@ -163,70 +176,89 @@ class TestAvailabilityService:
             v = MagicMock()
             v.status = "completed" if i < completed else "timeout"
             v.created_at = now - timedelta(minutes=30)
-            v.completed_at = now - timedelta(minutes=25) if v.status == "completed" else None
+            v.completed_at = (
+                now - timedelta(minutes=25) if v.status == "completed" else None
+            )
             verifications.append(v)
         return verifications
 
     def test_get_service_availability_excellent(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = \
-            self._make_verifications(completed=10, total=10)
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = self._make_verifications(
+            completed=10, total=10
+        )
         result = service.get_service_availability("whatsapp")
         assert result["status"] == "excellent"
         assert result["success_rate"] == 100.0
 
     def test_get_service_availability_poor(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = \
-            self._make_verifications(completed=2, total=10)
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = self._make_verifications(
+            completed=2, total=10
+        )
         result = service.get_service_availability("whatsapp")
         assert result["status"] == "poor"
 
     def test_get_service_availability_no_data(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = []
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = (
+            []
+        )
         result = service.get_service_availability("whatsapp")
         assert result["status"] == "unknown"
         assert result["total_attempts"] == 0
 
     def test_get_country_availability(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = \
-            self._make_verifications(completed=9, total=10)
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = self._make_verifications(
+            completed=9, total=10
+        )
         result = service.get_country_availability("US")
         assert result["success_rate"] == 90.0
         assert result["status"] == "excellent"
 
     def test_get_carrier_availability_no_data(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = []
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = (
+            []
+        )
         result = service.get_carrier_availability("verizon")
         assert result["status"] == "unknown"
 
     def test_get_area_code_availability(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = \
-            self._make_verifications(completed=8, total=10)
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = self._make_verifications(
+            completed=8, total=10
+        )
         result = service.get_area_code_availability("415")
         assert result["success_rate"] == 80.0
 
     def test_get_availability_summary(self, service, db):
-        db.query.return_value.filter.return_value.filter.return_value.all.return_value = \
-            self._make_verifications(completed=9, total=10)
+        db.query.return_value.filter.return_value.filter.return_value.all.return_value = self._make_verifications(
+            completed=9, total=10
+        )
         result = service.get_availability_summary("whatsapp", "US")
         assert "service" in result
         assert "country" in result
         assert "overall" in result
-        assert result["overall"]["recommendation"] in ("excellent", "good", "fair", "poor")
+        assert result["overall"]["recommendation"] in (
+            "excellent",
+            "good",
+            "fair",
+            "poor",
+        )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Issue 13: Business Intelligence
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestBusinessIntelligence:
     @pytest.fixture
     def service(self):
         from app.services.business_intelligence import BusinessIntelligenceService
+
         db = MagicMock()
         return BusinessIntelligenceService(db)
 
     def test_service_instantiates(self):
         from app.services.business_intelligence import BusinessIntelligenceService
+
         db = MagicMock()
         svc = BusinessIntelligenceService(db)
         assert svc is not None
@@ -239,10 +271,12 @@ class TestBusinessIntelligence:
 # Issue 14: Event Broadcaster
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestEventBroadcaster:
     @pytest.fixture
     def broadcaster(self):
         from app.services.event_broadcaster import EventBroadcaster
+
         return EventBroadcaster()
 
     @pytest.mark.asyncio

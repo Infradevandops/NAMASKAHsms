@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for email notification system."""
 
 from unittest.mock import AsyncMock, patch

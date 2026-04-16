@@ -186,6 +186,7 @@ class TestAuthService:
 
     def test_get_user_api_keys(self, auth_service, db_session):
         import uuid
+
         user = User(
             email=f"{uuid.uuid4().hex[:8]}@example.com",
             password_hash="$2b$12$test_hash",

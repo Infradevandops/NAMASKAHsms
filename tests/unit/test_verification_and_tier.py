@@ -43,12 +43,15 @@ class TestCreateVerification:
         regular_user.credits = 0.5
         db.commit()
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as MockTV:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as MockTV:
             tv = MockTV.return_value
             tv.enabled = True
 
             from app.core.dependencies import get_current_user_id
             from main import app
+
             app.dependency_overrides[get_current_user_id] = lambda: regular_user.id
 
             response = client.post(
@@ -64,7 +67,9 @@ class TestCreateVerification:
         from app.core.dependencies import get_current_user_id
         from main import app
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as MockTV:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as MockTV:
             tv = MockTV.return_value
             tv.enabled = False
 
@@ -145,7 +150,9 @@ class TestVerificationStatus:
 
 class TestVerificationSms:
 
-    @pytest.mark.skip(reason="async polling loop hangs in test suite — covered by test_sms_polling.py")
+    @pytest.mark.skip(
+        reason="async polling loop hangs in test suite — covered by test_sms_polling.py"
+    )
     @pytest.mark.asyncio
     async def test_uses_activation_id_not_db_uuid(self, db, regular_user):
         """Polling uses activation_id (TextVerified ID), not the DB UUID."""
@@ -153,6 +160,7 @@ class TestVerificationSms:
         import uuid
 
         from app.models.verification import Verification
+
         ver = Verification(
             id=str(uuid.uuid4()),
             user_id=regular_user.id,
@@ -184,7 +192,9 @@ class TestVerificationSms:
 
         service.textverified.check_sms.assert_called_with("act-xyz")
 
-    @pytest.mark.skip(reason="async polling loop hangs in test suite — covered by test_sms_polling.py")
+    @pytest.mark.skip(
+        reason="async polling loop hangs in test suite — covered by test_sms_polling.py"
+    )
     @pytest.mark.asyncio
     async def test_stores_sms_text_and_code_on_completion(self, db, regular_user):
         """When SMS received, sms_text, sms_code, and status=completed are saved."""
@@ -192,6 +202,7 @@ class TestVerificationSms:
         import uuid
 
         from app.models.verification import Verification
+
         ver = Verification(
             id=str(uuid.uuid4()),
             user_id=regular_user.id,
@@ -208,10 +219,14 @@ class TestVerificationSms:
 
         service = SMSPollingService()
         service.textverified = AsyncMock()
-        service.textverified.check_sms = AsyncMock(return_value={
-            "status": "COMPLETED",
-            "messages": [{"text": "Your code is 9876", "received_at": "2026-01-01T00:00:00Z"}],
-        })
+        service.textverified.check_sms = AsyncMock(
+            return_value={
+                "status": "COMPLETED",
+                "messages": [
+                    {"text": "Your code is 9876", "received_at": "2026-01-01T00:00:00Z"}
+                ],
+            }
+        )
 
         with patch("app.services.sms_polling_service.SessionLocal") as MockSession:
             session_mock = MagicMock(wraps=db)
@@ -257,13 +272,17 @@ class TestTierUpgrade:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = user
 
-        with patch("app.api.billing.tier_endpoints.TierConfig") as MockTC,              patch("app.services.payment_service.PaymentService") as MockPS:
+        with patch("app.api.billing.tier_endpoints.TierConfig") as MockTC, patch(
+            "app.services.payment_service.PaymentService"
+        ) as MockPS:
             MockTC.get_tier_config.return_value = {"monthly_fee_usd": 25.0}
             ps = MockPS.return_value
-            ps.initialize_payment = AsyncMock(return_value={
-                "authorization_url": "https://paystack.com/pay/test",
-                "reference": "ref_test_123",
-            })
+            ps.initialize_payment = AsyncMock(
+                return_value={
+                    "authorization_url": "https://paystack.com/pay/test",
+                    "reference": "ref_test_123",
+                }
+            )
             result = await upgrade_tier(target_tier="pro", user_id="user-1", db=db)
 
         assert result["status"] == "pending_payment"

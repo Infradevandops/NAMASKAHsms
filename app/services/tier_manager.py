@@ -84,7 +84,9 @@ class TierManager:
             "city_filtering": config.get("has_city_filtering", False),
             "precise_city_filtering": config.get("has_precise_city_filtering", False),
             "webhooks": config.get("features", {}).get("webhooks", False),
-            "priority_routing": config.get("features", {}).get("priority_routing", False),
+            "priority_routing": config.get("features", {}).get(
+                "priority_routing", False
+            ),
             "custom_branding": config.get("features", {}).get("custom_branding", False),
         }
 

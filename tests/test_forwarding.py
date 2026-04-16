@@ -1,6 +1,5 @@
 """Tests for SMS Forwarding endpoints."""
 
-
 import pytest
 from fastapi.testclient import TestClient
 from main import app
@@ -48,9 +47,7 @@ def test_configure_webhook_forwarding(client, auth_headers):
     """Should be able to configure webhook forwarding."""
     response = client.post(
         "/api/forwarding/configure",
-        params={
-    "webhook_enabled": True,
-     "webhook_url": "https://example.com/webhook"},
+        params={"webhook_enabled": True, "webhook_url": "https://example.com/webhook"},
         headers=auth_headers,
     )
     assert response.status_code == 200
@@ -93,7 +90,6 @@ def test_invalid_email_format(client, auth_headers):
 
 def test_forwarding_requires_auth_for_all(client):
     """Verify all /api/forwarding endpoints require auth."""
-
 
     for method, path in [
         ("GET", "/api/forwarding"),

@@ -11,7 +11,7 @@ def test_record_sms_purchase():
     """Should record SMS purchase transaction."""
     # Mock database session
     db = MagicMock()
-    
+
     # Record transaction
     result = TransactionService.record_sms_purchase(
         db=db,
@@ -22,13 +22,13 @@ def test_record_sms_purchase():
         old_balance=10.00,
         new_balance=7.50,
         filters={"area_code": "212"},
-        tier="payg"
+        tier="payg",
     )
-    
+
     # Assertions
     db.add.assert_called_once()
     db.flush.assert_called_once()
-    
+
     # Check transaction object
     call_args = db.add.call_args[0][0]
     assert isinstance(call_args, Transaction)
@@ -45,20 +45,20 @@ def test_record_credit_addition():
     """Should record credit addition transaction."""
     # Mock database session
     db = MagicMock()
-    
+
     # Record transaction
     result = TransactionService.record_credit_addition(
         db=db,
         user_id="user123",
         amount=50.00,
         payment_reference="pay_abc123",
-        payment_method="paystack"
+        payment_method="paystack",
     )
-    
+
     # Assertions
     db.add.assert_called_once()
     db.flush.assert_called_once()
-    
+
     # Check transaction object
     call_args = db.add.call_args[0][0]
     assert isinstance(call_args, Transaction)
@@ -73,20 +73,20 @@ def test_record_refund():
     """Should record refund transaction."""
     # Mock database session
     db = MagicMock()
-    
+
     # Record transaction
     result = TransactionService.record_refund(
         db=db,
         user_id="user123",
         amount=2.50,
         verification_id="ver123",
-        reason="VOIP number rejected"
+        reason="VOIP number rejected",
     )
-    
+
     # Assertions
     db.add.assert_called_once()
     db.flush.assert_called_once()
-    
+
     # Check transaction object
     call_args = db.add.call_args[0][0]
     assert isinstance(call_args, Transaction)

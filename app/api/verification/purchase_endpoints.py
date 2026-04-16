@@ -156,11 +156,7 @@ async def request_verification(
 
         # Calculate SMS cost using new pricing system
         # Get pricing for this SMS
-        filters = (
-            {"area_code": area_code, "city": city}
-            if area_code or city
-            else None
-        )
+        filters = {"area_code": area_code, "city": city} if area_code or city else None
         pricing_info = PricingCalculator.calculate_sms_cost(db, user_id, filters)
         sms_cost = pricing_info["total_cost"]
 
@@ -198,7 +194,7 @@ async def request_verification(
 
         # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
-        carrier = getattr(request, 'carrier', None)
+        carrier = getattr(request, "carrier", None)
         city = request.city
 
         if area_code:
@@ -391,6 +387,7 @@ async def request_verification(
             raise
         except Exception as api_error:
             from app.services.providers.provider_errors import ProviderError
+
             db.rollback()
 
             # Translate ProviderError to clean user message (no provider names)
@@ -417,7 +414,9 @@ async def request_verification(
                 try:
                     await tv_service.cancel_verification(textverified_result["id"])
                 except Exception as cancel_error:
-                    logger.error(f"Failed to cancel number after rollback: {cancel_error}")
+                    logger.error(
+                        f"Failed to cancel number after rollback: {cancel_error}"
+                    )
 
             try:
                 await notification_dispatcher.notify_verification_failed(

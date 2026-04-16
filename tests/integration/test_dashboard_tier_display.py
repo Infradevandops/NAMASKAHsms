@@ -35,7 +35,9 @@ class TestDashboardTierEndpoint:
         assert resp.status_code == 200
         assert resp.json()["current_tier"] == "custom"
 
-    def test_admin_with_unknown_tier_returns_custom(self, authenticated_admin_client, db, admin_user):
+    def test_admin_with_unknown_tier_returns_custom(
+        self, authenticated_admin_client, db, admin_user
+    ):
         """Admin with an unrecognised tier value still gets custom via bypass."""
         admin_user.subscription_tier = "unknown_tier"
         db.commit()
@@ -43,7 +45,9 @@ class TestDashboardTierEndpoint:
         assert resp.status_code == 200
         assert resp.json()["current_tier"] == "custom"
 
-    def test_admin_ignores_expired_tier(self, authenticated_admin_client, db, admin_user):
+    def test_admin_ignores_expired_tier(
+        self, authenticated_admin_client, db, admin_user
+    ):
         """Admin bypass must fire before expiry logic — expired date is irrelevant."""
         admin_user.subscription_tier = "custom"
         admin_user.tier_expires_at = datetime.now(timezone.utc) - timedelta(days=30)

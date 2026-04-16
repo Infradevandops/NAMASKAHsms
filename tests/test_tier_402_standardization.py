@@ -1,6 +1,5 @@
 """Tests for standardized 402 tier error responses."""
 
-
 from datetime import datetime
 import pytest
 from fastapi import HTTPException
@@ -39,7 +38,6 @@ def test_raise_tier_error_structure():
 
 
 def test_raise_tier_error_without_user_id():
-
     """Test raise_tier_error works without user_id."""
     with pytest.raises(HTTPException) as exc_info:
         raise_tier_error("Pay-As-You-Go", "Custom")
@@ -50,7 +48,6 @@ def test_raise_tier_error_without_user_id():
 
 
 def test_raise_tier_error_message_format():
-
     """Test error message format is consistent."""
     with pytest.raises(HTTPException) as exc_info:
         raise_tier_error("Freemium", "Pro")

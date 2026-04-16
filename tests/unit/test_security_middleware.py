@@ -41,6 +41,7 @@ def test_csp_header_still_contains_nonce_for_script_src(secured_client):
 
 def test_csp_nonce_changes_per_request(secured_client):
     """Each request must get a fresh nonce — reusing nonces defeats the purpose."""
+
     def extract_nonce(csp: str) -> str:
         for part in csp.split(";"):
             part = part.strip()

@@ -54,9 +54,10 @@ class TestProviderRouter:
 
     def test_fallback_to_textverified_when_no_international_provider(self, router):
         """Should fallback to TextVerified when no international provider available."""
-        with patch.object(router, "_get_fivesim") as mock_fivesim, \
-             patch.object(router, "_get_telnyx") as mock_telnyx:
-            
+        with patch.object(router, "_get_fivesim") as mock_fivesim, patch.object(
+            router, "_get_telnyx"
+        ) as mock_telnyx:
+
             mock_fivesim_provider = MagicMock()
             mock_fivesim_provider.enabled = False
             mock_fivesim.return_value = mock_fivesim_provider
@@ -111,7 +112,9 @@ class TestProviderRouter:
         """Should NOT failover on no inventory error."""
         mock_provider = AsyncMock()
         mock_provider.name = "textverified"
-        mock_provider.purchase_number.side_effect = RuntimeError("No inventory available")
+        mock_provider.purchase_number.side_effect = RuntimeError(
+            "No inventory available"
+        )
 
         with patch.object(router, "get_provider", return_value=mock_provider):
             with pytest.raises(RuntimeError, match="No inventory"):
@@ -138,9 +141,10 @@ class TestProviderRouter:
         )
         mock_secondary.purchase_number.return_value = mock_result
 
-        with patch.object(router, "get_provider", return_value=mock_primary), \
-             patch.object(router, "_get_failover_provider", return_value=mock_secondary):
-            
+        with patch.object(
+            router, "get_provider", return_value=mock_primary
+        ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
+
             result = await router.purchase_with_failover(
                 service="whatsapp",
                 country="GB",
@@ -153,14 +157,18 @@ class TestProviderRouter:
     @pytest.mark.asyncio
     async def test_failover_disabled(self, router):
         """Should NOT failover when disabled."""
-        with patch("app.services.providers.provider_router.get_settings") as mock_settings_func:
+        with patch(
+            "app.services.providers.provider_router.get_settings"
+        ) as mock_settings_func:
             settings = MagicMock()
             settings.enable_provider_failover = False
             mock_settings_func.return_value = settings
 
             mock_provider = AsyncMock()
             mock_provider.name = "textverified"
-            mock_provider.purchase_number.side_effect = RuntimeError("Connection timeout")
+            mock_provider.purchase_number.side_effect = RuntimeError(
+                "Connection timeout"
+            )
 
             with patch.object(router, "get_provider", return_value=mock_provider):
                 with pytest.raises(RuntimeError, match="Connection timeout"):
@@ -183,10 +191,12 @@ class TestProviderRouter:
         mock_fivesim = AsyncMock()
         mock_fivesim.enabled = False
 
-        with patch.object(router, "_get_textverified", return_value=mock_tv), \
-             patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
-             patch.object(router, "_get_fivesim", return_value=mock_fivesim):
-            
+        with patch.object(
+            router, "_get_textverified", return_value=mock_tv
+        ), patch.object(router, "_get_telnyx", return_value=mock_telnyx), patch.object(
+            router, "_get_fivesim", return_value=mock_fivesim
+        ):
+
             balances = await router.get_provider_balances()
 
             assert balances["textverified"] == 100.0
@@ -204,10 +214,12 @@ class TestProviderRouter:
         mock_fivesim = MagicMock()
         mock_fivesim.enabled = False
 
-        with patch.object(router, "_get_textverified", return_value=mock_tv), \
-             patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
-             patch.object(router, "_get_fivesim", return_value=mock_fivesim):
-            
+        with patch.object(
+            router, "_get_textverified", return_value=mock_tv
+        ), patch.object(router, "_get_telnyx", return_value=mock_telnyx), patch.object(
+            router, "_get_fivesim", return_value=mock_fivesim
+        ):
+
             enabled = router.get_enabled_providers()
 
             assert "textverified" in enabled

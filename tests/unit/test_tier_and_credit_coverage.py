@@ -290,8 +290,24 @@ class TestTransactionSummary:
 class TestTransferCredits:
     def test_transfer_succeeds(self, db):
         uid1, uid2 = str(uuid.uuid4()), str(uuid.uuid4())
-        u1 = User(id=uid1, email=f"{uid1[:8]}@t.com", password_hash="h", credits=50.0, subscription_tier="payg", is_admin=False, created_at=datetime.now(timezone.utc))
-        u2 = User(id=uid2, email=f"{uid2[:8]}@t.com", password_hash="h", credits=10.0, subscription_tier="payg", is_admin=False, created_at=datetime.now(timezone.utc))
+        u1 = User(
+            id=uid1,
+            email=f"{uid1[:8]}@t.com",
+            password_hash="h",
+            credits=50.0,
+            subscription_tier="payg",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        u2 = User(
+            id=uid2,
+            email=f"{uid2[:8]}@t.com",
+            password_hash="h",
+            credits=10.0,
+            subscription_tier="payg",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
         db.add_all([u1, u2])
         db.commit()
         svc = CreditService(db)
@@ -301,8 +317,24 @@ class TestTransferCredits:
 
     def test_transfer_insufficient_raises(self, db):
         uid1, uid2 = str(uuid.uuid4()), str(uuid.uuid4())
-        u1 = User(id=uid1, email=f"{uid1[:8]}@t.com", password_hash="h", credits=5.0, subscription_tier="payg", is_admin=False, created_at=datetime.now(timezone.utc))
-        u2 = User(id=uid2, email=f"{uid2[:8]}@t.com", password_hash="h", credits=10.0, subscription_tier="payg", is_admin=False, created_at=datetime.now(timezone.utc))
+        u1 = User(
+            id=uid1,
+            email=f"{uid1[:8]}@t.com",
+            password_hash="h",
+            credits=5.0,
+            subscription_tier="payg",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
+        u2 = User(
+            id=uid2,
+            email=f"{uid2[:8]}@t.com",
+            password_hash="h",
+            credits=10.0,
+            subscription_tier="payg",
+            is_admin=False,
+            created_at=datetime.now(timezone.utc),
+        )
         db.add_all([u1, u2])
         db.commit()
         svc = CreditService(db)

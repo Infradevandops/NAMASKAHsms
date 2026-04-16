@@ -55,7 +55,9 @@ class TestCalculateOverage:
         db.commit()
         with patch("app.services.quota_service.TierConfig.get_tier_config") as mock_cfg:
             mock_cfg.return_value = {"quota_usd": 15.0, "overage_rate": 0.30}
-            overage = QuotaService.calculate_overage(db, regular_user.id, 5.0, tier="pro")
+            overage = QuotaService.calculate_overage(
+                db, regular_user.id, 5.0, tier="pro"
+            )
         assert overage == 0.0
 
     def test_overage_calculated_correctly(self, db, regular_user):
@@ -69,7 +71,9 @@ class TestCalculateOverage:
             # Add 10 usage
             QuotaService.add_quota_usage(db, regular_user.id, 10.0)
             # Adding 10 more: if total > 15, overage = (used+10) - 15 * 0.30
-            overage = QuotaService.calculate_overage(db, regular_user.id, 10.0, tier="pro")
+            overage = QuotaService.calculate_overage(
+                db, regular_user.id, 10.0, tier="pro"
+            )
             expected_overage_amount = max(0, (baseline_used + 10.0 + 10.0) - 15.0)
             assert overage == pytest.approx(expected_overage_amount * 0.30)
 

@@ -142,9 +142,7 @@ class SMSPollingService:
         # Reload verification
         db.expire(verification)
         verification = (
-            db.query(Verification)
-            .filter(Verification.id == verification.id)
-            .first()
+            db.query(Verification).filter(Verification.id == verification.id).first()
         )
         if not verification or verification.status != "pending":
             return
@@ -204,8 +202,7 @@ class SMSPollingService:
 
         while elapsed < timeout_seconds:
             messages = await adapter.check_messages(
-                verification.activation_id,
-                created_after=verification.created_at
+                verification.activation_id, created_after=verification.created_at
             )
 
             if messages:
@@ -243,8 +240,7 @@ class SMSPollingService:
 
         while elapsed < timeout_seconds:
             messages = await adapter.check_messages(
-                verification.activation_id,
-                created_after=verification.created_at
+                verification.activation_id, created_after=verification.created_at
             )
 
             if messages:
@@ -286,17 +282,17 @@ class SMSPollingService:
             )
         elif provider == "telnyx":
             from app.services.providers.telnyx_adapter import TelnyxAdapter
+
             adapter = TelnyxAdapter()
             reported = await adapter.report_failed(verification.activation_id)
         elif provider == "5sim":
             from app.services.providers.fivesim_adapter import FiveSimAdapter
+
             adapter = FiveSimAdapter()
             reported = await adapter.report_failed(verification.activation_id)
 
         if reported:
-            logger.info(
-                f"Reported {verification.id} to {provider} — refund triggered"
-            )
+            logger.info(f"Reported {verification.id} to {provider} — refund triggered")
         else:
             logger.warning(
                 f"Failed to report {verification.id} to {provider} — "

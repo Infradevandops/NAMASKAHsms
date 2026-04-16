@@ -30,12 +30,14 @@ def service():
 
 # ── dispatch by provider ──────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_poll_verification_dispatches_textverified(service):
     v = _make_verification(provider="textverified")
 
-    with patch.object(service, "_poll_textverified", new_callable=AsyncMock) as mock_tv, \
-         patch("app.services.sms_polling_service.SessionLocal") as mock_db:
+    with patch.object(
+        service, "_poll_textverified", new_callable=AsyncMock
+    ) as mock_tv, patch("app.services.sms_polling_service.SessionLocal") as mock_db:
         mock_db.return_value.__enter__ = MagicMock(return_value=MagicMock())
         mock_db.return_value.__exit__ = MagicMock(return_value=False)
         db = MagicMock()
@@ -51,8 +53,9 @@ async def test_poll_verification_dispatches_textverified(service):
 async def test_poll_verification_dispatches_telnyx(service):
     v = _make_verification(provider="telnyx")
 
-    with patch.object(service, "_poll_telnyx", new_callable=AsyncMock) as mock_telnyx, \
-         patch("app.services.sms_polling_service.SessionLocal") as mock_db:
+    with patch.object(
+        service, "_poll_telnyx", new_callable=AsyncMock
+    ) as mock_telnyx, patch("app.services.sms_polling_service.SessionLocal") as mock_db:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = v
         mock_db.return_value = db
@@ -66,8 +69,9 @@ async def test_poll_verification_dispatches_telnyx(service):
 async def test_poll_verification_dispatches_fivesim(service):
     v = _make_verification(provider="5sim")
 
-    with patch.object(service, "_poll_fivesim", new_callable=AsyncMock) as mock_5sim, \
-         patch("app.services.sms_polling_service.SessionLocal") as mock_db:
+    with patch.object(
+        service, "_poll_fivesim", new_callable=AsyncMock
+    ) as mock_5sim, patch("app.services.sms_polling_service.SessionLocal") as mock_db:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = v
         mock_db.return_value = db
@@ -81,8 +85,11 @@ async def test_poll_verification_dispatches_fivesim(service):
 async def test_poll_verification_unknown_provider(service):
     v = _make_verification(provider="unknown_provider")
 
-    with patch.object(service, "_handle_timeout", new_callable=AsyncMock) as mock_timeout, \
-         patch("app.services.sms_polling_service.SessionLocal") as mock_db:
+    with patch.object(
+        service, "_handle_timeout", new_callable=AsyncMock
+    ) as mock_timeout, patch(
+        "app.services.sms_polling_service.SessionLocal"
+    ) as mock_db:
         db = MagicMock()
         db.query.return_value.filter.return_value.first.return_value = v
         mock_db.return_value = db
@@ -94,11 +101,14 @@ async def test_poll_verification_unknown_provider(service):
 
 # ── _poll_telnyx ──────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_poll_telnyx_success(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
-    msg = MessageResult(text="Code 123456", code="123456", received_at="2026-03-26T12:00:00Z")
+    msg = MessageResult(
+        text="Code 123456", code="123456", received_at="2026-03-26T12:00:00Z"
+    )
 
     with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter:
         adapter = AsyncMock()
@@ -118,8 +128,11 @@ async def test_poll_telnyx_timeout(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter, \
-         patch.object(service, "_handle_timeout", new_callable=AsyncMock) as mock_timeout:
+    with patch(
+        "app.services.sms_polling_service.TelnyxAdapter"
+    ) as MockAdapter, patch.object(
+        service, "_handle_timeout", new_callable=AsyncMock
+    ) as mock_timeout:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[])
         MockAdapter.return_value = adapter
@@ -135,8 +148,11 @@ async def test_poll_telnyx_api_error(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter, \
-         patch.object(service, "_handle_timeout", new_callable=AsyncMock) as mock_timeout:
+    with patch(
+        "app.services.sms_polling_service.TelnyxAdapter"
+    ) as MockAdapter, patch.object(
+        service, "_handle_timeout", new_callable=AsyncMock
+    ) as mock_timeout:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(side_effect=Exception("API error"))
         MockAdapter.return_value = adapter
@@ -148,11 +164,14 @@ async def test_poll_telnyx_api_error(service):
 
 # ── _poll_fivesim ─────────────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_poll_fivesim_success(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
-    msg = MessageResult(text="Code 654321", code="654321", received_at="2026-03-26T12:00:00Z")
+    msg = MessageResult(
+        text="Code 654321", code="654321", received_at="2026-03-26T12:00:00Z"
+    )
 
     with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter:
         adapter = AsyncMock()
@@ -172,8 +191,11 @@ async def test_poll_fivesim_timeout(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter, \
-         patch.object(service, "_handle_timeout", new_callable=AsyncMock) as mock_timeout:
+    with patch(
+        "app.services.sms_polling_service.FiveSimAdapter"
+    ) as MockAdapter, patch.object(
+        service, "_handle_timeout", new_callable=AsyncMock
+    ) as mock_timeout:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[])
         MockAdapter.return_value = adapter
@@ -188,8 +210,11 @@ async def test_poll_fivesim_api_error(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter, \
-         patch.object(service, "_handle_timeout", new_callable=AsyncMock) as mock_timeout:
+    with patch(
+        "app.services.sms_polling_service.FiveSimAdapter"
+    ) as MockAdapter, patch.object(
+        service, "_handle_timeout", new_callable=AsyncMock
+    ) as mock_timeout:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(side_effect=Exception("API error"))
         MockAdapter.return_value = adapter
@@ -200,6 +225,7 @@ async def test_poll_fivesim_api_error(service):
 
 
 # ── _handle_timeout provider dispatch ────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_handle_timeout_textverified(service):
@@ -219,8 +245,9 @@ async def test_handle_timeout_telnyx(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter, \
-         patch("app.services.sms_polling_service.NotificationService"):
+    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter, patch(
+        "app.services.sms_polling_service.NotificationService"
+    ):
         adapter = AsyncMock()
         adapter.report_failed = AsyncMock(return_value=True)
         MockAdapter.return_value = adapter
@@ -236,8 +263,9 @@ async def test_handle_timeout_fivesim(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter, \
-         patch("app.services.sms_polling_service.NotificationService"):
+    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter, patch(
+        "app.services.sms_polling_service.NotificationService"
+    ):
         adapter = AsyncMock()
         adapter.report_failed = AsyncMock(return_value=True)
         MockAdapter.return_value = adapter
@@ -255,8 +283,9 @@ async def test_handle_timeout_refund_fallback(service):
     db = MagicMock()
     service.textverified.report_verification = AsyncMock(return_value=False)
 
-    with patch("app.services.sms_polling_service.AutoRefundService") as MockRefund, \
-         patch("app.services.sms_polling_service.NotificationService"):
+    with patch(
+        "app.services.sms_polling_service.AutoRefundService"
+    ) as MockRefund, patch("app.services.sms_polling_service.NotificationService"):
         refund_svc = AsyncMock()
         refund_svc.process_verification_refund = AsyncMock(
             return_value={"refund_amount": 2.22}
@@ -269,6 +298,7 @@ async def test_handle_timeout_refund_fallback(service):
 
 
 # ── background service ────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_background_service_polls_all_providers(service):
@@ -288,11 +318,19 @@ async def test_background_service_polls_all_providers(service):
         call_count += 1
         service.is_running = False
 
-    with patch("app.services.sms_polling_service.SessionLocal") as mock_db, \
-         patch.object(service, "start_polling", new_callable=AsyncMock) as mock_start, \
-         patch("asyncio.sleep", new_callable=AsyncMock, side_effect=stop_after_one):
+    with patch(
+        "app.services.sms_polling_service.SessionLocal"
+    ) as mock_db, patch.object(
+        service, "start_polling", new_callable=AsyncMock
+    ) as mock_start, patch(
+        "asyncio.sleep", new_callable=AsyncMock, side_effect=stop_after_one
+    ):
         db = MagicMock()
-        db.query.return_value.filter.return_value.all.return_value = [tv_v, telnyx_v, fivesim_v]
+        db.query.return_value.filter.return_value.all.return_value = [
+            tv_v,
+            telnyx_v,
+            fivesim_v,
+        ]
         mock_db.return_value = db
 
         await service.start_background_service()

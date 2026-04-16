@@ -11,7 +11,11 @@ import httpx
 
 from app.core.config import get_settings
 from app.core.logging import get_logger
-from app.services.providers.base_provider import MessageResult, PurchaseResult, SMSProvider
+from app.services.providers.base_provider import (
+    MessageResult,
+    PurchaseResult,
+    SMSProvider,
+)
 from app.services.providers.provider_errors import ProviderError
 
 logger = get_logger(__name__)
@@ -110,8 +114,12 @@ class TelnyxAdapter(SMSProvider):
             city_note = None
             if not available and city:
                 city_honoured = False
-                city_note = f"No numbers available in {city}, country-level number assigned"
-                logger.warning(f"Telnyx: no inventory in {city} for {country}, retrying without city")
+                city_note = (
+                    f"No numbers available in {city}, country-level number assigned"
+                )
+                logger.warning(
+                    f"Telnyx: no inventory in {city} for {country}, retrying without city"
+                )
                 del search_params["filter[locality]"]
                 response = await self.client.get(
                     f"{self.base_url}/available_phone_numbers",
@@ -133,7 +141,10 @@ class TelnyxAdapter(SMSProvider):
 
             order_response = await self.client.post(
                 f"{self.base_url}/number_orders",
-                json={"phone_numbers": [{"phone_number": phone_number}], "connection_id": None},
+                json={
+                    "phone_numbers": [{"phone_number": phone_number}],
+                    "connection_id": None,
+                },
             )
             order_response.raise_for_status()
             order_data = order_response.json()
@@ -148,7 +159,9 @@ class TelnyxAdapter(SMSProvider):
                 phone_number=phone_number,
                 order_id=order_id,
                 cost=cost,
-                expires_at=(datetime.now(timezone.utc) + timedelta(minutes=20)).isoformat(),
+                expires_at=(
+                    datetime.now(timezone.utc) + timedelta(minutes=20)
+                ).isoformat(),
                 provider="telnyx",
                 operator=None,
                 area_code_matched=(not area_code or assigned_area_code == area_code),
@@ -160,7 +173,8 @@ class TelnyxAdapter(SMSProvider):
                 assigned_area_code=assigned_area_code,
                 same_state_fallback=True,
                 retry_attempts=0,
-                routing_reason=f"telnyx_country={country}" + (f"_city={city}" if city else ""),
+                routing_reason=f"telnyx_country={country}"
+                + (f"_city={city}" if city else ""),
                 metadata={"telnyx_order_id": order_id},
                 city_honoured=city_honoured,
                 city_note=city_note,
@@ -176,13 +190,17 @@ class TelnyxAdapter(SMSProvider):
             raise ProviderError("provider_unreachable", f"Telnyx unreachable: {e}")
         except httpx.HTTPStatusError as e:
             logger.error(f"Telnyx HTTP {e.response.status_code} for {country}: {e}")
-            raise ProviderError("provider_unreachable", f"Telnyx HTTP {e.response.status_code}")
+            raise ProviderError(
+                "provider_unreachable", f"Telnyx HTTP {e.response.status_code}"
+            )
         except httpx.HTTPError as e:
             logger.error(f"Telnyx API error for {country}: {e}")
             raise ProviderError("provider_unreachable", f"Telnyx API error: {e}")
         except KeyError as e:
             logger.error(f"Telnyx malformed response, missing key: {e}")
-            raise ProviderError("malformed_response", f"Telnyx response missing key: {e}")
+            raise ProviderError(
+                "malformed_response", f"Telnyx response missing key: {e}"
+            )
 
     async def check_messages(
         self, order_id: str, created_after=None
@@ -225,7 +243,9 @@ class TelnyxAdapter(SMSProvider):
                     MessageResult(
                         text=text,
                         code=code,
-                        received_at=msg.get("received_at", datetime.now(timezone.utc).isoformat()),
+                        received_at=msg.get(
+                            "received_at", datetime.now(timezone.utc).isoformat()
+                        ),
                     )
                 )
 

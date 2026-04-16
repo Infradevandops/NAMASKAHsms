@@ -18,7 +18,6 @@ from pydantic import ValidationError, parse_obj_as
 
 
 class TestTiersListResponseValidator:
-
     """Tests for /api/tiers/ response validation."""
 
     def test_valid_tiers_list_response(self):
@@ -142,7 +141,6 @@ class TestTiersListResponseValidator:
 
 
 class TestCurrentTierResponseValidator:
-
     """Tests for /api/tiers/current response validation."""
 
     def test_valid_current_tier_response(self):
@@ -216,7 +214,6 @@ class TestCurrentTierResponseValidator:
 
 
 class TestAnalyticsSummaryResponseValidator:
-
     """Tests for /api/analytics/summary response validation."""
 
     def test_valid_analytics_summary_response(self):
@@ -260,7 +257,6 @@ class TestAnalyticsSummaryResponseValidator:
 
 
 class TestDashboardActivityResponseValidator:
-
     """Tests for /api/dashboard/activity/recent response validation."""
 
     def test_valid_dashboard_activity_response(self):
@@ -301,7 +297,6 @@ class TestDashboardActivityResponseValidator:
 
 
 class TestResponseValidatorUtilities:
-
     """Tests for response validator utility functions."""
 
     def test_validate_response_safe_success(self):
@@ -329,14 +324,18 @@ class TestResponseValidatorUtilities:
     def test_check_required_fields_all_present(self):
         """Test checking required fields when all are present."""
         data = {"field1": "value1", "field2": "value2", "field3": "value3"}
-        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
+        all_present, missing = check_required_fields(
+            data, ["field1", "field2", "field3"]
+        )
         assert all_present is True
         assert len(missing) == 0
 
     def test_check_required_fields_some_missing(self):
         """Test checking required fields when some are missing."""
         data = {"field1": "value1", "field3": "value3"}
-        all_present, missing = check_required_fields(data, ["field1", "field2", "field3"])
+        all_present, missing = check_required_fields(
+            data, ["field1", "field2", "field3"]
+        )
         assert all_present is False
         assert "field2" in missing
         assert len(missing) == 1

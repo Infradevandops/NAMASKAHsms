@@ -31,19 +31,21 @@ except Exception as e:
 print(f"\n📧 Checking: {ADMIN_EMAIL}")
 try:
     result = db.execute(
-        text("SELECT id, email, password_hash, is_admin, is_active FROM users WHERE email = :email"),
-        {"email": ADMIN_EMAIL}
+        text(
+            "SELECT id, email, password_hash, is_admin, is_active FROM users WHERE email = :email"
+        ),
+        {"email": ADMIN_EMAIL},
     ).fetchone()
-    
+
     if not result:
         print(f"❌ Admin user not found")
         print(f"\n🔧 Create admin user:")
         print(f"   python3 scripts/create_admin_user.py")
         sys.exit(1)
-    
+
     user_id, email, password_hash, is_admin, is_active = result
     print(f"✅ User exists: {user_id}")
-    
+
 except Exception as e:
     print(f"❌ Query failed: {e}")
     sys.exit(1)
@@ -77,9 +79,9 @@ if not password_hash:
     print("❌ Cannot verify - no password hash")
 else:
     try:
-        password_bytes = ADMIN_PASSWORD.encode('utf-8')
-        hash_bytes = password_hash.encode('utf-8')
-        
+        password_bytes = ADMIN_PASSWORD.encode("utf-8")
+        hash_bytes = password_hash.encode("utf-8")
+
         if bcrypt.checkpw(password_bytes, hash_bytes):
             print("✅ Password matches!")
             checks_passed += 1
@@ -87,9 +89,11 @@ else:
         else:
             print("❌ Password does NOT match")
             print(f"\n🔧 Reset password:")
-            new_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
-            print(f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}' WHERE email='{ADMIN_EMAIL}';\"")
-            
+            new_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode("utf-8")
+            print(
+                f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}' WHERE email='{ADMIN_EMAIL}';\""
+            )
+
     except Exception as e:
         print(f"❌ Password check failed: {e}")
 
@@ -108,8 +112,12 @@ if checks_passed == checks_total:
 else:
     print("❌ FAILED - Issues found")
     print(f"\n🔧 Fix all issues:")
-    new_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
-    print(f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}', is_active=true, is_admin=true WHERE email='{ADMIN_EMAIL}';\"")
+    new_hash = bcrypt.hashpw(ADMIN_PASSWORD.encode("utf-8"), bcrypt.gensalt()).decode(
+        "utf-8"
+    )
+    print(
+        f"   psql $DATABASE_URL -c \"UPDATE users SET password_hash='{new_hash}', is_active=true, is_admin=true WHERE email='{ADMIN_EMAIL}';\""
+    )
     sys.exit(1)
 
 db.close()

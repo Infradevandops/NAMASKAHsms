@@ -17,24 +17,24 @@ try:
     response = requests.post(
         f"{BASE_URL}/api/auth/login",
         json={"email": ADMIN_EMAIL, "password": ADMIN_PASSWORD},
-        timeout=10
+        timeout=10,
     )
-    
+
     print(f"   Status: {response.status_code}")
-    
+
     if response.status_code == 200:
         data = response.json()
         print(f"   ✅ Login successful!")
         print(f"   Token: {data.get('access_token', 'N/A')[:50]}...")
         print(f"   Type: {data.get('token_type', 'N/A')}")
-        
+
         # Save token for next test
-        token = data.get('access_token')
-        
+        token = data.get("access_token")
+
     else:
         print(f"   ❌ Login failed: {response.text}")
         sys.exit(1)
-        
+
 except requests.exceptions.ConnectionError:
     print(f"   ❌ Server not running at {BASE_URL}")
     print(f"\n   Start server:")
@@ -50,11 +50,11 @@ try:
     response = requests.get(
         f"{BASE_URL}/api/auth/me",
         headers={"Authorization": f"Bearer {token}"},
-        timeout=10
+        timeout=10,
     )
-    
+
     print(f"   Status: {response.status_code}")
-    
+
     if response.status_code == 200:
         data = response.json()
         print(f"   ✅ User info retrieved!")
@@ -64,7 +64,7 @@ try:
         print(f"   Credits: ${data.get('credits', 0):.2f}")
     else:
         print(f"   ❌ Failed: {response.text}")
-        
+
 except Exception as e:
     print(f"   ❌ Request failed: {e}")
 
@@ -74,18 +74,18 @@ try:
     response = requests.get(
         f"{BASE_URL}/api/admin/stats",
         headers={"Authorization": f"Bearer {token}"},
-        timeout=10
+        timeout=10,
     )
-    
+
     print(f"   Status: {response.status_code}")
-    
+
     if response.status_code == 200:
         print(f"   ✅ Admin access confirmed!")
     elif response.status_code == 403:
         print(f"   ❌ Admin access denied")
     else:
         print(f"   ⚠️  Endpoint response: {response.status_code}")
-        
+
 except Exception as e:
     print(f"   ⚠️  Request failed: {e}")
 

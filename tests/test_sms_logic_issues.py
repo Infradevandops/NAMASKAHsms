@@ -40,6 +40,7 @@ from app.models.verification import Verification
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def freemium_user(db):
     uid = str(uuid.uuid4())
@@ -84,6 +85,7 @@ def pending_verification(db, test_user):
 # Issue 14 — Voice tier gate at API level
 # ---------------------------------------------------------------------------
 
+
 class TestVoiceTierGate:
     """AC-14: Voice capability must be blocked for tiers below PAYG."""
 
@@ -95,6 +97,7 @@ class TestVoiceTierGate:
 
         def override_db():
             from sqlalchemy.orm import sessionmaker
+
             s = sessionmaker(autocommit=False, autoflush=False, bind=engine)()
             try:
                 yield s
@@ -105,15 +108,22 @@ class TestVoiceTierGate:
         app.dependency_overrides[get_current_user_id] = lambda: freemium_user.id
         client = TestClient(app)
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as mock_tv:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as mock_tv:
             mock_tv.return_value.enabled = True
-            resp = client.post("/api/verification/request", json={
-                "service": "telegram",
-                "country": "US",
-                "capability": "voice",
-            })
+            resp = client.post(
+                "/api/verification/request",
+                json={
+                    "service": "telegram",
+                    "country": "US",
+                    "capability": "voice",
+                },
+            )
 
-        assert resp.status_code == 402, f"Expected 402, got {resp.status_code}: {resp.text}"
+        assert (
+            resp.status_code == 402
+        ), f"Expected 402, got {resp.status_code}: {resp.text}"
         body = resp.json()
         msg = (body.get("detail") or body.get("message") or "").lower()
         assert "voice" in msg, f"Expected 'voice' in error message, got: {body}"
@@ -127,6 +137,7 @@ class TestVoiceTierGate:
 
         def override_db():
             from sqlalchemy.orm import sessionmaker
+
             s = sessionmaker(autocommit=False, autoflush=False, bind=engine)()
             try:
                 yield s
@@ -137,35 +148,46 @@ class TestVoiceTierGate:
         app.dependency_overrides[get_current_user_id] = lambda: payg_user.id
         client = TestClient(app)
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as mock_tv:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as mock_tv:
             instance = mock_tv.return_value
             instance.enabled = True
-            instance.create_verification = AsyncMock(return_value={
-                "id": "tv-123",
-                "phone_number": "+14155559999",
-                "cost": 2.80,
-                "ends_at": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
-                "tv_object": MagicMock(),
-                "retry_attempts": 0,
-                "area_code_matched": True,
-                "carrier_matched": True,
-                "real_carrier": None,
-                "voip_rejected": False,
-                "fallback_applied": False,
-                "requested_area_code": None,
-                "assigned_area_code": "415",
-                "same_state_fallback": True,
-            })
+            instance.create_verification = AsyncMock(
+                return_value={
+                    "id": "tv-123",
+                    "phone_number": "+14155559999",
+                    "cost": 2.80,
+                    "ends_at": (
+                        datetime.now(timezone.utc) + timedelta(minutes=10)
+                    ).isoformat(),
+                    "tv_object": MagicMock(),
+                    "retry_attempts": 0,
+                    "area_code_matched": True,
+                    "carrier_matched": True,
+                    "real_carrier": None,
+                    "voip_rejected": False,
+                    "fallback_applied": False,
+                    "requested_area_code": None,
+                    "assigned_area_code": "415",
+                    "same_state_fallback": True,
+                }
+            )
             instance.get_balance = AsyncMock(return_value={"balance": 100.0})
 
-            resp = client.post("/api/verification/request", json={
-                "service": "telegram",
-                "country": "US",
-                "capability": "voice",
-            })
+            resp = client.post(
+                "/api/verification/request",
+                json={
+                    "service": "telegram",
+                    "country": "US",
+                    "capability": "voice",
+                },
+            )
 
         # Should NOT be 402 — it passed the tier gate
-        assert resp.status_code != 402, f"PAYG should pass voice tier gate, got 402: {resp.text}"
+        assert (
+            resp.status_code != 402
+        ), f"PAYG should pass voice tier gate, got 402: {resp.text}"
         app.dependency_overrides.clear()
 
     def test_sms_unaffected_by_voice_gate(self, engine, freemium_user):
@@ -176,6 +198,7 @@ class TestVoiceTierGate:
 
         def override_db():
             from sqlalchemy.orm import sessionmaker
+
             s = sessionmaker(autocommit=False, autoflush=False, bind=engine)()
             try:
                 yield s
@@ -186,41 +209,53 @@ class TestVoiceTierGate:
         app.dependency_overrides[get_current_user_id] = lambda: freemium_user.id
         client = TestClient(app)
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as mock_tv:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as mock_tv:
             instance = mock_tv.return_value
             instance.enabled = True
-            instance.create_verification = AsyncMock(return_value={
-                "id": "tv-456",
-                "phone_number": "+14155550000",
-                "cost": 2.50,
-                "ends_at": (datetime.now(timezone.utc) + timedelta(minutes=10)).isoformat(),
-                "tv_object": MagicMock(),
-                "retry_attempts": 0,
-                "area_code_matched": True,
-                "carrier_matched": True,
-                "real_carrier": None,
-                "voip_rejected": False,
-                "fallback_applied": False,
-                "requested_area_code": None,
-                "assigned_area_code": "415",
-                "same_state_fallback": True,
-            })
+            instance.create_verification = AsyncMock(
+                return_value={
+                    "id": "tv-456",
+                    "phone_number": "+14155550000",
+                    "cost": 2.50,
+                    "ends_at": (
+                        datetime.now(timezone.utc) + timedelta(minutes=10)
+                    ).isoformat(),
+                    "tv_object": MagicMock(),
+                    "retry_attempts": 0,
+                    "area_code_matched": True,
+                    "carrier_matched": True,
+                    "real_carrier": None,
+                    "voip_rejected": False,
+                    "fallback_applied": False,
+                    "requested_area_code": None,
+                    "assigned_area_code": "415",
+                    "same_state_fallback": True,
+                }
+            )
             instance.get_balance = AsyncMock(return_value={"balance": 100.0})
 
-            resp = client.post("/api/verification/request", json={
-                "service": "telegram",
-                "country": "US",
-                "capability": "sms",
-            })
+            resp = client.post(
+                "/api/verification/request",
+                json={
+                    "service": "telegram",
+                    "country": "US",
+                    "capability": "sms",
+                },
+            )
 
         # Should NOT be 402
-        assert resp.status_code != 402, f"SMS should not be blocked for freemium, got 402"
+        assert (
+            resp.status_code != 402
+        ), f"SMS should not be blocked for freemium, got 402"
         app.dependency_overrides.clear()
 
 
 # ---------------------------------------------------------------------------
 # Issue 13 — Outcome endpoint mismatch
 # ---------------------------------------------------------------------------
+
 
 class TestOutcomeEndpoint:
     """AC-13: POST /api/verification/outcome/{id} must work."""
@@ -231,7 +266,9 @@ class TestOutcomeEndpoint:
             f"/api/verification/outcome/{pending_verification.id}",
             json={"outcome": "timeout"},
         )
-        assert resp.status_code == 200, f"Expected 200, got {resp.status_code}: {resp.text}"
+        assert (
+            resp.status_code == 200
+        ), f"Expected 200, got {resp.status_code}: {resp.text}"
 
     def test_outcome_persisted(self, authenticated_client, pending_verification, db):
         """AC-13.2: Outcome value is written to the verification record."""
@@ -240,13 +277,18 @@ class TestOutcomeEndpoint:
             json={"outcome": "timeout"},
         )
         db.expire_all()
-        v = db.query(Verification).filter(Verification.id == pending_verification.id).first()
+        v = (
+            db.query(Verification)
+            .filter(Verification.id == pending_verification.id)
+            .first()
+        )
         assert v.outcome == "timeout"
 
 
 # ---------------------------------------------------------------------------
 # Issue 8 — submitVoiceCode() undefined
 # ---------------------------------------------------------------------------
+
 
 class TestVoiceTemplateSubmitRemoved:
     """AC-8: voice_verify_modern.html must not reference submitVoiceCode."""
@@ -258,14 +300,15 @@ class TestVoiceTemplateSubmitRemoved:
         )
         with open(template_path, "r") as f:
             content = f.read()
-        assert "submitVoiceCode" not in content, (
-            "voice_verify_modern.html still references submitVoiceCode()"
-        )
+        assert (
+            "submitVoiceCode" not in content
+        ), "voice_verify_modern.html still references submitVoiceCode()"
 
 
 # ---------------------------------------------------------------------------
 # Issue 15 — Fake _TVVerif missing attributes
 # ---------------------------------------------------------------------------
+
 
 class TestTVVerifObject:
     """AC-15: The _TVVerif shim must carry all attributes sms.incoming() may need."""
@@ -311,6 +354,7 @@ class TestTVVerifObject:
 # Issue 11 — Voice area codes hardcoded
 # ---------------------------------------------------------------------------
 
+
 class TestVoiceAreaCodesNotHardcoded:
     """AC-11: voice template should not have hardcoded area code option values."""
 
@@ -324,14 +368,15 @@ class TestVoiceAreaCodesNotHardcoded:
 
         # Find the area-code-select element and check for hardcoded values
         hardcoded = re.findall(r'<option\s+value="(\d{3})"', content)
-        assert len(hardcoded) == 0, (
-            f"voice_verify_modern.html still has hardcoded area code options: {hardcoded}"
-        )
+        assert (
+            len(hardcoded) == 0
+        ), f"voice_verify_modern.html still has hardcoded area code options: {hardcoded}"
 
 
 # ---------------------------------------------------------------------------
 # Issue 16 — Voice template no timeout outcome call
 # ---------------------------------------------------------------------------
+
 
 class TestVoiceTimeoutOutcome:
     """AC-16: voice template must call outcome endpoint on timeout."""
@@ -344,6 +389,6 @@ class TestVoiceTimeoutOutcome:
         with open(template_path, "r") as f:
             content = f.read()
 
-        assert "verification/outcome" in content, (
-            "voice_verify_modern.html must call the outcome endpoint on timeout"
-        )
+        assert (
+            "verification/outcome" in content
+        ), "voice_verify_modern.html must call the outcome endpoint on timeout"

@@ -1,4 +1,5 @@
 import uuid
+
 """
 Wallet Service Tests
 Coverage: Balance operations, transactions, concurrency
@@ -117,7 +118,11 @@ class TestWalletService:
 
     @pytest.fixture
     def test_user(self, db_session):
-        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=100.0)
+        user = User(
+            id=str(uuid.uuid4()),
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
+            credits=100.0,
+        )
         db_session.add(user)
         db_session.commit()
         return user
@@ -221,7 +226,11 @@ class TestWalletService:
 
     def test_negative_balance_prevention(self, wallet_service, db_session):
         """Test that balance cannot go negative"""
-        user = User(id=str(uuid.uuid4()), email=f"{uuid.uuid4().hex[:8]}@example.com", credits=5.0)
+        user = User(
+            id=str(uuid.uuid4()),
+            email=f"{uuid.uuid4().hex[:8]}@example.com",
+            credits=5.0,
+        )
         db_session.add(user)
         db_session.commit()
 

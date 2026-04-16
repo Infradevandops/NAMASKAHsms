@@ -1,6 +1,5 @@
 """Tests for verification endpoints."""
 
-
 from unittest.mock import patch
 
 
@@ -10,16 +9,18 @@ class TestVerification:
 
         token = admin_token(admin_user.id, admin_user.email)
 
-        with patch("app.api.verification.purchase_endpoints.TextVerifiedService") as MockService:
+        with patch(
+            "app.api.verification.purchase_endpoints.TextVerifiedService"
+        ) as MockService:
             mock_instance = MockService.return_value
         mock_instance.enabled = True
 
     async def mock_buy(*args, **kwargs):
         return {
-                "activation_id": "test_act_id",
-                "phone_number": "+1234567890",
-                "cost": 0.50,
-            }
+            "activation_id": "test_act_id",
+            "phone_number": "+1234567890",
+            "cost": 0.50,
+        }
 
         mock_instance.buy_number.side_effect = mock_buy
 

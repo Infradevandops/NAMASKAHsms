@@ -1,6 +1,5 @@
 """Tests for pricing enforcement."""
 
-
 import uuid
 import pytest
 from sqlalchemy.orm import Session
@@ -56,7 +55,6 @@ def pro_user(db: Session):
 
 
 class TestQuotaService:
-
     """Test quota tracking."""
 
     def test_get_monthly_usage_new_month(self, db: Session, pro_user: User):
@@ -79,8 +77,7 @@ class TestQuotaService:
         overage = QuotaService.calculate_overage(db, pro_user.id, 10.0)
         assert overage == 0.0
 
-    def test_calculate_overage_exceeds_quota(
-        self, db: Session, pro_user: User):
+    def test_calculate_overage_exceeds_quota(self, db: Session, pro_user: User):
         """Test overage calculation exceeding quota."""
         QuotaService.add_quota_usage(db, pro_user.id, 25.0)
         # Quota for pro is 15. Already at 25.
@@ -97,11 +94,9 @@ class TestQuotaService:
 
 
 class TestPricingCalculator:
-
     """Test pricing calculations."""
 
     def test_freemium_no_filters(self, db: Session, freemium_user: User):
-
         """Test freemium pricing without filters."""
         # Freemium quota is 0. Base cost is 2.50.
         # Overage = (0 + 2.50) * 2.22 = 5.55
@@ -111,13 +106,11 @@ class TestPricingCalculator:
         assert abs(cost["total_cost"] - 8.05) < 0.01
 
     def test_freemium_filters_blocked(self, db: Session, freemium_user: User):
-
         """Test freemium cannot use filters."""
         with pytest.raises(ValueError, match="Filters not available"):
             PricingCalculator.calculate_sms_cost(db, freemium_user.id, {"state": True})
 
     def test_payg_with_state_filter(self, db: Session, payg_user: User):
-
         """Test PAYG pricing with state filter."""
         cost = PricingCalculator.calculate_sms_cost(db, payg_user.id, {"state": True})
         assert cost["base_cost"] == 2.50
@@ -127,25 +120,27 @@ class TestPricingCalculator:
         assert cost["total_cost"] == 2.75
 
     def test_pro_filters_included(self, db: Session, pro_user: User):
-
         """Test Pro tier includes filters."""
-        cost = PricingCalculator.calculate_sms_cost(db, pro_user.id, {"state": True, "isp": True})
+        cost = PricingCalculator.calculate_sms_cost(
+            db, pro_user.id, {"state": True, "isp": True}
+        )
         assert cost["filter_charges"] == 0.0  # Included in Pro
 
-    def test_validate_balance_freemium_sufficient(self, db: Session, freemium_user: User):
-
+    def test_validate_balance_freemium_sufficient(
+        self, db: Session, freemium_user: User
+    ):
         """Test balance validation for freemium with bonus SMS."""
         assert PricingCalculator.validate_balance(db, freemium_user.id, 2.50) is True
 
     def test_validate_balance_payg_sufficient(self, db: Session, payg_user: User):
-
         """Test balance validation for PAYG with credits."""
         assert PricingCalculator.validate_balance(db, payg_user.id, 10.0) is True
 
     def test_get_pricing_breakdown(self, db: Session, pro_user: User):
-
         """Test pricing breakdown."""
-        breakdown = PricingCalculator.get_pricing_breakdown(db, pro_user.id, {"state": True})
+        breakdown = PricingCalculator.get_pricing_breakdown(
+            db, pro_user.id, {"state": True}
+        )
         assert breakdown["tier"] == "pro"
         assert breakdown["quota_limit"] == 15.0
         assert breakdown["user_balance"] == 100.0

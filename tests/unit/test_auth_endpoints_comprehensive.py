@@ -328,9 +328,7 @@ class TestAuthEndpoints:
             "google.oauth2.id_token.verify_oauth2_token",
             side_effect=ValueError("Invalid token"),
         ):
-            response = client.post(
-                "/api/auth/google", json={"token": "invalid-token"}
-            )
+            response = client.post("/api/auth/google", json={"token": "invalid-token"})
 
         assert response.status_code == 401
 
@@ -416,9 +414,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.post(
-                "/api/auth/api-keys", json={"name": "Test API Key"}
-            )
+            response = client.post("/api/auth/api-keys", json={"name": "Test API Key"})
 
             # API key creation has complex tier requirements and async handling
             assert response.status_code in [201, 401, 403, 404, 500]
@@ -456,9 +452,7 @@ class TestAuthEndpoints:
         app.dependency_overrides[require_tier] = override_require_tier
 
         try:
-            response = client.post(
-                "/api/auth/api-keys", json={"name": "Test API Key"}
-            )
+            response = client.post("/api/auth/api-keys", json={"name": "Test API Key"})
 
             assert response.status_code == 403
         finally:

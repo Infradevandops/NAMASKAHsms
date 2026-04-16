@@ -9,6 +9,7 @@ def test_only_one_paymentlog_class():
     """Confirm app.models.payment no longer exists — only transaction.PaymentLog."""
     try:
         import app.models.payment  # noqa
+
         assert False, "app.models.payment should have been deleted"
     except ImportError:
         pass  # expected
@@ -22,7 +23,15 @@ def test_paymentlog_tablename():
 def test_paymentlog_has_required_columns():
     """PaymentLog has all columns needed by payment_service."""
     cols = {c.name for c in PaymentLog.__table__.columns}
-    required = {"user_id", "email", "reference", "amount_usd", "namaskah_amount", "status", "credited"}
+    required = {
+        "user_id",
+        "email",
+        "reference",
+        "amount_usd",
+        "namaskah_amount",
+        "status",
+        "credited",
+    }
     assert required.issubset(cols), f"Missing columns: {required - cols}"
 
 

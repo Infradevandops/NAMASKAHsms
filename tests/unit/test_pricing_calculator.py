@@ -12,8 +12,12 @@ class TestCalculateSmsCost:
     def test_freemium_no_filters(self, db, regular_user):
         regular_user.subscription_tier = "freemium"
         db.commit()
-        with patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage", return_value=0.0):
+        with patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,
+        ):
             mock_cfg.return_value = {"base_sms_cost": 2.22}
             res = PricingCalculator.calculate_sms_cost(db, regular_user.id)
         assert res["base_cost"] == 2.22
@@ -22,8 +26,12 @@ class TestCalculateSmsCost:
     def test_freemium_filters_raise(self, db, regular_user):
         regular_user.subscription_tier = "freemium"
         db.commit()
-        with patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage", return_value=0.0):
+        with patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,
+        ):
             mock_cfg.return_value = {"base_sms_cost": 2.22}
             with pytest.raises(ValueError, match="Filters not available"):
                 PricingCalculator.calculate_sms_cost(
@@ -33,8 +41,12 @@ class TestCalculateSmsCost:
     def test_payg_area_code_premium(self, db, regular_user):
         regular_user.subscription_tier = "payg"
         db.commit()
-        with patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage", return_value=0.0):
+        with patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,
+        ):
             mock_cfg.return_value = {"base_sms_cost": 2.50}
             res = PricingCalculator.calculate_sms_cost(
                 db, regular_user.id, filters={"area_code": "212"}
@@ -46,8 +58,12 @@ class TestCalculateSmsCost:
     def test_payg_carrier_premium(self, db, regular_user):
         regular_user.subscription_tier = "payg"
         db.commit()
-        with patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage", return_value=0.0):
+        with patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,
+        ):
             mock_cfg.return_value = {"base_sms_cost": 2.50}
             res = PricingCalculator.calculate_sms_cost(
                 db, regular_user.id, filters={"carrier": "verizon"}
@@ -58,8 +74,12 @@ class TestCalculateSmsCost:
     def test_pro_filters_free(self, db, regular_user):
         regular_user.subscription_tier = "pro"
         db.commit()
-        with patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage", return_value=0.0):
+        with patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage",
+            return_value=0.0,
+        ):
             mock_cfg.return_value = {"base_sms_cost": 0.30}
             res = PricingCalculator.calculate_sms_cost(
                 db, regular_user.id, filters={"area_code": "212", "carrier": "verizon"}
@@ -93,35 +113,64 @@ class TestValidateBalance:
         regular_user.subscription_tier = "pro"
         regular_user.credits = 0.0
         db.commit()
-        with patch("app.services.pricing_calculator.QuotaService.get_monthly_usage") as mock_usage, \
-             patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg:
-            mock_usage.return_value = {"remaining": 10.0, "quota_limit": 15.0, "quota_used": 5.0}
+        with patch(
+            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
+        ) as mock_usage, patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg:
+            mock_usage.return_value = {
+                "remaining": 10.0,
+                "quota_limit": 15.0,
+                "quota_used": 5.0,
+            }
             mock_cfg.return_value = {"base_sms_cost": 0.30}
-            result = PricingCalculator.validate_balance(db, regular_user.id, 0.30, tier="pro")
+            result = PricingCalculator.validate_balance(
+                db, regular_user.id, 0.30, tier="pro"
+            )
         assert result is True
 
     def test_pro_quota_exhausted_zero_credits_blocked(self, db, regular_user):
         regular_user.subscription_tier = "pro"
         regular_user.credits = 0.0
         db.commit()
-        with patch("app.services.pricing_calculator.QuotaService.get_monthly_usage") as mock_usage, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage") as mock_overage, \
-             patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg:
-            mock_usage.return_value = {"remaining": 0.0, "quota_limit": 15.0, "quota_used": 15.0}
+        with patch(
+            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
+        ) as mock_usage, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage"
+        ) as mock_overage, patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg:
+            mock_usage.return_value = {
+                "remaining": 0.0,
+                "quota_limit": 15.0,
+                "quota_used": 15.0,
+            }
             mock_overage.return_value = 0.30
             mock_cfg.return_value = {"base_sms_cost": 0.30}
-            result = PricingCalculator.validate_balance(db, regular_user.id, 0.30, tier="pro")
+            result = PricingCalculator.validate_balance(
+                db, regular_user.id, 0.30, tier="pro"
+            )
         assert result is False
 
     def test_pro_partial_quota_overage_requires_credits(self, db, regular_user):
         regular_user.subscription_tier = "pro"
         regular_user.credits = 1.0
         db.commit()
-        with patch("app.services.pricing_calculator.QuotaService.get_monthly_usage") as mock_usage, \
-             patch("app.services.pricing_calculator.QuotaService.calculate_overage") as mock_overage, \
-             patch("app.services.pricing_calculator.TierConfig.get_tier_config") as mock_cfg:
-            mock_usage.return_value = {"remaining": 0.0, "quota_limit": 15.0, "quota_used": 15.0}
+        with patch(
+            "app.services.pricing_calculator.QuotaService.get_monthly_usage"
+        ) as mock_usage, patch(
+            "app.services.pricing_calculator.QuotaService.calculate_overage"
+        ) as mock_overage, patch(
+            "app.services.pricing_calculator.TierConfig.get_tier_config"
+        ) as mock_cfg:
+            mock_usage.return_value = {
+                "remaining": 0.0,
+                "quota_limit": 15.0,
+                "quota_used": 15.0,
+            }
             mock_overage.return_value = 0.50
             mock_cfg.return_value = {"base_sms_cost": 0.30}
-            result = PricingCalculator.validate_balance(db, regular_user.id, 0.50, tier="pro")
+            result = PricingCalculator.validate_balance(
+                db, regular_user.id, 0.50, tier="pro"
+            )
         assert result is True  # credits(1.0) >= overage(0.50)

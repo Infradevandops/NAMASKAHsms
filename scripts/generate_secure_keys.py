@@ -4,8 +4,8 @@
 
 import secrets
 
-def generate_key(length=32):
 
+def generate_key(length=32):
     """Generate a secure random key."""
     return secrets.token_urlsafe(length)
 

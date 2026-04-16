@@ -2,14 +2,12 @@
 Tests for all major API endpoints
 """
 
-
 from unittest.mock import AsyncMock, patch
 from app.models.user import User
 from app.utils.security import hash_password
 
 
 class TestAPIEndpoints:
-
     """Comprehensive API endpoint tests."""
 
     # ==================== Health & Status ====================
@@ -29,12 +27,12 @@ class TestAPIEndpoints:
     def test_register_endpoint_success(self, client, db_session):
         """Test user registration endpoint."""
         response = client.post(
-        "/api/auth/register",
-        json={
-            "email": "newuser@test.com",
-            "password": "SecurePass123!",
-            "confirm_password": "SecurePass123!",
-        },
+            "/api/auth/register",
+            json={
+                "email": "newuser@test.com",
+                "password": "SecurePass123!",
+                "confirm_password": "SecurePass123!",
+            },
         )
 
         assert response.status_code in [200, 201, 400, 404, 422]
@@ -42,8 +40,8 @@ class TestAPIEndpoints:
     def test_login_endpoint(self, client, regular_user):
         """Test login endpoint."""
         response = client.post(
-        "/api/auth/login",
-        json={"email": regular_user.email, "password": "password123"},
+            "/api/auth/login",
+            json={"email": regular_user.email, "password": "password123"},
         )
 
         assert response.status_code in [200, 400, 401, 404, 422]
@@ -52,8 +50,9 @@ class TestAPIEndpoints:
         """Test logout endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.post("/api/auth/logout",
-                           headers={"Authorization": f"Bearer {token}"})
+        response = client.post(
+            "/api/auth/logout", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -63,10 +62,7 @@ class TestAPIEndpoints:
         """Test get user profile endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get(
-        "/user/me",
-        headers={
-            "Authorization": f"Bearer {token}"})
+        response = client.get("/user/me", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -75,9 +71,9 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.put(
-        "/user/me",
-        json={"display_name": "Updated Name"},
-        headers={"Authorization": f"Bearer {token}"},
+            "/user/me",
+            json={"display_name": "Updated Name"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 400, 401, 404, 405, 422]
@@ -86,26 +82,23 @@ class TestAPIEndpoints:
 
     @patch("app.services.payment_service.paystack_service")
     def test_initiate_payment_endpoint(
-        self,
-        mock_paystack,
-        client,
-        user_token,
-        regular_user):
+        self, mock_paystack, client, user_token, regular_user
+    ):
         """Test payment initiation endpoint."""
         mock_paystack.enabled = True
         mock_paystack.initialize_payment = AsyncMock(
-        return_value={
-            "authorization_url": "https://checkout.paystack.com/test",
-            "access_code": "test_code",
-        }
+            return_value={
+                "authorization_url": "https://checkout.paystack.com/test",
+                "access_code": "test_code",
+            }
         )
 
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.post(
-        "/api/billing/initiate-payment",
-        json={"amount": 10.0},
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/billing/initiate-payment",
+            json={"amount": 10.0},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 201, 400, 401, 404, 422]
@@ -115,9 +108,8 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.get(
-        "/api/billing/payments",
-        headers={
-            "Authorization": f"Bearer {token}"})
+            "/api/billing/payments", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -126,20 +118,14 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.get(
-        "/api/billing/transactions",
-        headers={
-            "Authorization": f"Bearer {token}"})
+            "/api/billing/transactions", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
     # ==================== Verification Endpoints ====================
 
-    def test_request_verification(
-        self,
-        client,
-        user_token,
-        regular_user,
-        db_session):
+    def test_request_verification(self, client, user_token, regular_user, db_session):
         """Test request verification endpoint."""
         # Give user credits
         regular_user.credits = 100.0
@@ -148,9 +134,9 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.post(
-        "/api/verification/request",
-        json={"service": "telegram", "country": "US"},
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/verification/request",
+            json={"service": "telegram", "country": "US"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 201, 400, 401, 402, 404, 422, 503]
@@ -160,8 +146,8 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.get(
-        "/api/verification/status/test_id",
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/verification/status/test_id",
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 401, 404]
@@ -171,9 +157,8 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.get(
-        "/api/verification/history",
-        headers={
-            "Authorization": f"Bearer {token}"})
+            "/api/verification/history", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -183,8 +168,9 @@ class TestAPIEndpoints:
         """Test get current tier endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get("/api/tier/current",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/tier/current", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -193,9 +179,9 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.post(
-        "/api/tier/upgrade",
-        json={"target_tier": "pro"},
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/tier/upgrade",
+            json={"target_tier": "pro"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 201, 400, 401, 402, 404, 422]
@@ -206,10 +192,10 @@ class TestAPIEndpoints:
         """Test create API key endpoint."""
         # Create pro user
         pro_user = User(
-        email="proapi@test.com",
-        password_hash=hash_password("password"),
-        subscription_tier="pro",
-        credits=100.0,
+            email="proapi@test.com",
+            password_hash=hash_password("password"),
+            subscription_tier="pro",
+            credits=100.0,
         )
         db_session.add(pro_user)
         db_session.commit()
@@ -217,9 +203,9 @@ class TestAPIEndpoints:
         token = user_token(pro_user.id, pro_user.email)
 
         response = client.post(
-        "/api/keys/generate",
-        json={"name": "Test API Key"},
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/keys/generate",
+            json={"name": "Test API Key"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 201, 400, 401, 403, 404, 422]
@@ -233,10 +219,7 @@ class TestAPIEndpoints:
         db_session.add(regular_user)
         db_session.commit()
 
-        response = client.get(
-        "/api/keys",
-        headers={
-            "Authorization": f"Bearer {token}"})
+        response = client.get("/api/keys", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code in [200, 401, 404]
 
@@ -245,20 +228,14 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.delete(
-        "/api/keys/test_key_id",
-        headers={
-            "Authorization": f"Bearer {token}"})
+            "/api/keys/test_key_id", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 204, 401, 404]
 
     # ==================== Webhook Endpoints ====================
 
-    def test_register_webhook(
-        self,
-        client,
-        user_token,
-        regular_user,
-        db_session):
+    def test_register_webhook(self, client, user_token, regular_user, db_session):
         """Test register webhook endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
@@ -268,13 +245,13 @@ class TestAPIEndpoints:
         db_session.commit()
 
         response = client.post(
-        "/api/webhooks",
-        json={
-            "name": "Test Webhook",
-            "url": "https://example.com/webhook",
-            "events": ["payment.success"],
-        },
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/webhooks",
+            json={
+                "name": "Test Webhook",
+                "url": "https://example.com/webhook",
+                "events": ["payment.success"],
+            },
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 201, 400, 401, 402, 404, 422]
@@ -288,8 +265,9 @@ class TestAPIEndpoints:
         db_session.add(regular_user)
         db_session.commit()
 
-        response = client.get("/api/webhooks",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/webhooks", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -299,8 +277,9 @@ class TestAPIEndpoints:
         """Test admin dashboard endpoint."""
         token = user_token(admin_user.id, admin_user.email)
 
-        response = client.get("/api/admin/dashboard",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/admin/dashboard", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 403, 404]
 
@@ -308,8 +287,9 @@ class TestAPIEndpoints:
         """Test admin users list endpoint."""
         token = user_token(admin_user.id, admin_user.email)
 
-        response = client.get("/api/admin/users",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/admin/users", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 403, 404]
 
@@ -319,8 +299,9 @@ class TestAPIEndpoints:
         """Test get quota usage endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get("/api/quota/usage",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/quota/usage", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -330,8 +311,9 @@ class TestAPIEndpoints:
         """Test get user preferences endpoint."""
         token = user_token(regular_user.id, regular_user.email)
 
-        response = client.get("/api/preferences",
-                          headers={"Authorization": f"Bearer {token}"})
+        response = client.get(
+            "/api/preferences", headers={"Authorization": f"Bearer {token}"}
+        )
 
         assert response.status_code in [200, 401, 404]
 
@@ -340,9 +322,9 @@ class TestAPIEndpoints:
         token = user_token(regular_user.id, regular_user.email)
 
         response = client.put(
-        "/api/preferences",
-        json={"language": "en", "currency": "USD"},
-        headers={"Authorization": f"Bearer {token}"},
+            "/api/preferences",
+            json={"language": "en", "currency": "USD"},
+            headers={"Authorization": f"Bearer {token}"},
         )
 
         assert response.status_code in [200, 400, 401, 404, 422]
@@ -357,9 +339,8 @@ class TestAPIEndpoints:
     def test_invalid_token(self, client):
         """Test invalid token returns 401."""
         response = client.get(
-        "/user/me",
-        headers={
-            "Authorization": "Bearer invalid_token"})
+            "/user/me", headers={"Authorization": "Bearer invalid_token"}
+        )
         assert response.status_code in [401, 404, 422]
 
     def test_not_found_endpoint(self, client):

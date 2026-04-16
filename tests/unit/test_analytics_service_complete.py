@@ -1,4 +1,5 @@
 import uuid
+
 """Unit tests for analytics service"""
 
 import pytest

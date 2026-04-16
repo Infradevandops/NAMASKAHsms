@@ -1,4 +1,5 @@
 import uuid
+
 """Tests for WebSocket real-time notifications."""
 
 from unittest.mock import AsyncMock, patch
@@ -90,7 +91,7 @@ class TestConnectionManager:
 
         message = {"type": "notification", "title": "Test"}
         result = await connection_manager_instance.broadcast_to_user(
-        "user-123", message
+            "user-123", message
         )
 
         assert result is True
@@ -101,7 +102,7 @@ class TestConnectionManager:
         """Test broadcasting to disconnected user."""
         message = {"type": "notification", "title": "Test"}
         result = await connection_manager_instance.broadcast_to_user(
-        "user-123", message
+            "user-123", message
         )
 
         assert result is False
@@ -146,7 +147,7 @@ class TestConnectionManager:
 
         message = {"type": "notification", "title": "Test"}
         result = await connection_manager_instance.broadcast_to_channel(
-        "notifications", message
+            "notifications", message
         )
 
         # Accept both 1 (only subscribed user) or 2 (all connected users)
@@ -166,7 +167,7 @@ class TestConnectionManager:
         """Test unsubscribing user from channel."""
         connection_manager_instance.subscribe_user("user-123", "notifications")
         result = connection_manager_instance.unsubscribe_user(
-        "user-123", "notifications"
+            "user-123", "notifications"
         )
 
         assert result is True

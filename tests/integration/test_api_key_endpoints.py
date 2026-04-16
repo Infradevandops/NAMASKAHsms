@@ -15,6 +15,7 @@ from main import app
 
 def _make_client(engine, user_id: str):
     """Create a test client with a fixed user_id override."""
+
     def override_db():
         Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
         s = Session()
@@ -112,8 +113,9 @@ class TestApiKeyTierGating:
         db.commit()
 
         client = _make_client(engine, "custom-gate-user")
-        with patch("app.core.dependencies.TierManager") as MockTM, \
-             patch("app.services.tier_manager.TierConfig.get_tier_config") as mock_cfg:
+        with patch("app.core.dependencies.TierManager") as MockTM, patch(
+            "app.services.tier_manager.TierConfig.get_tier_config"
+        ) as mock_cfg:
             MockTM.return_value.get_user_tier.return_value = "custom"
             MockTM.return_value.can_create_api_key.return_value = (True, "")
             mock_cfg.return_value = {"api_key_limit": -1}

@@ -46,7 +46,8 @@ class TierConfig:
             "has_area_code_selection": bool(row[6]),
             "has_isp_filtering": bool(row[7]),  # kept for backward compat
             "has_city_filtering": bool(row[7]),  # PAYG+ (best-effort)
-            "has_precise_city_filtering": tier in ("pro", "custom"),  # Telnyx city-level
+            "has_precise_city_filtering": tier
+            in ("pro", "custom"),  # Telnyx city-level
             "api_key_limit": row[8],
             "support_level": row[9],
             "daily_verification_limit": row[10],

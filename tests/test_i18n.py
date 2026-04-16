@@ -1,12 +1,10 @@
 """Tests for i18n and currency services."""
 
-
 from app.services.currency_service import CurrencyService
 from app.services.translation_service import TranslationService
 
 
 class TestTranslationService:
-
     """Test translation service."""
 
     def test_get_available_languages(self):
@@ -32,51 +30,43 @@ class TestTranslationService:
 
 
 class TestCurrencyService:
-
     """Test currency service."""
 
     def test_convert_same_currency(self):
-
         """Test converting same currency."""
         result = CurrencyService.convert(100, "USD", "USD")
         assert result == 100
 
     def test_convert_usd_to_eur(self):
-
         """Test USD to EUR conversion."""
         result = CurrencyService.convert(100, "USD", "EUR")
         assert result > 0
         assert result < 100
 
     def test_convert_usd_to_ngn(self):
-
         """Test USD to NGN conversion."""
         result = CurrencyService.convert(100, "USD", "NGN")
         assert result > 100
 
     def test_format_currency_usd(self):
-
         """Test USD formatting."""
         result = CurrencyService.format_currency(100.50, "USD")
         assert "$" in result
         assert "100.50" in result
 
     def test_format_currency_eur(self):
-
         """Test EUR formatting."""
         result = CurrencyService.format_currency(100.50, "EUR")
         assert "€" in result
         assert "100.50" in result
 
     def test_get_symbol(self):
-
         """Test getting currency symbol."""
         assert CurrencyService.get_symbol("USD") == "$"
         assert CurrencyService.get_symbol("EUR") == "€"
         assert CurrencyService.get_symbol("GBP") == "£"
 
     def test_get_available_currencies(self):
-
         """Test getting available currencies."""
         currencies = CurrencyService.get_available_currencies()
         assert len(currencies) == 10

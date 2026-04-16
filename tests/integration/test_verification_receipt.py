@@ -7,11 +7,14 @@ from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 # Add project root to sys.path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+sys.path.insert(
+    0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+)
 
 from app.core.database import SessionLocal
 from app.models.verification import Verification
 from app.models.user import User
+
 
 def test_verification_receipt_fields():
     """Test that all receipt fields are present in the database after purchase."""
@@ -23,7 +26,7 @@ def test_verification_receipt_fields():
             user = User(
                 email="test_receipt@example.com",
                 credits=100.0,
-                subscription_tier="payg"
+                subscription_tier="payg",
             )
             db.add(user)
             db.commit()
@@ -45,7 +48,7 @@ def test_verification_receipt_fields():
             fallback_applied=True,
             same_state_fallback=False,
             created_at=datetime.now(timezone.utc),
-            completed_at=datetime.now(timezone.utc)
+            completed_at=datetime.now(timezone.utc),
         )
         db.add(v)
         db.commit()
@@ -58,14 +61,17 @@ def test_verification_receipt_fields():
         assert v.same_state_fallback is False
         assert v.requested_area_code == "212"
         assert v.requested_carrier == "verizon"
-        
-        print(f"✅ Integration test passed: Verification {v.id} stores all receipt fields.")
-        
+
+        print(
+            f"✅ Integration test passed: Verification {v.id} stores all receipt fields."
+        )
+
         # Cleanup
         db.delete(v)
         db.commit()
     finally:
         db.close()
+
 
 if __name__ == "__main__":
     test_verification_receipt_fields()

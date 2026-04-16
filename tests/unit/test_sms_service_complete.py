@@ -2,7 +2,6 @@
 Comprehensive SMS verification and pricing tests
 """
 
-
 from unittest.mock import AsyncMock, patch
 from app.core.tier_config import TIER_CONFIG
 from app.models.user import User
@@ -59,10 +58,10 @@ class TestSMSServiceComplete:
     def test_sufficient_balance_check(self, db_session):
         """Test sufficient balance validation."""
         user = User(
-        email="richuser@test.com",
-        password_hash="hash",
-        credits=100.0,
-        subscription_tier="freemium",
+            email="richuser@test.com",
+            password_hash="hash",
+            credits=100.0,
+            subscription_tier="freemium",
         )
         db_session.add(user)
         db_session.commit()
@@ -73,10 +72,10 @@ class TestSMSServiceComplete:
     def test_insufficient_balance_check(self, db_session):
         """Test insufficient balance detection."""
         user = User(
-        email="pooruser@test.com",
-        password_hash="hash",
-        credits=1.0,
-        subscription_tier="freemium",
+            email="pooruser@test.com",
+            password_hash="hash",
+            credits=1.0,
+            subscription_tier="freemium",
         )
         db_session.add(user)
         db_session.commit()
@@ -115,22 +114,22 @@ class TestSMSServiceComplete:
     def test_verification_creation(self, db_session, regular_user):
         """Test creating verification record."""
         verification = Verification(
-        user_id=regular_user.id,
-        service_name="telegram",
-        phone_number="+1234567890",
-        country="US",
-        cost=2.50,
-        provider="textverified",
-        activation_id="act_123",
-        status="pending",
+            user_id=regular_user.id,
+            service_name="telegram",
+            phone_number="+1234567890",
+            country="US",
+            cost=2.50,
+            provider="textverified",
+            activation_id="act_123",
+            status="pending",
         )
         db_session.add(verification)
         db_session.commit()
 
         saved = (
-        db_session.query(Verification)
-        .filter(Verification.activation_id == "act_123")
-        .first()
+            db_session.query(Verification)
+            .filter(Verification.activation_id == "act_123")
+            .first()
         )
 
         assert saved is not None
@@ -139,14 +138,14 @@ class TestSMSServiceComplete:
     def test_verification_status_transitions(self, db_session, regular_user):
         """Test verification status transitions."""
         verification = Verification(
-        user_id=regular_user.id,
-        service_name="whatsapp",
-        phone_number="+1234567890",
-        country="US",
-        cost=2.50,
-        provider="textverified",
-        activation_id="act_456",
-        status="pending",
+            user_id=regular_user.id,
+            service_name="whatsapp",
+            phone_number="+1234567890",
+            country="US",
+            cost=2.50,
+            provider="textverified",
+            activation_id="act_456",
+            status="pending",
         )
         db_session.add(verification)
         db_session.commit()
@@ -161,14 +160,14 @@ class TestSMSServiceComplete:
     def test_verification_with_code(self, db_session, regular_user):
         """Test verification with received code."""
         verification = Verification(
-        user_id=regular_user.id,
-        service_name="telegram",
-        phone_number="+1234567890",
-        country="US",
-        cost=2.50,
-        provider="textverified",
-        activation_id="act_789",
-        status="pending",
+            user_id=regular_user.id,
+            service_name="telegram",
+            phone_number="+1234567890",
+            country="US",
+            cost=2.50,
+            provider="textverified",
+            activation_id="act_789",
+            status="pending",
         )
         db_session.add(verification)
         db_session.commit()
@@ -187,14 +186,14 @@ class TestSMSServiceComplete:
     def test_supported_services(self):
         """Test list of supported services."""
         supported = [
-        "telegram",
-        "whatsapp",
-        "discord",
-        "instagram",
-        "facebook",
-        "twitter",
-        "google",
-        "microsoft",
+            "telegram",
+            "whatsapp",
+            "discord",
+            "instagram",
+            "facebook",
+            "twitter",
+            "google",
+            "microsoft",
         ]
 
         assert "telegram" in supported
@@ -242,11 +241,11 @@ class TestSMSServiceComplete:
         mock_instance = mock_service.return_value
         mock_instance.enabled = True
         mock_instance.buy_number = AsyncMock(
-        return_value={
-            "phone_number": "+1234567890",
-            "activation_id": "act_test",
-            "cost": 0.50,
-        }
+            return_value={
+                "phone_number": "+1234567890",
+                "activation_id": "act_test",
+                "cost": 0.50,
+            }
         )
 
         assert mock_instance.enabled is True
@@ -256,7 +255,7 @@ class TestSMSServiceComplete:
         """Test retrieving code from TextVerified."""
         mock_instance = mock_service.return_value
         mock_instance.get_code = AsyncMock(
-        return_value={"code": "123456", "status": "success"}
+            return_value={"code": "123456", "status": "success"}
         )
 
         # Would be called in actual service
@@ -294,10 +293,10 @@ class TestSMSServiceComplete:
         """Test quota tracking for pro tier."""
 
         pro_user = User(
-        email="proquota@test.com",
-        password_hash="hash",
-        subscription_tier="pro",
-        credits=100.0,
+            email="proquota@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
         )
         db_session.add(pro_user)
         db_session.commit()
@@ -309,10 +308,10 @@ class TestSMSServiceComplete:
         """Test incrementing quota usage."""
 
         pro_user = User(
-        email="quotaincr@test.com",
-        password_hash="hash",
-        subscription_tier="pro",
-        credits=100.0,
+            email="quotaincr@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
         )
         db_session.add(pro_user)
         db_session.commit()
@@ -327,10 +326,10 @@ class TestSMSServiceComplete:
         """Test overage charge calculation."""
 
         pro_user = User(
-        email="overage@test.com",
-        password_hash="hash",
-        subscription_tier="pro",
-        credits=100.0,
+            email="overage@test.com",
+            password_hash="hash",
+            subscription_tier="pro",
+            credits=100.0,
         )
         db_session.add(pro_user)
         db_session.commit()
@@ -348,18 +347,18 @@ class TestSMSServiceComplete:
         """Test transaction logging for SMS purchase."""
 
         tx = Transaction(
-        user_id=regular_user.id,
-        amount=-2.50,  # Debit
-        type="debit",
-        description="SMS purchase - telegram",
+            user_id=regular_user.id,
+            amount=-2.50,  # Debit
+            type="debit",
+            description="SMS purchase - telegram",
         )
         db_session.add(tx)
         db_session.commit()
 
         saved = (
-        db_session.query(Transaction)
-        .filter(Transaction.user_id == regular_user.id, Transaction.type == "debit")
-        .first()
+            db_session.query(Transaction)
+            .filter(Transaction.user_id == regular_user.id, Transaction.type == "debit")
+            .first()
         )
 
         assert saved is not None
