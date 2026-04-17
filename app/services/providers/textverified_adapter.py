@@ -53,7 +53,6 @@ class TextVerifiedAdapter(SMSProvider):
                 service=service,
                 country=country,
                 area_code=area_code,
-                carrier=carrier,
                 capability=capability,
                 selected_from_alternatives=selected_from_alternatives,
                 original_request=original_request,
