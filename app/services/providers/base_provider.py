@@ -57,6 +57,7 @@ class SMSProvider(ABC):
         area_code: Optional[str] = None,
         carrier: Optional[str] = None,
         capability: str = "sms",
+        city: Optional[str] = None,
     ) -> PurchaseResult:
         """Purchase a phone number for verification.
 

@@ -43,6 +43,9 @@ class TextVerifiedAdapter(SMSProvider):
         area_code: Optional[str] = None,
         carrier: Optional[str] = None,
         capability: str = "sms",
+        city: Optional[str] = None,
+        selected_from_alternatives: bool = False,
+        original_request: Optional[str] = None,
     ) -> PurchaseResult:
         """Purchase number from TextVerified."""
         try:
@@ -52,6 +55,8 @@ class TextVerifiedAdapter(SMSProvider):
                 area_code=area_code,
                 carrier=carrier,
                 capability=capability,
+                selected_from_alternatives=selected_from_alternatives,
+                original_request=original_request,
             )
 
             return PurchaseResult(

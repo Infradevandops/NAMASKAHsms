@@ -114,13 +114,16 @@ async def test_poll_telnyx_success(service):
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[msg])
         MockAdapter.return_value = adapter
+        
+        # Mock DB reload
+        db.query.return_value.filter.return_value.first.return_value = v
 
         with patch("app.services.sms_polling_service.NotificationDispatcher"):
             await service._poll_telnyx(v, db, timeout_seconds=30)
 
     assert v.status == "completed"
     assert v.sms_code == "123456"
-    db.commit.assert_called()
+    assert db.commit.called
 
 
 @pytest.mark.asyncio
@@ -178,12 +181,15 @@ async def test_poll_fivesim_success(service):
         adapter.check_messages = AsyncMock(return_value=[msg])
         MockAdapter.return_value = adapter
 
+        # Mock DB reload
+        db.query.return_value.filter.return_value.first.return_value = v
+
         with patch("app.services.sms_polling_service.NotificationDispatcher"):
             await service._poll_fivesim(v, db, timeout_seconds=30)
 
     assert v.status == "completed"
     assert v.sms_code == "654321"
-    db.commit.assert_called()
+    assert db.commit.called
 
 
 @pytest.mark.asyncio
@@ -284,17 +290,18 @@ async def test_handle_timeout_refund_fallback(service):
     service.textverified.report_verification = AsyncMock(return_value=False)
 
     with patch(
-        "app.services.sms_polling_service.AutoRefundService"
-    ) as MockRefund, patch("app.services.sms_polling_service.NotificationService"):
-        refund_svc = AsyncMock()
-        refund_svc.process_verification_refund = AsyncMock(
+        "app.services.sms_polling_service.refund_policy_enforcer"
+    ) as MockEnforcer, patch("app.services.sms_polling_service.NotificationService"):
+        MockEnforcer.enforce_single_verification = AsyncMock(
             return_value={"refund_amount": 2.22}
         )
-        MockRefund.return_value = refund_svc
+        
+        # Mock DB reload inside enforcer calls might be needed if they also reload
+        db.query.return_value.filter.return_value.first.return_value = v
 
         await service._handle_timeout(v, db)
 
-    refund_svc.process_verification_refund.assert_called_once()
+    MockEnforcer.enforce_single_verification.assert_called_once()
 
 
 # ── background service ────────────────────────────────────────────────────────

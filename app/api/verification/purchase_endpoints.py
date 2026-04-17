@@ -115,16 +115,18 @@ async def request_verification(
                 status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
             )
 
-        # Get TextVerified service
-        logger.info(f"Initializing TextVerified service for user {user_id}")
-        tv_service = TextVerifiedService()
-        if not tv_service.enabled:
-            logger.error("TextVerified service not configured or unavailable")
+        # Provider Router Initialization
+        from app.services.providers.provider_router import ProviderRouter
+        provider_router = ProviderRouter()
+        
+        enabled_providers = provider_router.get_enabled_providers()
+        if not enabled_providers:
+            logger.error("No SMS providers configured or available")
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
                 detail="SMS service temporarily unavailable. Please try again later.",
             )
-        logger.info("TextVerified service initialized successfully")
+        logger.info(f"Multi-provider router initialized. Enabled: {enabled_providers}")
 
         # TIER VALIDATION: Check tier access for filtering features
         # Uses TierManager which refreshes from DB to avoid stale tier data
@@ -142,6 +144,7 @@ async def request_verification(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail="Voice verification requires PAYG tier or higher. Upgrade your plan.",
                 )
+
 
         if request.area_codes:
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
@@ -201,27 +204,29 @@ async def request_verification(
         if city:
             logger.info(f"User {user_id} requesting city: {city}")
 
-        textverified_result = None
+        purchase_result = None
         verification = None
         notification_dispatcher = NotificationDispatcher(db)
 
         try:
             try:
-                # Purchase via TextVerified
+                # Purchase via Router (Multi-provider with Failover)
                 logger.info(
-                    f"Calling TextVerified - Service: {request.service}, Country: {request.country}, Area Code: {area_code}"
+                    f"Initiating purchase through ProviderRouter - Service: {request.service}, Country: {request.country}"
                 )
-                textverified_result = await tv_service.create_verification(
+                purchase_result = await provider_router.purchase_with_failover(
                     service=request.service,
                     country=request.country,
                     area_code=area_code,
                     capability=request.capability,
+                    city=city,
+                    user_tier=user_tier,
                     selected_from_alternatives=request.selected_from_alternatives,
                     original_request=request.original_request,
                 )
-                provider_name = "textverified"
+                provider_name = purchase_result.provider
             except AreaCodeUnavailableException as area_err:
-                # Area code is confirmed unavailable — no credits were charged (number was cancelled)
+                # Area code is confirmed unavailable — handled by TextVerified path within router
                 db.rollback()
                 logger.warning(
                     f"Area code unavailable for user {user_id}: {area_err.message}"
@@ -237,25 +242,25 @@ async def request_verification(
                     }
                 )
 
-            # —— Success path: textverified_result is populated ——
+            # —— Success path: purchase_result is populated ——
             logger.info(
-                f"TextVerified success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
+                f"Purchase successful: {purchase_result.phone_number} via {purchase_result.provider} (reason: {purchase_result.routing_reason})"
             )
 
-            if textverified_result.get("fallback_applied"):
+            if purchase_result.fallback_applied:
                 logger.warning(
-                    f"Area code fallback for user {user_id}: "
-                    f"requested={textverified_result['requested_area_code']}, "
-                    f"assigned={textverified_result['assigned_area_code']}"
+                    f"Provider fallback applied for user {user_id}: "
+                    f"requested={purchase_result.requested_area_code or 'Any'}, "
+                    f"assigned={purchase_result.assigned_area_code or 'Any'}"
                 )
                 try:
                     await notification_dispatcher.notify_area_code_fallback(
                         user_id=user_id,
                         verification_id="pending",
                         service=request.service,
-                        requested_area_code=textverified_result["requested_area_code"],
-                        assigned_area_code=textverified_result["assigned_area_code"],
-                        same_state=textverified_result.get("same_state_fallback", True),
+                        requested_area_code=purchase_result.requested_area_code,
+                        assigned_area_code=purchase_result.assigned_area_code,
+                        same_state=purchase_result.same_state_fallback,
                     )
                 except Exception:
                     pass  # Notification failure is non-fatal
@@ -266,29 +271,31 @@ async def request_verification(
             verification = Verification(
                 user_id=user_id,
                 service_name=request.service,
-                phone_number=textverified_result["phone_number"],
+                phone_number=purchase_result.phone_number,
                 country=request.country,
                 capability=request.capability,
                 cost=actual_cost,
-                provider="textverified",
-                activation_id=textverified_result["id"],
+                provider=purchase_result.provider,
+                activation_id=purchase_result.order_id,
                 status="pending",
                 idempotency_key=final_idempotency_key,
                 requested_area_code=area_code,
                 requested_carrier=None,
-                operator=None,
-                assigned_area_code=textverified_result.get("assigned_area_code"),
+                operator=purchase_result.operator,
+                assigned_area_code=purchase_result.assigned_area_code,
                 assigned_carrier=None,
-                fallback_applied=textverified_result.get("fallback_applied", False),
-                same_state_fallback=textverified_result.get("same_state_fallback", True),
-                retry_attempts=textverified_result.get("attempt_count", 1),
-                area_code_matched=textverified_result.get("area_code_matched", True),
+                fallback_applied=purchase_result.fallback_applied,
+                same_state_fallback=purchase_result.same_state_fallback,
+                retry_attempts=purchase_result.retry_attempts,
+                area_code_matched=purchase_result.area_code_matched,
                 carrier_matched=True,       # carrier feature retired
                 real_carrier=None,          # carrier feature retired
                 carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
                 area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
-                voip_rejected=textverified_result.get("voip_rejected", False),
+                voip_rejected=purchase_result.voip_rejected,
                 created_at=datetime.now(timezone.utc),
+                selected_from_alternatives=request.selected_from_alternatives,
+                original_request=request.original_request,
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
@@ -308,11 +315,11 @@ async def request_verification(
             logger.info(f"Verification record created with ID: {verification.id}")
 
             # Step 3: Deduct credits and record transaction
-            # For admin users, sync from live TextVerified balance
+            # For admin users, sync from live provider balance if available
             if user.is_admin:
                 try:
-                    tv_bal = await tv_service.get_balance()
-                    new_balance = tv_bal.get("balance", 0.0)
+                    balances = await provider_router.get_provider_balances()
+                    new_balance = balances.get(purchase_result.provider, old_balance - actual_cost)
                     user.credits = new_balance
                     logger.info(
                         f"Admin balance synced after purchase: ${old_balance:.2f} → ${new_balance:.2f}"
@@ -347,7 +354,7 @@ async def request_verification(
                     user_id=user_id,
                     verification_id=str(verification.id),
                     service=request.service,
-                    phone_number=textverified_result["phone_number"],
+                    phone_number=purchase_result.phone_number,
                     cost=actual_cost,
                 )
             except (TypeError, AttributeError) as e:
@@ -363,9 +370,13 @@ async def request_verification(
                 exc_info=True,
             )
 
-            if textverified_result and textverified_result.get("id"):
+            if purchase_result and purchase_result.order_id:
                 try:
-                    await tv_service.cancel_verification(textverified_result["id"])
+                    # Attempt cancellation on provider side
+                    from app.services.providers.textverified_adapter import TextVerifiedAdapter
+                    if purchase_result.provider == "textverified":
+                        await TextVerifiedAdapter().cancel(purchase_result.order_id)
+                    # Add other providers if they support explicit cancel
                 except Exception as cancel_error:
                     logger.error(
                         f"Failed to cancel number after rollback: {cancel_error}"
@@ -423,20 +434,22 @@ async def request_verification(
         response = {
             "success": True,
             "verification_id": verification.id,
-            "phone_number": textverified_result["phone_number"],
+            "phone_number": purchase_result.phone_number,
             "service": request.service,
             "country": request.country,
             "cost": actual_cost,
             "status": "pending",
-            "activation_id": textverified_result["id"],
+            "activation_id": purchase_result.order_id,
             "demo_mode": False,
-            "fallback_applied": textverified_result.get("fallback_applied", False),
-            "requested_area_code": textverified_result.get("requested_area_code"),
-            "assigned_area_code": textverified_result.get("assigned_area_code"),
-            "same_state_fallback": textverified_result.get("same_state_fallback", True),
+            "fallback_applied": purchase_result.fallback_applied,
+            "requested_area_code": purchase_result.requested_area_code,
+            "assigned_area_code": purchase_result.assigned_area_code,
+            "same_state_fallback": purchase_result.same_state_fallback,
             "requested_city": city,
-            "city_honoured": textverified_result.get("city_honoured", True),
-            "city_note": textverified_result.get("city_note"),
+            "city_honoured": purchase_result.city_honoured,
+            "city_note": purchase_result.city_note,
+            "provider": purchase_result.provider,
+            "routing_reason": purchase_result.routing_reason,
         }
 
         # Cache response for idempotency (24 hours)
@@ -451,8 +464,8 @@ async def request_verification(
         logger.info(
             f"✓ Verification {verification.id} completed successfully | "
             f"User: {user_id} | Service: {request.service} | Country: {request.country} | "
-            f"Phone: {textverified_result['phone_number']} | Cost: ${actual_cost:.2f} | "
-            f"Balance: ${new_balance:.2f}"
+            f"Phone: {purchase_result.phone_number} | Cost: ${actual_cost:.2f} | "
+            f"Balance: ${new_balance:.2f} | Provider: {purchase_result.provider}"
         )
 
         try:

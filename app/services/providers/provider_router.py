@@ -79,6 +79,13 @@ class ProviderRouter:
             logger.info(f"Routing to TextVerified for US request (city={city})")
             return self._get_textverified(), bool(city), None
 
+        # Prefer Enterprise (Telnyx)
+        if prefer_enterprise:
+            telnyx = self._get_telnyx()
+            if telnyx.enabled:
+                logger.info(f"Routing to Telnyx for {country} (Enterprise preference)")
+                return telnyx, bool(city), None
+
         # PVApins-covered countries (SE Asia, South Asia, Africa, LATAM)
         # PVApins is primary for these — better inventory than 5sim/Telnyx
         if self._pvapins_covers(country_upper):
@@ -148,6 +155,8 @@ class ProviderRouter:
         capability: str = "sms",
         city: Optional[str] = None,
         user_tier: str = "freemium",
+        selected_from_alternatives: bool = False,
+        original_request: Optional[str] = None,
     ) -> PurchaseResult:
         """Purchase with city-aware routing and two-level rerouting.
 
@@ -183,20 +192,28 @@ class ProviderRouter:
         # Determine city to pass to provider
         city_for_provider = city if city_attempted else None
 
+        # Build kwargs for provider (including optional telemetry)
+        provider_kwargs = {
+            "service": service,
+            "country": country,
+            "area_code": resolved_area_code,
+            "carrier": None,  # carrier filtering retired
+            "capability": capability,
+            "city": city_for_provider,
+        }
+        
+        # Only add TextVerified-specific telemetry if called on TextVerified
+        if primary.name == "textverified":
+            provider_kwargs["selected_from_alternatives"] = selected_from_alternatives
+            provider_kwargs["original_request"] = original_request
+
         try:
             logger.info(
                 f"Purchase attempt: provider={primary.name}, service={service}, "
                 f"country={country}, city={city_for_provider}, tier={user_tier}"
             )
 
-            result = await primary.purchase_number(
-                service=service,
-                country=country,
-                area_code=resolved_area_code,
-                carrier=None,  # carrier filtering retired
-                capability=capability,
-                city=city_for_provider,
-            )
+            result = await primary.purchase_number(**provider_kwargs)
 
             # Apply pre-known city note (e.g. PAYG city dropped before API call)
             if pre_note and not result.city_note:
@@ -235,14 +252,20 @@ class ProviderRouter:
                         f"Failing over from {primary.name} to {secondary.name}"
                     )
                     try:
-                        result = await secondary.purchase_number(
-                            service=service,
-                            country=country,
-                            area_code=resolved_area_code,
-                            carrier=None,
-                            capability=capability,
-                            city=city_for_provider,
-                        )
+                        # Re-build kwargs for secondary (might be a different provider type)
+                        secondary_kwargs = {
+                            "service": service,
+                            "country": country,
+                            "area_code": resolved_area_code,
+                            "carrier": None,
+                            "capability": capability,
+                            "city": city_for_provider,
+                        }
+                        if secondary.name == "textverified":
+                            secondary_kwargs["selected_from_alternatives"] = selected_from_alternatives
+                            secondary_kwargs["original_request"] = original_request
+
+                        result = await secondary.purchase_number(**secondary_kwargs)
                         if pre_note and not result.city_note:
                             result.city_honoured = False
                             result.city_note = pre_note
