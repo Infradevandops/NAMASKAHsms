@@ -34,7 +34,7 @@ class Settings(BaseSettings):
         return self.jwt_expiration_hours
 
     # Database settings
-    database_url: str = "sqlite:///./namaskah.db"
+    database_url: str = "sqlite:///./data/namaskah.db"
     database_echo: bool = False
 
     # Redis settings
