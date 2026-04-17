@@ -1,9 +1,9 @@
 """Unit tests for verification routes and tier upgrade."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -90,10 +90,11 @@ class TestVerificationStatus:
 
     def test_returns_status_for_own_verification(self, client, db, regular_user):
         """User can get status of their own verification."""
-        from app.models.verification import Verification
-        from app.core.dependencies import get_current_user_id
-        from main import app
         import uuid
+
+        from app.core.dependencies import get_current_user_id
+        from app.models.verification import Verification
+        from main import app
 
         ver = Verification(
             id=str(uuid.uuid4()),
@@ -119,10 +120,11 @@ class TestVerificationStatus:
 
     def test_returns_404_for_wrong_user(self, client, db, regular_user, pro_user):
         """User cannot get status of another user's verification."""
-        from app.models.verification import Verification
-        from app.core.dependencies import get_current_user_id
-        from main import app
         import uuid
+
+        from app.core.dependencies import get_current_user_id
+        from app.models.verification import Verification
+        from main import app
 
         ver = Verification(
             id=str(uuid.uuid4()),
@@ -156,10 +158,10 @@ class TestVerificationSms:
     @pytest.mark.asyncio
     async def test_uses_activation_id_not_db_uuid(self, db, regular_user):
         """Polling uses activation_id (TextVerified ID), not the DB UUID."""
-        from app.services.sms_polling_service import SMSPollingService
         import uuid
 
         from app.models.verification import Verification
+        from app.services.sms_polling_service import SMSPollingService
 
         ver = Verification(
             id=str(uuid.uuid4()),
@@ -198,10 +200,10 @@ class TestVerificationSms:
     @pytest.mark.asyncio
     async def test_stores_sms_text_and_code_on_completion(self, db, regular_user):
         """When SMS received, sms_text, sms_code, and status=completed are saved."""
-        from app.services.sms_polling_service import SMSPollingService
         import uuid
 
         from app.models.verification import Verification
+        from app.services.sms_polling_service import SMSPollingService
 
         ver = Verification(
             id=str(uuid.uuid4()),
@@ -290,8 +292,9 @@ class TestTierUpgrade:
 
     @pytest.mark.asyncio
     async def test_same_tier_returns_400(self):
-        from app.api.billing.tier_endpoints import upgrade_tier
         from fastapi import HTTPException
+
+        from app.api.billing.tier_endpoints import upgrade_tier
 
         user = _make_user(tier="payg")
         db = MagicMock()
@@ -303,8 +306,9 @@ class TestTierUpgrade:
 
     @pytest.mark.asyncio
     async def test_invalid_tier_returns_400(self):
-        from app.api.billing.tier_endpoints import upgrade_tier
         from fastapi import HTTPException
+
+        from app.api.billing.tier_endpoints import upgrade_tier
 
         user = _make_user(tier="freemium")
         db = MagicMock()
@@ -322,8 +326,9 @@ class TestWebhookTierAssignment:
 
     @pytest.mark.asyncio
     async def test_webhook_sets_pro_tier_on_upgrade_payment(self):
-        from app.api.billing.payment_endpoints import paystack_webhook
         import json
+
+        from app.api.billing.payment_endpoints import paystack_webhook
 
         user = _make_user(tier="freemium")
         db = MagicMock()
@@ -357,8 +362,9 @@ class TestWebhookTierAssignment:
 
     @pytest.mark.asyncio
     async def test_webhook_without_upgrade_to_does_not_change_tier(self):
-        from app.api.billing.payment_endpoints import paystack_webhook
         import json
+
+        from app.api.billing.payment_endpoints import paystack_webhook
 
         user = _make_user(tier="freemium")
         db = MagicMock()

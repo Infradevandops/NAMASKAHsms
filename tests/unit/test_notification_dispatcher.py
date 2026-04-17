@@ -5,13 +5,13 @@ Covers the two confirmed production bugs:
 2. Object of type Notification is not JSON serializable
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.notification_dispatcher import NotificationDispatcher
+import pytest
+
 from app.models.notification import Notification
-
+from app.services.notification_dispatcher import NotificationDispatcher
 
 # ---------------------------------------------------------------------------
 # Helpers

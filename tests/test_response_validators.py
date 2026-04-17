@@ -1,6 +1,8 @@
 """Tests for response schema validators."""
 
 import pytest
+from pydantic import ValidationError, parse_obj_as
+
 from app.schemas.tier import (
     AnalyticsSummaryResponse,
     CurrentTierResponse,
@@ -14,7 +16,6 @@ from app.utils.response_validator import (
     validate_response,
     validate_response_safe,
 )
-from pydantic import ValidationError, parse_obj_as
 
 
 class TestTiersListResponseValidator:

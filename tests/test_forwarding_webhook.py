@@ -1,11 +1,13 @@
 """Tests for SMS forwarding webhook functionality."""
 
+import json
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, Mock, patch
+
 import httpx
 import pytest
+
 from app.api.core.forwarding import _send_forwarding_webhook
-import json
 
 
 class TestForwardingWebhook:

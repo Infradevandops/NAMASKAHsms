@@ -1,11 +1,12 @@
 """Unit tests for BalanceService."""
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 from decimal import Decimal
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.balance_service import BalanceService
+import pytest
+
 from app.models.user import User
+from app.services.balance_service import BalanceService
 
 
 @pytest.mark.asyncio

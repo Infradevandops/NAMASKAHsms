@@ -1,57 +1,59 @@
 """Test configuration and fixtures."""
 
 import uuid
-import pytest
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
-from fastapi.testclient import TestClient
+
 from app.core.database import Base, get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
-from app.models.verification import Verification
-from app.models.transaction import Transaction, PaymentLog
-from app.models.notification import Notification
-from app.models.notification_preference import NotificationPreference
-from app.models.notification_analytics import NotificationAnalytics
-from app.models.api_key import APIKey
-from app.models.subscription_tier import SubscriptionTier
 from app.models.activity import Activity
-from app.models.audit_log import AuditLog
 from app.models.affiliate import (
-    AffiliateProgram,
     AffiliateApplication,
     AffiliateCommission,
+    AffiliateProgram,
 )
-from app.models.commission import CommissionTier, RevenueShare
+from app.models.api_key import APIKey
+from app.models.audit_log import AuditLog
+from app.models.balance_transaction import BalanceTransaction
 from app.models.blacklist import NumberBlacklist
+from app.models.carrier_analytics import CarrierAnalytics
+from app.models.commission import CommissionTier, RevenueShare
+from app.models.device_token import DeviceToken
+from app.models.forwarding import ForwardingConfig
 from app.models.kyc import KYCProfile
+from app.models.notification import Notification
+from app.models.notification_analytics import NotificationAnalytics
+from app.models.notification_preference import NotificationPreference
+from app.models.pricing_template import PricingTemplate
+from app.models.purchase_outcome import PurchaseOutcome
 from app.models.refund import Refund
+from app.models.reseller import (
+    BulkOperation,
+    CreditAllocation,
+    ResellerAccount,
+    SubAccount,
+    SubAccountTransaction,
+)
+from app.models.subscription_tier import SubscriptionTier
+from app.models.transaction import PaymentLog, Transaction
+from app.models.user import User
+from app.models.user_preference import UserPreference
+from app.models.user_quota import MonthlyQuotaUsage, UserQuota
+from app.models.verification import Verification
+from app.models.verification_preset import VerificationPreset
+from app.models.waitlist import Waitlist
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
     WhiteLabelAsset,
     WhiteLabelDomain,
     WhiteLabelTheme,
 )
-from app.models.pricing_template import PricingTemplate
-from app.models.device_token import DeviceToken
-from app.models.user_preference import UserPreference
-from app.models.user_quota import UserQuota, MonthlyQuotaUsage
-from app.models.balance_transaction import BalanceTransaction
-from app.models.carrier_analytics import CarrierAnalytics
-from app.models.verification_preset import VerificationPreset
-from app.models.waitlist import Waitlist
-from app.models.reseller import (
-    ResellerAccount,
-    SubAccount,
-    SubAccountTransaction,
-    CreditAllocation,
-    BulkOperation,
-)
-from app.models.forwarding import ForwardingConfig
-from app.models.purchase_outcome import PurchaseOutcome
 from app.utils.security import create_access_token
 from main import app
 

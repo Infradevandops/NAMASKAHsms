@@ -1,7 +1,9 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
-from app.services.refund_service import RefundService
+
 from app.models.purchase_outcome import PurchaseOutcome
+from app.services.refund_service import RefundService
 
 
 @pytest.mark.asyncio

@@ -1,8 +1,9 @@
 """Comprehensive error handling tests."""
 
 from unittest.mock import MagicMock, patch
-from app.models.verification import Verification
+
 from app.models.user import User
+from app.models.verification import Verification
 
 
 class TestValidationErrors:

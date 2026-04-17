@@ -1,9 +1,11 @@
 import io
 from unittest.mock import MagicMock
+
 import pytest
 from fastapi import HTTPException, UploadFile
-from app.services.document_service import DocumentService
+
 from app.services import document_service
+from app.services.document_service import DocumentService
 
 
 class TestDocumentService:

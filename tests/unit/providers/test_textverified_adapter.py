@@ -1,11 +1,12 @@
 """Unit tests for TextVerified adapter."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
+from app.services.providers.base_provider import MessageResult, PurchaseResult
 from app.services.providers.textverified_adapter import TextVerifiedAdapter
-from app.services.providers.base_provider import PurchaseResult, MessageResult
 
 
 class TestTextVerifiedAdapter:

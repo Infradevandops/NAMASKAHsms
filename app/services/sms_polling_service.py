@@ -130,6 +130,14 @@ class SMSPollingService:
             tv_details, verification.created_at, verification.service_name
         )
 
+        # Phase 11: Late-binding carrier enrichment
+        if tv_details.get("carrier"):
+            asyncio.create_task(
+                PurchaseIntelligenceService.enrich_outcome_carrier(
+                    verification.id, tv_details.get("carrier")
+                )
+            )
+
         logger.info(
             f"Polling {verification.id} via sms.incoming() "
             f"(timeout={timeout_seconds:.0f}s)"

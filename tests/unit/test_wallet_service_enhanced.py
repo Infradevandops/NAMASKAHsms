@@ -5,11 +5,13 @@ Wallet Service Tests
 Coverage: Balance operations, transactions, concurrency
 """
 
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 from sqlalchemy.orm import Session
-from app.models.user import User
+
 from app.models.transaction import Transaction
+from app.models.user import User
 
 
 class MockWalletService:

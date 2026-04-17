@@ -4,9 +4,10 @@ Covers the 18 bug fixes documented in docs/SMS_LOGIC.md.
 Each test is named after the deviation it guards against.
 """
 
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, call, patch
+
 import pytest
-from datetime import datetime, timezone, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch, call
 
 
 def _make_service():
@@ -137,8 +138,8 @@ async def test_create_verification_returns_ends_at_and_tv_object():
         svc, "_get_area_codes_by_state", new_callable=AsyncMock, return_value={}
     ):
 
-        from app.services.phone_validator import PhoneValidator
         from app.services.carrier_lookup import CarrierLookupService
+        from app.services.phone_validator import PhoneValidator
 
         with patch.object(
             PhoneValidator,

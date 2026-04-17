@@ -4,11 +4,12 @@ Tests for the /api/tiers/current endpoint that powers the dashboard tier card.
 Ensures proper error handling and response format.
 """
 
+import concurrent.futures
+import time
 from unittest.mock import patch
+
 import pytest
 from fastapi.testclient import TestClient
-import time
-import concurrent.futures
 
 
 class TestTierCurrentEndpoint:

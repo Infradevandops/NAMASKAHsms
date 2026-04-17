@@ -4,10 +4,10 @@ Tests the full purchase flow with the provider router wired in,
 verifying correct provider saved to DB and failover behaviour.
 """
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
 
 from app.models.user import User

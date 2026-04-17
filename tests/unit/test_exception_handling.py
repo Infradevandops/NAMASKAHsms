@@ -4,6 +4,7 @@ import pytest
 from botocore.exceptions import BotoCoreError, ClientError
 from cryptography.fernet import InvalidToken
 from sqlalchemy.exc import IntegrityError, OperationalError
+
 from app.core.exceptions import AuthorizationError, ExternalServiceError
 from app.utils.exception_handling import (
     AWSServiceError,

@@ -1,15 +1,15 @@
 """Tests for i18n and currency frontend integration."""
 
 import uuid
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.models.user import User
+from app.services.currency_service import CurrencyService
+from app.services.translation_service import TranslationService
 from main import app
-from app.services.currency_service import CurrencyService
-from app.services.currency_service import CurrencyService
-from app.services.translation_service import TranslationService
-from app.services.translation_service import TranslationService
 
 
 @pytest.fixture

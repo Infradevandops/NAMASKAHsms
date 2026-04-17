@@ -1,7 +1,8 @@
 """Unit tests for provider router."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 
 from app.services.providers.base_provider import PurchaseResult
 from app.services.providers.provider_errors import ProviderError

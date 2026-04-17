@@ -3,8 +3,10 @@ import uuid
 """Tests for WebSocket real-time notifications."""
 
 from unittest.mock import AsyncMock, patch
+
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.notification import Notification
 from app.models.user import User
 from app.services.event_broadcaster import EventBroadcaster

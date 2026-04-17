@@ -5,14 +5,16 @@ Comprehensive Payment Service Tests
 Coverage: Race conditions, idempotency, webhooks, security
 """
 
-import pytest
 import asyncio
 from datetime import datetime, timezone
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from sqlalchemy.orm import Session
-from app.services.payment_service import PaymentService
+
+from app.models.transaction import PaymentLog, Transaction
 from app.models.user import User
-from app.models.transaction import Transaction, PaymentLog
+from app.services.payment_service import PaymentService
 
 
 class TestPaymentServiceCore:
@@ -149,8 +151,8 @@ class TestPaymentServiceCore:
 
     def test_webhook_signature_verification(self, payment_service):
         """Test Paystack webhook signature verification"""
-        import hmac
         import hashlib
+        import hmac
 
         payload = b'{"event":"charge.success","data":{"reference":"ref_123"}}'
         secret = "test_secret"

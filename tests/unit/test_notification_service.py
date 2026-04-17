@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
+
 import pytest
+
 from app.models.notification import Notification
 from app.models.user import User
 from app.services.notification_service import NotificationService

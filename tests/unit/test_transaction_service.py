@@ -1,10 +1,11 @@
 """Unit tests for TransactionService."""
 
-import pytest
 from unittest.mock import MagicMock
 
-from app.services.transaction_service import TransactionService
+import pytest
+
 from app.models.transaction import Transaction
+from app.services.transaction_service import TransactionService
 
 
 def test_record_sms_purchase():

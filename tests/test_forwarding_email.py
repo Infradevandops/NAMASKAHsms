@@ -2,7 +2,9 @@
 
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch
+
 import pytest
+
 from app.api.core.forwarding import _send_forwarding_email
 
 

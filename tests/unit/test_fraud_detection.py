@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
+
 import pytest
+
 from app.services.fraud_detection_service import FraudDetectionService
 
 

@@ -1,14 +1,16 @@
 """Unit tests for Reseller Service."""
 
 import uuid
+
 import pytest
-from app.models.user import User
+
 from app.models.reseller import (
     BulkOperation,
     ResellerAccount,
     SubAccount,
     SubAccountTransaction,
 )
+from app.models.user import User
 from app.services.reseller_service import ResellerService, get_reseller_service
 
 

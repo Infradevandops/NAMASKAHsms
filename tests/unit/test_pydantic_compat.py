@@ -1,7 +1,8 @@
 """Test Pydantic compatibility layer."""
 
 import pytest
-from app.core.pydantic_compat import field_validator, BaseModel, PYDANTIC_V2
+
+from app.core.pydantic_compat import PYDANTIC_V2, BaseModel, field_validator
 
 
 class TestModel(BaseModel):

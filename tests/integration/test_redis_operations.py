@@ -4,8 +4,9 @@ Tests for Redis operations including caching, locks, and streams
 """
 
 import asyncio
-import pytest
 import time
+
+import pytest
 
 
 @pytest.mark.requires_db

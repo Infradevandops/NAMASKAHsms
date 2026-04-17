@@ -1,8 +1,10 @@
 """Tests for pricing enforcement."""
 
 import uuid
+
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.services.pricing_calculator import PricingCalculator
 from app.services.quota_service import QuotaService

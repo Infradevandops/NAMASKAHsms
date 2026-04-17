@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+
 from app.api.core.router import router as core_router
 
 

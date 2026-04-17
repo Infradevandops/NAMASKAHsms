@@ -5,6 +5,7 @@ Tests validate that tier-gated endpoints properly restrict access based on user 
 """
 
 from datetime import datetime, timezone
+
 from app.models.user import User
 from app.utils.security import hash_password
 

@@ -1,10 +1,11 @@
 """Integration tests for webhook security."""
 
-import pytest
-import json
-import hmac
 import hashlib
+import hmac
+import json
 from unittest.mock import patch
+
+import pytest
 
 from app.core.config import get_settings
 
@@ -51,8 +52,8 @@ class TestWebhookSecurity:
     @pytest.mark.asyncio
     async def test_webhook_accepts_valid_signature(self, client, db):
         """Test webhook accepts requests with valid signature."""
-        from app.models.user import User
         from app.models.transaction import PaymentLog
+        from app.models.user import User
 
         # Create user and payment log
         user = User(email="test@test.com", credits=0.0)
@@ -120,8 +121,8 @@ class TestWebhookSecurity:
     @pytest.mark.asyncio
     async def test_webhook_uses_distributed_lock(self, client, db, cache):
         """Test webhook uses distributed lock for processing."""
-        from app.models.user import User
         from app.models.transaction import PaymentLog
+        from app.models.user import User
 
         user = User(email="test@test.com", credits=0.0)
         db.add(user)
@@ -176,9 +177,9 @@ class TestWebhookRetry:
     @pytest.mark.asyncio
     async def test_retry_on_failure(self, db):
         """Test webhook retries on failure."""
-        from app.services.payment_service import PaymentService
-        from app.models.user import User
         from app.models.transaction import PaymentLog
+        from app.models.user import User
+        from app.services.payment_service import PaymentService
 
         user = User(email="test@test.com", credits=0.0)
         db.add(user)
@@ -219,9 +220,9 @@ class TestWebhookRetry:
     @pytest.mark.asyncio
     async def test_dead_letter_queue_on_max_retries(self, db):
         """Test failed webhooks logged to dead letter queue."""
-        from app.services.payment_service import PaymentService
-        from app.models.user import User
         from app.models.transaction import PaymentLog
+        from app.models.user import User
+        from app.services.payment_service import PaymentService
 
         user = User(email="test@test.com", credits=0.0)
         db.add(user)

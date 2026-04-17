@@ -3,7 +3,9 @@
 import os
 import time
 from unittest.mock import MagicMock, patch
+
 import pytest
+
 from app.services.textverified_service import TextVerifiedService
 
 mock_textverified = MagicMock()

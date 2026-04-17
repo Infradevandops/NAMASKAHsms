@@ -7,17 +7,18 @@ Tests for:
 - Tier endpoint updates
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock, patch, MagicMock
-from fastapi import Request, HTTPException
+from unittest.mock import MagicMock, Mock, patch
+
+import pytest
+from fastapi import HTTPException, Request
 from sqlalchemy.orm import Session
 
-from app.middleware.tier_verification import tier_verification_middleware
 from app.core.dependencies import require_feature
 from app.core.logging import log_tier_access, log_tier_change, log_unauthorized_access
-from app.services.tier_manager import TierManager
+from app.middleware.tier_verification import tier_verification_middleware
 from app.models.user import User
+from app.services.tier_manager import TierManager
 
 
 class TestTierVerificationMiddleware:

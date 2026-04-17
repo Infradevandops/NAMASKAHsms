@@ -1,11 +1,12 @@
 """Unit tests for SMS polling provider dispatch — Issue 4 from STABILITY_CHECKLIST.md."""
 
-import pytest
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.sms_polling_service import SMSPollingService
+import pytest
+
 from app.services.providers.base_provider import MessageResult
+from app.services.sms_polling_service import SMSPollingService
 
 
 def _make_verification(provider="textverified", status="pending"):

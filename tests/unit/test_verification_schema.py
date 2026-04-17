@@ -1,6 +1,7 @@
 """Test verification schema changes for v4.4.1."""
 
 import pytest
+
 from app.models.verification import Verification
 
 

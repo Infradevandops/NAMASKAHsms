@@ -1,9 +1,9 @@
 """Unit tests for medium-priority services — Issues 10-14 from STABILITY_CHECKLIST.md."""
 
-import pytest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # Issue 10: SMS Gateway

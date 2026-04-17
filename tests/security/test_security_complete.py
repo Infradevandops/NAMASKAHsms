@@ -1,14 +1,16 @@
 """Complete Security Tests - Comprehensive security validation."""
 
-from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import re
 import secrets
+from datetime import datetime, timedelta, timezone
+from html import escape
+
 import jwt
 import pytest
 from cryptography.fernet import Fernet
-from html import escape
+
 from app.core.config import get_settings
 from app.models.user import User
 from app.utils.security import create_access_token, hash_password, verify_password

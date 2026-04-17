@@ -1,4 +1,5 @@
 import pytest
+
 from app.core.exceptions import InsufficientCreditsError
 from app.models.transaction import Transaction
 from app.services.credit_service import CreditService

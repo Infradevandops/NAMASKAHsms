@@ -1,6 +1,8 @@
-import pytest
-from unittest.mock import MagicMock, patch, AsyncMock
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from app.api.admin.area_code_analytics import get_provider_analytics
 from app.models.purchase_outcome import PurchaseOutcome
 

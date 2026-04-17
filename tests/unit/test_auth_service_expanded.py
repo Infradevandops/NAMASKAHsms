@@ -1,9 +1,11 @@
 """Expanded unit tests for auth service"""
 
-import pytest
 from unittest.mock import Mock, patch
-from app.services.auth_service import AuthService
+
+import pytest
+
 from app.models.user import User
+from app.services.auth_service import AuthService
 
 
 class TestAuthServiceExpanded:

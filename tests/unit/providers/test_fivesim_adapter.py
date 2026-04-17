@@ -1,12 +1,12 @@
 """Unit tests for 5sim adapter — Issue 2 from STABILITY_CHECKLIST.md."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
+import pytest
 
+from app.services.providers.base_provider import MessageResult, PurchaseResult
 from app.services.providers.fivesim_adapter import FiveSimAdapter
-from app.services.providers.base_provider import PurchaseResult, MessageResult
 
 
 @pytest.fixture

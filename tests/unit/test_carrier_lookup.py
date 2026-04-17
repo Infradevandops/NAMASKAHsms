@@ -3,8 +3,10 @@ Unit tests for CarrierLookupService (Phase 4 - Numverify Integration)
 Tests real carrier verification via Numverify API
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+
 from app.services.carrier_lookup import CarrierLookupService
 
 

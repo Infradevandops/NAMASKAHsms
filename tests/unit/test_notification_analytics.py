@@ -3,8 +3,10 @@ import uuid
 """Tests for notification analytics system."""
 
 from datetime import datetime, timezone
+
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.notification import Notification
 from app.models.notification_analytics import NotificationAnalytics
 from app.models.user import User

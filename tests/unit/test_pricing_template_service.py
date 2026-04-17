@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
+
 import pytest
+
 from app.models.pricing_template import PricingTemplate, UserPricingAssignment
 from app.services.pricing_template_service import PricingTemplateService
 

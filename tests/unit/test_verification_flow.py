@@ -3,10 +3,11 @@ Unit Tests for ServiceStore Component
 Tests caching, fallback, search, and state management
 """
 
-import pytest
 import asyncio
-from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime, timedelta
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 
 
 class TestServiceStore:

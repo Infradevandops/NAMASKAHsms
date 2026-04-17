@@ -1,14 +1,13 @@
 """Tests for balance_monitor, health_check, and pvapins_adapter to hit 90% coverage."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
+import pytest
 
-from app.services.providers.pvapins_adapter import PVAPinsAdapter
 from app.services.providers.base_provider import PurchaseResult
 from app.services.providers.provider_errors import ProviderError
-
+from app.services.providers.pvapins_adapter import PVAPinsAdapter
 
 # ── PVAPinsAdapter fixtures ───────────────────────────────────────────────────
 

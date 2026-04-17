@@ -4,11 +4,7 @@ import uuid
 
 import json
 from unittest.mock import MagicMock
-from app.websocket.manager import ConnectionManager
-from app.websocket.manager import ConnectionManager
-from app.websocket.manager import ConnectionManager
-from app.websocket.manager import ConnectionManager
-from app.websocket.manager import ConnectionManager
+
 from app.websocket.manager import ConnectionManager
 
 

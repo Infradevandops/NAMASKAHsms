@@ -1,8 +1,10 @@
 """Tests for verification pricing endpoint."""
 
 from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
 from fastapi import HTTPException
+
 from app.api.verification.pricing_endpoints import (
     get_pricing as get_verification_pricing,
 )

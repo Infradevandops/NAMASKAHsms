@@ -1,8 +1,9 @@
 """E2E test configuration and fixtures."""
 
 import os
+
 import pytest
-from playwright.async_api import async_playwright, Browser, Page
+from playwright.async_api import Browser, Page, async_playwright
 
 
 @pytest.fixture

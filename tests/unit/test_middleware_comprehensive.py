@@ -1,8 +1,7 @@
 """Comprehensive tests for middleware."""
 
 from unittest.mock import patch
-from app.middleware.csrf_middleware import CSRFMiddleware
-from app.middleware.csrf_middleware import CSRFMiddleware
+
 from app.middleware.csrf_middleware import CSRFMiddleware
 
 

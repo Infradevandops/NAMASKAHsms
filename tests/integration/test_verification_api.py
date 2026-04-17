@@ -3,10 +3,11 @@ Integration Tests for Verification API Endpoints
 Tests the complete API flow from service listing to SMS receipt
 """
 
+import time
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
-import time
 
 
 class TestServicesEndpoint:

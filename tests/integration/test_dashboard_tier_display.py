@@ -4,8 +4,9 @@ Verifies that every user type gets the correct tier back so the dashboard
 card and header badge display the right plan after the i18nReady gate was removed.
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
+
+import pytest
 
 
 class TestDashboardTierEndpoint:
@@ -58,11 +59,12 @@ class TestDashboardTierEndpoint:
 
     def test_expired_pro_downgrades_to_freemium(self, engine, db):
         """Non-admin with expired tier_expires_at must downgrade to freemium."""
+        from fastapi.testclient import TestClient
         from sqlalchemy.orm import sessionmaker
+
         from app.core.database import get_db
         from app.core.dependencies import get_current_user_id
         from app.models.user import User
-        from fastapi.testclient import TestClient
         from main import app
 
         uid = "expired-pro-user"

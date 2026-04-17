@@ -26,7 +26,7 @@ Acceptance Criteria:
 import os
 import re
 import uuid
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -34,7 +34,6 @@ from fastapi.testclient import TestClient
 
 from app.models.user import User
 from app.models.verification import Verification
-
 
 # ---------------------------------------------------------------------------
 # Fixtures

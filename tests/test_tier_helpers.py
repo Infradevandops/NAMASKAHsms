@@ -3,6 +3,7 @@
 from hypothesis import given
 from hypothesis import settings as hyp_settings
 from hypothesis import strategies as st
+
 from app.core.tier_helpers import (
     TIER_DISPLAY_NAMES,
     TIER_HIERARCHY,

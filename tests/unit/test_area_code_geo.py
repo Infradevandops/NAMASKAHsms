@@ -1,10 +1,12 @@
-import pytest
 import math
+
+import pytest
+
 from app.services.area_code_geo import (
     NANPA_DATA,
     _haversine,
-    get_metro_codes,
     filter_supported,
+    get_metro_codes,
     get_nearby,
 )
 

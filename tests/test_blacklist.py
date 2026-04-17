@@ -1,7 +1,6 @@
 """Tests for Blacklist Management functionality."""
 
 import re
-import re
 
 
 class TestBlacklistEndpoints:

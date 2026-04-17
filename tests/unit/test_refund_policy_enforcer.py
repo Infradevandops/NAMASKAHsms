@@ -3,12 +3,13 @@ Test refund policy enforcer to ensure it works in production
 """
 
 import asyncio
-import pytest
 from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
-from app.models.verification import Verification
+import pytest
+
 from app.models.user import User
+from app.models.verification import Verification
 from app.services.refund_policy_enforcer import RefundPolicyEnforcer
 
 

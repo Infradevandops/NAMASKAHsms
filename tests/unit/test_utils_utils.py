@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
+
 import pytest
+
 from app.utils.sanitization import (
     sanitize_email_content,
     sanitize_filename,

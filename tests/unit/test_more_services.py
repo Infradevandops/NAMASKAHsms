@@ -1,9 +1,9 @@
+import pyotp
 import pytest
+
 from app.models.affiliate import AffiliateApplication
 from app.services.affiliate_service import AffiliateService
 from app.services.mfa_service import MFAService
-import pyotp
-import pyotp
 
 
 class TestAffiliateService:

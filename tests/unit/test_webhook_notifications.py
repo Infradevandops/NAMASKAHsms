@@ -1,7 +1,8 @@
-from unittest.mock import AsyncMock, patch
+from unittest.mock import ANY, AsyncMock, patch
+
 import pytest
+
 from app.services.webhook_notification_service import WebhookNotificationService
-from unittest.mock import ANY
 
 
 class TestWebhookNotificationService:

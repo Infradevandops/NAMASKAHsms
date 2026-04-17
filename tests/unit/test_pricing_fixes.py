@@ -1,7 +1,9 @@
 """Test pricing calculator bug fixes for v4.4.1."""
 
+from unittest.mock import MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+
 from app.services.pricing_calculator import PricingCalculator
 
 

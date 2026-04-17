@@ -2,8 +2,10 @@ import uuid
 
 """Unit tests for webhook service"""
 
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock, MagicMock
+
 from app.services.webhook_service import WebhookService
 
 

@@ -1,8 +1,10 @@
 """Tests for common services: error handling and audit service."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import httpx
 import pytest
+
 from app.services.audit_service import AuditService
 from app.services.error_handling import APIErrorHandler, RetryConfig, retry_with_backoff
 

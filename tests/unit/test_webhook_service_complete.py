@@ -2,13 +2,15 @@
 Comprehensive webhook queue, delivery, and retry tests
 """
 
-from datetime import datetime, timezone
-from unittest.mock import Mock, patch
-import pytest
 import hashlib
 import hmac
-from app.services.webhook_queue import WebhookQueue
+from datetime import datetime, timezone
+from unittest.mock import Mock, patch
+
+import pytest
+
 from app.models.user import Webhook
+from app.services.webhook_queue import WebhookQueue
 from app.services.webhook_service import WebhookService
 
 

@@ -1,10 +1,11 @@
 """Unit tests for payment idempotency schema."""
 
-import pytest
 from datetime import datetime
+
+import pytest
 from sqlalchemy.exc import IntegrityError
 
-from app.models.transaction import Transaction, PaymentLog
+from app.models.transaction import PaymentLog, Transaction
 
 
 class TestTransactionIdempotency:

@@ -8,19 +8,19 @@ Tests for:
 - Fallback mechanisms
 """
 
-import pytest
-from datetime import datetime, timedelta, timezone
-from unittest.mock import Mock, patch, MagicMock, AsyncMock
-from fastapi import Request, HTTPException
-from sqlalchemy.orm import Session
 import json
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
-from app.middleware.tier_verification import tier_verification_middleware
+import pytest
+from fastapi import HTTPException, Request
+from sqlalchemy.orm import Session
+
 from app.core.dependencies import require_feature
 from app.core.logging import log_tier_access, log_tier_change, log_unauthorized_access
-from app.services.tier_manager import TierManager
+from app.middleware.tier_verification import tier_verification_middleware
 from app.models.user import User
-
+from app.services.tier_manager import TierManager
 
 # ============================================================================
 # BACKEND TIER CHECKS (6 checks)

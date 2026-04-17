@@ -3,11 +3,12 @@ Comprehensive SMS verification and pricing tests
 """
 
 from unittest.mock import AsyncMock, patch
+
 from app.core.tier_config import TIER_CONFIG
+from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.quota_service import QuotaService
-from app.models.transaction import Transaction
 
 
 class TestSMSServiceComplete:
