@@ -4,9 +4,11 @@ Tests tier validation, API key security, and access control.
 """
 
 from datetime import datetime, timedelta, timezone
+
 import jwt
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.models.api_key import APIKey
 from app.models.user import User

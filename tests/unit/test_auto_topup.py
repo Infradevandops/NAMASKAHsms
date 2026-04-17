@@ -1,6 +1,8 @@
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+
 from app.models.user import User
 from app.models.user_preference import UserPreference
 from app.services.auto_topup_service import AutoTopupService

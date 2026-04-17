@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.notification_preference import (
     NotificationPreference,
     NotificationPreferenceDefaults,

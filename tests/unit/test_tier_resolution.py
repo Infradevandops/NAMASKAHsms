@@ -10,12 +10,13 @@ Covers:
 """
 
 import uuid
-import pytest
 from datetime import datetime, timedelta, timezone
 
-from app.services.tier_manager import TierManager
+import pytest
+
 from app.core.tier_config import TierConfig
 from app.models.user import User
+from app.services.tier_manager import TierManager
 
 
 def _create_user(db, tier="custom", tier_expires_at=None, credits=100.0):
@@ -165,10 +166,10 @@ class TestTierHierarchy:
         ],
     )
     def test_hierarchy(self, current, required, expected):
-        from app.services.tier_manager import TierManager
-
         # hierarchy check is stateless, db not needed
         from unittest.mock import MagicMock
+
+        from app.services.tier_manager import TierManager
 
         tm = TierManager(MagicMock())
         assert tm.check_tier_hierarchy(current, required) == expected

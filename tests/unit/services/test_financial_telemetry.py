@@ -1,8 +1,10 @@
+from datetime import datetime, timedelta, timezone
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
-from datetime import datetime, timezone, timedelta
-from app.services.purchase_intelligence import PurchaseIntelligenceService
+
 from app.models.purchase_outcome import PurchaseOutcome
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 
 def _make_outcome(**kwargs):

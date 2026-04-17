@@ -1,7 +1,9 @@
 """Test area code retry logic for v4.4.1."""
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, AsyncMock
+
 from app.services.textverified_service import TextVerifiedService
 
 

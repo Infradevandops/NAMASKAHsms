@@ -5,14 +5,16 @@ The service now opens its own SessionLocal internally (no db argument).
 We patch SessionLocal so the test-inserted rows are visible to the service.
 """
 
-import pytest
-from unittest.mock import patch, AsyncMock, MagicMock
 from datetime import datetime, timedelta, timezone
-from app.services.purchase_intelligence import (
-    PurchaseIntelligenceService,
-    AvailabilityScore,
-)
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from app.models.purchase_outcome import PurchaseOutcome
+from app.services.purchase_intelligence import (
+    AvailabilityScore,
+    PurchaseIntelligenceService,
+)
 
 
 def _make_outcome(**kwargs):

@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, patch
+
 import pytest
+
 from app.models.verification import Verification
 from app.services.smart_routing import SmartRouter
 from app.services.sms_gateway import SMSGateway

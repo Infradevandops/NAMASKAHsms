@@ -1,37 +1,26 @@
 """Comprehensive tests for core modules."""
 
-from datetime import datetime, timezone
-import pytest
-from app.models.user import User
-from app.models.user import User
-from app.models.user import User
-from app.core.config import get_settings
-from app.core.config import get_settings
-from app.core.config import get_settings
 import os
-from app.core.token_manager import create_tokens
-from app.core.token_manager import create_tokens
-from app.core.token_manager import create_tokens, decode_access_token
-from app.core.token_manager import decode_access_token
-from app.core.token_manager import get_refresh_token_expiry
-from app.core.tier_helpers import get_tier_display_name
-from app.core.tier_helpers import has_tier_access
-from app.core.tier_helpers import has_tier_access
+from datetime import datetime, timezone
+
+import pytest
+
 from app.core.cache import get_cache_manager
-from app.core.cache import get_cache_manager
-from app.core.cache import get_cache_manager
-from app.core.logging import get_logger
-from app.core.logging import get_logger
-from app.core.logging import get_logger
-from app.core.logging import get_logger
+from app.core.config import get_settings
 from app.core.exceptions import AuthenticationError
-from app.core.exceptions import ValidationError
 from app.core.exceptions import AuthorizationError as NotFoundException
-from app.utils.security import hash_password
-from app.utils.security import hash_password, verify_password
-from app.utils.security import hash_password, verify_password
-from app.utils.security import generate_api_key as generate_random_string
+from app.core.exceptions import ValidationError
+from app.core.logging import get_logger
 from app.core.tier_config import TIER_CONFIG
+from app.core.tier_helpers import get_tier_display_name, has_tier_access
+from app.core.token_manager import (
+    create_tokens,
+    decode_access_token,
+    get_refresh_token_expiry,
+)
+from app.models.user import User
+from app.utils.security import generate_api_key as generate_random_string
+from app.utils.security import hash_password, verify_password
 
 
 class TestDatabase:

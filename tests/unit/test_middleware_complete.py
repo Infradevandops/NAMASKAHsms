@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+
 from app.middleware.rate_limiting import (
     RateLimitMiddleware,
 )
-
 
 # Mock app for testing middleware
 

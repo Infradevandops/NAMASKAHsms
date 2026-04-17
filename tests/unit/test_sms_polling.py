@@ -5,7 +5,9 @@
 import asyncio
 import uuid
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+
 from app.models.user import User
 from app.models.verification import Verification
 from app.services.sms_polling_service import SMSPollingService

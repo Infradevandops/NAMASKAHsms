@@ -3,8 +3,10 @@ Unit tests for Notification Enhancements (Phase 6 - Notifications)
 Tests retry notifications and area code fallback alerts
 """
 
+from unittest.mock import AsyncMock, Mock, patch
+
 import pytest
-from unittest.mock import Mock, AsyncMock, patch
+
 from app.services.notification_dispatcher import NotificationDispatcher
 
 

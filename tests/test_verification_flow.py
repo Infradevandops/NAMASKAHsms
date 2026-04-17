@@ -4,10 +4,11 @@
 
 import os
 import sys
+
 from sqlalchemy import inspect
-from app.core.database import SessionLocal
-from app.models.verification import Verification
+
 from app.api.verification.router import router
+from app.core.database import SessionLocal
 from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
 from app.utils.data_masking import create_safe_error_detail

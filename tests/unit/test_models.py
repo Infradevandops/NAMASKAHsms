@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+
 from app.models.user import (
     NotificationSettings,
     Referral,

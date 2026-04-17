@@ -3,7 +3,7 @@
 import os
 import sys
 from datetime import datetime, timezone
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 # Add project root to sys.path
 sys.path.insert(
@@ -12,6 +12,7 @@ sys.path.insert(
 
 import pytest
 from fastapi import HTTPException
+
 from app.api.verification.purchase_endpoints import request_verification
 from app.schemas.verification import VerificationRequest
 

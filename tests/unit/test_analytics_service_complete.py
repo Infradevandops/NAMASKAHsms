@@ -2,8 +2,10 @@ import uuid
 
 """Unit tests for analytics service"""
 
-import pytest
 from datetime import datetime, timedelta
+
+import pytest
+
 from app.services.analytics_service import AnalyticsService
 
 

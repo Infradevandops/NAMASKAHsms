@@ -7,13 +7,15 @@ Tests complete user flows through the tier system:
 - KYC verification flow
 """
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+
 import jwt
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
-from app.models.user import User
 from app.models.kyc import KYCDocument
+from app.models.user import User
 from app.utils.security import hash_password
 from tests.conftest import create_test_token
 

@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock, patch
+
 import pytest
+
 from app.services.monitoring_service import MonitoringService
 
 

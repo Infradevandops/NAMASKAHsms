@@ -2,8 +2,9 @@
 
 import os
 import sys
-import pytest
 from datetime import datetime, timezone
+
+import pytest
 from sqlalchemy.orm import Session
 
 # Add project root to sys.path
@@ -12,8 +13,8 @@ sys.path.insert(
 )
 
 from app.core.database import SessionLocal
-from app.models.verification import Verification
 from app.models.user import User
+from app.models.verification import Verification
 
 
 def test_verification_receipt_fields():

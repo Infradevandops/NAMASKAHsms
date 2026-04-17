@@ -73,7 +73,7 @@ class ProviderRouter:
         prefer_enterprise: bool = False,
     ) -> Tuple[SMSProvider, bool, Optional[str]]:
         """Select provider for a request using Autonomous Predictive Scoring (Phase 12).
-        
+
         Logic:
         1. Pre-filter by tier/country capability.
         2. Calculate Predictive Scores (Sentiment + ROI + Resilience).
@@ -81,10 +81,10 @@ class ProviderRouter:
         """
         country_upper = country.upper()
         scorer = PredictiveRouterScorer(db)
-        
+
         # Candidate pool
         candidates = []
-        
+
         # --- PHASE 12 TIER-BASED PRE-FILTERING ---
         # US is specialized (TextVerified preferred for proximity accuracy)
         if country_upper == "US":
@@ -93,15 +93,15 @@ class ProviderRouter:
         # Gather enabled and capable providers
         if self._get_textverified().enabled:
             candidates.append(("textverified", self._get_textverified()))
-            
+
         if self._get_fivesim().enabled:
             candidates.append(("5sim", self._get_fivesim()))
-            
+
         if self._get_telnyx().enabled:
             # Telnyx is premium/enterprise
             if user_tier in ("pro", "custom") or prefer_enterprise:
                 candidates.append(("telnyx", self._get_telnyx()))
-                
+
         if self._get_pvapins().enabled and self._pvapins_covers(country_upper):
             candidates.append(("pvapins", self._get_pvapins()))
 
@@ -113,17 +113,15 @@ class ProviderRouter:
         scored_candidates = []
         for name, adapter in candidates:
             score = await scorer.calculate_provider_score(
-                service=service,
-                country=country_upper,
-                provider_name=name
+                service=service, country=country_upper, provider_name=name
             )
             scored_candidates.append((score, adapter, name))
 
         # Sort by score descending
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
-        
+
         winner_score, winner_adapter, winner_name = scored_candidates[0]
-        
+
         logger.info(
             f"✓ Predictive Router selected {winner_name} (Score: {winner_score:.2f}) "
             f"for {service}/{country_upper}"
@@ -240,7 +238,9 @@ class ProviderRouter:
             if e.is_reroutable and getattr(
                 self._settings, "enable_provider_failover", True
             ):
-                secondary = await self._get_failover_provider(db, primary, country, service, user_tier)
+                secondary = await self._get_failover_provider(
+                    db, primary, country, service, user_tier
+                )
                 if secondary:
                     logger.warning(
                         f"Failing over from {primary.name} to {secondary.name}"
@@ -283,12 +283,17 @@ class ProviderRouter:
             )
 
     async def _get_failover_provider(
-        self, db: Session, failed_provider: SMSProvider, country: str, service: str, user_tier: str
+        self,
+        db: Session,
+        failed_provider: SMSProvider,
+        country: str,
+        service: str,
+        user_tier: str,
     ) -> Optional[SMSProvider]:
         """Determine next provider in the chain using Predictive Scoring (Phase 12)."""
         scorer = PredictiveRouterScorer(db)
         country_upper = country.upper()
-        
+
         # Candidates excluding the failed one
         candidates = []
         if self._get_textverified().enabled and failed_provider.name != "textverified":
@@ -298,7 +303,11 @@ class ProviderRouter:
         if self._get_telnyx().enabled and failed_provider.name != "telnyx":
             if user_tier in ("pro", "custom"):
                 candidates.append(("telnyx", self._get_telnyx()))
-        if self._get_pvapins().enabled and failed_provider.name != "pvapins" and self._pvapins_covers(country_upper):
+        if (
+            self._get_pvapins().enabled
+            and failed_provider.name != "pvapins"
+            and self._pvapins_covers(country_upper)
+        ):
             candidates.append(("pvapins", self._get_pvapins()))
 
         if not candidates:
@@ -308,19 +317,19 @@ class ProviderRouter:
         scored_candidates = []
         for name, adapter in candidates:
             score = await scorer.calculate_provider_score(
-                service=service,
-                country=country_upper,
-                provider_name=name
+                service=service, country=country_upper, provider_name=name
             )
             scored_candidates.append((score, adapter, name))
 
         scored_candidates.sort(key=lambda x: x[0], reverse=True)
-        
+
         # We only failover to 'Healthy' enough providers in Phase 12
-        if scored_candidates[0][0] < 0.3: # Threshold for failover viability
-            logger.warning(f"No viable failover candidates for {country_upper} (best score {scored_candidates[0][0]})")
+        if scored_candidates[0][0] < 0.3:  # Threshold for failover viability
+            logger.warning(
+                f"No viable failover candidates for {country_upper} (best score {scored_candidates[0][0]})"
+            )
             return None
-            
+
         return scored_candidates[0][1]
 
     async def get_provider_balances(self) -> dict:

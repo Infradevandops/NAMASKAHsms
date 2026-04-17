@@ -570,6 +570,8 @@ class TextVerifiedService:
                 "id": tv.id,
                 "number": tv.number,
                 "state": tv.state.value,
+                "carrier": getattr(tv, "carrier", None)
+                or getattr(tv, "carrier_name", None),
                 "created_at": tv.created_at.isoformat(),
                 "ends_at": tv.ends_at.isoformat(),
                 "total_cost": tv.total_cost,

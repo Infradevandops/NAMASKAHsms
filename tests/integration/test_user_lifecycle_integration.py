@@ -1,6 +1,7 @@
 """Integration tests for complete user lifecycle."""
 
 from unittest.mock import AsyncMock, patch
+
 from app.models.notification import Notification
 
 

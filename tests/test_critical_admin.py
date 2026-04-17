@@ -4,10 +4,12 @@ import uuid
 
 
 from datetime import datetime, timedelta, timezone
+
 import jwt
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.models.user import User
 from app.models.verification import Verification

@@ -4,6 +4,7 @@ import uuid
 
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.notification import Notification
 from app.models.user import User
 

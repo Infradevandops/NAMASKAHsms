@@ -1,6 +1,7 @@
 """Unit tests for PricingCalculator."""
 
 import pytest
+
 from app.models.user import User
 from app.services.pricing_calculator import PricingCalculator
 

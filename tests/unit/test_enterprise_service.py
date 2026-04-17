@@ -1,5 +1,7 @@
 from unittest.mock import patch
+
 import pytest
+
 from app.models.enterprise import EnterpriseAccount, EnterpriseTier
 from app.services.enterprise_service import EnterpriseService
 

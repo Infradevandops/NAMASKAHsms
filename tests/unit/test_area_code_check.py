@@ -5,10 +5,12 @@ score_availability now opens SessionLocal internally, so we patch
 SessionLocal to reuse the same test db_session that we seed with data.
 """
 
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
+
 from app.models.purchase_outcome import PurchaseOutcome
-from datetime import datetime, timezone, timedelta
-from unittest.mock import patch, AsyncMock, MagicMock
 
 
 @pytest.fixture(autouse=True)

@@ -4,6 +4,7 @@ Tests phonenumbers integration for VOIP/landline detection
 """
 
 import pytest
+
 from app.services.phone_validator import PhoneValidator
 
 

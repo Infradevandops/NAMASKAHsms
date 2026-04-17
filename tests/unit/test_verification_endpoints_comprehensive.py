@@ -2,12 +2,9 @@
 
 from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock, patch
+
+from app.core.dependencies import get_current_user_id
 from app.models.verification import Verification
-from app.core.dependencies import get_current_user_id
-from main import app
-from app.core.dependencies import get_current_user_id
-from main import app
-from app.core.dependencies import get_current_user_id
 from main import app
 
 

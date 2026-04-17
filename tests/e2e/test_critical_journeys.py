@@ -1,7 +1,8 @@
 """E2E Testing Setup - Critical User Journeys"""
 
-import pytest
 import os
+
+import pytest
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 TEST_EMAIL = "test@example.com"

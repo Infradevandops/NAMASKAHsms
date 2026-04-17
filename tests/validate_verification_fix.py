@@ -4,13 +4,14 @@
 import os
 import sys
 from datetime import datetime
+
+from app.api.verification.consolidated_verification import (
+    create_safe_error_detail,
+    router,
+)
 from app.models.verification import Verification
-from app.api.verification.consolidated_verification import router
-from app.services.textverified_service import TextVerifiedService
 from app.services.sms_polling_service import SMSPollingService
-import os
-import sys
-from app.api.verification.consolidated_verification import create_safe_error_detail
+from app.services.textverified_service import TextVerifiedService
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 

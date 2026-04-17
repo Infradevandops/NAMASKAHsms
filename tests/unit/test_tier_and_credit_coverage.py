@@ -4,13 +4,13 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 import pytest
+
 from app.core.exceptions import InsufficientCreditsError
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.models.user_preference import UserPreference
 from app.services.credit_service import CreditService
 from app.services.tier_manager import TierManager
-
 
 # ── TierManager ──────────────────────────────────────────────────────
 

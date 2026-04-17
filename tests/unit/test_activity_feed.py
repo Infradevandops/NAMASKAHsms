@@ -3,8 +3,10 @@ import uuid
 """Tests for activity feed system."""
 
 from datetime import datetime, timedelta, timezone
+
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.activity import Activity
 from app.models.user import User
 from app.services.activity_service import ActivityService

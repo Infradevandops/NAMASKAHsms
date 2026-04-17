@@ -3,11 +3,12 @@ Auth Service Tests
 Coverage: JWT tokens, OAuth, sessions, password hashing
 """
 
-import pytest
 from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
-from jose import jwt
+
 import bcrypt
+import pytest
+from jose import jwt
 
 
 class MockAuthService:

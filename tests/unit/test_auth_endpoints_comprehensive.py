@@ -1,38 +1,15 @@
 """Comprehensive tests for authentication endpoints."""
 
+import secrets
 from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
+
+from app.core.database import get_db
+from app.core.dependencies import get_current_user_id, require_tier
+from app.core.token_manager import create_tokens, get_refresh_token_expiry
 from app.models.api_key import APIKey
 from app.models.user import User
 from app.utils.security import hash_password
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id
-from main import app
-import secrets
-import secrets
-import secrets
-from app.core.token_manager import create_tokens, get_refresh_token_expiry
-from app.core.token_manager import create_tokens
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
-from main import app
-from app.core.database import get_db
-from app.core.dependencies import get_current_user_id, require_tier
 from main import app
 
 

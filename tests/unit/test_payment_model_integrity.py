@@ -1,7 +1,9 @@
 """Tests confirming payment_logs table has a single definition and works correctly."""
 
 import uuid
+
 import pytest
+
 from app.models.transaction import PaymentLog, Transaction
 
 

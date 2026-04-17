@@ -5,8 +5,10 @@ Tests API response times and frontend performance targets.
 
 import time
 from datetime import datetime, timezone
+
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 from app.utils.security import hash_password
 from tests.conftest import create_test_token

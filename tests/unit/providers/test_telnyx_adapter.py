@@ -1,14 +1,14 @@
 """Unit tests for Telnyx adapter — Issue 1 from STABILITY_CHECKLIST.md."""
 
-import pytest
 from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
+from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 
 import httpx
+import pytest
 
-from app.services.providers.telnyx_adapter import TelnyxAdapter
-from app.services.providers.base_provider import PurchaseResult, MessageResult
+from app.services.providers.base_provider import MessageResult, PurchaseResult
 from app.services.providers.provider_errors import ProviderError
+from app.services.providers.telnyx_adapter import TelnyxAdapter
 
 
 @pytest.fixture

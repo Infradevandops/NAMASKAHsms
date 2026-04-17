@@ -5,10 +5,12 @@ SMS Service Tests
 Coverage: Verification creation, polling, TextVerified integration
 """
 
-import pytest
 from datetime import datetime, timezone
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
+
+import pytest
 from sqlalchemy.orm import Session
+
 from app.models.user import User
 
 

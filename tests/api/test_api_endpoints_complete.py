@@ -3,6 +3,7 @@ Tests for all major API endpoints
 """
 
 from unittest.mock import AsyncMock, patch
+
 from app.models.user import User
 from app.utils.security import hash_password
 

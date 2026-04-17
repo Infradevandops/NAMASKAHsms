@@ -1,7 +1,8 @@
 """E2E Tests for Verification Flow"""
 
-import pytest
 import time
+
+import pytest
 from playwright.async_api import expect
 
 

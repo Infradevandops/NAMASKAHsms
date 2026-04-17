@@ -3,8 +3,10 @@ import uuid
 """Tests for email notification system."""
 
 from unittest.mock import AsyncMock, patch
+
 import pytest
 from sqlalchemy.orm import Session
+
 from app.models.notification import Notification
 from app.models.notification_preference import NotificationPreference
 from app.models.user import User

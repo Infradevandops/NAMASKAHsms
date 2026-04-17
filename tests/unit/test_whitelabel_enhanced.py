@@ -1,5 +1,7 @@
 from unittest.mock import MagicMock
+
 import pytest
+
 from app.models.whitelabel import WhiteLabelConfig
 from app.models.whitelabel_enhanced import (
     WhiteLabelAsset,

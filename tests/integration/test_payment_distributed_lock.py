@@ -1,13 +1,14 @@
 """Integration tests for payment distributed locking."""
 
-import pytest
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import patch
 
-from app.services.payment_service import PaymentService
+import pytest
+
 from app.models.transaction import PaymentLog
 from app.models.user import User
+from app.services.payment_service import PaymentService
 
 
 class TestDistributedLock:

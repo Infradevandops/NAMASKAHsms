@@ -1,12 +1,12 @@
 """Unit tests for wallet service business logic."""
 
 import pytest
+
+from app.core.exceptions import InsufficientCreditsError
 from app.models.transaction import Transaction
 from app.models.user import User
 from app.services.credit_service import CreditService
 from app.services.pricing_calculator import PricingCalculator
-from app.core.exceptions import InsufficientCreditsError
-from app.core.exceptions import InsufficientCreditsError
 
 
 class TestWalletSMSCostCalculations:

@@ -1,8 +1,10 @@
 """Integration test for area code fallback logic."""
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import MagicMock, AsyncMock, patch
 from fastapi import status
+
 from app.api.verification.purchase_endpoints import request_verification
 from app.schemas.verification import VerificationRequest
 

@@ -1,7 +1,8 @@
 """Tests for API endpoint hardening (idempotency and rate limiting)."""
 
-import pytest
 import uuid
+
+import pytest
 
 
 class TestIdempotencyHeaders:

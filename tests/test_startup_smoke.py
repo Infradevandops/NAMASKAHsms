@@ -4,8 +4,8 @@ If this test passes, the app will start. If it fails, a startup blocker exists.
 """
 
 import importlib
-import pytest
 
+import pytest
 
 ROUTERS = [
     ("app.api.core.gdpr", "router"),
@@ -57,7 +57,7 @@ def test_settings_aliases():
 
 def test_hash_password_alias():
     """hash_password and get_password_hash must both work and produce verifiable hashes."""
-    from app.utils.security import hash_password, get_password_hash, verify_password
+    from app.utils.security import get_password_hash, hash_password, verify_password
 
     assert verify_password("test", hash_password("test"))
     assert verify_password("test", get_password_hash("test"))

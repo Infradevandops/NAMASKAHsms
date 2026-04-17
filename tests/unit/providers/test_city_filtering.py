@@ -1,12 +1,13 @@
 """City filtering tests — CITY_COUNTRY_FILTERING.md acceptance criteria."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
 from app.services.providers.base_provider import PurchaseResult
+from app.services.providers.city_to_area_code import lookup
 from app.services.providers.provider_errors import ProviderError
 from app.services.providers.provider_router import ProviderRouter
-from app.services.providers.city_to_area_code import lookup
 
 
 def _result(
@@ -104,8 +105,9 @@ def test_international_no_city_routes_fivesim():
 @pytest.mark.asyncio
 async def test_telnyx_empty_city_retries_without_city():
     """When Telnyx has no inventory for city, it retries without city and returns a number."""
-    from app.services.providers.telnyx_adapter import TelnyxAdapter
     import httpx
+
+    from app.services.providers.telnyx_adapter import TelnyxAdapter
 
     with patch("app.services.providers.telnyx_adapter.get_settings") as mock_settings:
         s = MagicMock()
@@ -150,8 +152,9 @@ async def test_telnyx_empty_city_retries_without_city():
 @pytest.mark.asyncio
 async def test_telnyx_empty_country_raises_no_inventory_country():
     """When Telnyx has no inventory for country at all, raises ProviderError(no_inventory_country)."""
-    from app.services.providers.telnyx_adapter import TelnyxAdapter
     import httpx
+
+    from app.services.providers.telnyx_adapter import TelnyxAdapter
 
     with patch("app.services.providers.telnyx_adapter.get_settings") as mock_settings:
         s = MagicMock()

@@ -1,8 +1,10 @@
 """Tests for Analytics page and endpoints."""
 
 from datetime import datetime, timedelta
+
 import pytest
 from fastapi.testclient import TestClient
+
 from app.core.dependencies import get_current_user_id
 from main import app
 

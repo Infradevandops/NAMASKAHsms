@@ -1,7 +1,8 @@
 """Test wallet page functionality - buttons, payment methods, transactions."""
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
 from fastapi.testclient import TestClient
 
 

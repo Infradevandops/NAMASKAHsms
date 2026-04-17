@@ -1,8 +1,10 @@
 """Tests for standardized 402 tier error responses."""
 
 from datetime import datetime
+
 import pytest
 from fastapi import HTTPException
+
 from app.core.tier_helpers import raise_tier_error
 from app.schemas.tier_response import TierAccessDenied
 
