@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.providers.base_provider import PurchaseResult
+from app.services.providers.provider_errors import ProviderError
 from app.services.providers.provider_router import ProviderRouter
 
 
@@ -95,7 +96,7 @@ class TestProviderRouter:
 
     @pytest.mark.asyncio
     async def test_no_failover_on_insufficient_balance(self, router, mock_settings):
-        """Should NOT failover on insufficient balance error."""
+        """Should NOT failover on insufficient balance error — propagates as RuntimeError."""
         mock_provider = AsyncMock()
         mock_provider.name = "textverified"
         mock_provider.purchase_number.side_effect = RuntimeError("Insufficient balance")
@@ -109,7 +110,7 @@ class TestProviderRouter:
 
     @pytest.mark.asyncio
     async def test_no_failover_on_no_inventory(self, router, mock_settings):
-        """Should NOT failover on no inventory error."""
+        """Should NOT failover on no inventory error — propagates as RuntimeError."""
         mock_provider = AsyncMock()
         mock_provider.name = "textverified"
         mock_provider.purchase_number.side_effect = RuntimeError(
@@ -128,7 +129,9 @@ class TestProviderRouter:
         """Should failover on network/infrastructure error."""
         mock_primary = AsyncMock()
         mock_primary.name = "textverified"
-        mock_primary.purchase_number.side_effect = RuntimeError("Connection timeout")
+        mock_primary.purchase_number.side_effect = ProviderError(
+            "provider_unreachable", "Connection timeout"
+        )
 
         mock_secondary = AsyncMock()
         mock_secondary.name = "telnyx"
@@ -156,7 +159,7 @@ class TestProviderRouter:
 
     @pytest.mark.asyncio
     async def test_failover_disabled(self, router):
-        """Should NOT failover when disabled."""
+        """Should NOT failover when disabled — RuntimeError propagates."""
         with patch(
             "app.services.providers.provider_router.get_settings"
         ) as mock_settings_func:
