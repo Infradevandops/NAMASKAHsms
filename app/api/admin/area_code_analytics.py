@@ -356,23 +356,37 @@ async def get_provider_analytics(
                 "total_cost": 0.0,
                 "total_revenue": 0.0,
                 "latencies": [],
+                "recouped_count": 0,
+                "leakage_amount": 0.0,
+                "outcomes": {},
             }
 
         stats = provider_stats[p]
         stats["total_attempts"] += 1
-
+        
         if o.sms_received is True:
             stats["sms_success"] += 1
         if o.matched is False:
             stats["mismatches"] += 1
         if o.is_refunded:
             stats["refunds"] += 1
-            stats["total_refund_amount"] += o.refund_amount or 0.0
+            stats["total_refund_amount"] += (o.refund_amount or 0.0)
+            
+            # Recoup Tracking (Phase 10)
+            if o.provider_refunded:
+                stats["recouped_count"] += 1
+            else:
+                # Potential leakage: we refunded user but didn't recoup raw cost
+                stats["leakage_amount"] += (o.provider_cost or 0.0)
+        
+        # Outcome Bucketing (Phase 10)
+        cat = o.outcome_category or "UNKNOWN"
+        stats["outcomes"][cat] = stats["outcomes"].get(cat, 0) + 1
 
         # Financial aggregation
-        stats["total_cost"] += o.provider_cost or 0.0
-        stats["total_revenue"] += o.user_price or 0.0
-
+        stats["total_cost"] += (o.provider_cost or 0.0)
+        stats["total_revenue"] += (o.user_price or 0.0)
+        
         if o.latency_seconds:
             stats["latencies"].append(o.latency_seconds)
 
@@ -416,7 +430,10 @@ async def get_provider_analytics(
                     "gross_profit": round(gross_profit, 2),
                     "net_profit": round(net_profit, 2),
                     "roi_pct": round(roi, 1),
+                    "margin_leakage": round(stats["leakage_amount"], 2),
+                    "recoup_rate": round(stats["recouped_count"] / stats["refunds"], 2) if stats["refunds"] > 0 else 1.0
                 },
+                "outcome_distribution": stats["outcomes"]
             }
         )
 

@@ -325,10 +325,8 @@ class SMSPollingService:
         verification.outcome = "timeout"
         db.commit()
 
-        # --- PHASE 2 INSTRUMENTATION ---
-        await PurchaseIntelligenceService.update_sms_received(
-            verification.id, False, refund_reason=reason
-        )
+        # Phase 10: Categorization
+        outcome_category = "NETWORK"
 
         # STRICT REFUND POLICY: Immediate refund enforcement
         refund_result = await refund_policy_enforcer.enforce_single_verification(
@@ -346,33 +344,40 @@ class SMSPollingService:
                 f"Will be caught by 5-minute backup enforcer"
             )
 
-        # Also report to provider for their refund
+        # Also report to provider for their refund (Phase 10 Recoup Tracking)
         provider = getattr(verification, "provider", "textverified")
-        reported = False
+        provider_refunded = False
 
-        if provider == "textverified":
-            reported = await self.textverified.report_verification(
-                verification.activation_id
-            )
-        elif provider == "telnyx":
-            from app.services.providers.telnyx_adapter import TelnyxAdapter
+        try:
+            if provider == "textverified":
+                provider_refunded = await self.textverified.report_verification(
+                    verification.activation_id
+                )
+            elif provider == "telnyx":
+                from app.services.providers.telnyx_adapter import TelnyxAdapter
+                provider_refunded = await TelnyxAdapter().report_failed(verification.activation_id)
+            elif provider == "5sim":
+                from app.services.providers.fivesim_adapter import FiveSimAdapter
+                provider_refunded = await FiveSimAdapter().report_failed(verification.activation_id)
+            elif provider == "pvapins":
+                from app.services.providers.pvapins_adapter import PVAPinsAdapter
+                provider_refunded = await PVAPinsAdapter().report_failed(verification.activation_id)
+        except Exception as e:
+            logger.warning(f"Failed to recoup from provider {provider}: {e}")
 
-            reported = await TelnyxAdapter().report_failed(verification.activation_id)
-        elif provider == "5sim":
-            from app.services.providers.fivesim_adapter import FiveSimAdapter
-
-            reported = await FiveSimAdapter().report_failed(verification.activation_id)
-        elif provider == "pvapins":
-            from app.services.providers.pvapins_adapter import PVAPinsAdapter
-
-            reported = await PVAPinsAdapter().report_failed(verification.activation_id)
-
-        if reported:
-            logger.info(f"Reported {verification.id} to {provider} — refund triggered")
+        if provider_refunded:
+            logger.info(f"✅ RECOUPED: {verification.id} from {provider}")
         else:
-            logger.warning(
-                f"No provider-side refund confirmation for {verification.id} ({provider})"
-            )
+            logger.warning(f"⚠️ RECOUP FAILED: {verification.id} from {provider} (Potential leakage)")
+
+        # --- PHASE 2 & 10 INSTRUMENTATION ---
+        await PurchaseIntelligenceService.update_sms_received(
+            verification.id, 
+            False, 
+            refund_reason=reason,
+            outcome_category=outcome_category,
+            provider_refunded=provider_refunded
+        )
 
         # Notify user
         try:

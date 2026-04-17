@@ -186,7 +186,11 @@ class RefundService:
                     update(PurchaseOutcome)
                     .where(PurchaseOutcome.verification_id == str(verification.id))
                     .values(
-                        is_refunded=True, refund_amount=amount, refund_reason=reason_str
+                        is_refunded=True,
+                        refund_amount=amount,
+                        refund_reason=reason_str,
+                        outcome_category="PRODUCT",
+                        provider_refunded=True # Cancellation at purchase-time always refunds on provider side
                     )
                 )
                 db.execute(stmt)
