@@ -1,8 +1,20 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, SmallInteger, ForeignKey, func, Index
-from sqlalchemy.orm import relationship
 from datetime import datetime
 
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    SmallInteger,
+    String,
+    func,
+)
+from sqlalchemy.orm import relationship
+
 from app.core.database import Base
+
 
 class PurchaseOutcome(Base):
     __tablename__ = "purchase_outcomes"
@@ -17,11 +29,15 @@ class PurchaseOutcome(Base):
     assigned_state = Column(String(2), nullable=True)
     matched = Column(Boolean, nullable=True)
     sms_received = Column(Boolean, nullable=True)
-    
+
     user_id = Column(String, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    verification_id = Column(String, ForeignKey("verifications.id", ondelete="SET NULL"), nullable=True)
-    
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, index=True)
+    verification_id = Column(
+        String, ForeignKey("verifications.id", ondelete="SET NULL"), nullable=True
+    )
+
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False, index=True
+    )
     hour_utc = Column(SmallInteger, nullable=True)
     day_of_week = Column(SmallInteger, nullable=True)
 

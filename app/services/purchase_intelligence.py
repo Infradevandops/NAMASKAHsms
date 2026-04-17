@@ -1,8 +1,9 @@
 import asyncio
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
+from pydantic import BaseModel
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
@@ -10,9 +11,9 @@ from app.core.database import SessionLocal
 from app.core.unified_cache import cache
 from app.models.purchase_outcome import PurchaseOutcome
 from app.services.area_code_geo import NANPA_DATA
-from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
+
 
 class AvailabilityScore(BaseModel):
     available: Optional[bool]
@@ -21,6 +22,7 @@ class AvailabilityScore(BaseModel):
     success_rate: float
     last_success: Optional[datetime]
     last_failure: Optional[datetime]
+
 
 class PurchaseIntelligenceService:
     @staticmethod
@@ -37,7 +39,7 @@ class PurchaseIntelligenceService:
         original_request: Optional[str] = None,
     ):
         """Fire-and-forget logging of purchase outcome, enriched with geo data."""
-        
+
         async def _log():
             try:
                 assigned_city = None
@@ -45,9 +47,9 @@ class PurchaseIntelligenceService:
                 if assigned_code in NANPA_DATA:
                     assigned_city = NANPA_DATA[assigned_code].get("major_city")
                     assigned_state = NANPA_DATA[assigned_code].get("state")
-                    
+
                 now_utc = datetime.now(timezone.utc)
-                    
+
                 db = SessionLocal()
                 try:
                     outcome = PurchaseOutcome(
@@ -65,20 +67,20 @@ class PurchaseIntelligenceService:
                         original_request=original_request,
                         created_at=now_utc,
                         hour_utc=now_utc.hour,
-                        day_of_week=now_utc.weekday()
+                        day_of_week=now_utc.weekday(),
                     )
                     db.add(outcome)
                     db.commit()
                 finally:
                     db.close()
-                
+
                 # Invalidate cache
                 cache_key = f"acscore:{service}:{assigned_code}"
                 await cache.delete(cache_key)
                 if requested_code and requested_code != assigned_code:
                     cache_key2 = f"acscore:{service}:{requested_code}"
                     await cache.delete(cache_key2)
-                    
+
             except Exception as e:
                 logger.error(f"Failed to log purchase outcome: {e}")
 
@@ -90,7 +92,7 @@ class PurchaseIntelligenceService:
         """Called after polling completes."""
         if not verification_id:
             return
-            
+
         async def _update():
             try:
                 # Inside fire-and-forget, we must get a sync session
@@ -106,14 +108,16 @@ class PurchaseIntelligenceService:
                 finally:
                     db.close()
             except Exception as e:
-                logger.error(f"Failed to update sms_received for {verification_id}: {e}")
-                
+                logger.error(
+                    f"Failed to update sms_received for {verification_id}: {e}"
+                )
+
         asyncio.create_task(_update())
 
     @staticmethod
     async def score_availability(service: str, area_code: str) -> AvailabilityScore:
         """Score availability for a service+area_code from the last 7 days of purchase history.
-        
+
         Opens its own DB session so it can be called from anywhere (including TextVerifiedService)
         without needing a FastAPI-injected session.  Falls back to `unknown` gracefully on DB error.
         """
@@ -123,8 +127,12 @@ class PurchaseIntelligenceService:
             return AvailabilityScore(**cached_score)
 
         _UNKNOWN = AvailabilityScore(
-            available=None, confidence=0.0, sample_size=0,
-            success_rate=0.0, last_success=None, last_failure=None
+            available=None,
+            confidence=0.0,
+            sample_size=0,
+            success_rate=0.0,
+            last_success=None,
+            last_failure=None,
         )
 
         # Compute from last 7 days — open own session (matches log_outcome pattern)
@@ -133,14 +141,18 @@ class PurchaseIntelligenceService:
 
         db = SessionLocal()
         try:
-            outcomes = db.query(PurchaseOutcome).filter(
-                PurchaseOutcome.service == service,
-                (
-                    (PurchaseOutcome.assigned_code == area_code) |
-                    (PurchaseOutcome.requested_code == area_code)
-                ),
-                PurchaseOutcome.created_at >= seven_days_ago
-            ).all()
+            outcomes = (
+                db.query(PurchaseOutcome)
+                .filter(
+                    PurchaseOutcome.service == service,
+                    (
+                        (PurchaseOutcome.assigned_code == area_code)
+                        | (PurchaseOutcome.requested_code == area_code)
+                    ),
+                    PurchaseOutcome.created_at >= seven_days_ago,
+                )
+                .all()
+            )
         except Exception as err:
             logger.error(f"score_availability DB query failed: {err}")
             return _UNKNOWN
@@ -158,7 +170,7 @@ class PurchaseIntelligenceService:
 
         for outcome in outcomes:
             # Success = this exact area code was actually assigned
-            is_success = (outcome.assigned_code == area_code)
+            is_success = outcome.assigned_code == area_code
 
             created_at = outcome.created_at
             if created_at.tzinfo is None:
@@ -194,8 +206,12 @@ class PurchaseIntelligenceService:
             available = False
 
         # If there was a very recent failure after the last success, downgrade to unknown
-        if (last_f and last_s and last_f > last_s and
-                (datetime.now(timezone.utc) - last_f) < timedelta(hours=1)):
+        if (
+            last_f
+            and last_s
+            and last_f > last_s
+            and (datetime.now(timezone.utc) - last_f) < timedelta(hours=1)
+        ):
             if available is True and confidence <= 0.6:
                 available = None
 
@@ -205,9 +221,8 @@ class PurchaseIntelligenceService:
             sample_size=sample_size,
             success_rate=success_rate,
             last_success=last_s,
-            last_failure=last_f
+            last_failure=last_f,
         )
 
         await cache.set(cache_key, score.model_dump(mode="json"), 600)
         return score
-

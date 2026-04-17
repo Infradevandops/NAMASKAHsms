@@ -11,9 +11,9 @@ from app.models import Verification
 from app.services.auto_refund_service import AutoRefundService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
-from app.services.textverified_service import TextVerifiedService
 from app.services.purchase_intelligence import PurchaseIntelligenceService
 from app.services.refund_policy_enforcer import refund_policy_enforcer
+from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
 
@@ -204,15 +204,21 @@ class SMSPollingService:
         from app.services.providers.telnyx_adapter import TelnyxAdapter
 
         adapter = TelnyxAdapter()
-        logger.info(f"Polling {verification.id} via Telnyx (timeout={timeout_seconds:.0f}s)")
+        logger.info(
+            f"Polling {verification.id} via Telnyx (timeout={timeout_seconds:.0f}s)"
+        )
 
         start_time = datetime.now(timezone.utc)
-        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
+        while (
+            datetime.now(timezone.utc) - start_time
+        ).total_seconds() < timeout_seconds:
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
                     msg = messages[-1]
-                    await self._complete_verification(verification, db, msg.text, msg.code)
+                    await self._complete_verification(
+                        verification, db, msg.text, msg.code
+                    )
                     return
             except Exception as e:
                 logger.warning(f"Telnyx polling error for {verification.id}: {e}")
@@ -226,15 +232,21 @@ class SMSPollingService:
         from app.services.providers.fivesim_adapter import FiveSimAdapter
 
         adapter = FiveSimAdapter()
-        logger.info(f"Polling {verification.id} via 5sim (timeout={timeout_seconds:.0f}s)")
+        logger.info(
+            f"Polling {verification.id} via 5sim (timeout={timeout_seconds:.0f}s)"
+        )
 
         start_time = datetime.now(timezone.utc)
-        while (datetime.now(timezone.utc) - start_time).total_seconds() < timeout_seconds:
+        while (
+            datetime.now(timezone.utc) - start_time
+        ).total_seconds() < timeout_seconds:
             try:
                 messages = await adapter.check_messages(verification.activation_id)
                 if messages:
                     msg = messages[-1]
-                    await self._complete_verification(verification, db, msg.text, msg.code)
+                    await self._complete_verification(
+                        verification, db, msg.text, msg.code
+                    )
                     return
             except Exception as e:
                 logger.warning(f"5sim polling error for {verification.id}: {e}")
@@ -250,7 +262,9 @@ class SMSPollingService:
         logger.info(f"Polling {verification.id} via PVApins (fallback to legacy)")
         await self._poll_legacy(verification, db, timeout_seconds)
 
-    async def _complete_verification(self, verification, db, sms_text: str, sms_code: str):
+    async def _complete_verification(
+        self, verification, db, sms_text: str, sms_code: str
+    ):
         """Shared success logic after SMS is received."""
         # Reload verification to avoid stale state
         db.expire(verification)
@@ -271,6 +285,7 @@ class SMSPollingService:
         # Notify & Forward
         try:
             from app.api.core.forwarding import forward_sms_message
+
             asyncio.create_task(
                 forward_sms_message(
                     user_id=v.user_id,
@@ -293,7 +308,9 @@ class SMSPollingService:
         except Exception:
             pass
 
-        logger.info(f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}")
+        logger.info(
+            f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
+        )
 
     async def _handle_timeout(self, verification: Verification, db):
         """Handle verification timeout."""
@@ -308,7 +325,7 @@ class SMSPollingService:
         refund_result = await refund_policy_enforcer.enforce_single_verification(
             verification.id, db
         )
-        
+
         if refund_result:
             logger.info(
                 f"✅ REFUND ENFORCED: {verification.id} - "
@@ -323,25 +340,26 @@ class SMSPollingService:
         # Also report to provider for their refund
         provider = getattr(verification, "provider", "textverified")
         reported = False
-        
+
         if provider == "textverified":
             reported = await self.textverified.report_verification(
                 verification.activation_id
             )
         elif provider == "telnyx":
             from app.services.providers.telnyx_adapter import TelnyxAdapter
+
             reported = await TelnyxAdapter().report_failed(verification.activation_id)
         elif provider == "5sim":
             from app.services.providers.fivesim_adapter import FiveSimAdapter
+
             reported = await FiveSimAdapter().report_failed(verification.activation_id)
         elif provider == "pvapins":
             from app.services.providers.pvapins_adapter import PVAPinsAdapter
+
             reported = await PVAPinsAdapter().report_failed(verification.activation_id)
 
         if reported:
-            logger.info(
-                f"Reported {verification.id} to {provider} — refund triggered"
-            )
+            logger.info(f"Reported {verification.id} to {provider} — refund triggered")
         else:
             logger.warning(
                 f"No provider-side refund confirmation for {verification.id} ({provider})"
@@ -438,7 +456,9 @@ class SMSPollingService:
                 db.commit()
 
                 # --- PHASE 2 INSTRUMENTATION ---
-                await PurchaseIntelligenceService.update_sms_received(verification.id, True)
+                await PurchaseIntelligenceService.update_sms_received(
+                    verification.id, True
+                )
 
                 try:
                     dispatcher = NotificationDispatcher(db)

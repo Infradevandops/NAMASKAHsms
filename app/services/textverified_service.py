@@ -4,12 +4,12 @@ import asyncio
 import json
 import os
 from typing import Any, Dict, List, Optional
-from app.core.exceptions import AreaCodeUnavailableException
 
 import requests
 from requests.adapters import HTTPAdapter
 
 from app.core.config import get_settings
+from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
 
 settings = get_settings()
@@ -640,7 +640,7 @@ class TextVerifiedService:
 
         When area_code is requested, builds a live proximity chain from
         TextVerified's own area-codes endpoint.
-        
+
         If area code doesn't match OR number is VOIP/landline, cancels.
         Uses informed retry: if mismatched area code score is unavailable,
         returns alternatives immediately. Otherwise retries once maximum (max 2 attempts).
@@ -665,9 +665,9 @@ class TextVerifiedService:
             )
 
         # Initialize validators (Phase 5)
+        from app.services.area_code_geo import get_ranked_alternatives
         from app.services.phone_validator import PhoneValidator
         from app.services.purchase_intelligence import PurchaseIntelligenceService
-        from app.services.area_code_geo import get_ranked_alternatives
 
         phone_validator = PhoneValidator()
 
@@ -722,7 +722,9 @@ class TextVerifiedService:
             # Reject if not compatible
             reason = []
             if not area_code_match:
-                reason.append(f"area code mismatch (requested {area_code}, got {assigned_area_code})")
+                reason.append(
+                    f"area code mismatch (requested {area_code}, got {assigned_area_code})"
+                )
             if not is_mobile or is_voip:
                 reason.append("VOIP/Landline detected")
                 voip_rejected = True
@@ -732,31 +734,47 @@ class TextVerifiedService:
                 # If area code was the failure reason, we check if we should retry
                 if attempt_count < max_attempts:
                     # Check score: if this combination is known to be dead, don't waste time/money on retry
-                    score = await PurchaseIntelligenceService.score_availability(service, area_code)
+                    score = await PurchaseIntelligenceService.score_availability(
+                        service, area_code
+                    )
                     if score.available is False and score.confidence >= 0.6:
-                        logger.warning(f"Availability score is poor ({score.confidence}), abandoning retry for {area_code}")
+                        logger.warning(
+                            f"Availability score is poor ({score.confidence}), abandoning retry for {area_code}"
+                        )
                         await self._cancel_safe(result.id)
                         alts = await get_ranked_alternatives(area_code, service)
-                        raise AreaCodeUnavailableException(area_code=area_code, service=service, alternatives=alts)
-                    
+                        raise AreaCodeUnavailableException(
+                            area_code=area_code, service=service, alternatives=alts
+                        )
+
                     # Score is okay or unknown, let's retry
-                    logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to mismatch. Retrying...")
+                    logger.warning(
+                        f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to mismatch. Retrying..."
+                    )
                     await self._cancel_safe(result.id)
                 else:
                     # Final attempt failed area code match
-                    logger.warning(f"Failed to secure {area_code} after {max_attempts} attempts. Raising exception.")
+                    logger.warning(
+                        f"Failed to secure {area_code} after {max_attempts} attempts. Raising exception."
+                    )
                     await self._cancel_safe(result.id)
                     alts = await get_ranked_alternatives(area_code, service)
-                    raise AreaCodeUnavailableException(area_code=area_code, service=service, alternatives=alts)
-            
-            elif (not is_mobile or is_voip):
+                    raise AreaCodeUnavailableException(
+                        area_code=area_code, service=service, alternatives=alts
+                    )
+
+            elif not is_mobile or is_voip:
                 # VOIP failure but area code matched (or was not requested)
                 if attempt_count < max_attempts:
-                    logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to VOIP. Retrying...")
+                    logger.warning(
+                        f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to VOIP. Retrying..."
+                    )
                     await self._cancel_safe(result.id)
                 else:
                     # Final attempt is VOIP. Policy: Keep it to avoid infinite loops/billing overhead.
-                    logger.warning(f"Final attempt is VOIP. Keeping number {assigned_number} despite policy.")
+                    logger.warning(
+                        f"Final attempt is VOIP. Keeping number {assigned_number} despite policy."
+                    )
                     area_code_matched = area_code_match
                     break
             else:

@@ -94,6 +94,7 @@ def test_purchase_us_routes_textverified(auth_client, db, funded_user, test_user
     ):
 
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
+        MockRouter.return_value.get_enabled_providers.return_value = ["textverified"]
         MockPricing.calculate_sms_cost.return_value = {
             "total_cost": 2.22,
             "carrier_surcharge": 0.0,
@@ -161,6 +162,7 @@ def test_purchase_gb_routes_fivesim(auth_client, db, funded_user, test_user_id):
     ):
 
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
+        MockRouter.return_value.get_enabled_providers.return_value = ["fivesim"]
         MockPricing.calculate_sms_cost.return_value = {
             "total_cost": 2.50,
             "carrier_surcharge": 0.0,
@@ -225,6 +227,7 @@ def test_verification_record_provider_field(auth_client, db, funded_user, test_u
     ):
 
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
+        MockRouter.return_value.get_enabled_providers.return_value = ["telnyx"]
         MockPricing.calculate_sms_cost.return_value = {
             "total_cost": 2.50,
             "carrier_surcharge": 0.0,
@@ -289,6 +292,7 @@ def test_purchase_failover_success(auth_client, db, funded_user, test_user_id):
     ):
 
         MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
+        MockRouter.return_value.get_enabled_providers.return_value = ["telnyx"]
         MockPricing.calculate_sms_cost.return_value = {
             "total_cost": 2.50,
             "carrier_surcharge": 0.0,
@@ -336,6 +340,7 @@ def test_purchase_business_error_no_failover(auth_client, funded_user, test_user
         MockRouter.return_value.purchase_with_failover = AsyncMock(
             side_effect=RuntimeError("No inventory available for GB")
         )
+        MockRouter.return_value.get_enabled_providers.return_value = ["fivesim"]
         MockPricing.calculate_sms_cost.return_value = {
             "total_cost": 2.50,
             "carrier_surcharge": 0.0,

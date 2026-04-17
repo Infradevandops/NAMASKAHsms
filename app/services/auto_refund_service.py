@@ -71,7 +71,7 @@ class AutoRefundService:
         try:
             old_balance = user.credits
             user.credits = (user.credits or 0.0) + refund_amount
-            
+
             # Mark verification as refunded
             verification.refunded = True
             verification.refund_amount = float(refund_amount)
@@ -84,7 +84,7 @@ class AutoRefundService:
                 type="verification_refund",
                 description=f"Auto-refund for {reason} verification {verification_id} ({verification.service_name})",
             )
-            
+
             # Link transaction to verification
             verification.refund_transaction_id = str(transaction.id)
 

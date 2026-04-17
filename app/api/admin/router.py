@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.admin.actions import router as actions_router
 from app.api.admin.analytics import router as analytics_router
+from app.api.admin.area_code_analytics import router as area_code_analytics_router
 from app.api.admin.audit_compliance import router as audit_compliance_router
 from app.api.admin.dashboard import router as dashboard_router
 from app.api.admin.export import router as export_router
@@ -14,7 +15,6 @@ from app.api.admin.user_management import router as user_management_router
 from app.api.admin.verification_actions import router as verification_actions_router
 from app.api.admin.verification_analytics import router as verification_analytics_router
 from app.api.admin.verification_history import router as verification_history_router
-from app.api.admin.area_code_analytics import router as area_code_analytics_router
 
 router = APIRouter()
 
