@@ -192,10 +192,10 @@ class SMSPollingService:
         )
 
         if reported:
-            logger.info(f"Reported {verification.id} to {provider} — refund triggered")
+            logger.info(f"Reported {verification.id} to TextVerified — refund triggered")
         else:
             logger.warning(
-                f"Failed to report {verification.id} to {provider} — "
+                f"Failed to report {verification.id} to TextVerified — "
                 f"falling back to platform refund"
             )
             try:
