@@ -5,7 +5,7 @@ User-facing messages are generic, professional, and provider-agnostic.
 """
 
 
-class ProviderError(RuntimeError):
+class ProviderError(Exception):
     """Structured error from any SMS provider.
 
     category  -- machine-readable error type (used for routing decisions)
