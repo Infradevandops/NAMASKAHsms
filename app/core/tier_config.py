@@ -41,6 +41,7 @@ class TierConfig:
             "price_monthly": row[2],  # Keep in cents for API consistency
             "quota_usd": row[3],
             "overage_rate": row[4],
+            "base_sms_cost": row[4],  # Use overage_rate as base cost
             "payment_required": row[2] > 0,
             "has_api_access": bool(row[5]),
             "has_area_code_selection": bool(row[6]),
@@ -91,6 +92,7 @@ class TierConfig:
                 "price_monthly": row[2],
                 "quota_usd": row[3],
                 "overage_rate": row[4],
+                "base_sms_cost": row[4],  # Use overage_rate as base cost
                 "payment_required": row[2] > 0,
                 "has_api_access": bool(row[5]),
                 "has_area_code_selection": bool(row[6]),
