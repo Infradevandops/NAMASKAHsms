@@ -55,8 +55,9 @@ def test_us_always_routes_textverified():
 
 def test_international_city_pro_routes_telnyx():
     router = ProviderRouter()
-    with patch.object(router, "_get_telnyx") as mock_telnyx, \
-         patch.object(router, "_pvapins_covers", return_value=False):
+    with patch.object(router, "_get_telnyx") as mock_telnyx, patch.object(
+        router, "_pvapins_covers", return_value=False
+    ):
         mock_telnyx.return_value.name = "telnyx"
         mock_telnyx.return_value.enabled = True
         provider, city_attempted, pre_note = router.get_provider(
@@ -69,8 +70,9 @@ def test_international_city_pro_routes_telnyx():
 
 def test_international_city_payg_routes_fivesim_city_dropped():
     router = ProviderRouter()
-    with patch.object(router, "_get_fivesim") as mock_5sim, \
-         patch.object(router, "_pvapins_covers", return_value=False):
+    with patch.object(router, "_get_fivesim") as mock_5sim, patch.object(
+        router, "_pvapins_covers", return_value=False
+    ):
         mock_5sim.return_value.name = "5sim"
         mock_5sim.return_value.enabled = True
         provider, city_attempted, pre_note = router.get_provider(
@@ -84,8 +86,9 @@ def test_international_city_payg_routes_fivesim_city_dropped():
 
 def test_international_no_city_routes_fivesim():
     router = ProviderRouter()
-    with patch.object(router, "_get_fivesim") as mock_5sim, \
-         patch.object(router, "_pvapins_covers", return_value=False):
+    with patch.object(router, "_get_fivesim") as mock_5sim, patch.object(
+        router, "_pvapins_covers", return_value=False
+    ):
         mock_5sim.return_value.name = "5sim"
         mock_5sim.return_value.enabled = True
         provider, city_attempted, _ = router.get_provider(

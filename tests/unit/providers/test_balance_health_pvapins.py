@@ -128,7 +128,9 @@ async def test_pvapins_purchase_http_status_error(adapter):
         err_resp = MagicMock()
         err_resp.status_code = 503
         client.get = AsyncMock(
-            side_effect=httpx.HTTPStatusError("error", request=MagicMock(), response=err_resp)
+            side_effect=httpx.HTTPStatusError(
+                "error", request=MagicMock(), response=err_resp
+            )
         )
         mock_client_fn.return_value = client
         with pytest.raises(ProviderError) as exc:
@@ -213,6 +215,7 @@ def test_pvapins_name(adapter):
 @pytest.mark.asyncio
 async def test_health_check_textverified_disabled():
     from app.services.providers.health_check import check_textverified_health
+
     with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = MagicMock()
         svc.enabled = False
@@ -224,6 +227,7 @@ async def test_health_check_textverified_disabled():
 @pytest.mark.asyncio
 async def test_health_check_textverified_ok():
     from app.services.providers.health_check import check_textverified_health
+
     with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = AsyncMock()
         svc.enabled = True
@@ -237,6 +241,7 @@ async def test_health_check_textverified_ok():
 @pytest.mark.asyncio
 async def test_health_check_textverified_error():
     from app.services.providers.health_check import check_textverified_health
+
     with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = AsyncMock()
         svc.enabled = True
@@ -249,6 +254,7 @@ async def test_health_check_textverified_error():
 @pytest.mark.asyncio
 async def test_health_check_telnyx_disabled():
     from app.services.providers.health_check import check_telnyx_health
+
     with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
         adapter = MagicMock()
         adapter.enabled = False
@@ -261,6 +267,7 @@ async def test_health_check_telnyx_disabled():
 @pytest.mark.asyncio
 async def test_health_check_telnyx_ok():
     from app.services.providers.health_check import check_telnyx_health
+
     with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.enabled = True
@@ -274,6 +281,7 @@ async def test_health_check_telnyx_ok():
 @pytest.mark.asyncio
 async def test_health_check_telnyx_error():
     from app.services.providers.health_check import check_telnyx_health
+
     with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.enabled = True
@@ -286,6 +294,7 @@ async def test_health_check_telnyx_error():
 @pytest.mark.asyncio
 async def test_health_check_fivesim_disabled():
     from app.services.providers.health_check import check_fivesim_health
+
     with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
         adapter = MagicMock()
         adapter.enabled = False
@@ -297,6 +306,7 @@ async def test_health_check_fivesim_disabled():
 @pytest.mark.asyncio
 async def test_health_check_fivesim_ok():
     from app.services.providers.health_check import check_fivesim_health
+
     with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.enabled = True
@@ -310,6 +320,7 @@ async def test_health_check_fivesim_ok():
 @pytest.mark.asyncio
 async def test_health_check_fivesim_error():
     from app.services.providers.health_check import check_fivesim_health
+
     with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.enabled = True
@@ -322,6 +333,7 @@ async def test_health_check_fivesim_error():
 @pytest.mark.asyncio
 async def test_health_check_pvapins_disabled():
     from app.services.providers.health_check import check_pvapins_health
+
     with patch("app.services.providers.pvapins_adapter.PVAPinsAdapter") as MockAdapter:
         adapter = MagicMock()
         adapter.enabled = False
@@ -334,6 +346,7 @@ async def test_health_check_pvapins_disabled():
 @pytest.mark.asyncio
 async def test_health_check_pvapins_ok():
     from app.services.providers.health_check import check_pvapins_health
+
     with patch("app.services.providers.pvapins_adapter.PVAPinsAdapter") as MockAdapter:
         adapter = MagicMock()
         adapter.enabled = True
@@ -345,12 +358,20 @@ async def test_health_check_pvapins_ok():
 @pytest.mark.asyncio
 async def test_run_provider_health_checks():
     from app.services.providers.health_check import run_provider_health_checks
+
     ok = {"status": "ok", "balance": 100.0}
     disabled = {"status": "disabled", "balance": None}
-    with patch("app.services.providers.health_check.check_textverified_health", return_value=ok), \
-         patch("app.services.providers.health_check.check_telnyx_health", return_value=disabled), \
-         patch("app.services.providers.health_check.check_fivesim_health", return_value=disabled), \
-         patch("app.services.providers.health_check.check_pvapins_health", return_value=disabled):
+    with patch(
+        "app.services.providers.health_check.check_textverified_health", return_value=ok
+    ), patch(
+        "app.services.providers.health_check.check_telnyx_health", return_value=disabled
+    ), patch(
+        "app.services.providers.health_check.check_fivesim_health",
+        return_value=disabled,
+    ), patch(
+        "app.services.providers.health_check.check_pvapins_health",
+        return_value=disabled,
+    ):
         results = await run_provider_health_checks()
     assert results["textverified"]["status"] == "ok"
 
@@ -361,6 +382,7 @@ async def test_run_provider_health_checks():
 @pytest.mark.asyncio
 async def test_evaluate_balances_ok():
     from app.services.providers.balance_monitor import evaluate_balances
+
     with patch("app.services.providers.balance_monitor.get_settings"):
         await evaluate_balances({"textverified": 100.0})  # no exception
 
@@ -368,24 +390,31 @@ async def test_evaluate_balances_ok():
 @pytest.mark.asyncio
 async def test_evaluate_balances_warn():
     from app.services.providers.balance_monitor import evaluate_balances
-    with patch("app.services.providers.balance_monitor.get_settings"), \
-         patch("app.services.providers.balance_monitor._send_alert", new_callable=AsyncMock):
+
+    with patch("app.services.providers.balance_monitor.get_settings"), patch(
+        "app.services.providers.balance_monitor._send_alert", new_callable=AsyncMock
+    ):
         await evaluate_balances({"textverified": 40.0})
 
 
 @pytest.mark.asyncio
 async def test_evaluate_balances_critical():
     from app.services.providers.balance_monitor import evaluate_balances
-    with patch("app.services.providers.balance_monitor.get_settings"), \
-         patch("app.services.providers.balance_monitor._send_alert", new_callable=AsyncMock):
+
+    with patch("app.services.providers.balance_monitor.get_settings"), patch(
+        "app.services.providers.balance_monitor._send_alert", new_callable=AsyncMock
+    ):
         await evaluate_balances({"textverified": 20.0})
 
 
 @pytest.mark.asyncio
 async def test_evaluate_balances_disable():
     from app.services.providers.balance_monitor import evaluate_balances
+
     settings = MagicMock()
-    with patch("app.services.providers.balance_monitor.get_settings", return_value=settings):
+    with patch(
+        "app.services.providers.balance_monitor.get_settings", return_value=settings
+    ):
         await evaluate_balances({"telnyx": 5.0})
     assert settings.telnyx_enabled is False
 
@@ -393,8 +422,11 @@ async def test_evaluate_balances_disable():
 @pytest.mark.asyncio
 async def test_evaluate_balances_disable_fivesim():
     from app.services.providers.balance_monitor import evaluate_balances
+
     settings = MagicMock()
-    with patch("app.services.providers.balance_monitor.get_settings", return_value=settings):
+    with patch(
+        "app.services.providers.balance_monitor.get_settings", return_value=settings
+    ):
         await evaluate_balances({"5sim": 5.0})
     assert settings.fivesim_enabled is False
 
@@ -402,6 +434,7 @@ async def test_evaluate_balances_disable_fivesim():
 @pytest.mark.asyncio
 async def test_check_all_balances():
     from app.services.providers.balance_monitor import check_all_balances
+
     with patch("app.services.providers.provider_router.ProviderRouter") as MockRouter:
         router = AsyncMock()
         router.get_provider_balances = AsyncMock(return_value={"textverified": 100.0})
@@ -413,10 +446,12 @@ async def test_check_all_balances():
 @pytest.mark.asyncio
 async def test_send_alert_success():
     from app.services.providers.balance_monitor import _send_alert
+
     mock_db = MagicMock()
     mock_notif = MagicMock()
-    with patch("app.core.database.SessionLocal", return_value=mock_db), \
-         patch("app.services.notification_service.NotificationService", return_value=mock_notif):
+    with patch("app.core.database.SessionLocal", return_value=mock_db), patch(
+        "app.services.notification_service.NotificationService", return_value=mock_notif
+    ):
         await _send_alert("telnyx", 20.0, "critical")
     mock_notif.create_admin_notification.assert_called_once()
     mock_db.close.assert_called_once()
@@ -425,6 +460,7 @@ async def test_send_alert_success():
 @pytest.mark.asyncio
 async def test_send_alert_failure_is_swallowed():
     from app.services.providers.balance_monitor import _send_alert
+
     with patch("app.core.database.SessionLocal", side_effect=Exception("db down")):
         # Should not raise
         await _send_alert("telnyx", 20.0, "critical")
@@ -433,10 +469,12 @@ async def test_send_alert_failure_is_swallowed():
 @pytest.mark.asyncio
 async def test_send_alert_warning_level():
     from app.services.providers.balance_monitor import _send_alert
+
     mock_db = MagicMock()
     mock_notif = MagicMock()
-    with patch("app.core.database.SessionLocal", return_value=mock_db), \
-         patch("app.services.notification_service.NotificationService", return_value=mock_notif):
+    with patch("app.core.database.SessionLocal", return_value=mock_db), patch(
+        "app.services.notification_service.NotificationService", return_value=mock_notif
+    ):
         await _send_alert("5sim", 40.0, "warning")
     mock_notif.create_admin_notification.assert_called_once()
 
@@ -447,34 +485,36 @@ async def test_send_alert_warning_level():
 def _make_router(**overrides):
     """Create a ProviderRouter with mocked providers."""
     from app.services.providers.provider_router import ProviderRouter
+
     router = ProviderRouter()
-    
+
     mock_tv = MagicMock()
     mock_tv.name = "textverified"
     mock_tv.enabled = overrides.get("textverified_enabled", True)
     router._textverified = mock_tv
-    
+
     mock_telnyx = MagicMock()
     mock_telnyx.name = "telnyx"
     mock_telnyx.enabled = overrides.get("telnyx_enabled", False)
     router._telnyx = mock_telnyx
-    
+
     mock_fivesim = MagicMock()
     mock_fivesim.name = "5sim"
     mock_fivesim.enabled = overrides.get("fivesim_enabled", False)
     router._fivesim = mock_fivesim
-    
+
     mock_pvapins = MagicMock()
     mock_pvapins.name = "pvapins"
     mock_pvapins.enabled = overrides.get("pvapins_enabled", False)
     router._pvapins = mock_pvapins
-    
+
     return router
 
 
 def test_router_pvapins_routing():
     """PVApins-covered country routes to PVApins when enabled."""
     from app.services.providers.provider_router import ProviderRouter
+
     router = _make_router(pvapins_enabled=True)
     mock_pvapins = MagicMock()
     mock_pvapins.enabled = True
@@ -504,7 +544,9 @@ def test_router_international_city_pro_telnyx_unavailable_fivesim_fallback():
     mock_fivesim.enabled = True
     router._telnyx = mock_telnyx
     router._fivesim = mock_fivesim
-    provider, city_attempted, note = router.get_provider("DE", city="Berlin", user_tier="pro")
+    provider, city_attempted, note = router.get_provider(
+        "DE", city="Berlin", user_tier="pro"
+    )
     assert provider == mock_fivesim
     assert city_attempted is False
     assert note is not None
@@ -519,7 +561,9 @@ def test_router_payg_city_fivesim_unavailable_telnyx_fallback():
     mock_telnyx.enabled = True
     router._fivesim = mock_fivesim
     router._telnyx = mock_telnyx
-    provider, city_attempted, note = router.get_provider("DE", city="Berlin", user_tier="payg")
+    provider, city_attempted, note = router.get_provider(
+        "DE", city="Berlin", user_tier="payg"
+    )
     assert provider == mock_telnyx
     assert city_attempted is True
 
@@ -527,6 +571,7 @@ def test_router_payg_city_fivesim_unavailable_telnyx_fallback():
 def test_router_us_city_resolves_area_code():
     """US request with city resolves area code via lookup."""
     from app.services.providers.provider_router import ProviderRouter
+
     router = _make_router()
     mock_tv = MagicMock()
     mock_tv.enabled = True

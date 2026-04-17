@@ -114,7 +114,7 @@ async def test_poll_telnyx_success(service):
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[msg])
         MockAdapter.return_value = adapter
-        
+
         # Mock DB reload
         db.query.return_value.filter.return_value.first.return_value = v
 
@@ -251,9 +251,9 @@ async def test_handle_timeout_telnyx(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
 
-    with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter, patch(
-        "app.services.sms_polling_service.NotificationService"
-    ):
+    with patch(
+        "app.services.providers.telnyx_adapter.TelnyxAdapter"
+    ) as MockAdapter, patch("app.services.sms_polling_service.NotificationService"):
         adapter = AsyncMock()
         adapter.report_failed = AsyncMock(return_value=True)
         MockAdapter.return_value = adapter
@@ -269,9 +269,9 @@ async def test_handle_timeout_fivesim(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
 
-    with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter, patch(
-        "app.services.sms_polling_service.NotificationService"
-    ):
+    with patch(
+        "app.services.providers.fivesim_adapter.FiveSimAdapter"
+    ) as MockAdapter, patch("app.services.sms_polling_service.NotificationService"):
         adapter = AsyncMock()
         adapter.report_failed = AsyncMock(return_value=True)
         MockAdapter.return_value = adapter
@@ -295,7 +295,7 @@ async def test_handle_timeout_refund_fallback(service):
         MockEnforcer.enforce_single_verification = AsyncMock(
             return_value={"refund_amount": 2.22}
         )
-        
+
         # Mock DB reload inside enforcer calls might be needed if they also reload
         db.query.return_value.filter.return_value.first.return_value = v
 

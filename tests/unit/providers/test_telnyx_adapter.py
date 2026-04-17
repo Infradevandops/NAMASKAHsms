@@ -318,10 +318,10 @@ async def test_client_cleanup(adapter):
     with patch("httpx.AsyncClient.aclose", new_callable=AsyncMock) as mock_aclose:
         # Trigger client creation
         _ = adapter.client
-        
+
         # Call cleanup
         await adapter.__aexit__(None, None, None)
-        
+
         # Verify aclose was called
         mock_aclose.assert_awaited_once()
 
@@ -339,6 +339,7 @@ def test_client_singleton(adapter):
 @pytest.mark.asyncio
 async def test_disabled_provider_purchase(disabled_adapter):
     from app.services.providers.provider_errors import ProviderError
+
     with pytest.raises(ProviderError, match="API key not set"):
         await disabled_adapter.purchase_number("whatsapp", "GB")
 

@@ -176,7 +176,9 @@ async def test_routing_reason_populated(router):
     mock_provider.name = "textverified"
     mock_provider.purchase_number = AsyncMock(return_value=_make_result())
 
-    with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
+    with patch.object(
+        router, "get_provider", return_value=(mock_provider, False, None)
+    ):
         result = await router.purchase_with_failover("whatsapp", "US")
 
     assert "country=US" in result.routing_reason

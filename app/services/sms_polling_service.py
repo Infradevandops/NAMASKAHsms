@@ -355,28 +355,39 @@ class SMSPollingService:
                 )
             elif provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
-                provider_refunded = await TelnyxAdapter().report_failed(verification.activation_id)
+
+                provider_refunded = await TelnyxAdapter().report_failed(
+                    verification.activation_id
+                )
             elif provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
-                provider_refunded = await FiveSimAdapter().report_failed(verification.activation_id)
+
+                provider_refunded = await FiveSimAdapter().report_failed(
+                    verification.activation_id
+                )
             elif provider == "pvapins":
                 from app.services.providers.pvapins_adapter import PVAPinsAdapter
-                provider_refunded = await PVAPinsAdapter().report_failed(verification.activation_id)
+
+                provider_refunded = await PVAPinsAdapter().report_failed(
+                    verification.activation_id
+                )
         except Exception as e:
             logger.warning(f"Failed to recoup from provider {provider}: {e}")
 
         if provider_refunded:
             logger.info(f"✅ RECOUPED: {verification.id} from {provider}")
         else:
-            logger.warning(f"⚠️ RECOUP FAILED: {verification.id} from {provider} (Potential leakage)")
+            logger.warning(
+                f"⚠️ RECOUP FAILED: {verification.id} from {provider} (Potential leakage)"
+            )
 
         # --- PHASE 2 & 10 INSTRUMENTATION ---
         await PurchaseIntelligenceService.update_sms_received(
-            verification.id, 
-            False, 
+            verification.id,
+            False,
             refund_reason=reason,
             outcome_category=outcome_category,
-            provider_refunded=provider_refunded
+            provider_refunded=provider_refunded,
         )
 
         # Notify user

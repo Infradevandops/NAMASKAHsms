@@ -190,7 +190,7 @@ class RefundService:
                         refund_amount=amount,
                         refund_reason=reason_str,
                         outcome_category="PRODUCT",
-                        provider_refunded=True # Cancellation at purchase-time always refunds on provider side
+                        provider_refunded=True,  # Cancellation at purchase-time always refunds on provider side
                     )
                 )
                 db.execute(stmt)
