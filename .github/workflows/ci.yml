@@ -106,6 +106,7 @@ jobs:
           ENVIRONMENT: testing
           TESTING: '1'
           TEXTVERIFIED_API_KEY: test-key
+          TEXTVERIFIED_USERNAME: test-user
           PAYSTACK_SECRET_KEY: test-key
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
@@ -127,6 +128,8 @@ jobs:
           JWT_SECRET_KEY: test-jwt-secret-key-for-ci-only-min-32-chars-long
           ENVIRONMENT: testing
           TESTING: '1'
+          TEXTVERIFIED_API_KEY: test-key
+          TEXTVERIFIED_USERNAME: test-user
           TELNYX_ENABLED: 'false'
           FIVESIM_ENABLED: 'false'
         run: |
