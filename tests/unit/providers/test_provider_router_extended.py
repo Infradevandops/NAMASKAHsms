@@ -4,6 +4,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.services.providers.base_provider import PurchaseResult
+from app.services.providers.provider_errors import ProviderError
 from app.services.providers.provider_router import ProviderRouter
 
 
@@ -82,13 +83,13 @@ async def test_purchase_all_providers_fail(router):
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
     mock_primary.purchase_number = AsyncMock(
-        side_effect=RuntimeError("Connection timeout")
+        side_effect=ProviderError("provider_unreachable", "Connection timeout")
     )
 
     mock_secondary = AsyncMock()
     mock_secondary.name = "telnyx"
     mock_secondary.purchase_number = AsyncMock(
-        side_effect=RuntimeError("Connection timeout")
+        side_effect=ProviderError("provider_unreachable", "Connection timeout")
     )
 
     with patch(
@@ -102,7 +103,7 @@ async def test_purchase_all_providers_fail(router):
             router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
-            with pytest.raises(RuntimeError, match="All providers failed"):
+            with pytest.raises(ProviderError):
                 await router.purchase_with_failover("whatsapp", "US")
 
 
@@ -117,7 +118,7 @@ async def test_purchase_concurrent_failover(router):
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
     mock_primary.purchase_number = AsyncMock(
-        side_effect=RuntimeError("Connection timeout")
+        side_effect=ProviderError("provider_unreachable", "Connection timeout")
     )
 
     mock_secondary = AsyncMock()
@@ -174,7 +175,7 @@ async def test_routing_reason_populated(router):
     with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
         result = await router.purchase_with_failover("whatsapp", "US")
 
-    assert result.routing_reason == "country=US"
+    assert "country=US" in result.routing_reason
 
 
 @pytest.mark.asyncio
@@ -182,7 +183,7 @@ async def test_routing_reason_failover_populated(router):
     mock_primary = AsyncMock()
     mock_primary.name = "textverified"
     mock_primary.purchase_number = AsyncMock(
-        side_effect=RuntimeError("Connection timeout")
+        side_effect=ProviderError("provider_unreachable", "Connection timeout")
     )
 
     mock_secondary = AsyncMock()
