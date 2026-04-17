@@ -4,6 +4,7 @@ import asyncio
 import json
 import os
 from typing import Any, Dict, List, Optional
+from app.core.exceptions import AreaCodeUnavailableException
 
 import requests
 from requests.adapters import HTTPAdapter
@@ -630,20 +631,19 @@ class TextVerifiedService:
         service: str,
         country: str = "US",
         area_code: Optional[str] = None,
-        carrier: Optional[str] = None,
         capability: str = "sms",
-        max_retries: int = 3,  # NEW (v4.4.1)
+        selected_from_alternatives: Optional[bool] = False,
+        original_request: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Purchase a verification number with retry logic (v4.4.1).
+        Purchase a verification number with Phase 5 logic.
 
         When area_code is requested, builds a live proximity chain from
-        TextVerified's own area-codes endpoint (same state, ordered).
-        TextVerified tries each code in order — first available wins.
-
-        If area code doesn't match OR number is VOIP/landline OR carrier
-        doesn't match, cancels and retries up to max_retries times.
-        Final attempt is always accepted.
+        TextVerified's own area-codes endpoint.
+        
+        If area code doesn't match OR number is VOIP/landline, cancels.
+        Uses informed retry: if mismatched area code score is unavailable,
+        returns alternatives immediately. Otherwise retries once maximum (max 2 attempts).
         """
         if not self.enabled:
             raise RuntimeError("TextVerified service not available")
@@ -664,30 +664,27 @@ class TextVerifiedService:
                 f"({len(area_code_options)} options)"
             )
 
-        # Initialize validators (v4.4.1)
-        from app.services.carrier_lookup import CarrierLookupService
+        # Initialize validators (Phase 5)
         from app.services.phone_validator import PhoneValidator
+        from app.services.purchase_intelligence import PurchaseIntelligenceService
+        from app.services.area_code_geo import get_ranked_alternatives
 
         phone_validator = PhoneValidator()
-        carrier_lookup = CarrierLookupService()
 
-        # Retry loop (v4.4.1)
-        retry_attempts = 0
+        # Retry loop (Phase 5: Single informed retry max 2 attempts)
+        max_attempts = 2
+        attempt_count = 0
         area_code_matched = False
-        carrier_matched = False
         voip_rejected = False
-        real_carrier = None
         result = None
 
-        while retry_attempts < max_retries:
+        while attempt_count < max_attempts:
+            attempt_count += 1
             result = await asyncio.to_thread(
                 self.client.verifications.create,
                 service_name=service,
                 capability=cap,
                 area_code_select_option=area_code_options,
-                carrier_select_option=(
-                    self._build_carrier_preference(carrier) if carrier else None
-                ),
             )
 
             assigned_number = result.number
@@ -698,66 +695,67 @@ class TextVerifiedService:
             # Check area code match
             area_code_match = not area_code or assigned_area_code == area_code
 
-            # Check VOIP/landline (v4.4.1 Phase 3)
+            # Check VOIP/landline
             phone_validation = phone_validator.validate_mobile(assigned_number, country)
             is_mobile = phone_validation.get("is_mobile", True)
             is_voip = phone_validation.get("is_voip", False)
 
-            # Check real carrier (v4.4.1 Phase 4)
-            carrier_match = True
-            if carrier and carrier_lookup.enabled:
-                carrier_result = await carrier_lookup.lookup_carrier(assigned_number)
-                if carrier_result["success"]:
-                    real_carrier = carrier_result["carrier"]
-                    requested_carrier_normalized = (
-                        carrier.lower().replace(" ", "_").replace("-", "")
-                    )
-                    carrier_match = real_carrier == requested_carrier_normalized
-                    logger.info(
-                        f"Carrier verification: requested={carrier}, "
-                        f"real={real_carrier}, match={carrier_match}"
-                    )
+            # Phase 2 Instrumentation
+            matched = area_code_match if area_code else None
+            await PurchaseIntelligenceService.log_outcome(
+                service=service,
+                assigned_code=assigned_area_code,
+                requested_code=area_code,
+                assigned_carrier=None,
+                carrier_type=phone_validation.get("number_type"),
+                matched=matched,
+                verification_id=result.id if result else None,
+                selected_from_alternatives=selected_from_alternatives,
+                original_request=original_request,
+            )
 
             # Accept if all checks pass
-            if area_code_match and is_mobile and not is_voip and carrier_match:
+            if area_code_match and is_mobile and not is_voip:
                 area_code_matched = True
-                carrier_matched = True
                 break
 
-            # Reject if not final attempt
-            if retry_attempts < max_retries - 1:
-                reason = []
-                if not area_code_match:
-                    reason.append(
-                        f"area code mismatch (requested {area_code}, got {assigned_area_code})"
+            # Reject if not match
+            reason = []
+            if not area_code_match:
+                reason.append(f"area code mismatch (requested {area_code}, got {assigned_area_code})")
+            if not is_mobile or is_voip:
+                reason.append("VOIP/Landline detected")
+                voip_rejected = True
+
+            logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}): {', '.join(reason)}")
+            await self._cancel_safe(result.id)
+            
+            # Phase 5.1/5.2 checks
+            if not area_code_match:
+                if attempt_count >= max_attempts:
+                    # Final attempt failed
+                    logger.warning(f"Failed to secure {area_code} after {max_attempts} attempts.")
+                    alts = await get_ranked_alternatives(area_code, service)
+                    raise AreaCodeUnavailableException(
+                        area_code=area_code, service=service, alternatives=alts
                     )
-                if not is_mobile:
-                    reason.append(f"not mobile ({phone_validation.get('number_type')})")
-                    voip_rejected = True
-                if is_voip:
-                    reason.append("VOIP detected")
-                    voip_rejected = True
-                if not carrier_match:
-                    reason.append(
-                        f"carrier mismatch (requested {carrier}, got {real_carrier})"
+                
+                # Check score before retry
+                score = await PurchaseIntelligenceService.score_availability(service, area_code)
+                if score.available is False and score.confidence >= 0.6:
+                    logger.warning(f"Availability score is poor ({score.confidence}), abandoning retry for {area_code}")
+                    alts = await get_ranked_alternatives(area_code, service)
+                    raise AreaCodeUnavailableException(
+                        area_code=area_code, service=service, alternatives=alts
                     )
 
-                logger.warning(
-                    f"Rejecting number (attempt {retry_attempts + 1}/{max_retries}): {', '.join(reason)}"
-                )
-                await self._cancel_safe(result.id)
-                retry_attempts += 1
-                await asyncio.sleep(0.5)
-            else:
-                # Final attempt — accept regardless
-                logger.warning(
-                    f"Final attempt: accepting {assigned_number} "
-                    f"(area_code_match={area_code_match}, is_mobile={is_mobile}, "
-                    f"is_voip={is_voip}, carrier_match={carrier_match})"
-                )
+            if attempt_count >= max_attempts:
+                # Max attempts reached and it wasn't an area code fail (maybe VOIP)
+                logger.warning(f"Failed to get valid number after {max_attempts} attempts. Keeping final number despite failures.")
                 area_code_matched = area_code_match
-                carrier_matched = carrier_match
                 break
+
+            await asyncio.sleep(0.5)
 
         assigned_number = result.number
         assigned_area_code = (
@@ -790,10 +788,8 @@ class TextVerifiedService:
             "cost": result.total_cost,
             "ends_at": result.ends_at.isoformat(),
             "tv_object": result,
-            "retry_attempts": retry_attempts,
+            "attempt_count": attempt_count,
             "area_code_matched": area_code_matched,
-            "carrier_matched": carrier_matched,
-            "real_carrier": real_carrier,
             "voip_rejected": voip_rejected,
             "fallback_applied": fallback_applied,
             "requested_area_code": area_code,
@@ -821,7 +817,7 @@ class TextVerifiedService:
             settings = get_settings()
 
             result = await self.create_verification(
-                service=service, area_code=area_code, carrier=carrier
+                service=service, area_code=area_code
             )
 
             # Apply markup to cost

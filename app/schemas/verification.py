@@ -38,6 +38,15 @@ class VerificationRequest(BaseModel):
         max_length=36,
         description="UUID v4 idempotency key",
     )
+    selected_from_alternatives: Optional[bool] = Field(
+        default=False,
+        description="Phase 6.4: track if user picked alternative",
+    )
+    original_request: Optional[str] = Field(
+        default=None,
+        max_length=10,
+        description="Original requested area code before selecting alternative",
+    )
 
     @field_validator("service", mode="before")
     @classmethod
