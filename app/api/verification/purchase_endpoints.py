@@ -316,8 +316,6 @@ async def request_verification(
             db.flush()  # Get the ID before commit
 
             # Step 2.3: Process automatic refunds (v4.4.1 Phase 5)
-            from app.services.refund_service import RefundService
-
             refund_service = RefundService()
             refund_result = await refund_service.process_refund(verification, user, db)
 
@@ -435,8 +433,6 @@ async def request_verification(
             )
 
         # Record usage for quota tracking
-        from app.services.quota_service import QuotaService
-
         QuotaService.add_quota_usage(db, user_id, actual_cost)
 
         # Low balance warning
