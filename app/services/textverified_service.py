@@ -719,7 +719,7 @@ class TextVerifiedService:
                 area_code_matched = True
                 break
 
-            # Reject if not match
+            # Reject if not compatible
             reason = []
             if not area_code_match:
                 reason.append(f"area code mismatch (requested {area_code}, got {assigned_area_code})")
@@ -727,32 +727,41 @@ class TextVerifiedService:
                 reason.append("VOIP/Landline detected")
                 voip_rejected = True
 
-            logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}): {', '.join(reason)}")
-            await self._cancel_safe(result.id)
-            
-            # Phase 5.1/5.2 checks
+            # -- Informed Decision: Retry or Terminate --
             if not area_code_match:
-                if attempt_count >= max_attempts:
-                    # Final attempt failed
-                    logger.warning(f"Failed to secure {area_code} after {max_attempts} attempts.")
+                # If area code was the failure reason, we check if we should retry
+                if attempt_count < max_attempts:
+                    # Check score: if this combination is known to be dead, don't waste time/money on retry
+                    score = await PurchaseIntelligenceService.score_availability(service, area_code)
+                    if score.available is False and score.confidence >= 0.6:
+                        logger.warning(f"Availability score is poor ({score.confidence}), abandoning retry for {area_code}")
+                        await self._cancel_safe(result.id)
+                        alts = await get_ranked_alternatives(area_code, service)
+                        raise AreaCodeUnavailableException(area_code=area_code, service=service, alternatives=alts)
+                    
+                    # Score is okay or unknown, let's retry
+                    logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to mismatch. Retrying...")
+                    await self._cancel_safe(result.id)
+                else:
+                    # Final attempt failed area code match
+                    logger.warning(f"Failed to secure {area_code} after {max_attempts} attempts. Raising exception.")
+                    await self._cancel_safe(result.id)
                     alts = await get_ranked_alternatives(area_code, service)
-                    raise AreaCodeUnavailableException(
-                        area_code=area_code, service=service, alternatives=alts
-                    )
-                
-                # Check score before retry
-                score = await PurchaseIntelligenceService.score_availability(service, area_code)
-                if score.available is False and score.confidence >= 0.6:
-                    logger.warning(f"Availability score is poor ({score.confidence}), abandoning retry for {area_code}")
-                    alts = await get_ranked_alternatives(area_code, service)
-                    raise AreaCodeUnavailableException(
-                        area_code=area_code, service=service, alternatives=alts
-                    )
-
-            if attempt_count >= max_attempts:
-                # Max attempts reached and it wasn't an area code fail (maybe VOIP)
-                logger.warning(f"Failed to get valid number after {max_attempts} attempts. Keeping final number despite failures.")
-                area_code_matched = area_code_match
+                    raise AreaCodeUnavailableException(area_code=area_code, service=service, alternatives=alts)
+            
+            elif (not is_mobile or is_voip):
+                # VOIP failure but area code matched (or was not requested)
+                if attempt_count < max_attempts:
+                    logger.warning(f"Rejecting number (attempt {attempt_count}/{max_attempts}) due to VOIP. Retrying...")
+                    await self._cancel_safe(result.id)
+                else:
+                    # Final attempt is VOIP. Policy: Keep it to avoid infinite loops/billing overhead.
+                    logger.warning(f"Final attempt is VOIP. Keeping number {assigned_number} despite policy.")
+                    area_code_matched = area_code_match
+                    break
+            else:
+                # Success!
+                area_code_matched = True
                 break
 
             await asyncio.sleep(0.5)

@@ -7,6 +7,7 @@ from app.api.verification.outcome_endpoint import router as outcome_router
 from app.api.verification.purchase_endpoints import router as purchase_router
 from app.api.verification.services_endpoint import router as services_router
 from app.api.verification.status_polling import router as status_router
+from app.api.verification.area_code_endpoints import router as area_code_router
 
 # Create main verification router without prefix (main.py adds /api)
 router = APIRouter(tags=["Verification"])
@@ -25,3 +26,6 @@ router.include_router(cancel_router, prefix="/verification")
 
 # Include outcome routes
 router.include_router(outcome_router)
+
+# Include area code routes
+router.include_router(area_code_router)
