@@ -18,8 +18,8 @@ from app.core.logging import get_logger
 from app.services.providers.base_provider import PurchaseResult, SMSProvider
 from app.services.providers.fivesim_adapter import FiveSimAdapter
 from app.services.providers.provider_errors import ProviderError
-from app.services.providers.pvapins_adapter import COUNTRY_MAP as PVAPINS_COUNTRIES
 from app.services.providers.pvapins_adapter import (
+    COUNTRY_MAP as PVAPINS_COUNTRIES,
     PVAPinsAdapter,
 )
 from app.services.providers.telnyx_adapter import TelnyxAdapter
