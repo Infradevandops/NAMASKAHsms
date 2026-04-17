@@ -255,6 +255,32 @@ async def test_health_check_telnyx_disabled():
         MockAdapter.return_value = adapter
         result = await check_telnyx_health()
     assert result["provider"] == "telnyx"
+    assert result["status"] == "disabled"
+
+
+@pytest.mark.asyncio
+async def test_health_check_telnyx_ok():
+    from app.services.providers.health_check import check_telnyx_health
+    with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
+        adapter = AsyncMock()
+        adapter.enabled = True
+        adapter.get_balance = AsyncMock(return_value=50.0)
+        MockAdapter.return_value = adapter
+        result = await check_telnyx_health()
+    assert result["status"] == "ok"
+    assert result["balance"] == 50.0
+
+
+@pytest.mark.asyncio
+async def test_health_check_telnyx_error():
+    from app.services.providers.health_check import check_telnyx_health
+    with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
+        adapter = AsyncMock()
+        adapter.enabled = True
+        adapter.get_balance = AsyncMock(side_effect=Exception("timeout"))
+        MockAdapter.return_value = adapter
+        result = await check_telnyx_health()
+    assert result["status"] == "error"
 
 
 @pytest.mark.asyncio
@@ -266,6 +292,31 @@ async def test_health_check_fivesim_disabled():
         MockAdapter.return_value = adapter
         result = await check_fivesim_health()
     assert result["provider"] == "5sim"
+
+
+@pytest.mark.asyncio
+async def test_health_check_fivesim_ok():
+    from app.services.providers.health_check import check_fivesim_health
+    with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
+        adapter = AsyncMock()
+        adapter.enabled = True
+        adapter.get_balance = AsyncMock(return_value=25.0)
+        MockAdapter.return_value = adapter
+        result = await check_fivesim_health()
+    assert result["status"] == "ok"
+    assert result["balance"] == 25.0
+
+
+@pytest.mark.asyncio
+async def test_health_check_fivesim_error():
+    from app.services.providers.health_check import check_fivesim_health
+    with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
+        adapter = AsyncMock()
+        adapter.enabled = True
+        adapter.get_balance = AsyncMock(side_effect=Exception("down"))
+        MockAdapter.return_value = adapter
+        result = await check_fivesim_health()
+    assert result["status"] == "error"
 
 
 @pytest.mark.asyncio
@@ -360,8 +411,141 @@ async def test_check_all_balances():
 
 
 @pytest.mark.asyncio
+async def test_send_alert_success():
+    from app.services.providers.balance_monitor import _send_alert
+    mock_db = MagicMock()
+    mock_notif = MagicMock()
+    with patch("app.core.database.SessionLocal", return_value=mock_db), \
+         patch("app.services.notification_service.NotificationService", return_value=mock_notif):
+        await _send_alert("telnyx", 20.0, "critical")
+    mock_notif.create_admin_notification.assert_called_once()
+    mock_db.close.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_send_alert_failure_is_swallowed():
     from app.services.providers.balance_monitor import _send_alert
     with patch("app.core.database.SessionLocal", side_effect=Exception("db down")):
         # Should not raise
         await _send_alert("telnyx", 20.0, "critical")
+
+
+@pytest.mark.asyncio
+async def test_send_alert_warning_level():
+    from app.services.providers.balance_monitor import _send_alert
+    mock_db = MagicMock()
+    mock_notif = MagicMock()
+    with patch("app.core.database.SessionLocal", return_value=mock_db), \
+         patch("app.services.notification_service.NotificationService", return_value=mock_notif):
+        await _send_alert("5sim", 40.0, "warning")
+    mock_notif.create_admin_notification.assert_called_once()
+
+
+# ── provider_router coverage — uncovered branches ─────────────────────────────
+
+
+def _make_router(**overrides):
+    """Create a ProviderRouter with mocked providers."""
+    from app.services.providers.provider_router import ProviderRouter
+    with patch("app.services.providers.provider_router.get_settings") as mock_s:
+        s = MagicMock()
+        s.telnyx_enabled = overrides.get("telnyx_enabled", False)
+        s.fivesim_enabled = overrides.get("fivesim_enabled", False)
+        s.pvapins_enabled = overrides.get("pvapins_enabled", False)
+        s.enable_provider_failover = overrides.get("failover", True)
+        mock_s.return_value = s
+        router = ProviderRouter()
+    return router
+
+
+def test_router_pvapins_routing():
+    """PVApins-covered country routes to PVApins when enabled."""
+    from app.services.providers.provider_router import ProviderRouter
+    router = _make_router(pvapins_enabled=True)
+    mock_pvapins = MagicMock()
+    mock_pvapins.enabled = True
+    router._pvapins = mock_pvapins
+    provider, city_attempted, note = router.get_provider("MY")
+    assert provider == mock_pvapins
+    assert city_attempted is False
+
+
+def test_router_pvapins_with_city_note():
+    """PVApins routing with city sets a note about city not supported."""
+    router = _make_router(pvapins_enabled=True)
+    mock_pvapins = MagicMock()
+    mock_pvapins.enabled = True
+    router._pvapins = mock_pvapins
+    provider, city_attempted, note = router.get_provider("MY", city="Kuala Lumpur")
+    assert note is not None
+    assert "City filtering" in note
+
+
+def test_router_international_city_pro_telnyx_unavailable_fivesim_fallback():
+    """Pro tier with city but Telnyx disabled falls to 5sim with note."""
+    router = _make_router(fivesim_enabled=True)
+    mock_telnyx = MagicMock()
+    mock_telnyx.enabled = False
+    mock_fivesim = MagicMock()
+    mock_fivesim.enabled = True
+    router._telnyx = mock_telnyx
+    router._fivesim = mock_fivesim
+    provider, city_attempted, note = router.get_provider("DE", city="Berlin", user_tier="pro")
+    assert provider == mock_fivesim
+    assert city_attempted is False
+    assert note is not None
+
+
+def test_router_payg_city_fivesim_unavailable_telnyx_fallback():
+    """PAYG with city but 5sim disabled falls to Telnyx."""
+    router = _make_router(telnyx_enabled=True)
+    mock_fivesim = MagicMock()
+    mock_fivesim.enabled = False
+    mock_telnyx = MagicMock()
+    mock_telnyx.enabled = True
+    router._fivesim = mock_fivesim
+    router._telnyx = mock_telnyx
+    provider, city_attempted, note = router.get_provider("DE", city="Berlin", user_tier="payg")
+    assert provider == mock_telnyx
+    assert city_attempted is True
+
+
+def test_router_us_city_resolves_area_code():
+    """US request with city resolves area code via lookup."""
+    from app.services.providers.provider_router import ProviderRouter
+    router = _make_router()
+    mock_tv = MagicMock()
+    mock_tv.enabled = True
+    mock_tv.name = "textverified"
+    router._textverified = mock_tv
+
+    mock_primary = AsyncMock()
+    mock_result = MagicMock(spec=PurchaseResult)
+    mock_result.city_note = None
+    mock_result.city_honoured = True
+    mock_result.assigned_area_code = "212"
+    mock_result.phone_number = "+12125551234"
+    mock_primary.purchase_number = AsyncMock(return_value=mock_result)
+
+    provider, _, _ = router.get_provider("US", city="New York")
+    assert provider == mock_tv
+
+
+def test_router_get_enabled_providers_with_pvapins():
+    """get_enabled_providers includes pvapins when enabled."""
+    router = _make_router(pvapins_enabled=True, fivesim_enabled=True)
+    mock_pvapins = MagicMock()
+    mock_pvapins.enabled = True
+    mock_fivesim = MagicMock()
+    mock_fivesim.enabled = True
+    mock_telnyx = MagicMock()
+    mock_telnyx.enabled = False
+    mock_tv = MagicMock()
+    mock_tv.enabled = True
+    router._pvapins = mock_pvapins
+    router._fivesim = mock_fivesim
+    router._telnyx = mock_telnyx
+    router._textverified = mock_tv
+    enabled = router.get_enabled_providers()
+    assert "pvapins" in enabled
+    assert "5sim" in enabled
