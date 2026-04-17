@@ -92,7 +92,9 @@ class FiveSimAdapter(SMSProvider):
         try:
             country_name = await self._map_country(country)
             if not country_name:
-                raise RuntimeError(f"5sim does not support country {country}")
+                raise ProviderError(
+                    "unsupported_country", f"5sim does not support country {country}"
+                )
 
             service_name = await self._map_service(service)
             if not service_name:
@@ -164,7 +166,7 @@ class FiveSimAdapter(SMSProvider):
             )
         except httpx.HTTPError as e:
             logger.error(f"5sim API error for {country}: {e}")
-            raise ProviderError("provider_unreachable", f"5sim API error: {e}")
+            raise ProviderError("provider_unreachable", f"5sim purchase failed: {e}")
         except KeyError as e:
             logger.error(f"5sim malformed response, missing key: {e}")
             raise ProviderError("malformed_response", f"5sim response missing key: {e}")
