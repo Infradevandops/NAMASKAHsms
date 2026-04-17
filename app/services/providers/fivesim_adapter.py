@@ -388,5 +388,5 @@ class FiveSimAdapter(SMSProvider):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        if self.client:
-            await self.client.aclose()
+        if self._client:
+            await self._client.aclose()
