@@ -1,0 +1,145 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Users/machine/My Drive/Github Projects/Namaskah. app/venv/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/machine/My Drive/Github Projects/Namaskah. app
+configfile: pytest.ini
+plugins: anyio-4.12.1, cov-4.1.0, asyncio-0.21.1
+asyncio: mode=auto
+collecting ... collected 1 item
+
+tests/unit/providers/test_purchase_endpoint_integration.py::test_purchase_us_routes_textverified FAILED [100%]
+
+=================================== FAILURES ===================================
+_____________________ test_purchase_us_routes_textverified _____________________
+
+auth_client = <starlette.testclient.TestClient object at 0x107ee44c0>
+db = <sqlalchemy.orm.session.Session object at 0x1080b1a90>
+funded_user = <app.models.user.User object at 0x1080b1d30>
+test_user_id = 'test-user-123'
+
+    def test_purchase_us_routes_textverified(auth_client, db, funded_user, test_user_id):
+        """US request must use TextVerified and save provider='textverified' to DB."""
+        result = _make_purchase_result(provider="textverified")
+    
+        with patch(
+            "app.services.providers.provider_router.ProviderRouter"
+        ) as MockRouter, patch(
+            "app.api.verification.purchase_endpoints.PricingCalculator"
+        ) as MockPricing, patch(
+            "app.api.verification.purchase_endpoints.BalanceService"
+        ) as MockBalance, patch(
+            "app.api.verification.purchase_endpoints.TransactionService"
+        ), patch(
+            "app.api.verification.purchase_endpoints.NotificationDispatcher"
+        ), patch(
+            "app.api.verification.purchase_endpoints.RefundService"
+        ) as MockRefund, patch(
+            "app.api.verification.purchase_endpoints.QuotaService"
+        ), patch(
+            "app.api.verification.purchase_endpoints.sms_polling_service"
+        ):
+    
+            MockRouter.return_value.purchase_with_failover = AsyncMock(return_value=result)
+            MockRouter.return_value.get_enabled_providers.return_value = ["textverified"]
+            MockPricing.calculate_sms_cost.return_value = {
+                "total_cost": 2.22,
+                "carrier_surcharge": 0.0,
+                "area_code_surcharge": 0.0,
+            }
+            MockBalance.check_sufficient_balance = AsyncMock(
+                return_value={
+                    "sufficient": True,
+                    "current_balance": 50.0,
+                    "source": "local",
+                }
+            )
+            MockRefund.return_value.process_refund = AsyncMock(
+                return_value={"refund_issued": False}
+            )
+    
+            response = auth_client.post(
+                "/api/verification/request",
+                json={
+                    "service": "whatsapp",
+                    "country": "US",
+                    "capability": "sms",
+                },
+            )
+    
+>       assert response.status_code == 201
+E       assert 503 == 201
+E        +  where 503 = <Response [503 Service Unavailable]>.status_code
+
+tests/unit/providers/test_purchase_endpoint_integration.py:123: AssertionError
+----------------------------- Captured stdout call -----------------------------
+2026-04-17 21:59:26,860 - app.api.verification.purchase_endpoints - INFO - Multi-provider router initialized. Enabled: ['textverified']
+2026-04-17 21:59:26,866 - app.api.verification.purchase_endpoints - INFO - Tier check for user test-user-123: resolved tier = pro
+2026-04-17 21:59:26,867 - app.api.verification.purchase_endpoints - INFO - User test-user-123 tier: pro, SMS cost: $2.22
+2026-04-17 21:59:26,867 - app.api.verification.purchase_endpoints - INFO - Purchasing number for service='whatsapp', country='US', user=test-user-123
+2026-04-17 21:59:26,867 - app.api.verification.purchase_endpoints - INFO - Initiating purchase through ProviderRouter - Service: whatsapp, Country: US
+2026-04-17 21:59:26,867 - app.api.verification.purchase_endpoints - INFO - Purchase successful: +12025551234 via textverified (reason: country=US)
+2026-04-17 21:59:26,867 - app.api.verification.purchase_endpoints - INFO - Creating verification record for user test-user-123
+2026-04-17 21:59:26,868 - app.api.verification.purchase_endpoints - ERROR - Purchase failed, transaction rolled back: 'selected_from_alternatives' is an invalid keyword argument for Verification
+Traceback (most recent call last):
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/purchase_endpoints.py", line 271, in request_verification
+    verification = Verification(
+  File "<string>", line 4, in __init__
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/state.py", line 572, in _initialize_instance
+    manager.dispatch.init_failure(self, args, kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/models/verification.py", line 83, in __init__
+    super().__init__(**kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/models/base.py", line 28, in __init__
+    super().__init__(**kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'selected_from_alternatives' is an invalid keyword argument for Verification
+2026-04-17 21:59:26,906 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+2026-04-17 21:59:26,906 - app.services.textverified_service - WARNING - Cancel failed for order-test-123: 'NoneType' object has no attribute 'verifications'
+2026-04-17 21:59:26,907 - app.api.verification.purchase_endpoints - WARNING - HTTP exception in verification request: 503 - Verification is temporarily unavailable. Your credits were not charged.
+2026-04-17 21:59:26,908 - app.core.unified_error_handling - WARNING - HTTPException: 503 - Verification is temporarily unavailable. Your credits were not charged.
+2026-04-17 21:59:26,912 - httpx - INFO - HTTP Request: POST http://testserver/api/verification/request "HTTP/1.1 503 Service Unavailable"
+------------------------------ Captured log call -------------------------------
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:129 Multi-provider router initialized. Enabled: ['textverified']
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:135 Tier check for user test-user-123: resolved tier = pro
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:170 User test-user-123 tier: pro, SMS cost: $2.22
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:194 Purchasing number for service='whatsapp', country='US', user=test-user-123
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:214 Initiating purchase through ProviderRouter - Service: whatsapp, Country: US
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:246 Purchase successful: +12025551234 via textverified (reason: country=US)
+INFO     app.api.verification.purchase_endpoints:purchase_endpoints.py:270 Creating verification record for user test-user-123
+ERROR    app.api.verification.purchase_endpoints:purchase_endpoints.py:368 Purchase failed, transaction rolled back: 'selected_from_alternatives' is an invalid keyword argument for Verification
+Traceback (most recent call last):
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/api/verification/purchase_endpoints.py", line 271, in request_verification
+    verification = Verification(
+  File "<string>", line 4, in __init__
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/state.py", line 572, in _initialize_instance
+    manager.dispatch.init_failure(self, args, kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/util/langhelpers.py", line 146, in __exit__
+    raise exc_value.with_traceback(exc_tb)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/state.py", line 569, in _initialize_instance
+    manager.original_init(*mixed[1:], **kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/models/verification.py", line 83, in __init__
+    super().__init__(**kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/app/models/base.py", line 28, in __init__
+    super().__init__(**kwargs)
+  File "/Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/sqlalchemy/orm/decl_base.py", line 2177, in _declarative_constructor
+    raise TypeError(
+TypeError: 'selected_from_alternatives' is an invalid keyword argument for Verification
+WARNING  app.services.textverified_service:textverified_service.py:72 TextVerified service disabled - missing credentials or library
+WARNING  app.services.textverified_service:textverified_service.py:626 Cancel failed for order-test-123: 'NoneType' object has no attribute 'verifications'
+WARNING  app.api.verification.purchase_endpoints:purchase_endpoints.py:482 HTTP exception in verification request: 503 - Verification is temporarily unavailable. Your credits were not charged.
+WARNING  app.core.unified_error_handling:unified_error_handling.py:352 HTTPException: 503 - Verification is temporarily unavailable. Your credits were not charged.
+INFO     httpx:_client.py:1013 HTTP Request: POST http://testserver/api/verification/request "HTTP/1.1 503 Service Unavailable"
+=============================== warnings summary ===============================
+venv/lib/python3.9/site-packages/_pytest/config/__init__.py:1373
+  /Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/_pytest/config/__init__.py:1373: PytestConfigWarning: Unknown config option: timeout
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/providers/test_purchase_endpoint_integration.py::test_purchase_us_routes_textverified
+========================= 1 failed, 1 warning in 0.47s =========================

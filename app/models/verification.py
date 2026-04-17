@@ -64,13 +64,20 @@ class Verification(BaseModel):
     outcome = Column(String, nullable=True)  # completed, cancelled, timeout, error
     cancel_reason = Column(String, nullable=True)
     error_message = Column(String, nullable=True)
-    
+
     # Refund tracking fields
     refunded = Column(Boolean, default=False, nullable=False, index=True)
     refund_amount = Column(Float, nullable=True)
     refund_reason = Column(String, nullable=True)
     refund_transaction_id = Column(String, nullable=True)
     refunded_at = Column(DateTime, nullable=True)
+
+    # Telemetry and Routing tracking
+    selected_from_alternatives = Column(Boolean, default=False)
+    original_request = Column(String, nullable=True)
+    routing_reason = Column(String, nullable=True)
+    city_honoured = Column(Boolean, default=True)
+    city_note = Column(String, nullable=True)
 
     def __init__(self, **kwargs):
         # Set defaults for retry tracking fields

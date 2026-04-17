@@ -127,9 +127,7 @@ class RefundPolicyEnforcer:
                         )
                     else:
                         failed_count += 1
-                        logger.error(
-                            f"❌ REFUND FAILED: {verification.id} - {reason}"
-                        )
+                        logger.error(f"❌ REFUND FAILED: {verification.id} - {reason}")
 
                 except Exception as e:
                     failed_count += 1

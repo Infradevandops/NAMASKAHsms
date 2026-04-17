@@ -80,17 +80,22 @@ class NumberPurchaseError(SMSVerificationError):
 
     pass
 
+
 class AreaCodeUnavailableException(SMSVerificationError):
     """Raised when an area code is unavailable and we have alternatives."""
+
     def __init__(self, area_code: str, service: str, alternatives: list = None):
         self.area_code = area_code
         self.service = service
         self.alternatives = alternatives or []
         super().__init__(
             f"{area_code} is not available for {service} right now.",
-            details={"area_code": area_code, "service": service, "alternatives": self.alternatives}
+            details={
+                "area_code": area_code,
+                "service": service,
+                "alternatives": self.alternatives,
+            },
         )
-
 
 
 class MessageTimeoutError(SMSVerificationError):

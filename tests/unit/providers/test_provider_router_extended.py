@@ -153,10 +153,14 @@ def test_get_enabled_providers_none_enabled(router):
     mock_telnyx.enabled = False
     mock_fivesim = MagicMock()
     mock_fivesim.enabled = False
+    mock_pvapins = MagicMock()
+    mock_pvapins.enabled = False
 
     with patch.object(router, "_get_textverified", return_value=mock_tv), patch.object(
         router, "_get_telnyx", return_value=mock_telnyx
-    ), patch.object(router, "_get_fivesim", return_value=mock_fivesim):
+    ), patch.object(router, "_get_fivesim", return_value=mock_fivesim), patch.object(
+        router, "_get_pvapins", return_value=mock_pvapins
+    ):
 
         enabled = router.get_enabled_providers()
 

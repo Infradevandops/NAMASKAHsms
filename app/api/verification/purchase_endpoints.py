@@ -5,11 +5,13 @@ import json
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from app.core.cache import get_redis
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
+from app.core.exceptions import AreaCodeUnavailableException
 from app.core.logging import get_logger
 from app.models.carrier_analytics import CarrierAnalytics
 from app.models.user import User
@@ -23,8 +25,6 @@ from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
-from app.core.exceptions import AreaCodeUnavailableException
-from fastapi.responses import JSONResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -117,8 +117,9 @@ async def request_verification(
 
         # Provider Router Initialization
         from app.services.providers.provider_router import ProviderRouter
+
         provider_router = ProviderRouter()
-        
+
         enabled_providers = provider_router.get_enabled_providers()
         if not enabled_providers:
             logger.error("No SMS providers configured or available")
@@ -144,7 +145,6 @@ async def request_verification(
                     status_code=status.HTTP_402_PAYMENT_REQUIRED,
                     detail="Voice verification requires PAYG tier or higher. Upgrade your plan.",
                 )
-
 
         if request.area_codes:
             if not tier_manager.check_feature_access(user_id, "area_code_selection"):
@@ -239,7 +239,7 @@ async def request_verification(
                         "message": area_err.message,
                         "alternatives": area_err.alternatives,
                         "credits_charged": False,
-                    }
+                    },
                 )
 
             # —— Success path: purchase_result is populated ——
@@ -288,14 +288,17 @@ async def request_verification(
                 same_state_fallback=purchase_result.same_state_fallback,
                 retry_attempts=purchase_result.retry_attempts,
                 area_code_matched=purchase_result.area_code_matched,
-                carrier_matched=True,       # carrier feature retired
-                real_carrier=None,          # carrier feature retired
+                carrier_matched=True,  # carrier feature retired
+                real_carrier=None,  # carrier feature retired
                 carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
                 area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
                 voip_rejected=purchase_result.voip_rejected,
                 created_at=datetime.now(timezone.utc),
                 selected_from_alternatives=request.selected_from_alternatives,
                 original_request=request.original_request,
+                routing_reason=purchase_result.routing_reason,
+                city_honoured=purchase_result.city_honoured,
+                city_note=purchase_result.city_note,
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
@@ -319,7 +322,9 @@ async def request_verification(
             if user.is_admin:
                 try:
                     balances = await provider_router.get_provider_balances()
-                    new_balance = balances.get(purchase_result.provider, old_balance - actual_cost)
+                    new_balance = balances.get(
+                        purchase_result.provider, old_balance - actual_cost
+                    )
                     user.credits = new_balance
                     logger.info(
                         f"Admin balance synced after purchase: ${old_balance:.2f} → ${new_balance:.2f}"
@@ -373,7 +378,10 @@ async def request_verification(
             if purchase_result and purchase_result.order_id:
                 try:
                     # Attempt cancellation on provider side
-                    from app.services.providers.textverified_adapter import TextVerifiedAdapter
+                    from app.services.providers.textverified_adapter import (
+                        TextVerifiedAdapter,
+                    )
+
                     if purchase_result.provider == "textverified":
                         await TextVerifiedAdapter().cancel(purchase_result.order_id)
                     # Add other providers if they support explicit cancel

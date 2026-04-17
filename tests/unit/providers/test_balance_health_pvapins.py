@@ -447,14 +447,28 @@ async def test_send_alert_warning_level():
 def _make_router(**overrides):
     """Create a ProviderRouter with mocked providers."""
     from app.services.providers.provider_router import ProviderRouter
-    with patch("app.services.providers.provider_router.get_settings") as mock_s:
-        s = MagicMock()
-        s.telnyx_enabled = overrides.get("telnyx_enabled", False)
-        s.fivesim_enabled = overrides.get("fivesim_enabled", False)
-        s.pvapins_enabled = overrides.get("pvapins_enabled", False)
-        s.enable_provider_failover = overrides.get("failover", True)
-        mock_s.return_value = s
-        router = ProviderRouter()
+    router = ProviderRouter()
+    
+    mock_tv = MagicMock()
+    mock_tv.name = "textverified"
+    mock_tv.enabled = overrides.get("textverified_enabled", True)
+    router._textverified = mock_tv
+    
+    mock_telnyx = MagicMock()
+    mock_telnyx.name = "telnyx"
+    mock_telnyx.enabled = overrides.get("telnyx_enabled", False)
+    router._telnyx = mock_telnyx
+    
+    mock_fivesim = MagicMock()
+    mock_fivesim.name = "5sim"
+    mock_fivesim.enabled = overrides.get("fivesim_enabled", False)
+    router._fivesim = mock_fivesim
+    
+    mock_pvapins = MagicMock()
+    mock_pvapins.name = "pvapins"
+    mock_pvapins.enabled = overrides.get("pvapins_enabled", False)
+    router._pvapins = mock_pvapins
+    
     return router
 
 
