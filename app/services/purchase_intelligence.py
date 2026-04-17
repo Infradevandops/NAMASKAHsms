@@ -106,6 +106,9 @@ class PurchaseIntelligenceService:
         raw_sms_code: Optional[str] = None,
         latency_seconds: Optional[float] = None,
         refund_reason: Optional[str] = None,
+        outcome_category: Optional[str] = None,
+        provider_refunded: bool = False,
+        provider_error_code: Optional[str] = None,
     ):
         """Called after polling completes."""
         if not verification_id:
@@ -124,6 +127,9 @@ class PurchaseIntelligenceService:
                             raw_sms_code=raw_sms_code,
                             latency_seconds=latency_seconds,
                             refund_reason=refund_reason,
+                            outcome_category=outcome_category,
+                            provider_refunded=provider_refunded,
+                            provider_error_code=provider_error_code,
                         )
                     )
                     db.execute(stmt)
@@ -249,13 +255,11 @@ class PurchaseIntelligenceService:
 
         await cache.set(cache_key, score.model_dump(mode="json"), 600)
         return score
- 
+
     @staticmethod
-    async def get_live_health_score(
-        service: str, country: str, provider: str
-    ) -> float:
+    async def get_live_health_score(service: str, country: str, provider: str) -> float:
         """Calculate success rate for a provider+service+country in the last 60 minutes.
- 
+
         Returns a float between 0.0 and 1.0.
         If no data exists, returns 1.0 (optimistic start).
         """
@@ -263,9 +267,9 @@ class PurchaseIntelligenceService:
         cached_health = await cache.get(cache_key)
         if cached_health is not None:
             return float(cached_health)
- 
+
         one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
- 
+
         db = SessionLocal()
         try:
             # Query outcomes for this niche in the last hour
@@ -279,22 +283,22 @@ class PurchaseIntelligenceService:
                 )
                 .all()
             )
- 
+
             if not outcomes:
                 # Optimistic: No data means assume it's working
                 await cache.set(cache_key, 1.0, 300)
                 return 1.0
- 
-            # Success means we got a code. 
-            # (In institutional grade, we ignore matched/mismatched for health, 
+
+            # Success means we got a code.
+            # (In institutional grade, we ignore matched/mismatched for health,
             # as that's an inventory issue, not a service failure)
             successes = sum(1 for o in outcomes if o.sms_received is True)
             total = len(outcomes)
- 
+
             health_rate = successes / total
             await cache.set(cache_key, health_rate, 300)
             return health_rate
- 
+
         except Exception as e:
             logger.error(f"Failed to calculate live health for {provider}: {e}")
             return 1.0
@@ -306,12 +310,10 @@ class PurchaseIntelligenceService:
         """Calculate ROI and Margins per provider for routing prioritization."""
         from datetime import datetime, timedelta, timezone
         from app.models.purchase_outcome import PurchaseOutcome
-        
+
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         outcomes = (
-            db.query(PurchaseOutcome)
-            .filter(PurchaseOutcome.created_at >= cutoff)
-            .all()
+            db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
         )
 
         stats = {}
@@ -319,11 +321,11 @@ class PurchaseIntelligenceService:
             p = o.provider or "unknown"
             if p not in stats:
                 stats[p] = {"cost": 0.0, "rev": 0.0, "refunds": 0.0}
-            
-            stats[p]["cost"] += (o.provider_cost or 0.0)
-            stats[p]["rev"] += (o.user_price or 0.0)
+
+            stats[p]["cost"] += o.provider_cost or 0.0
+            stats[p]["rev"] += o.user_price or 0.0
             if o.is_refunded:
-                stats[p]["refunds"] += (o.refund_amount or 0.0)
+                stats[p]["refunds"] += o.refund_amount or 0.0
 
         roi_data = {}
         for p, s in stats.items():
@@ -333,32 +335,42 @@ class PurchaseIntelligenceService:
             roi_data[p] = {
                 "roi_pct": round(roi, 2),
                 "net_profit": round(net, 2),
-                "efficiency_score": round(roi * (1 - (s["refunds"]/s["rev"] if s["rev"] > 0 else 0)), 2)
+                "efficiency_score": round(
+                    roi * (1 - (s["refunds"] / s["rev"] if s["rev"] > 0 else 0)), 2
+                ),
             }
         return roi_data
 
     @staticmethod
-    def get_carrier_sentiment(db: Session, service: str, days: int = 14) -> Dict[str, float]:
+    def get_carrier_sentiment(
+        db: Session, service: str, days: int = 14
+    ) -> Dict[str, float]:
         """Returns success rates per carrier for a specific service."""
         from datetime import datetime, timedelta, timezone
         from sqlalchemy import func, Integer
         from app.models.purchase_outcome import PurchaseOutcome
-        
+
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
         results = (
             db.query(
                 PurchaseOutcome.assigned_carrier,
                 func.count(PurchaseOutcome.id).label("total"),
-                func.sum(func.cast(PurchaseOutcome.sms_received, Integer)).label("successes")
+                func.sum(func.cast(PurchaseOutcome.sms_received, Integer)).label(
+                    "successes"
+                ),
             )
             .filter(
                 PurchaseOutcome.service == service,
                 PurchaseOutcome.created_at >= cutoff,
                 PurchaseOutcome.assigned_carrier.isnot(None),
-                PurchaseOutcome.sms_received.isnot(None)
+                PurchaseOutcome.sms_received.isnot(None),
             )
             .group_by(PurchaseOutcome.assigned_carrier)
             .all()
         )
 
-        return {r.assigned_carrier: round(r.successes / r.total, 2) for r in results if r.total > 0}
+        return {
+            r.assigned_carrier: round(r.successes / r.total, 2)
+            for r in results
+            if r.total > 0
+        }

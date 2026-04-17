@@ -276,7 +276,11 @@ class SMSPollingService:
         # Instrumentation
         latency = None
         if v.created_at:
-            created_at = v.created_at.replace(tzinfo=timezone.utc) if v.created_at.tzinfo is None else v.created_at
+            created_at = (
+                v.created_at.replace(tzinfo=timezone.utc)
+                if v.created_at.tzinfo is None
+                else v.created_at
+            )
             latency = int((v.completed_at - created_at).total_seconds())
 
         await PurchaseIntelligenceService.update_sms_received(
@@ -313,7 +317,9 @@ class SMSPollingService:
             f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
         )
 
-    async def _handle_timeout(self, verification: Verification, db, reason: str = "timeout"):
+    async def _handle_timeout(
+        self, verification: Verification, db, reason: str = "timeout"
+    ):
         """Handle verification timeout."""
         verification.status = "timeout"
         verification.outcome = "timeout"
