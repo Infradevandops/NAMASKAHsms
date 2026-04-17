@@ -563,13 +563,34 @@ Phase 1 (NANPA Geo)             ← No dependencies
 - [x] **9.3** Instrument API endpoints
   - Update `/verification/request` to pass raw cost data from providers
   - Ensure end-to-end data flow from purchase through polling to final outcome
- 
 - [x] **9.4** Launch Profitability Dashboard
   - Update `/analytics/providers` with real-time Gross Profit, Net Profit, and ROI
   - Visualize refund rates per provider to detect inventory issues
  
-**Status**: [ACTIVE] Base instrumentation completed. 
- 
+**Status**: [COMPLETED] Financial telemetry and Profit Dashboard active.
+
+---
+
+### Phase 10: Institutional Profit & Routing Engine (Part 1)
+
+**Goal**: Implement the "Triple-Ledger" reconciliation system to track provider-side refunds, detect margin leakage, and categorize failure domains for high-fidelity analytical visibility.
+
+#### Tasks
+
+- [x] **10.1** Financial Reconciliation Schema
+  - Add `provider_refunded`, `outcome_category`, `provider_error_code`
+  - Implement idempotent indices for outcome-based queries
+
+- [x] **10.2** Recoup Tracking & Instrumentation
+  - Update `SMSPollingService` to track and report provider-side refunds
+  - Update `RefundService` to categorize mismatch refunds as `PRODUCT` failures
+
+- [x] **10.3** Institutional Analytics Upgrade
+  - Update Provider Dashboard with **Margin Leakage** and **Recoup Rate** metrics
+  - Visualize **Outcome Distribution** (Product vs Network vs Provider)
+
+**Status**: [COMPLETED] Financial reconciliation and categorizations active.
+
 ---
 
 ## Success Criteria
