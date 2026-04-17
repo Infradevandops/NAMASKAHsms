@@ -17,10 +17,18 @@ depends_on = None
 
 
 def upgrade() -> None:
-    op.add_column('verifications', sa.Column('assigned_area_code', sa.String(length=10), nullable=True))
-    op.add_column('verifications', sa.Column('assigned_carrier', sa.String(length=50), nullable=True))
-    op.add_column('verifications', sa.Column('fallback_applied', sa.Boolean(), server_default='False', nullable=True))
-    op.add_column('verifications', sa.Column('same_state_fallback', sa.Boolean(), server_default='True', nullable=True))
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = [c["name"] for c in insp.get_columns("verifications")]
+
+    if "assigned_area_code" not in cols:
+        op.add_column('verifications', sa.Column('assigned_area_code', sa.String(length=10), nullable=True))
+    if "assigned_carrier" not in cols:
+        op.add_column('verifications', sa.Column('assigned_carrier', sa.String(length=50), nullable=True))
+    if "fallback_applied" not in cols:
+        op.add_column('verifications', sa.Column('fallback_applied', sa.Boolean(), server_default='False', nullable=True))
+    if "same_state_fallback" not in cols:
+        op.add_column('verifications', sa.Column('same_state_fallback', sa.Boolean(), server_default='True', nullable=True))
 
 def downgrade() -> None:
     op.drop_column('verifications', 'same_state_fallback')
