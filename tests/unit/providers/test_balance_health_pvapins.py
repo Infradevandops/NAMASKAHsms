@@ -213,7 +213,7 @@ def test_pvapins_name(adapter):
 @pytest.mark.asyncio
 async def test_health_check_textverified_disabled():
     from app.services.providers.health_check import check_textverified_health
-    with patch("app.services.providers.health_check.TextVerifiedService") as MockSvc:
+    with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = MagicMock()
         svc.enabled = False
         MockSvc.return_value = svc
@@ -224,7 +224,7 @@ async def test_health_check_textverified_disabled():
 @pytest.mark.asyncio
 async def test_health_check_textverified_ok():
     from app.services.providers.health_check import check_textverified_health
-    with patch("app.services.providers.health_check.TextVerifiedService") as MockSvc:
+    with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = AsyncMock()
         svc.enabled = True
         svc.get_balance = AsyncMock(return_value={"balance": 100.0})
@@ -237,7 +237,7 @@ async def test_health_check_textverified_ok():
 @pytest.mark.asyncio
 async def test_health_check_textverified_error():
     from app.services.providers.health_check import check_textverified_health
-    with patch("app.services.providers.health_check.TextVerifiedService") as MockSvc:
+    with patch("app.services.textverified_service.TextVerifiedService") as MockSvc:
         svc = AsyncMock()
         svc.enabled = True
         svc.get_balance = AsyncMock(side_effect=Exception("API down"))
@@ -351,7 +351,7 @@ async def test_evaluate_balances_disable_fivesim():
 @pytest.mark.asyncio
 async def test_check_all_balances():
     from app.services.providers.balance_monitor import check_all_balances
-    with patch("app.services.providers.balance_monitor.ProviderRouter") as MockRouter:
+    with patch("app.services.providers.provider_router.ProviderRouter") as MockRouter:
         router = AsyncMock()
         router.get_provider_balances = AsyncMock(return_value={"textverified": 100.0})
         MockRouter.return_value = router
@@ -362,6 +362,6 @@ async def test_check_all_balances():
 @pytest.mark.asyncio
 async def test_send_alert_failure_is_swallowed():
     from app.services.providers.balance_monitor import _send_alert
-    with patch("app.services.providers.balance_monitor.SessionLocal", side_effect=Exception("db down")):
+    with patch("app.core.database.SessionLocal", side_effect=Exception("db down")):
         # Should not raise
         await _send_alert("telnyx", 20.0, "critical")
