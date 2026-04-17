@@ -9,7 +9,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.logging import get_logger
 from app.models.user import User
-from app.services.auth_service import AuthService
+# AuthService import moved inside functions to avoid circular dependency
 from app.services.tier_manager import TierManager
 
 logger = get_logger(__name__)
@@ -37,6 +37,7 @@ def get_current_user_id(
         )
 
     try:
+        from app.services.auth_service import AuthService
         auth_service = AuthService(db)
         user_id = auth_service.verify_token(token)
         if not user_id:
@@ -100,6 +101,7 @@ def get_optional_user_id(
         return None
 
     try:
+        from app.services.auth_service import AuthService
         auth_service = AuthService(db)
         return auth_service.verify_token(token)
     except Exception as e:

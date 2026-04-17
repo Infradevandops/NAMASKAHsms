@@ -80,6 +80,18 @@ class NumberPurchaseError(SMSVerificationError):
 
     pass
 
+class AreaCodeUnavailableException(SMSVerificationError):
+    """Raised when an area code is unavailable and we have alternatives."""
+    def __init__(self, area_code: str, service: str, alternatives: list = None):
+        self.area_code = area_code
+        self.service = service
+        self.alternatives = alternatives or []
+        super().__init__(
+            f"{area_code} is not available for {service} right now.",
+            details={"area_code": area_code, "service": service, "alternatives": self.alternatives}
+        )
+
+
 
 class MessageTimeoutError(SMSVerificationError):
     """Raised when SMS message times out."""
@@ -239,6 +251,7 @@ ERROR_CODE_MAP = {
     ServiceUnavailableError: "SERVICE_UNAVAILABLE",
     NumberPurchaseError: "NUMBER_PURCHASE_ERROR",
     MessageTimeoutError: "MESSAGE_TIMEOUT",
+    AreaCodeUnavailableException: "AREA_CODE_UNAVAILABLE",
     TextVerifiedAPIError: "TEXTVERIFIED_API_ERROR",
     PaystackAPIError: "PAYSTACK_API_ERROR",
     ConnectionError: "DATABASE_CONNECTION_ERROR",
