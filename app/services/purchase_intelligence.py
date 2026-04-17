@@ -144,6 +144,33 @@ class PurchaseIntelligenceService:
         asyncio.create_task(_update())
 
     @staticmethod
+    async def enrich_outcome_carrier(verification_id: str, carrier_name: str):
+        """Updates carrier info if it was missing at purchase time (Phase 11)."""
+        if not verification_id or not carrier_name:
+            return
+
+        async def _enrich():
+            try:
+                db = SessionLocal()
+                try:
+                    stmt = (
+                        update(PurchaseOutcome)
+                        .where(PurchaseOutcome.verification_id == str(verification_id))
+                        .values(assigned_carrier=carrier_name)
+                    )
+                    db.execute(stmt)
+                    db.commit()
+                    logger.info(
+                        f"Enriched telemetry for {verification_id} with carrier: {carrier_name}"
+                    )
+                finally:
+                    db.close()
+            except Exception as e:
+                logger.error(f"Failed to enrich telemetry for {verification_id}: {e}")
+
+        asyncio.create_task(_enrich())
+
+    @staticmethod
     async def score_availability(service: str, area_code: str) -> AvailabilityScore:
         """Score availability for a service+area_code from the last 7 days of purchase history.
 
@@ -309,6 +336,7 @@ class PurchaseIntelligenceService:
     def get_provider_roi(db: Session, days: int = 30) -> Dict[str, Any]:
         """Calculate ROI and Margins per provider for routing prioritization."""
         from datetime import datetime, timedelta, timezone
+
         from app.models.purchase_outcome import PurchaseOutcome
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)
@@ -347,7 +375,9 @@ class PurchaseIntelligenceService:
     ) -> Dict[str, float]:
         """Returns success rates per carrier for a specific service."""
         from datetime import datetime, timedelta, timezone
-        from sqlalchemy import func, Integer
+
+        from sqlalchemy import Integer, func
+
         from app.models.purchase_outcome import PurchaseOutcome
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)

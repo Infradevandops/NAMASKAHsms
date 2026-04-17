@@ -13,16 +13,19 @@ Provider names never appear in user-facing errors.
 
 from typing import Optional, Tuple
 
+from sqlalchemy.orm import Session
+
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.services.providers.base_provider import PurchaseResult, SMSProvider
-from app.services.purchase_intelligence import PurchaseIntelligenceService
 from app.services.providers.fivesim_adapter import FiveSimAdapter
+from app.services.providers.predictive_scorer import PredictiveRouterScorer
 from app.services.providers.provider_errors import ProviderError
 from app.services.providers.pvapins_adapter import COUNTRY_MAP as PVAPINS_COUNTRIES
 from app.services.providers.pvapins_adapter import PVAPinsAdapter
 from app.services.providers.telnyx_adapter import TelnyxAdapter
 from app.services.providers.textverified_adapter import TextVerifiedAdapter
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 logger = get_logger(__name__)
 
@@ -62,128 +65,81 @@ class ProviderRouter:
 
     async def get_provider(
         self,
+        db: Session,
         service: str,
         country: str,
         city: Optional[str] = None,
         user_tier: str = "freemium",
         prefer_enterprise: bool = False,
     ) -> Tuple[SMSProvider, bool, Optional[str]]:
-        """Select provider for a request based on rules and live health metrics.
-
-        Returns (provider, city_will_be_attempted, pre_known_city_note).
+        """Select provider for a request using Autonomous Predictive Scoring (Phase 12).
+        
+        Logic:
+        1. Pre-filter by tier/country capability.
+        2. Calculate Predictive Scores (Sentiment + ROI + Resilience).
+        3. Select absolute winner.
         """
         country_upper = country.upper()
-
-        # Health Threshold for skipping a provider
-        HEALTH_THRESHOLD = 0.4  # Skip if success rate < 40%
-
-        # US — always TextVerified, city via area code map
+        scorer = PredictiveRouterScorer(db)
+        
+        # Candidate pool
+        candidates = []
+        
+        # --- PHASE 12 TIER-BASED PRE-FILTERING ---
+        # US is specialized (TextVerified preferred for proximity accuracy)
         if country_upper == "US":
-            logger.info(f"Routing to TextVerified for US request (city={city})")
             return self._get_textverified(), bool(city), None
 
-        # Prefer Enterprise (Telnyx)
-        if prefer_enterprise:
-            telnyx = self._get_telnyx()
-            if telnyx.enabled:
-                health = await PurchaseIntelligenceService.get_live_health_score(
-                    service, country_upper, "telnyx"
-                )
-                if health >= HEALTH_THRESHOLD:
-                    logger.info(
-                        f"Routing to Telnyx for {country} (Enterprise preference, health={health:.1%})"
-                    )
-                    return telnyx, bool(city), None
-                else:
-                    logger.warning(
-                        f"Telnyx health low ({health:.1%}) for {country}, bypassing enterprise preference"
-                    )
+        # Gather enabled and capable providers
+        if self._get_textverified().enabled:
+            candidates.append(("textverified", self._get_textverified()))
+            
+        if self._get_fivesim().enabled:
+            candidates.append(("5sim", self._get_fivesim()))
+            
+        if self._get_telnyx().enabled:
+            # Telnyx is premium/enterprise
+            if user_tier in ("pro", "custom") or prefer_enterprise:
+                candidates.append(("telnyx", self._get_telnyx()))
+                
+        if self._get_pvapins().enabled and self._pvapins_covers(country_upper):
+            candidates.append(("pvapins", self._get_pvapins()))
 
-        # PVApins-covered countries (SE Asia, South Asia, Africa, LATAM, select EU)
-        if self._pvapins_covers(country_upper):
-            pvapins = self._get_pvapins()
-            if pvapins.enabled:
-                health = await PurchaseIntelligenceService.get_live_health_score(
-                    service, country_upper, "pvapins"
-                )
-                if health >= HEALTH_THRESHOLD:
-                    city_note = (
-                        "City filtering not available for this region" if city else None
-                    )
-                    logger.info(
-                        f"Routing to PVApins for {country} (specialist, health={health:.1%})"
-                    )
-                    return pvapins, False, city_note
-                else:
-                    logger.warning(
-                        f"PVApins health low ({health:.1%}) for {country}, falling back to general providers"
-                    )
+        if not candidates:
+            # Fallback to TextVerified if everything else is crippled
+            return self._get_textverified(), False, None
 
-        # International + city + Pro/Custom -> Telnyx (precise city)
-        if city and user_tier in ("pro", "custom"):
-            telnyx = self._get_telnyx()
-            if telnyx.enabled:
-                health = await PurchaseIntelligenceService.get_live_health_score(
-                    service, country_upper, "telnyx"
-                )
-                if health >= HEALTH_THRESHOLD:
-                    logger.info(
-                        f"Routing to Telnyx for {country} city={city} (health={health:.1%})"
-                    )
-                    return telnyx, True, None
-
-            # Telnyx not available or unhealthy — fall to 5sim
-            fivesim = self._get_fivesim()
-            if fivesim.enabled:
-                note = f"Precise city filtering temporarily unavailable, country-level number assigned"
-                logger.warning(
-                    f"Telnyx unavailable/unhealthy for {country}, falling to 5sim (city dropped)"
-                )
-                return fivesim, False, note
-
-        # International + city + PAYG -> 5sim
-        if city and user_tier == "payg":
-            fivesim = self._get_fivesim()
-            if fivesim.enabled:
-                health = await PurchaseIntelligenceService.get_live_health_score(
-                    service, country_upper, "5sim"
-                )
-                if health >= HEALTH_THRESHOLD:
-                    note = "Precise city filtering requires Pro tier"
-                    logger.info(
-                        f"Routing to 5sim for {country} (PAYG, health={health:.1%})"
-                    )
-                    return fivesim, False, note
-
-            # 5sim unavailable/unhealthy, try Telnyx
-            telnyx = self._get_telnyx()
-            if telnyx.enabled:
-                logger.info(
-                    f"5sim unavailable/unhealthy, routing PAYG to Telnyx for {country}"
-                )
-                return telnyx, True, None
-
-        # International + no city -> 5sim (cheapest)
-        fivesim = self._get_fivesim()
-        if fivesim.enabled:
-            health = await PurchaseIntelligenceService.get_live_health_score(
-                service, country_upper, "5sim"
+        # --- PHASE 12 AUTONOMOUS SCORING ---
+        scored_candidates = []
+        for name, adapter in candidates:
+            score = await scorer.calculate_provider_score(
+                service=service,
+                country=country_upper,
+                provider_name=name
             )
-            if health >= HEALTH_THRESHOLD:
-                logger.info(f"Routing to 5sim for {country} (health={health:.1%})")
-                return fivesim, False, None
+            scored_candidates.append((score, adapter, name))
 
-        # Fallback -> Telnyx
-        telnyx = self._get_telnyx()
-        if telnyx.enabled:
-            logger.info(f"Routing to Telnyx for {country} (final fallback)")
-            return telnyx, True, None
+        # Sort by score descending
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+        
+        winner_score, winner_adapter, winner_name = scored_candidates[0]
+        
+        logger.info(
+            f"✓ Predictive Router selected {winner_name} (Score: {winner_score:.2f}) "
+            f"for {service}/{country_upper}"
+        )
 
-        # Ultimate Fallback -> TextVerified (International)
-        return self._get_textverified(), False, None
+        # Handling city metadata
+        city_honoured = bool(city) and winner_name != "5sim"
+        city_note = None
+        if city and winner_name == "5sim":
+            city_note = "Precise city filtering temporarily unavailable, assigned country-level number"
+
+        return winner_adapter, city_honoured, city_note
 
     async def purchase_with_failover(
         self,
+        db: Session,
         service: str,
         country: str,
         area_code: Optional[str] = None,
@@ -219,7 +175,7 @@ class ProviderRouter:
                 )
 
         primary, city_attempted, pre_note = await self.get_provider(
-            service, country, city, user_tier
+            db, service, country, city, user_tier
         )
         routing_reason = (
             f"country={country}"
@@ -284,7 +240,7 @@ class ProviderRouter:
             if e.is_reroutable and getattr(
                 self._settings, "enable_provider_failover", True
             ):
-                secondary = await self._get_failover_provider(primary, country, service)
+                secondary = await self._get_failover_provider(db, primary, country, service, user_tier)
                 if secondary:
                     logger.warning(
                         f"Failing over from {primary.name} to {secondary.name}"
@@ -320,7 +276,6 @@ class ProviderRouter:
                         logger.error(
                             f"Failover provider {secondary.name} also failed [{fe.category}]: {fe.internal}"
                         )
-
             # All options exhausted
             raise ProviderError(
                 "all_providers_failed",
@@ -328,79 +283,45 @@ class ProviderRouter:
             )
 
     async def _get_failover_provider(
-        self, failed_provider: SMSProvider, country: str, service: str
+        self, db: Session, failed_provider: SMSProvider, country: str, service: str, user_tier: str
     ) -> Optional[SMSProvider]:
-        """Determine next provider in the chain, skipping unhealthy ones."""
-        failed_name = failed_provider.name
+        """Determine next provider in the chain using Predictive Scoring (Phase 12)."""
+        scorer = PredictiveRouterScorer(db)
         country_upper = country.upper()
-        HEALTH_THRESHOLD = 0.4
+        
+        # Candidates excluding the failed one
+        candidates = []
+        if self._get_textverified().enabled and failed_provider.name != "textverified":
+            candidates.append(("textverified", self._get_textverified()))
+        if self._get_fivesim().enabled and failed_provider.name != "5sim":
+            candidates.append(("5sim", self._get_fivesim()))
+        if self._get_telnyx().enabled and failed_provider.name != "telnyx":
+            if user_tier in ("pro", "custom"):
+                candidates.append(("telnyx", self._get_telnyx()))
+        if self._get_pvapins().enabled and failed_provider.name != "pvapins" and self._pvapins_covers(country_upper):
+            candidates.append(("pvapins", self._get_pvapins()))
 
-        async def is_healthy(name: str) -> bool:
-            return (
-                await PurchaseIntelligenceService.get_live_health_score(
-                    service, country_upper, name
-                )
-                >= HEALTH_THRESHOLD
+        if not candidates:
+            return None
+
+        # Score remaining candidates
+        scored_candidates = []
+        for name, adapter in candidates:
+            score = await scorer.calculate_provider_score(
+                service=service,
+                country=country_upper,
+                provider_name=name
             )
+            scored_candidates.append((score, adapter, name))
 
-        if failed_name == "textverified":
-            telnyx = self._get_telnyx()
-            if telnyx.enabled and await is_healthy("telnyx"):
-                return telnyx
-            fivesim = self._get_fivesim()
-            if fivesim.enabled and await is_healthy("5sim"):
-                return fivesim
-            pvapins = self._get_pvapins()
-            if (
-                pvapins.enabled
-                and self._pvapins_covers(country)
-                and await is_healthy("pvapins")
-            ):
-                return pvapins
-
-        elif failed_name == "telnyx":
-            fivesim = self._get_fivesim()
-            if fivesim.enabled and await is_healthy("5sim"):
-                return fivesim
-            pvapins = self._get_pvapins()
-            if (
-                pvapins.enabled
-                and self._pvapins_covers(country)
-                and await is_healthy("pvapins")
-            ):
-                return pvapins
-            textverified = self._get_textverified()
-            if textverified.enabled:
-                # TextVerified US is always "healthy" for us, or we're in big trouble
-                return textverified
-
-        elif failed_name == "5sim":
-            pvapins = self._get_pvapins()
-            if (
-                pvapins.enabled
-                and self._pvapins_covers(country)
-                and await is_healthy("pvapins")
-            ):
-                return pvapins
-            telnyx = self._get_telnyx()
-            if telnyx.enabled and await is_healthy("telnyx"):
-                return telnyx
-            textverified = self._get_textverified()
-            if textverified.enabled:
-                return textverified
-
-        elif failed_name == "pvapins":
-            fivesim = self._get_fivesim()
-            if fivesim.enabled and await is_healthy("5sim"):
-                return fivesim
-            telnyx = self._get_telnyx()
-            if telnyx.enabled and await is_healthy("telnyx"):
-                return telnyx
-            textverified = self._get_textverified()
-            if textverified.enabled:
-                return textverified
-
-        return None
+        scored_candidates.sort(key=lambda x: x[0], reverse=True)
+        
+        # We only failover to 'Healthy' enough providers in Phase 12
+        if scored_candidates[0][0] < 0.3: # Threshold for failover viability
+            logger.warning(f"No viable failover candidates for {country_upper} (best score {scored_candidates[0][0]})")
+            return None
+            
+        return scored_candidates[0][1]
 
     async def get_provider_balances(self) -> dict:
         balances = {}
