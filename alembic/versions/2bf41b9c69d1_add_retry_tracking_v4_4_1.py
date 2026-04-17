@@ -17,18 +17,28 @@ depends_on = None
 
 
 def upgrade() -> None:
-    # Add retry tracking fields for v4.4.1
-    op.add_column('verifications', sa.Column('retry_attempts', sa.Integer(), nullable=False, server_default='0'))
-    op.add_column('verifications', sa.Column('area_code_matched', sa.Boolean(), nullable=False, server_default='true'))
-    op.add_column('verifications', sa.Column('carrier_matched', sa.Boolean(), nullable=False, server_default='true'))
-    op.add_column('verifications', sa.Column('real_carrier', sa.String(), nullable=True))
-    op.add_column('verifications', sa.Column('carrier_surcharge', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('verifications', sa.Column('area_code_surcharge', sa.Float(), nullable=False, server_default='0.0'))
-    op.add_column('verifications', sa.Column('voip_rejected', sa.Boolean(), nullable=False, server_default='false'))
+    bind = op.get_bind()
+    insp = sa.inspect(bind)
+    cols = [c["name"] for c in insp.get_columns("verifications")]
+
+    new_cols = [
+        ("retry_attempts", sa.Integer(), False, "0"),
+        ("area_code_matched", sa.Boolean(), False, "true"),
+        ("carrier_matched", sa.Boolean(), False, "true"),
+        ("real_carrier", sa.String(), True, None),
+        ("carrier_surcharge", sa.Float(), False, "0.0"),
+        ("area_code_surcharge", sa.Float(), False, "0.0"),
+        ("voip_rejected", sa.Boolean(), False, "false"),
+    ]
+    for name, col_type, nullable, default in new_cols:
+        if name not in cols:
+            kw = {"nullable": nullable}
+            if default is not None:
+                kw["server_default"] = default
+            op.add_column("verifications", sa.Column(name, col_type, **kw))
 
 
 def downgrade() -> None:
-    # Remove retry tracking fields
     op.drop_column('verifications', 'voip_rejected')
     op.drop_column('verifications', 'area_code_surcharge')
     op.drop_column('verifications', 'carrier_surcharge')
