@@ -19,8 +19,6 @@ from app.services.balance_service import BalanceService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.pricing_calculator import PricingCalculator
-from app.services.quota_service import QuotaService
-from app.services.refund_service import RefundService
 from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
@@ -552,3 +550,8 @@ async def request_verification(
             db.close()
         except Exception as close_err:
             logger.error(f"Error closing database session: {close_err}")
+
+
+# Import for test mocking - must be at end to avoid circular imports
+from app.services.quota_service import QuotaService  # noqa: E402
+from app.services.refund_service import RefundService  # noqa: E402
