@@ -27,12 +27,11 @@ class EmailService:
         self.from_name = "Namaskah"
 
         if self.resend_api_key:
-            import resend
-
-            resend.api_key = self.resend_api_key
+            # Lazy-load resend to avoid import errors if package is not installed
+            # The actual import will happen in _send_resend when needed
             self.enabled = True
             self._mode = "resend"
-            logger.info("Email service initialised — Resend")
+            logger.info("Email service initialised — Resend (lazy-loaded)")
         elif self.smtp_host and self.smtp_user and self.smtp_password:
             self.enabled = True
             self._mode = "smtp"
@@ -57,6 +56,7 @@ class EmailService:
     async def _send_resend(self, to_email: str, subject: str, html_body: str) -> bool:
         import resend
 
+        resend.api_key = self.resend_api_key
         loop = asyncio.get_event_loop()
         await loop.run_in_executor(
             None,
