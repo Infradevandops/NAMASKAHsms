@@ -162,8 +162,10 @@ class RefundService:
         refund_type: str,
         reasons: list,
     ):
-        """Create transaction record for refund"""
+        """Create transaction record for refund and link to telemetry"""
         from app.models.transaction import Transaction
+        from app.models.purchase_outcome import PurchaseOutcome
+        from sqlalchemy import update
 
         transaction = Transaction(
             user_id=user.id,
@@ -176,15 +178,27 @@ class RefundService:
 
         db.add(transaction)
 
-        # Commit if db has commit method (async or sync)
-        if hasattr(db, "commit"):
-            if hasattr(db.commit, "__call__"):
-                # Check if it's async
-                import inspect
+        # Update PurchaseOutcome telemetry
+        if hasattr(verification, "id") and verification.id:
+            try:
+                stmt = (
+                    update(PurchaseOutcome)
+                    .where(PurchaseOutcome.verification_id == str(verification.id))
+                    .values(
+                        is_refunded=True,
+                        refund_amount=amount
+                    )
+                )
+                db.execute(stmt)
+            except Exception as e:
+                logger.error(f"Failed to update PurchaseOutcome refund status: {e}")
 
-                if inspect.iscoroutinefunction(db.commit):
-                    await db.commit()
-                else:
-                    db.commit()
+        # Commit logic
+        if hasattr(db, "commit"):
+            import inspect
+            if inspect.iscoroutinefunction(db.commit):
+                await db.commit()
+            else:
+                db.commit()
 
         logger.debug(f"Refund transaction created: {transaction.id}")

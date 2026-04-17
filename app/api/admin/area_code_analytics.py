@@ -323,3 +323,103 @@ async def get_learning_progress(
         "total_purchases": total_purchases,
         "message": f"System has purchase data for {len(known_ac_services)} unique area-code/service combinations. Added {new_this_week} new combinations this week.",
     }
+ 
+ 
+@router.get("/analytics/providers")
+async def get_provider_analytics(
+    days: int = Query(7, ge=1, le=90),
+    db: Session = Depends(get_db),
+    user_id: str = Depends(require_admin),
+) -> Dict[str, Any]:
+    """Admin analytics for provider performance (Institutional Grade)."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+ 
+    outcomes = (
+        db.query(PurchaseOutcome).filter(PurchaseOutcome.created_at >= cutoff).all()
+    )
+ 
+    if not outcomes:
+        return {"period": f"{days}d", "provider_performance": []}
+ 
+    provider_stats = {}
+ 
+    for o in outcomes:
+        p = o.provider or "unknown"
+        if p not in provider_stats:
+            provider_stats[p] = {
+                "name": p,
+                "total_attempts": 0,
+                "sms_success": 0,
+                "mismatches": 0,
+                "refunds": 0,
+                "total_refund_amount": 0.0,
+                "total_cost": 0.0,
+                "total_revenue": 0.0,
+                "latencies": [],
+            }
+ 
+        stats = provider_stats[p]
+        stats["total_attempts"] += 1
+        
+        if o.sms_received is True:
+            stats["sms_success"] += 1
+        if o.matched is False:
+            stats["mismatches"] += 1
+        if o.is_refunded:
+            stats["refunds"] += 1
+            stats["total_refund_amount"] += (o.refund_amount or 0.0)
+        
+        # Financial aggregation
+        stats["total_cost"] += (o.provider_cost or 0.0)
+        stats["total_revenue"] += (o.user_price or 0.0)
+        
+        if o.latency_seconds:
+            stats["latencies"].append(o.latency_seconds)
+ 
+    performance = []
+    for p, stats in provider_stats.items():
+        total = stats["total_attempts"]
+        success_rate = stats["sms_success"] / total if total > 0 else 0.0
+        refund_rate = stats["refunds"] / total if total > 0 else 0.0
+        
+        # Profit calculations
+        # Gross profit = Revenue - Raw Provider Cost
+        # (Before refunds are deducted from revenue)
+        gross_profit = stats["total_revenue"] - stats["total_cost"]
+        
+        # Net profit = Revenue - Raw Provider Cost - Refund Amount
+        net_profit = gross_profit - stats["total_refund_amount"]
+        
+        # ROI = (Gross Profit / Total Cost) * 100
+        roi = (gross_profit / stats["total_cost"] * 100) if stats["total_cost"] > 0 else 0.0
+        
+        avg_latency = (
+            sum(stats["latencies"]) / len(stats["latencies"])
+            if stats["latencies"]
+            else 0.0
+        )
+ 
+        performance.append(
+            {
+                "provider": p,
+                "total_attempts": total,
+                "success_rate": round(success_rate, 2),
+                "refund_rate": round(refund_rate, 2),
+                "avg_latency": round(avg_latency, 1),
+                "financials": {
+                    "total_cost": round(stats["total_cost"], 2),
+                    "total_revenue": round(stats["total_revenue"], 2),
+                    "gross_profit": round(gross_profit, 2),
+                    "net_profit": round(net_profit, 2),
+                    "roi_pct": round(roi, 1)
+                }
+            }
+        )
+ 
+    performance.sort(key=lambda x: x["total_attempts"], reverse=True)
+ 
+    return {
+        "period": f"{days}d",
+        "provider_performance": performance,
+        "total_attempts_period": len(outcomes),
+    }

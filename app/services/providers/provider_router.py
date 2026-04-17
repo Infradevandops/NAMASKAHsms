@@ -16,6 +16,7 @@ from typing import Optional, Tuple
 from app.core.config import get_settings
 from app.core.logging import get_logger
 from app.services.providers.base_provider import PurchaseResult, SMSProvider
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 from app.services.providers.fivesim_adapter import FiveSimAdapter
 from app.services.providers.provider_errors import ProviderError
 from app.services.providers.pvapins_adapter import COUNTRY_MAP as PVAPINS_COUNTRIES
@@ -59,91 +60,126 @@ class ProviderRouter:
         """True if PVApins has a country mapping for this ISO code."""
         return country.upper() in PVAPINS_COUNTRIES
 
-    def get_provider(
+    async def get_provider(
         self,
+        service: str,
         country: str,
         city: Optional[str] = None,
         user_tier: str = "freemium",
         prefer_enterprise: bool = False,
     ) -> Tuple[SMSProvider, bool, Optional[str]]:
-        """Select provider for a request.
-
+        """Select provider for a request based on rules and live health metrics.
+ 
         Returns (provider, city_will_be_attempted, pre_known_city_note).
-        city_will_be_attempted=True means the provider will receive the city filter.
-        city_will_be_attempted=False means city is dropped before the API call.
         """
         country_upper = country.upper()
-
+ 
+        # Health Threshold for skipping a provider
+        HEALTH_THRESHOLD = 0.4  # Skip if success rate < 40%
+ 
         # US — always TextVerified, city via area code map
         if country_upper == "US":
             logger.info(f"Routing to TextVerified for US request (city={city})")
             return self._get_textverified(), bool(city), None
-
+ 
         # Prefer Enterprise (Telnyx)
         if prefer_enterprise:
             telnyx = self._get_telnyx()
             if telnyx.enabled:
-                logger.info(f"Routing to Telnyx for {country} (Enterprise preference)")
-                return telnyx, bool(city), None
-
-        # PVApins-covered countries (SE Asia, South Asia, Africa, LATAM)
-        # PVApins is primary for these — better inventory than 5sim/Telnyx
+                health = await PurchaseIntelligenceService.get_live_health_score(
+                    service, country_upper, "telnyx"
+                )
+                if health >= HEALTH_THRESHOLD:
+                    logger.info(
+                        f"Routing to Telnyx for {country} (Enterprise preference, health={health:.1%})"
+                    )
+                    return telnyx, bool(city), None
+                else:
+                    logger.warning(
+                        f"Telnyx health low ({health:.1%}) for {country}, bypassing enterprise preference"
+                    )
+ 
+        # PVApins-covered countries (SE Asia, South Asia, Africa, LATAM, select EU)
         if self._pvapins_covers(country_upper):
             pvapins = self._get_pvapins()
             if pvapins.enabled:
-                # City not supported by PVApins — note it but don't block
-                city_note = (
-                    "City filtering not available for this region" if city else None
+                health = await PurchaseIntelligenceService.get_live_health_score(
+                    service, country_upper, "pvapins"
                 )
-                logger.info(f"Routing to PVApins for {country} (regional specialist)")
-                return pvapins, False, city_note
-
+                if health >= HEALTH_THRESHOLD:
+                    city_note = (
+                        "City filtering not available for this region" if city else None
+                    )
+                    logger.info(
+                        f"Routing to PVApins for {country} (specialist, health={health:.1%})"
+                    )
+                    return pvapins, False, city_note
+                else:
+                    logger.warning(
+                        f"PVApins health low ({health:.1%}) for {country}, falling back to general providers"
+                    )
+ 
         # International + city + Pro/Custom -> Telnyx (precise city)
         if city and user_tier in ("pro", "custom"):
             telnyx = self._get_telnyx()
             if telnyx.enabled:
-                logger.info(
-                    f"Routing to Telnyx for {country} city={city} (tier={user_tier})"
+                health = await PurchaseIntelligenceService.get_live_health_score(
+                    service, country_upper, "telnyx"
                 )
-                return telnyx, True, None
-            # Telnyx not available — fall to 5sim, city cannot be honoured
+                if health >= HEALTH_THRESHOLD:
+                    logger.info(
+                        f"Routing to Telnyx for {country} city={city} (health={health:.1%})"
+                    )
+                    return telnyx, True, None
+ 
+            # Telnyx not available or unhealthy — fall to 5sim
             fivesim = self._get_fivesim()
             if fivesim.enabled:
                 note = f"Precise city filtering temporarily unavailable, country-level number assigned"
                 logger.warning(
-                    f"Telnyx unavailable for {country}, falling to 5sim (city dropped)"
+                    f"Telnyx unavailable/unhealthy for {country}, falling to 5sim (city dropped)"
                 )
                 return fivesim, False, note
-
-        # International + city + PAYG -> 5sim, city dropped
+ 
+        # International + city + PAYG -> 5sim
         if city and user_tier == "payg":
             fivesim = self._get_fivesim()
             if fivesim.enabled:
-                note = "Precise city filtering requires Pro tier"
-                logger.info(f"Routing to 5sim for {country} (PAYG, city dropped)")
-                return fivesim, False, note
-            # 5sim not available, try Telnyx as bonus
+                health = await PurchaseIntelligenceService.get_live_health_score(
+                    service, country_upper, "5sim"
+                )
+                if health >= HEALTH_THRESHOLD:
+                    note = "Precise city filtering requires Pro tier"
+                    logger.info(
+                        f"Routing to 5sim for {country} (PAYG, health={health:.1%})"
+                    )
+                    return fivesim, False, note
+ 
+            # 5sim unavailable/unhealthy, try Telnyx
             telnyx = self._get_telnyx()
             if telnyx.enabled:
-                logger.info(f"5sim unavailable, routing PAYG to Telnyx for {country}")
+                logger.info(
+                    f"5sim unavailable/unhealthy, routing PAYG to Telnyx for {country}"
+                )
                 return telnyx, True, None
-
+ 
         # International + no city -> 5sim (cheapest)
         fivesim = self._get_fivesim()
         if fivesim.enabled:
-            logger.info(f"Routing to 5sim for {country} (no city)")
-            return fivesim, False, None
-
+            health = await PurchaseIntelligenceService.get_live_health_score(
+                service, country_upper, "5sim"
+            )
+            if health >= HEALTH_THRESHOLD:
+                logger.info(f"Routing to 5sim for {country} (health={health:.1%})")
+                return fivesim, False, None
+ 
         # Fallback -> Telnyx
         telnyx = self._get_telnyx()
         if telnyx.enabled:
-            logger.info(f"Routing to Telnyx for {country} (5sim unavailable)")
-            return telnyx, bool(city), None
-
-        # Last resort -> TextVerified (will likely fail for international but better than nothing)
-        logger.warning(
-            f"No international provider available for {country}, using TextVerified"
-        )
+            logger.info(f"Routing to Telnyx for {country} (final fallback)")
+            return telnyx, True, None
+ 
+        # Ultimate Fallback -> TextVerified (International)
         return self._get_textverified(), False, None
 
     async def purchase_with_failover(
@@ -182,7 +218,9 @@ class ProviderRouter:
                     f"City '{city}' not in US map, proceeding without area code"
                 )
 
-        primary, city_attempted, pre_note = self.get_provider(country, city, user_tier)
+        primary, city_attempted, pre_note = await self.get_provider(
+            service, country, city, user_tier
+        )
         routing_reason = (
             f"country={country}"
             + (f"_city={city}" if city else "")
@@ -246,7 +284,9 @@ class ProviderRouter:
             if e.is_reroutable and getattr(
                 self._settings, "enable_provider_failover", True
             ):
-                secondary = self._get_failover_provider(primary, country)
+                secondary = await self._get_failover_provider(
+                    primary, country, service
+                )
                 if secondary:
                     logger.warning(
                         f"Failing over from {primary.name} to {secondary.name}"
@@ -289,51 +329,74 @@ class ProviderRouter:
                 f"All providers failed for {country}. Last error: {e.internal}",
             )
 
-    def _get_failover_provider(
-        self, failed_provider: SMSProvider, country: str
+    async def _get_failover_provider(
+        self, failed_provider: SMSProvider, country: str, service: str
     ) -> Optional[SMSProvider]:
-        """Get next provider to try when primary fails."""
+        """Determine next provider in the chain, skipping unhealthy ones."""
         failed_name = failed_provider.name
-
+        country_upper = country.upper()
+        HEALTH_THRESHOLD = 0.4
+ 
+        async def is_healthy(name: str) -> bool:
+            return (
+                await PurchaseIntelligenceService.get_live_health_score(
+                    service, country_upper, name
+                )
+                >= HEALTH_THRESHOLD
+            )
+ 
         if failed_name == "textverified":
             telnyx = self._get_telnyx()
-            if telnyx.enabled:
+            if telnyx.enabled and await is_healthy("telnyx"):
                 return telnyx
             fivesim = self._get_fivesim()
-            if fivesim.enabled:
+            if fivesim.enabled and await is_healthy("5sim"):
                 return fivesim
             pvapins = self._get_pvapins()
-            if pvapins.enabled and self._pvapins_covers(country):
+            if (
+                pvapins.enabled
+                and self._pvapins_covers(country)
+                and await is_healthy("pvapins")
+            ):
                 return pvapins
-
+ 
         elif failed_name == "telnyx":
             fivesim = self._get_fivesim()
-            if fivesim.enabled:
+            if fivesim.enabled and await is_healthy("5sim"):
                 return fivesim
             pvapins = self._get_pvapins()
-            if pvapins.enabled and self._pvapins_covers(country):
+            if (
+                pvapins.enabled
+                and self._pvapins_covers(country)
+                and await is_healthy("pvapins")
+            ):
                 return pvapins
             textverified = self._get_textverified()
             if textverified.enabled:
+                # TextVerified US is always "healthy" for us, or we're in big trouble
                 return textverified
-
+ 
         elif failed_name == "5sim":
             pvapins = self._get_pvapins()
-            if pvapins.enabled and self._pvapins_covers(country):
+            if (
+                pvapins.enabled
+                and self._pvapins_covers(country)
+                and await is_healthy("pvapins")
+            ):
                 return pvapins
             telnyx = self._get_telnyx()
-            if telnyx.enabled:
+            if telnyx.enabled and await is_healthy("telnyx"):
                 return telnyx
             textverified = self._get_textverified()
             if textverified.enabled:
                 return textverified
-
+ 
         elif failed_name == "pvapins":
             fivesim = self._get_fivesim()
-            if fivesim.enabled:
+            if fivesim.enabled and await is_healthy("5sim"):
                 return fivesim
             telnyx = self._get_telnyx()
-            if telnyx.enabled:
+            if telnyx.enabled and await is_healthy("telnyx"):
                 return telnyx
             textverified = self._get_textverified()
             if textverified.enabled:

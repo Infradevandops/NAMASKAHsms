@@ -1,10 +1,10 @@
 # Inventory-Aware Area Code Resolution System
 
 **Version**: 5.0.0  
-**Status**: Planning  
+**Status**: Execution (Phase 9: Financial Intelligence)  
 **Baseline**: `stable/textverified-only` @ `v4.5.0-stable`  
 **Created**: April 17, 2026  
-**Revised**: April 17, 2026 — corrected for actual TextVerified API capabilities
+**Revised**: April 17, 2026 — marked Phase 6 as complete; adding Phase 9 Financial Intelligence
 
 ---
 
@@ -415,7 +415,7 @@ TextVerified exposes exactly two relevant endpoints:
 
 ---
 
-### Phase 6 — Analytics & Admin Visibility
+### Phase 6 — Analytics & Admin Visibility [COMPLETE]
 
 **Goal**: Admin dashboard showing the full intelligence picture — area code success rates, carrier distribution, SMS delivery rates by carrier, and system learning progress. Built on the data Phase 2 collects from every purchase.
 
@@ -492,10 +492,11 @@ TextVerified exposes exactly two relevant endpoints:
   - Empty data → returns zeros, not errors
   - Carrier distribution percentages sum to 1.0
   - SMS delivery rate only counts outcomes where `sms_received` is not null
+  - Financial metrics (Gross Profit, Net Profit, ROI) accurately reflected
   - Admin-only access enforced
 
 **Deliverable**: `app/api/admin/area_code_analytics.py` + `tests/unit/test_area_code_analytics.py`  
-**Risk**: None — read-only reporting on existing data  
+**Status**: [COMPLETE] Institutional-grade metrics launched.
 **Dependency**: Phase 2 (reads from `purchase_outcomes`)
 
 ---
@@ -543,10 +544,37 @@ Phase 1 (NANPA Geo)             ← No dependencies
 ```
 
 ---
+ 
+### Phase 9 — Financial Intelligence [CURRENT]
+ 
+**Goal**: Integrate raw provider cost and user pricing into the telemetry layer to enable real-time margin analysis, profit calculation, and ROI-driven routing.
+ 
+#### Tasks
+ 
+- [x] **9.1** Expand `purchase_outcomes` model
+  - Add `provider_cost`, `user_price`, `is_refunded`, `refund_amount`
+  - Ensure cross-dialect compatibility (SQLite/Postgres)
+  - Linearize migration history to fix CI/CD blockers
+ 
+- [x] **9.2** Instrument service layer
+  - Update `PurchaseIntelligenceService` to capture cost/price on every purchase
+  - Update `RefundService` to automatically link credits refunded to telemetry
+ 
+- [x] **9.3** Instrument API endpoints
+  - Update `/verification/request` to pass raw cost data from providers
+  - Ensure end-to-end data flow from purchase through polling to final outcome
+ 
+- [x] **9.4** Launch Profitability Dashboard
+  - Update `/analytics/providers` with real-time Gross Profit, Net Profit, and ROI
+  - Visualize refund rates per provider to detect inventory issues
+ 
+**Status**: [ACTIVE] Base instrumentation completed. 
+ 
+---
 
 ## Success Criteria
 
-| Metric | Day 1 | Month 1 | Month 3 (target) |
+| Metric | Day 1 | Month 1 | Institutional Grade (Target) |
 |--------|-------|---------|-------------------|
 | Silent mismatch rate | 0% | 0% | 0% |
 | Area code match rate (when data exists) | N/A | > 80% | > 95% |
@@ -554,6 +582,9 @@ Phase 1 (NANPA Geo)             ← No dependencies
 | Data coverage (combos with history) | 0% | ~30% | ~70% |
 | Credits charged on mismatch | $0 | $0 | $0 |
 | User dead-ends (no alternatives shown) | 0 | 0 | 0 |
+| Failover Accuracy | N/A | > 70% | > 98% (Sensed via health scores) |
+| Routing Intelligence | Static | Rule-based | Metric-driven / Learning |
+| Avg. Delivery Latency | Unknown | < 45s | < 25s (Optimized via carrier selection) |
 
 The non-negotiable from day one: **zero silent mismatches, zero credits charged for wrong numbers.**
 

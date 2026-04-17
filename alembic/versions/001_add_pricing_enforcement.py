@@ -17,18 +17,16 @@ depends_on = None
 
 def _column_exists(table, column):
     bind = op.get_bind()
-    result = bind.execute(sa.text(
-        "SELECT 1 FROM information_schema.columns WHERE table_name=:t AND column_name=:c"
-    ).bindparams(t=table, c=column))
-    return result.fetchone() is not None
-
-
+    inspector = sa.inspect(bind)
+    columns = [c["name"] for c in inspector.get_columns(table)]
+    return column in columns
+ 
+ 
 def _table_exists(table):
     bind = op.get_bind()
-    result = bind.execute(sa.text(
-        "SELECT 1 FROM information_schema.tables WHERE table_name=:t"
-    ).bindparams(t=table))
-    return result.fetchone() is not None
+    inspector = sa.inspect(bind)
+    tables = inspector.get_table_names()
+    return table in tables
 
 
 def upgrade():

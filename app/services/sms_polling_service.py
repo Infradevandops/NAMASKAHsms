@@ -154,16 +154,10 @@ class SMSPollingService:
             return
 
         if result.get("success") and result.get("code"):
-            # SMS received
-            verification.status = "completed"
-            verification.outcome = "completed"
-            verification.completed_at = datetime.now(timezone.utc)
-            verification.sms_text = result.get("sms", "")
-            verification.sms_code = result["code"]
-            db.commit()
-
-            # --- PHASE 2 INSTRUMENTATION ---
-            await PurchaseIntelligenceService.update_sms_received(verification.id, True)
+            await self._complete_verification(
+                verification, db, result.get("sms", ""), result["code"]
+            )
+            return
 
             # Forward SMS
             try:
@@ -280,7 +274,14 @@ class SMSPollingService:
         db.commit()
 
         # Instrumentation
-        await PurchaseIntelligenceService.update_sms_received(v.id, True)
+        latency = None
+        if v.created_at:
+            created_at = v.created_at.replace(tzinfo=timezone.utc) if v.created_at.tzinfo is None else v.created_at
+            latency = int((v.completed_at - created_at).total_seconds())
+
+        await PurchaseIntelligenceService.update_sms_received(
+            v.id, True, raw_sms_code=v.sms_code, latency_seconds=latency
+        )
 
         # Notify & Forward
         try:
