@@ -186,71 +186,39 @@ async def request_verification(
 
         old_balance = balance_check["current_balance"]
 
-        # CRITICAL FIX: Call provider via router (supports TextVerified, Telnyx, 5sim)
         logger.info(
             f"Purchasing number for service='{request.service}', country='{request.country}', user={user_id}"
         )
 
-        # Pass area codes and carriers if provided (CRITICAL: Extract first element)
         area_code = request.area_codes[0] if request.area_codes else None
         carrier = getattr(request, "carrier", None)
         city = request.city
 
         if area_code:
             logger.info(f"User {user_id} requesting area code: {area_code}")
-        if carrier:
-            logger.info(f"User {user_id} requesting carrier: {carrier}")
         if city:
             logger.info(f"User {user_id} requesting city: {city}")
-
-        # Use smart provider router
-        from app.services.providers.provider_router import ProviderRouter
-
-        provider_router = ProviderRouter()
 
         textverified_result = None
         verification = None
         notification_dispatcher = NotificationDispatcher(db)
 
         try:
-            # Step 1: Purchase via smart router with failover
+            # Purchase via TextVerified
             logger.info(
-                f"Calling provider router - Service: {request.service}, Country: {request.country}, Area Code: {area_code}, Carrier: {carrier}"
+                f"Calling TextVerified - Service: {request.service}, Country: {request.country}, Area Code: {area_code}"
             )
-            purchase_result = await provider_router.purchase_with_failover(
+            textverified_result = await tv_service.create_verification(
                 service=request.service,
                 country=request.country,
                 area_code=area_code,
                 carrier=carrier,
                 capability=request.capability,
-                city=city,
-                user_tier=user_tier,
             )
-
-            # Map PurchaseResult to existing variable names (minimal change)
-            textverified_result = {
-                "id": purchase_result.order_id,
-                "phone_number": purchase_result.phone_number,
-                "cost": purchase_result.cost,
-                "ends_at": purchase_result.expires_at,
-                "tv_object": purchase_result.tv_object,
-                "retry_attempts": purchase_result.retry_attempts,
-                "area_code_matched": purchase_result.area_code_matched,
-                "carrier_matched": purchase_result.carrier_matched,
-                "real_carrier": purchase_result.real_carrier,
-                "voip_rejected": purchase_result.voip_rejected,
-                "fallback_applied": purchase_result.fallback_applied,
-                "requested_area_code": purchase_result.requested_area_code,
-                "assigned_area_code": purchase_result.assigned_area_code,
-                "same_state_fallback": purchase_result.same_state_fallback,
-                "assigned_carrier": None,
-                "city_honoured": purchase_result.city_honoured,
-                "city_note": purchase_result.city_note,
-            }
-            provider_name = purchase_result.provider
+            provider_name = "textverified"
 
             logger.info(
-                f"Provider router success: {purchase_result.phone_number} from {provider_name}, id: {purchase_result.order_id}"
+                f"TextVerified success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
             )
             if textverified_result.get("fallback_applied"):
                 logger.warning(
@@ -287,7 +255,7 @@ async def request_verification(
                 country=request.country,
                 capability=request.capability,
                 cost=actual_cost,
-                provider=provider_name,  # "textverified", "telnyx", or "5sim"
+                provider="textverified",
                 activation_id=textverified_result["id"],
                 status="pending",
                 idempotency_key=final_idempotency_key,
@@ -387,25 +355,7 @@ async def request_verification(
         except HTTPException:
             raise
         except Exception as api_error:
-            from app.services.providers.provider_errors import ProviderError
-
             db.rollback()
-
-            # Translate ProviderError to clean user message (no provider names)
-            if isinstance(api_error, ProviderError):
-                logger.error(
-                    f"Provider error [{api_error.category}] for user {user_id}: {api_error.internal}"
-                )
-                if api_error.category in ("unsupported_country", "unsupported_service"):
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=api_error.user_message,
-                    )
-                raise HTTPException(
-                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail=api_error.user_message,
-                )
-
             logger.error(
                 f"Purchase failed, transaction rolled back: {str(api_error)}",
                 exc_info=True,

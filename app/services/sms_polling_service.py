@@ -1,4 +1,4 @@
-"""SMS polling service with multi-provider support."""
+"""SMS polling service — TextVerified only."""
 
 import asyncio
 from datetime import datetime, timezone
@@ -71,18 +71,8 @@ class SMSPollingService:
                 if remaining > 0:
                     timeout_seconds = min(remaining, timeout_seconds)
 
-            # Dispatch to provider-specific polling
-            provider = verification.provider or "textverified"
-
-            if provider == "textverified":
-                await self._poll_textverified(verification, db, timeout_seconds)
-            elif provider == "telnyx":
-                await self._poll_telnyx(verification, db, timeout_seconds)
-            elif provider == "5sim":
-                await self._poll_fivesim(verification, db, timeout_seconds)
-            else:
-                logger.error(f"Unknown provider: {provider}")
-                await self._handle_timeout(verification, db)
+            # All verifications use TextVerified
+            await self._poll_textverified(verification, db, timeout_seconds)
 
         except asyncio.CancelledError:
             logger.info(f"Polling cancelled for verification {verification_id}")
@@ -190,106 +180,16 @@ class SMSPollingService:
         else:
             await self._handle_timeout(verification, db)
 
-    async def _poll_telnyx(self, verification, db, timeout_seconds: float):
-        """Poll Telnyx for messages."""
-        from app.services.providers.telnyx_adapter import TelnyxAdapter
-
-        adapter = TelnyxAdapter()
-        elapsed = 0
-        interval = 5.0
-
-        logger.info(f"Polling Telnyx for verification {verification.id}")
-
-        while elapsed < timeout_seconds:
-            messages = await adapter.check_messages(
-                verification.activation_id, created_after=verification.created_at
-            )
-
-            if messages:
-                msg = messages[0]
-                verification.status = "completed"
-                verification.outcome = "completed"
-                verification.completed_at = datetime.now(timezone.utc)
-                verification.sms_text = msg.text
-                verification.sms_code = msg.code
-                db.commit()
-
-                try:
-                    dispatcher = NotificationDispatcher(db)
-                    dispatcher.on_sms_received(verification)
-                except Exception:
-                    pass
-
-                logger.info(f"✅ Telnyx SMS received for {verification.id}")
-                return
-
-            await asyncio.sleep(interval)
-            elapsed += interval
-
-        await self._handle_timeout(verification, db)
-
-    async def _poll_fivesim(self, verification, db, timeout_seconds: float):
-        """Poll 5sim for messages."""
-        from app.services.providers.fivesim_adapter import FiveSimAdapter
-
-        adapter = FiveSimAdapter()
-        elapsed = 0
-        interval = 5.0
-
-        logger.info(f"Polling 5sim for verification {verification.id}")
-
-        while elapsed < timeout_seconds:
-            messages = await adapter.check_messages(
-                verification.activation_id, created_after=verification.created_at
-            )
-
-            if messages:
-                msg = messages[0]
-                verification.status = "completed"
-                verification.outcome = "completed"
-                verification.completed_at = datetime.now(timezone.utc)
-                verification.sms_text = msg.text
-                verification.sms_code = msg.code
-                db.commit()
-
-                try:
-                    dispatcher = NotificationDispatcher(db)
-                    dispatcher.on_sms_received(verification)
-                except Exception:
-                    pass
-
-                logger.info(f"✅ 5sim SMS received for {verification.id}")
-                return
-
-            await asyncio.sleep(interval)
-            elapsed += interval
-
-        await self._handle_timeout(verification, db)
-
     async def _handle_timeout(self, verification: Verification, db):
         """Handle verification timeout."""
         verification.status = "timeout"
         verification.outcome = "timeout"
         db.commit()
 
-        # Report to provider for refund
-        provider = verification.provider or "textverified"
-        reported = False
-
-        if provider == "textverified":
-            reported = await self.textverified.report_verification(
-                verification.activation_id
-            )
-        elif provider == "telnyx":
-            from app.services.providers.telnyx_adapter import TelnyxAdapter
-
-            adapter = TelnyxAdapter()
-            reported = await adapter.report_failed(verification.activation_id)
-        elif provider == "5sim":
-            from app.services.providers.fivesim_adapter import FiveSimAdapter
-
-            adapter = FiveSimAdapter()
-            reported = await adapter.report_failed(verification.activation_id)
+        # Report to TextVerified for refund
+        reported = await self.textverified.report_verification(
+            verification.activation_id
+        )
 
         if reported:
             logger.info(f"Reported {verification.id} to {provider} — refund triggered")
