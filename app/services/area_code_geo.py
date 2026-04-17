@@ -1,199 +1,51 @@
-import math
+import json
+import os
 from typing import Any, Dict, List
 
-# A representative sample of NANPA area codes, containing major US cities.
-# In a full system, this would contain all ~370 active US area codes.
-NANPA_DATA: Dict[str, Dict[str, Any]] = {
-    # Los Angeles Metro
-    "213": {
-        "major_city": "Los Angeles",
-        "state": "CA",
-        "lat": 34.0522,
-        "lng": -118.2437,
-        "metro": "Los Angeles",
-    },
-    "323": {
-        "major_city": "Los Angeles",
-        "state": "CA",
-        "lat": 34.0522,
-        "lng": -118.2437,
-        "metro": "Los Angeles",
-    },
-    "310": {
-        "major_city": "Los Angeles",
-        "state": "CA",
-        "lat": 34.0522,
-        "lng": -118.2437,
-        "metro": "Los Angeles",
-    },
-    "818": {
-        "major_city": "Burbank",
-        "state": "CA",
-        "lat": 34.1808,
-        "lng": -118.3090,
-        "metro": "Los Angeles",
-    },
-    "626": {
-        "major_city": "Pasadena",
-        "state": "CA",
-        "lat": 34.1478,
-        "lng": -118.1445,
-        "metro": "Los Angeles",
-    },
-    "424": {
-        "major_city": "Los Angeles",
-        "state": "CA",
-        "lat": 33.9000,
-        "lng": -118.2500,
-        "metro": "Los Angeles",
-    },
-    "747": {
-        "major_city": "Burbank",
-        "state": "CA",
-        "lat": 34.2000,
-        "lng": -118.4000,
-        "metro": "Los Angeles",
-    },
-    "562": {
-        "major_city": "Long Beach",
-        "state": "CA",
-        "lat": 33.7701,
-        "lng": -118.1937,
-        "metro": "Los Angeles",
-    },
-    # SF Bay Area
-    "415": {
-        "major_city": "San Francisco",
-        "state": "CA",
-        "lat": 37.7749,
-        "lng": -122.4194,
-        "metro": "San Francisco",
-    },
-    "628": {
-        "major_city": "San Francisco",
-        "state": "CA",
-        "lat": 37.7749,
-        "lng": -122.4194,
-        "metro": "San Francisco",
-    },
-    "650": {
-        "major_city": "San Mateo",
-        "state": "CA",
-        "lat": 37.5630,
-        "lng": -122.3255,
-        "metro": "San Francisco",
-    },
-    "510": {
-        "major_city": "Oakland",
-        "state": "CA",
-        "lat": 37.8044,
-        "lng": -122.2712,
-        "metro": "San Francisco",
-    },
-    # Sacramento
-    "916": {
-        "major_city": "Sacramento",
-        "state": "CA",
-        "lat": 38.5816,
-        "lng": -121.4944,
-        "metro": "Sacramento",
-    },
-    "279": {
-        "major_city": "Sacramento",
-        "state": "CA",
-        "lat": 38.5816,
-        "lng": -121.4944,
-        "metro": "Sacramento",
-    },
-    # New York Metro
-    "212": {
-        "major_city": "New York",
-        "state": "NY",
-        "lat": 40.7128,
-        "lng": -74.0060,
-        "metro": "New York",
-    },
-    "718": {
-        "major_city": "New York",
-        "state": "NY",
-        "lat": 40.7128,
-        "lng": -74.0060,
-        "metro": "New York",
-    },
-    "917": {
-        "major_city": "New York",
-        "state": "NY",
-        "lat": 40.7128,
-        "lng": -74.0060,
-        "metro": "New York",
-    },
-    "332": {
-        "major_city": "New York",
-        "state": "NY",
-        "lat": 40.7128,
-        "lng": -74.0060,
-        "metro": "New York",
-    },
-    # Miami Metro
-    "305": {
-        "major_city": "Miami",
-        "state": "FL",
-        "lat": 25.7617,
-        "lng": -80.1918,
-        "metro": "Miami",
-    },
-    "786": {
-        "major_city": "Miami",
-        "state": "FL",
-        "lat": 25.7617,
-        "lng": -80.1918,
-        "metro": "Miami",
-    },
-    # Chicago Metro
-    "312": {
-        "major_city": "Chicago",
-        "state": "IL",
-        "lat": 41.8781,
-        "lng": -87.6298,
-        "metro": "Chicago",
-    },
-    "773": {
-        "major_city": "Chicago",
-        "state": "IL",
-        "lat": 41.8781,
-        "lng": -87.6298,
-        "metro": "Chicago",
-    },
-    # Texas
-    "214": {
-        "major_city": "Dallas",
-        "state": "TX",
-        "lat": 32.7767,
-        "lng": -96.7970,
-        "metro": "Dallas",
-    },
-    "469": {
-        "major_city": "Dallas",
-        "state": "TX",
-        "lat": 32.7767,
-        "lng": -96.7970,
-        "metro": "Dallas",
-    },
-    "512": {
-        "major_city": "Austin",
-        "state": "TX",
-        "lat": 30.2672,
-        "lng": -97.7431,
-        "metro": "Austin",
-    },
-    "713": {
-        "major_city": "Houston",
-        "state": "TX",
-        "lat": 29.7604,
-        "lng": -95.3698,
-        "metro": "Houston",
-    },
-}
+
+# --- INSTITUTIONAL ASSET LOADING ---
+def _load_nanpa_data() -> Dict[str, Dict[str, Any]]:
+    """Loads NANPA area code metadata from the platform assets."""
+    # Embedded fallback for critical system stability
+    fallback = {
+        "213": {
+            "major_city": "Los Angeles",
+            "state": "CA",
+            "lat": 34.0522,
+            "lng": -118.2437,
+            "metro": "Los Angeles",
+        },
+        "212": {
+            "major_city": "New York",
+            "state": "NY",
+            "lat": 40.7128,
+            "lng": -74.0060,
+            "metro": "New York",
+        },
+        "312": {
+            "major_city": "Chicago",
+            "state": "IL",
+            "lat": 41.8781,
+            "lng": -87.6298,
+            "metro": "Chicago",
+        },
+    }
+
+    try:
+        # Resolve absolute path relative to this service
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        asset_path = os.path.join(base_dir, "assets", "nanpa_index.json")
+
+        if os.path.exists(asset_path):
+            with open(asset_path, "r") as f:
+                return json.load(f)
+        return fallback
+    except Exception:
+        return fallback
+
+
+# Load the full index on module initialization
+NANPA_DATA: Dict[str, Dict[str, Any]] = _load_nanpa_data()
 
 
 def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
