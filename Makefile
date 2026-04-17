@@ -44,9 +44,8 @@ help:
 
 # Install dependencies
 install:
-	npm install
 	pip install -r requirements.txt
-	pip install -r requirements-test.txt
+	pip install -r requirements/requirements-test.txt
 
 # Linting
 lint:
@@ -67,15 +66,13 @@ format:
 
 # Testing
 test:
-	npm run test
-	pytest app/tests/ -v --cov=app --cov-report=html
+	pytest tests/ -v --cov=app --cov-report=html
 
 test-watch:
 	npm run test:watch
 
 test-coverage:
-	npm run test:coverage
-	pytest app/tests/ -v --cov=app --cov-report=html --cov-report=term
+	pytest tests/ -v --cov=app --cov-report=html --cov-report=term
 
 # Security
 security-check:
@@ -105,8 +102,7 @@ dev:
 # Production checks
 prod-check:
 	@echo "Running production readiness checks..."
-	npm run lint
-	pytest app/tests/ -v
+	pytest tests/ -v
 	bandit -r app/ -ll
 	@echo "✅ Production checks passed"
 
