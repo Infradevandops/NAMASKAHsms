@@ -39,6 +39,7 @@ class PurchaseIntelligenceService:
         original_request: Optional[str] = None,
         provider: Optional[str] = None,
         country: Optional[str] = None,
+        raw_sms_code: Optional[str] = None,
         latency_seconds: Optional[float] = None,
         provider_cost: Optional[float] = None,
         user_price: Optional[float] = None,
@@ -104,6 +105,7 @@ class PurchaseIntelligenceService:
         sms_received: bool,
         raw_sms_code: Optional[str] = None,
         latency_seconds: Optional[float] = None,
+        refund_reason: Optional[str] = None,
     ):
         """Called after polling completes."""
         if not verification_id:
@@ -121,6 +123,7 @@ class PurchaseIntelligenceService:
                             sms_received=sms_received,
                             raw_sms_code=raw_sms_code,
                             latency_seconds=latency_seconds,
+                            refund_reason=refund_reason,
                         )
                     )
                     db.execute(stmt)
@@ -338,7 +341,7 @@ class PurchaseIntelligenceService:
     def get_carrier_sentiment(db: Session, service: str, days: int = 14) -> Dict[str, float]:
         """Returns success rates per carrier for a specific service."""
         from datetime import datetime, timedelta, timezone
-        from sqlalchemy import func
+        from sqlalchemy import func, Integer
         from app.models.purchase_outcome import PurchaseOutcome
         
         cutoff = datetime.now(timezone.utc) - timedelta(days=days)

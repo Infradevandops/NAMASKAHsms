@@ -180,13 +180,15 @@ class RefundService:
 
         # Update PurchaseOutcome telemetry
         if hasattr(verification, "id") and verification.id:
+            reason_str = ", ".join(reasons) if reasons else refund_type
             try:
                 stmt = (
                     update(PurchaseOutcome)
                     .where(PurchaseOutcome.verification_id == str(verification.id))
                     .values(
                         is_refunded=True,
-                        refund_amount=amount
+                        refund_amount=amount,
+                        refund_reason=reason_str
                     )
                 )
                 db.execute(stmt)

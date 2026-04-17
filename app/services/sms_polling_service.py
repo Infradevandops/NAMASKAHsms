@@ -88,7 +88,7 @@ class SMSPollingService:
                     f"Unknown provider '{provider}' for verification {verification_id}, "
                     f"handling as timeout"
                 )
-                await self._handle_timeout(verification, db)
+                await self._handle_timeout(verification, db, reason="sms_timeout")
 
         except asyncio.CancelledError:
             logger.info(f"Polling cancelled for verification {verification_id}")
@@ -191,7 +191,7 @@ class SMSPollingService:
                 f"code={verification.sms_code}"
             )
         else:
-            await self._handle_timeout(verification, db)
+            await self._handle_timeout(verification, db, reason="sms_timeout")
 
     async def _poll_telnyx(self, verification, db, timeout_seconds: float):
         """Poll Telnyx for SMS."""
@@ -219,7 +219,7 @@ class SMSPollingService:
 
             await asyncio.sleep(5)
 
-        await self._handle_timeout(verification, db)
+        await self._handle_timeout(verification, db, reason="sms_timeout")
 
     async def _poll_fivesim(self, verification, db, timeout_seconds: float):
         """Poll 5sim for SMS."""
@@ -247,7 +247,7 @@ class SMSPollingService:
 
             await asyncio.sleep(5)
 
-        await self._handle_timeout(verification, db)
+        await self._handle_timeout(verification, db, reason="sms_timeout")
 
     async def _poll_pvapins(self, verification, db, timeout_seconds: float):
         """Poll PVApins for SMS."""
@@ -313,14 +313,16 @@ class SMSPollingService:
             f"✅ SMS received for {v.id} (provider={v.provider}) — code={v.sms_code}"
         )
 
-    async def _handle_timeout(self, verification: Verification, db):
+    async def _handle_timeout(self, verification: Verification, db, reason: str = "timeout"):
         """Handle verification timeout."""
         verification.status = "timeout"
         verification.outcome = "timeout"
         db.commit()
 
         # --- PHASE 2 INSTRUMENTATION ---
-        await PurchaseIntelligenceService.update_sms_received(verification.id, False)
+        await PurchaseIntelligenceService.update_sms_received(
+            verification.id, False, refund_reason=reason
+        )
 
         # STRICT REFUND POLICY: Immediate refund enforcement
         refund_result = await refund_policy_enforcer.enforce_single_verification(
@@ -477,7 +479,7 @@ class SMSPollingService:
             )
             attempt += 1
 
-        await self._handle_timeout(verification, db)
+        await self._handle_timeout(verification, db, reason="sms_timeout")
 
     async def start_background_service(self):
         """Start the background polling service."""

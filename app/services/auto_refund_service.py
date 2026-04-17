@@ -78,11 +78,28 @@ class AutoRefundService:
             verification.refund_reason = reason
             verification.refunded_at = datetime.now(timezone.utc)
 
+            # Sync to PurchaseOutcome telemetry
+            from app.models.purchase_outcome import PurchaseOutcome
+            from sqlalchemy import update
+            try:
+                stmt_po = (
+                    update(PurchaseOutcome)
+                    .where(PurchaseOutcome.verification_id == str(verification.id))
+                    .values(
+                        is_refunded=True,
+                        refund_amount=float(refund_amount),
+                        refund_reason=reason
+                    )
+                )
+                self.db.execute(stmt_po)
+            except Exception as e:
+                logger.error(f"Failed to sync refund to PurchaseOutcome: {e}")
+
             transaction = Transaction(
                 user_id=verification.user_id,
                 amount=refund_amount,
                 type="verification_refund",
-                description=f"Auto-refund for {reason} verification {verification_id} ({verification.service_name})",
+                description=f"Auto-refund for {reason} verification {verification.id} ({verification.service_name})",
             )
 
             # Link transaction to verification

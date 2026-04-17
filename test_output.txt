@@ -1,0 +1,45 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.9.6, pytest-7.4.3, pluggy-1.6.0 -- /Users/machine/My Drive/Github Projects/Namaskah. app/venv/bin/python
+cachedir: .pytest_cache
+rootdir: /Users/machine/My Drive/Github Projects/Namaskah. app
+configfile: pytest.ini
+plugins: anyio-4.12.1, cov-4.1.0, asyncio-0.21.1
+asyncio: mode=auto
+collecting ... collected 2 items
+
+tests/unit/services/test_refund_insights.py::test_handle_timeout_logs_insight FAILED [ 50%]
+tests/unit/services/test_refund_insights.py::test_poll_textverified_timeout_triggers_insight PASSED [100%]
+
+=================================== FAILURES ===================================
+_______________________ test_handle_timeout_logs_insight _______________________
+tests/unit/services/test_refund_insights.py:25: in test_handle_timeout_logs_insight
+    await service._handle_timeout(mock_verification, mock_db, reason="sms_timeout")
+app/services/sms_polling_service.py:334: in _handle_timeout
+    f"✅ REFUND ENFORCED: {verification.id} - "
+E   TypeError: unsupported format string passed to MagicMock.__format__
+----------------------------- Captured stdout call -----------------------------
+2026-04-17 22:57:45,176 - app.services.textverified_service - WARNING - TextVerified service disabled - missing credentials or library
+------------------------------ Captured log call -------------------------------
+WARNING  app.services.textverified_service:textverified_service.py:72 TextVerified service disabled - missing credentials or library
+=============================== warnings summary ===============================
+venv/lib/python3.9/site-packages/_pytest/config/__init__.py:1373
+  /Users/machine/My Drive/Github Projects/Namaskah. app/venv/lib/python3.9/site-packages/_pytest/config/__init__.py:1373: PytestConfigWarning: Unknown config option: timeout
+  
+    self._warn_or_fail_if_strict(f"Unknown config option: {key}\n")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/unit/services/test_refund_insights.py::test_handle_timeout_logs_insight
+==================== 1 failed, 1 passed, 1 warning in 3.55s ====================
+--- Logging error ---
+Traceback (most recent call last):
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/logging/__init__.py", line 1086, in emit
+    stream.write(msg + self.terminator)
+ValueError: I/O operation on closed file.
+Call stack:
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py", line 1764, in call_exception_handler
+    self.default_exception_handler(context)
+  File "/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.9/lib/python3.9/asyncio/base_events.py", line 1738, in default_exception_handler
+    logger.error('\n'.join(log_lines), exc_info=exc_info)
+Message: "Task was destroyed but it is pending!\ntask: <Task pending name='Task-3' coro=<SMSPollingService._notify_waiting() running at /Users/machine/My Drive/Github Projects/Namaskah. app/app/services/sms_polling_service.py:390> wait_for=<Future pending cb=[<TaskWakeupMethWrapper object at 0x110ff34f0>()]>>"
+Arguments: ()
