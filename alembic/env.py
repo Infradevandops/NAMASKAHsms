@@ -1,6 +1,6 @@
 """Alembic environment configuration."""
-
-
+ 
+ 
 # Add the project root to the path
 import os
 import sys
@@ -9,35 +9,42 @@ from sqlalchemy import engine_from_config, pool
 from alembic import context
 from app.core.config import settings
 from app.core.database import Base
-
+ 
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-
+ 
+ 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-
+ 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
-
+ 
 # add your model's MetaData object here
 # for 'autogenerate' support
 target_metadata = Base.metadata
-
+ 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
-
-
+ 
+ 
 def get_url():
-
-    """Get database URL from settings."""
-    return settings.database_url
-
-
+    """Get database URL from settings with resilient fallback."""
+    import os
+    if os.getenv("USE_TEST_DB") == "true":
+        return "sqlite:///./test.db"
+    
+    url = settings.database_url
+    if "dpg-" in url and not os.getenv("DATABASE_URL"):
+         if os.getenv("ALLOW_SQLITE_FALLBACK") == "true":
+             return "sqlite:///./namaskah_fallback.db"
+    return url
+ 
+ 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     url = get_url()
@@ -47,18 +54,18 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
     )
-
+ 
     with context.begin_transaction():
         context.run_migrations()
-
-
+ 
+ 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
     # Skip migrations if SKIP_MIGRATIONS env var is set
     if os.getenv("SKIP_MIGRATIONS", "").lower() in ("true", "1", "yes"):
         print("⚠️  SKIP_MIGRATIONS enabled, skipping migrations")
         return
-
+ 
     configuration = config.get_section(config.config_ini_section)
     configuration["sqlalchemy.url"] = get_url()
     connectable = engine_from_config(
@@ -66,14 +73,14 @@ def run_migrations_online() -> None:
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
-
+ 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)
-
+ 
         with context.begin_transaction():
             context.run_migrations()
-
-
+ 
+ 
 if context.is_offline_mode():
     run_migrations_offline()
 else:

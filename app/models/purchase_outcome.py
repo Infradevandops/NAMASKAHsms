@@ -4,6 +4,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     Index,
     Integer,
@@ -40,6 +41,18 @@ class PurchaseOutcome(Base):
     )
     hour_utc = Column(SmallInteger, nullable=True)
     day_of_week = Column(SmallInteger, nullable=True)
+
+    # Institutional Grade Telemetry
+    provider = Column(String(50), nullable=True, index=True)
+    country = Column(String(5), nullable=True, index=True)
+    raw_sms_code = Column(String(50), nullable=True)
+    latency_seconds = Column(Float, nullable=True)
+ 
+    # Financial Telemetry
+    is_refunded = Column(Boolean, default=False, index=True)
+    refund_amount = Column(Float, default=0.0)
+    provider_cost = Column(Float, nullable=True)  # Raw cost paid to the SMS API
+    user_price = Column(Float, nullable=True)     # Total credits paid by the user
 
     # Phase 6.4 Alternative Tracking
     selected_from_alternatives = Column(Boolean, nullable=True, default=False)

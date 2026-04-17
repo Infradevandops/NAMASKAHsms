@@ -15,32 +15,38 @@ branch_labels = None
 depends_on = None
 def _column_exists(table, column):
     bind = op.get_bind()
-    return bind.execute(sa.text(
-        "SELECT 1 FROM information_schema.columns WHERE table_name=:t AND column_name=:c"
-    ).bindparams(t=table, c=column)).fetchone() is not None
-
-
-def _index_exists(index):
+    inspector = sa.inspect(bind)
+    columns = [c["name"] for c in inspector.get_columns(table)]
+    return column in columns
+ 
+ 
+def _index_exists(table, index):
     bind = op.get_bind()
-    return bind.execute(sa.text(
-        "SELECT 1 FROM pg_indexes WHERE indexname=:i"
-    ).bindparams(i=index)).fetchone() is not None
-
-
+    inspector = sa.inspect(bind)
+    indexes = [i["name"] for i in inspector.get_indexes(table)]
+    return index in indexes
+ 
+ 
+def _table_exists(table):
+    bind = op.get_bind()
+    inspector = sa.inspect(bind)
+    tables = inspector.get_table_names()
+    return table in tables
+ 
+ 
 def upgrade():
-    bind = op.get_bind()
-    if bind.execute(sa.text("SELECT 1 FROM information_schema.tables WHERE table_name='transactions'")).fetchone() is None:
+    if not _table_exists("transactions"):
         return
     for col in ["reference", "idempotency_key", "payment_log_id"]:
         if not _column_exists("transactions", col):
             op.add_column("transactions", sa.Column(col, sa.String(), nullable=True))
-    if not _index_exists("ix_transactions_reference"):
+    if not _index_exists("transactions", "ix_transactions_reference"):
         op.create_index("ix_transactions_reference", "transactions", ["reference"], unique=True)
-    if not _index_exists("ix_transactions_idempotency_key"):
+    if not _index_exists("transactions", "ix_transactions_idempotency_key"):
         op.create_index("ix_transactions_idempotency_key", "transactions", ["idempotency_key"], unique=True)
-    if not _index_exists("ix_transactions_payment_log_id"):
+    if not _index_exists("transactions", "ix_transactions_payment_log_id"):
         op.create_index("ix_transactions_payment_log_id", "transactions", ["payment_log_id"], unique=False)
-
+ 
     pl_cols = [
         ("idempotency_key", sa.String(), True),
         ("processing_started_at", sa.DateTime(), True),
@@ -56,9 +62,9 @@ def upgrade():
             if col_name in defaults:
                 kw["server_default"] = defaults[col_name]
             op.add_column("payment_logs", sa.Column(col_name, col_type, **kw))
-    if not _index_exists("ix_payment_logs_idempotency_key"):
+    if not _index_exists("payment_logs", "ix_payment_logs_idempotency_key"):
         op.create_index("ix_payment_logs_idempotency_key", "payment_logs", ["idempotency_key"], unique=True)
-    if not _index_exists("ix_payment_logs_state"):
+    if not _index_exists("payment_logs", "ix_payment_logs_state"):
         op.create_index("ix_payment_logs_state", "payment_logs", ["state"], unique=False)
 def downgrade():
     """Remove idempotency and state tracking."""

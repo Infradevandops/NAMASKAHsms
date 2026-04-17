@@ -35,7 +35,7 @@ def upgrade() -> None:
             sa.Column('sms_received', sa.Boolean(), nullable=True),
             sa.Column('user_id', sa.String(), nullable=True), # Users might not have rigorous FK constraints in this phase or we might use ForeignKey
             sa.Column('verification_id', sa.String(), nullable=True),
-            sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
+            sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now(), nullable=False),
             sa.Column('hour_utc', sa.SmallInteger(), nullable=True),
             sa.Column('day_of_week', sa.SmallInteger(), nullable=True),
             sa.PrimaryKeyConstraint('id'),

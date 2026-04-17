@@ -25,6 +25,7 @@ from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -243,10 +244,6 @@ async def request_verification(
                 )
 
             # —— Success path: purchase_result is populated ——
-            logger.info(
-                f"Purchase successful: {purchase_result.phone_number} via {purchase_result.provider} (reason: {purchase_result.routing_reason})"
-            )
-
             if purchase_result.fallback_applied:
                 logger.warning(
                     f"Provider fallback applied for user {user_id}: "
@@ -302,6 +299,23 @@ async def request_verification(
             )
             db.add(verification)
             db.flush()  # Get the ID before commit
+
+            # --- INSTITUTIONAL TELEMETRY ---
+            # Fire-and-forget logging to Purchase Intelligence
+            asyncio.create_task(
+                PurchaseIntelligenceService.log_outcome(
+                    service=request.service,
+                    assigned_code=purchase_result.assigned_area_code or "",
+                    requested_code=area_code,
+                    matched=purchase_result.area_code_matched if area_code else True,
+                    user_id=user_id,
+                    verification_id=str(verification.id),
+                    provider=purchase_result.provider,
+                    country=request.country,
+                    provider_cost=purchase_result.cost,
+                    user_price=actual_cost,
+                )
+            )
 
             # Step 2.3: Process automatic refunds
             refund_service = RefundService()

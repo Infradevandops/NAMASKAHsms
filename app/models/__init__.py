@@ -1,6 +1,14 @@
 """Database models package."""
 
 from .affiliate import AffiliateApplication, AffiliateCommission, AffiliateProgram
+from .analytics import (
+    AnalyticsCache,
+    CustomReport,
+    ScheduledReport,
+    UserAnalyticsSnapshot,
+    VerificationEvent,
+    VerificationStatistics,
+)
 from .api_key import APIKey  # Import from separate api_key module
 from .balance_transaction import BalanceTransaction
 from .base import Base, BaseModel
@@ -45,6 +53,13 @@ __all__ = [
     # Base
     "BaseModel",
     "Base",
+    # Analytics models
+    "AnalyticsCache",
+    "VerificationEvent",
+    "CustomReport",
+    "ScheduledReport",
+    "UserAnalyticsSnapshot",
+    "VerificationStatistics",
     # User models
     "User",
     "APIKey",

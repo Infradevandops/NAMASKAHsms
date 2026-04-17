@@ -29,7 +29,7 @@ def upgrade() -> None:
                 'selected_from_alternatives',
                 sa.Boolean(),
                 nullable=True,
-                server_default=sa.text('false'),
+                server_default=sa.text('0'),
             )
         )
         batch_op.add_column(

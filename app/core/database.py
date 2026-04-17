@@ -106,12 +106,16 @@ class DatabaseConnectionManager:
 
     def initialize(self):
         """Initialize database connection with fallback."""
+        if os.getenv("USE_TEST_DB") == "true":
+            logger.info("USE_TEST_DB is true, jumping to fallback SQLite")
+            return self._create_fallback_engine()
+ 
         if self.is_circuit_breaker_open():
             logger.warning("Circuit breaker is open. Using fallback connection.")
             return self._create_fallback_engine()
-
+ 
         engine = self.create_engine_with_retry()
-
+ 
         if engine is None:
             logger.error("All connection attempts failed. Using fallback.")
             return self._create_fallback_engine()
@@ -176,13 +180,46 @@ class DatabaseConnectionManager:
 
 # Global connection manager
 db_manager = DatabaseConnectionManager()
-db_manager.initialize()
-
-# Legacy compatibility
-engine = db_manager.engine
-SessionLocal = db_manager.SessionLocal
-
-
+ 
+ 
+def get_session_local():
+    """Returns the SessionLocal class, initializing if needed."""
+    if not db_manager.SessionLocal:
+        db_manager.initialize()
+    return db_manager.SessionLocal
+ 
+ 
+def get_engine():
+    """Returns the engine, initializing if needed."""
+    if not db_manager.engine:
+        db_manager.initialize()
+    return db_manager.engine
+ 
+ 
+# Legacy compatibility wrapper
+class SessionLocalWrapper:
+    def __call__(self, *args, **kwargs):
+        return get_session_local()(*args, **kwargs)
+ 
+    def __getattr__(self, name):
+        return getattr(get_session_local(), name)
+ 
+ 
+class EngineWrapper:
+    def __getattr__(self, name):
+        return getattr(get_engine(), name)
+ 
+    def __str__(self):
+        return str(get_engine())
+ 
+    def __repr__(self):
+        return repr(get_engine())
+ 
+ 
+SessionLocal = SessionLocalWrapper()
+engine = EngineWrapper()
+ 
+ 
 def get_db():
     """Dependency to get database session with resilience."""
     from fastapi import HTTPException

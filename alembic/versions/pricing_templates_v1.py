@@ -7,7 +7,7 @@ Created: 2025-12-25
 
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
+# from sqlalchemy.dialects import postgresql - Removed for cross-dialect compatibility
 
 
 revision = "pricing_templates_v1"
@@ -22,6 +22,9 @@ def upgrade():
 
     bind = op.get_bind()
     inspector = sa.inspect(bind)
+    is_sqlite = bind.dialect.name == "sqlite"
+    json_cast = "" if is_sqlite else "::jsonb"
+ 
     if "users" not in inspector.get_table_names():
         return
 
@@ -40,7 +43,7 @@ def upgrade():
         sa.Column("created_by", sa.String(), nullable=True),
         sa.Column("effective_date", sa.TIMESTAMP(), nullable=True),
         sa.Column("expires_at", sa.TIMESTAMP(), nullable=True),
-        sa.Column("metadata", postgresql.JSONB(), nullable=True),
+        sa.Column("metadata", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(["created_by"], ["users.id"], ondelete="SET NULL"),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -57,7 +60,7 @@ def upgrade():
         sa.Column("monthly_price", sa.DECIMAL(10, 2), nullable=True),
         sa.Column("included_quota", sa.DECIMAL(10, 2), nullable=True),
         sa.Column("overage_rate", sa.DECIMAL(10, 2), nullable=True),
-        sa.Column("features", postgresql.JSONB(), nullable=True),
+        sa.Column("features", sa.JSON(), nullable=True),
         sa.Column("api_keys_limit", sa.Integer(), nullable=True),
         sa.Column("display_order", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -81,7 +84,7 @@ def upgrade():
             "changed_at", sa.TIMESTAMP(), server_default=sa.text("CURRENT_TIMESTAMP")
         ),
         sa.Column("notes", sa.Text(), nullable=True),
-        sa.Column("metadata", postgresql.JSONB(), nullable=True),
+        sa.Column("metadata", sa.JSON(), nullable=True),
         sa.ForeignKeyConstraint(
             ["template_id"], ["pricing_templates.id"], ondelete="SET NULL"
         ),
@@ -127,13 +130,13 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            """
+            f"""
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
-            (:tid, 'starter', 8.99, 5.00, 0.50, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
-            (:tid, 'pro', 25.00, 15.00, 0.30, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
-            (:tid, 'custom', 35.00, 25.00, 0.20, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'{json_cast}),
+            (:tid, 'starter', 8.99, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'{json_cast}),
+            (:tid, 'pro', 25.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'{json_cast}),
+            (:tid, 'custom', 35.00, 25.00, 0.20, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'{json_cast})
     """
         ).bindparams(tid=template_id)
     )
@@ -154,13 +157,13 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            """
+            f"""
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
-            (:tid, 'starter', 7.19, 5.00, 0.50, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
-            (:tid, 'pro', 20.00, 15.00, 0.30, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
-            (:tid, 'custom', 28.00, 25.00, 0.20, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'{json_cast}),
+            (:tid, 'starter', 7.19, 5.00, 0.50, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'{json_cast}),
+            (:tid, 'pro', 20.00, 15.00, 0.30, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'{json_cast}),
+            (:tid, 'custom', 28.00, 25.00, 0.20, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'{json_cast})
     """
         ).bindparams(tid=template_id)
     )
@@ -181,13 +184,13 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            """
+            f"""
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            (:tid, 'payg_trial', 0.00, 0.00, 2.30, 1, '{"api_access": false}'::jsonb),
-            (:tid, 'starter', 8.49, 5.00, 0.45, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
-            (:tid, 'pro', 23.00, 15.00, 0.28, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
-            (:tid, 'custom', 32.00, 25.00, 0.18, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.30, 1, '{{"api_access": false}}'{json_cast}),
+            (:tid, 'starter', 8.49, 5.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'{json_cast}),
+            (:tid, 'pro', 23.00, 15.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'{json_cast}),
+            (:tid, 'custom', 32.00, 25.00, 0.18, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'{json_cast})
     """
         ).bindparams(tid=template_id)
     )
@@ -195,9 +198,9 @@ def upgrade():
     # Template 4: Test Pricing (Inactive)
     connection.execute(
         sa.text(
-            """
+            f"""
         INSERT INTO pricing_templates (name, description, is_active, region, currency, metadata)
-        VALUES ('Test Pricing', 'A/B testing template - experimental pricing', false, 'US', 'USD', '{"ab_test": true, "test_group": "A"}'::jsonb)
+        VALUES ('Test Pricing', 'A/B testing template - experimental pricing', false, 'US', 'USD', '{{"ab_test": true, "test_group": "A"}}'{json_cast})
     """
         )
     )
@@ -208,13 +211,13 @@ def upgrade():
 
     connection.execute(
         sa.text(
-            """
+            f"""
         INSERT INTO tier_pricing (template_id, tier_name, monthly_price, included_quota, overage_rate, display_order, features)
         VALUES
-            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{"api_access": false}'::jsonb),
-            (:tid, 'starter', 9.99, 6.00, 0.45, 2, '{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}'::jsonb),
-            (:tid, 'pro', 27.00, 18.00, 0.28, 3, '{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}'::jsonb),
-            (:tid, 'custom', 39.00, 30.00, 0.18, 4, '{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}'::jsonb)
+            (:tid, 'payg_trial', 0.00, 0.00, 2.50, 1, '{{"api_access": false}}'{json_cast}),
+            (:tid, 'starter', 9.99, 6.00, 0.45, 2, '{{"api_access": true, "api_keys_limit": 5, "area_code_selection": true}}'{json_cast}),
+            (:tid, 'pro', 27.00, 18.00, 0.28, 3, '{{"api_access": true, "api_keys_limit": 10, "area_code_selection": true, "isp_filtering": true}}'{json_cast}),
+            (:tid, 'custom', 39.00, 30.00, 0.18, 4, '{{"api_access": true, "api_keys_limit": null, "area_code_selection": true, "isp_filtering": true, "dedicated_support": true}}'{json_cast})
     """
         ).bindparams(tid=template_id)
     )

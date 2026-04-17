@@ -26,54 +26,61 @@ class TestProviderRouter:
             mock.return_value = settings
             yield settings
 
-    def test_us_routes_to_textverified(self, router):
+    @pytest.mark.asyncio
+    async def test_us_routes_to_textverified(self, router):
         """US requests should route to TextVerified."""
-        provider, _, _ = router.get_provider("US")
+        provider, _, _ = await router.get_provider("whatsapp", "US")
         assert provider.name == "textverified"
 
-    def test_international_routes_to_fivesim(self, router):
+    @pytest.mark.asyncio
+    async def test_international_routes_to_fivesim(self, router):
         """International requests should route to 5sim if no specialist is available."""
         with patch.object(router, "_get_fivesim") as mock_fivesim, \
-             patch.object(router, "_pvapins_covers", return_value=False):
+             patch.object(router, "_pvapins_covers", return_value=False), \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
             mock_provider = MagicMock()
             mock_provider.enabled = True
             mock_provider.name = "5sim"
             mock_fivesim.return_value = mock_provider
 
-            provider, _, _ = router.get_provider("GB")
+            provider, _, _ = await router.get_provider("whatsapp", "GB")
             assert provider.name == "5sim"
 
-    def test_enterprise_preference_routes_to_telnyx(self, router):
+    @pytest.mark.asyncio
+    async def test_enterprise_preference_routes_to_telnyx(self, router):
         """Enterprise preference should route to Telnyx."""
         with patch.object(router, "_get_telnyx") as mock_telnyx, \
-             patch.object(router, "_pvapins_covers", return_value=False):
+             patch.object(router, "_pvapins_covers", return_value=False), \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
             mock_provider = MagicMock()
             mock_provider.enabled = True
             mock_provider.name = "telnyx"
             mock_telnyx.return_value = mock_provider
 
-            provider, _, _ = router.get_provider("GB", prefer_enterprise=True)
+            provider, _, _ = await router.get_provider("whatsapp", "GB", prefer_enterprise=True)
             assert provider.name == "telnyx"
 
-    def test_fallback_to_textverified_when_no_international_provider(self, router):
+    @pytest.mark.asyncio
+    async def test_fallback_to_textverified_when_no_international_provider(self, router):
         """Should fallback to TextVerified when no international provider available."""
         with patch.object(router, "_get_fivesim") as mock_fivesim, \
              patch.object(router, "_get_telnyx") as mock_telnyx, \
-             patch.object(router, "_get_pvapins") as mock_pvapins:
-
+             patch.object(router, "_get_pvapins") as mock_pvapins, \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
+ 
             mock_fivesim_provider = MagicMock()
             mock_fivesim_provider.enabled = False
             mock_fivesim.return_value = mock_fivesim_provider
-
+ 
             mock_telnyx_provider = MagicMock()
             mock_telnyx_provider.enabled = False
             mock_telnyx.return_value = mock_telnyx_provider
-
+ 
             mock_pvapins_provider = MagicMock()
             mock_pvapins_provider.enabled = False
             mock_pvapins.return_value = mock_pvapins_provider
-
-            provider, _, _ = router.get_provider("GB")
+ 
+            provider, _, _ = await router.get_provider("whatsapp", "GB")
             assert provider.name == "textverified"
 
     @pytest.mark.asyncio
@@ -90,12 +97,13 @@ class TestProviderRouter:
         )
         mock_provider.purchase_number.return_value = mock_result
 
-        with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
+        with patch.object(router, "get_provider", new_callable=AsyncMock) as mock_get:
+            mock_get.return_value = (mock_provider, False, None)
             result = await router.purchase_with_failover(
                 service="whatsapp",
                 country="US",
             )
-
+ 
             assert result.phone_number == "+12025551234"
             assert result.provider == "textverified"
             mock_provider.purchase_number.assert_called_once()
@@ -151,8 +159,12 @@ class TestProviderRouter:
         mock_secondary.purchase_number.return_value = mock_result
 
         with patch.object(
-            router, "get_provider", return_value=(mock_primary, False, None)
-        ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
+            router, "get_provider", new_callable=AsyncMock
+        ) as mock_get, patch.object(
+            router, "_get_failover_provider", new_callable=AsyncMock
+        ) as mock_failover:
+            mock_get.return_value = (mock_primary, False, None)
+            mock_failover.return_value = mock_secondary
 
             result = await router.purchase_with_failover(
                 service="whatsapp",
@@ -242,39 +254,45 @@ class TestProviderRouter:
             assert "pvapins" in enabled
             assert "5sim" not in enabled
 
-    def test_failover_provider_selection_textverified_failed(self, router):
+    @pytest.mark.asyncio
+    async def test_failover_provider_selection_textverified_failed(self, router):
         """When TextVerified fails, should try Telnyx then 5sim."""
         mock_tv = MagicMock()
         mock_tv.name = "textverified"
-
+ 
         mock_telnyx = MagicMock()
         mock_telnyx.enabled = True
-
-        with patch.object(router, "_get_telnyx", return_value=mock_telnyx):
-            failover = router._get_failover_provider(mock_tv, "GB")
+ 
+        with patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
+            failover = await router._get_failover_provider(mock_tv, "GB", "whatsapp")
             assert failover == mock_telnyx
 
-    def test_failover_provider_selection_telnyx_failed(self, router):
+    @pytest.mark.asyncio
+    async def test_failover_provider_selection_telnyx_failed(self, router):
         """When Telnyx fails, should try 5sim then TextVerified."""
         mock_telnyx = MagicMock()
         mock_telnyx.name = "telnyx"
-
+ 
         mock_fivesim = MagicMock()
         mock_fivesim.enabled = True
-
-        with patch.object(router, "_get_fivesim", return_value=mock_fivesim):
-            failover = router._get_failover_provider(mock_telnyx, "GB")
+ 
+        with patch.object(router, "_get_fivesim", return_value=mock_fivesim), \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
+            failover = await router._get_failover_provider(mock_telnyx, "GB", "whatsapp")
             assert failover == mock_fivesim
 
-    def test_failover_provider_selection_fivesim_failed(self, router):
+    @pytest.mark.asyncio
+    async def test_failover_provider_selection_fivesim_failed(self, router):
         """When 5sim fails, should try PVApins then Telnyx then TextVerified."""
         mock_fivesim = MagicMock()
         mock_fivesim.name = "5sim"
-
+ 
         mock_pvapins = MagicMock()
         mock_pvapins.enabled = True
-
+ 
         with patch.object(router, "_get_pvapins", return_value=mock_pvapins), \
-             patch.object(router, "_pvapins_covers", return_value=True):
-            failover = router._get_failover_provider(mock_fivesim, "GB")
+             patch.object(router, "_pvapins_covers", return_value=True), \
+             patch("app.services.purchase_intelligence.PurchaseIntelligenceService.get_live_health_score", return_value=1.0):
+            failover = await router._get_failover_provider(mock_fivesim, "GB", "whatsapp")
             assert failover == mock_pvapins
