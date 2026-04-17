@@ -47,13 +47,26 @@ class PurchaseOutcome(Base):
     country = Column(String(5), nullable=True, index=True)
     raw_sms_code = Column(String(50), nullable=True)
     latency_seconds = Column(Float, nullable=True)
- 
-    # Financial Telemetry
+
+    # Phase 9: Financial Telemetry
     is_refunded = Column(Boolean, default=False, index=True)
     refund_amount = Column(Float, default=0.0)
-    refund_reason = Column(String(100), nullable=True)  # "sms_timeout", "area_code_mismatch", etc.
-    provider_cost = Column(Float, nullable=True)     # Total credits paid to the provider
-    user_price = Column(Float, nullable=True)        # Total credits paid by the user
+    refund_reason = Column(
+        String(100), nullable=True
+    )  # "sms_timeout", "area_code_mismatch", etc.
+    provider_cost = Column(Float, nullable=True)  # Total credits paid to the provider
+    user_price = Column(Float, nullable=True)  # Total credits paid by the user
+
+    # Phase 10: Reconciliation & Categorization
+    provider_refunded = Column(
+        Boolean, default=False, index=True
+    )  # Successfully recouped from provider?
+    outcome_category = Column(
+        String(20), nullable=True, index=True
+    )  # PRODUCT, NETWORK, PROVIDER
+    provider_error_code = Column(
+        String(50), nullable=True
+    )  # Raw error from provider API
 
     # Phase 6.4 Alternative Tracking
     selected_from_alternatives = Column(Boolean, nullable=True, default=False)

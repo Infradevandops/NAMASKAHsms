@@ -186,9 +186,7 @@ class RefundService:
                     update(PurchaseOutcome)
                     .where(PurchaseOutcome.verification_id == str(verification.id))
                     .values(
-                        is_refunded=True,
-                        refund_amount=amount,
-                        refund_reason=reason_str
+                        is_refunded=True, refund_amount=amount, refund_reason=reason_str
                     )
                 )
                 db.execute(stmt)
@@ -198,6 +196,7 @@ class RefundService:
         # Commit logic
         if hasattr(db, "commit"):
             import inspect
+
             if inspect.iscoroutinefunction(db.commit):
                 await db.commit()
             else:

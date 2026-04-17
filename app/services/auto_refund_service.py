@@ -81,6 +81,7 @@ class AutoRefundService:
             # Sync to PurchaseOutcome telemetry
             from app.models.purchase_outcome import PurchaseOutcome
             from sqlalchemy import update
+
             try:
                 stmt_po = (
                     update(PurchaseOutcome)
@@ -88,7 +89,7 @@ class AutoRefundService:
                     .values(
                         is_refunded=True,
                         refund_amount=float(refund_amount),
-                        refund_reason=reason
+                        refund_reason=reason,
                     )
                 )
                 self.db.execute(stmt_po)
