@@ -14,6 +14,7 @@ from app.api.admin.user_management import router as user_management_router
 from app.api.admin.verification_actions import router as verification_actions_router
 from app.api.admin.verification_analytics import router as verification_analytics_router
 from app.api.admin.verification_history import router as verification_history_router
+from app.api.admin.area_code_analytics import router as area_code_analytics_router
 
 router = APIRouter()
 
@@ -25,6 +26,7 @@ router.include_router(verification_analytics_router, prefix="/admin", tags=["Adm
 router.include_router(verification_history_router, prefix="/admin", tags=["Admin"])
 router.include_router(audit_compliance_router, prefix="/admin", tags=["Admin"])
 router.include_router(analytics_router, prefix="/admin", tags=["Admin"])
+router.include_router(area_code_analytics_router, prefix="/admin", tags=["Admin"])
 router.include_router(export_router, prefix="/admin", tags=["Admin"])
 router.include_router(tier_management_router, prefix="/admin", tags=["Admin"])
 router.include_router(actions_router, prefix="/admin", tags=["Admin"])

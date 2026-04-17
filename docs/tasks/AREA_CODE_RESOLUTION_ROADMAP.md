@@ -319,18 +319,18 @@ TextVerified exposes exactly two relevant endpoints:
 
 #### Tasks
 
-- [ ] **4.1** Debounced area code input
+- [x] **4.1** Debounced area code input
   - After user stops typing for 500ms → call `/area-code/check`
   - Show loading spinner while checking
   - Don't call if input < 3 digits
   - Cancel pending request if user types again
 
-- [ ] **4.2** Available state UI
+- [x] **4.2** Available state UI
   - Green checkmark next to area code input
   - Text: "213 is available for WhatsApp ✓"
   - Continue button enabled
 
-- [ ] **4.3** Unavailable state UI
+- [x] **4.3** Unavailable state UI
   - Amber highlight on area code input (not red — it's guidance, not an error)
   - Message: "213 is not available for WhatsApp"
   - Below: clickable list of alternatives showing city name and proximity tier
@@ -338,12 +338,12 @@ TextVerified exposes exactly two relevant endpoints:
   - Clicking an alternative fills the area code input and triggers re-validation
   - Continue button disabled until user selects an alternative or clears the area code
 
-- [ ] **4.4** Unknown state UI (no purchase data yet)
+- [x] **4.4** Unknown state UI (no purchase data yet)
   - Neutral state — no checkmark, no warning
   - Text: "Availability will be confirmed on purchase. You won't be charged if unavailable."
   - Continue button enabled — don't block the user
 
-- [ ] **4.5** Remove carrier dropdown
+- [x] **4.5** Remove carrier dropdown
   - Remove the "Carrier" field from Advanced Options entirely
   - Update checkbox text: "Use Advanced Options above to filter by area code"
   - Clean removal — no hidden fields, no disabled state
@@ -367,20 +367,20 @@ TextVerified exposes exactly two relevant endpoints:
 
 #### Tasks
 
-- [ ] **5.1** Strict area code validation post-purchase
+- [x] **5.1** Strict area code validation post-purchase
   - After TextVerified returns a number, extract the assigned area code
   - Compare to requested area code
   - If match → proceed, log success to `purchase_outcomes`
   - If mismatch → cancel the number immediately, log failure to `purchase_outcomes`
 
-- [ ] **5.2** Single informed retry
+- [x] **5.2** Single informed retry
   - On mismatch, check purchase history score before retrying
   - If score says `unavailable` (confidence ≥ 0.6) → don't retry, return alternatives immediately
   - If score says `available` or `unknown` → retry once (could be transient)
   - Maximum 2 total attempts (1 original + 1 retry)
   - Both attempts logged to `purchase_outcomes` regardless of result
 
-- [ ] **5.3** Mismatch response to frontend
+- [x] **5.3** Mismatch response to frontend
   - No credits charged (number was cancelled)
   - Return alternatives from the check API (same ranking logic):
     ```json
@@ -395,13 +395,13 @@ TextVerified exposes exactly two relevant endpoints:
   - Frontend shows the alternatives list (same UI as Phase 4.3)
   - User can pick an alternative and retry without re-entering service details
 
-- [ ] **5.4** Simplify create_verification
+- [x] **5.4** Simplify create_verification
   - Remove the current 3-retry blind loop → replace with Phase 5.2 informed retry
   - Remove carrier matching logic (carrier feature removed)
   - Keep VOIP/landline checking as-is (working, out of scope for this roadmap)
   - Flow becomes: purchase → validate area code → accept or cancel+alternatives
 
-- [ ] **5.5** Tests
+- [x] **5.5** Tests
   - Requested 213, got +1-213-xxx → success, outcome logged as matched
   - Requested 213, got +1-469-xxx → cancel, outcome logged as mismatched, retry
   - Retry succeeds with 213 → success, second outcome logged
@@ -421,7 +421,7 @@ TextVerified exposes exactly two relevant endpoints:
 
 #### Tasks
 
-- [ ] **6.1** Admin analytics endpoint — area code intelligence
+- [x] **6.1** Admin analytics endpoint — area code intelligence
   - `GET /api/admin/analytics/area-codes?days=7`
   - Returns:
     ```json
@@ -439,7 +439,7 @@ TextVerified exposes exactly two relevant endpoints:
     }
     ```
 
-- [ ] **6.2** Admin analytics endpoint — carrier intelligence
+- [x] **6.2** Admin analytics endpoint — carrier intelligence
   - `GET /api/admin/analytics/carriers?days=7`
   - Returns:
     ```json
@@ -461,7 +461,7 @@ TextVerified exposes exactly two relevant endpoints:
     ```
   - Surfaces patterns like: "Telegram has low delivery on AT&T numbers" — actionable insight
 
-- [ ] **6.3** Admin analytics endpoint — geographic intelligence
+- [x] **6.3** Admin analytics endpoint — geographic intelligence
   - `GET /api/admin/analytics/geography?days=7`
   - Returns:
     ```json
@@ -478,16 +478,16 @@ TextVerified exposes exactly two relevant endpoints:
     }
     ```
 
-- [ ] **6.4** Track alternative selection
+- [x] **6.4** Track alternative selection
   - When user picks an alternative from the list and purchases → log which alternative they chose
   - Frontend sends `selected_from_alternatives=true&original_request=213` on the purchase call
   - Enables: "Users who wanted 213 usually accepted 323" — future ML feature
 
-- [ ] **6.5** Cold-start progress tracking
+- [x] **6.5** Cold-start progress tracking
   - Admin can see: "System has purchase data for 120 of ~350 area codes for WhatsApp"
   - Shows learning velocity: "Added 15 new area code data points this week"
 
-- [ ] **6.6** Tests
+- [x] **6.6** Tests
   - Analytics endpoints return correct aggregations
   - Empty data → returns zeros, not errors
   - Carrier distribution percentages sum to 1.0

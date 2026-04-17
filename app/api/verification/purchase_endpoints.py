@@ -23,6 +23,8 @@ from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
+from app.core.exceptions import AreaCodeUnavailableException
+from fastapi.responses import JSONResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -212,150 +214,149 @@ async def request_verification(
                 service=request.service,
                 country=request.country,
                 area_code=area_code,
-                carrier=carrier,
                 capability=request.capability,
+                selected_from_alternatives=request.selected_from_alternatives,
+                original_request=request.original_request,
             )
             provider_name = "textverified"
-
-            logger.info(
-                f"TextVerified success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
+        except AreaCodeUnavailableException as area_err:
+            # Area code is confirmed unavailable — no credits were charged (number was cancelled)
+            db.rollback()
+            logger.warning(
+                f"Area code unavailable for user {user_id}: {area_err.message}"
             )
-            if textverified_result.get("fallback_applied"):
-                logger.warning(
-                    f"Area code fallback for user {user_id}: requested={textverified_result['requested_area_code']}, "
-                    f"assigned={textverified_result['assigned_area_code']}"
-                )
-                try:
-                    await notification_dispatcher.notify_area_code_fallback(
-                        user_id=user_id,
-                        verification_id="pending",
-                        service=request.service,
-                        requested_area_code=textverified_result["requested_area_code"],
-                        assigned_area_code=textverified_result["assigned_area_code"],
-                        same_state=textverified_result.get("same_state_fallback", True),
-                    )
-                except Exception:
-                    pass
-
-            # Step 2.1: Log city filter outcome
-            if city:
-                logger.info(
-                    f"City filter outcome: requested={city}, "
-                    f"honoured={textverified_result['city_honoured']}, "
-                    f"note={textverified_result['city_note']}"
-                )
-
-            # Step 2.2: Create verification record with filter tracking
-            actual_cost = sms_cost  # Use our pricing system cost
-            logger.info(f"Creating verification record for user {user_id}")
-            verification = Verification(
-                user_id=user_id,
-                service_name=request.service,
-                phone_number=textverified_result["phone_number"],
-                country=request.country,
-                capability=request.capability,
-                cost=actual_cost,
-                provider="textverified",
-                activation_id=textverified_result["id"],
-                status="pending",
-                idempotency_key=final_idempotency_key,
-                requested_area_code=area_code,  # Track requested filter
-                requested_carrier=None,
-                operator=None,
-                assigned_area_code=textverified_result.get("assigned_area_code"),
-                assigned_carrier=None,
-                fallback_applied=textverified_result.get("fallback_applied", False),
-                same_state_fallback=textverified_result.get(
-                    "same_state_fallback", True
-                ),
-                # v4.4.1 retry tracking
-                retry_attempts=textverified_result.get("retry_attempts", 0),
-                area_code_matched=textverified_result.get("area_code_matched", True),
-                carrier_matched=textverified_result.get("carrier_matched", True),
-                real_carrier=textverified_result.get("real_carrier"),
-                carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
-                area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
-                voip_rejected=textverified_result.get("voip_rejected", False),
-                created_at=datetime.now(timezone.utc),
-            )
-            db.add(verification)
-            db.flush()  # Get the ID before commit
-
-            # Step 2.3: Process automatic refunds (v4.4.1 Phase 5)
-            refund_service = RefundService()
-            refund_result = await refund_service.process_refund(verification, user, db)
-
-            if refund_result["refund_issued"]:
-                logger.info(
-                    f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
-                    f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
-                )
-                # Adjust actual cost and sync back to verification record
-                actual_cost -= refund_result["refund_amount"]
-                verification.cost = type(verification.cost)(actual_cost)
-
-            logger.info(f"Verification record created with ID: {verification.id}")
-
-            # Step 3: Deduct credits and record transaction
-            # For admin users, sync from live TextVerified balance
-            if user.is_admin:
-                # Admin: Fetch new balance from TextVerified
-                try:
-                    tv_bal = await tv_service.get_balance()
-                    new_balance = tv_bal.get("balance", 0.0)
-                    user.credits = new_balance  # Update cache
-                    logger.info(
-                        f"Admin balance synced after purchase: "
-                        f"${old_balance:.2f} → ${new_balance:.2f}"
-                    )
-                except Exception as sync_err:
-                    logger.warning(f"Post-purchase balance sync failed: {sync_err}")
-                    # Estimate new balance
-                    new_balance = old_balance - actual_cost
-                    user.credits = new_balance
-            else:
-                # Regular user: Deduct locally
-                user.credits -= type(user.credits)(actual_cost)
-                new_balance = float(user.credits)
-                logger.info(
-                    f"User balance deducted: "
-                    f"${old_balance:.2f} → ${new_balance:.2f}"
-                )
-
-            # Record transaction for BOTH admin and regular users
-            TransactionService.record_sms_purchase(
-                db=db,
-                user_id=user_id,
-                amount=actual_cost,
-                service=request.service,
-                verification_id=str(verification.id),
-                old_balance=old_balance,
-                new_balance=new_balance,
-                filters=(
-                    {"area_code": area_code, "carrier": carrier}
-                    if (area_code or carrier)
-                    else None
-                ),
-                tier=user_tier,
+            return JSONResponse(
+                status_code=422,
+                content={
+                    "success": False,
+                    "error": "area_code_unavailable",
+                    "message": area_err.message,
+                    "alternatives": area_err.alternatives,
+                    "credits_charged": False,
+                }
             )
 
-            # CRITICAL: Notify user of credit deduction immediately
+        # —— Success path: textverified_result is populated ——
+        logger.info(
+            f"TextVerified success: {textverified_result['phone_number']}, id: {textverified_result['id']}"
+        )
+
+        if textverified_result.get("fallback_applied"):
+            logger.warning(
+                f"Area code fallback for user {user_id}: "
+                f"requested={textverified_result['requested_area_code']}, "
+                f"assigned={textverified_result['assigned_area_code']}"
+            )
             try:
-                await notification_dispatcher.notify_verification_started(
+                await notification_dispatcher.notify_area_code_fallback(
                     user_id=user_id,
-                    verification_id=str(verification.id),
+                    verification_id="pending",
                     service=request.service,
-                    phone_number=textverified_result["phone_number"],
-                    cost=actual_cost,
+                    requested_area_code=textverified_result["requested_area_code"],
+                    assigned_area_code=textverified_result["assigned_area_code"],
+                    same_state=textverified_result.get("same_state_fallback", True),
                 )
-            except (TypeError, AttributeError) as e:
-                # Handle mock or service errors gracefully
-                logger.warning(f"Failed to send verification notification: {e}")
+            except Exception:
+                pass  # Notification failure is non-fatal
+
+        # Step 2.2: Create verification record
+        actual_cost = sms_cost
+        logger.info(f"Creating verification record for user {user_id}")
+        verification = Verification(
+            user_id=user_id,
+            service_name=request.service,
+            phone_number=textverified_result["phone_number"],
+            country=request.country,
+            capability=request.capability,
+            cost=actual_cost,
+            provider="textverified",
+            activation_id=textverified_result["id"],
+            status="pending",
+            idempotency_key=final_idempotency_key,
+            requested_area_code=area_code,
+            requested_carrier=None,
+            operator=None,
+            assigned_area_code=textverified_result.get("assigned_area_code"),
+            assigned_carrier=None,
+            fallback_applied=textverified_result.get("fallback_applied", False),
+            same_state_fallback=textverified_result.get("same_state_fallback", True),
+            retry_attempts=textverified_result.get("attempt_count", 1),
+            area_code_matched=textverified_result.get("area_code_matched", True),
+            carrier_matched=True,       # carrier feature retired
+            real_carrier=None,          # carrier feature retired
+            carrier_surcharge=pricing_info.get("carrier_surcharge", 0.0),
+            area_code_surcharge=pricing_info.get("area_code_surcharge", 0.0),
+            voip_rejected=textverified_result.get("voip_rejected", False),
+            created_at=datetime.now(timezone.utc),
+        )
+        db.add(verification)
+        db.flush()  # Get the ID before commit
+
+        # Step 2.3: Process automatic refunds
+        refund_service = RefundService()
+        refund_result = await refund_service.process_refund(verification, user, db)
+
+        if refund_result["refund_issued"]:
+            logger.info(
+                f"Refund issued: user={user_id}, amount=${refund_result['refund_amount']:.2f}, "
+                f"type={refund_result['refund_type']}, reason={refund_result['reason']}"
+            )
+            actual_cost -= refund_result["refund_amount"]
+            verification.cost = type(verification.cost)(actual_cost)
+
+        logger.info(f"Verification record created with ID: {verification.id}")
+
+        # Step 3: Deduct credits and record transaction
+        # For admin users, sync from live TextVerified balance
+        if user.is_admin:
+            try:
+                tv_bal = await tv_service.get_balance()
+                new_balance = tv_bal.get("balance", 0.0)
+                user.credits = new_balance
+                logger.info(
+                    f"Admin balance synced after purchase: ${old_balance:.2f} → ${new_balance:.2f}"
+                )
+            except Exception as sync_err:
+                logger.warning(f"Post-purchase balance sync failed: {sync_err}")
+                new_balance = old_balance - actual_cost
+                user.credits = new_balance
+        else:
+            user.credits -= type(user.credits)(actual_cost)
+            new_balance = float(user.credits)
+            logger.info(
+                f"User balance deducted: ${old_balance:.2f} → ${new_balance:.2f}"
+            )
+
+        # Record transaction
+        TransactionService.record_sms_purchase(
+            db=db,
+            user_id=user_id,
+            amount=actual_cost,
+            service=request.service,
+            verification_id=str(verification.id),
+            old_balance=old_balance,
+            new_balance=new_balance,
+            filters={"area_code": area_code} if area_code else None,
+            tier=user_tier,
+        )
+
+        # Notify user of credit deduction
+        try:
+            await notification_dispatcher.notify_verification_started(
+                user_id=user_id,
+                verification_id=str(verification.id),
+                service=request.service,
+                phone_number=textverified_result["phone_number"],
+                cost=actual_cost,
+            )
+        except (TypeError, AttributeError) as e:
+            logger.warning(f"Failed to send verification notification: {e}")
 
         except HTTPException:
             raise
         except Exception as api_error:
             db.rollback()
+
             logger.error(
                 f"Purchase failed, transaction rolled back: {str(api_error)}",
                 exc_info=True,

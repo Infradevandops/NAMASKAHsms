@@ -37,106 +37,14 @@ async function checkTierAccess() {
 
         // Area Code (PAYG+)
         if (currentRank >= 1) {
-            document.getElementById('area-code-field-wrapper').style.display = 'block';
-            document.getElementById('area-code-lock').style.display = 'none';
-            await loadAreaCodes(); // Load area codes immediately for PAYG+ users
+            const wrap = document.getElementById('area-code-field-wrapper');
+            const lock = document.getElementById('area-code-lock');
+            if(wrap) wrap.style.display = 'block';
+            if(lock) lock.style.display = 'none';
         }
 
-        // Carrier (Pro+)
-        if (currentRank >= 2) {
-            document.getElementById('carrier-field-wrapper').style.display = 'block';
-            document.getElementById('carrier-lock').style.display = 'none';
-            await loadCarriers();
-        }
     } catch (error) {
         console.warn('[Verify] Could not determine user tier:', error);
-    }
-}
-
-async function loadCarriers() {
-    const select = document.getElementById('carrier-select');
-    
-    try {
-        // Show loading state
-        select.innerHTML = '<option value="">Loading carriers...</option>';
-        select.disabled = true;
-        
-        const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/verification/carriers/US`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        // Re-enable and populate
-        select.disabled = false;
-        select.innerHTML = '<option value="">Any Carrier</option>';
-        
-        if (res.data.carriers && res.data.carriers.length > 0) {
-            res.data.carriers.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.id;
-                
-                // Add visual indicator based on success rate
-                const icon = c.success_rate >= 90 ? '🟢' : 
-                             c.success_rate >= 75 ? '🟡' : '🔴';
-                
-                // Format: "Verizon - 🟢 95.3% Success"
-                opt.textContent = `${c.name} - ${icon} ${c.success_rate.toFixed(1)}% Success`;
-                select.appendChild(opt);
-            });
-            console.log(`✅ Loaded ${res.data.carriers.length} carriers (source: ${res.data.source})`);
-        }
-    } catch (e) {
-        console.error('[Verify] Failed to load carriers:', e);
-        // Show error state with fallback
-        select.disabled = false;
-        select.innerHTML = '<option value="">Any Carrier (using fallback)</option>';
-    }
-}
-
-async function loadAreaCodes(serviceId = null) {
-    if ((TIER_RANK[userTier] || 0) < 1) return;
-
-    const select = document.getElementById('area-code-select');
-    
-    try {
-        // Show loading state
-        select.innerHTML = '<option value="">Loading area codes...</option>';
-        select.disabled = true;
-        
-        const token = localStorage.getItem('access_token');
-        const res = await axios.get(`/api/verification/area-codes/US`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        
-        allAreaCodes = res.data.area_codes;
-        
-        // Re-enable and populate
-        select.disabled = false;
-        select.innerHTML = '<option value="">Any Area Code</option>';
-        
-        if (allAreaCodes && allAreaCodes.length > 0) {
-            allAreaCodes.forEach(ac => {
-                const opt = document.createElement('option');
-                opt.value = ac.area_code;
-                
-                // Add visual indicator if success rate available
-                let displayText = `${ac.city}, ${ac.state} (${ac.area_code})`;
-                if (ac.success_rate) {
-                    const icon = ac.success_rate >= 90 ? '🟢' : 
-                                 ac.success_rate >= 75 ? '🟡' : '🔴';
-                    displayText = `${ac.city}, ${ac.state} (${ac.area_code}) - ${icon} ${ac.success_rate.toFixed(1)}%`;
-                }
-                
-                opt.textContent = displayText;
-                select.appendChild(opt);
-            });
-            console.log(`✅ Loaded ${allAreaCodes.length} area codes (source: ${res.data.source})`);
-        }
-    } catch (e) {
-        console.error('[Verify] Failed to load area codes:', e);
-        // Show error state with fallback
-        select.disabled = false;
-        select.innerHTML = '<option value="">Any Area Code (using fallback)</option>';
     }
 }
 
@@ -299,8 +207,7 @@ function selectService(id, name, cost) {
         }
     }
 
-    // Load area codes for selected service if user has access
-    loadAreaCodes(id);
+    // Remove area code load triggering since we use purely dynamic typing now.
 
     // Trigger dynamic pricing preview
     debouncedUpdatePricePreview();
@@ -331,8 +238,8 @@ async function updatePricePreview() {
     costDisplay.style.opacity = '0.5';
 
     try {
-        const areaCode = document.getElementById('area-code-select').value;
-        const carrier = document.getElementById('carrier-select').value;
+        const areaCodeInput = document.getElementById('area-code-search-input');
+        const areaCode = areaCodeInput ? areaCodeInput.value.replace(/\D/g, '') : null;
         const token = localStorage.getItem('access_token');
 
         const params = new URLSearchParams({
@@ -340,8 +247,7 @@ async function updatePricePreview() {
             country: 'US',
         });
 
-        if (areaCode) params.append('area_code', areaCode);
-        if (carrier) params.append('carrier', carrier);
+        if (areaCode && areaCode.length === 3) params.append('area_code', areaCode);
 
         const res = await axios.get(`/api/verification/pricing?${params.toString()}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -358,6 +264,9 @@ async function updatePricePreview() {
     }
 }
 
+// Track which area code user originally wanted before selecting an alternative
+let _originalRequestedAreaCode = null;
+
 async function purchaseVerification() {
     if (!selectedService) return;
 
@@ -366,59 +275,148 @@ async function purchaseVerification() {
     btn.innerHTML = '<div class="spinner-sm" style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></div> Processing...';
 
     try {
-        const areaCode = document.getElementById('area-code-select').value;
-        const carrier = document.getElementById('carrier-select').value;
+        const areaCodeInput = document.getElementById('area-code-search-input');
+        const rawCode = areaCodeInput ? areaCodeInput.value.replace(/\D/g, '') : '';
+        const finalAreaCode = (rawCode && rawCode.length === 3) ? rawCode : null;
         const token = localStorage.getItem('access_token');
 
-        const res = await axios.post('/api/v1/verify/create', {
-            service_name: selectedService,
+        // Build payload — schema uses area_codes (list) not area_code
+        const payload = {
+            service: selectedService,
             country: 'US',
             capability: 'sms',
-            area_code: areaCode || null,
-            carrier: carrier || null,
-            idempotency_key: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString()
-        }, {
+            area_codes: finalAreaCode ? [finalAreaCode] : null,
+            idempotency_key: (typeof crypto !== 'undefined' && crypto.randomUUID)
+                ? crypto.randomUUID()
+                : (Date.now().toString(36) + Math.random().toString(36).slice(2)),
+        };
+
+        // Phase 6.4: track if this is an alternative selection
+        if (_originalRequestedAreaCode && finalAreaCode && finalAreaCode !== _originalRequestedAreaCode) {
+            payload.selected_from_alternatives = true;
+            payload.original_request = _originalRequestedAreaCode;
+        }
+
+        const res = await axios.post('/api/v1/verification/request', payload, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (res.data && res.data.phone_number) {
+            _originalRequestedAreaCode = null;  // Reset after successful purchase
             currentVerification = res.data;
             const formatted = formatPhone(res.data.phone_number);
             document.getElementById('phone-display').innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
                     <span style="font-size: 24px; letter-spacing: 1px;">${formatted}</span>
-                    <button onclick="navigator.clipboard.writeText('${formatted}')" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;">Copy</button>
-                    ${detectCarrier(res.data) ? `<span style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-weight: 500;">Verify on ${detectCarrier(res.data)}</span>` : ''}
+                    <button onclick="navigator.clipboard.writeText('${res.data.phone_number}')" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); color: white; padding: 4px 14px; border-radius: 6px; cursor: pointer; font-size: 12px;">Copy</button>
+                    <span style="font-size: 11px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 12px; font-weight: 500;">Ready to Verify</span>
                 </div>
             `;
             if (res.data.fallback_applied) {
-                const existingAlert = document.querySelector('.fallback-alert');
-                if (existingAlert) existingAlert.remove();
-
-                const fallbackAlert = document.createElement('div');
-                fallbackAlert.className = 'fallback-alert';
-                fallbackAlert.style.cssText = 'background: #fffbeb; border: 1px solid #fcf6c2; color: #92400e; padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; display: flex; align-items:flex-start; gap: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);';
-                fallbackAlert.innerHTML = `
-                    <div style="font-size: 16px;">⚡</div>
-                    <div>
-                        <strong style="font-weight: 600; display: block; margin-bottom: 2px;">${i18n.t('verify.intelligent_fallback')}</strong>
-                        ${i18n.t('verify.fallback_message')}
-                    </div>
-                `;
-                const container = document.getElementById('reception-card').parentNode;
-                container.insertBefore(fallbackAlert, document.getElementById('reception-card'));
+                _showFallbackAlert();
             }
-
             document.getElementById('reception-card').style.display = 'block';
             startPolling(res.data.id);
             if (window.refreshBalance) window.refreshBalance();
         }
     } catch (error) {
-        alert(error.response?.data?.detail || 'Purchase failed');
+        const data = error.response?.data;
+
+        // Phase 5: handle area code unavailable — show alternatives instead of generic alert
+        if (data && data.error === 'area_code_unavailable') {
+            _handleAreaCodeUnavailable(data);
+            btn.disabled = false;
+            btn.textContent = 'Get SMS Code';
+            return;
+        }
+
+        // All other errors
+        const msg = data?.detail || data?.message || 'Purchase failed. Please try again.';
+        _showPurchaseError(msg);
         btn.disabled = false;
         btn.textContent = 'Get SMS Code';
     }
 }
+
+function _showFallbackAlert() {
+    const existing = document.querySelector('.fallback-alert');
+    if (existing) existing.remove();
+    const alert = document.createElement('div');
+    alert.className = 'fallback-alert';
+    alert.style.cssText = 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;display:flex;align-items:flex-start;gap:10px;';
+    alert.innerHTML = `
+        <div style="font-size:16px;">⚡</div>
+        <div><strong style="display:block;margin-bottom:2px;">Nearby area code assigned</strong>
+        Your requested area code wasn't available. We found you the closest match.</div>
+    `;
+    const card = document.getElementById('reception-card');
+    if (card) card.parentNode.insertBefore(alert, card);
+}
+
+function _showPurchaseError(message) {
+    const existing = document.querySelector('.purchase-error-alert');
+    if (existing) existing.remove();
+    const alert = document.createElement('div');
+    alert.className = 'purchase-error-alert';
+    alert.style.cssText = 'background:#fef2f2;border:1px solid #fca5a5;color:#991b1b;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;';
+    alert.textContent = message;
+    const btn = document.getElementById('purchase-btn');
+    if (btn) btn.parentNode.insertBefore(alert, btn);
+    setTimeout(() => alert.remove(), 6000);
+}
+
+function _handleAreaCodeUnavailable(data) {
+    const areaCodeInput = document.getElementById('area-code-search-input');
+    const currentCode = areaCodeInput ? areaCodeInput.value.replace(/\D/g, '') : '';
+
+    // Store the original request so it can be tracked if user picks an alternative
+    if (currentCode.length === 3) _originalRequestedAreaCode = currentCode;
+
+    // Remove stale alerts
+    document.querySelectorAll('.ac-unavailable-alert').forEach(el => el.remove());
+
+    const alts = data.alternatives || [];
+    const altHTML = alts.length > 0 ? `
+        <div style="margin-top:10px;">
+            <p style="font-size:12px;margin-bottom:6px;font-weight:600;">Select a nearby alternative:</p>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                ${alts.slice(0, 6).map(alt => `
+                    <button
+                        onclick="selectAlternativeCode('${alt.area_code}')"
+                        style="background:#f0fdf4;border:1px solid #6ee7b7;color:#065f46;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:500;"
+                        title="${alt.city || ''}, ${alt.state || ''}"
+                    >${alt.area_code}<span style="font-weight:400;font-size:11px;"> ${alt.city || alt.state || ''}</span></button>
+                `).join('')}
+            </div>
+        </div>
+    ` : '';
+
+    const alertEl = document.createElement('div');
+    alertEl.className = 'ac-unavailable-alert';
+    alertEl.style.cssText = 'background:#fffbeb;border:1px solid #fcd34d;color:#92400e;padding:14px;border-radius:8px;margin-bottom:16px;font-size:13px;';
+    alertEl.innerHTML = `
+        <strong style="display:block;margin-bottom:4px;">⚠️ ${data.message || 'Area code not available right now.'}</strong>
+        <span style="font-size:12px;">No credits were charged.</span>
+        ${altHTML}
+    `;
+
+    const btn = document.getElementById('purchase-btn');
+    if (btn) btn.parentNode.insertBefore(alertEl, btn);
+}
+
+function selectAlternativeCode(code) {
+    // Remove any stale unavailable alerts
+    document.querySelectorAll('.ac-unavailable-alert').forEach(el => el.remove());
+
+    const areaCodeInput = document.getElementById('area-code-search-input');
+    if (areaCodeInput) {
+        areaCodeInput.value = code;
+        debouncedCheckAreaCode(code);
+        debouncedUpdatePricePreview();
+    }
+}
+
+
 
 async function cancelVerification() {
     if (!currentVerification) return;
@@ -659,8 +657,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     await loadServices();
 
     // Add listeners for filters to update pricing
-    document.getElementById('area-code-select').addEventListener('change', debouncedUpdatePricePreview);
-    document.getElementById('carrier-select').addEventListener('change', debouncedUpdatePricePreview);
+    const aci = document.getElementById('area-code-search-input');
+    if (aci) aci.addEventListener('input', debouncedUpdatePricePreview);
 
     // Tier 3: Load Presets logic
     const currentRank = TIER_RANK[userTier.toLowerCase()] || 0;
@@ -769,12 +767,115 @@ async function applyPreset(serviceId, countryId, areaCode, carrier) {
     }, 1000);
 }
 
-function detectCarrier(verificationData) {
-    // Task 09: Carrier Mask Unveiling
-    const requestedVars = document.getElementById('carrier-select');
-    if (requestedVars && requestedVars.value) {
-        const selectedOption = requestedVars.options[requestedVars.selectedIndex];
-        return selectedOption.text.split('(')[0].trim();
-    }
-    return null; // Don't show if random/generic
+// Area Code Live Validation Functions
+
+let _jsCheckTimeout = null;
+let _jsCheckAbort = null;
+
+function clearAreaCode() {
+    const acInput = document.getElementById('area-code-search-input');
+    if (acInput) acInput.value = '';
+    debouncedCheckAreaCode('');
+    debouncedUpdatePricePreview();
 }
+
+function debouncedCheckAreaCode(value) {
+    if(!value) {
+        // Reset states
+        const input = document.getElementById('area-code-search-input');
+        if(input) {
+            input.style.borderColor = '#e5e7eb';
+            input.style.backgroundColor = '#fff';
+        }
+        if(_jsCheckTimeout) clearTimeout(_jsCheckTimeout);
+        return;
+    }
+    
+    const code = value.replace(/\D/g, '');
+    if (code.length < 3) return;
+    
+    if (!selectedService) return;
+    
+    if (_jsCheckTimeout) clearTimeout(_jsCheckTimeout);
+    if (_jsCheckAbort) _jsCheckAbort.abort();
+    
+    _jsCheckTimeout = setTimeout(() => {
+        checkAreaCodeAPI(code);
+    }, 500);
+}
+
+async function checkAreaCodeAPI(code) {
+    const input = document.getElementById('area-code-search-input');
+    const msg = document.getElementById('ac-message');
+    const badge = document.getElementById('ac-status-badge');
+    const btn = document.getElementById('purchase-btn');
+    
+    _jsCheckAbort = new AbortController();
+    try {
+        const res = await fetch(`/api/area-codes/check?service=${encodeURIComponent(selectedService)}&area_code=${encodeURIComponent(code)}`, {
+            signal: _jsCheckAbort.signal
+        });
+        
+        if (!res.ok) {
+            const data = await res.json().catch(()=>({}));
+            if(input) {
+                input.style.borderColor = '#ef4444';
+                input.style.backgroundColor = '#fff';
+            }
+            if(msg) {
+                msg.textContent = data.error?.message || data.detail || 'Unsupported';
+                msg.style.color = '#dc2626';
+                msg.style.display = 'block';
+            }
+            if(btn) btn.disabled = true;
+            return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.status === 'available') {
+            if(input) {
+                input.style.borderColor = '#10b981';
+                input.style.backgroundColor = '#f0fdf4';
+            }
+            if(msg) {
+                msg.textContent = data.message;
+                msg.style.color = '#059669';
+                msg.style.display = 'block';
+            }
+            if(btn) btn.disabled = false;
+        } else if (data.status === 'unavailable') {
+            if(input) {
+                input.style.borderColor = '#f59e0b';
+                input.style.backgroundColor = '#fffbeb';
+            }
+            if(msg) {
+                msg.textContent = data.message;
+                msg.style.color = '#92400e';
+                msg.style.display = 'block';
+            }
+            if(btn) btn.disabled = true;
+            
+            // Note: If using `verification.js`, the UI needs manual alt rendering
+            // We'll rely on the main `verify_modern.html` to be the primary interface,
+            // but keep the logic here synced.
+        } else {
+            if(input) {
+                input.style.borderColor = '#e5e7eb';
+                input.style.backgroundColor = '#fff';
+            }
+            if(msg) {
+                msg.textContent = data.message;
+                msg.style.color = '#6b7280';
+                msg.style.display = 'block';
+            }
+            if(btn) btn.disabled = false;
+        }
+        
+    } catch (e) {
+        if (e.name === 'AbortError') return;
+        if(input) input.style.borderColor = '#e5e7eb';
+        if(btn) btn.disabled = false;
+    }
+}
+
