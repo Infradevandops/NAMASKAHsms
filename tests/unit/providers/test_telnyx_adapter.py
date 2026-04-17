@@ -198,11 +198,13 @@ async def test_check_messages_empty(adapter):
 @pytest.mark.asyncio
 async def test_check_messages_api_error(adapter):
     """When API call fails, should return empty list (graceful degradation)."""
-    with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-        mock_get.side_effect = Exception("API error")
-        
+    with patch.object(adapter, "_get_client") as mock_client_fn:
+        client = AsyncMock()
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
+        mock_client_fn.return_value = client
+
         messages = await adapter.check_messages("order-abc")
-    
+
     assert messages == []
 
 
@@ -251,11 +253,13 @@ async def test_cancel_success(adapter):
 @pytest.mark.asyncio
 async def test_cancel_failure(adapter):
     """When cancel API call fails, should return False (graceful degradation)."""
-    with patch("httpx.AsyncClient.delete", new_callable=AsyncMock) as mock_delete:
-        mock_delete.side_effect = Exception("API error")
-        
+    with patch.object(adapter, "_get_client") as mock_client_fn:
+        client = AsyncMock()
+        client.delete = AsyncMock(side_effect=httpx.HTTPError("API error"))
+        mock_client_fn.return_value = client
+
         result = await adapter.cancel("order-abc")
-    
+
     assert result is False
 
 
@@ -279,11 +283,13 @@ async def test_get_balance_success(adapter):
 @pytest.mark.asyncio
 async def test_get_balance_error(adapter):
     """When balance API call fails, should return 0.0 (graceful degradation)."""
-    with patch("httpx.AsyncClient.get", new_callable=AsyncMock) as mock_get:
-        mock_get.side_effect = Exception("API error")
-        
+    with patch.object(adapter, "_get_client") as mock_client_fn:
+        client = AsyncMock()
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
+        mock_client_fn.return_value = client
+
         balance = await adapter.get_balance()
-    
+
     assert balance == 0.0
 
 

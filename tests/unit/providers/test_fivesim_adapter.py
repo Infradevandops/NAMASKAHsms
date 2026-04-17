@@ -219,7 +219,7 @@ async def test_check_messages_timeout_status(adapter):
 async def test_check_messages_api_error(adapter):
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
         mock_client_fn.return_value = client
 
         messages = await adapter.check_messages("12345")
@@ -248,7 +248,7 @@ async def test_report_failed_success(adapter):
 async def test_report_failed_error(adapter):
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
         mock_client_fn.return_value = client
 
         result = await adapter.report_failed("12345")
@@ -277,7 +277,7 @@ async def test_get_balance_success(adapter):
 async def test_get_balance_error(adapter):
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
         mock_client_fn.return_value = client
 
         balance = await adapter.get_balance()
@@ -345,7 +345,7 @@ async def test_get_best_operator_no_inventory(adapter):
 async def test_get_best_operator_api_error(adapter):
     with patch.object(adapter, "_get_client") as mock_client_fn:
         client = AsyncMock()
-        client.get = AsyncMock(side_effect=Exception("API error"))
+        client.get = AsyncMock(side_effect=httpx.HTTPError("API error"))
         mock_client_fn.return_value = client
 
         result = await adapter._get_best_operator("unitedkingdom", "whatsapp")
