@@ -163,9 +163,10 @@ class RefundService:
         reasons: list,
     ):
         """Create transaction record for refund and link to telemetry"""
-        from app.models.transaction import Transaction
-        from app.models.purchase_outcome import PurchaseOutcome
         from sqlalchemy import update
+
+        from app.models.purchase_outcome import PurchaseOutcome
+        from app.models.transaction import Transaction
 
         transaction = Transaction(
             user_id=user.id,

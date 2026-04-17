@@ -21,11 +21,11 @@ from app.services.balance_service import BalanceService
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.pricing_calculator import PricingCalculator
+from app.services.purchase_intelligence import PurchaseIntelligenceService
 from app.services.sms_polling_service import sms_polling_service
 from app.services.textverified_service import TextVerifiedService
 from app.services.tier_manager import TierManager
 from app.services.transaction_service import TransactionService
-from app.services.purchase_intelligence import PurchaseIntelligenceService
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/verification", tags=["Verification"])
@@ -216,6 +216,7 @@ async def request_verification(
                     f"Initiating purchase through ProviderRouter - Service: {request.service}, Country: {request.country}"
                 )
                 purchase_result = await provider_router.purchase_with_failover(
+                    db=db,
                     service=request.service,
                     country=request.country,
                     area_code=area_code,
