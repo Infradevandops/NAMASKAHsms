@@ -92,9 +92,7 @@ class FiveSimAdapter(SMSProvider):
         try:
             country_name = await self._map_country(country)
             if not country_name:
-                raise ProviderError(
-                    "unsupported_country", f"5sim: no mapping for {country}"
-                )
+                raise RuntimeError(f"5sim does not support country {country}")
 
             service_name = await self._map_service(service)
             if not service_name:
