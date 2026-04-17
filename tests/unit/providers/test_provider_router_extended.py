@@ -99,7 +99,7 @@ async def test_purchase_all_providers_fail(router):
         mock_settings_fn.return_value = s
 
         with patch.object(
-            router, "get_provider", return_value=mock_primary
+            router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             with pytest.raises(RuntimeError, match="All providers failed"):
@@ -132,7 +132,7 @@ async def test_purchase_concurrent_failover(router):
         mock_settings_fn.return_value = s
 
         with patch.object(
-            router, "get_provider", return_value=mock_primary
+            router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             tasks = [router.purchase_with_failover("whatsapp", "US") for _ in range(10)]
@@ -171,7 +171,7 @@ async def test_routing_reason_populated(router):
     mock_provider.name = "textverified"
     mock_provider.purchase_number = AsyncMock(return_value=_make_result())
 
-    with patch.object(router, "get_provider", return_value=mock_provider):
+    with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
         result = await router.purchase_with_failover("whatsapp", "US")
 
     assert result.routing_reason == "country=US"
@@ -197,7 +197,7 @@ async def test_routing_reason_failover_populated(router):
         mock_settings_fn.return_value = s
 
         with patch.object(
-            router, "get_provider", return_value=mock_primary
+            router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             result = await router.purchase_with_failover("whatsapp", "US")

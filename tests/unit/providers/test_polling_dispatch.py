@@ -110,7 +110,7 @@ async def test_poll_telnyx_success(service):
         text="Code 123456", code="123456", received_at="2026-03-26T12:00:00Z"
     )
 
-    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter:
+    with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[msg])
         MockAdapter.return_value = adapter
@@ -129,7 +129,7 @@ async def test_poll_telnyx_timeout(service):
     db = MagicMock()
 
     with patch(
-        "app.services.sms_polling_service.TelnyxAdapter"
+        "app.services.providers.telnyx_adapter.TelnyxAdapter"
     ) as MockAdapter, patch.object(
         service, "_handle_timeout", new_callable=AsyncMock
     ) as mock_timeout:
@@ -149,7 +149,7 @@ async def test_poll_telnyx_api_error(service):
     db = MagicMock()
 
     with patch(
-        "app.services.sms_polling_service.TelnyxAdapter"
+        "app.services.providers.telnyx_adapter.TelnyxAdapter"
     ) as MockAdapter, patch.object(
         service, "_handle_timeout", new_callable=AsyncMock
     ) as mock_timeout:
@@ -173,7 +173,7 @@ async def test_poll_fivesim_success(service):
         text="Code 654321", code="654321", received_at="2026-03-26T12:00:00Z"
     )
 
-    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter:
+    with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter:
         adapter = AsyncMock()
         adapter.check_messages = AsyncMock(return_value=[msg])
         MockAdapter.return_value = adapter
@@ -192,7 +192,7 @@ async def test_poll_fivesim_timeout(service):
     db = MagicMock()
 
     with patch(
-        "app.services.sms_polling_service.FiveSimAdapter"
+        "app.services.providers.fivesim_adapter.FiveSimAdapter"
     ) as MockAdapter, patch.object(
         service, "_handle_timeout", new_callable=AsyncMock
     ) as mock_timeout:
@@ -211,7 +211,7 @@ async def test_poll_fivesim_api_error(service):
     db = MagicMock()
 
     with patch(
-        "app.services.sms_polling_service.FiveSimAdapter"
+        "app.services.providers.fivesim_adapter.FiveSimAdapter"
     ) as MockAdapter, patch.object(
         service, "_handle_timeout", new_callable=AsyncMock
     ) as mock_timeout:
@@ -245,7 +245,7 @@ async def test_handle_timeout_telnyx(service):
     v = _make_verification(provider="telnyx")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.TelnyxAdapter") as MockAdapter, patch(
+    with patch("app.services.providers.telnyx_adapter.TelnyxAdapter") as MockAdapter, patch(
         "app.services.sms_polling_service.NotificationService"
     ):
         adapter = AsyncMock()
@@ -263,7 +263,7 @@ async def test_handle_timeout_fivesim(service):
     v = _make_verification(provider="5sim")
     db = MagicMock()
 
-    with patch("app.services.sms_polling_service.FiveSimAdapter") as MockAdapter, patch(
+    with patch("app.services.providers.fivesim_adapter.FiveSimAdapter") as MockAdapter, patch(
         "app.services.sms_polling_service.NotificationService"
     ):
         adapter = AsyncMock()

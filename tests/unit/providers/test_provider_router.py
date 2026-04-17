@@ -27,7 +27,7 @@ class TestProviderRouter:
 
     def test_us_routes_to_textverified(self, router):
         """US requests should route to TextVerified."""
-        provider = router.get_provider("US")
+        provider, _, _ = router.get_provider("US")
         assert provider.name == "textverified"
 
     def test_international_routes_to_fivesim(self, router):
@@ -38,7 +38,7 @@ class TestProviderRouter:
             mock_provider.name = "5sim"
             mock_fivesim.return_value = mock_provider
 
-            provider = router.get_provider("GB")
+            provider, _, _ = router.get_provider("GB")
             assert provider.name == "5sim"
 
     def test_enterprise_preference_routes_to_telnyx(self, router):
@@ -49,7 +49,7 @@ class TestProviderRouter:
             mock_provider.name = "telnyx"
             mock_telnyx.return_value = mock_provider
 
-            provider = router.get_provider("GB", prefer_enterprise=True)
+            provider, _, _ = router.get_provider("GB", prefer_enterprise=True)
             assert provider.name == "telnyx"
 
     def test_fallback_to_textverified_when_no_international_provider(self, router):
@@ -66,7 +66,7 @@ class TestProviderRouter:
             mock_telnyx_provider.enabled = False
             mock_telnyx.return_value = mock_telnyx_provider
 
-            provider = router.get_provider("GB")
+            provider, _, _ = router.get_provider("GB")
             assert provider.name == "textverified"
 
     @pytest.mark.asyncio
@@ -83,7 +83,7 @@ class TestProviderRouter:
         )
         mock_provider.purchase_number.return_value = mock_result
 
-        with patch.object(router, "get_provider", return_value=mock_provider):
+        with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
             result = await router.purchase_with_failover(
                 service="whatsapp",
                 country="US",
@@ -100,7 +100,7 @@ class TestProviderRouter:
         mock_provider.name = "textverified"
         mock_provider.purchase_number.side_effect = RuntimeError("Insufficient balance")
 
-        with patch.object(router, "get_provider", return_value=mock_provider):
+        with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
             with pytest.raises(RuntimeError, match="Insufficient balance"):
                 await router.purchase_with_failover(
                     service="whatsapp",
@@ -116,7 +116,7 @@ class TestProviderRouter:
             "No inventory available"
         )
 
-        with patch.object(router, "get_provider", return_value=mock_provider):
+        with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
             with pytest.raises(RuntimeError, match="No inventory"):
                 await router.purchase_with_failover(
                     service="whatsapp",
@@ -142,7 +142,7 @@ class TestProviderRouter:
         mock_secondary.purchase_number.return_value = mock_result
 
         with patch.object(
-            router, "get_provider", return_value=mock_primary
+            router, "get_provider", return_value=(mock_primary, False, None)
         ), patch.object(router, "_get_failover_provider", return_value=mock_secondary):
 
             result = await router.purchase_with_failover(
@@ -170,7 +170,7 @@ class TestProviderRouter:
                 "Connection timeout"
             )
 
-            with patch.object(router, "get_provider", return_value=mock_provider):
+            with patch.object(router, "get_provider", return_value=(mock_provider, False, None)):
                 with pytest.raises(RuntimeError, match="Connection timeout"):
                     await router.purchase_with_failover(
                         service="whatsapp",
