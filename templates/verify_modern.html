@@ -106,25 +106,25 @@
                 <span id="advanced-toggle-icon">▶</span> Advanced Options
             </div>
             <div id="advanced-options-body" style="display:none;">
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:var(--spacing-md);">
+                <div style="display:flex; flex-direction:column; gap:var(--spacing-md);">
                     <div>
-                        <label class="form-label" style="font-size:var(--font-size-sm);">Area Code <span style="font-size:10px; font-weight:600; color:#FE3C72; background:#fff0f0; padding:1px 6px; border-radius:4px;">PREMIUM</span></label>
+                        <label class="form-label" style="font-size:var(--font-size-sm); display:flex; align-items:center; justify-content:space-between;">
+                            <span>Area Code <span style="font-size:10px; font-weight:600; color:#FE3C72; background:#fff0f0; padding:1px 6px; border-radius:4px;">PREMIUM</span></span>
+                            <span id="ac-status-badge" style="display:none; font-size:12px; font-weight:600;"></span>
+                        </label>
                         <div style="position:relative;">
-                            <input type="text" id="area-code-search-input" placeholder="e.g. 212, 415..." 
-                                onclick="openImmersiveModal('area-code')" readonly
-                                style="width:100%; padding:8px 32px 8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box; cursor:pointer; background:#fff;" />
+                            <input type="text" id="area-code-search-input" placeholder="e.g. 213" 
+                                oninput="debouncedCheckAreaCode(this.value)" 
+                                style="width:100%; padding:8px 32px 8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box; background:#fff; outline:none; transition: border-color 0.2s;" />
+                            <div id="ac-spinner" style="display:none; position:absolute; right:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; border:2px solid #e5e7eb; border-top-color:#10b981; border-radius:50%; animation:ac-spin 0.8s linear infinite;"></div>
                             <button id="clear-ac-btn" onclick="clearAreaCode()" 
                                 style="position:absolute; right:8px; top:50%; transform:translateY(-50%); background:none; border:none; color:#9ca3af; cursor:pointer; display:none;">✕</button>
                         </div>
+                        <style>@keyframes ac-spin { to { transform: translateY(-50%) rotate(360deg); } }</style>
+                        <div id="ac-message" style="font-size:12px; margin-top:6px; display:none;"></div>
+                        <div id="ac-alternatives" style="margin-top:8px; display:none; flex-direction:column; gap:4px;"></div>
+                        
                         <div id="area-code-lock-msg" style="font-size:11px; color:var(--text-secondary); margin-top:4px;">Upgrade to PAYG+ to select area code</div>
-                    </div>
-                    <div>
-                        <label class="form-label" style="font-size:var(--font-size-sm);">Carrier <span style="font-size:10px; font-weight:600; color:#FE3C72; background:#fff0f0; padding:1px 6px; border-radius:4px;">PREMIUM</span></label>
-                        <select id="carrier-select-inline" onclick="openImmersiveModal('carrier')" onmousedown="event.preventDefault(); this.blur();"
-                            style="width:100%; padding:8px 12px; border:1px solid #e5e7eb; border-radius:8px; font-size:13px; box-sizing:border-box; background:#fff; cursor:pointer;">
-                            <option value="">Any Carrier</option>
-                        </select>
-                        <div id="carrier-lock-msg" style="display:none; font-size:11px; color:#6b7280; margin-top:4px;">Requires PAYG or higher</div>
                     </div>
                 </div>
             </div>
@@ -134,7 +134,7 @@
             💡 Want specific area codes? <a href="/pricing" style="color:#FE3C72; font-weight:600;">Upgrade to PAYG</a>
         </div>
         <div id="subscribed-tip" style="display:none; margin-top:var(--spacing-md); padding:10px 14px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:8px; font-size:13px; color:#166534;">
-            ✅ Use the Advanced Options above to filter by area code &amp; carrier.
+            ✅ Use the Advanced Options above to filter by area code.
         </div>
 
         <!-- Selection summary chips -->
@@ -778,12 +778,24 @@ function clearAreaCode() {
     if (acInput) acInput.value = '';
     if (clearBtn) clearBtn.style.display = 'none';
     VerificationFlow.selectedAreaCode = null;
+    
+    // Phase 4 Check logic resets
+    if(typeof debouncedCheckAreaCode === 'function') debouncedCheckAreaCode('');
+    
     updatePricing();
 }
 
 function updateContinueBtn() {
     const btn = document.getElementById('continue-btn');
-    if (btn) btn.disabled = !VerificationFlow.selectedService;
+    
+    // If we have a pending API check or error, disable
+    const msg = document.getElementById('ac-message');
+    let isErrorState = false;
+    if (msg && msg.style.display === 'block' && ['#dc2626', '#92400e'].includes(msg.style.color)) {
+        isErrorState = true;
+    }
+
+    if (btn) btn.disabled = !VerificationFlow.selectedService || isErrorState;
     
     // Refresh balance when entering step 2 UI
     if (VerificationFlow.currentStep === 2) {
@@ -1568,5 +1580,175 @@ function updatePricing() {
     const total = price + filterCharges;
     document.getElementById('pricing-cost').textContent = `$${total.toFixed(2)}`;
 }
+// Phase 4 Area Code Check Logic
+let _acCheckTimeout = null;
+let _acCheckAbort = null;
+
+function debouncedCheckAreaCode(value) {
+    const btn = document.getElementById('clear-ac-btn');
+    if (btn) btn.style.display = value ? 'block' : 'none';
+    
+    // Reset state
+    const input = document.getElementById('area-code-search-input');
+    const badge = document.getElementById('ac-status-badge');
+    const msg = document.getElementById('ac-message');
+    const alts = document.getElementById('ac-alternatives');
+    const spinner = document.getElementById('ac-spinner');
+    
+    // Clean up purely visual locking if they haven't typed yet, just to be safe
+    if (input) input.style.borderColor = '#e5e7eb';
+    if (input) input.style.backgroundColor = '#fff';
+    if (badge) badge.style.display = 'none';
+    if (msg) msg.style.display = 'none';
+    if (alts) alts.style.display = 'none';
+    
+    // Basic validation
+    const code = value.replace(/\D/g, '');
+    VerificationFlow.selectedAreaCode = code.length === 3 ? code : null;
+    updateSelectionChips();
+    updateContinueBtn();
+    
+    if (code.length < 3) {
+        if (_acCheckTimeout) clearTimeout(_acCheckTimeout);
+        if (spinner) spinner.style.display = 'none';
+        return;
+    }
+    
+    if (!VerificationFlow.selectedService) return; // Need service to score
+    
+    // Set loading
+    if (spinner) spinner.style.display = 'block';
+    if (btn) btn.style.display = 'none';
+    
+    if (_acCheckTimeout) clearTimeout(_acCheckTimeout);
+    if (_acCheckAbort) _acCheckAbort.abort();
+    
+    _acCheckTimeout = setTimeout(() => {
+        checkAreaCodeAPI(code);
+    }, 500);
+}
+
+async function checkAreaCodeAPI(code) {
+    const input = document.getElementById('area-code-search-input');
+    const badge = document.getElementById('ac-status-badge');
+    const msg = document.getElementById('ac-message');
+    const alts = document.getElementById('ac-alternatives');
+    const spinner = document.getElementById('ac-spinner');
+    const btn = document.getElementById('clear-ac-btn');
+    const continueBtn = document.getElementById('continue-btn');
+    
+    _acCheckAbort = new AbortController();
+    try {
+        const res = await fetch(`/api/area-codes/check?service=${encodeURIComponent(VerificationFlow.selectedService)}&area_code=${encodeURIComponent(code)}`, {
+            signal: _acCheckAbort.signal
+        });
+        
+        spinner.style.display = 'none';
+        btn.style.display = 'block';
+        
+        if (!res.ok) {
+            // Probably unsupported provider format or invalid
+            const data = await res.json().catch(()=>({}));
+            input.style.borderColor = '#ef4444';
+            msg.textContent = data.error?.message || data.detail || 'Unsupported area code';
+            msg.style.color = '#dc2626';
+            msg.style.display = 'block';
+            updateContinueBtn();
+            return;
+        }
+        
+        const data = await res.json();
+        
+        if (data.status === 'available') {
+            input.style.borderColor = '#10b981';
+            input.style.backgroundColor = '#f0fdf4';
+            badge.textContent = '✓ Available';
+            badge.style.color = '#10b981';
+            badge.style.display = 'inline-block';
+            msg.textContent = data.message;
+            msg.style.color = '#059669';
+            msg.style.display = 'block';
+            updateContinueBtn();
+            
+        } else if (data.status === 'unavailable') {
+            input.style.borderColor = '#f59e0b';
+            input.style.backgroundColor = '#fffbeb';
+            badge.textContent = 'Unavailable';
+            badge.style.color = '#d97706';
+            badge.style.display = 'inline-block';
+            msg.textContent = data.message;
+            msg.style.color = '#92400e';
+            msg.style.display = 'block';
+            
+            // Mark state as custom error to block continue button explicitly
+            continueBtn.disabled = true;
+            
+            if (data.alternatives && data.alternatives.length > 0) {
+                renderAlternatives(data.alternatives);
+            }
+            
+        } else if (data.status === 'unknown') {
+            input.style.borderColor = '#e5e7eb';
+            msg.textContent = data.message;
+            msg.style.color = '#6b7280';
+            msg.style.display = 'block';
+            updateContinueBtn();
+            
+            if (data.alternatives && data.alternatives.length > 0) {
+                renderAlternatives(data.alternatives);
+            }
+        }
+        
+    } catch (e) {
+        if (e.name === 'AbortError') return;
+        spinner.style.display = 'none';
+        btn.style.display = 'block';
+        console.error('Area code check failed', e);
+        // Fallback to unknown if API fails
+        msg.textContent = "Availability will be confirmed on purchase. You won't be charged if unavailable.";
+        msg.style.color = '#6b7280';
+        msg.style.display = 'block';
+        updateContinueBtn();
+    }
+}
+
+function renderAlternatives(alts) {
+    const list = document.getElementById('ac-alternatives');
+    let html = '<div style="font-size:11px; font-weight:600; color:#6b7280; margin-top:4px;">Try nearby options:</div>';
+    
+    alts.forEach(alt => {
+        let dotColor = '#9ca3af'; // unknown
+        if (alt.status === 'available') dotColor = '#10b981';
+        if (alt.status === 'unavailable') dotColor = '#ef4444';
+        
+        const tierLabels = {
+            'same_city': 'Same City',
+            'nearby': 'Nearby',
+            'same_state': 'Same State'
+        };
+        
+        html += `
+            <div onclick="selectAlternative('${alt.area_code}')" style="display:flex; justify-content:space-between; align-items:center; padding:6px 10px; background:#f9fafb; border:1px solid #f3f4f6; border-radius:6px; cursor:pointer; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='#f9fafb'">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="width:8px; height:8px; border-radius:50%; background:${dotColor};"></span>
+                    <span style="font-size:13px; font-weight:600; color:#374151;">${alt.area_code}</span>
+                    <span style="font-size:12px; color:#6b7280;">(${alt.city})</span>
+                </div>
+                <div style="font-size:11px; margin-left:8px; color:#9ca3af; background:#fff; padding:2px 6px; border:1px solid #e5e7eb; border-radius:4px;">
+                    ${tierLabels[alt.proximity] || alt.proximity}
+                </div>
+            </div>
+        `;
+    });
+    list.innerHTML = html;
+    list.style.display = 'flex';
+}
+
+function selectAlternative(code) {
+    const input = document.getElementById('area-code-search-input');
+    input.value = code;
+    debouncedCheckAreaCode(code);
+}
+
 </script>
 {% endblock %}

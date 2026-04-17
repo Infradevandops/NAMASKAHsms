@@ -51,6 +51,7 @@ from app.models.reseller import (
     BulkOperation,
 )
 from app.models.forwarding import ForwardingConfig
+from app.models.purchase_outcome import PurchaseOutcome
 from app.utils.security import create_access_token
 from main import app
 

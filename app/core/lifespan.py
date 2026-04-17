@@ -105,11 +105,18 @@ async def lifespan(app):
         # Start SMS polling background service
         if os.getenv("TESTING") != "1":
             from app.services.sms_polling_service import sms_polling_service
+            from app.services.refund_policy_enforcer import refund_policy_enforcer
 
             polling_task = asyncio.create_task(
                 sms_polling_service.start_background_service()
             )
-            startup_logger.info("SMS polling background service started")
+            startup_logger.info("✅ SMS polling background service started")
+            
+            # Start refund policy enforcer (backup to polling service)
+            enforcer_task = asyncio.create_task(
+                refund_policy_enforcer.start_enforcement()
+            )
+            startup_logger.info("✅ Refund policy enforcer started (5-min backup)")
         else:
             startup_logger.info("Skipping SMS polling in test mode")
 
@@ -124,8 +131,11 @@ async def lifespan(app):
     startup_logger.info("🛑 Shutting down Namaskah SMS API...")
     if os.getenv("TESTING") != "1":
         from app.services.sms_polling_service import sms_polling_service
+        from app.services.refund_policy_enforcer import refund_policy_enforcer
 
         await sms_polling_service.stop_background_service()
+        await refund_policy_enforcer.stop_enforcement()
+        startup_logger.info("✅ Background services stopped")
     from app.core.unified_cache import cache
 
     try:

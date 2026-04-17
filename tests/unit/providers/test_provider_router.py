@@ -32,8 +32,9 @@ class TestProviderRouter:
         assert provider.name == "textverified"
 
     def test_international_routes_to_fivesim(self, router):
-        """International requests should route to 5sim by default."""
-        with patch.object(router, "_get_fivesim") as mock_fivesim:
+        """International requests should route to 5sim if no specialist is available."""
+        with patch.object(router, "_get_fivesim") as mock_fivesim, \
+             patch.object(router, "_pvapins_covers", return_value=False):
             mock_provider = MagicMock()
             mock_provider.enabled = True
             mock_provider.name = "5sim"
@@ -44,7 +45,8 @@ class TestProviderRouter:
 
     def test_enterprise_preference_routes_to_telnyx(self, router):
         """Enterprise preference should route to Telnyx."""
-        with patch.object(router, "_get_telnyx") as mock_telnyx:
+        with patch.object(router, "_get_telnyx") as mock_telnyx, \
+             patch.object(router, "_pvapins_covers", return_value=False):
             mock_provider = MagicMock()
             mock_provider.enabled = True
             mock_provider.name = "telnyx"
@@ -55,9 +57,9 @@ class TestProviderRouter:
 
     def test_fallback_to_textverified_when_no_international_provider(self, router):
         """Should fallback to TextVerified when no international provider available."""
-        with patch.object(router, "_get_fivesim") as mock_fivesim, patch.object(
-            router, "_get_telnyx"
-        ) as mock_telnyx:
+        with patch.object(router, "_get_fivesim") as mock_fivesim, \
+             patch.object(router, "_get_telnyx") as mock_telnyx, \
+             patch.object(router, "_get_pvapins") as mock_pvapins:
 
             mock_fivesim_provider = MagicMock()
             mock_fivesim_provider.enabled = False
@@ -66,6 +68,10 @@ class TestProviderRouter:
             mock_telnyx_provider = MagicMock()
             mock_telnyx_provider.enabled = False
             mock_telnyx.return_value = mock_telnyx_provider
+
+            mock_pvapins_provider = MagicMock()
+            mock_pvapins_provider.enabled = False
+            mock_pvapins.return_value = mock_pvapins_provider
 
             provider, _, _ = router.get_provider("GB")
             assert provider.name == "textverified"
@@ -194,16 +200,20 @@ class TestProviderRouter:
         mock_fivesim = AsyncMock()
         mock_fivesim.enabled = False
 
-        with patch.object(
-            router, "_get_textverified", return_value=mock_tv
-        ), patch.object(router, "_get_telnyx", return_value=mock_telnyx), patch.object(
-            router, "_get_fivesim", return_value=mock_fivesim
-        ):
+        mock_pvapins = AsyncMock()
+        mock_pvapins.enabled = True
+        mock_pvapins.get_balance.return_value = 25.0
+
+        with patch.object(router, "_get_textverified", return_value=mock_tv), \
+             patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
+             patch.object(router, "_get_fivesim", return_value=mock_fivesim), \
+             patch.object(router, "_get_pvapins", return_value=mock_pvapins):
 
             balances = await router.get_provider_balances()
 
             assert balances["textverified"] == 100.0
             assert balances["telnyx"] == 50.0
+            assert balances["pvapins"] == 25.0
             assert "5sim" not in balances
 
     def test_get_enabled_providers(self, router):
@@ -217,16 +227,19 @@ class TestProviderRouter:
         mock_fivesim = MagicMock()
         mock_fivesim.enabled = False
 
-        with patch.object(
-            router, "_get_textverified", return_value=mock_tv
-        ), patch.object(router, "_get_telnyx", return_value=mock_telnyx), patch.object(
-            router, "_get_fivesim", return_value=mock_fivesim
-        ):
+        mock_pvapins = MagicMock()
+        mock_pvapins.enabled = True
+
+        with patch.object(router, "_get_textverified", return_value=mock_tv), \
+             patch.object(router, "_get_telnyx", return_value=mock_telnyx), \
+             patch.object(router, "_get_fivesim", return_value=mock_fivesim), \
+             patch.object(router, "_get_pvapins", return_value=mock_pvapins):
 
             enabled = router.get_enabled_providers()
 
             assert "textverified" in enabled
             assert "telnyx" in enabled
+            assert "pvapins" in enabled
             assert "5sim" not in enabled
 
     def test_failover_provider_selection_textverified_failed(self, router):
@@ -254,13 +267,14 @@ class TestProviderRouter:
             assert failover == mock_fivesim
 
     def test_failover_provider_selection_fivesim_failed(self, router):
-        """When 5sim fails, should try Telnyx then TextVerified."""
+        """When 5sim fails, should try PVApins then Telnyx then TextVerified."""
         mock_fivesim = MagicMock()
         mock_fivesim.name = "5sim"
 
-        mock_telnyx = MagicMock()
-        mock_telnyx.enabled = True
+        mock_pvapins = MagicMock()
+        mock_pvapins.enabled = True
 
-        with patch.object(router, "_get_telnyx", return_value=mock_telnyx):
+        with patch.object(router, "_get_pvapins", return_value=mock_pvapins), \
+             patch.object(router, "_pvapins_covers", return_value=True):
             failover = router._get_failover_provider(mock_fivesim, "GB")
-            assert failover == mock_telnyx
+            assert failover == mock_pvapins
