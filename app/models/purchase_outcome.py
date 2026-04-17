@@ -51,8 +51,9 @@ class PurchaseOutcome(Base):
     # Financial Telemetry
     is_refunded = Column(Boolean, default=False, index=True)
     refund_amount = Column(Float, default=0.0)
-    provider_cost = Column(Float, nullable=True)  # Raw cost paid to the SMS API
-    user_price = Column(Float, nullable=True)     # Total credits paid by the user
+    refund_reason = Column(String(100), nullable=True)  # "sms_timeout", "area_code_mismatch", etc.
+    provider_cost = Column(Float, nullable=True)     # Total credits paid to the provider
+    user_price = Column(Float, nullable=True)        # Total credits paid by the user
 
     # Phase 6.4 Alternative Tracking
     selected_from_alternatives = Column(Boolean, nullable=True, default=False)
