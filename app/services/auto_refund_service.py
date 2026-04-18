@@ -104,9 +104,10 @@ class AutoRefundService:
             elif reason == "area_code_mismatch":
                 display_reason = "Area Code Mismatch"
 
+            import uuid
+
             from app.core.constants import TransactionType
             from app.models.balance_transaction import BalanceTransaction
-            import uuid
 
             # 1. Create BalanceTransaction (for accounting)
             balance_tx = BalanceTransaction(
@@ -116,7 +117,7 @@ class AutoRefundService:
                 type=TransactionType.REFUND,
                 description=f"Refund: {verification.service_name} ({display_reason})",
                 balance_after=float(user.credits),
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             self.db.add(balance_tx)
             self.db.flush()
@@ -130,7 +131,7 @@ class AutoRefundService:
                 description=f"Auto-refund: {verification.service_name} ({display_reason})",
                 status="completed",
                 reference=f"refund_{verification.id}",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             self.db.add(transaction)
 

@@ -52,32 +52,46 @@ async def cancel_verification(
         # 1. Cancel on provider side
         if verification.activation_id:
             from app.services.providers.provider_router import ProviderRouter
+
             p_router = ProviderRouter()
-            
+
             # Use appropriate adapter
             adapter = None
             if verification.provider == "textverified":
-                from app.services.providers.textverified_adapter import TextVerifiedAdapter
+                from app.services.providers.textverified_adapter import (
+                    TextVerifiedAdapter,
+                )
+
                 adapter = TextVerifiedAdapter()
             elif verification.provider == "telnyx":
                 from app.services.providers.telnyx_adapter import TelnyxAdapter
+
                 adapter = TelnyxAdapter()
             elif verification.provider == "5sim":
                 from app.services.providers.fivesim_adapter import FiveSimAdapter
+
                 adapter = FiveSimAdapter()
             elif verification.provider == "pvapins":
                 from app.services.providers.pvapins_adapter import PVAPinsAdapter
+
                 adapter = PVAPinsAdapter()
 
             if adapter:
                 try:
                     await adapter.cancel(verification.activation_id)
-                    logger.info(f"Cancelled {verification.provider} activation: {verification.activation_id}")
+                    logger.info(
+                        f"Cancelled {verification.provider} activation: {verification.activation_id}"
+                    )
                 except Exception as provider_error:
-                    logger.warning(f"Provider cancellation failed for {verification.provider}: {provider_error}")
+                    logger.warning(
+                        f"Provider cancellation failed for {verification.provider}: {provider_error}"
+                    )
 
         # 2. Mark as failed in DB
-        from app.services.verification_status_service import mark_verification_cancelled_by_user
+        from app.services.verification_status_service import (
+            mark_verification_cancelled_by_user,
+        )
+
         mark_verification_cancelled_by_user(db, verification)
 
         # 3. Process refund immediately

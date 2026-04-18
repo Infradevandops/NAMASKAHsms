@@ -2,12 +2,12 @@
 
 from datetime import datetime, timezone
 from typing import Any, Dict, Optional, Tuple
-from app.models.verification import Verification
 
 from sqlalchemy.orm import Session
 
 from app.core.logging import get_logger
 from app.models.user import User
+from app.models.verification import Verification
 from app.services.textverified_service import TextVerifiedService
 
 logger = get_logger(__name__)
@@ -122,15 +122,16 @@ class BalanceService:
         country_code: str,
     ) -> Tuple[bool, Optional[str]]:
         """Deduct credits and create transaction records.
-        
+
         Returns:
             Tuple of (success: bool, error_message: Optional[str])
         """
+        import uuid
+
         from app.core.constants import FailureReason, TransactionType
         from app.models.balance_transaction import BalanceTransaction
         from app.models.transaction import Transaction
         from app.services.verification_status_service import mark_verification_failed
-        import uuid
 
         # Check sufficient balance
         if float(user.credits) < cost:
@@ -157,10 +158,10 @@ class BalanceService:
                 type=TransactionType.DEBIT,
                 description=f"SMS: {service_name} ({country_code})",
                 balance_after=new_balance,
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(balance_tx)
-            
+
             # 2. Create Transaction (for analytics/history)
             transaction = Transaction(
                 id=str(uuid.uuid4()),
@@ -171,18 +172,20 @@ class BalanceService:
                 service=service_name,
                 status="completed",
                 reference=f"sms_{verification.id}",
-                created_at=datetime.now(timezone.utc)
+                created_at=datetime.now(timezone.utc),
             )
             db.add(transaction)
-            
+
             # Link verification to balance transaction
             verification.debit_transaction_id = balance_tx.id
-            
+
             db.commit()
-            logger.info(f"Credits deducted for {user.id}: ${cost:.2f} (New balance: ${new_balance:.2f})")
-            
+            logger.info(
+                f"Credits deducted for {user.id}: ${cost:.2f} (New balance: ${new_balance:.2f})"
+            )
+
             return True, None
-            
+
         except Exception as e:
             db.rollback()
             logger.error(f"Credit deduction failed for {user.id}: {e}")

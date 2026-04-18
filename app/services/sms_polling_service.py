@@ -275,6 +275,7 @@ class SMSPollingService:
             return
 
         from app.services.verification_status_service import mark_sms_code_received
+
         mark_sms_code_received(db, v, sms_code, sms_text)
 
         # Instrumentation
@@ -326,18 +327,18 @@ class SMSPollingService:
     ):
         from app.core.constants import FailureReason
         from app.services.verification_status_service import mark_verification_failed
-        
+
         # Calculate reason
         failure_reason = FailureReason.SMS_NOT_DELIVERED
         if reason == "timeout":
             failure_reason = FailureReason.PROVIDER_TIMEOUT
-            
+
         mark_verification_failed(
-            db, 
-            verification, 
+            db,
+            verification,
             reason=failure_reason,
             error_message=f"SMS not received within timeframe: {reason}",
-            refund_eligible=True
+            refund_eligible=True,
         )
 
         # Phase 10: Categorization
