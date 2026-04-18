@@ -28,7 +28,9 @@ router = APIRouter(prefix="/rentals", tags=["Rentals"])
 
 
 class RentalExtendRequest(BaseModel):
-    extra_hours: float = Field(..., gt=0, le=720, description="Hours to add (max 30 days)")
+    extra_hours: float = Field(
+        ..., gt=0, le=720, description="Hours to add (max 30 days)"
+    )
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -54,7 +56,9 @@ def _format_rental(r) -> dict:
 # ── Endpoints ─────────────────────────────────────────────────────────────────
 
 
-@router.post("/request", status_code=status.HTTP_201_CREATED, summary="Purchase a number rental")
+@router.post(
+    "/request", status_code=status.HTTP_201_CREATED, summary="Purchase a number rental"
+)
 async def request_rental(
     request: VerificationRequest,
     db: Session = Depends(get_db),
@@ -81,8 +85,11 @@ async def request_rental(
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Rental request failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Rental service temporarily unavailable")
+        raise HTTPException(
+            status_code=500, detail="Rental service temporarily unavailable"
+        )
 
 
 @router.get("/active", summary="List active rentals")
@@ -153,6 +160,7 @@ async def cancel_rental(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Rental cancel failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to cancel rental")
 
@@ -175,5 +183,6 @@ async def extend_rental(
         raise HTTPException(status_code=503, detail=str(e))
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).error(f"Rental extend failed: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail="Failed to extend rental")
