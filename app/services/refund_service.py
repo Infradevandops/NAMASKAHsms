@@ -98,9 +98,10 @@ class RefundService:
                 )
 
                 # Create BalanceTransaction (Strict Audit)
+                from datetime import datetime, timezone
+
                 from app.core.constants import TransactionType
                 from app.models.balance_transaction import BalanceTransaction
-                from datetime import datetime, timezone
 
                 balance_tx = BalanceTransaction(
                     user_id=user.id,
@@ -149,9 +150,10 @@ class RefundService:
             )
 
             # Create BalanceTransaction (Strict Audit)
+            from datetime import datetime, timezone
+
             from app.core.constants import TransactionType
             from app.models.balance_transaction import BalanceTransaction
-            from datetime import datetime, timezone
 
             balance_tx = BalanceTransaction(
                 user_id=user.id,

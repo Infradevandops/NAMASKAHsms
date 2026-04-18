@@ -7,8 +7,8 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
-from app.models.user import User
 from app.models.transaction import PaymentLog, Transaction
+from app.models.user import User
 from app.services.balance_service import BalanceService
 
 router = APIRouter()

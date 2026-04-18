@@ -98,10 +98,11 @@ class ResellerService:
         sub.credits = type(sub.credits)(float(sub.credits or 0) + float(amount))
 
         # 1. Main System Audit (Reseller Balance Drop)
-        from app.models.transaction import Transaction
-        from app.models.balance_transaction import BalanceTransaction
-        from app.core.constants import TransactionType
         from datetime import datetime, timezone
+
+        from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
+        from app.models.transaction import Transaction
 
         desc = f"Allocation to sub-account: {sub.email}"
 

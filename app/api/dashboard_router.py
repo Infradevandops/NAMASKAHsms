@@ -1,6 +1,6 @@
 """Core Dashboard API Router - Institutional Grade Implementation"""
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends
@@ -173,8 +173,8 @@ async def get_analytics_summary(
         ]
 
         # Financial summary from Balance Ledger (The Single Source of Truth)
-        from app.models.balance_transaction import BalanceTransaction
         from app.core.constants import TransactionType
+        from app.models.balance_transaction import BalanceTransaction
 
         balance_txs = (
             db.query(BalanceTransaction)

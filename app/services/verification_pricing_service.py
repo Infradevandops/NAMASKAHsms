@@ -67,10 +67,11 @@ class VerificationPricingService:
 
         # Create main records if credits were actually taken
         if credits_deducted > 0:
-            from app.models.transaction import Transaction
-            from app.models.balance_transaction import BalanceTransaction
-            from app.core.constants import TransactionType
             from datetime import datetime, timezone
+
+            from app.core.constants import TransactionType
+            from app.models.balance_transaction import BalanceTransaction
+            from app.models.transaction import Transaction
 
             tx = Transaction(
                 user_id=user_id,

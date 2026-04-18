@@ -10,7 +10,6 @@ from app.core.logging import get_logger
 from app.models import Verification
 from app.services.adaptive_polling import AdaptivePollingService
 from app.services.auto_refund_service import AutoRefundService
-
 from app.services.notification_dispatcher import NotificationDispatcher
 from app.services.notification_service import NotificationService
 from app.services.purchase_intelligence import PurchaseIntelligenceService

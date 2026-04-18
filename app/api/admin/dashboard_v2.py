@@ -2,15 +2,16 @@
 
 from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional
+
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import desc, func
 from sqlalchemy.orm import Session
-from sqlalchemy import func, desc
 
 from app.core.database import get_db
 from app.core.dependencies import get_current_user_id
+from app.models.purchase_outcome import PurchaseOutcome
 from app.models.user import User
 from app.models.verification import Verification
-from app.models.purchase_outcome import PurchaseOutcome
 from app.services.analytics_service import AnalyticsService
 
 router = APIRouter()

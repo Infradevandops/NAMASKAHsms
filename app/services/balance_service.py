@@ -201,11 +201,11 @@ class BalanceService:
 
                 dispatcher = NotificationDispatcher(db)
                 # 1. Notify balance update
-                from app.core.cache import get_redis
-
                 # We use a background task for notifications instead of create_task here
                 # to keep this service focused on DB integrity.
                 import asyncio
+
+                from app.core.cache import get_redis
 
                 asyncio.create_task(
                     dispatcher.notify_balance_deducted(
